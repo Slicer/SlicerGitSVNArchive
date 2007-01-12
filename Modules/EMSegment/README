@@ -1,0 +1,6 @@
+Description of directories:
+
+Wizard       ---gui and wizard workflow code
+Algorithm    ---EMSegement algorithm code approximately Sept 1 2006
+MRML         ---MRML nodes defined for this module
+
