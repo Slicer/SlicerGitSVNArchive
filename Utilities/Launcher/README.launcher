@@ -1,0 +1,31 @@
+
+Slicer3 Launcher info - sp 2007-02-09
+
+Important files:
+	slicer3.vfs/main.tcl --- controls the launch processes
+	make-launcers.tcl --- regenerates the toplevel executables
+
+This launcher code addresses a long-standing issue about
+just how to conveniently have different slicer versions
+in arbitrary directories.  The old method was to set the SLICER_HOME
+variable in the script (either slicer or slicer.bat) and let
+it be overridden by an environment variable, but this was 
+confusing to users and prone to error.
+
+This method uses the tcl-plus-script-in-a-binary method so there's
+a single entry point to slicer that automatically sets the SLICER_HOME
+variable before launching the appropriate shell or batch script.
+
+Ultimately, we can put more and more of the functionality of the shell
+and batch script into the startup script in the launcher, but for now it's 
+just a simple dialog and passing the args.
+
+The linux and solaris versions use the brand new "starpack" concept
+(see www.equi4.com) and can be generated using the make-launcher.tcl
+script.  These are build by running make-launchers.tcl on any platform.
+The incorporate slicer3.vfs/main.tcl into the newly created executable.
+
+Be sure to run tclkitsh where available (windows) to avoid entering into 
+an infinite loop in the tk event loop.
+
+Note: this code is ported from slicer2.

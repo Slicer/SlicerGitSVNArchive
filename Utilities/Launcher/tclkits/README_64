@@ -1,0 +1,9 @@
+Note: as of 2006-03-31 the x86_64 version of tclkit has an unresolved
+dependency on a libstdc++.so.6 version that is not present on some
+linux machines.
+
+To get around this, the x86_64 executable is actually the same as the
+x86 executable, since that version runs fine on both architectures.
+The reason it exists is simply to give people a path with the correct
+extension to match the build type.  The actual machine architecture is
+determined at run time.
