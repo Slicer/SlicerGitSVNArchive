@@ -31,6 +31,7 @@ proc Usage { {msg ""} } {
     set msg "$msg\n   -l --log-dir : directory to write log files"
     set msg "$msg\n   -r --retries : number or retries on failure (default 0)"
     set msg "$msg\n                : -1 to loop until killed or success"
+    set msg "$msg\n   -w --wrapper : run as a command wrapper and write done-file when command exits"
     puts stderr $msg
 }
 
@@ -38,6 +39,7 @@ set ::LOOPY(cmd) ""
 set ::LOOPY(doneFile) ""
 set ::LOOPY(logDir) ""
 set ::LOOPY(retries) 0
+set ::LOOPY(wrapper) 0
 set strippedargs ""
 set argc [llength $argv]
 for {set i 0} {$i < $argc} {incr i} {
@@ -70,6 +72,10 @@ for {set i 0} {$i < $argc} {incr i} {
                 set ::LOOPY(retries) [lindex $argv $i]
             }
         }
+        "--wrapper" -
+        "-w" {
+          set ::LOOPY(wrapper) 1
+        }
         "--help" -
         "-h" {
             Usage
@@ -94,6 +100,15 @@ if {$argc > 1 } {
 
 eval set ::LOOPY(cmd) $argv
 
+
+if { $::LOOPY(wrapper) } {
+  if { $::LOOPY(cmd) != "" } {
+    eval exec $::LOOPY(cmd)
+  }
+  file mkdir [file dirname $::LOOPY(doneFile)]
+  close [open $::LOOPY(doneFile) "w"]
+  exit 0
+}
 
 
 
@@ -120,6 +135,7 @@ set tries 0
 while { ![file exists $::LOOPY(doneFile)] } { 
 
   set started $::LOOPY(doneFile).started
+  file mkdir [file dirname $::LOOPY(doneFile)]
   if { ![file exists $started] } {
     set id [launchcmd_local $::LOOPY(cmd)]
     set fp [open $started "w"]
@@ -132,7 +148,7 @@ while { ![file exists $::LOOPY(doneFile)] } {
     set id [read $fp]
     close $fp
     if { [checkcmd_local $id] } {
-      after 1000
+      after 100
     } else {
       break
     }
