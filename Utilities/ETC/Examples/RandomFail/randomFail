@@ -1,0 +1,89 @@
+#!/bin/sh
+# the next line restarts using tclsh \
+    exec tclsh "$0" "$@"
+
+
+proc Usage { {msg ""} } {
+    
+    set msg "$msg\nusage: randomFail \[options\] <cmd>"
+    set msg "$msg\n  <cmd> is the command to run"
+    set msg "$msg\n  \[options\] is one of the following:"
+    set msg "$msg\n   -h --help : prints this message and exits"
+    set msg "$msg\n   -d --delay : time to wait"
+    set msg "$msg\n   -o --out-file : file to write when exiting"
+    set msg "$msg\n   -p --p-fail : probability of failure (0 - 1)"
+    puts stderr $msg
+}
+
+set ::FAIL(delay) 400
+set ::FAIL(outFile) ""
+set ::FAIL(pFail) 0.9
+set strippedargs ""
+set argc [llength $argv]
+for {set i 0} {$i < $argc} {incr i} {
+    set a [lindex $argv $i]
+    switch -glob -- $a {
+        "--delay" -
+        "-d" {
+            incr i
+            if { $i == $argc } {
+                Usage "Missing delay argument"
+            } else {
+                set ::FAIL(delay) [lindex $argv $i]
+            }
+        }
+        "--out-file" -
+        "-o" {
+            incr i
+            if { $i == $argc } {
+                Usage "Missing out-file argument"
+            } else {
+                set ::FAIL(outFile) [lindex $argv $i]
+            }
+        }
+        "--p-fail" -
+        "-p" {
+            incr i
+            if { $i == $argc } {
+                Usage "Missing p-fail argument"
+            } else {
+                set ::FAIL(pFail) [lindex $argv $i]
+            }
+        }
+        "--help" -
+        "-h" {
+            Usage
+            exit 1
+        }
+        "-*" {
+            Usage "unknown option $a\n"
+            exit 1
+        }
+        default {
+            lappend strippedargs $a
+        }
+    }
+}
+set argv $strippedargs
+set argc [llength $argv]
+
+if {$argc > 1 } {
+    Usage
+    exit 1
+}
+
+# required args
+if { $::FAIL(outFile) == "" } {
+    Usage "must specify output file"
+    exit 1
+}
+
+after $::FAIL(delay)
+if { [expr rand()] > $::FAIL(pFail) } {
+  close [open $::FAIL(outFile) "w"]
+  puts stdout "happy ending!"
+  exit 0
+} else {
+  puts stderr "horrible failure!"
+  exit 1
+}
