@@ -1,6 +1,6 @@
 LOOPY=../../loopy --retries 10
-SEGMENTER=./randomFail -p-fail 0.6 -delay 2000
-STATISTICS=./randomFail -p-fail 0.6 -delay 2000
+SEGMENTER=./randomFail --p-fail 0.0 --delay 2000
+STATISTICS=./randomFail --p-fail 0.0 --delay 2000
 
 
 all: data/summary-statistics.out
