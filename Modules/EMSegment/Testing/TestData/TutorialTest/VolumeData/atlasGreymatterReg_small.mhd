@@ -1,0 +1,10 @@
+ObjectType = Image
+NDims = 3
+BinaryData = True
+BinaryDataByteOrderMSB = False
+ElementSpacing = 4 4 4
+DimSize = 64 64 31
+Position = 0 0 0
+ElementNumberOfChannels = 1
+ElementType = MET_SHORT
+ElementDataFile = atlasGreymatterReg_small.raw
