@@ -10,4 +10,4 @@ AnatomicalOrientation = RPI
 ElementSpacing = 3.75 3.75 6
 DimSize = 64 64 31
 ElementType = MET_SHORT
-ElementDataFile = StandardSegmentationResult_small.raw
+ElementDataFile = StandardSegmentationResult_small_normalizationOn.raw
