@@ -1,2 +1,4 @@
-vtkMRMLFiducialListNode	GetNthFiducialXYZ	301	3
-vtkMRMLFiducialListNode	GetNthFiducialOrientation	301	4
+vtkMRMLFiducialListNode GetNthFiducialXYZ 301 3
+vtkMRMLFiducialListNode GetNthFiducialOrientation 301 4
+vtkMRMLROIListNode GetNthROIXYZ 301 3
+vtkMRMLROIListNode GetNthROIDeltaXYZ 301 3
