@@ -9,6 +9,5 @@ CenterOfRotation = 0 0 0
 AnatomicalOrientation = RPI
 ElementSpacing = 3.75 3.75 6
 DimSize = 64 64 31
-ElementNumberOfChannels = 1
 ElementType = MET_SHORT
 ElementDataFile = segmentationResult_small.raw
