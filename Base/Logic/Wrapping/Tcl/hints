@@ -1,1 +1,3 @@
 vtkSlicerSliceLogic GetBackgroundSliceSpacing 307 3
+vtkSlicerSliceLogic GetVolumeSliceSpacing 307 3
+vtkSlicerSliceLogic GetLowestVolumeSliceSpacing 307 3
