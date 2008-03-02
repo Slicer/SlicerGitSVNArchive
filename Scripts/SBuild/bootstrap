@@ -1,0 +1,28 @@
+#!/bin/sh
+# the next line restarts using tclsh \
+    exec tclsh "$0" "$@"
+
+set cmd "run"
+
+if { [llength $argv] > 0 } {
+  set cmd [lindex $argv 0]
+}
+
+switch $cmd {
+  "run" {
+    # Run the starkit
+    cd SBuild.vfs
+    pkg_mkIndex lib/SBuildPlugins *.tcl
+    pkg_mkIndex lib/SBuildHelpers *.tcl
+    exec ../tclkit-darwin-univ main.tcl
+  }
+  "build" {
+    set d [pwd]
+    catch { source sdx.kit }
+    package require sdx
+    cd $d
+    sdx::sdx wrap SBuild.kit
+    catch { sdx::sdx wrap SBuild -runtime tclkit-darwin-univ }
+  }
+}
+exit
