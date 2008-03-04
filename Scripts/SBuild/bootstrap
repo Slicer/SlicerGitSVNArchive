@@ -3,10 +3,31 @@
     exec tclsh "$0" "$@"
 
 set cmd "run"
+set HomeDir [file dirname [info script]]
+cd $HomeDir
+set HomeDir [pwd]
 
 if { [llength $argv] > 0 } {
   set cmd [lindex $argv 0]
 }
+
+proc GetArch { arch } {
+  package require http
+  file mkdir tclkits
+  if { ![file exists tclkits/tclkit-$arch] } {
+    puts "Fetching tclkit-$arch"
+    set url  "http://www.equi4.com/pub/tk/8.5b1/tclkit-$arch.gz"
+    set file [file join tclkits [file tail $url]]
+    set fid  [open $file w]
+    set tok  [http::geturl $url -binary 1 -channel $fid]
+    http::wait $tok
+    close $fid
+    exec gunzip tclkits/tclkit-$arch
+  }
+}
+
+
+
 
 switch $cmd {
   "run" {
@@ -17,12 +38,23 @@ switch $cmd {
     exec ../tclkit-darwin-univ main.tcl
   }
   "build" {
-    set d [pwd]
+    cd SBuild.vfs
+    pkg_mkIndex lib/SBuildPlugins *.tcl
+    pkg_mkIndex lib/SBuildHelpers *.tcl
+    cd $HomeDir
+    puts "[pwd]"
     catch { source sdx.kit }
     package require sdx
-    cd $d
-    sdx::sdx wrap SBuild.kit
-    catch { sdx::sdx wrap SBuild -runtime tclkit-darwin-univ }
+    cd $HomeDir
+    puts [pwd]
+    catch { sdx::sdx wrap SBuild.kit }
+    set tclkitdir [file join $HomeDir tclkits]
+    foreach arch {linux-x86 linux-x86_64 darwin-ppc darwin-x86 win32.exe} {
+      puts "Building $arch..."
+      GetArch $arch
+      catch { sdx::sdx wrap SBuild -runtime [file join $tclkitdir tclkit-$arch] }
+      file rename -force SBuild SBuild-$arch
+    }
   }
 }
 exit
