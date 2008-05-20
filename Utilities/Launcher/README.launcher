@@ -7,13 +7,13 @@ Important files:
 
 This launcher code addresses a long-standing issue about
 just how to conveniently have different slicer versions
-in arbitrary directories.  The old method was to set the SLICER_HOME
+in arbitrary directories.  The old method was to set the Slicer3_HOME
 variable in the script (either slicer or slicer.bat) and let
 it be overridden by an environment variable, but this was 
 confusing to users and prone to error.
 
 This method uses the tcl-plus-script-in-a-binary method so there's
-a single entry point to slicer that automatically sets the SLICER_HOME
+a single entry point to slicer that automatically sets the Slicer3_HOME
 variable before launching the appropriate shell or batch script.
 
 Ultimately, we can put more and more of the functionality of the shell
