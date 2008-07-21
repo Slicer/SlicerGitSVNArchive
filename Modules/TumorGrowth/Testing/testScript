@@ -1,2 +1,2 @@
 
-../../../lib/Slicer3/Plugins/TumorGrowthCommandLine --scan1 scan1.nhdr --scan2 scan2.nhdr --sensitivity 0.5 --threshold 140,441 --roi_min 145,172,75 --roi_max 185,207,92 --intensity_analysis --deformable_analysis 
+../../../../../lib/Slicer3/Plugins/TumorGrowthCommandLine --scan1 scan1.nhdr --scan2 scan2.nhdr --sensitivity 0.5 --threshold 140,441 --roi_min 145,172,75 --roi_max 185,207,92 --intensity_analysis --deformable_analysis 
