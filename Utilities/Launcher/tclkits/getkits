@@ -4,5 +4,6 @@ wget http://www.equi4.com/pub/tk/8.4.13/tclkit-linux-x86_64.gz
 wget http://www.equi4.com/pub/tk/8.4.13/tclkit-darwin-ppc.gz
 wget http://www.equi4.com/pub/tk/8.4.13/tclkit-darwin-x86.gz
 wget http://www.equi4.com/pub/tk/8.4.13/tclkit-win32.exe.gz
+wget http://www.equi4.com/pub/tk/8.4.13/tclkit-solaris-x86.gz
 
 gunzip *.gz
