@@ -1,11 +1,11 @@
-VolumeRenderingCudaModule
+VolumeRenderingCuda
 vtkCudaVolumeMapper
 vtkCudaVolumeProperty
 vtkCudaVolumeInformationHandler
 vtkCudaRendererInformationHandler
 vtkVolumeRenderingCudaFactory
-vtkVolumeRenderingCudaModuleGUI
-vtkVolumeRenderingCudaModuleLogic
+vtkVolumeRenderingCudaGUI
+vtkVolumeRenderingCudaLogic
 vtkCudaImageDataFilter
 vtkCudaImageData
 vtkCudaMemoryTexture
