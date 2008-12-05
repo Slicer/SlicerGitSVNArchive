@@ -1,0 +1,114 @@
+project(MIMXCommon)
+
+INCLUDE_DIRECTORIES(
+  ${SlicerBase_SOURCE_DIR}
+  ${SlicerBase_BINARY_DIR}
+  ${SlicerBaseLogic_SOURCE_DIR}
+  ${SlicerBaseLogic_BINARY_DIR}
+  ${SlicerBaseGUI_SOURCE_DIR}
+  ${SlicerBaseGUI_BINARY_DIR}
+  ${vtkITK_SOURCE_DIR}
+  ${vtkITK_BINARY_DIR}
+  ${ITK_INCLUDE_DIR}
+  ${VTK_INCLUDE_DIR}
+  ${MIMXCommon_SOURCE_DIR} ${MIMXCommon_BINARY_DIR} 
+  ${mimxCommon_SOURCE_DIR} ${mimxCommon_BINARY_DIR} 
+  ${MIMXAdapter_SOURCE_DIR} ${MIMXAdapter_BINARY_DIR} 
+  ${MIMXWidgets_SOURCE_DIR} ${MIMXWidgets_BINARY_DIR} 
+  ${MIMXFilter_SOURCE_DIR} ${MIMXFilter_BINARY_DIR} 
+  ${MIMXMeshIO_SOURCE_DIR} ${MIMXMeshIO_BINARY_DIR} 
+  ${MIMXMesh_SOURCE_DIR} ${MIMXMesh_BINARY_DIR} 
+  ${MRML_SOURCE_DIR} ${MRML_BINARY_DIR}
+)
+
+#include_directories(
+#  ${CMAKE_CURRENT_SOURCE_DIR}
+#  ${CMAKE_CURRENT_BINARY_DIR}
+#  ${Slicer3_Libs_INCLUDE_DIRS}
+#  ${Slicer3_Base_INCLUDE_DIRS}
+#  ${MIMXAdapter_SOURCE_DIR}
+#  ${MIMXFilter_SOURCE_DIR}
+#) 
+
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/vtkCommonConfigure.h.in 
+  ${CMAKE_CURRENT_BINARY_DIR}/vtkCommonConfigure.h
+  )
+
+file(GLOB headers "${CMAKE_CURRENT_SOURCE_DIR}/*.h")
+file(GLOB templates "${CMAKE_CURRENT_SOURCE_DIR}/*.txx")
+install(FILES 
+  ${headers} 
+  ${templates} 
+  "${CMAKE_CURRENT_BINARY_DIR}/vtkCommonConfigure.h"
+  DESTINATION ${Slicer3_INSTALL_MODULES_INCLUDE_DIR}/${PROJECT_NAME} COMPONENT Development
+  )
+
+# --------------------------------------------------------------------------
+# Sources
+
+set(LIB_NAME "mimxCommon")
+set(LIB_SRCS 
+  #mimxRegisterVersorRigidFilter.cxx  
+  #mimxRegisterBSplineFilter.cxx 
+  #mimxTransformIO.cxx 
+  mimxCheckTypeOfFile.cxx
+  vtkContainer.cxx
+  vtkLinkedListWrapper.cxx
+  vtkMimxCurve.cxx
+  #vtkMimxSTLSource.cxx
+  #vtkMimxUGrid.cxx
+  vtkMimxBoundingBoxSource.cxx 
+  vtkLocalAxesActor.cxx
+  vtkPVAxesActor.cxx  
+  vtkMimxSolidStructuredGridSource.cxx
+  vtkMimxPlanarStructuredGridSource.cxx
+  vtkMeshQualityClass.cxx
+  vtkMimxApplyNodeElementNumbers.cxx
+  vtkMimxCreateIntervertebralDiscElementSets.cxx
+  vtkMimxMergeNodesPointAndCellData.cxx
+  vtkMimxMeshSeed.cxx
+  vtkMimxActorBase.cxx
+  vtkMimxSurfacePolyDataActor.cxx
+  vtkMimxUnstructuredGridActor.cxx
+  )
+
+# --------------------------------------------------------------------------
+# Build and install the library
+
+
+ADD_LIBRARY(${LIB_NAME} ${LIB_TCL_SRCS} ${LIB_SRCS} )
+
+#slicer3_set_modules_output_path(${lib_name})
+
+#include("${VTK_CMAKE_DIR}/vtkWrapTcl.cmake")
+#vtk_wrap_tcl3(${lib_name} 
+#   MIMXCommon_TCL_SRCS 
+#  "${MIMXCommon_SRCS}" "")
+  
+INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR})
+INCLUDE("${KWWidgets_CMAKE_DIR}/KWWidgetsWrappingMacros.cmake")
+KWWidgets_WRAP_TCL(${LIB_NAME} LIB_TCL_SRCS "${LIB_SRCS}" "")
+  
+
+TARGET_LINK_LIBRARIES(${LIB_NAME}
+  SlicerBaseLogic 
+  SlicerBaseGUI 
+  MRML
+  vtkCommonTCL
+  vtkImagingTCL
+  vtkFilteringTCL
+  vtkIOTCL
+  vtkWidgets
+  ${KWWidgets_LIBRARIES} 
+  #mimxWidgets
+  #mimxFilter
+  mimxMeshIO
+  ITKCommon
+  ITKBasicFilters
+  ITKIO
+  ITKAlgorithms
+  )
+ 
+  
+
