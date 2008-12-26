@@ -1,0 +1,9 @@
+The code in this directory is authored by Dan Mueller, and has been taken from
+Insight Journal submission 
+"LookAt Transform Initializer and Oblique Section Image Filter"
+http://www.insight-journal.org/browse/publication/168
+
+The code has been modified not to initialize the translation component, as
+indicated in the code.
+
+Andriy Fedorov
