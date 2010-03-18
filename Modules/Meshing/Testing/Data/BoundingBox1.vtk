@@ -17,4 +17,6 @@ CELL_TYPES 2
 12
 
 CELL_DATA 2
-POINT_DATA 12
+FIELD FieldData 1
+Mesh_Seed 3 2 int
+5 4 3 5 4 5 
