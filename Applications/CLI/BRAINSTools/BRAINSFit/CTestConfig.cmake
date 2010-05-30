@@ -4,6 +4,7 @@
 ## # The following are required to uses Dart and the Cdash dashboard
 ##   ENABLE_TESTING()
 ##   INCLUDE(Dart)
+site_name(SITE)
 set(CTEST_PROJECT_NAME "BRAINSFit")
 set(CTEST_NIGHTLY_START_TIME "00:00:00 EST")
 
