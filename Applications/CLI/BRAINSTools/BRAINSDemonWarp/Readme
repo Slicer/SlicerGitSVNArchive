@@ -71,7 +71,6 @@ Default 1,1,1
  --initialDeformationFieldVolume: Initial deformation field vector image file name.
  --initializeWithFourier: Initial Coefficient filename.
  --initializeWithTransform: Initial Transform filename
- --forceCoronalZeroOrigin: Flag to indicate that all images being read inmust have their spatial centers
 matched.
  --weightFactors: Weight factors for different modal images(only for VBRAINSDemonWarpCLP) with -w option. Default 1.0,1.0 
 
