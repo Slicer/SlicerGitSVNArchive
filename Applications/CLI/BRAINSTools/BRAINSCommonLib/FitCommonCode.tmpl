@@ -1,7 +1,7 @@
-typedef itk::MultiModal3DMutualRegistrationHelper
-< TransformType, OptimizerType, FixedVolumeType, MovingVolumeType > MultiModal3DMutualRegistrationHelperType;
+typedef typename itk::MultiModal3DMutualRegistrationHelper
+< TransformType, OptimizerType, FixedImageType, MovingImageType, MetricType > MultiModal3DMutualRegistrationHelperType;
 
-MultiModal3DMutualRegistrationHelperType::Pointer
+typename MultiModal3DMutualRegistrationHelperType::Pointer
 appMutualRegistration = MultiModal3DMutualRegistrationHelperType::New();
 
 if(m_FixedBinaryVolume.IsNotNull() )
@@ -20,7 +20,6 @@ appMutualRegistration->SetNumberOfIterations( localNumberOfIterations[currentTra
 // debug parameter, suppressed from command line
 const bool initialTransformPassThru(false);
 appMutualRegistration->SetInitialTransformPassThruFlag( initialTransformPassThru );
-appMutualRegistration->SetUseExplicitPDFDerivativesFlag( m_UseExplicitPDFDerivativesMode == "OFF" );
 appMutualRegistration->SetPermitParameterVariation( m_PermitParameterVariation );
 appMutualRegistration->SetNumberOfSamples( m_NumberOfSamples );
 appMutualRegistration->SetRelaxationFactor( m_RelaxationFactor );
@@ -32,6 +31,8 @@ appMutualRegistration->SetSkewScale( m_SkewScale );
 
 appMutualRegistration->SetFixedImage(    m_FixedVolume    );
 appMutualRegistration->SetMovingImage(   m_MovingVolume   );
+appMutualRegistration->SetCostMetricObject ( this->m_CostMetricObject );
+
 appMutualRegistration->SetBackgroundFillValue(   m_BackgroundFillValue   );
 
 appMutualRegistration->SetInitialTransform( initialITKTransform );

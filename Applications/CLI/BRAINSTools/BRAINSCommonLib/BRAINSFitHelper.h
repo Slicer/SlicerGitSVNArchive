@@ -48,9 +48,6 @@
 #include <stdio.h>
 #include "ConvertToRigidAffine.h"
 
-#include "itkMultiModal3DMutualRegistrationHelper.h"
-#include "itkMattesMutualInformationImageToImageMetric.h"
-
 #include "ReadMask.h"
 #include "BRAINSMacro.h"
 
@@ -70,6 +67,10 @@ BRAINSCommonLib_EXPORT extern void ValidateTransformRankOrdering(const std::vect
 
 namespace itk
 {
+
+
+
+
 class BRAINSCommonLib_EXPORT BRAINSFitHelper:public Object
 {
 public:
@@ -88,6 +89,15 @@ public:
   typedef MovingVolumeType::ConstPointer MovingImageConstPointer;
   typedef MovingVolumeType::Pointer      MovingImagePointer;
 
+  /** Constants for the image dimensions */
+  itkStaticConstMacro(FixedImageDimension, unsigned int, FixedVolumeType::ImageDimension);
+  itkStaticConstMacro(MovingImageDimension, unsigned int, MovingVolumeType::ImageDimension);
+
+  typedef SpatialObject< itkGetStaticConstMacro(FixedImageDimension) >  FixedBinaryVolumeType;
+  typedef SpatialObject< itkGetStaticConstMacro(MovingImageDimension) > MovingBinaryVolumeType;
+  typedef FixedBinaryVolumeType::Pointer  FixedBinaryVolumePointer;
+  typedef MovingBinaryVolumeType::Pointer MovingBinaryVolumePointer;
+
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
@@ -104,25 +114,21 @@ public:
 
   /** The preprocessedMoving volume SHOULD NOT BE SET, you can get it out of the
     *  algorithm.*/
-  itkGetConstObjectMacro(PreprocessedMovingVolume, MovingVolumeType);
+  itkGetObjectMacro(PreprocessedMovingVolume, MovingVolumeType);
 
-  typedef MattesMutualInformationImageToImageMetric< FixedVolumeType, MovingVolumeType >
-  MetricType;
-  typedef MetricType::FixedImageMaskType
-  FixedBinaryVolumeType;
-  typedef FixedBinaryVolumeType::Pointer
-  FixedBinaryVolumePointer;
-  typedef MetricType::MovingImageMaskType
-  MovingBinaryVolumeType;
-  typedef MovingBinaryVolumeType::Pointer
-  MovingBinaryVolumePointer;
 
   itkSetObjectMacro (FixedBinaryVolume, FixedBinaryVolumeType);
   itkGetConstObjectMacro(FixedBinaryVolume, FixedBinaryVolumeType);
-
   itkSetObjectMacro(MovingBinaryVolume, MovingBinaryVolumeType);
   itkGetConstObjectMacro(MovingBinaryVolume, MovingBinaryVolumeType);
 
+  itkSetMacro     (OutputFixedVolumeROI,  std::string);
+  itkGetConstMacro(OutputFixedVolumeROI,  std::string);
+  itkSetMacro     (OutputMovingVolumeROI, std::string);
+  itkGetConstMacro(OutputMovingVolumeROI, std::string);
+
+  //TODO:  This should be converted to use the
+  //       interpolation mechanisms from GenericTransform
   typedef enum {
     LINEAR_INTERP = 0,
     WINDOWSINC_INTERP = 1,
@@ -199,6 +205,9 @@ public:
   itkSetMacro(HistogramMatch, bool);
   itkGetConstMacro(HistogramMatch, bool);
 
+  itkSetMacro(CostMetric, std::string);
+  itkGetConstMacro(CostMetric, std::string);
+
   /** Method that initiates the registration. */
   void StartRegistration(void);
 
@@ -215,6 +224,7 @@ protected:
   void  GenerateData();
 
 private:
+
   BRAINSFitHelper(const Self &); // purposely not implemented
   void operator=(const Self &);  // purposely not implemented
 
@@ -224,6 +234,8 @@ private:
 
   FixedBinaryVolumePointer  m_FixedBinaryVolume;
   MovingBinaryVolumePointer m_MovingBinaryVolume;
+  std::string               m_OutputFixedVolumeROI;
+  std::string               m_OutputMovingVolumeROI;
   std::vector< int >        m_PermitParameterVariation;
 
   unsigned int m_NumberOfSamples;
@@ -258,6 +270,7 @@ private:
   bool                                         m_PromptUserAfterDisplay;
   double                                       m_FinalMetricValue;
   bool                                         m_ObserveIterations;
+  std::string                                  m_CostMetric;
 };  // end BRAINSFitHelper class
 }   // end namespace itk
 
