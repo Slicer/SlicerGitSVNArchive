@@ -204,9 +204,11 @@ int vtkSlicerTransformLogic::SaveTransform (const char* vtkNotUsed(filename),
     itk::TransformFactory<itk::IdentityTransform<double,2> >::RegisterTransform ();
     itk::TransformFactory<itk::IdentityTransform<double,3> >::RegisterTransform ();
     itk::TransformFactory<itk::QuaternionRigidTransform<double> >::RegisterTransform ();
+#if ITK_VERSION_MAJOR < 4
     itk::TransformFactory<itk::Rigid2DTransform<double> >::RegisterTransform ();
-    itk::TransformFactory<itk::Rigid3DPerspectiveTransform<double> >::RegisterTransform ();
     itk::TransformFactory<itk::Rigid3DTransform<double> >::RegisterTransform ();
+#endif
+    itk::TransformFactory<itk::Rigid3DPerspectiveTransform<double> >::RegisterTransform ();
     itk::TransformFactory<itk::ScalableAffineTransform<double> >::RegisterTransform ();
     itk::TransformFactory<itk::ScaleLogarithmicTransform<double> >::RegisterTransform ();
     itk::TransformFactory<itk::ScaleSkewVersor3DTransform<double> >::RegisterTransform ();
@@ -232,9 +234,11 @@ int vtkSlicerTransformLogic::SaveTransform (const char* vtkNotUsed(filename),
     itk::TransformFactory<itk::IdentityTransform<float,2> >::RegisterTransform ();
     itk::TransformFactory<itk::IdentityTransform<float,3> >::RegisterTransform ();
     itk::TransformFactory<itk::QuaternionRigidTransform<float> >::RegisterTransform ();
+#if ITK_VERSION_MAJOR < 4
     itk::TransformFactory<itk::Rigid2DTransform<float> >::RegisterTransform ();
-    itk::TransformFactory<itk::Rigid3DPerspectiveTransform<float> >::RegisterTransform ();
     itk::TransformFactory<itk::Rigid3DTransform<float> >::RegisterTransform ();
+#endif
+    itk::TransformFactory<itk::Rigid3DPerspectiveTransform<float> >::RegisterTransform ();
     itk::TransformFactory<itk::ScalableAffineTransform<float> >::RegisterTransform ();
     itk::TransformFactory<itk::ScaleLogarithmicTransform<float> >::RegisterTransform ();
     itk::TransformFactory<itk::ScaleSkewVersor3DTransform<float> >::RegisterTransform ();
