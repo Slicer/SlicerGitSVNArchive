@@ -340,6 +340,7 @@ set(Slicer_Base_INCLUDE_DIRS CACHE INTERNAL "Slicer Base includes" FORCE)
 set(Slicer_ModuleLogic_INCLUDE_DIRS CACHE INTERNAL "Slicer Module logic includes" FORCE)
 set(Slicer_ModuleMRML_INCLUDE_DIRS CACHE INTERNAL "Slicer Module MRML includes" FORCE)
 set(Slicer_ModuleWidgets_INCLUDE_DIRS CACHE INTERNAL "Slicer Module Widgets includes" FORCE)
+set(CMAKE_INSTALL_PREFIX ${Slicer_BINARY_DIR})
 
 #-----------------------------------------------------------------------------
 # Get platform, architecture and bitness

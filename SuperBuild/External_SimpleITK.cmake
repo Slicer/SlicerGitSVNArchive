@@ -30,7 +30,7 @@ ExternalProject_add(SimpleITK
   #GIT_TAG master
   UPDATE_COMMAND ""
   CMAKE_ARGS
-    ${ep_common_args}
+    ${ep_common_flags}
   # SimpleITK does not work with shared libs turned on
   -DBUILD_SHARED_LIBS:BOOL=OFF
   -DCMAKE_INSTALL_PREFIX:PATH=${CMAKE_CURRENT_BINARY_DIR}
