@@ -26,8 +26,8 @@ ExternalProject_add(SimpleITK
   BINARY_DIR SimpleITK-build
   GIT_REPOSITORY https://github.com/hjmjohnson/SimpleITK.git
   #  GIT_TAG NeverBranchFromThisTest
-  GIT_TAG b4_sitk
   #GIT_TAG master
+  GIT_TAG Slicer_SimpleITK
   UPDATE_COMMAND ""
   CMAKE_ARGS
     ${ep_common_flags}
