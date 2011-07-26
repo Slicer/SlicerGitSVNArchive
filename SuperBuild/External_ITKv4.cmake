@@ -34,10 +34,10 @@ if(NOT DEFINED ITK_DIR)
   string(REPLACE "-fopenmp" "" ITK_CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
   string(REPLACE "-fopenmp" "" ITK_CMAKE_CXX_FLAGS "${CMAKE_CX_FLAGS}")
 
-  set(ITK_REPOSITORY git://itk.org/ITK.git)
+  set(ITK_REPOSITORY git://github.com/hjmjohnson/ITK.git)
   set(ITK_DIR ${CMAKE_INSTALL_PREFIX}/lib/cmake/ITK-4.0)
   #set(ITK_TAG_COMMAND GIT_TAG v4.0a08)
-  set(ITK_TAG_COMMAND GIT_TAG 096ef1c344960449d0f82cba8c22206a470412c1)
+  set(ITK_TAG_COMMAND GIT_TAG ITK_Slicer)
   set(WrapITK_DIR ${CMAKE_INSTALL_PREFIX}/lib/cmake/ITK-4.0/WrapITK)
   message(STATUS "ITK_WRAPPING=${ITK_WRAPPING}")
   ExternalProject_Add(${proj}
