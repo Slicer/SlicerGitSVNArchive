@@ -49,7 +49,7 @@ typedef Image<ProcessingPixel, 3> ProcessingImage;
 typedef ImageFileReader<FileImage>        Reader;
 typedef ImageFileReader<MaskImage>        MaskReader;
 
-// Rotation Grid is how the optimized parameters 
+// Rotation Grid is how the optimized parameters
 typedef Image<Vector<float, 3>, 3>    RotationGrid;
 typedef Image<float, 3>                   CostGrid;
 
@@ -93,7 +93,7 @@ createGrid(double max, double resolution)
     }
 
   region.SetSize( size );
-  region.SetIndex( start ); 
+  region.SetIndex( start );
 
   image->SetRegions( region );
   image->SetSpacing( spacing );
@@ -121,7 +121,7 @@ int main( int argc, char * argv[] )
 
   const bool DEBUG = false;
   const bool VERYDEBUG = false;
- 
+
   const double maxa = M_PI/8;
 //  const double maxa = 0;
   const double res1 = M_PI/16;
@@ -238,7 +238,7 @@ int main( int argc, char * argv[] )
     // 0 is the downsampled image
     for(unsigned int i = 0;  i < fnumberoflevels; ++i)
       {
-      std::cout << "pyramid[" << i << "]: " << 
+      std::cout << "pyramid[" << i << "]: " <<
         fpyramid->GetOutput(i)->GetLargestPossibleRegion().GetSize() << std::endl;
       }
 
@@ -247,12 +247,12 @@ int main( int argc, char * argv[] )
     // 0 is the downsampled image
     for(unsigned int i = 0;  i < mnumberoflevels; ++i)
       {
-      std::cout << "pyramid[" << i << "]: " << 
+      std::cout << "pyramid[" << i << "]: " <<
         mpyramid->GetOutput(i)->GetLargestPossibleRegion().GetSize() << std::endl;
       }
 
     }
-  
+
   // compute number of samples per level
   std::vector<unsigned long> numberOfVoxelsPerLevel(fnumberoflevels, 0);
   for(unsigned int i = 0; i < fnumberoflevels; ++i)
@@ -263,7 +263,7 @@ int main( int argc, char * argv[] )
       std::cout << "num samples [" << i << "]: " << numberOfVoxelsPerLevel[i] << std::endl;
       }
     }
-  
+
   typedef FixedRotationSimilarity3DTransform<double> FixedRotationTransform;
   typedef CenteredTransformInitializer< FixedRotationTransform,
     ProcessingImage,
@@ -281,8 +281,8 @@ int main( int argc, char * argv[] )
 
   if(VERYDEBUG)
     {
-    writeimage(fpyramid->GetOutput(0), "tmp/dfixed.nrrd");
-    writeimage(mpyramid->GetOutput(0), "tmp/dmoving.nrrd");
+    writeimage(fpyramid->GetOutput(0), "/tmp/dfixed.nrrd");
+    writeimage(mpyramid->GetOutput(0), "/tmp/dmoving.nrrd");
     }
 
   try
@@ -303,16 +303,16 @@ int main( int argc, char * argv[] )
   // Parameter is n where number of samples per dimensions is 2*n+1
   // We have (2*n+1)^3 rotaions.  So this number must be very very small.
   // Setup registration framework
-  
-  RotationGrid::Pointer coarsegrid = 
+
+  RotationGrid::Pointer coarsegrid =
     createGrid<RotationGrid>(maxa, res1);
 
   if(VERYDEBUG)
     {
-    std::cout << "Built " << coarsegrid->GetLargestPossibleRegion().GetNumberOfPixels() << 
+    std::cout << "Built " << coarsegrid->GetLargestPossibleRegion().GetNumberOfPixels() <<
       " trial rotations" << std::endl;
 
-    std::ofstream file("tmp/moresearch.csv");
+    std::ofstream file("/tmp/moresearch.csv");
     if(!file)
       {
     std::cerr  << "cannot open csv file for writing" << std::endl;
@@ -334,9 +334,9 @@ int main( int argc, char * argv[] )
     //const Versor<double> & rot = *it;
     RotationGrid::PointType p;
     coarsegrid->TransformIndexToPhysicalPoint(it.GetIndex(), p);
-    
+
     const Versor<double> rot = createRotationFromEulerAngles(p[0], p[1], p[2]);
-    
+
     typedef ImageRegistrationMethod<ProcessingImage, ProcessingImage> ImageRegistration;
     ImageRegistration::Pointer reg = ImageRegistration::New();
     reg->SetFixedImage(fpyramid->GetOutput(0));
@@ -359,7 +359,7 @@ int main( int argc, char * argv[] )
     //    hsize[0] = 256/8;
     //    hsize[1] = 256/8;
     //    metric->SetHistogramSize(hsize);
-    //Contains only 16384 pixels total   
+    //Contains only 16384 pixels total
     //metric->SetUseAllPixels(true);
     // metric->SetFixedImageMask(maskreader->GetOutput());
     metric->SetNumberOfSpatialSamples(15000);
@@ -376,7 +376,7 @@ int main( int argc, char * argv[] )
     //typedef PowellOptimizer OptimizerType;
     typedef FRPROptimizer OptimizerType;
     //typedef GradientDescentOptimizer OptimizerType;
-    OptimizerType::Pointer opt = OptimizerType::New(); 
+    OptimizerType::Pointer opt = OptimizerType::New();
     typedef Optimizer::ScalesType       OptimizerScalesType;
     OptimizerScalesType optimizerScales( 4 );
     // should set this scale based on size of the image
@@ -420,7 +420,7 @@ int main( int argc, char * argv[] )
     nt->SetParameters(initt->GetParameters());
 
     //std::cout << "translation: " << nt->GetTranslation() << std::endl;
-    
+
     reg->SetTransform(nt);
     reg->SetInitialTransformParameters( nt->GetParameters() );
 
@@ -452,7 +452,7 @@ int main( int argc, char * argv[] )
     // std::cout << "p: " << reg->GetLastTransformParameters() << std::endl;
     // std::cout << "scale: " << nt->GetScale() << std::endl;
 
-    
+
     RotationGrid::PixelType t;
     t[0] = pm[0];
     t[1] = pm[1];
@@ -465,11 +465,11 @@ int main( int argc, char * argv[] )
     if(VERYDEBUG)
       {
       std::stringstream ss;
-      ss << "tmp/pre" << std::setw(3) << std::setfill('0') << counter << ".nrrd";
+      ss << "/tmp/pre" << std::setw(3) << std::setfill('0') << counter << ".nrrd";
       writeimage(mpyramid->GetOutput(0), ot, ss.str());
       ss.clear();
       ss.str("");
-      ss << "tmp/post" << std::setw(3) << std::setfill('0') << counter << ".nrrd";
+      ss << "/tmp/post" << std::setw(3) << std::setfill('0') << counter << ".nrrd";
       writeimage(mpyramid->GetOutput(0), nt, ss.str());
       }
     ++counter;
@@ -506,7 +506,7 @@ int main( int argc, char * argv[] )
   //    hsize[0] = 256/8;
   //    hsize[1] = 256/8;
   //    metric->SetHistogramSize(hsize);
-  //Contains only 16384 pixels total   
+  //Contains only 16384 pixels total
   //metric->SetUseAllPixels(true);
   // metric->SetFixedImageMask(maskreader->GetOutput());
   metric->SetNumberOfSpatialSamples(15000);
@@ -537,10 +537,10 @@ int main( int argc, char * argv[] )
     {
     FixedRotationTransform::Pointer t = FixedRotationTransform::New();
     t->SetIdentity();
-    
+
     RotationGrid::PointType pt;
     costgrid->TransformIndexToPhysicalPoint(fit.GetIndex(), pt);
-    
+
     const Versor<double> rot = createRotationFromEulerAngles(pt[0], pt[1], pt[2]);
     t->SetRotation(rot);
     t->SetCenter(initt->GetCenter());
@@ -557,7 +557,7 @@ int main( int argc, char * argv[] )
 
     // Shouldnt be necessary but just in case
     t->SetParameters(p);
-    
+
     double m = 0.0;
     try
       {
@@ -614,7 +614,7 @@ int main( int argc, char * argv[] )
 
   if(DEBUG)
     std::cout << "Putting minima in priority queue" << std::endl;
-  
+
   for(cit.GoToBegin(), bit.GoToBegin();
       !cit.IsAtEnd();
       ++cit, ++bit)
@@ -677,7 +677,7 @@ int main( int argc, char * argv[] )
 
     if(DEBUG)
       std::cout << "Scale: " << mscale << std::endl;
-    
+
     // Get the translation
     RotationGrid::PixelType t =
       rgridresampler->GetOutput()->GetPixel(p.second);
@@ -699,7 +699,7 @@ int main( int argc, char * argv[] )
   // a similarity transform
   typedef std::vector<SimilarityParameters>::const_iterator SimilarityParametersIterator;
   counter = 0;
-  for(SimilarityParametersIterator pit = 
+  for(SimilarityParametersIterator pit =
         initialSimilarity.begin();
       pit != initialSimilarity.end();
       ++pit, ++counter)
@@ -726,7 +726,7 @@ int main( int argc, char * argv[] )
     //    hsize[0] = 256/8;
     //    hsize[1] = 256/8;
     //    metric2->SetHistogramSize(hsize);
-    //Contains only 16384 pixels total   
+    //Contains only 16384 pixels total
     //metric2->SetUseAllPixels(true);
     // metric2->SetFixedImageMask(maskreader->GetOutput());
     metric2->SetNumberOfSpatialSamples(15000);
@@ -743,7 +743,7 @@ int main( int argc, char * argv[] )
     //typedef PowellOptimizer OptimizerType;
     typedef FRPROptimizer OptimizerType;
     //typedef GradientDescentOptimizer OptimizerType;
-    OptimizerType::Pointer opt = OptimizerType::New(); 
+    OptimizerType::Pointer opt = OptimizerType::New();
     typedef Optimizer::ScalesType       OptimizerScalesType;
     OptimizerScalesType optimizerScales( 7 );
     ScalingValues sv(fpyramid->GetOutput(0), initt->GetCenter());
@@ -775,7 +775,7 @@ int main( int argc, char * argv[] )
 
     reg->SetOptimizer(opt);
 
-    SimilarityTransform::Pointer ot = 
+    SimilarityTransform::Pointer ot =
       SimilarityTransform::New();
 
     ot->SetIdentity();
@@ -866,17 +866,17 @@ int main( int argc, char * argv[] )
     }
 
   typedef DecomposedAffine3DTransform<double>             AffineTransform;
-  
+
   AffineTransform::Pointer affinet = AffineTransform::New();
   affinet->SetIdentity();
   affinet->SetCenter(initt->GetCenter());
 
   AffineTransform::ParametersType affineparams =
     affinet->GetParameters();
-  
+
   for(int i = 0; i < 6; ++i)
     affineparams[i] = bestParams[i];
-  
+
   affineparams[6] = bestParams[6];
   affineparams[7] = bestParams[6];
   affineparams[8] = bestParams[6];
@@ -906,7 +906,7 @@ int main( int argc, char * argv[] )
   //    hsize[0] = 256/8;
   //    hsize[1] = 256/8;
   //    metric->SetHistogramSize(hsize);
-  //Contains only 16384 pixels total   
+  //Contains only 16384 pixels total
   //metric->SetUseAllPixels(true);
   // metric->SetFixedImageMask(maskreader->GetOutput());
   metricf->SetNumberOfSpatialSamples(240000);
@@ -923,7 +923,7 @@ int main( int argc, char * argv[] )
   //typedef PowellOptimizer OptimizerType;
   typedef FRPROptimizer OptimizerType;
   //typedef GradientDescentOptimizer OptimizerType;
-  OptimizerType::Pointer opt = OptimizerType::New(); 
+  OptimizerType::Pointer opt = OptimizerType::New();
   typedef Optimizer::ScalesType       OptimizerScalesType;
   OptimizerScalesType optimizerScales( 12 );
 
@@ -961,7 +961,7 @@ int main( int argc, char * argv[] )
   opt->SetToPolakRibiere();
 
   reg->SetOptimizer(opt);
-  
+
   reg->SetTransform(affinet);
   reg->SetInitialTransformParameters(affineparams);
 
@@ -994,7 +994,7 @@ int main( int argc, char * argv[] )
   opt->SetScales( optimizerScales );
 
   opt->SetMaximumIteration(numIterations*optimizerScales.size());
-  
+
   metricf->SetNumberOfHistogramBins(256);
   metricf->SetNumberOfSpatialSamples(480000);
   if(mask)
@@ -1003,11 +1003,11 @@ int main( int argc, char * argv[] )
     }
 
   reg->SetFixedImage(fpyramid->GetOutput(fnumberoflevels >= 4? 3 : fnumberoflevels -1));
-  reg->SetMovingImage(mpyramid->GetOutput(mnumberoflevels >= 4? 3 : mnumberoflevels -1)); 
+  reg->SetMovingImage(mpyramid->GetOutput(mnumberoflevels >= 4? 3 : mnumberoflevels -1));
   reg->SetInitialTransformParameters(reg->GetLastTransformParameters());
 
   reg->StartRegistration();
-    
+
   AffineTransform::ParametersType finalp = reg->GetLastTransformParameters();
 
   if(DEBUG)
@@ -1030,11 +1030,11 @@ int main( int argc, char * argv[] )
     outputt->SetCenter(affinet->GetCenter());
     outputt->SetMatrix(affinet->GetMatrix());
     outputt->SetTranslation(affinet->GetTranslation());
-    
+
     TransformFileWriter::Pointer twriter = TransformFileWriter::New();
     twriter->SetInput(outputt);
     twriter->SetFileName(outputTransform);
-    twriter->Update();    
+    twriter->Update();
     }
 
   return EXIT_SUCCESS;
