@@ -49,7 +49,9 @@ set(ep_common_c_flags "${CMAKE_C_FLAGS_INIT} ${ADDITIONAL_C_FLAGS}")
 set(ep_common_cxx_flags "${CMAKE_CXX_FLAGS_INIT} ${ADDITIONAL_CXX_FLAGS}")
 
 set(ep_common_flags
+  -DCMAKE_CXX_COMPILER:FILEPATH=${CMAKE_CXX_COMPILER}
   -DCMAKE_CXX_FLAGS:STRING=${ep_common_cxx_flags}
+  -DCMAKE_C_COMPILER:FILEPATH=${CMAKE_C_COMPILER}
   -DCMAKE_C_FLAGS:STRING=${ep_common_c_flags}
   )
 
@@ -63,7 +65,27 @@ endif()
 #------------------------------------------------------------------------------
 # Slicer dependency list
 #------------------------------------------------------------------------------
-set(Slicer_DEPENDENCIES LibArchive cmcurl OpenIGTLink teem VTK Insight CTK qCDashAPI SlicerExecutionModel)
+option(Slicer_BUILD_WITH_ITKv4 "Build Slicer against ITKv4" OFF)
+mark_as_advanced(Slicer_BUILD_WITH_ITKv4)
+
+option(Slicer_USE_SIMPLEITK "Build Slicer with SimpleITK" OFF)
+mark_as_advanced(Slicer_USE_SIMPLEITK)
+
+if(Slicer_BUILD_WITH_ITKv4)
+  set(ITK_EXTERNAL_NAME "ITKv4")
+  set(ITK_LIBRARY_DIR_NAME "ITKv4")
+  set(SimpleITK_EXTERNAL_NAME "SimpleITK")
+  set(Swig_EXTERNAL_NAME "Swig")
+else()
+  set(ITK_EXTERNAL_NAME "Insight")
+  set(ITK_LIBRARY_DIR_NAME "InsightToolkit")
+  set(SimpleITK_EXTERNAL_NAME "")
+  set(Swig_EXTERNAL_NAME "")
+endif()
+
+set(Slicer_DEPENDENCIES LibArchive cmcurl OpenIGTLink teem VTK
+  ${ITK_EXTERNAL_NAME} ${Swig_EXTERNAL_NAME} ${SimpleITK_EXTERNAL_NAME}
+  CTK qCDashAPI SlicerExecutionModel)
 if(Slicer_USE_BatchMake)
   list(APPEND Slicer_DEPENDENCIES BatchMake)
 endif()
@@ -83,6 +105,9 @@ if(Slicer_USE_PYTHONQT)
   endif()
   if(Slicer_USE_PYTHONQT_WITH_TCL AND UNIX)
     list(APPEND Slicer_DEPENDENCIES incrTcl)
+  endif()
+  if(Slicer_USE_SIMPLEITK AND Slicer_BUILD_WITH_ITKv4)
+    list(APPEND Slicer_DEPENDENCIES ${Swig_EXTERNAL_NAME} ${SimpleITK_EXTERNAL_NAME})
   endif()
 endif()
 
