@@ -71,9 +71,12 @@ mark_as_advanced(Slicer_BUILD_WITH_ITKv4)
 set(ITK_EXTERNAL_NAME "ITKv3")
 if(Slicer_BUILD_WITH_ITKv4)
   set(ITK_EXTERNAL_NAME "ITKv4")
+
+  #Only attempt to build SlicerBRAINSTools if ITKv4 is used.
+  set(Slicer_BUILD_BRAINSTOOLS "SlicerBRAINSTools")
 endif()
 
-set(Slicer_DEPENDENCIES LibArchive cmcurl OpenIGTLink teem VTK ${ITK_EXTERNAL_NAME} CTK qCDashAPI SlicerExecutionModel)
+set(Slicer_DEPENDENCIES LibArchive cmcurl OpenIGTLink teem VTK ${ITK_EXTERNAL_NAME} CTK qCDashAPI SlicerExecutionModel ${Slicer_BUILD_BRAINSTOOLS})
 if(Slicer_USE_BatchMake)
   list(APPEND Slicer_DEPENDENCIES BatchMake)
 endif()
@@ -93,6 +96,9 @@ if(Slicer_USE_PYTHONQT)
   endif()
   if(Slicer_USE_PYTHONQT_WITH_TCL AND UNIX)
     list(APPEND Slicer_DEPENDENCIES incrTcl)
+  endif()
+  if(Slicer_BUILD_BRAINSTOOLS)
+    list(APPEND Slicer_DEPENDENCIES SlicerBRAINSTools)
   endif()
 endif()
 
