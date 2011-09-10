@@ -280,6 +280,8 @@ void qMRMLSliceControllerWidgetPrivate::init()
   this->SliceOffsetSlider->setTracking(false);
   this->SliceOffsetSlider->setToolTip(q->tr("Slice distance from RAS origin"));
   this->SliceOffsetSlider->setPageStep(1.);
+  this->SliceOffsetSlider->setStyleSheet("QSlider::groove:horizontal { border: 0px }"
+                                         "QSlider::handle:horizontal { background: #c4c4ff; width: 9px; border-radius: 4px;}");
   //this->SliceOffsetSlider->spinBox()->setParent(this->PopupWidget);
   QDoubleSpinBox* spinBox = this->SliceOffsetSlider->spinBox();
   spinBox->setFrame(false);
