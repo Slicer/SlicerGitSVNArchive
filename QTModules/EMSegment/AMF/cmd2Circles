@@ -1,0 +1,5 @@
+# Change in LevelSetSegment.tcl the initialization of th two curves - see comment at the end of   if {$LevelSets(InputType) == "TwoBalls"  }
+# Normal setting
+# ./LevelSetSegmenter -fc TwoBalls -pr test2Circles/3DV2/Circle3D_LeftDis.001 -pr test2Circles/3DV2/Circle3D_RightDis.001 -sc Float -ir 1 50 -col 1 -svd 1 -svs 2
+# Good for time trials  
+./LevelSetSegmenter -fc TwoBalls -pr test2Circles/3DV2/Circle3D_LeftDis_s25.nhdr  -pr test2Circles/3DV2/Circle3D_RightDis_s25.nhdr -sc Float -ir 0 0 -col 1 -svd 0 -svs 0
