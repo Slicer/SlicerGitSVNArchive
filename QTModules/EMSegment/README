@@ -1,0 +1,8 @@
+Description of directories:
+
+Wizard       ---gui and wizard workflow code
+Algorithm    ---EMSegement algorithm code approximately Sept 1 2006
+MRML         ---MRML nodes defined for this module
+CommandLineApplication ---Code for running EMSegmenter on the command line
+Registration ---Code used for registration within EMSegmenter pipeline
+

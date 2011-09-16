@@ -1,0 +1,19 @@
+#! /bin/csh -f
+# mathImage :
+# Description: It is a template function to execute simple math functions to an image - can also be used to the the little Endian correct
+# just reads in an image and does what you defines and writes it to another directory 
+# call function like this ./mathImage "-pf ~/research/LocalPriorProject/Images/case3/spgr/I" or call just ./mathImage for help 
+
+
+# Please start in window where all slicer variables are set by executing 
+# Slicer3 --launch xterm &
+
+if (${?Slicer3_PLUGINS_DIR} == 0) then
+   echo "Please start in window where all slicer variables are set by executing "
+   echo "Slicer3 --launch xterm & "
+   exit 1
+endif
+
+cp ../Tcl/LevelSetSegmenter.tcl  ${Slicer3_HOME}/share/Slicer3/Modules/EMSegment/Tcl/.
+cp ../Tcl/LevelSetSegmenterFct.tcl  ${Slicer3_HOME}/share/Slicer3/Modules/EMSegment/Tcl/.
+exec ${Slicer3_PLUGINS_DIR}/EMSegmentTclInterpreter ${Slicer3_HOME}/share/Slicer3/Modules/EMSegment/Tcl/LevelSetSegmenter.tcl "$*"
