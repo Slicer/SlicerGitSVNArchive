@@ -1,4 +1,0 @@
-Some useful extra pieces:
-
-.slicerrc.py: contains initialization of the code to reload changetracker on
-key press
