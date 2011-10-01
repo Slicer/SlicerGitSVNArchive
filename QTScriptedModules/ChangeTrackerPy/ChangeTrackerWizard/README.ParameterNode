@@ -1,0 +1,36 @@
+Parameters saved by the individual steps in the parameter node for this
+module:
+
+Wizard overall:
+
+ * active step XXX
+
+1) SelectScans
+
+  * baselineVolumeID
+  * followupVolumeID
+
+2) DefineROI
+
+  * roiNodeID
+  * ?
+
+3) SegmentROI
+
+  * baselineSegmentation
+  * thresholds
+  * flag whether thresholds should be used at all
+
+4) AnalyzeROI
+
+  * which methods are selected XXX
+  * change detection results
+  * change detection report --> changes volume description
+  * parameters ??? XXX
+  * transform node for baseline/followup registration
+
+5) ReportROI
+
+  * processing results
+
+Layouts are saved by the Slicer MRML infrastructure
