@@ -185,13 +185,15 @@ void registerCLIModuleFactory(
   qSlicerModuleFactoryManager * moduleFactoryManager, const QString& tempDirectory,
   const QSharedPointer<ctkAbstractLibraryFactory<qSlicerAbstractCoreModule>::HashType>& moduleFactorySharedRegisteredItemKeys)
 {
-  qSlicerCLILoadableModuleFactory* cliLoadableModuleFactory =
-    new qSlicerCLILoadableModuleFactory();
-  cliLoadableModuleFactory->setTempDirectory(tempDirectory);
-  cliLoadableModuleFactory->setSharedItems(moduleFactorySharedRegisteredItemKeys);
-  moduleFactoryManager->registerFactory("qSlicerCLILoadableModuleFactory",
+  if (!qSlicerApplication::application()->commandOptions()->disableCLISharedModules())
+    {
+    qSlicerCLILoadableModuleFactory* cliLoadableModuleFactory =
+      new qSlicerCLILoadableModuleFactory();
+    cliLoadableModuleFactory->setTempDirectory(tempDirectory);
+    cliLoadableModuleFactory->setSharedItems(moduleFactorySharedRegisteredItemKeys);
+    moduleFactoryManager->registerFactory("qSlicerCLILoadableModuleFactory",
                                         cliLoadableModuleFactory);
-
+    }
   qSlicerCLIExecutableModuleFactory* cliExecutableModuleFactory =
     new qSlicerCLIExecutableModuleFactory();
   cliExecutableModuleFactory->setTempDirectory(tempDirectory);

@@ -110,6 +110,13 @@ bool qSlicerCoreCommandOptions::disableCLIModules() const
 }
 
 //-----------------------------------------------------------------------------
+bool qSlicerCoreCommandOptions::disableCLISharedModules() const
+{
+  Q_D(const qSlicerCoreCommandOptions);
+  return d->ParsedArgs.value("disable-cli-shared-modules").toBool();
+}
+
+//-----------------------------------------------------------------------------
 bool qSlicerCoreCommandOptions::ignoreSlicerRC()const
 {
   Q_D(const qSlicerCoreCommandOptions);
@@ -223,7 +230,10 @@ void qSlicerCoreCommandOptions::addArguments()
 
   this->addArgument("disable-cli-modules", "", QVariant::Bool,
                     "Disables the loading of Command Line Modules.");
-
+  
+  this->addArgument("disable-cli-shared-modules", "", QVariant::Bool,
+                    "Disables the loading of Command Line Modules in shared mode.");
+  
   this->addArgument("disable-loadable-modules", "", QVariant::Bool,
                     "Disables the loading of Loadable Modules.");
 
