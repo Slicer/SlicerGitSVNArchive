@@ -63,7 +63,7 @@ public:
   /// Return True if the loading of Command Line Modules should be disabled
   bool disableCLIModules()const;
 
-  /// Return True if the loading of Command Line Modules should be disabled
+  /// Return True if the loading of shared Command Line Modules should be disabled
   bool disableCLISharedModules()const;
 
   /// Return True if the loading of SlicerRC should be skipped
