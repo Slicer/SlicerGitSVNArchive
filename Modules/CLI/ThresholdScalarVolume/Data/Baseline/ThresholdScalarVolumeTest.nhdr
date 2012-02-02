@@ -10,4 +10,4 @@ kinds: domain domain domain
 endian: little
 encoding: gzip
 space origin: (0,0,0)
-data file: ThresholdTest.raw.gz
+data file: ThresholdScalarVolumeTest.raw.gz
