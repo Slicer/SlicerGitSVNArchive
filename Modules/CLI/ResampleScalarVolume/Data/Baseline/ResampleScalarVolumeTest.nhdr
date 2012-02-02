@@ -10,4 +10,4 @@ kinds: domain domain domain
 endian: little
 encoding: gzip
 space origin: (-130,-119.9,-73.7)
-data file: ResampleVolumeTest.raw.gz
+data file: ResampleScalarVolumeTest.raw.gz
