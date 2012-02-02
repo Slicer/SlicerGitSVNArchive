@@ -10,4 +10,4 @@ kinds: domain domain domain
 endian: little
 encoding: gzip
 space origin: (-130,-119.9,-73.7)
-data file: ConfidenceConnectedTest.raw.gz
+data file: SimpleRegionGrowingSegmentationTest.raw.gz
