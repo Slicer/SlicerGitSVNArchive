@@ -10,4 +10,4 @@ kinds: domain domain domain
 endian: little
 encoding: raw
 space origin: (0,0,0)
-data file: CheckerBoardTest.raw
+data file: CheckerBoardFilterTest.raw
