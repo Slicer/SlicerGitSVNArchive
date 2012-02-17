@@ -11,6 +11,25 @@ string(REPLACE "/" "\\" python_sln ${python_sln})
 get_filename_component(python_base ${python_sln} PATH)
 get_filename_component(python_home ${python_base} PATH)
 
+
+#-----------------------------------------------------------------------------
+# Build tool argument switch
+#-----------------------------------------------------------------------------
+
+get_filename_component(build_tool ${CMAKE_BUILD_TOOL} NAME_WE)
+string(TOLOWER ${build_tool} build_tool)
+if(${build_tool} STREQUAL "msbuild")
+  set(use_project_option "/target:")
+elseif(${build_tool} STREQUAL "devenv")
+  set(use_build_option "/build")
+  set(use_project_option "/project ") # note: space is important!
+endif()
+
+
+#-----------------------------------------------------------------------------
+# Fixes for VS2010
+#-----------------------------------------------------------------------------
+
 # point the tkinter build file to the slicer tcl-build
 set(python_PATCH_COMMAND)
 if(Slicer_USE_PYTHONQT_WITH_TCL)
@@ -28,38 +47,11 @@ endif()
 
 
 #-----------------------------------------------------------------------------
-# 32-bit or 64-bit
-#-----------------------------------------------------------------------------
-
-if("${CMAKE_SIZEOF_VOID_P}" EQUAL 8)
-  set(python_build_type "Release")
-  set(python_platform "x64")
-  set(python_configuration "${python_build_type}|${python_platform}")
-  set(PythonPCBuildDir ${CMAKE_BINARY_DIR}/python-build/PCbuild/amd64)
-  set(python_PATCH_COMMAND
-    ${CMAKE_COMMAND} -Din=${in} -Dout=${out} -Dfind=\\tcltk64 -Dreplace=\\tcl-build -P ${script})
-else()
-  set(python_build_type "Release")
-  set(python_platform "Win32")
-  set(python_configuration "${python_build_type}|${python_platform}")
-  set(PythonPCBuildDir ${CMAKE_BINARY_DIR}/python-build/PCbuild)
-  set(python_PATCH_COMMAND
-    ${CMAKE_COMMAND} -Din=${in} -Dout=${out} -Dfind=\\tcltk -Dreplace=\\tcl-build -P ${script})
-endif()
-
-set(python_SOURCE_DIR ${python_build})
-configure_file(SuperBuild/python_patch_step_pythonrun.cmake.in
-  ${CMAKE_CURRENT_BINARY_DIR}/python_patch_step_pythonrun.cmake
-  @ONLY)
-set(python_CONFIGURE_COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/python_patch_step_pythonrun.cmake)
-
-
-#-----------------------------------------------------------------------------
 # Convenient helper macro
 #-----------------------------------------------------------------------------
 
 macro(set_ep_build_command_args target)
-  set(ep_build_command_args /build ${python_configuration} /project ${target})
+  set(ep_build_command_args ${use_build_option} ${python_configuration} ${use_project_option}${target})
 endmacro()
 
 macro(build_python_target target depend)
@@ -70,6 +62,46 @@ macro(build_python_target target depend)
     DEPENDEES ${depend}
     )
 endmacro()
+
+macro(set_python_configuration build_type platform)
+  if(${build_tool} STREQUAL "msbuild")
+    set(python_configuration "/p:Configuration=${python_build_type}" "/p:Platform=${python_platform}")
+  else()
+    set(python_configuration "${python_build_type}|${python_platform}")
+  endif()
+endmacro()
+
+
+#-----------------------------------------------------------------------------
+# 32-bit or 64-bit
+#-----------------------------------------------------------------------------
+
+if("${CMAKE_SIZEOF_VOID_P}" EQUAL 8)
+  set(python_build_type "Release")
+  set(python_platform "x64")
+  set_python_configuration(${python_build_type} ${python_platform})
+  set(PythonPCBuildDir ${CMAKE_BINARY_DIR}/python-build/PCbuild/amd64)
+  if (Slicer_USE_PYTHONQT_WITH_TCL)
+    set(python_PATCH_COMMAND
+      ${CMAKE_COMMAND} -Din=${in} -Dout=${out} -Dfind=\\tcltk64 -Dreplace=\\tcl-build -P ${script})
+  endif()
+else()
+  set(python_build_type "Release")
+  set(python_platform "Win32")
+  set_python_configuration(${python_build_type} ${python_platform})
+  set(PythonPCBuildDir ${CMAKE_BINARY_DIR}/python-build/PCbuild)
+  if(Slicer_USE_PYTHONQT_WITH_TCL)
+    set(python_PATCH_COMMAND
+      ${CMAKE_COMMAND} -Din=${in} -Dout=${out} -Dfind=\\tcltk -Dreplace=\\tcl-build -P ${script})
+  endif()
+endif()
+
+set(python_SOURCE_DIR ${python_build})
+configure_file(SuperBuild/python_patch_step_pythonrun.cmake.in
+  ${CMAKE_CURRENT_BINARY_DIR}/python_patch_step_pythonrun.cmake
+  @ONLY)
+set(python_CONFIGURE_COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/python_patch_step_pythonrun.cmake)
+
 
 #-----------------------------------------------------------------------------
 # Specify build steps
