@@ -20,15 +20,19 @@
 
 // Qt includes
 #include <QAction>
+#include <QDebug>
 #include <QDesktopServices>
 #include <QFileDialog>
 
 #include "vtkSlicerConfigure.h" // For Slicer_USE_PYTHONQT
 
 // CTK includes
+#include <ctkErrorLogWidget.h>
+#include <ctkMessageBox.h>
 #ifdef Slicer_USE_PYTHONQT
 #include <ctkPythonConsole.h>
 #endif
+
 
 // SlicerQt includes
 #include "qSlicerAbstractModule.h"
@@ -63,24 +67,29 @@ qSlicerMainWindowCorePrivate::qSlicerMainWindowCorePrivate()
 #ifdef Slicer_USE_PYTHONQT
   this->PythonConsole = 0;
 #endif
+  this->ErrorLogWidget = 0;
   }
 
 //---------------------------------------------------------------------------
 qSlicerMainWindowCorePrivate::~qSlicerMainWindowCorePrivate()
 {
+  delete this->ErrorLogWidget;
 }
 
 //-----------------------------------------------------------------------------
 // qSlicerMainWindowCore methods
 
 //-----------------------------------------------------------------------------
-qSlicerMainWindowCore::qSlicerMainWindowCore(qSlicerMainWindow* _parent):Superclass(_parent)
+qSlicerMainWindowCore::qSlicerMainWindowCore(qSlicerMainWindow* _parent)
+  : Superclass(_parent)
   , d_ptr(new qSlicerMainWindowCorePrivate)
 {
   Q_D(qSlicerMainWindowCore);
   
   d->ParentWidget = _parent;
-  d->ErrorLogWidget.setErrorLogModel(qSlicerCoreApplication::application()->errorLogModel());
+  d->ErrorLogWidget = new ctkErrorLogWidget;
+  d->ErrorLogWidget->setErrorLogModel(
+    qSlicerCoreApplication::application()->errorLogModel());
 }
 
 //-----------------------------------------------------------------------------
@@ -90,6 +99,36 @@ qSlicerMainWindowCore::~qSlicerMainWindowCore()
 
 //-----------------------------------------------------------------------------
 CTK_GET_CPP(qSlicerMainWindowCore, qSlicerMainWindow*, widget, ParentWidget);
+
+#ifdef Slicer_USE_PYTHONQT
+//---------------------------------------------------------------------------
+ctkPythonConsole* qSlicerMainWindowCore::pythonConsole()const
+{
+  Q_D(const qSlicerMainWindowCore);
+  if (!d->PythonConsole)
+    {
+    // Lookup reference of 'PythonConsole' widget
+    // and cache the value
+    foreach(QWidget * widget, qApp->topLevelWidgets())
+      {
+      if(widget->objectName().compare(QLatin1String("pythonConsole")) == 0)
+        {
+        const_cast<qSlicerMainWindowCorePrivate*>(d)
+          ->PythonConsole = qobject_cast<ctkPythonConsole*>(widget);
+        break;
+        }
+      }
+    }
+  return d->PythonConsole;
+}
+#endif
+
+//---------------------------------------------------------------------------
+ctkErrorLogWidget* qSlicerMainWindowCore::errorLogWidget()const
+{
+  Q_D(const qSlicerMainWindowCore);
+  return d->ErrorLogWidget;
+}
 
 //---------------------------------------------------------------------------
 void qSlicerMainWindowCore::onFileAddDataActionTriggered()
@@ -137,22 +176,41 @@ void qSlicerMainWindowCore::onFileSaveSceneActionTriggered()
 //---------------------------------------------------------------------------
 void qSlicerMainWindowCore::onSDBSaveToDirectoryActionTriggered()
 {
+   Q_D(qSlicerMainWindowCore);
   // open a file dialog to let the user choose where to save
   QString tempDir = qSlicerCoreApplication::application()->temporaryPath();
-  QFileDialog pickDirectoryDialog(this->widget());
-  pickDirectoryDialog.setFileMode(QFileDialog::Directory);
-  pickDirectoryDialog.setDirectory(tempDir);
-  QString saveDirName;
-  if (pickDirectoryDialog.exec())
-    {
-    QDir qtDirName = pickDirectoryDialog.directory();
-    saveDirName = qtDirName.absolutePath();
-    }
+  QString saveDirName = QFileDialog::getExistingDirectory(this->widget(), tr("Slicer Data Bundle Directory (All Existing Files in this Directory Will Be Removed!)"), tempDir, QFileDialog::ShowDirsOnly);
+  //qDebug() << "saveDirName = " << saveDirName.toAscii().data();
   if (saveDirName.isEmpty())
     {
     std::cout << "No directory name chosen!" << std::endl;
     return;
     }
+  // double check that user is sure they want to save to this directory if
+  // there are already files in it
+  QDir testSaveDir = QDir(saveDirName);
+  int numFiles = testSaveDir.count() - 2;
+  if (numFiles > 0)
+    {
+    ctkMessageBox *emptyMessageBox = new ctkMessageBox(d->ParentWidget);
+    QString plurals = QString("\ncontains ");
+    if (numFiles == 1)
+      {
+      plurals += QString("1 file or directory.\n");
+      }
+    else
+      {
+      plurals += QString("%1 files or directories.\n").arg(numFiles);
+      }
+    QString message = QString("Selected directory\n" + saveDirName + plurals +
+                              "Please choose an empty directory.");
+    emptyMessageBox->setAttribute( Qt::WA_DeleteOnClose, true );
+    emptyMessageBox->setIcon(QMessageBox::Warning);
+    emptyMessageBox->setText(message);
+    emptyMessageBox->exec();
+    return;
+    }
+  
   // pass in a screen shot
   QWidget* widget = qSlicerApplication::application()->layoutManager()->viewport();
   QPixmap screenShot = QPixmap::grabWidget(widget);
@@ -221,37 +279,37 @@ void qSlicerMainWindowCore::setLayoutNumberOfCompareViewColumns(int num)
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerMainWindowCore::onWindowErrorLogActionTriggered()
+void qSlicerMainWindowCore::onWindowErrorLogActionTriggered(bool show)
 {
   Q_D(qSlicerMainWindowCore);
-  d->ErrorLogWidget.show();
-  d->ErrorLogWidget.activateWindow();
-  d->ErrorLogWidget.raise();
+  if (show)
+    {
+    d->ErrorLogWidget->show();
+    d->ErrorLogWidget->activateWindow();
+    d->ErrorLogWidget->raise();
+    }
+  else
+    {
+    d->ErrorLogWidget->close();
+    }
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerMainWindowCore::onWindowPythonInteractorActionTriggered()
+void qSlicerMainWindowCore::onWindowPythonInteractorActionTriggered(bool show)
 {
 #ifdef Slicer_USE_PYTHONQT
-  Q_D(qSlicerMainWindowCore);
-
-
-  if (!d->PythonConsole)
+  ctkPythonConsole* console = this->pythonConsole();
+  Q_ASSERT(console);
+  if (show)
     {
-    // Lookup reference of 'PythonConsole' widget
-    foreach(QWidget * widget, qApp->topLevelWidgets())
-      {
-      if(widget->objectName().compare(QLatin1String("pythonConsole")) == 0)
-        {
-        d->PythonConsole = qobject_cast<ctkPythonConsole*>(widget);
-        break;
-        }
-      }
+    console->show();
+    console->activateWindow();
+    console->raise();
     }
-  Q_ASSERT(d->PythonConsole);
-  d->PythonConsole->show();
-  d->PythonConsole->activateWindow();
-  d->PythonConsole->raise();
+  else
+    {
+    console->close();
+    }
 #endif
 }
 
@@ -291,7 +349,7 @@ void qSlicerMainWindowCore::onHelpBrowseTutorialsActionTriggered()
 //---------------------------------------------------------------------------
 void qSlicerMainWindowCore::onHelpInterfaceDocumentationActionTriggered()
 {
-  QDesktopServices::openUrl(QUrl("http://wiki.slicer.org/slicerWiki/index.php/Documentation/4.0"));
+  QDesktopServices::openUrl(QUrl(QString("http://wiki.slicer.org/slicerWiki/index.php/Documentation/%1.%2").arg(Slicer_VERSION_MAJOR).arg(Slicer_VERSION_MINOR)));
 }
 //---------------------------------------------------------------------------
 void qSlicerMainWindowCore::onHelpSlicerPublicationsActionTriggered()

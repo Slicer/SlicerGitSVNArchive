@@ -44,6 +44,7 @@
 #ifdef Slicer_BUILD_EXTENSIONMANAGER_SUPPORT
 # include "qSlicerSettingsExtensionsPanel.h"
 #endif
+#include "qSlicerSettingsCachePanel.h"
 #include "qSlicerSettingsGeneralPanel.h"
 #include "qSlicerSettingsModulesPanel.h"
 
@@ -124,7 +125,8 @@ void qSlicerApplicationPrivate::init()
   this->initStyle();
 
   this->ToolTipTrapper = new ctkToolTipTrapper(q);
-  this->ToolTipTrapper->setEnabled(false);
+  this->ToolTipTrapper->setToolTipsTrapped(false);
+  this->ToolTipTrapper->setToolTipsWordWrapped(true);
 
   //----------------------------------------------------------------------------
   // Settings Dialog
@@ -142,6 +144,9 @@ void qSlicerApplicationPrivate::init()
   this->SettingsDialog->addPanel("Extensions settings", settingsExtensionsPanel);
   settingsExtensionsPanel->setRestartRequested(false);
 #endif
+  qSlicerSettingsCachePanel* cachePanel = new qSlicerSettingsCachePanel;
+  cachePanel->setCacheManager(this->MRMLScene->GetCacheManager());
+  this->SettingsDialog->addPanel("Cache settings", cachePanel);
 
   QObject::connect(this->SettingsDialog, SIGNAL(accepted()),
                    q, SLOT(onSettingDialogAccepted()));
@@ -299,7 +304,7 @@ QSettings* qSlicerApplication::newSettings(const QString& fileName)
 void qSlicerApplication::setToolTipsEnabled(bool enable)
 {
   Q_D(qSlicerApplication);
-  d->ToolTipTrapper->setEnabled(!enable);
+  d->ToolTipTrapper->setToolTipsTrapped(!enable);
 }
 
 //-----------------------------------------------------------------------------

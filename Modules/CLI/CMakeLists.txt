@@ -16,6 +16,7 @@ set(cli_modules
   DWIRicianLMMSEFilter
   DWIToDTIEstimation
   DWIUnbiasedNonLocalMeansFilter
+  DTIImportExport
   ExecutionModelTour
   ExtractSkeleton
   FreesurferSurfaceSectionExtraction
@@ -65,11 +66,18 @@ if(Slicer_BUILD_LEGACY_CLI)
     TestGridTransformRegistration
     )
   list(APPEND cli_modules ${legacy_cli_modules})
-if("${ITK_VERSION_MAJOR}" LESS 4)
-  ## The time necessary to rewrite this legacy application to work in ITKv4 is trivial, to make it work in
-  ## both ITKv4 and ITKv3 is painful.
-  list(APPEND cli_modules MRIBiasFieldCorrection)
+  if("${ITK_VERSION_MAJOR}" LESS 4)
+    ## The time necessary to rewrite this legacy application to work in ITKv4 is trivial, to make it work in
+    ## both ITKv4 and ITKv3 is painful.
+    list(APPEND cli_modules MRIBiasFieldCorrection)
+  endif()
 endif()
+
+if (Slicer_BUILD_EMSegment)
+  ## EMSegment requires some LEGACY_CLI to work. Add them if not already added
+  if (NOT Slicer_BUILD_LEGACY_CLI)
+    list(APPEND cli_modules BSplineToDeformationField)
+  endif()
 endif()
 
 if("${ITK_VERSION_MAJOR}" LESS 4)

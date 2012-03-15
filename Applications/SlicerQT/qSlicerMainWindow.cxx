@@ -27,15 +27,20 @@
 #include <QToolButton>
 #include <QMenu>
 
+#include "qSlicerApplication.h" // Indirectly includes vtkSlicerConfigure.h
+
 // CTK includes
+#include <ctkErrorLogWidget.h>
 #include <ctkMessageBox.h>
+#ifdef Slicer_USE_PYTHONQT
+# include <ctkPythonConsole.h>
+#endif
 #include <ctkSettingsDialog.h>
 #include <ctkVTKSliceView.h>
 
 // SlicerQt includes
 #include "qSlicerMainWindow.h"
 #include "ui_qSlicerMainWindow.h"
-#include "qSlicerApplication.h" // Indirectly includes vtkSlicerConfigure.h
 #include "qSlicerAbstractModule.h"
 #include "qSlicerCoreCommandOptions.h"
 #ifdef Slicer_BUILD_EXTENSIONMANAGER_SUPPORT
@@ -125,11 +130,12 @@ void qSlicerMainWindowPrivate::setupUi(QMainWindow * mainWindow)
   // ModuleSelector ToolBar
   //----------------------------------------------------------------------------
   // Create a Module selector
-  this->ModuleSelectorToolBar = new qSlicerModuleSelectorToolBar("Module Selector",q);
+  this->ModuleSelectorToolBar = new qSlicerModuleSelectorToolBar("Module Selection",q);
   this->ModuleSelectorToolBar->setObjectName(QString::fromUtf8("ModuleSelectorToolBar"));
   this->ModuleSelectorToolBar->setAllowedAreas(Qt::TopToolBarArea | Qt::BottomToolBarArea);
   this->ModuleSelectorToolBar->setModuleManager(moduleManager);
   q->insertToolBar(this->ModuleToolBar, this->ModuleSelectorToolBar);
+  this->ModuleSelectorToolBar->stackUnder(this->ModuleToolBar);
 
   // Connect the selector with the module panel
   this->ModulePanel->setModuleManager(moduleManager);
@@ -172,6 +178,21 @@ void qSlicerMainWindowPrivate::setupUi(QMainWindow * mainWindow)
                    qSlicerApplication::application()->ioManager(),
                    SLOT(openSceneViewsDialog()));
 
+  QList<QAction*> toolBarActions;
+  toolBarActions << this->MainToolBar->toggleViewAction();
+  //toolBarActions << this->UndoRedoToolBar->toggleViewAction();
+  toolBarActions << this->ModuleSelectorToolBar->toggleViewAction();
+  toolBarActions << this->ModuleToolBar->toggleViewAction();
+  toolBarActions << this->ViewToolBar->toggleViewAction();
+  //toolBarActions << this->LayoutToolBar->toggleViewAction();
+  toolBarActions << this->MouseModeToolBar->toggleViewAction();
+  toolBarActions << this->CaptureToolBar->toggleViewAction();
+  toolBarActions << this->ViewersToolBar->toggleViewAction();
+
+  this->menuWindowToolBars->insertActions(
+    this->actionWindowToolbarsResetToDefault, toolBarActions);
+  this->menuWindowToolBars->insertSeparator(
+    this->actionWindowToolbarsResetToDefault);
   //----------------------------------------------------------------------------
   // Hide toolbars by default
   //----------------------------------------------------------------------------
@@ -181,8 +202,14 @@ void qSlicerMainWindowPrivate::setupUi(QMainWindow * mainWindow)
   // minimizing the application and restore it doesn't hide the module panel. check
   // also the geometry and the state of the menu qactions are correctly restored when
   // loading slicer.
-  this->actionWindowToolbarsUndoRedo->trigger();
-  this->actionWindowToolbarsLayout->trigger();
+  this->UndoRedoToolBar->toggleViewAction()->trigger();
+  this->LayoutToolBar->toggleViewAction()->trigger();
+  //q->removeToolBar(this->UndoRedoToolBar);
+  //q->removeToolBar(this->LayoutToolBar);
+  delete this->UndoRedoToolBar;
+  this->UndoRedoToolBar = 0;
+  delete this->LayoutToolBar;
+  this->LayoutToolBar = 0;
 
   // Color of the spacing between views:
   QFrame* layoutFrame = new QFrame(this->CentralWidget);
@@ -327,6 +354,10 @@ void qSlicerMainWindowPrivate::setupUi(QMainWindow * mainWindow)
   this->actionHelpReportBugOrFeatureRequest->setIcon(questionIcon);
   this->actionHelpVisualBlog->setIcon(networkIcon);
 
+  //----------------------------------------------------------------------------
+  // Dialogs
+  //----------------------------------------------------------------------------
+
 #ifdef Slicer_BUILD_EXTENSIONMANAGER_SUPPORT
   this->ExtensionsManagerDialog = new qSlicerExtensionsManagerDialog(q);
 #endif
@@ -388,18 +419,6 @@ qSlicerMainWindow::qSlicerMainWindow(QWidget *_parent):Superclass(_parent)
   this->setupMenuActions();
   d->StartupState = this->saveState();
   d->readSettings();
-
-  // reading settings might have enable/disable toolbar visibility, need to
-  // synchronize with the menu actions
-  d->actionWindowToolbarsLoadSave->setChecked(d->MainToolBar->isVisibleTo(this));
-  d->actionWindowToolbarsUndoRedo->setChecked(d->UndoRedoToolBar->isVisibleTo(this));
-  d->actionWindowToolbarsLayout->setChecked(d->LayoutToolBar->isVisibleTo(this));
-  d->actionWindowToolbarsView->setChecked(d->ViewToolBar->isVisibleTo(this));
-  d->actionWindowToolbarsModuleSelector->setChecked(d->ModuleSelectorToolBar->isVisibleTo(this));
-  d->actionWindowToolbarsModules->setChecked(d->ModuleToolBar->isVisibleTo(this));
-  d->actionWindowToolbarsMouseMode->setChecked(d->MouseModeToolBar->isVisibleTo(this));
-  d->actionWindowToolbarsCapture->setChecked(d->CaptureToolBar->isVisibleTo(this));
-  d->actionWindowToolbarsViewers->setChecked(d->ViewersToolBar->isVisibleTo(this));
 }
 
 //-----------------------------------------------------------------------------
@@ -443,6 +462,10 @@ void qSlicerMainWindow::closeEvent(QCloseEvent *event)
   Q_D(qSlicerMainWindow);
   if (d->confirmClose())
     {
+    // Exit current module to leave it a chance to change the UI (e.g. layout)
+    // before writting settings.
+    d->ModuleSelectorToolBar->selectModule("");
+
     d->writeSettings();
     event->accept();
     }
@@ -570,9 +593,18 @@ void qSlicerMainWindow::setupMenuActions()
   d->actionViewLayoutCompareGrid_3x3_viewers->setData(3);
   d->actionViewLayoutCompareGrid_4x4_viewers->setData(4);
 
-
-  qSlicerMainWindowCore_connect(WindowErrorLog);
-  qSlicerMainWindowCore_connect(WindowPythonInteractor);
+  connect(d->actionWindowErrorLog, SIGNAL(triggered(bool)),
+          d->Core, SLOT(onWindowErrorLogActionTriggered(bool)));
+  connect(d->actionWindowPythonInteractor, SIGNAL(triggered(bool)),
+          d->Core, SLOT(onWindowPythonInteractorActionTriggered(bool)));
+  if (d->Core->errorLogWidget())
+    {
+    d->Core->errorLogWidget()->installEventFilter(this);
+    }
+  if (d->Core->pythonConsole())
+    {
+    d->Core->pythonConsole()->installEventFilter(this);
+    }
 
   qSlicerMainWindowCore_connect(HelpKeyboardShortcuts);
   qSlicerMainWindowCore_connect(HelpBrowseTutorials);
@@ -584,8 +616,6 @@ void qSlicerMainWindow::setupMenuActions()
   qSlicerMainWindowCore_connect(HelpVisualBlog);
 
   //connect ToolBars actions
-  connect(d->actionWindowToolbarsModuleSelector, SIGNAL(triggered(bool)),
-          d->ModuleSelectorToolBar, SLOT(setVisible(bool)));
   connect(d->actionWindowToolbarsResetToDefault, SIGNAL(triggered()),
           this, SLOT(restoreToolbars()));
 
@@ -825,4 +855,26 @@ void qSlicerMainWindow::restoreToolbars()
 {
   Q_D(qSlicerMainWindow);
   this->restoreState(d->StartupState);
+}
+
+//---------------------------------------------------------------------------
+bool qSlicerMainWindow::eventFilter(QObject* object, QEvent* event)
+{
+  Q_D(qSlicerMainWindow);
+  bool showEvent = (event->type() == QEvent::Show);
+  bool hideEvent = (event->type() == QEvent::Close);
+  if (showEvent || hideEvent)
+    {
+    if (object == d->Core->errorLogWidget())
+      {
+      d->actionWindowErrorLog->setChecked(showEvent);
+      }
+#ifdef Slicer_USE_PYTHONQT
+    else if (object == d->Core->pythonConsole())
+      {
+      d->actionWindowPythonInteractor->setChecked(showEvent);
+      }
+#endif
+    }
+  return this->Superclass::eventFilter(object, event);
 }

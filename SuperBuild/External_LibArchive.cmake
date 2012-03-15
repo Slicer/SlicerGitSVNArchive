@@ -8,14 +8,15 @@ set(${CMAKE_CURRENT_LIST_FILENAME}_FILE_INCLUDED 1)
 
 # Set dependency list
 set(LibArchive_DEPENDENCIES "")
+if(WIN32)
+  list(APPEND LibArchive_DEPENDENCIES zlib)
+endif()
 
 # Include dependent projects if any
 SlicerMacroCheckExternalProjectDependency(LibArchive)
 set(proj LibArchive)
-
 if(NOT DEFINED LibArchive_DIR)
   #message(STATUS "${__indent}Adding project ${proj}")
-
   #
   # WARNING - Before updating the version of LibArchive, please consider the following:
   #
@@ -32,6 +33,10 @@ if(NOT DEFINED LibArchive_DIR)
   #   * LibArchive trunk (r3461)
   #         - Compiles properly on all unix-like platform
   #         - Doesn't compile on windows 64bits
+  #
+  #   * LibArchive 3.0.3
+  #         - No particular issues
+  #         - Tested shared library build on MacOSX, Ubuntu 10.04, Windows7 32/64bit
   #
   # [1] http://svn.slicer.org/Slicer3-lib-mirrors/trunk/libarchive-2.7.1-patched.tar.gz
   # [2] http://svn.slicer.org/Slicer3-lib-mirrors/trunk/libarchive-2.8.4-patched.tar.gz
@@ -60,12 +65,15 @@ if(NOT DEFINED LibArchive_DIR)
   #
   set(ADDITIONAL_CMAKE_ARGS)
   if(WIN32)
-    set(LibArchive_URL http://svn.slicer.org/Slicer3-lib-mirrors/trunk/libarchive-2.8.4-patched.tar.gz)
-    set(LibArchive_MD5 8667f571da1f3318081acdd5377ddda5)
+    set(LibArchive_URL http://cloud.github.com/downloads/libarchive/libarchive/libarchive-3.0.3.tar.gz)
+    set(LibArchive_MD5 ca4090f0099432a9ac5a8b6618dc3892)
     # CMake arguments specific to LibArchive >= 2.8.4
     list(APPEND ADDITIONAL_CMAKE_ARGS
       -DBUILD_TESTING:BOOL=OFF
       -DENABLE_OPENSSL:BOOL=OFF
+      -DZLIB_INCLUDE_DIR:PATH=${zlib_DIR}/include
+      -DZLIB_LIBRARY:FILEPATH=${zlib_DIR}/lib/zlib.lib
+      -DZLIB_ROOT:PATH=${zlib_DIR}
       )
   else()
     set(LibArchive_URL http://svn.slicer.org/Slicer3-lib-mirrors/trunk/libarchive-2.7.1-patched.tar.gz)

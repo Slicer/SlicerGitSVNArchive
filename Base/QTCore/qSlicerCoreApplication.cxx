@@ -204,11 +204,15 @@ void qSlicerCoreApplicationPrivate::init()
 
   // Create MRMLRemoteIOLogic
   this->MRMLRemoteIOLogic = vtkSmartPointer<vtkMRMLRemoteIOLogic>::New();
-  this->MRMLRemoteIOLogic->GetCacheManager()->SetRemoteCacheDirectory(q->temporaryPath().toLatin1());
+  // Default cache location, can be changed in settings.
+  this->MRMLRemoteIOLogic->GetCacheManager()->SetRemoteCacheDirectory(
+    QFileInfo(q->temporaryPath(), "RemoteIO").
+    absoluteFilePath().toLatin1());
 
   this->DataIOManagerLogic = vtkSmartPointer<vtkDataIOManagerLogic>::New();
   this->DataIOManagerLogic->SetMRMLApplicationLogic(this->AppLogic);
-  this->DataIOManagerLogic->SetAndObserveDataIOManager(this->MRMLRemoteIOLogic->GetDataIOManager());
+  this->DataIOManagerLogic->SetAndObserveDataIOManager(
+    this->MRMLRemoteIOLogic->GetDataIOManager());
 
   // Create MRML scene
   vtkNew<vtkMRMLScene> scene;
@@ -299,13 +303,14 @@ QString qSlicerCoreApplicationPrivate::discoverSlicerHomeDirectory()
   if (!slicerHome.isEmpty())
     {
 #ifndef Q_OS_MAC
-    if (QDir(q->applicationDirPath()).dirName() != Slicer_BIN_DIR)
+    if (this->IntDir.isEmpty())
       {
-      // Additionally, let's note that IntDir value is computed with the help of "pathWithoutIntDir"
-      // within the method "discoverSlicerBinDirectory" before this call
-      // to "discoverSlicerHomeDirectory". When first called, the parameter to "pathWithoutIntDir"
-      // are "applicationDirPath" and "Slicer_BIN_DIR".
-      // Considering the case of command line module, we should use "Slicer_CLIMODULES_BIN_DIR"
+      // Additionally, in an attempt to compute InDir, let's note that its value
+      // is first set with the help of "pathWithoutIntDir" in the method
+      // "discoverSlicerBinDirectory" happening before this call.
+      // When first called, the parameters to "pathWithoutIntDir" are "applicationDirPath" and "Slicer_BIN_DIR".
+      // If set to an empty value, we should then consider the case of command line module,
+      // by trying with "Slicer_CLIMODULES_BIN_DIR".
       qSlicerUtils::pathWithoutIntDir(q->applicationDirPath(), Slicer_CLIMODULES_BIN_DIR, this->IntDir);
       }
 #endif
@@ -758,24 +763,30 @@ void qSlicerCoreApplication::handleCommandLineArguments()
     // Note that 'pythonScript' is ignored if 'extraPythonScript' is specified
     QString pythonScript = options->pythonScript();
     QString extraPythonScript = options->extraPythonScript();
+    QStringList scriptArgs = options->unparsedArguments();
     if(!extraPythonScript.isEmpty())
       {
+      scriptArgs.removeFirst();
       pythonScript = extraPythonScript;
       }
 
     // Set 'argv' so that python script can retrieve its associated arguments
-    int pythonArgc = 1 /*scriptname*/ + options->unparsedArguments().count();
+    int pythonArgc = 1 /*scriptname*/ + scriptArgs.count();
     char** pythonArgv = new char*[pythonArgc];
     pythonArgv[0] = new char[pythonScript.size() + 1];
     strcpy(pythonArgv[0], pythonScript.toLatin1());
-    for(int i = 0; i < options->unparsedArguments().count(); ++i)
+    for(int i = 0; i < scriptArgs.count(); ++i)
       {
-      pythonArgv[i + 1] = new char[options->unparsedArguments().at(i).size() + 1];
-      strcpy(pythonArgv[i + 1], options->unparsedArguments().at(i).toLatin1());
+      pythonArgv[i + 1] = new char[scriptArgs.at(i).size() + 1];
+      strcpy(pythonArgv[i + 1], scriptArgs.at(i).toLatin1());
       }
 
     // See http://docs.python.org/c-api/init.html
     PySys_SetArgvEx(pythonArgc, pythonArgv, /*updatepath=*/false);
+
+    // Set 'sys.executable' so that Slicer can be used as a "regular" python interpreter
+    this->corePythonManager()->executeString(
+          QString("import sys; sys.executable = '%1'; del sys").arg(this->applicationFilePath()));
 
     // Clean memory
     for(int i = 0; i < pythonArgc; ++i){ delete[] pythonArgv[i];}
@@ -792,15 +803,18 @@ void qSlicerCoreApplication::handleCommandLineArguments()
       this->corePythonManager()->executeString("loadSlicerRCFile()");
       }
 
+    if (this->testAttribute(AA_EnableTesting))
+      {
+      options->setRunPythonAndExit(true);
+      }
+
     // Execute python script
-    bool exitStatus = EXIT_FAILURE;
     if(!pythonScript.isEmpty())
       {
       if (QFile::exists(pythonScript))
         {
         qApp->processEvents();
         this->corePythonManager()->executeFile(pythonScript);
-        exitStatus = this->corePythonManager()->getVariable("slicer.testing._status").toInt();
         }
       else
         {
@@ -812,11 +826,11 @@ void qSlicerCoreApplication::handleCommandLineArguments()
       {
       qApp->processEvents();
       this->corePythonManager()->executeString(pythonCode);
-      exitStatus = this->corePythonManager()->getVariable("slicer.testing._status").toInt();
       }
-    if (this->testAttribute(AA_EnableTesting))
+    if (options->runPythonAndExit())
       {
-      qSlicerCoreApplication::exit(exitStatus);
+      qSlicerCoreApplication::exit(
+            this->corePythonManager()->pythonErrorOccured() ? EXIT_FAILURE : EXIT_SUCCESS);
       }
     }
 #endif
@@ -1029,7 +1043,9 @@ void qSlicerCoreApplication::setExtensionsInstallPath(const QString& path)
   QSettings* appSettings = this->settings();
   Q_ASSERT(appSettings);
   appSettings->setValue("Extensions/InstallPath", path);
+#ifdef Slicer_BUILD_EXTENSIONMANAGER_SUPPORT
   this->extensionManagerModel()->updateModel();
+#endif
 }
 
 //-----------------------------------------------------------------------------

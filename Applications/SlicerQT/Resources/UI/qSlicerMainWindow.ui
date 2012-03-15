@@ -24,7 +24,7 @@
      <x>0</x>
      <y>0</y>
      <width>1011</width>
-     <height>27</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -92,26 +92,16 @@
      <addaction name="actionViewLayoutFourOverFour"/>
      <addaction name="actionViewLayoutTwoOverTwo"/>
     </widget>
-    <widget class="QMenu" name="menuWindowToolbars">
+    <widget class="QMenu" name="menuWindowToolBars">
      <property name="title">
       <string>&amp;Toolbars</string>
      </property>
-     <addaction name="actionWindowToolbarsLoadSave"/>
-     <addaction name="actionWindowToolbarsModuleSelector"/>
-     <addaction name="actionWindowToolbarsModules"/>
-     <addaction name="actionWindowToolbarsView"/>
-     <addaction name="actionWindowToolbarsLayout"/>
-     <addaction name="actionWindowToolbarsMouseMode"/>
-     <addaction name="actionWindowToolbarsCapture"/>
-     <addaction name="actionWindowToolbarsViewers"/>
-     <addaction name="separator"/>
      <addaction name="actionWindowToolbarsResetToDefault"/>
     </widget>
     <addaction name="actionWindowPythonInteractor"/>
     <addaction name="actionViewExtensionManager"/>
     <addaction name="separator"/>
-    <addaction name="actionWindowShowMainPanel"/>
-    <addaction name="menuWindowToolbars"/>
+    <addaction name="menuWindowToolBars"/>
     <addaction name="MenuLayout"/>
     <addaction name="separator"/>
     <addaction name="actionWindowErrorLog"/>
@@ -202,7 +192,7 @@
   </widget>
   <widget class="QToolBar" name="MainToolBar">
    <property name="windowTitle">
-    <string>Main ToolBar</string>
+    <string>Load/Save</string>
    </property>
    <attribute name="toolBarArea">
     <enum>TopToolBarArea</enum>
@@ -216,7 +206,7 @@
   </widget>
   <widget class="QToolBar" name="ModuleToolBar">
    <property name="windowTitle">
-    <string>Module ToolBar</string>
+    <string>Module Shortcuts</string>
    </property>
    <attribute name="toolBarArea">
     <enum>TopToolBarArea</enum>
@@ -239,7 +229,7 @@
   </widget>
   <widget class="QToolBar" name="ViewToolBar">
    <property name="windowTitle">
-    <string>View ToolBar</string>
+    <string>Layout Selection</string>
    </property>
    <attribute name="toolBarArea">
     <enum>TopToolBarArea</enum>
@@ -282,7 +272,7 @@
     <bool>false</bool>
    </property>
    <property name="windowTitle">
-    <string>Mouse Mode ToolBar</string>
+    <string>Mouse Interaction</string>
    </property>
    <attribute name="toolBarArea">
     <enum>TopToolBarArea</enum>
@@ -296,7 +286,7 @@
     <bool>false</bool>
    </property>
    <property name="windowTitle">
-    <string>Capture ToolBar</string>
+    <string>Capture/Restore</string>
    </property>
    <attribute name="toolBarArea">
     <enum>TopToolBarArea</enum>
@@ -307,7 +297,7 @@
   </widget>
   <widget class="qSlicerViewersToolBar" name="ViewersToolBar">
    <property name="windowTitle">
-    <string>Viewers Toolbar</string>
+    <string>Crosshair Selection</string>
    </property>
    <attribute name="toolBarArea">
     <enum>TopToolBarArea</enum>
@@ -425,6 +415,9 @@
    </property>
   </action>
   <action name="actionSDBSaveToDirectory">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="icon">
     <iconset resource="../../../../Base/QTGUI/Resources/qSlicerBaseQTGUI.qrc">
      <normaloff>:/Icons/Small/SlicerSave.png</normaloff>:/Icons/Small/SlicerSave.png</iconset>
@@ -575,23 +568,6 @@
     <string>Ctrl+2</string>
    </property>
   </action>
-  <action name="actionWindowShowMainPanel">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="checked">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>&amp;Module Panel</string>
-   </property>
-   <property name="toolTip">
-    <string>Collapse/Expand the GUI panel and allows Slicer's viewers to occupy the entire application window</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+5</string>
-   </property>
-  </action>
   <action name="actionWindowMaximizeView">
    <property name="checkable">
     <bool>true</bool>
@@ -610,6 +586,9 @@
    </property>
   </action>
   <action name="actionWindowErrorLog">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>&amp;Error Log</string>
    </property>
@@ -621,6 +600,9 @@
    </property>
   </action>
   <action name="actionWindowPythonInteractor">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>Python Interactor</string>
    </property>
@@ -629,76 +611,6 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+3</string>
-   </property>
-  </action>
-  <action name="actionWindowToolbarsLoadSave">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="checked">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Load/Save</string>
-   </property>
-   <property name="toolTip">
-    <string>Show or Hide the &quot;Load/Save&quot; toolbar</string>
-   </property>
-  </action>
-  <action name="actionWindowToolbarsUndoRedo">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="checked">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Undo/Redo</string>
-   </property>
-   <property name="toolTip">
-    <string>Show or Hide the &quot;Undo/Redo&quot; toolbar.</string>
-   </property>
-  </action>
-  <action name="actionWindowToolbarsLayout">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="checked">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Layout</string>
-   </property>
-   <property name="toolTip">
-    <string>Show or Hide the &quot;Layout&quot; toolbar</string>
-   </property>
-  </action>
-  <action name="actionWindowToolbarsMouseMode">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="checked">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Mouse Mode</string>
-   </property>
-   <property name="toolTip">
-    <string>Show or Hide the &quot;Mouse Mode&quot; toolbar</string>
-   </property>
-  </action>
-  <action name="actionWindowToolbarsCapture">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="checked">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Capture</string>
-   </property>
-   <property name="toolTip">
-    <string>Show or Hide the &quot;Capture&quot; toolbar</string>
    </property>
   </action>
   <action name="actionWindowToolbarsResetToDefault">
@@ -781,20 +693,6 @@
   <action name="actionDebugLoadModule">
    <property name="text">
     <string>Load Module</string>
-   </property>
-  </action>
-  <action name="actionWindowToolbarsModules">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="checked">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Modules</string>
-   </property>
-   <property name="toolTip">
-    <string>Show or Hide the &quot;Modules&quot; toolbar</string>
    </property>
   </action>
   <action name="actionViewLayoutConventional">
@@ -969,34 +867,6 @@
    </property>
    <property name="iconVisibleInMenu">
     <bool>true</bool>
-   </property>
-  </action>
-  <action name="actionWindowToolbarsModuleSelector">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="checked">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Module Selector</string>
-   </property>
-   <property name="toolTip">
-    <string>Show or Hide the &quot;Module Selector&quot; toolbar</string>
-   </property>
-  </action>
-  <action name="actionWindowToolbarsView">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="checked">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>View</string>
-   </property>
-   <property name="toolTip">
-    <string>Show or Hide the &quot;View&quot; toolbar</string>
    </property>
   </action>
   <action name="actionModuleHome">
@@ -1215,17 +1085,6 @@
     <string>4x4 viewers</string>
    </property>
   </action>
-  <action name="actionWindowToolbarsViewers">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="checked">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Viewers</string>
-   </property>
-  </action>
  </widget>
  <customwidgets>
   <customwidget>
@@ -1266,151 +1125,7 @@
   <include location="../../../../Base/QTGUI/Resources/qSlicerBaseQTGUI.qrc"/>
   <include location="../../../../Libs/MRML/Widgets/Resources/qMRMLWidgets.qrc"/>
   <include location="../../../../Resources/qSlicerLogos.qrc"/>
+  <include location="../../../../Resources/qSlicerLogos.qrc"/>
  </resources>
- <connections>
-  <connection>
-   <sender>actionWindowShowMainPanel</sender>
-   <signal>triggered(bool)</signal>
-   <receiver>PanelDockWidget</receiver>
-   <slot>setVisible(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>67</x>
-     <y>320</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>PanelDockWidget</sender>
-   <signal>visibilityChanged(bool)</signal>
-   <receiver>actionWindowShowMainPanel</receiver>
-   <slot>setChecked(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>67</x>
-     <y>320</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>actionWindowToolbarsLayout</sender>
-   <signal>triggered(bool)</signal>
-   <receiver>LayoutToolBar</receiver>
-   <slot>setVisible(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>447</x>
-     <y>46</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>actionWindowToolbarsMouseMode</sender>
-   <signal>triggered(bool)</signal>
-   <receiver>MouseModeToolBar</receiver>
-   <slot>setVisible(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>1010</x>
-     <y>65</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>actionWindowToolbarsLoadSave</sender>
-   <signal>triggered(bool)</signal>
-   <receiver>MainToolBar</receiver>
-   <slot>setVisible(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>42</x>
-     <y>42</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>actionWindowToolbarsUndoRedo</sender>
-   <signal>triggered(bool)</signal>
-   <receiver>UndoRedoToolBar</receiver>
-   <slot>setVisible(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>256</x>
-     <y>64</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>actionWindowToolbarsModules</sender>
-   <signal>triggered(bool)</signal>
-   <receiver>ModuleToolBar</receiver>
-   <slot>setVisible(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>155</x>
-     <y>64</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>actionWindowToolbarsView</sender>
-   <signal>triggered(bool)</signal>
-   <receiver>ViewToolBar</receiver>
-   <slot>setVisible(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>269</x>
-     <y>64</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>actionWindowToolbarsViewers</sender>
-   <signal>triggered(bool)</signal>
-   <receiver>ViewersToolBar</receiver>
-   <slot>setVisible(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>981</x>
-     <y>43</y>
-    </hint>
-   </hints>
-  </connection>
- </connections>
+ <connections/>
 </ui>

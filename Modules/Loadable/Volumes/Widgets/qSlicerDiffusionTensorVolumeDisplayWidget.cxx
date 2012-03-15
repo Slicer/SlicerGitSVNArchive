@@ -182,10 +182,20 @@ void qSlicerDiffusionTensorVolumeDisplayWidget::updateWidgetFromMRML()
     return;
     }
   d->ScalarInvariantComboBox->setScalarInvariant(displayNode->GetScalarInvariant());
-  d->ScalarVolumeDisplayWidget->setColorTableComboBoxEnabled(
-    displayNode->GetScalarInvariant() != vtkMRMLDiffusionTensorDisplayPropertiesNode::ColorOrientation &&
-    displayNode->GetScalarInvariant() != vtkMRMLDiffusionTensorDisplayPropertiesNode::ColorOrientationMiddleEigenvector &&
-    displayNode->GetScalarInvariant() != vtkMRMLDiffusionTensorDisplayPropertiesNode::ColorOrientationMinEigenvector);
+  if ( 
+    displayNode->GetScalarInvariant() == vtkMRMLDiffusionTensorDisplayPropertiesNode::ColorOrientation ||
+    displayNode->GetScalarInvariant() == vtkMRMLDiffusionTensorDisplayPropertiesNode::ColorOrientationMiddleEigenvector ||
+    displayNode->GetScalarInvariant() == vtkMRMLDiffusionTensorDisplayPropertiesNode::ColorOrientationMinEigenvector 
+    ) 
+  {
+    d->ScalarVolumeDisplayWidget->setColorTableComboBoxEnabled(false);
+    d->ScalarVolumeDisplayWidget->setMRMLWindowLevelWidgetEnabled(false);
+    displayNode->AutoScalarRangeOn();
+    displayNode->AutoWindowLevelOn();
+  } else {
+    d->ScalarVolumeDisplayWidget->setColorTableComboBoxEnabled(true);
+    d->ScalarVolumeDisplayWidget->setMRMLWindowLevelWidgetEnabled(true);
+  }
 }
 
 // --------------------------------------------------------------------------

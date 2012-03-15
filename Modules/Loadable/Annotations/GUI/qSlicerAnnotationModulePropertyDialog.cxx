@@ -11,18 +11,20 @@
 #include <QTabWidget>
 #include <QTableWidget>
 
-#include "Logic/vtkSlicerAnnotationModuleLogic.h"
-#include "vtkMRMLAnnotationNode.h"
-#include "vtkMRMLAnnotationPointDisplayNode.h"
-#include "vtkMRMLAnnotationLineDisplayNode.h"
-#include "vtkMRMLAnnotationTextDisplayNode.h"
+// Annotations includes
+#include "vtkMRMLAnnotationAngleNode.h"
 #include "vtkMRMLAnnotationControlPointsNode.h"
 #include "vtkMRMLAnnotationFiducialNode.h"
-#include "vtkMRMLAnnotationAngleNode.h"
-#include "vtkMRMLAnnotationRulerNode.h"
+#include "vtkMRMLAnnotationHierarchyNode.h"
+#include "vtkMRMLAnnotationLineDisplayNode.h"
 #include "vtkMRMLAnnotationLinesNode.h"
+#include "vtkMRMLAnnotationNode.h"
+#include "vtkMRMLAnnotationPointDisplayNode.h"
 #include "vtkMRMLAnnotationROINode.h"
+#include "vtkMRMLAnnotationRulerNode.h"
+#include "vtkMRMLAnnotationTextDisplayNode.h"
 #include "vtkMRMLFiducialListNode.h"
+#include "vtkSlicerAnnotationModuleLogic.h"
 
 // VTK includes
 #include <vtkSmartPointer.h>
@@ -131,6 +133,15 @@ void qSlicerAnnotationModulePropertyDialog::initialize()
     if (pos)
       {
       ui.RASCoordinatesWidget->setCoordinates(pos);
+      }
+    // disable if locked
+    if (fidNode->GetLocked())
+      {
+      ui.RASCoordinatesWidget->setEnabled(0);
+      }
+    else
+      {
+      ui.RASCoordinatesWidget->setEnabled(1);
       }
     }
   
@@ -272,6 +283,7 @@ void qSlicerAnnotationModulePropertyDialog::initialize()
       vtkMRMLAnnotationPointDisplayNode *displayNode = vtkMRMLAnnotationPointDisplayNode::New();
       int min = displayNode->GetMinimumGlyphType();
       int max = displayNode->GetMaximumGlyphType();
+      bool enabled =  ui.pointGlyphTypeComboBox->isEnabled();
       ui.pointGlyphTypeComboBox->setEnabled(false);
       for (int i = min; i <= max; i++)
         {
@@ -279,7 +291,7 @@ void qSlicerAnnotationModulePropertyDialog::initialize()
         ui.pointGlyphTypeComboBox->addItem(displayNode->GetGlyphTypeAsString());
         //std::cout << "Adding glyphs to the combo box i = " << i << ", glyph type = " << displayNode->GetGlyphType() << ", as string = " << displayNode->GetGlyphTypeAsString() << ", combo box current index = " << ui.pointGlyphTypeComboBox->currentIndex() << ", count = " << ui.pointGlyphTypeComboBox->count() << std::endl;
         }
-      ui.pointGlyphTypeComboBox->setEnabled(true);
+      ui.pointGlyphTypeComboBox->setEnabled(enabled);
       displayNode->Delete();
       }
     int index =  ui.pointGlyphTypeComboBox->findData(QString(pointDisplayNode->GetGlyphTypeAsString()));
@@ -375,8 +387,16 @@ void qSlicerAnnotationModulePropertyDialog::initialize()
 
     // activate the roi tab
     ui.tabWidget->setCurrentIndex(3);
-    }
 
+    if (roiNode->GetLocked())
+      {
+      ui.ROIWidget->setEnabled(false);
+      }
+    else
+      {
+      ui.ROIWidget->setEnabled(true);
+      }
+    }
   else
     {
     ui.tabWidget->setTabEnabled(3, false);
@@ -861,7 +881,7 @@ void qSlicerAnnotationModulePropertyDialog::onPointsTableWidgetChanged(QTableWid
     {
     return;
     }
-  if (col == 1)
+  if (col == 0)
     {
     // x
     if (newCoords[0] != newValue)
@@ -869,7 +889,7 @@ void qSlicerAnnotationModulePropertyDialog::onPointsTableWidgetChanged(QTableWid
       newCoords[0] = newValue;
       }
     }
-  else if (col == 2)
+  else if (col == 1)
     {
     // y
     if (newCoords[1] != newValue)
@@ -877,7 +897,7 @@ void qSlicerAnnotationModulePropertyDialog::onPointsTableWidgetChanged(QTableWid
       newCoords[1] = newValue;
       }
     }
-  else if (col == 3)
+  else if (col == 2)
     {
     // z
     if (newCoords[2] != newValue)
@@ -1372,24 +1392,39 @@ void qSlicerAnnotationModulePropertyDialog::lockUnlockInterface(bool lock)
 {
   lock = !lock;
 
+  // top level 
+  ui.allColorPickerButton->setEnabled(lock);
+  ui.nameLineEdit->setEnabled(lock);
+  ui.sizeSmallPushButton->setEnabled(lock);
+  ui.sizeMediumPushButton->setEnabled(lock);
+  ui.sizeLargePushButton->setEnabled(lock);
+  ui.DescriptionTextEdit->setEnabled(lock);
+  ui.RASCoordinatesWidget->setEnabled(lock);
+  ui.visibleInvisibleButton->setEnabled(lock);
+
+  // Text
   ui.annotationTextEdit->setEnabled(lock);
-  ui.pointsTableWidget->setEnabled(lock);
   ui.measurementLineEdit->setEnabled(lock);
   ui.textSelectedColorPickerButton->setEnabled(lock);
   ui.textUnselectedColorPickerButton->setEnabled(lock);
   ui.textScaleSliderSpinBoxWidget->setEnabled(lock);
   ui.textOpacitySliderSpinBoxWidget->setEnabled(lock);
-  ui.visibleInvisibleButton->setEnabled(lock);
+
+
+  // Point
+  ui.pointsTableWidget->setEnabled(lock);
   ui.pointSelectedColorPickerButton->setEnabled(lock);
   ui.pointUnselectedColorPickerButton->setEnabled(lock);
   ui.pointGlyphTypeComboBox->setEnabled(lock);
-  ui.lineSelectedColorPickerButton->setEnabled(lock);
-  ui.lineUnselectedColorPickerButton->setEnabled(lock);
   ui.pointAmbientSliderSpinBoxWidget->setEnabled(lock);
   ui.pointDiffuseSliderSpinBoxWidget->setEnabled(lock);
   ui.pointOpacitySliderSpinBoxWidget->setEnabled(lock);
   ui.pointSizeSliderSpinBoxWidget->setEnabled(lock);
   ui.pointSpecularSliderSpinBoxWidget->setEnabled(lock);
+
+  // Line
+  ui.lineSelectedColorPickerButton->setEnabled(lock);
+  ui.lineUnselectedColorPickerButton->setEnabled(lock);
   ui.lineAmbientSliderSpinBoxWidget_2->setEnabled(lock);
   ui.lineDiffuseSliderSpinBoxWidget_2->setEnabled(lock);
   ui.lineOpacitySliderSpinBoxWidget_2->setEnabled(lock);
@@ -1399,6 +1434,9 @@ void qSlicerAnnotationModulePropertyDialog::lockUnlockInterface(bool lock)
   ui.lineLabelVisibilityCheckBox->setEnabled(lock);
   ui.lineTickSpacingLineEdit->setEnabled(lock);
   ui.lineMaxTicksSliderSpinBoxWidget->setEnabled(lock);
+
+  // ROI
+  ui.ROIWidget->setEnabled(lock);
 }
 
 //-----------------------------------------------------------------------------

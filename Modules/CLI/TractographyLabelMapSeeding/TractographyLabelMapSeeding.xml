@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <executable>
-  <category>Diffusion.Tractography</category>
+  <category>Diffusion.Diffusion Tensor Images</category>
   <title>Tractography Label Map Seeding</title>
   <description><![CDATA[Seed tracts on a Diffusion Tensor Image (DT) from a label map]]></description>
   <version>0.1.0.$Revision: 1892 $(alpha)</version>
-  <documentation-url>http://wiki.slicer.org/slicerWiki/index.php/Documentation/4.0/Modules/Seeding</documentation-url>
+  <documentation-url>http://wiki.slicer.org/slicerWiki/index.php/Documentation/4.1/Modules/Seeding</documentation-url>
   <license>slicer3</license>
   <contributor>Raul San Jose (SPL, BWH), Demian Wassermann (SPL, BWH)</contributor>
   <acknowledgements><![CDATA[Laboratory of Mathematics in Imaging. This work is part of the National Alliance for Medical Image Computing (NAMIC), funded by the National Institutes of Health through the NIH Roadmap for Medical Research, Grant U54 EB005149.]]></acknowledgements>
@@ -28,7 +28,7 @@
     </image>
     <geometry type="fiberbundle">
       <name>OutputFibers</name>
-      <label>Output Fiber bundle</label>
+      <label>Output Fiber Bundle</label>
       <channel>output</channel>
       <index>1</index>
       <description><![CDATA[Tractography result]]></description>
@@ -107,7 +107,7 @@
     <description><![CDATA[Parameters for the tractography method]]></description>
     <double>
       <name>MinimumLength</name>
-      <label>Minimum Length</label>
+      <label>Minimum Path Length</label>
       <flag>-l</flag>
       <longflag>--minimumlength</longflag>
       <description><![CDATA[Minimum length of the fibers (in mm)]]></description>
@@ -133,7 +133,7 @@
     </double>
     <string-enumeration>
       <name>StoppingMode</name>
-      <label>Stopping Mode</label>
+      <label>Stopping Criteria</label>
       <description><![CDATA[Tensor measurement used to stop the tractography]]></description>
       <flag>-f</flag>
       <longflag>--stoppingmode</longflag>

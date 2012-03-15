@@ -3,8 +3,8 @@
   <category>Core</category>
   <title>Volumes</title>
   <description><![CDATA[This module is used for changing the appearance of various volume types.]]></description>
-  <version>4.0</version>
-  <documentation-url>http://wiki.slicer.org/slicerWiki/index.php/Documentation/4.0/Modules/Volumes</documentation-url>
+  <version>4.1</version>
+  <documentation-url>http://wiki.slicer.org/slicerWiki/index.php/Documentation/4.1/Modules/Volumes</documentation-url>
   <license>slicer4</license>
   <contributor>Steve Pieper (Isomics), Julien Finet (Kitware), Alex Yarmarkovich (Isomics), Nicole Aucoin (SPL, BWH)</contributor>
   <acknowledgements><![CDATA[This work is part of the National Alliance for Medical Image Computing (NAMIC), funded by the National Institutes of Health through the NIH Roadmap for Medical Research, Grant U54 EB005149.]]></acknowledgements>
@@ -73,7 +73,7 @@
     </parameter>
     <parameter>
       <label>Window/Level Controls</label>
-      <description><![CDATA[Double slider with text input to define the range of input volume data that should be mapped to the display grayscale.  Auto window level tries to estimate the intensity range of the foreground image data.]]></description>
+      <description><![CDATA[Double slider with text input to define the range of input volume data that should be mapped to the display grayscale.  Auto window level tries to estimate the intensity range of the foreground image data. On mouse over, a popup slides down to add support for large dynamic range by giving control over the range of the window level double slider.]]></description>
     </parameter>
     <parameter>
       <label>Threshold</label>

@@ -8,7 +8,10 @@
 
 #include "vtkSlicerAnnotationsModuleMRMLExport.h"
 #include "vtkMRMLDisplayableHierarchyNode.h"
-#include "vtkMRMLNode.h"
+
+class vtkAbstractTransform;
+class vtkMRMLStorableNode;
+class vtkMRMLStorageNode;
 
 /// \ingroup Slicer_QtModules_Annotation
 class  VTK_SLICER_ANNOTATIONS_MODULE_MRML_EXPORT vtkMRMLAnnotationHierarchyNode : public vtkMRMLDisplayableHierarchyNode
@@ -43,6 +46,13 @@ public:
   // If a child is another hierarchyNode, the parent of it gets set to this' parent
   virtual void DeleteDirectChildren();
 
+  /// From Transformable superclass
+  virtual bool CanApplyNonLinearTransforms()const;
+  virtual void ApplyTransform(vtkAbstractTransform* transform);
+
+  /// From Storable superclass
+  virtual vtkMRMLStorageNode *CreateDefaultStorageNode();
+  
 protected:
   vtkMRMLAnnotationHierarchyNode();
   ~vtkMRMLAnnotationHierarchyNode();

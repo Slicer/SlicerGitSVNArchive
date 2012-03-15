@@ -10,12 +10,13 @@ import EditorLib
 
 class Editor:
   def __init__(self, parent):
+    import string
     parent.title = "Editor"
     parent.categories = ["", "Segmentation"]
     parent.contributors = ["Steve Pieper (Isomics)"]
-    parent.helpText = """
-The Editor allows label maps to be created and edited. The active label map will be modified by the Editor.  See <a href=\"http://www.slicer.org/slicerWiki/index.php/Modules:Editor-Documentation-4.0\">http://www.slicer.org/slicerWiki/index.php/Modules:Editor-Documentation-4.0</a>.\n\nThe Master Volume refers to the background grayscale volume to be edited (used, for example, when thresholding).  The Merge Volume refers to a volume that contains several different label values corresponding to different structures.\n\nBasic usage: selecting the Master and Merge Volume give access to the editor tools.  Each tool has a help icon to bring up a dialog with additional information.  Hover your mouse pointer over buttons and options to view Balloon Help (tool tips).  Use these to define the Label Map.\n\nAdvanced usage: open the Per-Structure Volumes tab to create independent Label Maps for each color you wish to edit.  Since many editor tools (such as threshold) will operate on the entire volume, you can use the Per-Structure Volumes feature to isolate these operations on a structure-by-structure basis.  Use the Split Merge Volume button to create a set of volumes with independent labels.  Use the Add Structure button to add a new volume.  Delete Structures will remove all the independent structure volumes.  Merge All will assemble the current structures into the Merge Volume.  Merge And Build will invoke the Model Maker module on the Merge Volume.
-    """
+    parent.helpText = string.Template("""
+The Editor allows label maps to be created and edited. The active label map will be modified by the Editor.  See <a href=\"$a/Modules:Editor-Documentation-$b.$c\">$a/Modules:Editor-Documentation-$b.$c</a>.\n\nThe Master Volume refers to the background grayscale volume to be edited (used, for example, when thresholding).  The Merge Volume refers to a volume that contains several different label values corresponding to different structures.\n\nBasic usage: selecting the Master and Merge Volume give access to the editor tools.  Each tool has a help icon to bring up a dialog with additional information.  Hover your mouse pointer over buttons and options to view Balloon Help (tool tips).  Use these to define the Label Map.\n\nAdvanced usage: open the Per-Structure Volumes tab to create independent Label Maps for each color you wish to edit.  Since many editor tools (such as threshold) will operate on the entire volume, you can use the Per-Structure Volumes feature to isolate these operations on a structure-by-structure basis.  Use the Split Merge Volume button to create a set of volumes with independent labels.  Use the Add Structure button to add a new volume.  Delete Structures will remove all the independent structure volumes.  Merge All will assemble the current structures into the Merge Volume.  Merge And Build will invoke the Model Maker module on the Merge Volume.
+    """).substitute({ 'a':parent.slicerWikiUrl, 'b':slicer.app.majorVersion, 'c':slicer.app.minorVersion })
     parent.acknowledgementText = """
 This work is supported by NA-MIC, NAC, BIRN, NCIGT, and the Slicer Community. See <a>http://www.slicer.org</a> for details.  Module implemented by Steve Pieper.
 This work is partially supported by PAR-07-249: R01CA131718 NA-MIC Virtual Colonoscopy (See <a>http://www.na-mic.org/Wiki/index.php/NA-MIC_NCBC_Collaboration:NA-MIC_virtual_colonoscopy</a>).
@@ -48,13 +49,11 @@ class EditorWidget:
   # Lower priorities:
   #->> additional option for list of allowed labels - texts
   
-  def __init__(self, parent=None, embedded=False, suppliedEffects=[], showVolumesFrame=True):
+  def __init__(self, parent=None, showVolumesFrame=True):
     self.observerTags = []
     self.toolsBox = None
 
     # set attributes from ctor parameters
-    self.embedded = embedded
-    self.suppliedEffects = suppliedEffects
     self.showVolumesFrame = showVolumesFrame
     # TODO: figure out why module/class hierarchy is different
     # between developer builds ans packages
@@ -65,7 +64,6 @@ class EditorWidget:
       # for release package...
       self.editUtil = EditorLib.EditUtil()
 
-    #->> check to make sure it works with a supplied parent
     if not parent:
       self.parent = slicer.qMRMLWidget()
       self.parent.setLayout(qt.QVBoxLayout())
@@ -76,9 +74,6 @@ class EditorWidget:
     else:
       self.parent = parent
       self.layout = parent.layout()
-      #self.setup()
-      if self.embedded:
-        self.setup()
 
   def enter(self):
     """
@@ -129,16 +124,13 @@ class EditorWidget:
     
   def exit(self):
     self.parameterNode.RemoveObserver(self.parameterNodeTag)
-    self.pauseEffect()
     self.helper.onExit()
+    if self.toolsBox:
+      self.toolsBox.defaultEffect()
 
   def updateGUIFromMRML(self, caller, event):
     if self.toolsBox:
-      self.toolsBox.updateCheckPointButtons()
-
-  def pauseEffect(self):
-    if self.toolsBox:
-      self.toolsBox.pauseEffect()
+      self.toolsBox.updateUndoRedoButtons()
 
   def activateEffect(self):
     if self.toolsBox:
@@ -151,8 +143,6 @@ class EditorWidget:
         except KeyError:
           # oh well, no paint effect so let the user pick their own
           pass
-
-  # TODO need similar functionality as exit() to cancel brushes when widget is destroyed
 
   # sets the node for the volume to be segmented
   def setMasterNode(self, newMasterNode):
@@ -194,34 +184,21 @@ class EditorWidget:
     # (we already have self.parent for the parent widget, and self.layout for the layout)
     # create the frames for the EditColor, toolsOptionsFrame and EditBox
 
-    # if creating a standard editor widget (i.e. not an embedded widget), create
-    # collapsible button for entire "edit label maps" section
-    if not self.embedded:
-      # create collapsible button for entire "edit label maps" section
-      self.editLabelMapsFrame = ctk.ctkCollapsibleButton(self.parent)
-      self.editLabelMapsFrame.setLayout(qt.QVBoxLayout())
-      self.editLabelMapsFrame.setText("Edit Selected Label Map")
-      self.layout.addWidget(self.editLabelMapsFrame)
-      self.editLabelMapsFrame.collapsed = True
+    # create collapsible button for entire "edit label maps" section
+    self.editLabelMapsFrame = ctk.ctkCollapsibleButton(self.parent)
+    self.editLabelMapsFrame.setLayout(qt.QVBoxLayout())
+    self.editLabelMapsFrame.setText("Edit Selected Label Map")
+    self.layout.addWidget(self.editLabelMapsFrame)
+    self.editLabelMapsFrame.collapsed = True
 
-      # add a callback to collapse/open the frame based on the validity of the label volume
-      self.helper.mergeValidCommand = self.updateLabelFrame 
+    # add a callback to collapse/open the frame based on the validity of the label volume
+    self.helper.mergeValidCommand = self.updateLabelFrame 
 
-    # if creating embedded widget, simply use the parent for the widgets in the
-    # "edit label maps" section
-    else:
-      self.editLabelMapsFrame = self.parent
-
-    # if creating a standard editor widget, create frame holding both the effect
-    # options and edit box:
-    if not self.embedded:
-      self.effectsToolsFrame = qt.QFrame(self.editLabelMapsFrame)
-      self.effectsToolsFrame.setLayout(qt.QHBoxLayout())
-      self.editLabelMapsFrame.layout().addStretch(1)
-      self.editLabelMapsFrame.layout().addWidget(self.effectsToolsFrame)
-    # if creating embedded widget, once again use the parent
-    else:
-      self.effectsToolsFrame = self.parent
+    # create frame holding both the effect options and edit box:
+    self.effectsToolsFrame = qt.QFrame(self.editLabelMapsFrame)
+    self.effectsToolsFrame.setLayout(qt.QHBoxLayout())
+    self.editLabelMapsFrame.layout().addStretch(1)
+    self.editLabelMapsFrame.layout().addWidget(self.effectsToolsFrame)
 
     # create frame for effect options
     self.createEffectOptionsFrame()
@@ -254,10 +231,9 @@ class EditorWidget:
     self.editBoxFrame = qt.QFrame(self.effectsToolsFrame)
     self.editBoxFrame.setLayout(qt.QVBoxLayout())
     self.effectsToolsFrame.layout().addWidget(self.editBoxFrame)
-    self.toolsBox = EditorLib.EditBox(self.editBoxFrame, optionsFrame=self.effectOptionsFrame, embedded=self.embedded, suppliedEffects=self.suppliedEffects)
+    self.toolsBox = EditorLib.EditBox(self.editBoxFrame, optionsFrame=self.effectOptionsFrame)
 
   def updateLabelFrame(self, mergeVolume):
-    if not self.embedded:
-      self.editLabelMapsFrame.collapsed = not mergeVolume
+    self.editLabelMapsFrame.collapsed = not mergeVolume
 
   #->> TODO: check to make sure editor module smoothly handles interactive changes to the master and merge nodes

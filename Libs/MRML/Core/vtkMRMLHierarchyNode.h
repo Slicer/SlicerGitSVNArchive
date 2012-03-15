@@ -62,7 +62,7 @@ public:
   /// 
   /// Update the stored reference to another node in the scene
   virtual void UpdateReferenceID(const char *oldID, const char *newID);
-
+  
   /// 
   /// Associated prent MRML node
   vtkMRMLHierarchyNode* GetParentNode();

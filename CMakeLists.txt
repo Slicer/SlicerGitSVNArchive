@@ -184,7 +184,7 @@ CMAKE_DEPENDENT_OPTION(
 # option(Slicer_USE_BatchMake   "Build Slicer with BatchMake support." ON)
 set(Slicer_USE_BatchMake OFF CACHE INTERNAL "Build Slicer with BatchMake support." FORCE)
 option(Slicer_USE_MIDAS       "Build Slicer with MIDAS support." OFF)
-option(Slicer_USE_OpenIGTLink "Build Slicer with OpenIGTLink support." OFF)
+option(Slicer_USE_OpenIGTLink "Build Slicer with OpenIGTLink support." ON)
 option(Slicer_USE_CTKAPPLAUNCHER "Configure ctkAppLauncher." ON)
 mark_as_advanced(Slicer_USE_CTKAPPLAUNCHER)
 
@@ -220,11 +220,11 @@ mark_as_advanced(Slicer_BUILD_ChangeTrackerPy)
 
 CMAKE_DEPENDENT_OPTION(
   Slicer_BUILD_EMSegment "Build EMSegment." ON
-  "Slicer_BUILD_CLI_SUPPORT AND Slicer_BUILD_QTLOADABLEMODULES" OFF)
+  "Slicer_BUILD_BRAINSTOOLS AND Slicer_BUILD_QTLOADABLEMODULES" OFF)
 mark_as_advanced(Slicer_BUILD_EMSegment)
 
 CMAKE_DEPENDENT_OPTION(
-  Slicer_BUILD_OpenIGTLinkIF "Build OpenIGTLinkIF." OFF
+  Slicer_BUILD_OpenIGTLinkIF "Build OpenIGTLinkIF." ON
   "Slicer_BUILD_QTLOADABLEMODULES AND Slicer_USE_OpenIGTLink" OFF)
 mark_as_advanced(CLEAR Slicer_BUILD_OpenIGTLinkIF)
 
@@ -312,10 +312,11 @@ today(Slicer_BUILDDATE)
 # Slicer version number.
 #-----------------------------------------------------------------------------
 set(Slicer_VERSION_MAJOR "4")
-set(Slicer_VERSION_MINOR "0")
-set(Slicer_VERSION_PATCH "1")
+set(Slicer_VERSION_MINOR "1")
+set(Slicer_VERSION_PATCH "0")
 # Releases define a tweak level
 #set(Slicer_VERSION_TWEAK 0)
+set(Slicer_VERSION_RC 1)
 
 if(NOT DEFINED Slicer_VERSION_TWEAK)
   # if it's not a release, use the date as a tweak
@@ -324,8 +325,11 @@ endif()
 
 set(Slicer_VERSION      "${Slicer_VERSION_MAJOR}.${Slicer_VERSION_MINOR}")
 set(Slicer_VERSION_FULL "${Slicer_VERSION}.${Slicer_VERSION_PATCH}")
+if (Slicer_VERSION_RC)
+  set(Slicer_VERSION_FULL "${Slicer_VERSION_FULL}-rc${Slicer_VERSION_RC}")
+endif()
 if (Slicer_VERSION_TWEAK GREATER 0)
-  set(Slicer_VERSION_FULL "${Slicer_VERSION_FULL}.${Slicer_VERSION_TWEAK}")
+  set(Slicer_VERSION_FULL "${Slicer_VERSION_FULL}-${Slicer_VERSION_TWEAK}")
 endif()
 
 #-----------------------------------------------------------------------------
@@ -615,6 +619,11 @@ if(Slicer_BUILD_EXTENSIONMANAGER_SUPPORT)
   set(LibArchive_INCLUDE_DIR ${LibArchive_DIR}/include)
   if(WIN32)
     set(LibArchive_LIBRARY ${LibArchive_DIR}/lib/${CMAKE_SHARED_LIBRARY_PREFIX}archive.lib)
+  elseif(APPLE)
+    # HACK Since fixup extension expects the library to contain the full path, let's make sure the non-installed
+    # version of the library is used. Ideally, the project shouldn't be installed and a LibArchiveConfig.cmake
+    # should be created.
+    set(LibArchive_LIBRARY ${LibArchive_DIR}/../LibArchive-build/libarchive/${CMAKE_SHARED_LIBRARY_PREFIX}archive${CMAKE_SHARED_LIBRARY_SUFFIX})
   else()
     set(LibArchive_LIBRARY ${LibArchive_DIR}/lib/${CMAKE_SHARED_LIBRARY_PREFIX}archive${CMAKE_SHARED_LIBRARY_SUFFIX})
   endif()

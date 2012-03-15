@@ -3,6 +3,7 @@
 #include "vtkMRMLAnnotationControlPointsStorageNode.h"
 #include "vtkMRMLAnnotationPointDisplayNode.h"
 #include "vtkMRMLAnnotationControlPointsNode.h"
+//#include "vtkMRMLHierarchyNode.h"
 #include "vtkMRMLScene.h"
 #include "vtkStringArray.h"
 
@@ -69,7 +70,7 @@ int vtkMRMLAnnotationControlPointsStorageNode::ReadAnnotationPointDisplayPropert
       return flag; 
     }
 
-  int pointOffset = preposition.size();
+  size_t pointOffset = preposition.size();
   preposition.insert(0,"# ");
 
   if (lineString.find(preposition + "GlyphScale = ") != std::string::npos)
@@ -120,7 +121,7 @@ int vtkMRMLAnnotationControlPointsStorageNode::ReadAnnotationControlPointsData(v
 
   vtkDebugMacro("got a line: \n\"" << line << "\""); 
   std::string attValue(line);
-  int size = std::string(this->GetAnnotationStorageType()).size();
+  size_t size = std::string(this->GetAnnotationStorageType()).size();
  
   if (attValue.compare(0,size,this->GetAnnotationStorageType()))
     {
@@ -433,14 +434,14 @@ int vtkMRMLAnnotationControlPointsStorageNode::WriteData(vtkMRMLNode *refNode,  
       return 0;
     }
 
-  // test whether refNode is a valid node to hold a volume
+  // test whether refNode is a valid node to hold a control point
   if ( !( refNode->IsA("vtkMRMLAnnotationControlPointsNode") ) )
     {
     vtkErrorMacro("Reference node is not a proper vtkMRMLAnnotationControlPointsNode");
     return 0;         
     }
 
-  // cast the input nod
+  // cast the input node
   vtkMRMLAnnotationControlPointsNode *annCPNode = dynamic_cast <vtkMRMLAnnotationControlPointsNode *> (refNode);
 
   if (annCPNode == NULL)
@@ -464,6 +465,18 @@ int vtkMRMLAnnotationControlPointsStorageNode::WriteData(vtkMRMLNode *refNode,  
 //----------------------------------------------------------------------------
 int vtkMRMLAnnotationControlPointsStorageNode::WriteData(vtkMRMLNode *refNode)
 {
+    /*
+  // special case: if this annotation is in a hierarchy, the hierarchy took
+  // care of writing it already
+  vtkMRMLHierarchyNode *hnode = vtkMRMLHierarchyNode::GetAssociatedHierarchyNode(refNode->GetScene(), refNode->GetID());
+  
+  if (hnode &&
+      hnode->GetParentNodeID())
+    {
+    vtkWarningMacro("WriteData: refNode " << refNode->GetName() << " is in a hierarchy, " << hnode->GetName() << ", assuming that it wrote it out already");
+    return 1;
+    }
+    */
   // open the file for writing
   fstream of;
   if (!this->OpenFileToWrite(of)) 

@@ -32,7 +32,6 @@ public:
     {
     return "vtkMRMLHierarchyNodeTestHelper1";
     }
-
   virtual bool CanApplyNonLinearTransforms() { return false; }
 };
 

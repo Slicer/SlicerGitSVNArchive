@@ -41,7 +41,8 @@ protected:
 public:
   qSlicerVolumeRenderingModuleWidgetPrivate(qSlicerVolumeRenderingModuleWidget& object);
   virtual void setupUi(qSlicerVolumeRenderingModuleWidget*);
-  vtkMRMLVolumeRenderingDisplayNode* createVolumeRenderingDisplayNode();
+  vtkMRMLVolumeRenderingDisplayNode* createVolumeRenderingDisplayNode(
+    vtkMRMLVolumeNode* volumeNode);
   void populateRenderingTechniqueComboBox();
   void populatePresetsIcons(qMRMLNodeComboBox* presetsNodeComboBox);
 
@@ -190,8 +191,10 @@ void qSlicerVolumeRenderingModuleWidgetPrivate::setupUi(qSlicerVolumeRenderingMo
 
   QObject::connect(this->SynchronizeScalarDisplayNodeButton, SIGNAL(clicked()),
                    q, SLOT(synchronizeScalarDisplayNode()));
-  QObject::connect(this->SynchronizeScalarDisplayNodeButton, SIGNAL(checkBoxToggled(bool)),
+  QObject::connect(this->SynchronizeScalarDisplayNodeButton, SIGNAL(toggled(bool)),
                    q, SLOT(setFollowVolumeDisplayNode(bool)));
+  QObject::connect(this->IgnoreVolumesThresholdCheckBox, SIGNAL(toggled(bool)),
+                   q, SLOT(setIgnoreVolumesThreshold(bool)));
 
   // Default values
   this->InputsCollapsibleButton->setCollapsed(true);
@@ -199,12 +202,14 @@ void qSlicerVolumeRenderingModuleWidgetPrivate::setupUi(qSlicerVolumeRenderingMo
   this->AdvancedCollapsibleButton->setCollapsed(true);
   this->AdvancedCollapsibleButton->setEnabled(false);
 
+  this->ExpandSynchronizeWithVolumesButton->setChecked(false);
+
   this->AdvancedTabWidget->setCurrentWidget(this->VolumePropertyTab);
 }
 
 // --------------------------------------------------------------------------
 vtkMRMLVolumeRenderingDisplayNode* qSlicerVolumeRenderingModuleWidgetPrivate
-::createVolumeRenderingDisplayNode()
+::createVolumeRenderingDisplayNode(vtkMRMLVolumeNode* volumeNode)
 {
   Q_Q(qSlicerVolumeRenderingModuleWidget);
   vtkSlicerVolumeRenderingLogic *logic =
@@ -217,10 +222,33 @@ vtkMRMLVolumeRenderingDisplayNode* qSlicerVolumeRenderingModuleWidgetPrivate
   vtkMRMLAnnotationROINode  *roiNode = NULL;
 
   int wasModifying = displayNode->StartModify();
-  logic->UpdateDisplayNodeFromVolumeNode(displayNode, q->mrmlVolumeNode(),
+  // Init the volume rendering without the threshold info
+  // of the Volumes module...
+  displayNode->SetIgnoreVolumeDisplayNodeThreshold(1);
+  logic->UpdateDisplayNodeFromVolumeNode(displayNode, volumeNode,
                                          &propNode, &roiNode);
+  // ... but then apply the user settings.
+  displayNode->SetIgnoreVolumeDisplayNodeThreshold(
+    this->IgnoreVolumesThresholdCheckBox->isChecked());
+  bool wasLastVolumeVisible = this->VisibilityCheckBox->isChecked();
+  displayNode->SetVisibility(wasLastVolumeVisible);
+  foreach (vtkMRMLViewNode* viewNode, q->mrmlViewNodes())
+    {
+    displayNode->AddViewNodeID(viewNode ? viewNode->GetID() : 0);
+    }
+  // Have at list 1 view node
+  if (q->mrmlViewNodes().size() == 0)
+    {
+    // find the fist view node in the scene
+    vtkMRMLViewNode* viewNode = vtkMRMLViewNode::SafeDownCast(
+      q->mrmlScene()->GetNthNodeByClass(0, "vtkMRMLViewNode"));
+    displayNode->AddViewNodeID(viewNode ? viewNode->GetID() : 0);
+    }
   displayNode->EndModify(wasModifying);
-
+  if (volumeNode)
+    {
+    volumeNode->AddAndObserveDisplayNodeID(displayNode->GetID());
+    }
   return displayNode;
 }
 
@@ -345,25 +373,19 @@ void qSlicerVolumeRenderingModuleWidget::onCurrentMRMLVolumeNodeChanged(vtkMRMLN
   // see if the volume has any display node for a current viewer
   vtkMRMLVolumeRenderingDisplayNode *dnode =
     logic->GetFirstVolumeRenderingDisplayNode(volumeNode);
-  if (!this->mrmlScene()->IsClosing()
-      && !dnode)
+  if (!this->mrmlScene()->IsClosing())
     {
-    bool wasLastVolumeVisible = d->VisibilityCheckBox->isChecked();
-    dnode = d->createVolumeRenderingDisplayNode();
-    dnode->SetVisibility(wasLastVolumeVisible);
-    foreach (vtkMRMLViewNode* viewNode, this->mrmlViewNodes())
+    if (!dnode)
       {
-      dnode->AddViewNodeID(viewNode ? viewNode->GetID() : 0);
+      dnode = d->createVolumeRenderingDisplayNode(volumeNode);
       }
-    if (this->mrmlViewNodes().size() == 0)
+    else
       {
-      // find the fist view node in the scene
-      vtkMRMLViewNode* viewNode = vtkMRMLViewNode::SafeDownCast(this->mrmlScene()->GetNthNodeByClass(0, "vtkMRMLViewNode"));
-      dnode->AddViewNodeID(viewNode ? viewNode->GetID() : 0);
-      }
-    if (volumeNode)
-      {
-      volumeNode->AddAndObserveDisplayNodeID(dnode->GetID());
+      // Because the displayable manager can only display 1 volume at
+      // a time, here the displayable manager is told that the display node
+      // is the new "current" display node and it should be displayed 
+      // instead of whichever current one.
+      dnode->Modified();
       }
     }
 
@@ -453,9 +475,10 @@ void qSlicerVolumeRenderingModuleWidget::updateFromMRMLDisplayNode()
   // We don't want to update ViewCheckableNodeComboBox if it's checked nodes
   // are good. Otherwise it would lead to an inconsistent state.
   if (d->DisplayNode &&
-      !(d->DisplayNode->GetNumberOfViewNodeIDs() == 0 &&
-      (d->ViewCheckableNodeComboBox->allChecked() ||
-       d->ViewCheckableNodeComboBox->noneChecked())))
+      !((d->DisplayNode->GetNumberOfViewNodeIDs() == 0 ||
+         d->DisplayNode->GetNumberOfViewNodeIDs() == d->ViewCheckableNodeComboBox->nodeCount())&&
+        (d->ViewCheckableNodeComboBox->allChecked() ||
+         d->ViewCheckableNodeComboBox->noneChecked())))
     {
     for (int i = 0; i < d->ViewCheckableNodeComboBox->nodeCount(); ++i)
       {
@@ -531,8 +554,13 @@ void qSlicerVolumeRenderingModuleWidget::updateFromMRMLDisplayNode()
 
   // Opacity/color
   bool follow = d->DisplayNode ? d->DisplayNode->GetFollowVolumeDisplayNode() != 0 : false;
-  d->SynchronizeScalarDisplayNodeButton->setCheckState(
-    follow ? Qt::Checked : Qt::Unchecked);
+  if (follow)
+    {
+    d->SynchronizeScalarDisplayNodeButton->setCheckState(Qt::Checked);
+    }
+  d->SynchronizeScalarDisplayNodeButton->setChecked(follow);
+  d->IgnoreVolumesThresholdCheckBox->setChecked( d->DisplayNode ?
+    d->DisplayNode->GetIgnoreVolumeDisplayNodeThreshold() != 0 : false);
 }
 
 // --------------------------------------------------------------------------
@@ -940,6 +968,13 @@ void qSlicerVolumeRenderingModuleWidget::setFollowVolumeDisplayNode(bool follow)
 {
   Q_D(qSlicerVolumeRenderingModuleWidget);
   d->DisplayNode->SetFollowVolumeDisplayNode(follow ? 1 : 0);
+}
+
+// --------------------------------------------------------------------------
+void qSlicerVolumeRenderingModuleWidget::setIgnoreVolumesThreshold(bool ignore)
+{
+  Q_D(qSlicerVolumeRenderingModuleWidget);
+  d->DisplayNode->SetIgnoreVolumeDisplayNodeThreshold(ignore ? 1 : 0);
 }
 
 // --------------------------------------------------------------------------

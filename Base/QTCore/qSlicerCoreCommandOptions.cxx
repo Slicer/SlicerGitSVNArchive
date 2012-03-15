@@ -32,20 +32,36 @@
 //-----------------------------------------------------------------------------
 class qSlicerCoreCommandOptionsPrivate
 {
+  Q_DECLARE_PUBLIC(qSlicerCoreCommandOptions);
+protected:
+  qSlicerCoreCommandOptions* q_ptr;
 public:
-  qSlicerCoreCommandOptionsPrivate();
+  qSlicerCoreCommandOptionsPrivate(qSlicerCoreCommandOptions& object);
+
+  void init();
 
   QHash<QString, QVariant> ParsedArgs;
   QSettings                Settings;
   QString                  ExtraPythonScript;
+  bool                     RunPythonAndExit;
 };
 
 //-----------------------------------------------------------------------------
 // qSlicerCoreCommandOptionsPrivate methods
 
 //-----------------------------------------------------------------------------
-qSlicerCoreCommandOptionsPrivate::qSlicerCoreCommandOptionsPrivate()
+qSlicerCoreCommandOptionsPrivate::qSlicerCoreCommandOptionsPrivate(qSlicerCoreCommandOptions& object)
+  : q_ptr(&object)
 {
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerCoreCommandOptionsPrivate::init()
+{
+  Q_Q(qSlicerCoreCommandOptions);
+  this->RunPythonAndExit = false;
+  q->setArgumentPrefix("--", "-"); // Use Unix-style argument names
+  q->enableSettings("disable-settings"); // Enable QSettings support
 }
 
 //-----------------------------------------------------------------------------
@@ -53,12 +69,10 @@ qSlicerCoreCommandOptionsPrivate::qSlicerCoreCommandOptionsPrivate()
 
 //-----------------------------------------------------------------------------
 qSlicerCoreCommandOptions::qSlicerCoreCommandOptions():Superclass()
-  , d_ptr(new qSlicerCoreCommandOptionsPrivate)
+, d_ptr(new qSlicerCoreCommandOptionsPrivate(*this))
 {
-  // Use Unix-style argument names
-  this->setArgumentPrefix("--", "-");
-  // Enable QSettings support
-  this->enableSettings("disable-settings");
+  Q_D(qSlicerCoreCommandOptions);
+  d->init();
 }
 
 //-----------------------------------------------------------------------------
@@ -149,6 +163,10 @@ QString qSlicerCoreCommandOptions::pythonCode() const
 }
 
 //-----------------------------------------------------------------------------
+CTK_GET_CPP(qSlicerCoreCommandOptions, bool, runPythonAndExit, RunPythonAndExit);
+CTK_SET_CPP(qSlicerCoreCommandOptions, bool, setRunPythonAndExit, RunPythonAndExit);
+
+//-----------------------------------------------------------------------------
 bool qSlicerCoreCommandOptions::displayVersionAndExit() const
 {
   Q_D(const qSlicerCoreCommandOptions);
@@ -225,8 +243,8 @@ void qSlicerCoreCommandOptions::addArguments()
   this->addArgument("python-script", "", QVariant::String,
                     "Python script to execute after slicer loads.");
 
-  this->addArgument("python-code", "", QVariant::String,
-                    "Python code to execute after slicer loads.");
+  this->addArgument("python-code", "c", QVariant::String,
+                    "Python code to execute after slicer loads. By default, Slicer will then exit.");
 
   this->addArgument("ignore-slicerrc", "", QVariant::Bool,
                     "Do not load the Slicer resource file (~/.slicerrc.py).");

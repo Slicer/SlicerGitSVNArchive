@@ -71,6 +71,7 @@ vtkMRMLDiffusionTensorVolumeDisplayNode::vtkMRMLDiffusionTensorVolumeDisplayNode
 
  this->VisualizationMode = 0;
  this->AutoScalarRange = 1;
+
 }
 
 //----------------------------------------------------------------------------
@@ -213,17 +214,6 @@ void vtkMRMLDiffusionTensorVolumeDisplayNode::UpdateImageDataPipeline()
         this->AppendComponents->SetInputConnection(0, this->ExtractComponents->GetOutput()->GetProducerPort());
         this->AppendComponents->AddInputConnection(0, this->Threshold->GetOutput()->GetProducerPort() );
         }
-      // The background mask is not used in this scenario. However, the update
-      // extent has the last value when used (in "default:" case,
-      // this->AlphaLogic uses the background mask as input). Having an update
-      // extent for background image data different than the input image data
-      // leads to crashes upstream in the pipeline. Having it to whole extent
-      // fixes the issue in vtkImageResliceMask when it does
-      // outData[1]->GetScalarPointerForExtent(outExt);
-      if (this->GetBackgroundImageData())
-        {
-        this->GetBackgroundImageData()->SetUpdateExtentToWholeExtent();
-        }
       break;
       }
     default:
@@ -331,6 +321,23 @@ vtkImageData* vtkMRMLDiffusionTensorVolumeDisplayNode::GetOutputImageData()
   return this->AppendComponents->GetOutput();
 }
 
+//----------------------------------------------------------------------------
+vtkImageData* vtkMRMLDiffusionTensorVolumeDisplayNode::GetBackgroundImageData()
+{
+  switch (this->GetScalarInvariant())
+    {
+    case vtkMRMLDiffusionTensorDisplayPropertiesNode::ColorOrientation:
+    case vtkMRMLDiffusionTensorDisplayPropertiesNode::ColorMode:
+    case vtkMRMLDiffusionTensorDisplayPropertiesNode::ColorOrientationMiddleEigenvector:
+    case vtkMRMLDiffusionTensorDisplayPropertiesNode::ColorOrientationMinEigenvector:
+      {
+      return 0;
+      }
+    default:
+      return this->Superclass::GetBackgroundImageData();
+    }
+}
+
 //---------------------------------------------------------------------------
 vtkImageData* vtkMRMLDiffusionTensorVolumeDisplayNode::GetScalarImageData()
 {
@@ -346,7 +353,42 @@ void vtkMRMLDiffusionTensorVolumeDisplayNode
   {
     vtkMRMLDiffusionTensorDisplayPropertiesNode::ScalarInvariantKnownScalarRange(ScalarInvariant, range);
   } else {
-    return this->GetOutputImageData()->GetScalarRange(range);
+    this->DTIMathematics->Update();
+    return this->GetScalarImageData()->GetScalarRange(range);
   }
 
 }
+
+//----------------------------------------------------------------------------
+std::vector<int> vtkMRMLDiffusionTensorVolumeDisplayNode::GetSupportedColorModes()
+{
+  std::vector<int> modes;
+  modes.push_back(vtkMRMLDiffusionTensorDisplayPropertiesNode::FractionalAnisotropy);
+  modes.push_back(vtkMRMLDiffusionTensorDisplayPropertiesNode::ColorOrientation);
+  modes.push_back(vtkMRMLDiffusionTensorDisplayPropertiesNode::Trace);
+  modes.push_back(vtkMRMLDiffusionTensorDisplayPropertiesNode::LinearMeasure);
+  modes.push_back(vtkMRMLDiffusionTensorDisplayPropertiesNode::PlanarMeasure);
+  modes.push_back(vtkMRMLDiffusionTensorDisplayPropertiesNode::SphericalMeasure);
+  modes.push_back(vtkMRMLDiffusionTensorDisplayPropertiesNode::RelativeAnisotropy);
+  modes.push_back(vtkMRMLDiffusionTensorDisplayPropertiesNode::ParallelDiffusivity);
+  modes.push_back(vtkMRMLDiffusionTensorDisplayPropertiesNode::PerpendicularDiffusivity);
+  modes.push_back(vtkMRMLDiffusionTensorDisplayPropertiesNode::MaxEigenvalue);
+  modes.push_back(vtkMRMLDiffusionTensorDisplayPropertiesNode::MidEigenvalue);
+  modes.push_back(vtkMRMLDiffusionTensorDisplayPropertiesNode::MinEigenvalue);
+  return modes;
+}
+
+//----------------------------------------------------------------------------
+int vtkMRMLDiffusionTensorVolumeDisplayNode::GetNumberOfScalarInvariants()
+{
+  static std::vector<int> modes = vtkMRMLDiffusionTensorVolumeDisplayNode::GetSupportedColorModes();
+  return modes.size();
+}
+
+//----------------------------------------------------------------------------
+int vtkMRMLDiffusionTensorVolumeDisplayNode::GetNthScalarInvariant(int i)
+{
+  static std::vector<int> modes = vtkMRMLDiffusionTensorVolumeDisplayNode::GetSupportedColorModes();
+  return modes[i];
+}
+

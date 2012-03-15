@@ -17,12 +17,13 @@ import DICOMLib
 
 class DICOM:
   def __init__(self, parent):
+    import string
     parent.title = "DICOM"
     parent.categories = ["", "Informatics"] # top level module
     parent.contributors = ["Steve Pieper (Isomics)"]
-    parent.helpText = """
-The DICOM module integrates DICOM classes from CTK (based on DCMTK).  See <a href=\"http://www.slicer.org/slicerWiki/index.php/Documentation/4.0/Modules/DICOM\">http://www.slicer.org/slicerWiki/index.php/Documentation/4.0/Modules/DICOM</a> for more information.\n\n
-    """
+    parent.helpText = string.Template("""
+The DICOM module integrates DICOM classes from CTK (based on DCMTK).  See <a href=\"$a/Documentation/$b.$c/Modules/DICOM\">$a/Documentation/$b.$c/Modules/DICOM</a> for more information.
+""").substitute({ 'a':parent.slicerWikiUrl, 'b':slicer.app.majorVersion, 'c':slicer.app.minorVersion })
     parent.acknowledgementText = """
 This work is supported by NA-MIC, NAC, BIRN, NCIGT, and the Slicer Community. See <a>http://www.slicer.org</a> for details.  Module implemented by Steve Pieper.  Based on work from CommonTK (http://www.commontk.org).
     """
@@ -74,6 +75,11 @@ class DICOMWidget:
     
     # let the popup window manage data loading
     self.useDetailsPopup = True
+    # hide the search box 
+    self.hideSearch = True
+
+    # options for browser
+    self.browserPersistent = False
 
     # TODO: are these wrapped so we can avoid magic numbers?
     self.dicomModelUIDRole = 32
@@ -95,10 +101,11 @@ class DICOMWidget:
     globals()['d'] = self
 
   def enter(self):
-    pass
+    self.detailsPopup.open()
 
   def exit(self):
-    pass
+    if not self.browserPersistent:
+      self.detailsPopup.close()
 
   def updateGUIFromMRML(self, caller, event):
     pass
@@ -161,17 +168,25 @@ class DICOMWidget:
     #
     self.dicomApp = ctk.ctkDICOMAppWidget()
     self.dicomFrame.layout().addWidget(self.dicomApp)
-    # hide the search options - doesn't work yet and doesn't fit 
-    # well into the frame
-    slicer.util.findChildren(self.dicomApp, 'SearchOption')[0].hide()
+    if self.hideSearch:
+      # hide the search options - doesn't work yet and doesn't fit 
+      # well into the frame
+      slicer.util.findChildren(self.dicomApp, 'SearchOption')[0].hide()
 
     if self.useDetailsPopup:
-      self.detailsPopup = DICOMLib.DICOMDetailsPopup(self.dicomApp)
+      self.detailsPopup = DICOMLib.DICOMDetailsPopup(self.dicomApp,setBrowserPersistence=self.setBrowserPersistence)
       # TODO: move all functions to popup
       # for now, create dummy buttons just so callbacks work
       self.exportButton = qt.QPushButton('Export Slicer Data to Study...')
       self.loadButton = qt.QPushButton('Load to Slicer')
       self.previewLabel = qt.QLabel()
+      
+      self.showBrowser = qt.QPushButton('Show DICOM Browser')
+      self.dicomFrame.layout().addWidget(self.showBrowser)
+      self.showBrowser.connect('clicked()', self.detailsPopup.open)
+
+      self.dicomFrame.layout().addStretch(1)
+
     else:
       userFrame = slicer.util.findChildren(self.dicomApp, 'UserFrame')[0]
       userFrame.setLayout(qt.QVBoxLayout())
@@ -188,7 +203,7 @@ class DICOMWidget:
 
     # make the tree view a bit bigger
     self.tree = slicer.util.findChildren(self.dicomApp, 'TreeView')[0]
-    self.tree.setMinimumHeight(500)
+    self.tree.setMinimumHeight(250)
 
     if not slicer.dicomDatabase:
       self.promptForDatabaseDirectory()
@@ -199,6 +214,9 @@ class DICOMWidget:
       slicer.dicomListener.fileAddedCallback = self.onListenerAddedFile
 
     self.contextMenu = qt.QMenu(self.tree)
+    self.exportAction = qt.QAction("Export to Study", self.contextMenu)
+    self.contextMenu.addAction(self.exportAction)
+    self.exportAction.enabled = False
     self.deleteAction = qt.QAction("Delete", self.contextMenu)
     self.contextMenu.addAction(self.deleteAction)
     self.contextMenu.connect('triggered(QAction*)', self.onContextMenuTriggered)
@@ -258,9 +276,9 @@ class DICOMWidget:
       self.loadButton.enabled = False 
       self.sendButton.enabled = False
     if typeRole:
-      self.exportButton.enabled = self.dicomModelTypes[typeRole] == "Study"
+      self.exportAction.enabled = self.dicomModelTypes[typeRole] == "Study"
     else:
-      self.exportButton.enabled = False
+      self.exportAction.enabled = False
     self.previewLabel.text = "Selection: " + self.dicomModelTypes[typeRole]
     self.detailsPopup.open()
     uid = self.selection.data(self.dicomModelUIDRole)
@@ -277,8 +295,9 @@ class DICOMWidget:
       typeRole = self.selection.data(self.dicomModelTypeRole)
       role = self.dicomModelTypes[typeRole]
       uid = self.selection.data(self.dicomModelUIDRole)
-      if self.okayCancel('This will remove the files themselves and references to them in the database\n\nDelete %s?' % role):
+      if self.okayCancel('This will remove references from the database\n(Files will not be deleted)\n\nDelete %s?' % role):
         # TODO: add delete option to ctkDICOMDatabase
+        self.dicomApp.suspendModel()
         if role == "Patient":
           removeWorked = slicer.dicomDatabase.removePatient(uid)
         elif role == "Study":
@@ -287,6 +306,10 @@ class DICOMWidget:
           removeWorked = slicer.dicomDatabase.removeSeries(uid)
         if not removeWorked:
           self.messageBox(self,"Could not remove %s" % role,title='DICOM')
+        self.dicomApp.resumeModel()
+    elif action == self.exportAction:
+      self.onExportClicked()
+
 
   def onLoadButton(self):
     self.progress = qt.QProgressDialog(slicer.util.mainWindow())
@@ -390,6 +413,11 @@ class DICOMWidget:
       qt.QMessageBox.warning(slicer.util.mainWindow(), 'Load', 'Could not load volume for: %s' % name)
       print('Tried to load volume as %s using: ' % name, files)
 
+  def setBrowserPersistence(self,onOff):
+    self.detailsPopup.setModality(not onOff)
+    self.browserPersistent = onOff
+
+
   def onToggleListener(self):
     if hasattr(slicer, 'dicomListener'):
       slicer.dicomListener.stop()
@@ -417,7 +445,6 @@ class DICOMWidget:
       slicer.util.showStatusMessage("DICOM Listener starting")
     if newState == 2:
       slicer.util.showStatusMessage("DICOM Listener running")
-
 
 
   def onListenerToAddFile(self):

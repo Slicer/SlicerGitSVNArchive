@@ -90,6 +90,11 @@ void initializePython()
       qWarning() << "Ignore script specified using '--python-script'";
       }
     app->commandOptions()->setExtraPythonScript(unparsedArguments.at(0));
+    app->commandOptions()->setRunPythonAndExit(true);
+    }
+  if (!app->commandOptions()->pythonCode().isEmpty())
+    {
+    app->commandOptions()->setRunPythonAndExit(true);
     }
 }
 
@@ -113,7 +118,8 @@ void initializePythonConsole(ctkPythonConsole& pythonConsole)
     "Python settings", new qSlicerSettingsPythonPanel);
 
   // Show pythonConsole if required
-  if(qSlicerApplication::application()->commandOptions()->showPythonInteractor())
+  qSlicerCommandOptions * options = qSlicerApplication::application()->commandOptions();
+  if(options->showPythonInteractor() && !options->runPythonAndExit())
     {
     pythonConsole.show();
     pythonConsole.activateWindow();
@@ -131,7 +137,7 @@ void setupModuleFactoryManager(qSlicerModuleFactoryManager * moduleFactoryManage
 
 // \todo Move the registration somewhere else for reuse.
   qSlicerCommandOptions* options = qSlicerApplication::application()->commandOptions();
-  if (!options->disableLoadableModules())
+  if (!options->disableLoadableModules() && !options->runPythonAndExit())
     {
     moduleFactoryManager->registerFactory(new qSlicerLoadableModuleFactory);
     QString loadablePath = app->slicerHome() + "/" + Slicer_QTLOADABLEMODULES_LIB_DIR + "/";
@@ -144,7 +150,8 @@ void setupModuleFactoryManager(qSlicerModuleFactoryManager * moduleFactoryManage
 
 #ifdef Slicer_USE_PYTHONQT
   if (!options->disableScriptedLoadableModules() &&
-      !qSlicerApplication::testAttribute(qSlicerApplication::AA_DisablePython))
+      !qSlicerApplication::testAttribute(qSlicerApplication::AA_DisablePython) &&
+      !options->runPythonAndExit())
     {
     moduleFactoryManager->registerFactory(
       new qSlicerScriptedLoadableModuleFactory);
@@ -157,15 +164,19 @@ void setupModuleFactoryManager(qSlicerModuleFactoryManager * moduleFactoryManage
     }
 #endif
 
+  QSettings settings;
 #ifdef Slicer_BUILD_CLI_SUPPORT
-  if (!options->disableCLIModules())
+  if (!options->disableCLIModules() && !options->runPythonAndExit())
     {
     QString tempDirectory =
       qSlicerCoreApplication::application()->coreCommandOptions()->tempDirectory();
+    bool preferExecutableCLIs =
+      settings.value("Modules/PreferExecutableCLI", false).toBool();
     moduleFactoryManager->registerFactory(
-      new qSlicerCLILoadableModuleFactory(tempDirectory));
+      new qSlicerCLILoadableModuleFactory(tempDirectory), preferExecutableCLIs ? 0 : 1);
+    // Option to prefer executable CLIs to limit memory consumption.
     moduleFactoryManager->registerFactory(
-      new qSlicerCLIExecutableModuleFactory(tempDirectory));
+      new qSlicerCLIExecutableModuleFactory(tempDirectory), preferExecutableCLIs ? 1 : 0);
     QString cliPath = app->slicerHome() + "/" + Slicer_CLIMODULES_LIB_DIR + "/";
     moduleFactoryManager->addSearchPath(cliPath);
     // On Win32, *both* paths have to be there, since scripts are installed
@@ -177,7 +188,6 @@ void setupModuleFactoryManager(qSlicerModuleFactoryManager * moduleFactoryManage
 #endif
     }
 #endif
-  QSettings settings;
   moduleFactoryManager->addSearchPaths(
     settings.value("Modules/AdditionalPaths").toStringList());
   moduleFactoryManager->setModulesToIgnore(
@@ -237,7 +247,7 @@ int slicerQtMain(int argc, char* argv[])
 #endif
 
   bool enableMainWindow = !app.commandOptions()->noMainWindow();
-  enableMainWindow = enableMainWindow && app.commandOptions()->extraPythonScript().isEmpty();
+  enableMainWindow = enableMainWindow && !app.commandOptions()->runPythonAndExit();
   bool showSplashScreen = !app.commandOptions()->noSplash() && enableMainWindow;
 
   QScopedPointer<QSplashScreen> splashScreen;
@@ -262,7 +272,6 @@ int slicerQtMain(int argc, char* argv[])
   moduleFactoryManager->instantiateModules();
   qDebug() << "Number of instantiated modules:"
            << moduleFactoryManager->instantiatedModuleNames().count();
-
   // Create main window
   splashMessage(splashScreen, "Initializing user interface...");
   QScopedPointer<qSlicerMainWindow> window;
