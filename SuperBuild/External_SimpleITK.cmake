@@ -1,4 +1,3 @@
-
 # Make sure this file is included only once
 get_filename_component(CMAKE_CURRENT_LIST_FILENAME ${CMAKE_CURRENT_LIST_FILE} NAME_WE)
 if(${CMAKE_CURRENT_LIST_FILENAME}_FILE_INCLUDED)
@@ -63,6 +62,7 @@ ExternalProject_add(SimpleITK
   # SimpleITK does not work with shared libs turned on
   -DBUILD_SHARED_LIBS:BOOL=OFF
   -DCMAKE_BUILD_TYPE:STRING=Release
+  -DCMAKE_CXX_FLAGS:STRING=-fPIC
   -DCMAKE_INSTALL_PREFIX:PATH=${CMAKE_CURRENT_BINARY_DIR}
   -DITK_DIR:PATH=${ITK_DIR}
   -DBUILD_EXAMPLES:BOOL=OFF
