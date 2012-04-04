@@ -1,5 +1,8 @@
 
 if(UNIX)
+  set(ENV{CC} @CMAKE_C_COMPILER@)
+  set(ENV{CXX} @CMAKE_CXX_COMPILER@)
+
   set(LDFLAGS)
   set(CPPFLAGS)
   set(LD_LIBRARY_PATH "@CMAKE_CURRENT_BINARY_DIR@/python-build/lib")
@@ -35,13 +38,13 @@ if(UNIX)
     #  set(extra_configure_flags --with-universal-archs=64-bit)
     #endif()
     #list(APPEND extra_configure_flags --enable-universalsdk=${CMAKE_OSX_SYSROOT})
-    
-    # Addendum: Using --with-universal-archs isn't the right approach since python build 
+
+    # Addendum: Using --with-universal-archs isn't the right approach since python build
     #           system tries to build a universal binary using 'lipo' tool and fails.
-    #           On the other hand, using an approach similar to one reported in [1], 
-    #           where disable-framework option is provided and specifying arch, 
+    #           On the other hand, using an approach similar to one reported in [1],
+    #           where disable-framework option is provided and specifying arch,
     #           sysroot and mmacosx-version-min reveals to be more successful.
-    # 
+    #
     #           [1] http://webamused.wordpress.com/2011/01/31/building-64-bit-python-python-org-using-ucs-4-on-mac-os-x-10-6-6-snow-leopard/
     list(APPEND extra_configure_flags --disable-toolbox-glue --disable-framework)
 

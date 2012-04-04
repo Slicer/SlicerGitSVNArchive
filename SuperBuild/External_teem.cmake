@@ -46,8 +46,8 @@ ExternalProject_Add(${proj}
   BINARY_DIR teem-build
   CMAKE_GENERATOR ${gen}
   CMAKE_ARGS
+  ${ep_common_compiler_args}
     ${CMAKE_OSX_EXTERNAL_PROJECT_ARGS}
-    #-DCMAKE_CXX_FLAGS:STRING=${ep_common_cxx_flags} # Unused
     -DCMAKE_C_FLAGS:STRING=${ep_common_c_flags}
     -DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
     -DBUILD_TESTING:BOOL=OFF

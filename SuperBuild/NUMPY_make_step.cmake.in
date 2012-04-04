@@ -22,6 +22,9 @@ if(APPLE)
   set(ENV{LDFLAGS} "${osx_flags}")
 endif()
 
+set(ENV{CC} @CMAKE_C_COMPILER@)
+set(ENV{CXX} @CMAKE_CXX_COMPILER@)
+
 execute_process(
   COMMAND "@slicer_PYTHON_EXECUTABLE@" setup.py install
   WORKING_DIRECTORY "@NUMPY_DIR@"

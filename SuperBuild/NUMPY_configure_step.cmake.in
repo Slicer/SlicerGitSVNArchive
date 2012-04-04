@@ -53,6 +53,9 @@ lapack_libs = lapack
 set(output_file "@NUMPY_DIR@/configure_step_output.txt")
 set(error_file "@NUMPY_DIR@/configure_step_error.txt")
 
+set(ENV{CC} @CMAKE_C_COMPILER@)
+set(ENV{CXX} @CMAKE_CXX_COMPILER@)
+
 execute_process(
   COMMAND "@slicer_PYTHON_EXECUTABLE@" setup.py config
   WORKING_DIRECTORY "@NUMPY_DIR@"

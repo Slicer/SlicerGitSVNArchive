@@ -12,6 +12,8 @@ endif()
 # it seems that you need to run configure in the unix directory
 # and not from the parent directory relatively i.e. sh /unix/configure
 # use this step so we can set the WORKING_DIRECTORY appropriately
+set(ENV{CC} @CMAKE_C_COMPILER@)
+set(ENV{CXX} @CMAKE_CXX_COMPILER@)
 
 if(APPLE)
   set(CMAKE_OSX_ARCHITECTURES "@CMAKE_OSX_ARCHITECTURES@")

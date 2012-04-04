@@ -1,3 +1,5 @@
+set(ENV{CC} @CMAKE_C_COMPILER@)
+set(ENV{CXX} @CMAKE_CXX_COMPILER@)
 
 execute_process(
   COMMAND make
