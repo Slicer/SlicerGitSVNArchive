@@ -318,6 +318,7 @@ ExternalProject_Add(${proj}
   BINARY_DIR Slicer-build
   CMAKE_GENERATOR ${gen}
   CMAKE_ARGS
+    ${ep_common_compiler_args}
     ${ep_superbuild_boolean_args}
     ${ep_superbuild_extra_args}
     ${CMAKE_OSX_EXTERNAL_PROJECT_ARGS}

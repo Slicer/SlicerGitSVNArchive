@@ -1,5 +1,7 @@
 
 if(UNIX)
+  set(ENV{CC} @CMAKE_C_COMPILER@)
+  set(ENV{CXX} @CMAKE_CXX_COMPILER@)
 
   set(LDFLAGS)
   set(CPPFLAGS)

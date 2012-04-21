@@ -29,6 +29,9 @@ if(APPLE)
   set(ENV{LDFLAGS} "${osx_flags} $ENV{LDFLAGS}")
 endif()
 
+set(ENV{CC} @CMAKE_C_COMPILER@)
+set(ENV{CXX} @CMAKE_CXX_COMPILER@)
+
 execute_process(
   COMMAND sh configure --prefix=@tcl_build@ --with-cflags=${configure_cflags}
   WORKING_DIRECTORY @tcl_base@/tcl/unix

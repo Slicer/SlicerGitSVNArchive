@@ -1,6 +1,9 @@
 
 set(tcl_build "@tcl_build@")
 
+set(ENV{CC} @CMAKE_C_COMPILER@)
+set(ENV{CXX} @CMAKE_CXX_COMPILER@)
+
 if(APPLE)
   set(cmd ./configure --with-tcl=${tcl_build}/lib --with-tk=${tcl_build}/lib --prefix=${tcl_build})
 
