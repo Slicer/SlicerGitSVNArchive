@@ -22,13 +22,13 @@ set(CLP DWICompare)
 set(${CLP}_SOURCE ${CLP}.cxx)
 generateclp(${CLP}_SOURCE ${CLP}.xml)
 add_executable(${CLP} ${${CLP}_SOURCE})
-target_link_libraries (${CLP} ITKIO ITKBasicFilters)
+target_link_libraries (${CLP} ${ITK_LIBRARIES} ${DCMTK_LIBRARIES} oflog ${ZLIB_LIBRARIES})
 set(DWICompareEXE ${DicomToNrrdConverter_BINARY_DIR}/../bin/${CLP})
 
 set(CLP DicomToNrrdConverter)
 add_executable(${CLP}Test ${CLP}Test.cxx)
 add_dependencies(${CLP}Test ${CLP})
-target_link_libraries(${CLP}Test ITKIO ITKBasicFilters)
+target_link_libraries(${CLP}Test ${ITK_LIBRARIES} ${DCMTK_LIBRARIES} oflog ${ZLIB_LIBRARIES} ${LIBICONV_LIBRARIES})
 
 set(DicomToNrrdConverterEXE ${Slicer_LAUNCH_COMMAND} ${DicomToNrrdConverter_BINARY_DIR}/../bin/${CLP} )
 set(DicomToNrrdConverter_TESTS ${Slicer_LAUNCH_COMMAND} ${DicomToNrrdConverter_BINARY_DIR}/../bin/${CLP}Test )
@@ -233,6 +233,26 @@ midas_add_test(NAME DicomToNrrdConverterSiemensVerioTest COMMAND ${CMAKE_COMMAND
                    -D TEST_BASELINE=MIDAS{SiemensVerio.nrrd.md5}
                    -D TEST_INPUT=MIDAS_TGZ{SiemensVerio.md5}
                    -D TEST_TEMP_OUTPUT=${TEMP}/SiemensVerio.nrrd
+                   -D TEST_PROGRAM_ARGS=--useBMatrixGradientDirections
+                   -P ${CMAKE_SOURCE_DIR}/ExtendedTesting/DicomToNrrdDWICompareTest.cmake
+  )
+
+midas_add_test(NAME DicomToNrrdConverterSiemensTrio_Syngo2004A_1Test COMMAND ${CMAKE_COMMAND}
+  ${CMAKE_COMMAND} -D TEST_PROGRAM=${DicomToNrrdConverterEXE}
+                   -D TEST_COMPARE_PROGRAM=${DWICompareEXE}
+                   -D TEST_BASELINE=MIDAS{SiemensTrio-Syngo2004A-1.nrrd.md5}
+                   -D TEST_INPUT=MIDAS_TGZ{SiemensTrio-Syngo2004A-1.md5}
+                   -D TEST_TEMP_OUTPUT=${TEMP}/SiemensTrio-Syngo2004A-1.nrrd
+                   -D TEST_PROGRAM_ARGS=--useBMatrixGradientDirections
+                   -P ${CMAKE_SOURCE_DIR}/ExtendedTesting/DicomToNrrdDWICompareTest.cmake
+  )
+
+midas_add_test(NAME DicomToNrrdConverterSiemensTrio_Syngo2004A_2Test COMMAND ${CMAKE_COMMAND}
+  ${CMAKE_COMMAND} -D TEST_PROGRAM=${DicomToNrrdConverterEXE}
+                   -D TEST_COMPARE_PROGRAM=${DWICompareEXE}
+                   -D TEST_BASELINE=MIDAS{SiemensTrio-Syngo2004A-2.nrrd.md5}
+                   -D TEST_INPUT=MIDAS_TGZ{SiemensTrio-Syngo2004A-2.md5}
+                   -D TEST_TEMP_OUTPUT=${TEMP}/SiemensTrio-Syngo2004A-2.nrrd
                    -D TEST_PROGRAM_ARGS=--useBMatrixGradientDirections
                    -P ${CMAKE_SOURCE_DIR}/ExtendedTesting/DicomToNrrdDWICompareTest.cmake
   )
