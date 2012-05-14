@@ -8,14 +8,27 @@ if(RUN_EXTENDED_LOCAL_TESTING)
   add_subdirectory(ExtendedTesting)
 endif()
 
-set(CLP DicomToNrrdConverter)
-
+# find_library(DCMTKDATALIB dcmdata PATHS ${Slicer_BINARY_DIR}/CTK-build/CMakeExternals/Install/lib)
+# if("XX${DCMTKDATALIB}" STREQUAL "XX")
+#   message(FATAL_ERROR "Can't find dicom libraries")
+# endif()
+# get_filename_component(DCMTK_LIB_DIR ${DCMTKDATALIB} PATH)
+# link_directories(${DCMTK_LIB_DIR})
 if(Slicer_SOURCE_DIR)
+  set(DCMTK_DIR ${Slicer_BINARY_DIR}/../CTK-build/CMakeExternals/Install)
+endif()
 
+find_package(DCMTK REQUIRED)
+if(NOT DCMTK_FOUND)
+message(FATAL_ERROR "Can't build without DCMTK, set DCMTK_DIR and rerun CMake")
+endif(NOT DCMTK_FOUND)
+
+set(CLP DicomToNrrdConverter)
+if(Slicer_SOURCE_DIR)
   slicerMacroBuildCLI(
     NAME ${CLP}
     LOGO_HEADER ${Slicer_SOURCE_DIR}/Resources/NAMICLogo.h
-    TARGET_LIBRARIES ${ITK_LIBRARIES}
+    TARGET_LIBRARIES ${ITK_LIBRARIES} ${DCMTK_LIBRARIES}
     )
 
   if(BUILD_TESTING)
@@ -48,6 +61,6 @@ else()
   generateclp(${CLP}_SOURCE ${CLP}.xml)
 
   add_executable(${CLP} ${CLP}.cxx)
-  target_link_libraries(${CLP} ${ITK_LIBRARIES})
+  target_link_libraries(${CLP} ${ITK_LIBRARIES} ${DCMTK_LIBRARIES})
   set_target_properties(${CLP} PROPERTIES LABELS ${CLP})
 endif()

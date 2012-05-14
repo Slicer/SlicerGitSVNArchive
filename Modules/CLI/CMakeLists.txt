@@ -64,6 +64,7 @@ if(Slicer_BUILD_LEGACY_CLI)
     ResampleScalarVolume
     RigidRegistration
     TestGridTransformRegistration
+    DicomToNrrdConverter
     )
   list(APPEND cli_modules ${legacy_cli_modules})
 endif()
@@ -76,7 +77,6 @@ if (Slicer_BUILD_EMSegment)
 endif()
 
 if("${ITK_VERSION_MAJOR}" LESS 4)
-  list(APPEND cli_modules DicomToNrrdConverter)
   list(APPEND cli_modules PETStandardUptakeValueComputation)
 endif()
 

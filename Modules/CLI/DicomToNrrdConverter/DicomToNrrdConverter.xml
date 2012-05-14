@@ -7,7 +7,7 @@
   <version>0.2.0.$Revision: 916 $(alpha)</version>
   <documentation-url>http://wiki.slicer.org/slicerWiki/index.php/Documentation/4.1/Modules/DicomToNrrdConverter</documentation-url>
   <license>https://www.nitrc.org/svn/brains/BuildScripts/trunk/License.txt</license>
-  <contributor>Xiaodong Tao (GE), Vince Magnotta (UIowa), Hans Johnson (UIowa)</contributor>
+  <contributor>Xiaodong Tao (GE), Vince Magnotta (UIowa), Hans Johnson (UIowa), Joy Matsui (UIowa), Kent Williams (UIowa) Mark Scully (Uiowa)</contributor>
   <acknowledgements><![CDATA[This work is part of the National Alliance for Medical Image Computing (NAMIC), funded by the National Institutes of Health through the NIH Roadmap for Medical Research, Grant U54 EB005149.  Additional support for DTI data produced on Philips scanners was contributed by Vincent Magnotta and Hans Johnson at the University of Iowa.]]></acknowledgements>
   <parameters>
     <label>IO</label>
@@ -22,18 +22,25 @@
     <directory>
       <name>outputDirectory</name>
       <longflag>--outputDirectory</longflag>
-      <label>Output Directory</label>
+      <label>Output Directtory</label>
       <channel>output</channel>
       <description><![CDATA[Directory holding the output NRRD format]]></description>
       <default>.</default>
     </directory>
-    <string>
+    <file>
+      <name>gradientVectorFile</name>
+      <longflag>--gradientVectorFile</longflag>
+      <label>Gradient Vector File</label>
+      <channel>output</channel>
+      <description><![CDATA[Text file giving gradient vectors]]></description>
+    </file>
+    <image type="diffusion-weighted">
       <name>outputVolume</name>
       <longflag>--outputVolume</longflag>
       <label>Output Filename</label>
       <channel>output</channel>
       <description><![CDATA[Output filename (.nhdr or .nrrd)]]></description>
-    </string>
+    </image>
     <double>
       <name>smallGradientThreshold</name>
       <longflag>--smallGradientThreshold</longflag>
