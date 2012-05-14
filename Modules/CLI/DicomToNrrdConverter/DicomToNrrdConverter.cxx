@@ -48,20 +48,7 @@ DICOM Data Dictionary: http://medical.nema.org/Dicom/2011/11_06pu.pdf
 #include "itksys/Base64.h"
 #include "DCMTKFileReader.h"
 #include "djdecode.h"
-
-bool
-StringContains(const std::string &string,const std::string pattern)
-{
-  return string.find(pattern) != std::string::npos;
-}
-
-/** convert std::string to upper case in place */
-char myUpper(char a) { return toupper(a); }
-
-void strupper(std::string &s)
-{
-  std::transform(s.begin(),s.end(),s.begin(),myUpper);
-}
+#include "StringContains.h"
 
 unsigned int ConvertFromCharPtr(const char *s)
 {
@@ -931,139 +918,264 @@ int main(int argc, char *argv[])
           "; diffusion direction: " << vect3d[0] << ", " << vect3d[1] << ", " << vect3d[2] << std::endl;
         }
       }
-    else if ( StringContains(vendor,"PHILIPS") && nSlice > 1 )
+    else if ( StringContains(vendor,"PHILIPS"))
       {
-      // assume volume interleaving
-      std::cout << "Number of Slices: " << nSlice << std::endl;
-      std::cout << "Number of Volumes: " << nVolume << std::endl;
-      std::cout << "Number of Slices in each volume: " << nSliceInVolume << std::endl;
-
-      std::string tmpString = "";
-      //NOTE:  Philips interleaves the directions, so the all gradient directions can be
-      //determined in the first "nVolume" slices which represents the first slice from each
-      //of the gradient volumes.
-      for (unsigned int k = 0; k < nVolume; k++ /*nSliceInVolume*/)
+      if(nSlice > 1 )
         {
-        std::string DiffusionDirectionality;
-        bool useSupplement49Definitions(false);
-        if(allHeaders[k]->GetElementCS(0x0018,0x9075,DiffusionDirectionality,false) == EXIT_SUCCESS)
-          {
-          useSupplement49Definitions = true;
-          }
-        else if(allHeaders[k]->GetElementOB(0x0018,0x9075,DiffusionDirectionality,false) == EXIT_SUCCESS)
-          {
-          useSupplement49Definitions = true;
-          }
+        // assume volume interleaving
+        std::cout << "Number of Slices: " << nSlice << std::endl;
+        std::cout << "Number of Volumes: " << nVolume << std::endl;
+        std::cout << "Number of Slices in each volume: " << nSliceInVolume << std::endl;
 
-        bool B0FieldFound = false;
-        double b=0.0;
-        if (useSupplement49Definitions == true )
+        std::string tmpString = "";
+        //NOTE:  Philips interleaves the directions, so the all gradient directions can be
+        //determined in the first "nVolume" slices which represents the first slice from each
+        //of the gradient volumes.
+        for (unsigned int k = 0; k < nVolume; k++ /*nSliceInVolume*/)
           {
-          B0FieldFound = allHeaders[k]->GetElementFD(0x0018,0x9087,b,false) == EXIT_SUCCESS;
-          }
-        else
-          {
-          float floatB;
-          if(allHeaders[k]->GetElementFLorOB(0x2001,0x1003,floatB,false) == EXIT_SUCCESS)
+          std::string DiffusionDirectionality;
+          bool useSupplement49Definitions(false);
+          if(allHeaders[k]->GetElementCS(0x0018,0x9075,DiffusionDirectionality,false) == EXIT_SUCCESS)
             {
-            B0FieldFound = true;
+            useSupplement49Definitions = true;
             }
-          if(B0FieldFound)
+          else if(allHeaders[k]->GetElementOB(0x0018,0x9075,DiffusionDirectionality,false) == EXIT_SUCCESS)
             {
-            b = static_cast<double>(floatB);
+            useSupplement49Definitions = true;
             }
-          std::string tag;
-          if(allHeaders[k]->GetElementCS(0x2001, 0x1004, tag, false ) != EXIT_SUCCESS)
-            {
-            allHeaders[k]->GetElementOB(0x2001, 0x1004, tag, false );
-            }
-          if(StringContains(tag,"I") && b != 0)
-            {
-            DiffusionDirectionality="ISOTROPIC";
-            }
-          }
 
-        vnl_vector_fixed<double, 3> vect3d;
-        vect3d.fill( 0 );
-        //std::cout << "HACK: " << "DiffusionDirectionality=" << DiffusionDirectionality << ", k= " <<  k << std::endl;
-        //std::cout << "HACK: " << "B0FieldFound=" << B0FieldFound << ", b=" << b << ", DiffusionDirectionality=" << DiffusionDirectionality << std::endl;
-
-        if ( StringContains(DiffusionDirectionality,"ISOTROPIC") )
-          { //Deal with images that are to be ignored
-          //std::cout << " SKIPPING ISOTROPIC Diffusion. " << std::endl;
-          //std::cout << "HACK: IGNORE IMAGEFILE:   " << k << " of " << filenames.size() << " " << filenames[k] << std::endl;
-          // Ignore the Trace like image
-          nIgnoreVolume++;
-          useVolume.push_back(0);
-          continue;
-          }
-        else if (( !B0FieldFound || b == 0 ) || StringContains(DiffusionDirectionality, "NONE") )
-          { //Deal with b0 images
-          bValues.push_back(b);
-          UnmodifiedDiffusionVectorsInDicomLPSCoordinateSystem.push_back(vect3d);
-          DiffusionVectors.push_back(vect3d);
-          useVolume.push_back(1);
-          continue;
-          }
-        else if ( StringContains(DiffusionDirectionality,"DIRECTIONAL") || ( DiffusionDirectionality == "" ))
-          { //Deal with gradient direction images
-          bValues.push_back(b);
-          //std::cout << "HACK: GRADIENT IMAGEFILE: " << k << " of " << filenames.size() << " " << filenames[k] << std::endl;
-          useVolume.push_back(1);
+          bool B0FieldFound = false;
+          double b=0.0;
           if (useSupplement49Definitions == true )
             {
-            double *doubleArray;
-            //Use alternate method to get value out of a sequence header (Some Phillips Data).
-            if(allHeaders[k]->GetElementFD(0x0018, 0x9089, doubleArray,false) != EXIT_SUCCESS)
-              {
-              //std::cout << "Looking for  0018|9089 in sequence 0018,9076" << std::endl;
-              // gdcm::SeqEntry *
-              // DiffusionSeqEntry=allHeaders[k]->GetSeqEntry(0x0018,0x9076);
-              DCMTKSequence DiffusionSeqEntry;
-              allHeaders[k]->GetElementSQ(0x0018,0x9076,DiffusionSeqEntry);
-              // const unsigned int
-              // n=DiffusionSeqEntry->GetNumberOfSQItems();
-              unsigned int n = DiffusionSeqEntry.card();
-              if( n == 0 )
-                {
-                std::cout << "ERROR:  Sequence entry 0018|9076 has no items." << std::endl;
-                FreeHeaders(allHeaders);
-                return EXIT_FAILURE;
-                }
-              DiffusionSeqEntry.GetElementFD(0x0018,0x9089, doubleArray);
-              }
-            vect3d[0] = doubleArray[0];
-            vect3d[1] = doubleArray[1];
-            vect3d[2] = doubleArray[2];
-            std::cout << "===== gradient orientations:" << k << " "
-                      << inputFileNames[k] << " (0018,9089) " << " " << vect3d << std::endl;
+            B0FieldFound = allHeaders[k]->GetElementFD(0x0018,0x9087,b,false) == EXIT_SUCCESS;
             }
           else
             {
-            float tmp[3];
-            /*const bool b0exist =*/
-            allHeaders[k]->GetElementFLorOB( 0x2005, 0x10b0, tmp[0] );
-            allHeaders[k]->GetElementFLorOB( 0x2005, 0x10b1, tmp[1] );
-            allHeaders[k]->GetElementFLorOB( 0x2005, 0x10b2, tmp[2] );
-            vect3d[0] = static_cast<double>(tmp[0]);
-            vect3d[1] = static_cast<double>(tmp[1]);
-            vect3d[2] = static_cast<double>(tmp[2]);
+            float floatB;
+            if(allHeaders[k]->GetElementFLorOB(0x2001,0x1003,floatB,false) == EXIT_SUCCESS)
+              {
+              B0FieldFound = true;
+              }
+            if(B0FieldFound)
+              {
+              b = static_cast<double>(floatB);
+              }
+            std::string tag;
+            if(allHeaders[k]->GetElementCS(0x2001, 0x1004, tag, false ) != EXIT_SUCCESS)
+              {
+              allHeaders[k]->GetElementOB(0x2001, 0x1004, tag, false );
+              }
+            if(StringContains(tag,"I") && b != 0)
+              {
+              DiffusionDirectionality="ISOTROPIC";
+              }
             }
 
-          UnmodifiedDiffusionVectorsInDicomLPSCoordinateSystem.push_back(vect3d);
-          // vect3d.normalize();
-          DiffusionVectors.push_back(vect3d);
+          vnl_vector_fixed<double, 3> vect3d;
+          vect3d.fill( 0 );
+          //std::cout << "HACK: " << "DiffusionDirectionality=" << DiffusionDirectionality << ", k= " <<  k << std::endl;
+          //std::cout << "HACK: " << "B0FieldFound=" << B0FieldFound << ", b=" << b << ", DiffusionDirectionality=" << DiffusionDirectionality << std::endl;
+
+          if ( StringContains(DiffusionDirectionality,"ISOTROPIC") )
+            { //Deal with images that are to be ignored
+            //std::cout << " SKIPPING ISOTROPIC Diffusion. " << std::endl;
+            //std::cout << "HACK: IGNORE IMAGEFILE:   " << k << " of " << filenames.size() << " " << filenames[k] << std::endl;
+            // Ignore the Trace like image
+            nIgnoreVolume++;
+            useVolume.push_back(0);
+            continue;
+            }
+          else if (( !B0FieldFound || b == 0 ) || StringContains(DiffusionDirectionality, "NONE") )
+            { //Deal with b0 images
+            bValues.push_back(b);
+            UnmodifiedDiffusionVectorsInDicomLPSCoordinateSystem.push_back(vect3d);
+            DiffusionVectors.push_back(vect3d);
+            useVolume.push_back(1);
+            continue;
+            }
+          else if ( StringContains(DiffusionDirectionality,"DIRECTIONAL") || ( DiffusionDirectionality == "" ))
+            { //Deal with gradient direction images
+            bValues.push_back(b);
+            //std::cout << "HACK: GRADIENT IMAGEFILE: " << k << " of " << filenames.size() << " " << filenames[k] << std::endl;
+            useVolume.push_back(1);
+            if (useSupplement49Definitions == true )
+              {
+              double *doubleArray;
+              //Use alternate method to get value out of a sequence header (Some Phillips Data).
+              if(allHeaders[k]->GetElementFD(0x0018, 0x9089, doubleArray,false) != EXIT_SUCCESS)
+                {
+                //std::cout << "Looking for  0018|9089 in sequence 0018,9076" << std::endl;
+                // gdcm::SeqEntry *
+                // DiffusionSeqEntry=allHeaders[k]->GetSeqEntry(0x0018,0x9076);
+                DCMTKSequence DiffusionSeqEntry;
+                allHeaders[k]->GetElementSQ(0x0018,0x9076,DiffusionSeqEntry);
+                // const unsigned int
+                // n=DiffusionSeqEntry->GetNumberOfSQItems();
+                unsigned int n = DiffusionSeqEntry.card();
+                if( n == 0 )
+                  {
+                  std::cout << "ERROR:  Sequence entry 0018|9076 has no items." << std::endl;
+                  FreeHeaders(allHeaders);
+                  return EXIT_FAILURE;
+                  }
+                DiffusionSeqEntry.GetElementFD(0x0018,0x9089, doubleArray);
+                }
+              vect3d[0] = doubleArray[0];
+              vect3d[1] = doubleArray[1];
+              vect3d[2] = doubleArray[2];
+              std::cout << "===== gradient orientations:" << k << " "
+                        << inputFileNames[k] << " (0018,9089) " << " " << vect3d << std::endl;
+              }
+            else
+              {
+              float tmp[3];
+              /*const bool b0exist =*/
+              allHeaders[k]->GetElementFLorOB( 0x2005, 0x10b0, tmp[0] );
+              allHeaders[k]->GetElementFLorOB( 0x2005, 0x10b1, tmp[1] );
+              allHeaders[k]->GetElementFLorOB( 0x2005, 0x10b2, tmp[2] );
+              vect3d[0] = static_cast<double>(tmp[0]);
+              vect3d[1] = static_cast<double>(tmp[1]);
+              vect3d[2] = static_cast<double>(tmp[2]);
+              }
+
+            UnmodifiedDiffusionVectorsInDicomLPSCoordinateSystem.push_back(vect3d);
+            // vect3d.normalize();
+            DiffusionVectors.push_back(vect3d);
+            }
+          else // Have no idea why we'd be here so error out
+            {
+            std::cout << "ERROR: DiffusionDirectionality was "
+                      << DiffusionDirectionality << "  Don't know what to do with that..." << std::endl;
+            FreeHeaders(allHeaders);
+            return EXIT_FAILURE;
+            }
+
+          std::cout << "B-value: " << b <<
+            "; diffusion direction: " << vect3d[0] << ", " << vect3d[1] << ", " << vect3d[2] << std::endl;
           }
-        else // Have no idea why we'd be here so error out
+        }
+      else
+        {
+        // multi-frame file, everything is inside
+        std::map<std::vector<double>, double> gradientDirectionAndBValue;
+        ignorePhilipsSliceMultiFrame.clear();
+
+        sliceLocations.clear();
+        bValues.clear();
+        DiffusionVectors.clear();
+        useVolume.clear();
+
+        DCMTKSequence perFrameFunctionalGroup;
+        DCMTKSequence innerSeq;
+        double dwbValue;
+
+        allHeaders[0]->GetElementSQ(0x5200,0x9230,perFrameFunctionalGroup);
+        int nItems = perFrameFunctionalGroup.card();
+
+        for(unsigned long i = 0;
+            i < static_cast<unsigned long>(perFrameFunctionalGroup.card()); ++i)
           {
-          std::cout << "ERROR: DiffusionDirectionality was "
-                    << DiffusionDirectionality << "  Don't know what to do with that..." << std::endl;
-          FreeHeaders(allHeaders);
-          return EXIT_FAILURE;
+          DCMTKSequence curSequence;
+          perFrameFunctionalGroup.GetSequence(i,curSequence);
+          // index slice locations with string origin
+          {
+          DCMTKSequence originSeq;
+          curSequence.GetElementSQ(0x0020, 0x9113,originSeq);
+          originSeq.GetSequence(0,innerSeq);
+          std::string originString;
+          innerSeq.GetElementDS(0x0020,0x0032,originString);
+          sliceLocations[originString]++;
           }
 
-        std::cout << "B-value: " << b <<
-          "; diffusion direction: " << vect3d[0] << ", " << vect3d[1] << ", " << vect3d[2] << std::endl;
+          std::string dirValue;
+          {
+          DCMTKSequence mrDiffusionSeq;
+          curSequence.GetElementSQ(0x0018,0x9117,mrDiffusionSeq);
+          mrDiffusionSeq.GetSequence(0,innerSeq);
+          innerSeq.GetElementCS(0x0018,0x9075,dirValue);
+          }
+
+          if ( StringContains(dirValue,"ISO") )
+            {
+            useVolume.push_back(0);
+            ignorePhilipsSliceMultiFrame.push_back( i );
+            }
+          else if ( StringContains(dirValue,"NONE") )
+            {
+            useVolume.push_back(1);
+            std::vector<double> v(3);
+            v[0] = 0; v[1] = 0; v[2] = 0;
+            unsigned int nOld = gradientDirectionAndBValue.size();
+            gradientDirectionAndBValue[v] = 0;
+            unsigned int nNew = gradientDirectionAndBValue.size();
+
+            if (nOld != nNew)
+              {
+              vnl_vector_fixed<double, 3> vect3d;
+              vect3d.fill( 0 );
+              DiffusionVectors.push_back( vect3d );
+              UnmodifiedDiffusionVectorsInDicomLPSCoordinateSystem.push_back(vect3d);
+              bValues.push_back( 0 );
+
+              }
+            }
+          else
+            {
+            useVolume.push_back(1);
+            innerSeq.GetElementFD(0x0018,0x9087,dwbValue);
+
+            DCMTKSequence volSeq;
+            innerSeq.GetElementSQ(0x0018, 0x9076,volSeq);
+            DCMTKSequence innerSeq2;
+            volSeq.GetSequence(0,innerSeq2);
+            double *dwgVal;
+            innerSeq2.GetElementFD(0x0018,0x9089,dwgVal);
+            std::vector<double> v(3);
+            v[0] = dwgVal[0];
+            v[1] = dwgVal[1];
+            v[2] = dwgVal[2];
+            unsigned int nOld = gradientDirectionAndBValue.size();
+            gradientDirectionAndBValue[v] = dwbValue;
+            unsigned int nNew = gradientDirectionAndBValue.size();
+
+            if (nOld != nNew)
+              {
+              vnl_vector_fixed<double, 3> vect3d;
+              vect3d[0] = v[0]; vect3d[1] = v[1]; vect3d[2] = v[2];
+              UnmodifiedDiffusionVectorsInDicomLPSCoordinateSystem.push_back(vect3d);
+              // vect3d.normalize();
+              DiffusionVectors.push_back( vect3d );
+
+              bValues.push_back( dwbValue);
+              }
+            }
+          }
+
+        numberOfSlicesPerVolume=sliceLocations.size();
+
+        std::cout << "LPS Matrix: " << std::endl << LPSDirCos << std::endl;
+        std::cout << "Volume Origin: " << std::endl << ImageOrigin[0] << ","
+                  << ImageOrigin[1] << ","  << ImageOrigin[2] << "," << std::endl;
+        std::cout << "Number of slices per volume: " << numberOfSlicesPerVolume << std::endl;
+        std::cout << "Slice matrix size: " << nRows << " X " << nCols << std::endl;
+        std::cout << "Image resolution: " << xRes << ", " << yRes << ", " << sliceSpacing << std::endl;
+
+        NRRDSpaceDirection=LPSDirCos*OrientationMatrix*SpacingMatrix;
+
+        MeasurementFrame=LPSDirCos;
+
+        nSliceInVolume = sliceLocations.size();
+        nVolume = nItems/nSliceInVolume;
+        nIgnoreVolume = ignorePhilipsSliceMultiFrame.size()/nSliceInVolume;
+
+        for( unsigned int k2 = 0; k2 < bValues.size(); k2++ )
+          {
+          std::cout << k2 << ": direction: " <<  DiffusionVectors[k2][0]
+                    << ", " << DiffusionVectors[k2][1] << ", " << DiffusionVectors[k2][2]
+                    << ", b-value: " << bValues[k2] << std::endl;
+          }
+
         }
       }
     else if ( StringContains(vendor, "SIEMENS") )
@@ -1236,10 +1348,6 @@ int main(int argc, char *argv[])
           // parse DiffusionGradientDirection from 0029,1010 tag
           valueArray.resize(0);
           int nItems = ExtractSiemensDiffusionInformation(diffusionInfoString, "DiffusionGradientDirection", valueArray);
-          std::cout << "Number of Directions : " << nItems << std::endl;
-          std::cout << "   Directions 0: " << valueArray[0] << std::endl;
-          std::cout << "   Directions 1: " << valueArray[1] << std::endl;
-          std::cout << "   Directions 2: " << valueArray[2] << std::endl;
           if (nItems != 3)  // did not find enough information
             {
             std::cout << "Warning: Cannot find complete information on DiffusionGradientDirection in 0029|1010" << std::endl;
@@ -1249,6 +1357,10 @@ int main(int argc, char *argv[])
             }
           else
             {
+            std::cout << "Number of Directions : " << nItems << std::endl;
+            std::cout << "   Directions 0: " << valueArray[0] << std::endl;
+            std::cout << "   Directions 1: " << valueArray[1] << std::endl;
+            std::cout << "   Directions 2: " << valueArray[2] << std::endl;
             double DiffusionVector_magnitude;
             vect3d[0] = valueArray[0];
             vect3d[1] = valueArray[1];
@@ -1275,128 +1387,6 @@ int main(int argc, char *argv[])
             }
           }
         }
-      }
-    else if (StringContains(vendor, "PHILIPS") && nSlice == 1) // multi-frame file, everything is inside
-      {
-
-      std::map<std::vector<double>, double> gradientDirectionAndBValue;
-      ignorePhilipsSliceMultiFrame.clear();
-
-      sliceLocations.clear();
-      bValues.clear();
-      DiffusionVectors.clear();
-      useVolume.clear();
-
-      DCMTKSequence perFrameFunctionalGroup;
-      DCMTKSequence innerSeq;
-      double dwbValue;
-
-      allHeaders[0]->GetElementSQ(0x5200,0x9230,perFrameFunctionalGroup);
-      int nItems = perFrameFunctionalGroup.card();
-
-      for(unsigned long i = 0;
-          i < static_cast<unsigned long>(perFrameFunctionalGroup.card()); ++i)
-        {
-        DCMTKSequence curSequence;
-        perFrameFunctionalGroup.GetSequence(i,curSequence);
-        // index slice locations with string origin
-        {
-        DCMTKSequence originSeq;
-        curSequence.GetElementSQ(0x0020, 0x9113,originSeq);
-        originSeq.GetSequence(0,innerSeq);
-        std::string originString;
-        innerSeq.GetElementDS(0x0020,0x0032,originString);
-        sliceLocations[originString]++;
-        }
-
-        std::string dirValue;
-        {
-        DCMTKSequence mrDiffusionSeq;
-        curSequence.GetElementSQ(0x0018,0x9117,mrDiffusionSeq);
-        mrDiffusionSeq.GetSequence(0,innerSeq);
-        innerSeq.GetElementCS(0x0018,0x9075,dirValue);
-        }
-
-        if ( StringContains(dirValue,"ISO") )
-          {
-          useVolume.push_back(0);
-          ignorePhilipsSliceMultiFrame.push_back( i );
-          }
-        else if ( StringContains(dirValue,"NONE") )
-          {
-          useVolume.push_back(1);
-          std::vector<double> v(3);
-          v[0] = 0; v[1] = 0; v[2] = 0;
-          unsigned int nOld = gradientDirectionAndBValue.size();
-          gradientDirectionAndBValue[v] = 0;
-          unsigned int nNew = gradientDirectionAndBValue.size();
-
-          if (nOld != nNew)
-            {
-            vnl_vector_fixed<double, 3> vect3d;
-            vect3d.fill( 0 );
-            DiffusionVectors.push_back( vect3d );
-            UnmodifiedDiffusionVectorsInDicomLPSCoordinateSystem.push_back(vect3d);
-            bValues.push_back( 0 );
-
-            }
-          }
-        else
-          {
-          useVolume.push_back(1);
-          innerSeq.GetElementFD(0x0018,0x9087,dwbValue);
-
-          DCMTKSequence volSeq;
-          innerSeq.GetElementSQ(0x0018, 0x9076,volSeq);
-          DCMTKSequence innerSeq2;
-          volSeq.GetSequence(0,innerSeq2);
-          double *dwgVal;
-          innerSeq2.GetElementFD(0x0018,0x9089,dwgVal);
-          std::vector<double> v(3);
-          v[0] = dwgVal[0];
-          v[1] = dwgVal[1];
-          v[2] = dwgVal[2];
-          unsigned int nOld = gradientDirectionAndBValue.size();
-          gradientDirectionAndBValue[v] = dwbValue;
-          unsigned int nNew = gradientDirectionAndBValue.size();
-
-          if (nOld != nNew)
-            {
-            vnl_vector_fixed<double, 3> vect3d;
-            vect3d[0] = v[0]; vect3d[1] = v[1]; vect3d[2] = v[2];
-            UnmodifiedDiffusionVectorsInDicomLPSCoordinateSystem.push_back(vect3d);
-            // vect3d.normalize();
-            DiffusionVectors.push_back( vect3d );
-
-            bValues.push_back( dwbValue);
-            }
-          }
-        }
-
-      numberOfSlicesPerVolume=sliceLocations.size();
-
-      std::cout << "LPS Matrix: " << std::endl << LPSDirCos << std::endl;
-      std::cout << "Volume Origin: " << std::endl << ImageOrigin[0] << ","
-                << ImageOrigin[1] << ","  << ImageOrigin[2] << "," << std::endl;
-      std::cout << "Number of slices per volume: " << numberOfSlicesPerVolume << std::endl;
-      std::cout << "Slice matrix size: " << nRows << " X " << nCols << std::endl;
-      std::cout << "Image resolution: " << xRes << ", " << yRes << ", " << sliceSpacing << std::endl;
-
-      NRRDSpaceDirection=LPSDirCos*OrientationMatrix*SpacingMatrix;
-
-      MeasurementFrame=LPSDirCos;
-
-      nSliceInVolume = sliceLocations.size();
-      nVolume = nItems/nSliceInVolume;
-      nIgnoreVolume = ignorePhilipsSliceMultiFrame.size()/nSliceInVolume;
-
-      for( unsigned int k2 = 0; k2 < bValues.size(); k2++ )
-        {
-        std::cout << k2 << ": direction: " <<  DiffusionVectors[k2][0]
-                  << ", " << DiffusionVectors[k2][1] << ", " << DiffusionVectors[k2][2]
-                  << ", b-value: " << bValues[k2] << std::endl;
-        }
-
       }
     else
       {
@@ -1805,71 +1795,102 @@ int main(int argc, char *argv[])
     //  header << "DWMRI_gradient_0000:=0  0  0" << std::endl;
     //  header << "DWMRI_NEX_0000:=" << nBaseline << std::endl;
     //  need to check
-
-    unsigned int shift_index = 0;
-    unsigned int original_volume_number = nUsableVolumes + bad_gradient_indices.size();
-
-    for (unsigned int k = 0; k < original_volume_number; k++)
+    if(gradientVectorFile != "")
       {
-      float scaleFactor = 0;
-      bool print_gradient = true;
-
-      for (unsigned int j = 0; j < bad_gradient_indices.size(); j++)
+      // override gradients embedded in file with an external file.
+      // FORMAT:
+      // <num_gradients>
+      // x y z
+      // x y z
+      // etc
+      std::ifstream gradientFile(gradientVectorFile.c_str(),std::ifstream::in);
+      unsigned int numGradients;
+      gradientFile >> numGradients;
+      if(numGradients != nUsableVolumes)
         {
-        if (k == bad_gradient_indices[j])
-          {
-          shift_index++;
-          print_gradient = false;
-          continue;
-          }
+        std::cerr << "number of Gradients doesn't match number of volumes" << std::endl;
+        return EXIT_FAILURE;
         }
-
-      if (maxBvalue > 0)
+      for(unsigned int imageCount = 0; !gradientFile.eof(); ++imageCount)
         {
-        scaleFactor = sqrt( bValues[k]/maxBvalue );
-        }
-      std::cout << "For Multiple BValues: " << k << " -- " << bValues[k] << " / " << maxBvalue << " = " << scaleFactor << std::endl;
-
-      if (print_gradient == true)
-        {
-        if(useIdentityMeaseurementFrame)
+        double vec[3];
+        unsigned int i;
+        for(i = 0; !gradientFile.eof() &&  i < 3; i++)
           {
-          vnl_vector_fixed<double,3> RotatedDiffusionVectors=InverseMeasurementFrame*(DiffusionVectors[k-nBaseline]);
-          header << "DWMRI_gradient_" << std::setw(4) << std::setfill('0') << k << ":="
-                 << RotatedDiffusionVectors[0] * scaleFactor << "   "
-                 << RotatedDiffusionVectors[1] * scaleFactor << "   "
-                 << RotatedDiffusionVectors[2] * scaleFactor << std::endl;
+          gradientFile >> vec[i];
           }
-        else
+        header << "DWMRI_gradient_" << std::setw(4) << std::setfill('0') << imageCount << ":="
+               << vec[0] << "   "
+               << vec[1] << "   "
+               << vec[2] << std::endl;
+        }
+      }
+    else
+      {
+      unsigned int shift_index = 0;
+      unsigned int original_volume_number = nUsableVolumes + bad_gradient_indices.size();
+
+      for (unsigned int k = 0; k < original_volume_number; k++)
+        {
+        float scaleFactor = 0;
+        bool print_gradient = true;
+
+        for (unsigned int j = 0; j < bad_gradient_indices.size(); j++)
           {
-          if(useBMatrixGradientDirections)
+          if (k == bad_gradient_indices[j])
             {
+            shift_index++;
+            print_gradient = false;
+            continue;
+            }
+          }
+
+        if (maxBvalue > 0)
+          {
+          scaleFactor = sqrt( bValues[k]/maxBvalue );
+          }
+        std::cout << "For Multiple BValues: " << k << " -- " << bValues[k] << " / " << maxBvalue << " = " << scaleFactor << std::endl;
+
+        if (print_gradient == true)
+          {
+          if(useIdentityMeaseurementFrame)
+            {
+            vnl_vector_fixed<double,3> RotatedDiffusionVectors=InverseMeasurementFrame*(DiffusionVectors[k-nBaseline]);
             header << "DWMRI_gradient_" << std::setw(4) << std::setfill('0') << k << ":="
-                   << DiffusionVectors[k][0] << "   "
-                   << DiffusionVectors[k][1] << "   "
-                   << DiffusionVectors[k][2] << std::endl;
+                   << RotatedDiffusionVectors[0] * scaleFactor << "   "
+                   << RotatedDiffusionVectors[1] * scaleFactor << "   "
+                   << RotatedDiffusionVectors[2] * scaleFactor << std::endl;
             }
           else
             {
-            unsigned int printed_gradient_number = k - shift_index;
+            if(useBMatrixGradientDirections)
+              {
+              header << "DWMRI_gradient_" << std::setw(4) << std::setfill('0') << k << ":="
+                     << DiffusionVectors[k][0] << "   "
+                     << DiffusionVectors[k][1] << "   "
+                     << DiffusionVectors[k][2] << std::endl;
+              }
+            else
+              {
+              unsigned int printed_gradient_number = k - shift_index;
 
-            header << "DWMRI_gradient_" << std::setw(4) << std::setfill('0') << printed_gradient_number << ":="
-                   << DiffusionVectors[k-nBaseline][0] * scaleFactor << "   "
-                   << DiffusionVectors[k-nBaseline][1] * scaleFactor << "   "
-                   << DiffusionVectors[k-nBaseline][2] * scaleFactor << std::endl;
+              header << "DWMRI_gradient_" << std::setw(4) << std::setfill('0') << printed_gradient_number << ":="
+                     << DiffusionVectors[k-nBaseline][0] * scaleFactor << "   "
+                     << DiffusionVectors[k-nBaseline][1] * scaleFactor << "   "
+                     << DiffusionVectors[k-nBaseline][2] * scaleFactor << std::endl;
+              }
             }
           }
-        }
-      else
-        {
-        std::cout << "Gradient " << k << " was removed and will not be printed in the NRRD header file." << std::endl;
-        }
+        else
+          {
+          std::cout << "Gradient " << k << " was removed and will not be printed in the NRRD header file." << std::endl;
+          }
 
-      //std::cout << "Consistent Orientation Checks." << std::endl;
-      //std::cout << "DWMRI_gradient_" << std::setw(4) << std::setfill('0') << k << ":="
-      //  << LPSDirCos.GetInverse()*DiffusionVectors[k-nBaseline] << std::endl;
+        //std::cout << "Consistent Orientation Checks." << std::endl;
+        //std::cout << "DWMRI_gradient_" << std::setw(4) << std::setfill('0') << k << ":="
+        //  << LPSDirCos.GetInverse()*DiffusionVectors[k-nBaseline] << std::endl;
+        }
       }
-
     // write data in the same file is .nrrd was chosen
     header << std::endl;;
     if (nrrdFormat && SliceMosaic)
