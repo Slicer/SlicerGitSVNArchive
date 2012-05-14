@@ -35,6 +35,7 @@ DICOM Data Dictionary: http://medical.nema.org/Dicom/2011/11_06pu.pdf
 #include "DicomToNrrdConverterCLP.h"
 
 #include "itkMacro.h"
+#include "itkIntTypes.h"
 #include "itkGDCMSeriesFileNames.h"
 #include "itkGDCMImageIO.h"
 #include "itkRawImageIO.h"
@@ -884,7 +885,7 @@ int main(int argc, char *argv[])
         vect3d.fill( 0 );
         // for some weird reason this item in the GE dicom
         // header is stored as an IS (Integer String) element.
-        int intb;
+        ::itk::int32_t intb;
         allHeaders[k]->GetElementISorOB(0x0043, 0x1039, intb);
         float b = static_cast<float>(intb);
 

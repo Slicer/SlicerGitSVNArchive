@@ -24,6 +24,8 @@
 #include "diregist.h"     /* include to support color images */
 #include "ofstd.h"           /* for OFStandard */
 #include "itkByteSwapper.h"
+#include "itkIntTypes.h"
+
 #define DCMTKException(body)                    \
   {                                             \
   if(throwException)                            \
@@ -648,9 +650,9 @@ public:
   /** get an IS (Integer String Item
    */
   int  GetElementIS(unsigned short group,
-                     unsigned short element,
-                     int &target,
-                     bool throwException = true)
+                    unsigned short element,
+                    ::itk::int32_t  &target,
+                    bool throwException = true)
     {
       DcmTagKey tagkey(group,element);
       DcmElement *el;
@@ -678,7 +680,7 @@ public:
 
   int  GetElementISorOB(unsigned short group,
                         unsigned short element,
-                        int &target,
+                        ::itk::int32_t  &target,
                         bool throwException = true)
     {
       if(this->GetElementIS(group,element,target,false) == EXIT_SUCCESS)
