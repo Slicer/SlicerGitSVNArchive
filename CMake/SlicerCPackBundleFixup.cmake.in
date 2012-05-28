@@ -1,0 +1,269 @@
+
+#
+# Make sure this CMake has BundleUtilities.cmake:
+#
+if(NOT EXISTS "${CMAKE_ROOT}/Modules/BundleUtilities.cmake")
+  message(FATAL_ERROR "error: BundleUtilities.cmake not found. Use CMake 2.8.3 or later.")
+endif()
+include(BundleUtilities)
+
+#
+# Avoid following symlinks encountered during FILE GLOB_RECURSE calls:
+#
+if(COMMAND CMAKE_POLICY)
+  cmake_policy(SET CMP0009 NEW)
+  if(POLICY CMP0011)
+    cmake_policy(SET CMP0011 NEW)
+  endif()
+endif()
+
+#-----------------------------------------------------------------------------
+# gp_log_message - Convenient function allowing to both display and log a message.
+# Log file: $ENV{DESTDIR}/../complete-bundles-log.txt
+#-----------------------------------------------------------------------------
+function(gp_log_message text)
+  message(${text})
+  file(APPEND "@Slicer_BINARY_DIR@/complete-bundles-log.txt" "${text}
+")
+endfunction()
+
+#-----------------------------------------------------------------------------
+# gp_clear_log - Clear the log file
+#-----------------------------------------------------------------------------
+function(gp_clear_log)
+  file(WRITE "@Slicer_BINARY_DIR@/complete-bundles-log.txt" "")
+  gp_log_message("Log file: @Slicer_BINARY_DIR@/complete-bundles-log.txt")
+endfunction()
+
+#-----------------------------------------------------------------------------
+# gp_resolved_file_type_override resolved_file type_var
+#-----------------------------------------------------------------------------
+function(gp_resolved_file_type_override resolved_file type_var)
+  if(resolved_file MATCHES "^/usr/.*/lib")
+    set(${type_var} system PARENT_SCOPE)
+  endif()
+  #gp_log_message("resolving ${file} as ${${type_var}}")
+endfunction()
+
+#-----------------------------------------------------------------------------
+# gp_item_default_embedded_path_override item default_embedded_path_var
+#-----------------------------------------------------------------------------
+# Return the path that others should refer to the item by when the item
+# is embedded inside a bundle.
+#
+# This is a project-specific override of BundleUtilities.cmake's
+# gp_item_default_embedded_path
+#
+function(gp_item_default_embedded_path_override item default_embedded_path_var)
+
+  # By default, embed items as set by gp_item_default_embedded_path:
+  set(path "${${default_embedded_path_var}}")
+
+  if(item MATCHES "\\.dylib$")
+    set(path "@executable_path@/../@Slicer_LIB_DIR@")
+  endif()
+
+  set(Slicer_USE_PYTHONQT "@Slicer_USE_PYTHONQT@")
+  if(Slicer_USE_PYTHONQT)
+
+    if(item MATCHES "libpython[^/]+\\.dylib$")
+      set(path "@executable_path@/../lib/Python/lib")
+    endif()
+
+    if(item MATCHES "@Slicer_LIB_DIR@/[^/]+Python\\.so$")
+      set(path "@executable_path@/../@Slicer_LIB_DIR@")
+    endif()
+
+  endif()
+
+  set(Slicer_USE_PYTHONQT_WITH_TCL "@Slicer_USE_PYTHONQT_WITH_TCL@")
+  if(Slicer_USE_PYTHONQT_WITH_TCL)
+    if(item MATCHES "tcl-build/lib/lib[^/]+\\.dylib$")
+      set(path "@executable_path@/../lib/TclTk")
+    endif()
+  endif()
+
+  if(item MATCHES "@Slicer_LIB_DIR@/[^/]+\\.dylib$")
+    set(path "@executable_path@/../@Slicer_LIB_DIR@")
+  endif()
+
+  if(item MATCHES "@Slicer_ITKFACTORIES_DIR@/[^/]+Plugin\\.(so|dylib)$")
+    set(path "@executable_path@/../@Slicer_ITKFACTORIES_DIR@")
+  endif()
+
+  if(item MATCHES "@Slicer_QtPlugins_DIR@/designer/[^/]+\\.(so|dylib)$")
+    set(path "@executable_path@/../@Slicer_QtPlugins_DIR@/designer")
+  endif()
+
+  if(item MATCHES "@Slicer_QtPlugins_DIR@/iconengines/[^/]+\\.(so|dylib)$")
+    set(path "@executable_path@/../@Slicer_QtPlugins_DIR@/iconengines")
+  endif()
+
+  if(item MATCHES "@Slicer_QtPlugins_DIR@/imageformats/[^/]+\\.(so|dylib)$")
+    set(path "@executable_path@/../@Slicer_QtPlugins_DIR@/imageformats")
+  endif()
+
+  if(item MATCHES "@Slicer_QtPlugins_DIR@/sqldrivers/[^/]+\\.(so|dylib)$")
+    set(path "@executable_path@/../@Slicer_QtPlugins_DIR@/sqldrivers")
+  endif()
+
+  set(Slicer_BUILD_CLI_SUPPORT "@Slicer_BUILD_CLI_SUPPORT@")
+  set(Slicer_BUILD_CLI "@Slicer_BUILD_CLI@")
+  if(Slicer_BUILD_CLI_SUPPORT AND Slicer_BUILD_CLI)
+    if(item MATCHES "@Slicer_CLIMODULES_LIB_DIR@/[^/]+\\.dylib$")
+      set(path "@executable_path@/../@Slicer_CLIMODULES_LIB_DIR@")
+    endif()
+  endif()
+
+  set(Slicer_BUILD_QTLOADABLEMODULES "@Slicer_BUILD_QTLOADABLEMODULES@")
+  if(Slicer_BUILD_QTLOADABLEMODULES)
+    if(item MATCHES "@Slicer_QTLOADABLEMODULES_LIB_DIR@/[^/]+\\.(so|dylib)$")
+      set(path "@executable_path@/../@Slicer_QTLOADABLEMODULES_LIB_DIR@")
+    endif()
+  endif()
+
+  math(EXPR lib_current $ENV{FIXUP_LIB_CURRENT}+1)
+  set(ENV{FIXUP_LIB_CURRENT} ${lib_current})
+  gp_log_message("${lib_current}/$ENV{FIXUP_LIBS_COUNT} - fixing item ${item} with ${path}")
+
+  set(${default_embedded_path_var} "${path}" PARENT_SCOPE)
+endfunction()
+
+#-----------------------------------------------------------------------------
+# Fixup the .app bundles in the install tree:
+#-----------------------------------------------------------------------------
+function(fixup_bundle_with_plugins app)
+  set(app_dir "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/${app}")
+  set(suffix "@CMAKE_SHARED_LIBRARY_SUFFIX@")
+
+  set(candiates_pattern
+    "${app_dir}/Contents/@Slicer_ITKFACTORIES_DIR@/*${suffix}"
+    "${app_dir}/Contents/@Slicer_ITKFACTORIES_DIR@/*Plugin.so"
+    "${app_dir}/Contents/@Slicer_QtPlugins_DIR@/designer/*Plugins.so"
+    "${app_dir}/Contents/@Slicer_QtPlugins_DIR@/iconengines/*Plugin.so"
+    "${app_dir}/Contents/@Slicer_QtPlugins_DIR@/imageformats/*${suffix}"
+    "${app_dir}/Contents/@Slicer_QtPlugins_DIR@/sqldrivers/*${suffix}"
+    )
+
+  set(Slicer_BUILD_CLI_SUPPORT "@Slicer_BUILD_CLI_SUPPORT@")
+  set(Slicer_BUILD_CLI "@Slicer_BUILD_CLI@")
+  if(Slicer_BUILD_CLI_SUPPORT AND Slicer_BUILD_CLI)
+    list(APPEND candiates_pattern
+      "${app_dir}/Contents/@Slicer_CLIMODULES_LIB_DIR@/*${suffix}"
+      )
+  endif()
+
+  set(Slicer_USE_PYTHONQT "@Slicer_USE_PYTHONQT@")
+
+  set(Slicer_BUILD_QTLOADABLEMODULES "@Slicer_BUILD_QTLOADABLEMODULES@")
+  if(Slicer_BUILD_QTLOADABLEMODULES)
+    list(APPEND candiates_pattern
+      "${app_dir}/Contents/@Slicer_QTLOADABLEMODULES_LIB_DIR@/*${suffix}"
+      "${app_dir}/Contents/@Slicer_QTLOADABLEMODULES_LIB_DIR@/*Python.so"
+      )
+    if(Slicer_USE_PYTHONQT)
+      list(APPEND candiates_pattern
+        "${app_dir}/Contents/@Slicer_QTLOADABLEMODULES_LIB_DIR@/qSlicer*PythonQt.so"
+        )
+    endif()
+  endif()
+
+  if(Slicer_USE_PYTHONQT)
+    list(APPEND candiates_pattern
+      "${app_dir}/Contents/@Slicer_LIB_DIR@/*Python.so"
+      "${app_dir}/Contents/@Slicer_LIB_DIR@/*PythonQt.so"
+      "${app_dir}/Contents/lib/Python/lib/*${suffix}"
+      "${app_dir}/Contents/lib/Python/lib/python2.6/lib-dynload/*.so"
+      "${app_dir}/Contents/lib/Python/lib/python2.6/site-packages/*.so"
+      )
+  endif()
+
+  set(Slicer_USE_PYTHONQT_WITH_TCL "@Slicer_USE_PYTHONQT_WITH_TCL@")
+  if(Slicer_USE_PYTHONQT_WITH_TCL)
+    list(APPEND candiates_pattern
+      "${app_dir}/Contents/lib/TclTk/lib/lib*${suffix}"
+      )
+  endif()
+
+  set(libs "")
+  file(GLOB_RECURSE candidates ${candiates_pattern})
+  foreach(lib ${candidates})
+    if(NOT lib MATCHES "(_debug|d[0-9])${suffix}$")
+      set(libs ${libs} "${lib}")
+    endif()
+  endforeach()
+
+  list(REMOVE_DUPLICATES libs)
+
+  # Additional libs may be found in:
+  set(libs_path "@CMAKE_RUNTIME_OUTPUT_DIRECTORY@")
+  list(APPEND libs_path "@VTK_LIBRARY_DIRS@")
+  list(APPEND libs_path "@ITK_LIBRARY_DIRS@")
+  list(APPEND libs_path "@Teem_LIBRARY_DIRS@")
+  list(APPEND libs_path "@CTK_LIBRARY_DIRS@")
+  if(Slicer_BUILD_CLI_SUPPORT)
+    list(APPEND libs_path "@SlicerExecutionModel_LIBRARY_DIRS@")
+  endif()
+  set(Slicer_BUILD_EXTENSIONMANAGER_SUPPORT "@Slicer_BUILD_EXTENSIONMANAGER_SUPPORT@")
+  if(Slicer_BUILD_EXTENSIONMANAGER_SUPPORT)
+    list(APPEND libs_path "@LibArchive_DIR@/lib")
+  endif()
+  set(Slicer_USE_BatchMake "@Slicer_USE_BatchMake@")
+  if(Slicer_USE_BatchMake)
+    list(APPEND libs_path "@BatchMake_LIBRARY_DIRS@")
+  endif()
+  set(Slicer_USE_OpenIGTLink "@Slicer_USE_OpenIGTLink@")
+  if(Slicer_USE_OpenIGTLink)
+    list(APPEND libs_path "@OpenIGTLink_LIBRARY_DIRS@")
+  endif()
+
+  list(APPEND libs_path "@Slicer_BINARY_DIR@/@Slicer_LIB_DIR@")
+  if(Slicer_BUILD_QTLOADABLEMODULES)
+    list(APPEND libs_path "@Slicer_BINARY_DIR@/@Slicer_QTLOADABLEMODULES_LIB_DIR@")
+  endif()
+  if(Slicer_BUILD_CLI_SUPPORT AND Slicer_BUILD_CLI)
+    list(APPEND libs_path "@Slicer_BINARY_DIR@/@Slicer_CLIMODULES_LIB_DIR@")
+  endif()
+  list(APPEND libs_path "@Slicer_BINARY_DIR@/@Slicer_QtPlugins_DIR@")
+
+  list(REMOVE_DUPLICATES libs_path)
+
+  set(Slicer_BUILD_DIR "@Slicer_BINARY_DIR@")
+  set(Slicer_SUPERBUILD_DIR "@Slicer_SUPERBUILD_DIR@")
+
+  gp_clear_log()
+
+  gp_log_message("Calling fixup_bundle with")
+  gp_log_message("app=${app_dir}")
+  gp_log_message("<Slicer_SUPERBUILD_DIR>=${Slicer_SUPERBUILD_DIR}")
+  gp_log_message("libs=")
+  foreach(lib ${libs})
+    file(RELATIVE_PATH relative_lib ${Slicer_SUPERBUILD_DIR} ${lib})
+    if(NOT "${relative_lib}" STREQUAL "${lib}")
+      set(lib "<Slicer_SUPERBUILD_DIR>/${relative_lib}")
+    endif()
+    gp_log_message("  ${lib}")
+  endforeach()
+  gp_log_message("libs_path=")
+  foreach(path ${libs_path})
+    file(RELATIVE_PATH relative_path ${Slicer_SUPERBUILD_DIR} ${path})
+    if(NOT "${relative_path}" STREQUAL "${path}")
+      set(path "<Slicer_SUPERBUILD_DIR>/${relative_path}")
+    endif()
+    gp_log_message("  ${path}")
+  endforeach()
+
+  # Keep track of libs count and current lib being fixed
+  list(LENGTH libs libs_count)
+  set(ENV{FIXUP_LIBS_COUNT} ${libs_count})
+  set(ENV{FIXUP_LIB_CURRENT} 0)
+
+  fixup_bundle(
+    "${app_dir}"
+    "${libs}"
+    "${libs_path}"
+    )
+endfunction()
+
+fixup_bundle_with_plugins("Slicer.app")
+#verify_app("/Users/partyd/Kitware/Slicer4-trunk/build/Slicer-build/_CPack_Packages/Darwin/DragNDrop/Slicer-4.0.gamma-2011-05-10-Darwin/Slicer.app")

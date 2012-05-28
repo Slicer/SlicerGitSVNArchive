@@ -1,0 +1,231 @@
+#
+# SlicerConfig.cmake - Slicer CMake configuration file for external projects
+#
+# This file is configured by Slicer and used by UseSlicer.cmake module
+# to load Slicer's settings for an external project. External projects
+# can use these setting to build new modules against a Slicer build tree
+# or a Slicer installation.
+#
+
+# Macro allowing to set a variable or complain if already defined
+macro(__SLICER_SET_OR_COMPLAIN_IF_DEFINED var value)
+  if(DEFINED ${var} AND NOT SlicerConfig_INCLUDED_ONCE)
+    message(FATAL_ERROR "Variable ${var} has been defined prior calling find_package(Slicer) !")
+  endif()
+  set(${var} "${value}" ${ARGN})
+endmacro()
+
+# Slicer options
+set(Slicer_USE_BatchMake "@Slicer_USE_BatchMake@")
+set(Slicer_USE_MIDAS "@Slicer_USE_MIDAS@")
+set(Slicer_USE_NUMPY "@Slicer_USE_NUMPY@")
+set(Slicer_USE_OpenIGTLink "@Slicer_USE_OpenIGTLink@")
+set(Slicer_USE_PYTHONQT "@Slicer_USE_PYTHONQT@")
+set(Slicer_USE_PYTHONQT_WITH_TCL "@Slicer_USE_PYTHONQT_WITH_TCL@")
+set(Slicer_BUILD_CLI_SUPPORT "@Slicer_BUILD_CLI_SUPPORT@")
+set(Slicer_BUILD_EXTENSIONMANAGER_SUPPORT "@Slicer_BUILD_EXTENSIONMANAGER_SUPPORT@")
+set(Slicer_BUILD_TESTING "@BUILD_TESTING@")
+
+# Qt
+__SLICER_SET_OR_COMPLAIN_IF_DEFINED(QT_QMAKE_EXECUTABLE "@QT_QMAKE_EXECUTABLE_CONFIG@")
+set(Slicer_REQUIRED_QT_VERSION "@Slicer_REQUIRED_QT_VERSION@")
+set(Slicer_REQUIRED_QT_MODULES "@Slicer_REQUIRED_QT_MODULES@")
+
+# External projects
+if(Slicer_USE_BatchMake)
+  __SLICER_SET_OR_COMPLAIN_IF_DEFINED(BatchMake_DIR "@BatchMake_DIR_CONFIG@" CACHE PATH "Path to BatchMake build or install directory" FORCE)
+endif()
+__SLICER_SET_OR_COMPLAIN_IF_DEFINED(CTK_DIR "@CTK_DIR_CONFIG@" CACHE PATH "Path to CTK build or install directory" FORCE)
+__SLICER_SET_OR_COMPLAIN_IF_DEFINED(ITK_DIR "@ITK_DIR_CONFIG@" CACHE PATH "Path to ITK build or install directory" FORCE)
+if(Slicer_USE_OpenIGTLink)
+  __SLICER_SET_OR_COMPLAIN_IF_DEFINED(OpenIGTLink_DIR "@OpenIGTLink_DIR_CONFIG@" CACHE PATH "Path to OpenIGTLink build or install directory" FORCE)
+endif()
+if(Slicer_USE_PYTHONQT)
+  __SLICER_SET_OR_COMPLAIN_IF_DEFINED(PYTHON_EXECUTABLE "@PYTHON_EXECUTABLE_CONFIG@" CACHE PATH "Path to Python executable" FORCE)
+  __SLICER_SET_OR_COMPLAIN_IF_DEFINED(PYTHON_INCLUDE_DIR "@PYTHON_INCLUDE_DIR_CONFIG@" CACHE PATH "Path to Python include directory" FORCE)
+  __SLICER_SET_OR_COMPLAIN_IF_DEFINED(PYTHON_LIBRARY "@PYTHON_LIBRARY_CONFIG@" CACHE FILEPATH "Path to Python library" FORCE)
+  if(WIN32)
+    __SLICER_SET_OR_COMPLAIN_IF_DEFINED(PYTHON_DEBUG_LIBRARY "@PYTHON_DEBUG_LIBRARY_CONFIG@" CACHE FILEPATH "Path to Python debug library" FORCE)
+  endif()
+endif()
+if(Slicer_BUILD_EXTENSIONMANAGER_SUPPORT)
+  __SLICER_SET_OR_COMPLAIN_IF_DEFINED(qMidasAPI_DIR "@qMidasAPI_DIR_CONFIG@" CACHE PATH "Path to qMidasAPI build or install directory" FORCE)
+endif()
+__SLICER_SET_OR_COMPLAIN_IF_DEFINED(SLICERLIBCURL_DIR "@SLICERLIBCURL_DIR_CONFIG@" CACHE PATH "Path to Curl build or install directory" FORCE)
+if(Slicer_BUILD_CLI_SUPPORT)
+  __SLICER_SET_OR_COMPLAIN_IF_DEFINED(SlicerExecutionModel_DIR "@SlicerExecutionModel_DIR_CONFIG@" CACHE PATH "Path to SlicerExecutionModel build or install directory" FORCE)
+endif()
+__SLICER_SET_OR_COMPLAIN_IF_DEFINED(Teem_DIR "@Teem_DIR_CONFIG@" CACHE PATH "Path to Teem build or install directory")
+__SLICER_SET_OR_COMPLAIN_IF_DEFINED(VTK_DIR "@VTK_DIR_CONFIG@" CACHE PATH "Path to VTK build or install directory")
+
+# List all required external project
+set(Slicer_EXTERNAL_PROJECTS @Slicer_EXTERNAL_PROJECTS_CONFIG@)
+set(Slicer_EXTERNAL_PROJECTS_NO_USEFILE @Slicer_EXTERNAL_PROJECTS_NO_USEFILE_CONFIG@)
+
+# Include external projects
+foreach(proj ${Slicer_EXTERNAL_PROJECTS})
+  find_package(${proj} REQUIRED)
+endforeach()
+
+# Slicer CMake macros and functions directory
+set(Slicer_CMAKE_DIR "@Slicer_CMAKE_DIR@")
+set(Slicer_EXTENSIONS_CMAKE_DIR "@Slicer_EXTENSIONS_CMAKE_DIR@")
+
+# Update CMake module path
+set(CMAKE_MODULE_PATH
+  ${Slicer_CMAKE_DIR}
+  ${Slicer_EXTENSIONS_CMAKE_DIR}
+  ${VTK_CMAKE_DIR}
+  ${CTK_CMAKE_DIR}
+  ${CTK_CMAKE_UTILITIES_DIR}
+  ${CMAKE_MODULE_PATH}
+  )
+
+# Note: This block should be added after VTK and CTK are found.
+#       Indeed, it will check if both VTK_QT_QMAKE_EXECUTABLE and CTK_QT_QMAKE_EXECUTABLE
+#       are valid.
+include(SlicerBlockFindQtAndCheckVersion)
+
+# Launcher command
+set(Slicer_LAUNCHER_EXECUTABLE "@Slicer_LAUNCHER_EXECUTABLE_CONFIG@")
+set(Slicer_LAUNCH_COMMAND "@Slicer_LAUNCH_COMMAND_CONFIG@")
+
+# Slicer working copy Revision, URL and Root
+set(Slicer_WC_REVISION "@Slicer_WC_REVISION@")
+set(Slicer_WC_URL "@Slicer_WC_URL@")
+set(Slicer_WC_ROOT "@Slicer_WC_ROOT@")
+
+# Slicer platform and architecture
+set(Slicer_PLATFORM "@Slicer_PLATFORM@")
+set(Slicer_ARCHITECTURE "@Slicer_ARCHITECTURE@")
+
+# License and Readme file
+set(Slicer_LICENSE_FILE "@Slicer_LICENSE_FILE_CONFIG@")
+set(Slicer_README_FILE "@Slicer_README_FILE_CONFIG@")
+
+# Test templates directory
+set(Slicer_CXX_MODULE_TEST_TEMPLATES_DIR "@Slicer_CXX_MODULE_TEST_TEMPLATES_DIR_CONFIG@")
+set(Slicer_PYTHON_MODULE_TEST_TEMPLATES_DIR "@Slicer_PYTHON_MODULE_TEST_TEMPLATES_DIR_CONFIG@")
+
+# Path to extension CPack script
+set(Slicer_EXTENSION_CPACK "@Slicer_EXTENSION_CPACK_CONFIG@")
+set(Slicer_EXTENSION_CPACK_BUNDLE_FIXUP "@Slicer_EXTENSION_CPACK_BUNDLE_FIXUP_CONFIG@")
+set(Slicer_BUNDLE_EXTENSIONS_DIRNAME "@Slicer_BUNDLE_EXTENSIONS_DIRNAME@")
+
+# Whether Slicer was built with modules and CLI support.
+set(Slicer_BUILD_CLI "@Slicer_BUILD_CLI@")
+set(Slicer_BUILD_QTLOADABLEMODULES "@Slicer_BUILD_QTLOADABLEMODULES@")
+set(Slicer_BUILD_QTSCRIPTEDMODULES "@Slicer_BUILD_QTSCRIPTEDMODULES@")
+
+# Whether Slicer was built with shared libraries.
+set(Slicer_BUILD_SHARED "@BUILD_SHARED_LIBS@")
+set(Slicer_LIBRARY_PROPERTIES "@Slicer_LIBRARY_PROPERTIES@")
+
+# Export header for BuildModuleLogic and BuildQTModule
+set(Slicer_EXPORT_HEADER_TEMPLATE "@Slicer_EXPORT_HEADER_TEMPLATE@")
+set(Slicer_LOGOS_RESOURCE "@Slicer_LOGOS_RESOURCE@")
+
+# Slicer home (top of the tree)
+set(Slicer_HOME "@Slicer_HOME@")
+
+# Slicer Core library
+set(Slicer_CORE_LIBRARY @Slicer_CORE_LIBRARY_CONFIG@)
+
+# Slicer GUI library
+set(Slicer_GUI_LIBRARY @Slicer_GUI_LIBRARY_CONFIG@)
+
+# MRML libraries - This variable regroup all related MRML libraries
+set(MRML_LIBRARIES @MRML_LIBRARIES@)
+
+# Slicer Libs VTK wrapped libraries
+set(Slicer_Libs_VTK_WRAPPED_LIBRARIES "@Slicer_Libs_VTK_WRAPPED_LIBRARIES@")
+
+# Slicer Libs include file directories.
+set(Slicer_Libs_INCLUDE_DIRS "@Slicer_Libs_INCLUDE_DIRS_CONFIG@")
+
+# HACK Expose SlicerBaseCLI_INCLUDE_DIRS so that slicerMacroBuildCLI works
+#      Ideally we would like to move the files from SlicerBaseCLI into the SlicerExecutionModel
+set(Slicer_BaseCLI_INCLUDE_DIRS "@Slicer_BaseCLI_INCLUDE_DIRS@")
+
+# Slicer Base include file directories.
+set(Slicer_Base_INCLUDE_DIRS "@Slicer_BINARY_DIR@" "@Slicer_Base_INCLUDE_DIRS_CONFIG@")
+
+# Slicer Module logic include file directories.
+set(Slicer_ModuleLogic_INCLUDE_DIRS "@Slicer_ModuleLogic_INCLUDE_DIRS_CONFIG@"
+  CACHE INTERNAL "Slicer Module logic includes" FORCE)
+
+# Slicer Module MRML include file directories.
+set(Slicer_ModuleMRML_INCLUDE_DIRS "@Slicer_ModuleMRML_INCLUDE_DIRS_CONFIG@"
+  CACHE INTERNAL "Slicer Module MRML includes" FORCE)
+
+# Slicer Module Widgets include file directories.
+set(Slicer_ModuleWidgets_INCLUDE_DIRS "@Slicer_ModuleWidgets_INCLUDE_DIRS_CONFIG@"
+  CACHE INTERNAL "Slicer Module widgets includes" FORCE)
+
+# The location of the UseSlicer.cmake file.
+set(Slicer_USE_FILE "@Slicer_USE_FILE_CONFIG@")
+
+# Slicer relative build directories.
+set(Slicer_BIN_DIR "@Slicer_BIN_DIR@")
+set(Slicer_LIB_DIR "@Slicer_LIB_DIR@")
+set(Slicer_INCLUDE_DIR "@Slicer_INCLUDE_DIR@")
+set(Slicer_SHARE_DIR "@Slicer_SHARE_DIR@")
+set(Slicer_ITKFACTORIES_DIR "@Slicer_ITKFACTORIES_DIR@")
+
+set(Slicer_CLIMODULES_SUBDIR "@Slicer_CLIMODULES_SUBDIR@")
+set(Slicer_CLIMODULES_BIN_DIR "@Slicer_CLIMODULES_BIN_DIR@")
+set(Slicer_CLIMODULES_LIB_DIR "@Slicer_CLIMODULES_LIB_DIR@")
+set(Slicer_CLIMODULES_SHARE_DIR "@Slicer_CLIMODULES_SHARE_DIR@")
+
+set(Slicer_QTLOADABLEMODULES_SUBDIR "@Slicer_QTLOADABLEMODULES_SUBDIR@")
+set(Slicer_QTLOADABLEMODULES_BIN_DIR "@Slicer_QTLOADABLEMODULES_BIN_DIR@")
+set(Slicer_QTLOADABLEMODULES_LIB_DIR "@Slicer_QTLOADABLEMODULES_LIB_DIR@")
+set(Slicer_QTLOADABLEMODULES_INCLUDE_DIR "@Slicer_QTLOADABLEMODULES_INCLUDE_DIR@")
+set(Slicer_QTLOADABLEMODULES_SHARE_DIR "@Slicer_QTLOADABLEMODULES_SHARE_DIR@")
+set(Slicer_QTLOADABLEMODULES_PYTHON_LIB_DIR "@Slicer_QTLOADABLEMODULES_PYTHON_LIB_DIR@")
+
+if(Slicer_USE_PYTHONQT)
+  set(Slicer_QTSCRIPTEDMODULES_SUBDIR "@Slicer_QTSCRIPTEDMODULES_SUBDIR@")
+  set(Slicer_QTSCRIPTEDMODULES_BIN_DIR "@Slicer_QTSCRIPTEDMODULES_BIN_DIR@")
+  set(Slicer_QTSCRIPTEDMODULES_LIB_DIR "@Slicer_QTSCRIPTEDMODULES_LIB_DIR@")
+  set(Slicer_QTSCRIPTEDMODULES_INCLUDE_DIR "@Slicer_QTSCRIPTEDMODULES_INCLUDE_DIR@")
+  set(Slicer_QTSCRIPTEDMODULES_SHARE_DIR "@Slicer_QTSCRIPTEDMODULES_SHARE_DIR@")
+endif()
+
+# Slicer install root
+set(Slicer_INSTALL_ROOT "@Slicer_INSTALL_ROOT@")
+
+# Slicer relative install directories.
+set(Slicer_INSTALL_BIN_DIR "@Slicer_INSTALL_BIN_DIR@")
+set(Slicer_INSTALL_LIB_DIR "@Slicer_INSTALL_LIB_DIR@")
+set(Slicer_INSTALL_INCLUDE_DIR "@Slicer_INSTALL_INCLUDE_DIR@")
+set(Slicer_INSTALL_SHARE_DIR "@Slicer_INSTALL_SHARE_DIR@")
+set(Slicer_INSTALL_ITKFACTORIES_DIR "@Slicer_INSTALL_ITKFACTORIES_DIR@")
+
+set(Slicer_INSTALL_CLIMODULES_BIN_DIR "@Slicer_INSTALL_CLIMODULES_BIN_DIR@")
+set(Slicer_INSTALL_CLIMODULES_LIB_DIR "@Slicer_INSTALL_CLIMODULES_LIB_DIR@")
+set(Slicer_INSTALL_CLIMODULES_SHARE_DIR "@Slicer_INSTALL_CLIMODULES_SHARE_DIR@")
+
+set(Slicer_INSTALL_QTLOADABLEMODULES_BIN_DIR "@Slicer_INSTALL_QTLOADABLEMODULES_BIN_DIR@")
+set(Slicer_INSTALL_QTLOADABLEMODULES_LIB_DIR "@Slicer_INSTALL_QTLOADABLEMODULES_LIB_DIR@")
+set(Slicer_INSTALL_QTLOADABLEMODULES_PYTHON_LIB_DIR "@Slicer_INSTALL_QTLOADABLEMODULES_PYTHON_LIB_DIR@")
+set(Slicer_INSTALL_QTLOADABLEMODULES_INCLUDE_DIR "@Slicer_INSTALL_QTLOADABLEMODULES_INCLUDE_DIR@")
+set(Slicer_INSTALL_QTLOADABLEMODULES_SHARE_DIR "@Slicer_INSTALL_QTLOADABLEMODULES_SHARE_DIR@")
+
+if(Slicer_USE_PYTHONQT)
+  set(Slicer_INSTALL_QTSCRIPTEDMODULES_BIN_DIR "@Slicer_INSTALL_QTSCRIPTEDMODULES_BIN_DIR@")
+  set(Slicer_INSTALL_QTSCRIPTEDMODULES_LIB_DIR "@Slicer_INSTALL_QTSCRIPTEDMODULES_LIB_DIR@")
+  set(Slicer_INSTALL_QTSCRIPTEDMODULES_INCLUDE_DIR "@Slicer_INSTALL_QTSCRIPTEDMODULES_INCLUDE_DIR@")
+  set(Slicer_INSTALL_QTSCRIPTEDMODULES_SHARE_DIR "@Slicer_INSTALL_QTSCRIPTEDMODULES_SHARE_DIR@")
+endif()
+
+# The Slicer install prefix (*not* defined in the install tree)
+set(Slicer_INSTALL_PREFIX  "@CMAKE_INSTALL_PREFIX@")
+
+# The Slicer targets file.
+if(EXISTS "@Slicer_TARGETS_FILE@" AND NOT TARGET SlicerBaseLogic)
+  include("@Slicer_TARGETS_FILE@")
+endif()
+
+set(SlicerConfig_INCLUDED_ONCE 1 CACHE INTERNAL "True if SlicerConfig has already been included")
+

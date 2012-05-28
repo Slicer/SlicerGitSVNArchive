@@ -1,0 +1,13 @@
+<!DOCTYPE RCC><RCC version="1.0">
+  <qresource>
+    <file>Icons/Small/SlicerAddVolume.png</file>
+    <file>Icons/Medium/SlicerAddVolume.png</file>
+    <file>Icons/Large/SlicerAddVolume.png</file>
+    <file>Icons/XLarge/SlicerAddVolume.png</file>
+
+    <file>Icons/Small/SlicerVolumes.png</file>
+    <file>Icons/Medium/SlicerVolumes.png</file>
+    <file>Icons/Large/SlicerVolumes.png</file>
+    <file>Icons/XLarge/SlicerVolumes.png</file>
+  </qresource>
+</RCC>

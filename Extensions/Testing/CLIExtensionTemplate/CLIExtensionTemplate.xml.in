@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<executable>
+  <category>@EXTENSION_CATEGORY@</category>
+  <title>@EXTENSION_NAME@</title>
+  <description><![CDATA[@EXTENSION_DESCRIPTION@]]></description>
+  <version>@EXTENSION_MAJOR_VERSION@.@EXTENSION_MINOR_VERSION@.@EXTENSION_PATCH_VERSION@-@EXTENSION_STATUS@</version>
+  <documentation-url>@EXTENSION_HOMEPAGE@</documentation-url>
+  <license>@EXTENSION_LICENSE_SHORT_DESCRIPTION@</license>
+  <contributor>@EXTENSION_CONTRIBUTORS@</contributor>
+  <acknowledgements><![CDATA[@EXTENSION_ACKNOWLEDGEMENTS@]]></acknowledgements>
+  <parameters>
+    <double>
+      <name>sigma</name>
+      <longflag>sigma</longflag>
+      <flag>s</flag>
+      <label>Sigma</label>
+      <description><![CDATA[Sigma value in physical units (e.g., mm) of the Gaussian kernel]]></description>
+      <default>1.0</default>
+    </double>
+    <label>IO</label>
+    <description><![CDATA[Input/output parameters]]></description>
+    <image>
+      <name>inputVolume</name>
+      <label>Input Volume</label>
+      <channel>input</channel>
+      <index>0</index>
+      <description><![CDATA[Input volume]]></description>
+    </image>
+    <image>
+      <name>outputVolume</name>
+      <label>Output Volume</label>
+      <channel>output</channel>
+      <index>1</index>
+      <description><![CDATA[Blurred Volume]]></description>
+    </image>
+  </parameters>
+</executable>

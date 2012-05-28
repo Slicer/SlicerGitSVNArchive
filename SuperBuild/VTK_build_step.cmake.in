@@ -1,0 +1,19 @@
+
+if(UNIX)
+
+  if("${MAKE_COMMAND}" STREQUAL "")
+    message(FATAL_ERROR "error: MAKE_COMMAND is not set !")
+  endif()
+
+  if(APPLE)
+    set(ENV{DYLD_LIBRARY_PATH} "@CMAKE_CURRENT_BINARY_DIR@/python-build/lib")
+  else(APPLE)
+    set(ENV{LD_LIBRARY_PATH} "@CMAKE_CURRENT_BINARY_DIR@/python-build/lib")
+  endif(APPLE)
+
+  execute_process(
+    COMMAND ${MAKE_COMMAND}
+    WORKING_DIRECTORY "@CMAKE_CURRENT_BINARY_DIR@/@proj@-build"
+    )
+
+endif()
