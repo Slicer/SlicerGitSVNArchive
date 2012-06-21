@@ -28,43 +28,49 @@ class VTK_ITK_EXPORT vtkITKRSSegmenter : public vtkObject
   static vtkITKRSSegmenter *New();
   vtkTypeRevisionMacro(vtkITKRSSegmenter, vtkObject);
 
-
-
-
-
-
-
+  /// If the target has homogeneous intensity
   vtkSetMacro(IntensityHomogeneity, double);
   vtkGetMacro(IntensityHomogeneity, double);
 
-  ///
-  /// The mask image: used instead of brush if non NULL
-  /// - image corresponds to the PaintRegion but is
-  ///   in World coordinates.
-  vtkSetObjectMacro(MaskImage, vtkImageData);
-  vtkGetObjectMacro(MaskImage, vtkImageData);
+  /// A large number (max 1.0) indicates that the target boundary is smooth, small (min 0.0) for rough/jaggy boundary
+  vtkSetMacro(Smoothness, double);
+  vtkGetMacro(Smoothness, double);
+
+  /// An upper limit of volume for the target object.
+  vtkSetMacro(ExpectedVolume, double);
+  vtkGetMacro(ExpectedVolume, double);
+
+  /// Largest running time, over this, the algorithm is stopped and the result is output
+  vtkSetMacro(MaxRunningTime, double);
+  vtkGetMacro(MaxRunningTime, double);
 
   ///
-  /// The reference image for threshold calculations
-  vtkSetObjectMacro(BackgroundImage, vtkImageData);
-  vtkGetObjectMacro(BackgroundImage, vtkImageData);
+  /// The seed image, a label image
+  vtkSetObjectMacro(SeedLabelImage, vtkImageData);
+  vtkGetObjectMacro(SeedLabelImage, vtkImageData);
 
   ///
-  /// Image data to be painted into
-  vtkSetObjectMacro(WorkingImage, vtkImageData);
-  vtkGetObjectMacro(WorkingImage, vtkImageData);
-
-
-
-
-
+  /// The image to be segmented
+  vtkSetObjectMacro(InputImage, vtkImageData);
+  vtkGetObjectMacro(InputImage, vtkImageData);
 
 
 protected:
-  typedef CSFLSRobustStatSegmentor3DLabelMap<Superclass::InputImageType> ImageFilterType;
-  vtkITKRSSegmenter() : Superclass ( ImageFilterType::New() ){};
-  ~vtkITKRSSegmenter() {};
-  ImageFilterType* GetImageFilterPointer() { return dynamic_cast<ImageFilterType*> ( m_Filter.GetPointer() ); }
+  vtkITKRSSegmenter();
+  ~vtkITKRSSegmenter();
+
+  virtual void SimpleExecute(vtkImageData* input, vtkImageData* inputSeed, vtkImageData* outputLabel);
+
+  double IntensityHomogeneity;
+  double Smoothness;
+  double ExpectedVolume;
+  double MaxRunningTime;
+
+
+//  typedef CSFLSRobustStatSegmentor3DLabelMap<Superclass::InputImageType> ImageFilterType;
+//  vtkITKRSSegmenter() : Superclass ( ImageFilterType::New() ){};
+//  ~vtkITKRSSegmenter() {};
+//  ImageFilterType* GetImageFilterPointer() { return dynamic_cast<ImageFilterType*> ( m_Filter.GetPointer() ); }
 
 
 private:
