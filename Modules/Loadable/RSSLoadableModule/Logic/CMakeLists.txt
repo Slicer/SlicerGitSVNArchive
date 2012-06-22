@@ -10,6 +10,8 @@ set(${KIT}_INCLUDE_DIRECTORIES
 set(${KIT}_SRCS
   vtkSlicerRSSLoadableModuleLogic.cxx
   vtkSlicerRSSLoadableModuleLogic.h
+  vtkITKRSSegmenter.cxx
+  vtkITKRSSegmenter.h
   )
 
 set(${KIT}_TARGET_LIBRARIES
