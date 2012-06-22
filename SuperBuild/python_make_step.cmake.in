@@ -1,3 +1,8 @@
+set(ENV{CC} "@CMAKE_C_COMPILER@ @CMAKE_C_COMPILER_ARG1@")
+set(ENV{CFLAGS} "@CMAKE_C_FLAGS@ @CMAKE_C_FLAGS_RELEASE@")
+set(ENV{CXX} "@CMAKE_CXX_COMPILER@ @CMAKE_CXX_COMPILER_ARG1@")
+set(ENV{CXXFLAGS} "@CMAKE_CXX_FLAGS@ @CMAKE_CXX_FLAGS_RELEASE@")
+set(ENV{LDFLAGS} "@CMAKE_LINKER_FLAGS@ @CMAKE_LINKER_FLAGS_RELEASE@")
 
 if(UNIX)
 
@@ -36,11 +41,11 @@ if(UNIX)
     set(CFLAGS "${CFLAGS} ${osx_flags}")
     set(CXXFLAGS "${CXXFLAGS} ${osx_flags}")
     set(CPPFLAGS "${CPPFLAGS} ${osx_flags}")
-    set(LDFLAGS "${LDFLAGS} ${osx_flags} -undefined dynamic_lookup")
+    set(LDFLAGS "${LDFLAGS} ${osx_flags}")
+    # http://bugs.python.org/issue11334 indicates that dynamic_lookup causes build issues, confirmed on 10.7.4
+    #set(LDFLAGS "${LDFLAGS} -undefined dynamic_lookup")
   endif(APPLE)
 
-  set(ENV{CC}  "@CMAKE_C_COMPILER@")
-  set(ENV{CXX} "@CMAKE_CXX_COMPILER@")
   foreach(v CFLAGS CXXFLAGS CPPFLAGS LDFLAGS LD_LIBRARY_PATH)
     set(ENV{${v}} ${${v}})
   endforeach()
