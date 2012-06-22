@@ -18,11 +18,11 @@
 #ifndef __vtkITKRSSegmenter_h
 #define __vtkITKRSSegmenter_h
 
-
-#include "vtkITKImageToImageFilterFF.h"
+#include "vtkITK.h"
+#include "vtkSimpleImageToImageFilter.h"
 #include "SFLSRobustStatSegmentor3DLabelMap_single.h"
 
-class VTK_ITK_EXPORT vtkITKRSSegmenter : public vtkObject
+class VTK_ITK_EXPORT vtkITKRSSegmenter : public vtkSimpleImageToImageFilter
 {
  public:
   static vtkITKRSSegmenter *New();
