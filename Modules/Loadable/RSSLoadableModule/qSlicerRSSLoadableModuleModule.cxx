@@ -100,6 +100,7 @@ QStringList qSlicerRSSLoadableModuleModule::dependencies() const
 //-----------------------------------------------------------------------------
 void qSlicerRSSLoadableModuleModule::setup()
 {
+//  this->hidden = true;
   this->Superclass::setup();
 }
 

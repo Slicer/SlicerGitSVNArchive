@@ -18,7 +18,8 @@
 #include "vtkDataArray.h"
 #include "vtkPointData.h"
 #include "vtkImageData.h"
-
+#include "vtkSmartPointer.h"
+#include "vtkImageCast.h"
 #include "SFLSRobustStatSegmentor3DLabelMap_single.h"
 
 vtkCxxRevisionMacro(vtkITKRSSegmenter, "$Revision: 1900 $");
@@ -35,6 +36,52 @@ vtkITKRSSegmenter::vtkITKRSSegmenter()
 vtkITKRSSegmenter::~vtkITKRSSegmenter()
 {
 }
+
+
+
+template <typename TPixel>
+itk::Image<char, 3>::Pointer
+getFinalMask(typename itk::Image<TPixel, 3>::Pointer img, unsigned char l, TPixel thod)
+{
+  typedef itk::Image<char, 3> MaskType;
+
+  MaskType::SizeType size = img->GetLargestPossibleRegion().GetSize();
+
+  long nx = size[0];
+  long ny = size[1];
+  long nz = size[2];
+
+  MaskType::Pointer   mask = MaskType::New();
+  MaskType::IndexType start = {{0, 0, 0}};
+
+  MaskType::RegionType region;
+  region.SetSize( size );
+  region.SetIndex( start );
+
+  mask->SetRegions( region );
+
+  mask->SetSpacing(img->GetSpacing() );
+  mask->SetOrigin(img->GetOrigin() );
+
+  mask->Allocate();
+  mask->FillBuffer(0);
+  for( long ix = 0; ix < nx; ++ix )
+    {
+    for( long iy = 0; iy < ny; ++iy )
+      {
+      for( long iz = 0; iz < nz; ++iz )
+        {
+        MaskType::IndexType idx = {{ix, iy, iz}};
+        TPixel              v = img->GetPixel(idx);
+
+        mask->SetPixel(idx, v <= thod ? l : 0);
+        }
+      }
+    }
+
+  return mask;
+}
+
 
 
 //template <class T>
@@ -84,75 +131,31 @@ void vtkITKRSSegmenterExecute(vtkITKRSSegmenter *self, vtkImageData* input, vtkI
 
 
   // Calculate the distance transform
-  typedef CSFLSRobustStatSegmentor3DLabelMap<PixelType> SFLSRobustStatSegmentor3DLabelMap_c;
+  typedef CSFLSRobustStatSegmentor3DLabelMap<short> SFLSRobustStatSegmentor3DLabelMap_c;
 
   SFLSRobustStatSegmentor3DLabelMap_c seg;
   seg.setImage(inImage);
 
   seg.setNumIter(10000); // a large enough number, s.t. will not be stoped by this creteria.
-  seg.setMaxVolume(ExpectedVolume);
+  seg.setMaxVolume(self->GetExpectedVolume());
   seg.setInputLabelImage(seedImage);
 
-  seg.setMaxRunningTime(MaxRunningTime);
+  seg.setMaxRunningTime(self->GetMaxRunningTime());
 
-  seg.setIntensityHomogeneity(IntensityHomogeneity);
-  seg.setCurvatureWeight(Smoothness / 1.5);
+  seg.setIntensityHomogeneity(self->GetIntensityHomogeneity());
+  seg.setCurvatureWeight(self->GetSmoothness() / 1.5);
 
   seg.doSegmenation();
 
   LabelImagePixelType labelValue = 1;
   LabelImageType::Pointer finalMask = getFinalMask<float>(seg.mp_phi, labelValue, 2.0);
-  finalMask->CopyInformation(img);
+  finalMask->CopyInformation(inImage);
 
 
   // Copy to the output
   memcpy(outPtr, finalMask->GetBufferPointer(),
          finalMask->GetBufferedRegion().GetNumberOfPixels() * sizeof(LabelImagePixelType));
 
-}
-
-
-template <typename TPixel>
-itk::Image<short, 3>::Pointer
-vtkITKRSSegmenter::getFinalMask(typename itk::Image<TPixel, 3>::Pointer img, unsigned char l, TPixel thod)
-{
-  typedef itk::Image<short, 3> MaskType;
-
-  MaskType::SizeType size = img->GetLargestPossibleRegion().GetSize();
-
-  long nx = size[0];
-  long ny = size[1];
-  long nz = size[2];
-
-  MaskType::Pointer   mask = MaskType::New();
-  MaskType::IndexType start = {{0, 0, 0}};
-
-  MaskType::RegionType region;
-  region.SetSize( size );
-  region.SetIndex( start );
-
-  mask->SetRegions( region );
-
-  mask->SetSpacing(img->GetSpacing() );
-  mask->SetOrigin(img->GetOrigin() );
-
-  mask->Allocate();
-  mask->FillBuffer(0);
-  for( long ix = 0; ix < nx; ++ix )
-    {
-    for( long iy = 0; iy < ny; ++iy )
-      {
-      for( long iz = 0; iz < nz; ++iz )
-        {
-        MaskType::IndexType idx = {{ix, iy, iz}};
-        TPixel              v = img->GetPixel(idx);
-
-        mask->SetPixel(idx, v <= thod ? l : 0);
-        }
-      }
-    }
-
-  return mask;
 }
 
 
@@ -163,7 +166,8 @@ vtkITKRSSegmenter::getFinalMask(typename itk::Image<TPixel, 3>::Pointer img, uns
 void vtkITKRSSegmenter::SimpleExecute(vtkImageData* input, vtkImageData* inputSeed, vtkImageData* outputLabel)
 {
   vtkDebugMacro(<< "Executing RSS");
-  pd=input->GetPointData();
+  vtkPointData *pd = input->GetPointData();
+
   if (pd ==NULL)
     {
     vtkErrorMacro(<<"PointData is NULL");
@@ -181,27 +185,27 @@ void vtkITKRSSegmenter::SimpleExecute(vtkImageData* input, vtkImageData* inputSe
   // cast the input image scalar type to short
   //
   vtkSmartPointer<vtkImageCast> castFilter = vtkSmartPointer<vtkImageCast>::New();
-  castFilter->SetInputConnection(input);
+  castFilter->SetInput(input);
   castFilter->SetOutputScalarTypeToShort();
   castFilter->Update();
 
-  vtkSmartPointer<vtkImageCast> inputShort = castFilter->GetOutput();
+  vtkSmartPointer<vtkImageData> inputShort = castFilter->GetOutput();
 
 
   //
   // cast the input seed label image scalar type to char
   //
   vtkSmartPointer<vtkImageCast> castFilter1 = vtkSmartPointer<vtkImageCast>::New();
-  castFilter1->SetInputConnection(inputSeed);
+  castFilter1->SetInput(inputSeed);
   castFilter1->SetOutputScalarTypeToChar();
   castFilter1->Update();
 
-  vtkSmartPointer<vtkImageCast> inputSeedChar = castFilter1->GetOutput();
+  vtkSmartPointer<vtkImageData> inputSeedChar = castFilter1->GetOutput();
 
   //
   // Initialize and check input
   //
-  vtkPointData *pd = inputShort->GetPointData();
+//  vtkPointData *pd = inputShort->GetPointData();
 
 
   /// TODO: need to check the sizes of input and inputSeed match? (it is checked in the RSS code)
@@ -218,10 +222,10 @@ void vtkITKRSSegmenter::SimpleExecute(vtkImageData* input, vtkImageData* inputSe
 
     void* inPtr = inputShort->GetScalarPointer();
     void* inSeedPtr = inputSeedChar->GetScalarPointer();
-    void* outPtr = output->GetScalarPointer();
+    void* outPtr = outputLabel->GetScalarPointer();
 
 
-    vtkITKRSSegmenterExecute(this, inputShort, output, static_cast<short *>(inPtr), static_cast<char *>(inSeedPtr), static_cast<char *>(outPtr));
+    vtkITKRSSegmenterExecute(this, inputShort, outputLabel, static_cast<short *>(inPtr), static_cast<char *>(inSeedPtr), static_cast<char *>(outPtr));
 
 //    switch (inScalars->GetDataType())
 //      {
@@ -244,15 +248,15 @@ void vtkITKRSSegmenter::SimpleExecute(vtkImageData* input, vtkImageData* inputSe
     }
 }
 
-void vtkITKRSSegmenter::PrintSelf(ostream& os, vtkIndent indent)
-{
-  this->Superclass::PrintSelf(os,indent);
+//void vtkITKRSSegmenter::PrintSelf(ostream& os, vtkIndent indent)
+//{
+//  this->Superclass::PrintSelf(os,indent);
 
-  os << indent << "BackgroundValue: " << BackgroundValue << std::endl;
-  os << indent << "InsideIsPositive: " << InsideIsPositive << std::endl;
-  os << indent << "UseImageSpacing: " << UseImageSpacing << std::endl;
-  os << indent << "SquaredDistance: " << SquaredDistance << std::endl;
-}
+//  os << indent << "BackgroundValue: " << BackgroundValue << std::endl;
+//  os << indent << "InsideIsPositive: " << InsideIsPositive << std::endl;
+//  os << indent << "UseImageSpacing: " << UseImageSpacing << std::endl;
+//  os << indent << "SquaredDistance: " << SquaredDistance << std::endl;
+//}
 
 
 

@@ -44,15 +44,15 @@ class VTK_ITK_EXPORT vtkITKRSSegmenter : public vtkSimpleImageToImageFilter
   vtkSetMacro(MaxRunningTime, double);
   vtkGetMacro(MaxRunningTime, double);
 
-  ///
-  /// The seed image, a label image
-  vtkSetObjectMacro(SeedLabelImage, vtkImageData);
-  vtkGetObjectMacro(SeedLabelImage, vtkImageData);
+//  ///
+//  /// The seed image, a label image
+//  vtkSetObjectMacro(SeedLabelImage, vtkImageData);
+//  vtkGetObjectMacro(SeedLabelImage, vtkImageData);
 
-  ///
-  /// The image to be segmented
-  vtkSetObjectMacro(InputImage, vtkImageData);
-  vtkGetObjectMacro(InputImage, vtkImageData);
+//  ///
+//  /// The image to be segmented
+//  vtkSetObjectMacro(InputImage, vtkImageData);
+//  vtkGetObjectMacro(InputImage, vtkImageData);
 
 
 protected:
@@ -60,11 +60,16 @@ protected:
   ~vtkITKRSSegmenter();
 
   virtual void SimpleExecute(vtkImageData* input, vtkImageData* inputSeed, vtkImageData* outputLabel);
+  virtual void SimpleExecute(vtkImageData* input, vtkImageData* output) {} // TODO: This is simpply WRONG!!! The base class SimpleImageFilter only takes one input image. So it does not fit the RSS, which needs both grayscale image and seed label image.
+
 
   double IntensityHomogeneity;
   double Smoothness;
   double ExpectedVolume;
   double MaxRunningTime;
+
+//  vtkImageData* InputImage;
+//  vtkImageData* SeedLabelImage;
 
 
 //  typedef CSFLSRobustStatSegmentor3DLabelMap<Superclass::InputImageType> ImageFilterType;
@@ -77,15 +82,6 @@ private:
   vtkITKRSSegmenter(const vtkITKRSSegmenter&);  /// Not implemented.
   void operator=(const vtkITKRSSegmenter&);  /// Not implemented.
 };
-
-#endif
-
-
-
-
-
-
-
 
 
 #endif // __vtkITKRSSegmenter_h
