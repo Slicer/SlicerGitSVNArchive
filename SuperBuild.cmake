@@ -137,6 +137,10 @@ if(Slicer_BUILD_SlicerWebGLExport)
   list(APPEND Slicer_DEPENDENCIES SlicerWebGLExport)
 endif()
 
+if(Slicer_BUILD_DWIConvert)
+  list(APPEND Slicer_DEPENDENCIES DWIConvert)
+endif()
+
 SlicerMacroCheckExternalProjectDependency(Slicer)
 
 #-----------------------------------------------------------------------------
@@ -311,11 +315,17 @@ if(APPLE)
     -DCMAKE_OSX_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET})
 endif()
 
+if(Slicer_BUILD_DWIConvert)
+  list(APPEND ep_superbuild_extra_args
+    -DDWIConvert_SOURCE_DIR:PATH=${DWIConvert_SOURCE_DIR}
+    )
+endif()
+
 #------------------------------------------------------------------------------
 # Configure and build Slicer
 #------------------------------------------------------------------------------
 set(proj Slicer)
-
+message("DCMTK_DIR=${DCMTK_DIR}")
 ExternalProject_Add(${proj}
   DEPENDS ${Slicer_DEPENDENCIES}
   DOWNLOAD_COMMAND ""
@@ -360,6 +370,8 @@ ExternalProject_Add(${proj}
     # Qt
     -DSlicer_REQUIRED_QT_VERSION:STRING=${Slicer_REQUIRED_QT_VERSION}
     -DQT_QMAKE_EXECUTABLE:PATH=${QT_QMAKE_EXECUTABLE}
+    # DCMTK
+    -DDCMTK_DIR:PATH=${DCMTK_DIR}
     # CTK
     -DCTK_DIR:PATH=${CTK_DIR}
     # jqPlot
