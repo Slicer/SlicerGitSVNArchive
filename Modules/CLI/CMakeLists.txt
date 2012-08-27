@@ -170,3 +170,8 @@ if(Slicer_BUILD_BRAINSTOOLS)
     )
 endif()
 
+if(Slicer_BUILD_DWIConvert)
+  message("DCMTK_DIR = ${DCMTK_DIR}")
+  add_subdirectory(${DWIConvert_SOURCE_DIR}
+    ${CMAKE_CURRENT_BINARY_DIR}/DWIConvert)
+endif()
