@@ -7,12 +7,12 @@ if(Slicer_USE_PYTHONQT)
   set(PYTHON_DIR "${SUPER_BUILD_DIR}/python-build")
   set(python_lib_subdir /Lib/)
   if(UNIX)
-    set(python_lib_subdir /lib/python2.6/)
+    set(python_lib_subdir /lib/python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}/)
   endif()
   if(NOT EXISTS "${PYTHON_DIR}${python_lib_subdir}")
     message(FATAL_ERROR "error: Failed to install Python ! - Unexistant directory PYTHON_DIR:${PYTHON_DIR}${python_lib_subdir}")
   endif()
-  
+
   set(extra_exclude_pattern)
   if(UNIX)
     # Note: 

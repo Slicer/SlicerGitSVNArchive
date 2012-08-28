@@ -13,11 +13,11 @@ set(python_IMPORT_SUFFIX so)
 if(APPLE)
   set(python_IMPORT_SUFFIX dylib)
 endif()
-set(slicer_PYTHON_INCLUDE ${python_build}/include/python2.6)
+set(slicer_PYTHON_INCLUDE ${python_build}/include/python${slicer_PYTHON_VERSION_MAJOR}.${slicer_PYTHON_VERSION_MINOR})
 set(slicer_PYTHON_SHARED_LIBRARY_DIR ${python_build}/lib)
-set(slicer_PYTHON_LIBRARY ${slicer_PYTHON_SHARED_LIBRARY_DIR}/libpython2.6.${python_IMPORT_SUFFIX})
+set(slicer_PYTHON_LIBRARY ${slicer_PYTHON_SHARED_LIBRARY_DIR}/libpython${slicer_PYTHON_VERSION_MAJOR}.${slicer_PYTHON_VERSION_MINOR}.${python_IMPORT_SUFFIX})
 set(slicer_PYTHON_EXECUTABLE ${python_build}/bin/customPython)
-set(slicer_PYTHON_REAL_EXECUTABLE ${python_build}/bin/python2.6)
+set(slicer_PYTHON_REAL_EXECUTABLE ${python_build}/bin/python${slicer_PYTHON_VERSION_MAJOR}.${slicer_PYTHON_VERSION_MINOR})
 
 configure_file(SuperBuild/python_patch_step_unix.cmake.in
   ${CMAKE_CURRENT_BINARY_DIR}/python_patch_step.cmake
