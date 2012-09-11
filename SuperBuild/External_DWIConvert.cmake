@@ -8,7 +8,7 @@ set(proj DWIConvert)
 set(DWIConvert_REPOSITORY
   ${git_protocol}://github.com/Chaircrusher/NewDicomToNrrdConverter.git)
 
-set(DWIConvert_GIT_TAG 16208d48ef36d5a308eb776efc8e5868a9b18054 )
+set(DWIConvert_GIT_TAG 6ddfd659a373cca058b1406443336555b2e401e1 )
 set(DWIConvert_DCMTK_ARGS -DDCMTK_DIR:PATH=${DCMTK_DIR} )
 
 ExternalProject_Add(${proj}
