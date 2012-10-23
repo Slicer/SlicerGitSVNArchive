@@ -20,6 +20,7 @@ void vtkAnnotationRulerWidget::PrintSelf(ostream& os, vtkIndent indent)
 //---------------------------------------------------------------------------
 vtkAnnotationRulerWidget::vtkAnnotationRulerWidget()
 {
+  this->Is2DWidget = true;
 }
 
 //---------------------------------------------------------------------------
@@ -30,21 +31,38 @@ vtkAnnotationRulerWidget::~vtkAnnotationRulerWidget()
 //---------------------------------------------------------------------------
 void vtkAnnotationRulerWidget::CreateDefaultRepresentation()
 {
-  if ( ! this->WidgetRep )
+  if (!this->WidgetRep)
     {
-    this->WidgetRep = vtkAnnotationRulerRepresentation::New();
+    if (this->Is2DWidget)
+      {
+      this->WidgetRep = vtkAnnotationRulerRepresentation::New();
+      }
+    else
+      {
+      this->WidgetRep = vtkAnnotationRulerRepresentation3D::New();
+      }
     }
-  vtkAnnotationRulerRepresentation::SafeDownCast(this->WidgetRep)
-    ->InstantiateHandleRepresentation();
+  if (!vtkDistanceRepresentation::SafeDownCast(this->WidgetRep))
+    {
+    vtkErrorMacro("CreateDefaultRepresentation: unable to cast widget representation to a vtkDistanceRepresentation, class = " <<  this->WidgetRep->GetClassName());
+    return;
+    }
+  vtkDistanceRepresentation::SafeDownCast(this->WidgetRep)->InstantiateHandleRepresentation();
 }
 
 //---------------------------------------------------------------------------
-void vtkAnnotationRulerWidget::CreateDefaultRepresentation3D()
+bool vtkAnnotationRulerWidget::GetIs2DWidget()
 {
-  if ( ! this->WidgetRep )
+  return this->Is2DWidget;
+}
+
+//---------------------------------------------------------------------------
+void vtkAnnotationRulerWidget::SetIs2DWidget(int value)
+{
+  if (this->WidgetRep)
     {
-    this->WidgetRep = vtkAnnotationRulerRepresentation3D::New();
+    vtkErrorMacro( << "SetIs2DWidget: Setting Is2DWidget after a representation has been built is a no-op !");
+    return;
     }
-  vtkAnnotationRulerRepresentation3D::SafeDownCast(this->WidgetRep)
-    ->InstantiateHandleRepresentation();
+  this->Is2DWidget = value;
 }
