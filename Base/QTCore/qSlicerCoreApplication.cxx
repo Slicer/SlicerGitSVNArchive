@@ -156,6 +156,8 @@ void qSlicerCoreApplicationPrivate::init()
     qDebug() << "qSlicerCoreApplication must be given the True argc/argv";
     }
 
+  this->parseArguments();
+
   this->SlicerHome = this->discoverSlicerHomeDirectory();
   this->setEnvironmentVariable("SLICER_HOME", this->SlicerHome);
 
@@ -232,13 +234,17 @@ void qSlicerCoreApplicationPrivate::init()
   q->connect(q, SIGNAL(mrmlSceneChanged(vtkMRMLScene*)),
                  this->ModuleManager->factoryManager(), SLOT(setMRMLScene(vtkMRMLScene*)));
 
-  this->parseArguments();
+  q->handlePreApplicationCommandLineArguments();
+
 #ifdef Slicer_USE_PYTHONQT
   if (!qSlicerCoreApplication::testAttribute(qSlicerCoreApplication::AA_DisablePython))
     {
     if (q->corePythonManager())
       {
       q->corePythonManager()->mainContext(); // Initialize python
+      q->corePythonManager()->setSystemExitExceptionHandlerEnabled(true);
+      q->connect(q->corePythonManager(), SIGNAL(systemExitExceptionRaised(int)),
+                 q, SLOT(terminate(int)));
       }
 # ifdef Q_WS_WIN
     // HACK - Since on windows setting an environment variable using putenv doesn't propagate
@@ -276,24 +282,21 @@ void qSlicerCoreApplicationPrivate::init()
 }
 
 //-----------------------------------------------------------------------------
-QSettings* qSlicerCoreApplicationPrivate::instantiateSettings(const QString& suffix,
-                                                                bool useTmp)
+QSettings* qSlicerCoreApplicationPrivate::newSettings()
 {
   Q_Q(qSlicerCoreApplication);
+  return new QSettings(q);
+}
 
-  QString settingsFileName;
+//-----------------------------------------------------------------------------
+QSettings* qSlicerCoreApplicationPrivate::instantiateSettings(bool useTmp)
+{
+  Q_Q(qSlicerCoreApplication);
   if (useTmp)
     {
-    settingsFileName = QString("%1-%2.%3%4").
-      arg(qSlicerCoreApplication::applicationName().replace(":", "")).
-      arg(QString::number(Slicer_VERSION_MAJOR)).
-      arg(QString::number(Slicer_VERSION_MINOR)).
-      arg(suffix);
-    settingsFileName += "-tmp";
+    q->setApplicationName(q->applicationName() + "-tmp");
     }
-
-  QSettings* settings = q->newSettings(settingsFileName);
-
+  QSettings* settings = this->newSettings();
   if (useTmp)
     {
     settings->clear();
@@ -588,26 +591,15 @@ void qSlicerCoreApplicationPrivate::parseArguments()
     {
     qWarning() << "Failed to parse arguments - "
                   "it seems you forgot to call setCoreCommandOptions()";
-    this->terminate(EXIT_FAILURE);
+    q->terminate(EXIT_FAILURE);
     return;
     }
   if (!options->parse(q->arguments()))
     {
     qCritical("Problem parsing command line arguments.  Try with --help.");
-    this->terminate(EXIT_FAILURE);
+    q->terminate(EXIT_FAILURE);
     return;
     }
-
-  q->handlePreApplicationCommandLineArguments();
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerCoreApplicationPrivate::terminate(int returnCode)
-{
-  Q_Q(qSlicerCoreApplication);
-  this->ReturnCode = returnCode;
-  // Does nothing if the event loop is not running
-  q->exit(returnCode);
 }
 
 //-----------------------------------------------------------------------------
@@ -709,8 +701,6 @@ int qSlicerCoreApplication::returnCode()const
 //-----------------------------------------------------------------------------
 void qSlicerCoreApplication::handlePreApplicationCommandLineArguments()
 {
-  Q_D(qSlicerCoreApplication);
-
   qSlicerCoreCommandOptions* options = this->coreCommandOptions();
   Q_ASSERT(options);
 
@@ -723,7 +713,7 @@ void qSlicerCoreApplication::handlePreApplicationCommandLineArguments()
                 << "Options\n";
       }
     std::cout << qPrintable(options->helpText()) << std::endl;
-    d->terminate(EXIT_SUCCESS);
+    this->terminate(EXIT_SUCCESS);
     return;
     }
 
@@ -731,28 +721,28 @@ void qSlicerCoreApplication::handlePreApplicationCommandLineArguments()
     {
     std::cout << qPrintable(this->applicationName() + " " +
                             this->applicationVersion()) << std::endl;
-    d->terminate(EXIT_SUCCESS);
+    this->terminate(EXIT_SUCCESS);
     return;
     }
 
   if (options->displayProgramPathAndExit())
     {
     std::cout << qPrintable(this->arguments().at(0)) << std::endl;
-    d->terminate(EXIT_SUCCESS);
+    this->terminate(EXIT_SUCCESS);
     return;
     }
 
   if (options->displayHomePathAndExit())
     {
     std::cout << qPrintable(this->slicerHome()) << std::endl;
-    d->terminate(EXIT_SUCCESS);
+    this->terminate(EXIT_SUCCESS);
     return;
     }
 
   if (options->displaySettingsPathAndExit())
     {
     std::cout << qPrintable(this->settings()->fileName()) << std::endl;
-    d->terminate(EXIT_SUCCESS);
+    this->terminate(EXIT_SUCCESS);
     return;
     }
 
@@ -765,14 +755,6 @@ void qSlicerCoreApplication::handlePreApplicationCommandLineArguments()
   if (options->isTestingEnabled())
     {
     this->setAttribute(AA_EnableTesting);
-    // Change the application name to change what settings file to use (to
-    // prevent conflicts with user settings).
-    // \todo improve settings switch mechanism.
-    this->setApplicationName(this->applicationName() + "Testing");
-    if (QFile::exists(this->settings()->fileName()))
-      {
-      QFile::remove(this->settings()->fileName());
-      }
     }
 }
 
@@ -887,38 +869,19 @@ QSettings* qSlicerCoreApplication::settings()const
   // If required, instantiate Settings
   if(!mutable_d->Settings)
     {
-    mutable_d->Settings = mutable_d->instantiateSettings("", false);
+    mutable_d->Settings = mutable_d->instantiateSettings(
+          this->coreCommandOptions()->isTestingEnabled() ||
+          this->coreCommandOptions()->settingsEnabled());
     }
   return mutable_d->Settings;
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerCoreApplication::disableSettings()
-{
-  Q_D(qSlicerCoreApplication);
-  Q_ASSERT(d->Settings);
-
-  // Instanciate empty Settings
-  d->Settings = d->instantiateSettings("", true);
 }
 
 //-----------------------------------------------------------------------------
 void qSlicerCoreApplication::clearSettings()
 {
   Q_D(qSlicerCoreApplication);
-  Q_ASSERT(!d->Settings);
+  Q_ASSERT(d->Settings);
   d->Settings->clear();
-}
-
-//-----------------------------------------------------------------------------
-QSettings* qSlicerCoreApplication::newSettings(const QString& fileName)
-{
-  if (!fileName.isEmpty())
-    {
-    // Special case for tmp settings
-    return new QSettings(fileName, QSettings::defaultFormat(), this);
-    }
-  return new QSettings(this);
 }
 
 //-----------------------------------------------------------------------------
@@ -1346,4 +1309,13 @@ void qSlicerCoreApplication::processAppLogicWriteData()
 {
   Q_D(qSlicerCoreApplication);
   d->AppLogic->ProcessWriteData();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerCoreApplication::terminate(int returnCode)
+{
+  Q_D(qSlicerCoreApplication);
+  d->ReturnCode = returnCode;
+  // Does nothing if the event loop is not running
+  this->exit(returnCode);
 }

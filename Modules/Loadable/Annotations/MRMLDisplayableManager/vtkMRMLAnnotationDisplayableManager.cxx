@@ -12,6 +12,7 @@
 #include "vtkMRMLAnnotationDisplayableManagerHelper.h"
 
 // MRMLDisplayableManager includes
+#include <vtkMRMLAbstractSliceViewDisplayableManager.h>
 #include <vtkMRMLModelDisplayableManager.h>
 #include <vtkMRMLDisplayableManagerGroup.h>
 
@@ -127,6 +128,7 @@ void vtkMRMLAnnotationDisplayableManager::SetAndObserveNode(vtkMRMLAnnotationNod
   nodeEvents->InsertNextValue(vtkMRMLAnnotationControlPointsNode::ControlPointModifiedEvent);
   nodeEvents->InsertNextValue(vtkMRMLAnnotationNode::LockModifiedEvent);
   nodeEvents->InsertNextValue(vtkMRMLTransformableNode::TransformModifiedEvent);
+  nodeEvents->InsertNextValue(vtkMRMLDisplayableNode::DisplayModifiedEvent);
 
  if (annotationNode)// && !annotationNode->HasObserver(vtkMRMLTransformableNode::TransformModifiedEvent))
    {
@@ -314,7 +316,6 @@ void vtkMRMLAnnotationDisplayableManager
 {
 
   vtkMRMLAnnotationNode * annotationNode = vtkMRMLAnnotationNode::SafeDownCast(caller);
-  vtkMRMLAnnotationDisplayNode *displayNode = vtkMRMLAnnotationDisplayNode::SafeDownCast(caller);
   vtkMRMLInteractionNode * interactionNode = vtkMRMLInteractionNode::SafeDownCast(caller);
   if (annotationNode)
     {
@@ -332,14 +333,8 @@ void vtkMRMLAnnotationDisplayableManager
       case vtkMRMLAnnotationNode::LockModifiedEvent:
         this->OnMRMLAnnotationNodeLockModifiedEvent(annotationNode);
         break;
-      }
-    }
-  else if (displayNode)
-    {
-    switch(event)
-      {
-      case vtkCommand::ModifiedEvent:
-        this->OnMRMLAnnotationDisplayNodeModifiedEvent(displayNode);
+      case vtkMRMLDisplayableNode::DisplayModifiedEvent:
+        this->OnMRMLAnnotationDisplayNodeModifiedEvent(annotationNode->GetDisplayNode());
         break;
       }
     }
@@ -402,13 +397,6 @@ void vtkMRMLAnnotationDisplayableManager::OnMRMLSceneNodeAdded(vtkMRMLNode* node
   if (node->IsA("vtkMRMLInteractionNode"))
     {
     this->AddObserversToInteractionNode();
-    return;
-    }
-
-  if (node->IsA("vtkMRMLAnnotationDisplayNode"))
-    {
-    // have a display node, need to observe it
-    vtkObserveMRMLNodeMacro(node);
     return;
     }
 
@@ -553,14 +541,19 @@ void vtkMRMLAnnotationDisplayableManager::OnMRMLAnnotationDisplayNodeModifiedEve
 
   if (this->m_Updating)
     {
-    vtkDebugMacro("OnMRMLAnnotationDisplayNodeModifiedEvent: Updating in progress.. Exit now.")
+    vtkDebugMacro("OnMRMLAnnotationDisplayNodeModifiedEvent: Updating in progress, returning.")
     return;
     }
 
+  if (!node)
+    {
+    vtkErrorMacro("OnMRMLAnnotationDisplayNodeModifiedEvent: null node");
+    return;
+    }
   vtkMRMLAnnotationDisplayNode *annotationDisplayNode = vtkMRMLAnnotationDisplayNode::SafeDownCast(node);
   if (!annotationDisplayNode)
     {
-    vtkErrorMacro("OnMRMLAnnotationDisplayNodeModifiedEvent: Can not access node.")
+    vtkErrorMacro("OnMRMLAnnotationDisplayNodeModifiedEvent: Cannot convert node to annotation display node: " << (node->GetID() ? node->GetID() : "null id"));
     return;
     }
 
@@ -736,88 +729,20 @@ void vtkMRMLAnnotationDisplayableManager::OnMRMLSliceNodeModifiedEvent(vtkMRMLSl
     // we loop through all nodes
     vtkMRMLAnnotationNode * annotationNode = *it;
 
-    vtkAbstractWidget* widget = this->Helper->GetWidget(annotationNode);
-    if (!widget)
-      {
-      vtkErrorMacro("OnMRMLSliceNodeModifiedEvent: We could not get the widget to the node: " << annotationNode->GetID());
-      return;
-      }
-
     // check if the annotation is displayable according to the current selected Slice
     bool visibleOnSlice = this->IsWidgetDisplayable(sliceNode, annotationNode);
-    // check if the annotation is visible according to the current mrml state
-    bool visibleOnNode = (annotationNode->GetDisplayVisibility() != 0 ? true : false);
-    // check if the widget is visible according to the widget state
-    bool visibleOnWidget = (widget->GetEnabled() == 1 ? true : false);
 
-    // now this is the magical part
-    // we know if all points of a widget are on the activeSlice of the sliceNode (including the tolerance)
-    // thus we will only enable the widget if they are
-
-    // first case: the node says it is not visible, but the widget is
-    if (!visibleOnNode && visibleOnWidget)
+    this->Helper->UpdateVisible(annotationNode, visibleOnSlice);
+    
+    if (visibleOnSlice)
       {
-      // hide the widget immediately
-      widget->SetEnabled(0);
-      vtkSeedWidget *seedWidget = vtkSeedWidget::SafeDownCast(widget);
-      if (seedWidget)
-        {
-        seedWidget->CompleteInteraction();
-        vtkDebugMacro("OnMRMLSliceNodeModifiedEvent: complete interaction");
-        }
+      // it's visible, just update the position
+      this->UpdatePosition(this->Helper->GetWidget(annotationNode), annotationNode);
       }
 
-    // second case: the node says it is visible, but the widget is not
-    else if (visibleOnNode && !visibleOnWidget)
+    else
       {
-
-      // now we have to check if the annotation is visible on the current slice
-      // if it is, we have to show it
-      if (visibleOnSlice)
-        {
-
-        // show the widget immediately
-        //this->UpdatePosition(widget, annotationNode);
-        widget->SetEnabled(1);
-        this->PropagateMRMLToWidget(annotationNode, widget);
-        vtkSeedWidget *seedWidget = vtkSeedWidget::SafeDownCast(widget);
-        if (seedWidget)
-          {
-          seedWidget->CompleteInteraction();
-          vtkDebugMacro("OnMRMLSliceNodeModifiedEvent: complete interaction");
-          }
-        this->RequestRender();
-        }
-
-      }
-
-    // third case: the node and the widget say they are visible, but it's not according
-    // to the slice
-    else if (visibleOnNode && visibleOnWidget)
-      {
-
-      if (!visibleOnSlice)
-        {
-        // hide the widget immediately
-        widget->SetEnabled(0);
-        vtkSeedWidget *seedWidget = vtkSeedWidget::SafeDownCast(widget);
-        if (seedWidget)
-          {
-          seedWidget->CompleteInteraction();
-          vtkDebugMacro("OnMRMLSliceNodeModifiedEvent: complete interaction");
-          }
-        }
-      else
-        {
-        // it's visible, just update the position
-        this->UpdatePosition(widget, annotationNode);
-        }
-
-      }
-
-    // if the widget is not shown on the slice, show at least the intersection
-    if (!visibleOnSlice)
-      {
+      // if the widget is not shown on the slice, show at least the intersection
 
       // only implemented for ruler yet
 
@@ -963,6 +888,18 @@ bool vtkMRMLAnnotationDisplayableManager::IsWidgetDisplayable(vtkMRMLSliceNode* 
     return 0;
     }
 
+  if (this->IsInLightboxMode())
+    {
+    /// BUG mantis issue 1690: if in lightbox mode, don't show fiducials or
+    /// rulers
+    if (!strcmp(this->m_Focus, "vtkMRMLAnnotationFiducialNode") ||
+        !strcmp(this->m_Focus, "vtkMRMLAnnotationRulerNode"))
+      {
+      return false;
+      }
+    }
+
+  
   int numberOfControlPoints =  controlPointsNode->GetNumberOfControlPoints();
   // the text node saves it's second control point in viewport coordinates, so
   // don't check it
@@ -980,72 +917,102 @@ bool vtkMRMLAnnotationDisplayableManager::IsWidgetDisplayable(vtkMRMLSliceNode* 
     double displayCoordinates[4];
     this->GetWorldToDisplayCoordinates(transformedWorldCoordinates,displayCoordinates);
 
-    //
-    // Lightbox specific code
-    //
-
-    // get the right renderer index by checking the z coordinate
-    int rendererIndex = (int)(displayCoordinates[2]+0.5);
-
-    // get all renderers associated with this renderWindow
-    // when lightbox mode is enabled, there will be different renderers associated with the renderWindow of the sliceView
-    vtkRendererCollection* rendererCollection = this->GetInteractor()->GetRenderWindow()->GetRenderers();
-
-    // check if lightbox is enabled
-    if (sliceNode->GetLayoutGridRows() > 1 || sliceNode->GetLayoutGridColumns() > 1)
+    if (this->IsInLightboxMode())
       {
-
-      // check if the rendererIndex is valid for the current lightbox view
-      if (rendererIndex >= 0 && rendererIndex < rendererCollection->GetNumberOfItems())
+      //
+      // Lightbox specific code
+      //
+      
+      // get the corresponding lightbox index for this display coordinate and
+      // check if it's in the range of the current number of light boxes being
+      // displayed in the grid rows/columns.
+      int lightboxIndex = (int)(displayCoordinates[2]+0.5);
+      int numberOfLightboxes = sliceNode->GetLayoutGridColumns() * sliceNode->GetLayoutGridRows();
+      //std::cout << "IsWidgetDisplayable: " << sliceNode->GetName() << ": lightbox mode, index = " << lightboxIndex << ", rows = " << sliceNode->GetLayoutGridRows() << ", cols = " << sliceNode->GetLayoutGridColumns() << ", number of light boxes = " << numberOfLightboxes << std::endl;
+      if (lightboxIndex < 0 ||
+          lightboxIndex >= numberOfLightboxes)
         {
+        showWidget = false;
+        }
+      else
+        {
+        // get the right renderer index by checking the z coordinate
+        int rendererIndex = lightboxIndex;
 
-        vtkRenderer* currentRenderer = vtkRenderer::SafeDownCast(rendererCollection->GetItemAsObject(rendererIndex));
+        // get all renderers associated with this renderWindow
+        // when lightbox mode is enabled, there will be different renderers
+        // associated with the renderWindow of the sliceView (there may also
+        // be more renderers than light boxes)
+        vtkRendererCollection* rendererCollection = this->GetInteractor()->GetRenderWindow()->GetRenderers();
 
-        // now we get the widget..
-        vtkAbstractWidget* widget = this->GetWidget(node);
-
-        // TODO this code blocks the movement of the widget in lightbox mode
-        if (widget)
+        // check if the rendererIndex is valid for the current lightbox view
+        if (rendererIndex >= 0 && rendererIndex < rendererCollection->GetNumberOfItems())
           {
-          // ..and turn it off..
-          widget->Off();
-          // ..place it and its representation to the right renderer..
-          widget->SetCurrentRenderer(currentRenderer);
-          widget->GetRepresentation()->SetRenderer(currentRenderer);
-          // ..and turn it on again!
-          widget->On();
-          // if it's a seed widget, go to complete interaction state
-          vtkSeedWidget *seedWidget = vtkSeedWidget::SafeDownCast(widget);
-          if (seedWidget)
-            {
-            vtkDebugMacro("SeedWidget: Complete interaction");
-            seedWidget->CompleteInteraction();
-            }
 
-          // we need to render again
-          if (currentRenderer)
+          vtkRenderer* currentRenderer = vtkRenderer::SafeDownCast(rendererCollection->GetItemAsObject(rendererIndex));
+
+          // now we get the widget..
+          vtkAbstractWidget* widget = this->GetWidget(node);
+
+          // TODO this code blocks the movement of the widget in lightbox mode
+          if (widget &&
+              (widget->GetCurrentRenderer() != currentRenderer ||
+               widget->GetRepresentation()->GetRenderer() != currentRenderer))
             {
-            currentRenderer->Render();
+            // if the widget is on, need to turn it off to set the renderer
+            bool toggleOffOn = false;
+            if (widget->GetEnabled())
+              {
+              // turn it off..
+              widget->Off();
+              toggleOffOn = true;
+              }
+            // ..place it and its representation to the right renderer..
+            widget->SetCurrentRenderer(currentRenderer);
+            widget->GetRepresentation()->SetRenderer(currentRenderer);
+            if (toggleOffOn)
+              {
+              // ..and turn it on again!
+              widget->On();
+              }
+            // if it's a seed widget, go to complete interaction state
+            vtkSeedWidget *seedWidget = vtkSeedWidget::SafeDownCast(widget);
+            if (seedWidget)
+              {
+              vtkDebugMacro("SeedWidget: Complete interaction");
+              seedWidget->CompleteInteraction();
+              }
+
+            // we need to render again
+            if (currentRenderer)
+              {
+              currentRenderer->Render();
+              }
             }
           }
+        else
+          {
+          // it's out of range of the current collection of renderers
+          showWidget = false;
+          }
         }
-
+      //
+      // End of Lightbox specific code
+      //
       }
-
-    //
-    // End of Lightbox specific code
-    //
-
-    // the third coordinate of the displayCoordinates is the distance to the slice
-    float distanceToSlice = displayCoordinates[2];
-
-    if (distanceToSlice < -0.5 || distanceToSlice >= (0.5+this->GetSliceNode()->GetDimensions()[2]-1))
+    else
       {
-      // if the distance to the slice is more than 0.5mm, we know that at least one coordinate of the widget is outside the current activeSlice
-      // hence, we do not want to show this widget
-      showWidget = false;
-      // we don't even need to continue parsing the controlpoints, because we know the widget will not be shown
-      break;
+      // the third coordinate of the displayCoordinates is the distance to the slice
+      float distanceToSlice = displayCoordinates[2];
+      float maxDistance = 0.5 + (sliceNode->GetDimensions()[2] - 1);
+      if (distanceToSlice < -0.5 || distanceToSlice >= maxDistance)
+        {
+        // if the distance to the slice is more than 0.5mm, we know that at least one coordinate of the widget is outside the current activeSlice
+        // hence, we do not want to show this widget
+        showWidget = false;
+        // we don't even need to continue parsing the controlpoints, because we know the widget will not be shown
+        break;
+        }
       }
 
     // -----------------------------------------
@@ -1060,7 +1027,7 @@ bool vtkMRMLAnnotationDisplayableManager::IsWidgetDisplayable(vtkMRMLSliceNode* 
     vtkRenderer* pokedRenderer = this->GetInteractor()->FindPokedRenderer(coords[0],coords[1]);
     if (!pokedRenderer)
       {
-      vtkErrorMacro("RestrictDisplayCoordinatesToViewport: Could not find the poked renderer!")
+      vtkErrorMacro("IsWidgetDisplayable: Could not find the poked renderer!")
       return false;
       }
 
@@ -1288,32 +1255,9 @@ void vtkMRMLAnnotationDisplayableManager::GetDisplayToWorldCoordinates(double x,
   if (this->Is2DDisplayableManager())
     {
     // 2D case
-
-    // we will get the transformation matrix to convert display coordinates to RAS
-
-//    double windowWidth = this->GetInteractor()->GetRenderWindow()->GetSize()[0];
-//    double windowHeight = this->GetInteractor()->GetRenderWindow()->GetSize()[1];
-
-//    int numberOfColumns = this->GetSliceNode()->GetLayoutGridColumns();
-//    int numberOfRows = this->GetSliceNode()->GetLayoutGridRows();
-
-//    float tempX = x / windowWidth;
-//    float tempY = (windowHeight - y) / windowHeight;
-
-//    float z = floor(tempY*numberOfRows)*numberOfColumns + floor(tempX*numberOfColumns);
-
-    vtkRenderer* pokedRenderer = this->GetInteractor()->FindPokedRenderer(x,y);
-
-    vtkMatrix4x4 * xyToRasMatrix = this->GetSliceNode()->GetXYToRAS();
-
-    double displayCoordinates[4];
-    displayCoordinates[0] = x - pokedRenderer->GetOrigin()[0];
-    displayCoordinates[1] = y - pokedRenderer->GetOrigin()[1];
-    displayCoordinates[2] = 0;
-    displayCoordinates[3] = 1;
-
-    xyToRasMatrix->MultiplyPoint(displayCoordinates, worldCoordinates);
-
+    double xyz[3];
+    vtkMRMLAbstractSliceViewDisplayableManager::ConvertDeviceToXYZ(this->GetInteractor(), this->GetSliceNode(), x, y, xyz);
+    vtkMRMLAbstractSliceViewDisplayableManager::ConvertXYZToRAS(this->GetSliceNode(), xyz, worldCoordinates);
     }
   else
     {
@@ -1364,23 +1308,11 @@ void vtkMRMLAnnotationDisplayableManager::GetWorldToDisplayCoordinates(double r,
   if (this->Is2DDisplayableManager())
     {
     // 2D case
-
-    // we will get the transformation matrix to convert world coordinates to the display coordinates of the specific sliceNode
-
-    vtkMatrix4x4 * xyToRasMatrix = this->GetSliceNode()->GetXYToRAS();
-    vtkNew<vtkMatrix4x4> rasToXyMatrix;
-
-    // we need to invert this matrix
-    xyToRasMatrix->Invert(xyToRasMatrix, rasToXyMatrix.GetPointer());
-
-    double worldCoordinates[4];
-    worldCoordinates[0] = r;
-    worldCoordinates[1] = a;
-    worldCoordinates[2] = s;
-    worldCoordinates[3] = 1;
-
-    rasToXyMatrix->MultiplyPoint(worldCoordinates,displayCoordinates);
-    xyToRasMatrix = NULL;
+    double ras[3];
+    ras[0] = r;
+    ras[1] = a;
+    ras[2] = s;
+    vtkMRMLAbstractSliceViewDisplayableManager::ConvertRASToXYZ(this->GetSliceNode(), ras, displayCoordinates);
     }
   else
     {
@@ -1526,7 +1458,20 @@ bool vtkMRMLAnnotationDisplayableManager::GetDisplayCoordinatesChanged(double * 
     {
     changed = true;
     }
-
+  else
+    {
+    // if in lightbox mode, the third element in the vector may have changed
+    if (this->IsInLightboxMode())
+      {
+      // one of the arguments may be coming from a widget, the other should be
+      // the index into the light box array
+      double dist = sqrt( (displayCoordinates1[2] - displayCoordinates2[2]) * (displayCoordinates1[2] - displayCoordinates2[2]));
+      if (dist > 1.0)
+        {
+        changed = true;
+        }
+      }
+    }
   return changed;
 }
 
@@ -1658,5 +1603,23 @@ void vtkMRMLAnnotationDisplayableManager::GetWorldToLocalCoordinates(vtkMRMLAnno
       }
     }
 
+}
+
+//---------------------------------------------------------------------------
+bool vtkMRMLAnnotationDisplayableManager::IsInLightboxMode()
+{
+  bool flag = false;
+  if (this->Is2DDisplayableManager() &&
+      this->GetSliceNode())
+    {
+    int numberOfColumns = this->GetSliceNode()->GetLayoutGridColumns();
+    int numberOfRows = this->GetSliceNode()->GetLayoutGridRows();
+    if (numberOfColumns > 1 ||
+        numberOfRows > 1)
+      {
+      flag = true;
+      }
+    }
+  return flag;
 }
 

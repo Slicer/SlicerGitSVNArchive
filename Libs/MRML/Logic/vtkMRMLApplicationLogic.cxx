@@ -541,6 +541,11 @@ bool vtkMRMLApplicationLogic::SaveSceneToSlicerDataBundleDirectory(const char *s
       vtkErrorMacro("unable to get " << i << "th node from scene with " << numNodes << " nodes");
       continue;
       }
+    if (mrmlNode->IsA("vtkMRMLSceneViewNode"))
+      {
+      vtkMRMLSceneViewNode *sceneViewNode = vtkMRMLSceneViewNode::SafeDownCast(mrmlNode);
+      sceneViewNode->SetSceneViewRootDir(this->GetMRMLScene()->GetRootDirectory());
+      }
     if (mrmlNode->IsA("vtkMRMLStorableNode"))
       {
       // adjust the file paths
@@ -672,6 +677,11 @@ bool vtkMRMLApplicationLogic::SaveSceneToSlicerDataBundleDirectory(const char *s
       {
       vtkErrorMacro("unable to get " << i << "th node from scene with " << numNodes << " nodes");
       continue;
+      }
+    if (mrmlNode->IsA("vtkMRMLSceneViewNode"))
+      {
+      vtkMRMLSceneViewNode *sceneViewNode = vtkMRMLSceneViewNode::SafeDownCast(mrmlNode);
+      sceneViewNode->SetSceneViewRootDir(origRootDirectory.c_str());
       }
     if (mrmlNode->IsA("vtkMRMLStorableNode"))
       {

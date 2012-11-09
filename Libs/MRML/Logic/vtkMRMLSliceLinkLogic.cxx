@@ -418,6 +418,39 @@ void vtkMRMLSliceLinkLogic::BroadcastSliceNodeEvent(vtkMRMLSliceNode *sliceNode)
           this->BroadcastLastRotation(sliceNode,sNode);
           }
 
+        // Setting the label outline mode
+        if (sliceNode->GetInteractionFlags() & sliceNode->GetInteractionFlagsModifier()
+          & vtkMRMLSliceNode::LabelOutlineFlag)
+          {
+          sNode->SetUseLabelOutline( sliceNode->GetUseLabelOutline() );
+          }
+        
+        // Broadcasting the visibility of slice in 3D
+        if (sliceNode->GetInteractionFlags() & sliceNode->GetInteractionFlagsModifier()
+          & vtkMRMLSliceNode::SliceVisibleFlag)
+          {
+          std::string layoutName(sliceNode->GetLayoutName() ? sliceNode->GetLayoutName() : "");
+          std::string lname(sNode->GetLayoutName() ? sNode->GetLayoutName() : "");
+          if (layoutName.find("Compare") == 0)
+            {
+            // Compare view, only broadcast to compare views
+            if (lname.find("Compare") == 0)
+              {
+              // Compare view, broadcast
+              sNode->SetSliceVisible(sliceNode->GetSliceVisible());
+              }
+            }
+          else
+            {
+            // Not a compare view, only broadcast to non compare views
+            if (lname.find("Compare") != 0)
+              {
+              // not a Compare view, broadcast
+              sNode->SetSliceVisible(sliceNode->GetSliceVisible());
+              }
+            }
+          }        
+
         //
         // End of the block for broadcasting parametes and command
         // that do not require the orientation to match
@@ -453,6 +486,7 @@ void vtkMRMLSliceLinkLogic::BroadcastSliceCompositeNodeEvent(vtkMRMLSliceComposi
       {
       if (cNode != sliceCompositeNode)
         {
+        // Foreground selection
         if (sliceCompositeNode->GetInteractionFlags() & sliceCompositeNode->GetInteractionFlagsModifier() 
             & vtkMRMLSliceCompositeNode::ForegroundVolumeFlag)
           {
@@ -460,17 +494,34 @@ void vtkMRMLSliceLinkLogic::BroadcastSliceCompositeNodeEvent(vtkMRMLSliceComposi
           cNode->SetForegroundVolumeID(sliceCompositeNode->GetForegroundVolumeID());
           }
 
+        // Background selection
         if (sliceCompositeNode->GetInteractionFlags() & sliceCompositeNode->GetInteractionFlagsModifier() 
             & vtkMRMLSliceCompositeNode::BackgroundVolumeFlag)
           {
           cNode->SetBackgroundVolumeID(sliceCompositeNode->GetBackgroundVolumeID());
           }
 
+        // Labelmap selection
         if (sliceCompositeNode->GetInteractionFlags() & sliceCompositeNode->GetInteractionFlagsModifier() 
             & vtkMRMLSliceCompositeNode::LabelVolumeFlag)
           {
           cNode->SetLabelVolumeID(sliceCompositeNode->GetLabelVolumeID());
           }
+
+        // Foreground opacity
+        if (sliceCompositeNode->GetInteractionFlags() & sliceCompositeNode->GetInteractionFlagsModifier() 
+            & vtkMRMLSliceCompositeNode::ForegroundOpacityFlag)
+          {
+          cNode->SetForegroundOpacity(sliceCompositeNode->GetForegroundOpacity());
+          }
+
+        // Labelmap opacity
+        if (sliceCompositeNode->GetInteractionFlags() & sliceCompositeNode->GetInteractionFlagsModifier() 
+            & vtkMRMLSliceCompositeNode::LabelOpacityFlag)
+          {
+          cNode->SetLabelOpacity(sliceCompositeNode->GetLabelOpacity());
+          }
+
         }
       }
 

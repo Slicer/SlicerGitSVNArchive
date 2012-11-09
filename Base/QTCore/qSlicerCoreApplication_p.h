@@ -54,7 +54,8 @@ public:
   virtual void init();
 
   /// Instanciate settings object
-  QSettings* instantiateSettings(const QString& suffix, bool useTmp);
+  virtual QSettings* newSettings();
+  QSettings* instantiateSettings(bool useTmp);
 
   /// Return true is this instance of Slicer is running from an installed directory
   bool isInstalled(const QString& slicerHome)const;
@@ -102,9 +103,6 @@ public:
   /// Parse arguments
   void parseArguments();
 
-  /// Set the ExitWhenDone flag to True
-  void terminate(int exitCode = qSlicerCoreApplication::ExitSuccess);
-
 public:
   /// MRMLScene and AppLogic pointers
   vtkSmartPointer<vtkMRMLScene>               MRMLScene;
@@ -135,7 +133,7 @@ public:
   /// CoreCommandOptions - It should exist only one instance of the CoreCommandOptions
   QSharedPointer<ctkErrorLogModel>            ErrorLogModel;
 
-  /// ExitWhenDone flag
+  /// ReturnCode flag
   int                                         ReturnCode;
 
 #ifdef Slicer_USE_PYTHONQT

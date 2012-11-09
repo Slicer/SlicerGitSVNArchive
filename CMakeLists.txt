@@ -71,6 +71,13 @@ endif()
 include(PreventInSourceBuilds)
 include(PreventInBuildInstalls)
 
+if(NOT DEFINED Slicer_SKIP_DIR_WITH_SPACES_CHECK)
+  set(Slicer_SKIP_DIR_WITH_SPACES_CHECK FALSE)
+endif()
+if(NOT Slicer_SKIP_DIR_WITH_SPACES_CHECK)
+  include(PreventDirWithSpaces)
+endif()
+
 #-----------------------------------------------------------------------------
 # Overwrite default options
 #-----------------------------------------------------------------------------
@@ -345,11 +352,11 @@ set(Slicer_MAIN_PROJECT_APPLICATION_NAME ${${Slicer_MAIN_PROJECT}_APPLICATION_NA
 # Slicer version number.
 #-----------------------------------------------------------------------------
 set(Slicer_VERSION_MAJOR "4")
-set(Slicer_VERSION_MINOR "1")
+set(Slicer_VERSION_MINOR "2")
 set(Slicer_VERSION_PATCH "0")
 # Releases define a tweak level
 #set(Slicer_VERSION_TWEAK 0)
-#set(Slicer_VERSION_RC 1)
+#set(Slicer_VERSION_RC 0)
 
 SlicerMacroExtractRepositoryInfo(VAR_PREFIX Slicer) # Used to configure vtkSlicerVersionConfigure.h.in
 string(REGEX REPLACE ".*([0-9][0-9][0-9][0-9]\\-[0-9][0-9]\\-[0-9][0-9]).*" "\\1"
@@ -533,7 +540,7 @@ set(Slicer_ExternalData_URL_TEMPLATES ${ExternalData_URL_TEMPLATES})
 #-----------------------------------------------------------------------------
 # Testing
 #-----------------------------------------------------------------------------
-set(Slicer_LAUNCHER_EXECUTABLE ${Slicer_BINARY_DIR}/${Slicer_MAIN_PROJECT_APPLICATION_NAME})
+set(Slicer_LAUNCHER_EXECUTABLE ${Slicer_BINARY_DIR}/${Slicer_MAIN_PROJECT_APPLICATION_NAME}${CMAKE_EXECUTABLE_SUFFIX})
 set(Slicer_LAUNCH_COMMAND ${Slicer_LAUNCHER_EXECUTABLE} --launcher-no-splash --launch)
 
 if(BUILD_TESTING)

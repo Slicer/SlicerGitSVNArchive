@@ -250,14 +250,14 @@ class AtlasTestsTest(unittest.TestCase):
   def test_BrainAtlasTest(self):
     self.delayDisplay('Running Brain Atlas Test')
     downloads = (
-        ('http://slicer.kitware.com/midas3/download?items=7927', 'BrainAtlas.mrb', slicer.util.loadScene),
+        ('http://slicer.kitware.com/midas3/download?items=10397', 'BrainAtlas-2012-10-29.mrb', slicer.util.loadScene),
         )
-    self.perform_AtlasTest(downloads,'grayscale')
+    self.perform_AtlasTest(downloads,'A1_grayT1')
 
   def test_KneeAtlasTest(self):
     self.delayDisplay('Running Knee Atlas Test')
     downloads = (
-        ('http://slicer.kitware.com/midas3/download?items=7928', 'KneeAtlas.mrb', slicer.util.loadScene),
+        ('http://slicer.kitware.com/midas3/download?items=9912', 'KneeAtlas2012.mrb', slicer.util.loadScene),
         )
     self.perform_AtlasTest(downloads,'I')
 
@@ -301,22 +301,30 @@ class AtlasTestsTest(unittest.TestCase):
       mh = slicer.mrmlScene.GetNthNodeByClass(h, "vtkMRMLModelHierarchyNode")
       numChildren = mh.GetNumberOfChildrenNodes()
       if numChildren > 0:
-        self.delayDisplay("Manipulating model hierarchy " + mh.GetName())
         mhd = mh.GetDisplayNode()
-        hierarchyOriginalColour = mhd.GetColor()
-        hierarchyOriginalVisibility = mhd.GetVisibility()
-        hierarchyOriginalExpanded = mh.GetExpanded()
-        # collapse and change the colour on the hierarchy to full red
-        mh.SetExpanded(0)
-        mhd.SetColor(1,0,0)
-        # set the collapsed visibility to 0
-        mhd.SetVisibility(0)
-        # expand, should see all models in correct colour
-        mh.SetExpanded(1)
-        # reset the hierarchy 
-        mhd.SetVisibility(hierarchyOriginalVisibility)
-        mhd.SetColor(hierarchyOriginalColour)
-        mh.SetExpanded(hierarchyOriginalExpanded)
+        # manually added hierarchies may not have display nodes, skip
+        if mhd == None:
+          self.delayDisplay("Skipping model hierarchy with no display node " + mh.GetName())
+        else:
+          self.delayDisplay("Manipulating model hierarchy " + mh.GetName())
+          hierarchyOriginalColour = mhd.GetColor()
+          hierarchyOriginalVisibility = mhd.GetVisibility()
+          hierarchyOriginalExpanded = mh.GetExpanded()
+          # collapse and change the colour on the hierarchy to full red
+          mh.SetExpanded(0)
+          self.delayDisplay("Model hierarchy " + mh.GetName() + ": expanded = false")
+          mhd.SetColor(1,0,0)
+          self.delayDisplay("Model hierarchy " + mh.GetName() + ": color = red")        
+          # set the collapsed visibility to 0
+          mhd.SetVisibility(0)
+          self.delayDisplay("Model hierarchy " + mh.GetName() + ": visibility = off")
+          # expand, should see all models in correct colour
+          mh.SetExpanded(1)
+          self.delayDisplay("Model hierarchy " + mh.GetName() + ": expanded = true")
+          # reset the hierarchy 
+          mhd.SetVisibility(hierarchyOriginalVisibility)
+          mhd.SetColor(hierarchyOriginalColour)
+          mh.SetExpanded(hierarchyOriginalExpanded)
 
     # go to the scene views module
     m.moduleSelector().selectModule('SceneViews')

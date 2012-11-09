@@ -709,7 +709,7 @@ vtkSmartPointer<vtkCollection> qMRMLSliceControllerWidgetPrivate::saveNodesForUn
 }
 
 // --------------------------------------------------------------------------
-void qMRMLSliceControllerWidgetPrivate::enableVisibilityButtons()
+void qMRMLSliceControllerWidgetPrivate::enableLayerWidgets()
 {
   bool hasBackground = this->MRMLSliceCompositeNode ?
     this->MRMLSliceCompositeNode->GetBackgroundVolumeID() != 0 : false;
@@ -733,7 +733,11 @@ void qMRMLSliceControllerWidgetPrivate::enableVisibilityButtons()
 
   this->actionLabelMapVisibility->setEnabled(enableVisibility && hasLabelMap);
   this->LabelMapOpacitySlider->setEnabled(enableVisibility && hasLabelMap);
-  this->actionLabelMapOutline->setEnabled(enableVisibility && hasLabelMap);
+
+  // enable the interpolation or outline modes
+  this->actionLabelMapOutline->setEnabled(hasLabelMap);
+  this->actionBackgroundInterpolation->setEnabled(hasBackground);
+  this->actionForegroundInterpolation->setEnabled(hasForeground);
 }
 
 // --------------------------------------------------------------------------
@@ -925,8 +929,8 @@ void qMRMLSliceControllerWidgetPrivate::updateWidgetFromMRMLSliceCompositeNode()
 
   // Since we blocked the signals when setting the
   // Foreground/Background/Label volumes, we need to explictly call
-  // the function to enable the buttons
-  this->enableVisibilityButtons();
+  // the function to enable the buttons, slides, etc.
+  this->enableLayerWidgets();
 }
 
 
@@ -945,7 +949,7 @@ void qMRMLSliceControllerWidgetPrivate::onForegroundLayerNodeSelected(vtkMRMLNod
   this->MRMLSliceCompositeNode->SetForegroundVolumeID(node ? node->GetID() : 0);
   this->SliceLogic->EndSliceCompositeNodeInteraction();
 
-  this->enableVisibilityButtons();
+  this->enableLayerWidgets();
 
   vtkMRMLVolumeNode* volumeNode = vtkMRMLVolumeNode::SafeDownCast(node);
   vtkMRMLScalarVolumeDisplayNode* displayNode =
@@ -971,7 +975,7 @@ void qMRMLSliceControllerWidgetPrivate::onBackgroundLayerNodeSelected(vtkMRMLNod
   this->MRMLSliceCompositeNode->SetBackgroundVolumeID(node ? node->GetID() : 0);
   this->SliceLogic->EndSliceCompositeNodeInteraction();
 
-  this->enableVisibilityButtons();
+  this->enableLayerWidgets();
 
   vtkMRMLVolumeNode* volumeNode = vtkMRMLVolumeNode::SafeDownCast(node);
   vtkMRMLScalarVolumeDisplayNode* displayNode =
@@ -997,7 +1001,7 @@ void qMRMLSliceControllerWidgetPrivate::onLabelMapNodeSelected(vtkMRMLNode * nod
   this->MRMLSliceCompositeNode->SetLabelVolumeID(node ? node->GetID() : 0);
   this->SliceLogic->EndSliceCompositeNodeInteraction();
 
-  this->enableVisibilityButtons();
+  this->enableLayerWidgets();
 }
 
 // --------------------------------------------------------------------------
@@ -1576,38 +1580,10 @@ void qMRMLSliceControllerWidget::setSliceVisible(bool visible)
     {
     return;
     }
-  vtkMRMLLayoutNode *layoutNode = vtkMRMLLayoutNode::SafeDownCast(
-    this->mrmlScene()->GetNthNodeByClass(0,"vtkMRMLLayoutNode"));
-  if (d->MRMLSliceCompositeNode->GetLinkedControl())
-    {
-    vtkCollection* sliceNodes = this->mrmlScene()->GetNodesByClass("vtkMRMLSliceNode");
-    if (!sliceNodes)
-      {
-      return;
-      }
-    vtkMRMLSliceNode* sliceNode = 0;
-    for(sliceNodes->InitTraversal();
-        (sliceNode = vtkMRMLSliceNode::SafeDownCast(sliceNodes->GetNextItemAsObject()));)
-      {
-      // if compareview, send only compareview slices to 3D main viewer; otherwise,
-      // only send red, yellow, and green to 3D main viewer.
-      if (layoutNode ? ((QString(sliceNode->GetLayoutName()) == "Compare" &&
-           layoutNode->GetViewArrangement() == vtkMRMLLayoutNode::SlicerLayoutCompareView) ||
-          (QString(sliceNode->GetLayoutName()) != "Compare" &&
-           layoutNode->GetViewArrangement() != vtkMRMLLayoutNode::SlicerLayoutCompareView))
-          : true)
-        {
-        this->mrmlScene()->SaveStateForUndo(sliceNode);
-        sliceNode->SetSliceVisible(visible);
-        }
-      }
-    sliceNodes->Delete();
-    }
-  else
-    {
-    this->mrmlScene()->SaveStateForUndo(d->MRMLSliceNode);
-    d->MRMLSliceNode->SetSliceVisible(visible);
-    }
+  
+  d->SliceLogic->StartSliceNodeInteraction(vtkMRMLSliceNode::SliceVisibleFlag);
+  d->MRMLSliceNode->SetSliceVisible(visible);
+  d->SliceLogic->EndSliceNodeInteraction();
 }
 
 //---------------------------------------------------------------------------
@@ -1762,17 +1738,11 @@ void qMRMLSliceControllerWidget::setLabelMapOpacity(double opacity)
     {
     return;
     }
-  vtkMRMLSliceCompositeNode* node = 0;
-  vtkCollectionSimpleIterator it;
-  for (nodes->InitTraversal(it);
-       (node = static_cast<vtkMRMLSliceCompositeNode*>(
-         nodes->GetNextItemAsObject(it)));)
-    {
-    if (node == d->MRMLSliceCompositeNode || this->isLinked())
-      {
-      node->SetLabelOpacity(opacity);
-      }
-    }
+
+  d->SliceLogic->StartSliceCompositeNodeInteraction(vtkMRMLSliceCompositeNode::LabelOpacityFlag);
+  d->MRMLSliceCompositeNode->SetLabelOpacity(opacity);
+  d->SliceLogic->EndSliceCompositeNodeInteraction();
+
   // LabelOpacityToggleButton won't fire the clicked(bool) signal here because
   // we change its check state programatically.
   d->actionLabelMapVisibility->setChecked(opacity == 0.);
@@ -1791,17 +1761,11 @@ void qMRMLSliceControllerWidget::setForegroundOpacity(double opacity)
     {
     return;
     }
-  vtkMRMLSliceCompositeNode* node = 0;
-  vtkCollectionSimpleIterator it;
-  for (nodes->InitTraversal(it);
-       (node = static_cast<vtkMRMLSliceCompositeNode*>(
-         nodes->GetNextItemAsObject(it)));)
-    {
-    if (node == d->MRMLSliceCompositeNode || this->isLinked())
-      {
-      node->SetForegroundOpacity(opacity);
-      }
-    }
+
+  d->SliceLogic->StartSliceCompositeNodeInteraction(vtkMRMLSliceCompositeNode::ForegroundOpacityFlag);
+  d->MRMLSliceCompositeNode->SetForegroundOpacity(opacity);
+  d->SliceLogic->EndSliceCompositeNodeInteraction();
+
   // LabelOpacityToggleButton won't fire the clicked(bool) signal here because
   // we change its check state programatically.
   d->actionForegroundVisibility->setChecked(opacity == 0.);
@@ -1824,16 +1788,15 @@ void qMRMLSliceControllerWidget::showLabelOutline(bool show)
     {
     return;
     }
-  vtkMRMLSliceNode* node = 0;
-  vtkCollectionSimpleIterator it;
-  for (nodes->InitTraversal(it);(node = static_cast<vtkMRMLSliceNode*>(
-                                   nodes->GetNextItemAsObject(it)));)
+
+  if (!d->MRMLSliceNode)
     {
-    if (node == d->MRMLSliceNode || this->isLinked())
-      {
-      node->SetUseLabelOutline(show);
-      }
+    return;
     }
+
+  d->SliceLogic->StartSliceNodeInteraction(vtkMRMLSliceNode::LabelOutlineFlag);
+  d->MRMLSliceNode->SetUseLabelOutline(show);
+  d->SliceLogic->EndSliceNodeInteraction();
 }
 
 //---------------------------------------------------------------------------

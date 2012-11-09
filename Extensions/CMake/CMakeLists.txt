@@ -34,7 +34,7 @@ get_filename_component(CMAKE_CURRENT_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR} REAL
 set(default_extension_description_dir ${CMAKE_CURRENT_SOURCE_DIR}/../)
 set(default_local_extension_dir ${default_extension_description_dir})
 
-set(Slicer_EXTENSIONS_TRACK_QUALIFIER "master" CACHE STRING "CDash extensions track qualifier (master, 4.1, ...)")
+set(Slicer_EXTENSIONS_TRACK_QUALIFIER "master" CACHE STRING "CDash extensions track qualifier (master, 4.2, ...)")
 
 if(NOT Slicer_SOURCE_DIR)
   #-----------------------------------------------------------------------------
@@ -67,7 +67,8 @@ else()
   set(Slicer_EXTENSION_DESCRIPTION_DIR ${default_extension_description_dir})
   set(Slicer_LOCAL_EXTENSIONS_DIR ${default_local_extension_dir})
   set(Slicer_DIR ${Slicer_BINARY_DIR}/${Slicer_BINARY_INNER_SUBDIR})
-  option(Slicer_BUILD_EXTENSIONS "Build Slicer 'trusted' extensions" OFF)
+  option(Slicer_BUILD_TESTING_EXTENSIONS "Build Slicer testing extensions" OFF)
+  set(Slicer_BUILD_EXTENSIONS ${Slicer_BUILD_TESTING_EXTENSIONS} CACHE INTERNAL "Build Slicer testing extensions" FORCE)
 
   include(SlicerMacroExtractRepositoryInfo)
   SlicerMacroExtractRepositoryInfo(VAR_PREFIX Slicer)
