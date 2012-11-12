@@ -1,0 +1,9 @@
+[General]
+launcherNoSplashScreen=True
+
+[Application]
+path=@slicer_PYTHON_REAL_EXECUTABLE@
+
+[LibraryPaths]
+1\path=@slicer_PYTHON_SHARED_LIBRARY_DIR@
+size=1
