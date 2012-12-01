@@ -36,7 +36,9 @@ if(NOT DEFINED ITK_DIR)
   set(ITKv4_DCMTK_ARGS)
   if(Slicer_BUILD_DICOM_SUPPORT)
     set(ITKv4_DCMTK_ARGS
+      -DITK_USE_SYSTEM_DCMTK:BOOL=ON
       -DDCMTK_DIR:PATH=${DCMTK_DIR}
+      -DModule_ITKIODCMTK:BOOL=ON
       )
   endif()
 
@@ -73,7 +75,7 @@ if(NOT DEFINED ITK_DIR)
   endif()
 
   set(ITKv4_REPOSITORY ${git_protocol}://itk.org/ITK.git)
-  set(ITKv4_GIT_TAG 7f559c91124dad8336542c2d0ff4cba0aaf50016)
+  set(ITKv4_GIT_TAG ff3a73976588b3a277b9d596de047e0ae5fcbe01)
 
   ExternalProject_Add(${proj}
     GIT_REPOSITORY ${ITKv4_REPOSITORY}

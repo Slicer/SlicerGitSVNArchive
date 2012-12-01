@@ -160,10 +160,6 @@ if(Slicer_BUILD_SlicerWebGLExport)
   list(APPEND Slicer_DEPENDENCIES SlicerWebGLExport)
 endif()
 
-if(Slicer_BUILD_DWIConvert)
-  list(APPEND Slicer_DEPENDENCIES DWIConvert)
-endif()
-
 SlicerMacroCheckExternalProjectDependency(Slicer)
 
 #-----------------------------------------------------------------------------
@@ -326,12 +322,6 @@ if(APPLE)
     -DCMAKE_OSX_ARCHITECTURES=${CMAKE_OSX_ARCHITECTURES}
     -DCMAKE_OSX_SYSROOT=${CMAKE_OSX_SYSROOT}
     -DCMAKE_OSX_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET})
-endif()
-
-if(Slicer_BUILD_DWIConvert)
-  list(APPEND ep_superbuild_extra_args
-    -DDWIConvert_SOURCE_DIR:PATH=${DWIConvert_SOURCE_DIR}
-    )
 endif()
 
 #------------------------------------------------------------------------------

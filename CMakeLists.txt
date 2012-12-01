@@ -235,7 +235,7 @@ mark_as_advanced(Slicer_USE_CTKAPPLAUNCHER)
 option(Slicer_USE_QtTesting    "Integrate QtTesting framework into Slicer." ON)
 mark_as_advanced(Slicer_USE_QtTesting)
 
-set(ITK_VERSION_MAJOR 3 CACHE STRING "Choose the expected ITK major version to build Slicer (3 or 4).")
+set(ITK_VERSION_MAJOR 4 CACHE STRING "Choose the expected ITK major version to build Slicer (3 or 4).")
 # Set the possible values of ITK major version for cmake-gui
 set_property(CACHE ITK_VERSION_MAJOR PROPERTY STRINGS "3" "4")
 if(NOT "${ITK_VERSION_MAJOR}" STREQUAL "3" AND NOT "${ITK_VERSION_MAJOR}" STREQUAL "4")
@@ -255,11 +255,6 @@ CMAKE_DEPENDENT_OPTION(Slicer_USE_SimpleITK "Build Slicer with SimpleITK support
 #-----------------------------------------------------------------------------
 # The following option has been added for conveniency so that "extension-like"
 # module can be enabled/disabled at the superbuild level.
-CMAKE_DEPENDENT_OPTION(
-  Slicer_BUILD_BRAINSTOOLS "Build the BRAINS subset of registration and segmentation tools." ON
-  "Slicer_BUILD_CLI_SUPPORT AND Slicer_BUILD_CLI" OFF)
-mark_as_advanced(Slicer_BUILD_BRAINSTOOLS)
-
 CMAKE_DEPENDENT_OPTION(
   Slicer_BUILD_ChangeTrackerPy "Build ChangeTrackerPy." ON
   "Slicer_BUILD_CLI_SUPPORT AND Slicer_BUILD_QTSCRIPTEDMODULES" OFF)
@@ -291,10 +286,10 @@ CMAKE_DEPENDENT_OPTION(
   "Slicer_BUILD_QTSCRIPTEDMODULES" OFF)
 mark_as_advanced(Slicer_BUILD_SlicerWebGLExport)
 
-## This does not yet build cleanly in the slicer environment, so turn off by default
-CMAKE_DEPENDENT_OPTION(Slicer_BUILD_DWIConvert "Build DWIConvert." OFF
-  "Slicer_BUILD_DICOM_SUPPORT" OFF)
-mark_as_advanced(Slicer_BUILD_DWIConvert)
+CMAKE_DEPENDENT_OPTION(
+  Slicer_BUILD_BRAINSTOOLS "Build the BRAINS subset of registration and segmentation tools." ON
+  "Slicer_BUILD_CLI_SUPPORT AND Slicer_BUILD_CLI" OFF)
+mark_as_advanced(Slicer_BUILD_BRAINSTOOLS)
 
 #-----------------------------------------------------------------------------
 # Install no development files by default, but allow the user to get
