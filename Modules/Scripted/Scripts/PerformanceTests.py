@@ -43,21 +43,12 @@ class PerformanceTestsWidget:
         ( 'Chart Test', self.chartTest ),
         ( 'Web View Test', self.webViewTest ),
         ( 'Memory Check', self.memoryCheck ),
-        # ( 'timeProbe', self.timeProbe ),
-        # ( 'sizeProbe', self.sizeProbe),
-        # ( 'fakewin', self.fakewin ),
       )
 
     for test in tests:
       b = qt.QPushButton(test[0])
       self.layout.addWidget(b)
       b.connect('clicked()', test[1])
-
-    self.tclEnabled = qt.QCheckBox("Tcl Enabled")
-    self.layout.addWidget(self.tclEnabled)
-    self.tclEnabled.setToolTip("Toggles processing of tcl events - disables tcl-based functionality including pan/zoom, window/level, and Editor module.")
-    self.tclEnabled.setChecked(not bool(int(tcl('set ::SWidget::DISABLE_CALLBACKS'))))
-    self.tclEnabled.connect( "clicked()", self.onTclEnabled )
 
     self.log = qt.QTextEdit()
     self.log.readOnly = True
@@ -68,9 +59,6 @@ class PerformanceTestsWidget:
 
     # Add spacer to layout
     self.layout.addStretch(1)
-
-  def onTclEnabled(self):
-    tcl('set ::SWidget::DISABLE_CALLBACKS %d' % (not self.tclEnabled.checked,))
 
   def downloadMRHead(self):
     self.downloadVolume('http://www.slicer.org/slicerWiki/images/4/43/MR-head.nrrd', 'MRHead')
@@ -141,30 +129,6 @@ class PerformanceTestsWidget:
     self.log.insertPlainText('\n')
     self.log.ensureCursorVisible()
     self.log.repaint()
-
-  def sizeProbe(self, iters=10, minSize=500, maxSize=2000, step=100):
-    for dim in xrange(minSize, maxSize, step):
-      mainWindow().size = qt.QSize(dim,dim)
-      self.reslicing(iters)
-
-  def timeProbe(self, iters=10, steps=30):
-    for step in xrange(steps):
-      self.reslicing(iters)
-
-  def fakewin(self):
-
-    try:
-      self.imageViewer2
-    except NameError:
-      self.imageViewer2 = vtk.vtkImageViewer2()
-      self.imageViewer2.SetInput( slicer.sliceWidgetRed_sliceLogic.GetImageData() )
-
-    import time
-    import random
-    sliceNode = slicer.util.getNode('vtkMRMLSliceNode1')
-    sliceNode.SetSliceOffset( (random.random()*100) )
-    self.imageViewer2.Render()
-
 
   def chartMouseOverCallback(self, mrmlID, pointIndex, x, y):
     node = slicer.util.getNode(mrmlID)

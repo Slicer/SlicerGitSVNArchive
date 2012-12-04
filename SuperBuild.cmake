@@ -64,8 +64,9 @@ include(SlicerMacroCheckExternalProjectDependency)
 # With CMake 2.8.9 or later, the UPDATE_COMMAND is required for updates to occur.
 # For earlier versions, we nullify the update state to prevent updates and
 # undesirable rebuild.
+set(slicer_external_disable_update UPDATE_COMMAND "")
 if(CMAKE_VERSION VERSION_LESS 2.8.9)
-  set(slicer_external_update UPDATE_COMMAND "")
+  set(slicer_external_update ${slicer_external_disable_update})
 else()
   set(slicer_external_update LOG_UPDATE 1)
 endif()
@@ -157,6 +158,10 @@ endif()
 
 if(Slicer_BUILD_SlicerWebGLExport)
   list(APPEND Slicer_DEPENDENCIES SlicerWebGLExport)
+endif()
+
+if(Slicer_BUILD_DWIConvert)
+  list(APPEND Slicer_DEPENDENCIES DWIConvert)
 endif()
 
 SlicerMacroCheckExternalProjectDependency(Slicer)
@@ -323,6 +328,12 @@ if(APPLE)
     -DCMAKE_OSX_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET})
 endif()
 
+if(Slicer_BUILD_DWIConvert)
+  list(APPEND ep_superbuild_extra_args
+    -DDWIConvert_SOURCE_DIR:PATH=${DWIConvert_SOURCE_DIR}
+    )
+endif()
+
 #------------------------------------------------------------------------------
 # Configure and build Slicer
 #------------------------------------------------------------------------------
@@ -374,6 +385,8 @@ ExternalProject_Add(${proj}
     -DQT_QMAKE_EXECUTABLE:PATH=${QT_QMAKE_EXECUTABLE}
     # CTK
     -DCTK_DIR:PATH=${CTK_DIR}
+    # DCMTK
+    -DDCMTK_DIR:PATH=${DCMTK_DIR}
     # jqPlot
     -DjqPlot_DIR:PATH=${jqPlot_DIR}
     # LibArchive

@@ -310,7 +310,7 @@ void vtkMRMLModelSliceDisplayableManager::vtkInternal
     }
   else
     {
-    //this->External->AddDisplayableNode( displayNode->GetDisplayableNode() );
+    this->External->AddDisplayableNode( displayNode->GetDisplayableNode() );
     }
 }
 
@@ -665,7 +665,7 @@ void vtkMRMLModelSliceDisplayableManager::UpdateFromMRML()
   for (int i=0; i<nnodes; i++)
     {
     mNode  = vtkMRMLDisplayableNode::SafeDownCast(mNodes[i]);
-    if (mNode)
+    if (mNode && this->Internal->UseDisplayableNode(mNode))
       {
       this->AddDisplayableNode(mNode);
       }
