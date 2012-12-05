@@ -5,6 +5,10 @@ enable_testing()
 
 if(NOT ITK_FOUND)
   find_package(ITK REQUIRED)
+  if(${ITK_VERSION_MAJOR} GREATER 3)
+    set(ITK_NO_IO_FACTORY_REGISTER_MANAGER 1) # See Libs/ITKFactoryRegistration/CMakeLists.txt
+    list(APPEND ITK_LIBRARIES ITKFactoryRegistration)
+  endif()
   include(${ITK_USE_FILE})
 endif(NOT ITK_FOUND)
 
