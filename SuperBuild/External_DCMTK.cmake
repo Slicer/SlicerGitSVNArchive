@@ -30,7 +30,7 @@ if(NOT DEFINED DCMTK_DIR)
   endif()
 
   set(DCMTK_REPOSITORY ${git_protocol}://git.dcmtk.org/dcmtk.git)
-  set(DCMTK_GIT_TAG "DCMTK-3.6.1_20121102")
+  set(DCMTK_GIT_TAG "148fc86171e0bee332a5fabd36d213f76e775a8b")
 
   ExternalProject_Add(${proj}
     GIT_REPOSITORY ${DCMTK_REPOSITORY}
@@ -63,6 +63,14 @@ if(NOT DEFINED DCMTK_DIR)
       ${DCMTK_DEPENDENCIES}
   )
 
+  ExternalProject_Add_Step(${proj} ValgrindFixes
+    DEPENDEES download
+    DEPENDERS configure
+    COMMAND ${CMAKE_COMMAND}
+    -DDCMTK_SOURCE=<SOURCE_DIR>
+    -P ${CMAKE_CURRENT_LIST_DIR}/DCMTKValgrindFixes.cmake
+    WORKING_DIRECTORY <SOURCE_DIR>
+    )
   set(DCMTK_DIR ${CMAKE_BINARY_DIR}/${proj}-install)
 else()
   # The project is provided with DCMTK_DIR, nevertheless since other project may depend on DCMTK_DIR,
