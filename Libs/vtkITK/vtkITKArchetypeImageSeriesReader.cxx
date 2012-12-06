@@ -169,6 +169,8 @@ vtkITKArchetypeImageSeriesReader::RegisterExtraBuiltInFactories()
 #ifdef ITKV3_COMPATIBILITY
     itk::ObjectFactoryBase::RegisterFactory( itk::AnalyzeImageIOFactory::New() );
 #endif
+    std::list<itk::ObjectFactoryBase*> factories = itk::ObjectFactoryBase::GetRegisteredFactories();
+    std::cerr << "Factories size: " << factories.size() << std::endl;
     itk::ObjectFactoryBase::RegisterFactory( itk::GE5ImageIOFactory::New() );
     firstTime = false;
     }
