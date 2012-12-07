@@ -518,7 +518,7 @@ void vtkMRMLHierarchyNode::UpdateChildrenMap()
 
     
   if (this->GetScene()->GetSceneModifiedTime() > titer->second)
-  {
+    {
     for (iter  = siter->second.begin();
          iter != siter->second.end();
          iter++)
@@ -560,9 +560,10 @@ void vtkMRMLHierarchyNode::UpdateChildrenMap()
       }
     titer->second = this->GetScene()->GetSceneModifiedTime();
     this->MaximumSortingValue = maxSortingValue;
-  }
+    }
 }
 
+//---------------------------------------------------------------------------
 void vtkMRMLHierarchyNode::HierarchyIsModified(vtkMRMLScene *scene)
 {
   if (scene == NULL)
@@ -573,8 +574,8 @@ void vtkMRMLHierarchyNode::HierarchyIsModified(vtkMRMLScene *scene)
   SceneHierarchyChildrenNodesMTime[scene] = 0;
 }
 
-
-void vtkMRMLHierarchyNode::GetAssociatedChildrendNodes(vtkCollection *children, 
+//---------------------------------------------------------------------------
+void vtkMRMLHierarchyNode::GetAssociatedChildrendNodes(vtkCollection *children,
                                                       const char* childClass)
 {
   if (children == NULL)
@@ -680,9 +681,8 @@ int vtkMRMLHierarchyNode::UpdateAssociatedToHierarchyMap(vtkMRMLScene *scene)
   std::map< vtkMRMLScene*, unsigned long>::iterator titer = 
         SceneAssociatedHierarchyNodesMTime.find(scene);
 
-
   if (scene->GetSceneModifiedTime() > titer->second)
-  {
+    {
     siter->second.clear();
     
     std::vector<vtkMRMLNode *> nodes;
@@ -701,7 +701,8 @@ int vtkMRMLHierarchyNode::UpdateAssociatedToHierarchyMap(vtkMRMLScene *scene)
         }
       }
     titer->second = scene->GetSceneModifiedTime();
-  }
+    }
+
   return static_cast<int>(siter->second.size());
 }
 
@@ -731,7 +732,7 @@ void vtkMRMLHierarchyNode::SetAssociatedNodeID(const char* ref)
     vtkMRMLNode* node = this->GetAssociatedNode();
     if (node)
       {
-//      node->Modified();
+      // node->Modified();
       this->InvokeHierarchyModifiedEvent(node);
       }
     }

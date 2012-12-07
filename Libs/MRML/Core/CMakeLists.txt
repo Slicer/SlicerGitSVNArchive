@@ -120,6 +120,7 @@ set(MRMLCore_SRCS
   vtkMRMLModelStorageNode.cxx
   vtkMRMLNode.cxx
   vtkMRMLParser.cxx
+  vtkMRMLPatientHierarchyNode.cxx
   vtkMRMLProceduralColorNode.cxx
   vtkMRMLROIListNode.cxx
   vtkMRMLROINode.cxx
