@@ -58,13 +58,11 @@ vtkMRMLPatientHierarchyNode::GetPatientHierarchyNodeByInstanceUid(
   std::vector<vtkMRMLNode *> patientHierarchyNodes;
   unsigned int numberOfNodes = scene->GetNodesByClass("vtkMRMLPatientHierarchyNode", patientHierarchyNodes);
 
-  double maxSortingValue = this->MaximumSortingValue;
-
   for (unsigned int i=0; i<numberOfNodes; i++)
     {
-    vtkMRMLPatientHierarchyNode *node =  vtkMRMLPatientHierarchyNode::SafeDownCast(patientHierarchyNodes[i]);
+    vtkMRMLPatientHierarchyNode *node = vtkMRMLPatientHierarchyNode::SafeDownCast(patientHierarchyNodes[i]);
     if (node && strcmp(dicomDatabaseFileName, node->GetDicomDatabaseFileName())
-             && strcmp(InstanceUid, this->GetInstanceUid()) )
+             && strcmp(instanceUid, node->GetInstanceUid()) )
       {
         return node;
       }
