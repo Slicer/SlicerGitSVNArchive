@@ -73,7 +73,7 @@ if(NOT DEFINED ITK_DIR)
   endif()
 
   set(ITKv4_REPOSITORY ${git_protocol}://itk.org/ITK.git)
-  set(ITKv4_GIT_TAG 7f559c91124dad8336542c2d0ff4cba0aaf50016)
+  set(ITKv4_GIT_TAG v4.3rc03)
 
   ExternalProject_Add(${proj}
     GIT_REPOSITORY ${ITKv4_REPOSITORY}
@@ -102,7 +102,7 @@ if(NOT DEFINED ITK_DIR)
       -DITK_BUILD_ALL_MODULES:BOOL=ON
       -DKWSYS_USE_MD5:BOOL=ON # Required by SlicerExecutionModel
       -DUSE_WRAP_ITK:BOOL=OFF #${BUILD_SHARED_LIBS} ## HACK:  QUICK CHANGE
-      -DUSE_SYSTEM_DCMTK:BOOL=${Slicer_BUILD_DICOM_SUPPORT}
+      -DITK_USE_SYSTEM_DCMTK:BOOL=${Slicer_BUILD_DICOM_SUPPORT}
       ${ITKv4_DCMTK_ARGS}
       ${ITKv4_WRAP_ARGS}
     INSTALL_COMMAND ""
