@@ -30,6 +30,11 @@ class DICOMScalarVolumePluginClass(DICOMPlugin):
     self.tags['imageOrientationPatient'] = "0020,0037"
     self.tags['numberOfFrames'] = "0028,0008"
     self.tags['instanceUID'] = "0008,0018"
+    self.tags['seriesDescription'] = "0008,103E"
+    self.tags['studyInstanceUID'] = "0020,000D"
+    self.tags['studyDescription'] = "0008,1030"
+    self.tags['patientID'] = "0010,0020"
+    self.tags['patientName'] = "0010,0010"
 
 
   def examine(self,fileLists):
@@ -301,9 +306,40 @@ class DICOMScalarVolumePluginClass(DICOMPlugin):
     volumeNode = self.loadFilesWithArchetype(loadable.files, loadable.name)
     if volumeNode:
       #
-      # add list of DICOM instance UIDs to the volume node
+      # create Patient Hierarchy node and add list
+      # of DICOM instance UIDs to the volume node
       # corresponding to the loaded files
       #
+      databaseFile = slicer.dicomDatabase.databaseFilename
+      firstFile = loadable.files[0]
+
+      seriesNode = slicer.vtkMRMLPatientHierarchyNode()
+      seriesNode.SetLevel(slicer.vtkMRMLPatientHierarchyNode.Series)
+      seriesNode.SetDicomDatabaseFileName(databaseFile)
+      seriesDescription = slicer.dicomDatabase.fileValue(firstFile,self.tags['seriesDescription'])
+      seriesNode.SetName(seriesDescription)
+      seriesInstanceUid = slicer.dicomDatabase.fileValue(firstFile,self.tags['seriesInstanceUID'])
+      seriesNode.SetInstanceUid(seriesInstanceUid)
+      slicer.mrmlScene.AddNode(seriesNode)
+
+      patientId = slicer.dicomDatabase.fileValue(firstFile,self.tags['patientID'])
+      patientNode = slicer.vtkMRMLPatientHierarchyNode.GetPatientHierarchyNodeByInstanceUid(slicer.mrmlScene, databaseFile, patientId)
+      studyInstanceUid = slicer.dicomDatabase.fileValue(firstFile,self.tags['studyInstanceUID'])
+      studyNode = slicer.vtkMRMLPatientHierarchyNode.GetPatientHierarchyNodeByInstanceUid(slicer.mrmlScene, databaseFile, studyInstanceUid)
+      slicer.vtkMRMLPatientHierarchyNode.InsertSeriesInHierarchy(slicer.mrmlScene, databaseFile, patientId, studyInstanceUid, seriesInstanceUid)
+
+      if patientNode == None:
+        patientNode = slicer.vtkMRMLPatientHierarchyNode.GetPatientHierarchyNodeByInstanceUid(slicer.mrmlScene, databaseFile, patientId)
+        if patientNode != None:
+          patientName = slicer.dicomDatabase.fileValue(firstFile,self.tags['patientName'])
+          patientNode.SetName(patientName)
+          
+      if studyNode == None:
+        studyNode = slicer.vtkMRMLPatientHierarchyNode.GetPatientHierarchyNodeByInstanceUid(slicer.mrmlScene, databaseFile, studyInstanceUid)
+        if studyNode != None:
+          studyDescription = slicer.dicomDatabase.fileValue(firstFile,self.tags['studyDescription'])
+          studyNode.SetName(studyDescription)
+
       instanceUIDs = ""
       for file in loadable.files:
         uid = slicer.dicomDatabase.fileValue(file,self.tags['instanceUID'])
