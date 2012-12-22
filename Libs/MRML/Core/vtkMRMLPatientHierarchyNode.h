@@ -18,7 +18,8 @@ public:
     Unset = -1,
     Patient = 1,
     Study,
-    Series
+    Series,
+    Subseries
   };
 
 public:

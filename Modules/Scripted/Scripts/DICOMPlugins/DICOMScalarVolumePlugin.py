@@ -314,9 +314,13 @@ class DICOMScalarVolumePluginClass(DICOMPlugin):
       firstFile = loadable.files[0]
 
       seriesNode = slicer.vtkMRMLPatientHierarchyNode()
+      seriesNode.HideFromEditorsOff()
+      seriesNode.SetDisplayableNodeID(volumeNode.GetID())
       seriesNode.SetLevel(slicer.vtkMRMLPatientHierarchyNode.Series)
       seriesNode.SetDicomDatabaseFileName(databaseFile)
       seriesDescription = slicer.dicomDatabase.fileValue(firstFile,self.tags['seriesDescription'])
+      if seriesDescription == '':
+        seriesDescription = 'No description'
       seriesNode.SetName(seriesDescription)
       seriesInstanceUid = slicer.dicomDatabase.fileValue(firstFile,self.tags['seriesInstanceUID'])
       seriesNode.SetInstanceUid(seriesInstanceUid)
@@ -332,12 +336,16 @@ class DICOMScalarVolumePluginClass(DICOMPlugin):
         patientNode = slicer.vtkMRMLPatientHierarchyNode.GetPatientHierarchyNodeByInstanceUid(slicer.mrmlScene, databaseFile, patientId)
         if patientNode != None:
           patientName = slicer.dicomDatabase.fileValue(firstFile,self.tags['patientName'])
+          if patientName == '':
+            patientName = 'No name'
           patientNode.SetName(patientName)
           
       if studyNode == None:
         studyNode = slicer.vtkMRMLPatientHierarchyNode.GetPatientHierarchyNodeByInstanceUid(slicer.mrmlScene, databaseFile, studyInstanceUid)
         if studyNode != None:
           studyDescription = slicer.dicomDatabase.fileValue(firstFile,self.tags['studyDescription'])
+          if studyDescription == '':
+            studyDescription = 'No description'
           studyNode.SetName(studyDescription)
 
       instanceUIDs = ""

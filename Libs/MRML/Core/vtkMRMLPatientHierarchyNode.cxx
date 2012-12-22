@@ -184,6 +184,8 @@ void vtkMRMLPatientHierarchyNode::InsertSeriesInHierarchy(
   if (!patientNode)
     {
     patientNode = vtkSmartPointer<vtkMRMLPatientHierarchyNode>::New();
+    patientNode->AllowMultipleChildrenOn();
+    patientNode->HideFromEditorsOff();
     patientNode->SetInstanceUid(patientId);
     patientNode->SetDicomDatabaseFileName(dicomDatabaseFileName);
     patientNode->SetLevel(Patient);
@@ -193,6 +195,8 @@ void vtkMRMLPatientHierarchyNode::InsertSeriesInHierarchy(
   if (!studyNode)
     {
     studyNode = vtkSmartPointer<vtkMRMLPatientHierarchyNode>::New();
+    studyNode->AllowMultipleChildrenOn();
+    studyNode->HideFromEditorsOff();
     studyNode->SetInstanceUid(studyInstanceUid);
     studyNode->SetDicomDatabaseFileName(dicomDatabaseFileName);
     studyNode->SetLevel(Study);
