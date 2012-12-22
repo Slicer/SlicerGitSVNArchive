@@ -55,7 +55,7 @@ QStringList qSlicerFileDialog::nameFilters(qSlicerIO::IOFileType fileType)
 {
   QStringList filters;
   QStringList extensions;
-  QList<qSlicerFileReader*> readers = 
+  QList<qSlicerFileReader*> readers =
     qSlicerApplication::application()->ioManager()->readers(fileType);
   foreach(const qSlicerFileReader* reader, readers)
     {
@@ -156,6 +156,13 @@ ctkFileDialog* qSlicerStandardFileDialog::createFileDialog(
     {
     fileDialog->setSidebarUrls(ioManager->favorites());
     }
+#ifdef Q_WS_MAC
+  // Workaround for Mac to show mounted volumes.
+  // See issue #2240
+  QList<QUrl> sidebarUrls = fileDialog->sidebarUrls();
+  sidebarUrls.append(QUrl::fromLocalFile("/Volumes"));
+  fileDialog->setSidebarUrls(sidebarUrls);
+#endif
   if (ioProperties["multipleFiles"].toBool())
     {
     fileDialog->setFileMode(QFileDialog::ExistingFiles);
@@ -205,6 +212,7 @@ bool qSlicerStandardFileDialog::exec(const qSlicerIO::IOProperties& ioProperties
             fileDialog, SLOT(setAcceptButtonEnable(bool)));
     fileDialog->setAcceptButtonEnable(optionsWidget->isValid());
     }
+
   // we do not delete options now as it is still useful later (even if there is
   // no UI.) they are the options of the reader, UI or not.
   bool res = fileDialog->exec();
