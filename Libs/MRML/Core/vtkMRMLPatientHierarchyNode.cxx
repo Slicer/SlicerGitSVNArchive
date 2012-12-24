@@ -3,7 +3,6 @@
 #include "vtkMRMLScene.h"
 
 // VTK includes
-#include <vtkCollection.h>
 #include <vtkObjectFactory.h>
 #include <vtkSmartPointer.h>
 
@@ -113,7 +112,7 @@ vtkMRMLPatientHierarchyNode*
 vtkMRMLPatientHierarchyNode::GetPatientHierarchyNodeByInstanceUid(
   vtkMRMLScene *scene, const char* dicomDatabaseFileName, const char* instanceUid )
 {
-  if (!scene)
+  if (!scene || !dicomDatabaseFileName || !instanceUid)
     {
     return NULL;
     }
@@ -139,13 +138,14 @@ void vtkMRMLPatientHierarchyNode::InsertSeriesInHierarchy(
   vtkMRMLScene *scene, const char* dicomDatabaseFileName, 
   const char* patientId, const char* studyInstanceUid, const char* seriesInstanceUid )
 {
-  if (!scene)
+  if ( !scene || !dicomDatabaseFileName
+    || !patientId || !studyInstanceUid || !seriesInstanceUid )
     {
     return;
     }
 
-  vtkSmartPointer<vtkMRMLPatientHierarchyNode> patientNode;
-  vtkSmartPointer<vtkMRMLPatientHierarchyNode> studyNode;
+  vtkMRMLPatientHierarchyNode* patientNode = NULL;
+  vtkMRMLPatientHierarchyNode* studyNode = NULL;
   vtkMRMLPatientHierarchyNode* seriesNode = NULL;
 
   std::vector<vtkMRMLNode *> patientHierarchyNodes;
@@ -159,11 +159,11 @@ void vtkMRMLPatientHierarchyNode::InsertSeriesInHierarchy(
       {
       if (!strcmp(patientId, node->GetInstanceUid()))
         {
-        patientNode = vtkSmartPointer<vtkMRMLPatientHierarchyNode>::Take(node);
+        patientNode = node;
         }
       else if (!strcmp(studyInstanceUid, node->GetInstanceUid()))
         {
-        studyNode = vtkSmartPointer<vtkMRMLPatientHierarchyNode>::Take(node);
+        studyNode = node;
         }
       else if (!strcmp(seriesInstanceUid, node->GetInstanceUid()))
         {
@@ -183,7 +183,7 @@ void vtkMRMLPatientHierarchyNode::InsertSeriesInHierarchy(
   // Create patient and study nodes if they do not exist yet
   if (!patientNode)
     {
-    patientNode = vtkSmartPointer<vtkMRMLPatientHierarchyNode>::New();
+    patientNode = vtkMRMLPatientHierarchyNode::New();
     patientNode->AllowMultipleChildrenOn();
     patientNode->HideFromEditorsOff();
     patientNode->SetInstanceUid(patientId);
@@ -194,7 +194,7 @@ void vtkMRMLPatientHierarchyNode::InsertSeriesInHierarchy(
 
   if (!studyNode)
     {
-    studyNode = vtkSmartPointer<vtkMRMLPatientHierarchyNode>::New();
+    studyNode = vtkMRMLPatientHierarchyNode::New();
     studyNode->AllowMultipleChildrenOn();
     studyNode->HideFromEditorsOff();
     studyNode->SetInstanceUid(studyInstanceUid);
