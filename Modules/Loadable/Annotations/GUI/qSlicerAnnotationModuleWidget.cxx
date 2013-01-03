@@ -37,7 +37,9 @@
 #include <vtkSmartPointer.h>
 
 // MRML includes
+#include "vtkMRMLDisplayableHierarchyNode.h"
 #include "vtkMRMLInteractionNode.h"
+#include "vtkMRMLNode.h"
 #include "vtkMRMLSelectionNode.h"
 
 //-----------------------------------------------------------------------------
@@ -150,6 +152,10 @@ void qSlicerAnnotationModuleWidgetPrivate::setupUi(qSlicerWidget* widget)
                  q, SLOT(updateActiveHierarchyLabel()));
   q->qvtkConnect(this->logic(), vtkSlicerAnnotationModuleLogic::RefreshRequestEvent,
                  q, SLOT(refreshTree()));
+  // listen to the logic for when it adds a new hierarchy node that has to be
+  // expanded
+  q->qvtkConnect(this->logic(), vtkSlicerAnnotationModuleLogic::HierarchyNodeAddedEvent,
+                 q, SLOT(onHierarchyNodeAddedEvent(vtkObject*,vtkObject*)));
 
   // update from the mrml scene
   q->refreshTree();
@@ -199,10 +205,12 @@ void qSlicerAnnotationModuleWidget::moveDownSelected()
 {
   Q_D(qSlicerAnnotationModuleWidget);
 
-  const char* mrmlId = d->logic()->MoveAnnotationDown(d->hierarchyTreeView->firstSelectedNode());
+  const char* mrmlId =
+    d->logic()->MoveAnnotationDown(d->hierarchyTreeView->firstSelectedNode());
+  vtkMRMLNode* mrmlNode = this->mrmlScene()->GetNodeByID(mrmlId);
 
   d->hierarchyTreeView->clearSelection();
-  d->hierarchyTreeView->setSelectedNode(mrmlId);
+  d->hierarchyTreeView->setCurrentNode(mrmlNode);
 }
 
 //-----------------------------------------------------------------------------
@@ -211,9 +219,10 @@ void qSlicerAnnotationModuleWidget::moveUpSelected()
   Q_D(qSlicerAnnotationModuleWidget);
 
   const char* mrmlId = d->logic()->MoveAnnotationUp(d->hierarchyTreeView->firstSelectedNode());
+  vtkMRMLNode* mrmlNode = this->mrmlScene()->GetNodeByID(mrmlId);
 
   d->hierarchyTreeView->clearSelection();
-  d->hierarchyTreeView->setSelectedNode(mrmlId);
+  d->hierarchyTreeView->setCurrentNode(mrmlNode);
 }
 
 //-----------------------------------------------------------------------------
@@ -424,7 +433,25 @@ void qSlicerAnnotationModuleWidget::onAddHierarchyButtonClicked()
   this->refreshTree();
   if (d->logic()->AddHierarchy())
     {
-    d->hierarchyTreeView->setSelectedNode(d->logic()->GetActiveHierarchyNodeID());
+    vtkMRMLNode* node = d->logic()->GetMRMLScene()->GetNodeByID(
+      d->logic()->GetActiveHierarchyNodeID());
+    d->hierarchyTreeView->setCurrentNode(node);
+    }
+  // set expanded state to match hierarchy node
+  vtkMRMLNode *mrmlNode = this->mrmlScene()->GetNodeByID(d->logic()->GetActiveHierarchyNodeID());
+  if (mrmlNode)
+    {
+    QModelIndex hierarchyIndex = d->hierarchyTreeView->sortFilterProxyModel()->indexFromMRMLNode(mrmlNode);
+    vtkMRMLDisplayableHierarchyNode *hierarchyNode = vtkMRMLDisplayableHierarchyNode::SafeDownCast(mrmlNode);
+    if (hierarchyNode)
+      {
+      d->hierarchyTreeView->setExpanded(hierarchyIndex, hierarchyNode->GetExpanded());
+      }
+    else
+      {
+      // otherwise just expand by default
+      d->hierarchyTreeView->expand(hierarchyIndex);
+      }
     }
 }
 
@@ -439,9 +466,11 @@ void qSlicerAnnotationModuleWidget::updateActiveHierarchyLabel()
   if (id)
     {
     //idString = QString(" (") + QString(id) + QString(")");
-    if (d->logic() && d->logic()->GetMRMLScene() && d->logic()->GetMRMLScene()->GetNodeByID(id))
+    vtkMRMLNode* node = d->logic()->GetMRMLScene() ?
+      d->logic()->GetMRMLScene()->GetNodeByID(id) : 0;
+    if (node)
       {
-      name = QString(d->logic()->GetMRMLScene()->GetNodeByID(id)->GetName());
+      name = QString(node->GetName());
       }
     }
   d->activeHierarchyLabel->setText(QString("Active list: ") + name);
@@ -461,11 +490,43 @@ void qSlicerAnnotationModuleWidget::refreshTree()
     // scene is updating, return
     return;
     }
-  // this gets called on scene closed, can we make sure that the widget is
-  // visible?
-  
-  d->hierarchyTreeView->setMRMLScene(d->logic()->GetMRMLScene());
+  // don't reset unless scene is different as it also resets the expanded
+  // level on the tree
+  if (d->hierarchyTreeView->mrmlScene() != d->logic()->GetMRMLScene())
+    {
+    // this gets called on scene closed, can we make sure that the widget is
+    // visible?
+    d->hierarchyTreeView->setMRMLScene(d->logic()->GetMRMLScene());
+    }
   d->hierarchyTreeView->hideScene();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerAnnotationModuleWidget::onHierarchyNodeAddedEvent(vtkObject *vtkNotUsed(caller), vtkObject *callData)
+{
+  Q_D(qSlicerAnnotationModuleWidget);
+
+  // the call data should be the annotation hierarchy node that was just
+  // added, passed along from the logic
+  if (callData == NULL)
+    {
+    return;
+    }
+  vtkMRMLNode *node = NULL;
+  node = reinterpret_cast<vtkMRMLNode*>(callData);
+  if (node == NULL)
+    {
+    return;
+    }
+
+  // get the model index of the hierarchy node in the tree
+  QModelIndex hierarchyIndex = d->hierarchyTreeView->sortFilterProxyModel()->indexFromMRMLNode(node);
+  vtkMRMLDisplayableHierarchyNode *hierarchyNode = vtkMRMLDisplayableHierarchyNode::SafeDownCast(node);
+  if (hierarchyNode)
+    {
+    // set the expanded state to match the node
+    d->hierarchyTreeView->setExpanded(hierarchyIndex, hierarchyNode->GetExpanded());
+    }
 }
 
 //-----------------------------------------------------------------------------

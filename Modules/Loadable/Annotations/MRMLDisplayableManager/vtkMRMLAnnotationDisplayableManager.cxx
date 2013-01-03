@@ -242,11 +242,6 @@ void vtkMRMLAnnotationDisplayableManager::UpdateFromMRML()
     {
     return;
     }
-  // check if there are any of these nodes in the scene
-  if (this->GetMRMLScene()->GetNumberOfNodesByClass(this->m_Focus) < 1)
-    {
-    return;
-    }
   // loop over the nodes for which this manager provides widgets
   this->GetMRMLScene()->InitTraversal();
   vtkMRMLNode *node = this->GetMRMLScene()->GetNextNodeByClass(this->m_Focus);
@@ -387,7 +382,7 @@ void vtkMRMLAnnotationDisplayableManager::OnMRMLSceneNodeAdded(vtkMRMLNode* node
     return;
     }
 
-  if (!node->IsA(this->m_Focus))
+  if (!this->IsManageable(node))
     {
     // jump out
     vtkDebugMacro("OnMRMLSceneNodeAddedEvent: Not the correct displayableManager for node " << node->GetID() << ", jumping out!")
@@ -1507,8 +1502,20 @@ bool vtkMRMLAnnotationDisplayableManager::IsCorrectDisplayableManager()
     return false;
     }
   // the purpose of the displayableManager is hardcoded
-  return !strcmp(selectionNode->GetActiveAnnotationID(), this->m_Focus);
+  return this->IsManageable(selectionNode->GetActiveAnnotationID());
 
+}
+
+//---------------------------------------------------------------------------
+bool vtkMRMLAnnotationDisplayableManager::IsManageable(vtkMRMLNode* node)
+{
+  return node->IsA(this->m_Focus);
+}
+
+//---------------------------------------------------------------------------
+bool vtkMRMLAnnotationDisplayableManager::IsManageable(const char* nodeID)
+{
+  return nodeID && !strcmp(nodeID, this->m_Focus);
 }
 
 //---------------------------------------------------------------------------

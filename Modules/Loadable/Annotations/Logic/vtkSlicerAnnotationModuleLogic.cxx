@@ -2101,21 +2101,18 @@ const char * vtkSlicerAnnotationModuleLogic::GetAnnotationIcon(const char* id)
     {
     return 0;
     }
-  // extra check: get node by id can crash if an old scene with a selection
-  // node with the old style id of vtkMRMLSelectionNode1 is opened, check that
-  // the passed in id string is an annotation node id string
-  std::string idString = std::string(id);
-  if (idString.find("vtkMRMLAnnotation") == std::string::npos)
-    {
-    return 0;
-    }
   vtkMRMLNode *mrmlNode = this->GetMRMLScene()->GetNodeByID(id);
-  if (!mrmlNode)
-    {
-    return 0;
-    }
+  return this->GetAnnotationIcon(mrmlNode);
+}
+
+//---------------------------------------------------------------------------
+// Return the icon of an annotation MRML Node
+//---------------------------------------------------------------------------
+const char * vtkSlicerAnnotationModuleLogic
+::GetAnnotationIcon(vtkMRMLNode* mrmlNode)
+{
   vtkMRMLAnnotationNode* annotationNode = vtkMRMLAnnotationNode::SafeDownCast(
-      mrmlNode);
+    mrmlNode);
 
   if (annotationNode)
     {
@@ -2123,8 +2120,7 @@ const char * vtkSlicerAnnotationModuleLogic::GetAnnotationIcon(const char* id)
     }
 
   vtkMRMLAnnotationHierarchyNode* hierarchyNode =
-      vtkMRMLAnnotationHierarchyNode::SafeDownCast(
-          this->GetMRMLScene()->GetNodeByID(id));
+    vtkMRMLAnnotationHierarchyNode::SafeDownCast(mrmlNode);
 
   if (hierarchyNode)
     {
@@ -2132,8 +2128,7 @@ const char * vtkSlicerAnnotationModuleLogic::GetAnnotationIcon(const char* id)
     }
 
   vtkMRMLAnnotationSnapshotNode* snapshotNode =
-      vtkMRMLAnnotationSnapshotNode::SafeDownCast(
-          this->GetMRMLScene()->GetNodeByID(id));
+    vtkMRMLAnnotationSnapshotNode::SafeDownCast(mrmlNode);
 
   if (snapshotNode)
     {
@@ -2141,7 +2136,6 @@ const char * vtkSlicerAnnotationModuleLogic::GetAnnotationIcon(const char* id)
     }
 
   return 0;
-
 }
 
 //---------------------------------------------------------------------------
@@ -2795,6 +2789,7 @@ char * vtkSlicerAnnotationModuleLogic::GetTopLevelHierarchyNodeID(vtkMRMLNode* n
       {
       vtkErrorMacro("GetTopLevelHierarchyNodeID: error adding a display node for new top level node " << toplevelNodeID);
       }
+    this->InvokeEvent(HierarchyNodeAddedEvent, toplevelNode);
     toplevelNode->Delete();
     }
   else
@@ -2871,6 +2866,7 @@ char * vtkSlicerAnnotationModuleLogic::GetTopLevelHierarchyNodeIDForNodeClass(vt
     // make it a child of the top annotation hierarchy
     toplevelNode->SetParentNodeID(this->GetTopLevelHierarchyNodeID());
     this->GetMRMLScene()->AddNode(toplevelNode);
+    this->InvokeEvent(HierarchyNodeAddedEvent, toplevelNode);
     toplevelNodeID = toplevelNode->GetID();
     if (this->AddDisplayNodeForHierarchyNode(toplevelNode) == NULL)
       {
@@ -2974,6 +2970,7 @@ char * vtkSlicerAnnotationModuleLogic::GetTopLevelHierarchyNodeIDForNodeClass(vt
           this->GetMRMLScene()->GetUniqueNameByString("List"));
 
       this->GetMRMLScene()->AddNode(hierarchyNode);
+      this->InvokeEvent(HierarchyNodeAddedEvent, hierarchyNode);
 
       }
     else
@@ -3052,14 +3049,14 @@ vtkMRMLAnnotationHierarchyNode *vtkSlicerAnnotationModuleLogic::GetActiveHierarc
     }
   if (this->GetMRMLScene()->GetNodeByID(this->GetActiveHierarchyNodeID()) == NULL)
     {
-    // if the node with the active id can't be found in the scene, reset it to
-    // null
-    this->SetActiveHierarchyNodeID(NULL);
     // try finding the top level hierarchy
     char* toplevelNodeID = this->GetTopLevelHierarchyNodeID();
     if (!toplevelNodeID)
       {
       vtkErrorMacro("GetActiveHierarchyNode: the active hierarchy node id was invalid and can't find or make a top level hierarchy node");
+      // if the node with the active id can't be found in the scene, reset it to
+      // null
+      this->SetActiveHierarchyNodeID(NULL);
       return NULL;
       }
     else
@@ -3067,7 +3064,8 @@ vtkMRMLAnnotationHierarchyNode *vtkSlicerAnnotationModuleLogic::GetActiveHierarc
       this->SetActiveHierarchyNodeID(toplevelNodeID);
       }
     }
-  return vtkMRMLAnnotationHierarchyNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->GetActiveHierarchyNodeID()));
+  return vtkMRMLAnnotationHierarchyNode::SafeDownCast(
+    this->GetMRMLScene()->GetNodeByID(this->GetActiveHierarchyNodeID()));
 }
 
   //---------------------------------------------------------------------------

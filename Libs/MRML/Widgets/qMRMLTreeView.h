@@ -39,6 +39,9 @@ class vtkMRMLNode;
 class vtkMRMLScene;
 
 /// \todo Rename to qMRMLSceneTreeView
+/// In debug mode, pressing the '!' key on the view switches of
+/// qMRMLSortFilterProxyModel::filterType, it can be useful to debug the scene model
+/// and filters applied to them.
 class QMRML_WIDGETS_EXPORT qMRMLTreeView : public QTreeView
 {
   Q_OBJECT
@@ -95,6 +98,22 @@ class QMRML_WIDGETS_EXPORT qMRMLTreeView : public QTreeView
   /// False by default (only nodes with HideFromEditors = 0 are visible)
   /// \sa vtkMRMLNode::GetHideFromEditors()
   Q_PROPERTY(bool showHidden READ showHidden WRITE setShowHidden)
+  /// This property controls whether the scene is visible (is a top-level item).
+  /// It doesn't have any effect if \a rootNode() is not null.
+  /// Visible by default.
+  /// \sa setShowScene(), showScene(),
+  ///  showRootNode, setRootNode(), setRootIndex()
+  Q_PROPERTY(bool showScene READ showScene WRITE setShowScene)
+  /// This property controls whether the root node if any is visible.
+  /// When the root node is visible, it appears as a top-level item, if it is
+  /// hidden only its children are top-level items.
+  /// It doesn't have any effect if \a rootNode() is null.
+  /// Hidden by default.
+  /// Don't use qMRMLSortFilterProxyModel::HideNodesUnaffiliatedWithNodeID if
+  /// showRootNode is true, it is internally being used.
+  /// \sa setShowRootNode(), showRootNode(),
+  ///  showScene, setRootNode(), setRootIndex()
+  Q_PROPERTY(bool showRootNode READ showRootNode WRITE setShowRootNode)
 
 public:
   typedef QTreeView Superclass;
@@ -167,10 +186,22 @@ public:
   inline void setShowHidden(bool);
   inline bool showHidden()const;
 
-  /// Similar to setRootIndex(QModelIndex) but observe the ModifiedEvent of
-  /// the node to stay in sync.
-  /// A null node (default) means QModelIndex() is the root index.
-  Q_INVOKABLE void setRootNode(vtkMRMLNode* root);
+  /// Set the show root node flag.
+  /// \sa showRootNode, showRootNode()
+  void setShowRootNode(bool show);
+  /// Return the show root node flag.
+  /// \sa showRootNode, setShowRootNode()
+  bool showRootNode()const;
+
+  /// Set the show scene flag.
+  /// \sa showScene, showScene()
+  void setShowScene(bool show);
+  /// Return the show scene flag.
+  /// \sa showScene, setShowScene()
+  bool showScene()const;
+
+  /// Return the root node of the tree.
+  /// \sa setRootNode(), showRootNode
   vtkMRMLNode* rootNode()const;
 
   /// Retrieve the sortFilterProxyModel used to filter/sort
@@ -213,9 +244,28 @@ public slots:
   /// will happen
   void setSceneModelType(const QString& modelType);
 
+  /// Similar to setRootIndex(QModelIndex) but observe the ModifiedEvent of
+  /// the node to stay in sync.
+  /// A null node (default) means QModelIndex() is the root index.
+  /// \sa rootNode(), setRootIndex(), showRootNode
+  void setRootNode(vtkMRMLNode* root);
+
+  /// Change the current view node to \a node.
+  /// \sa currentNode
+  void setCurrentNode(vtkMRMLNode* node);
   void deleteCurrentNode();
   void editCurrentNode();
   void renameCurrentNode();
+
+  /// Bypass all the filters on the view and show all the nodes.
+  /// \sa setHideAll(), qMRMLSortFilterProxyModel::FilterType
+  inline void setShowAll(bool);
+  /// Bypass all the filters on the view and hide all the nodes.
+  /// \sa showAll(), setDontHideAll(), qMRMLSortFilterProxyModel::FilterType
+  inline void setHideAll(bool);
+  /// Convenient slot to call hideAll() with the opposite value.
+  /// \sa setHideAll()
+  inline void setDontHideAll(bool);
 
 signals:
   void currentNodeChanged(vtkMRMLNode* node);
@@ -247,6 +297,7 @@ protected:
   virtual void updateGeometries();
   virtual void mousePressEvent(QMouseEvent* event);
   virtual void mouseReleaseEvent(QMouseEvent* event);
+  virtual void keyPressEvent(QKeyEvent* event);
 
   virtual void toggleVisibility(const QModelIndex& index);
 
@@ -265,6 +316,25 @@ void qMRMLTreeView::setShowHidden(bool enable)
 bool qMRMLTreeView::showHidden()const
 {
   return this->sortFilterProxyModel()->showHidden();
+}
+
+// --------------------------------------------------------------------------
+void qMRMLTreeView::setShowAll(bool show)
+{
+  this->sortFilterProxyModel()->setShowAll(show);
+}
+
+// --------------------------------------------------------------------------
+void qMRMLTreeView::setHideAll(bool hide)
+{
+  this->sortFilterProxyModel()->setHideAll(hide);
+}
+#include <QDebug>
+// --------------------------------------------------------------------------
+void qMRMLTreeView::setDontHideAll(bool dontHide)
+{
+  qDebug() << "DontHide: " << dontHide;
+  this->setHideAll(!dontHide);
 }
 
 #endif

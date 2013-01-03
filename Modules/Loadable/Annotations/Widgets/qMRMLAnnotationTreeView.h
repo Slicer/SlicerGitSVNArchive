@@ -27,6 +27,7 @@
 // Annotations includes
 #include "qSlicerAnnotationsModuleWidgetsExport.h"
 class qMRMLAnnotationTreeViewPrivate;
+class qMRMLSceneAnnotationModel;
 
 // Logic includes
 class vtkSlicerAnnotationModuleLogic;
@@ -45,6 +46,7 @@ class Q_SLICER_MODULE_ANNOTATIONS_WIDGETS_EXPORT qMRMLAnnotationTreeView
   Q_OBJECT
 
 public:
+  typedef qMRMLTreeView Superclass;
   qMRMLAnnotationTreeView(QWidget *parent=0);
   virtual ~qMRMLAnnotationTreeView();
 
@@ -64,13 +66,12 @@ public:
 
   void selectedAsCollection(vtkCollection* collection);
 
-  void setSelectedNode(const char* id);
+  qMRMLSceneAnnotationModel* annotationModel()const;
 
 public slots:
   void onSelectionChanged(const QItemSelection& index,const QItemSelection& beforeIndex);
 
 signals:
-  void currentNodeChanged(vtkMRMLNode* node);
   void onPropertyEditButtonClicked(QString id);
 
 protected slots:
@@ -78,20 +79,23 @@ protected slots:
 
 protected:
   QScopedPointer<qMRMLAnnotationTreeViewPrivate> d_ptr;
-  #ifndef QT_NO_CURSOR
-    void mouseMoveEvent(QMouseEvent* e);
-    bool viewportEvent(QEvent* e);
-  #endif
+#ifndef QT_NO_CURSOR
+  void mouseMoveEvent(QMouseEvent* e);
+  bool viewportEvent(QEvent* e);
+#endif
   virtual void mousePressEvent(QMouseEvent* event);
+
+  virtual void toggleVisibility(const QModelIndex& index);
+
+  /// Set the active hierarchy node when the current index changes.
+  /// \sa vtkSlicerAnnotationModuleLogic::SetActiveHierarchyNodeID()
+  virtual void onCurrentRowChanged(const QModelIndex& index);
 
 private:
   Q_DECLARE_PRIVATE(qMRMLAnnotationTreeView);
   Q_DISABLE_COPY(qMRMLAnnotationTreeView);
 
   vtkSlicerAnnotationModuleLogic* m_Logic;
-  
-  // toggle the visibility of an annotation
-  void onVisibilityColumnClicked(vtkMRMLNode* node);
 
   // toggle un-/lock of an annotation
   void onLockColumnClicked(vtkMRMLNode* node);

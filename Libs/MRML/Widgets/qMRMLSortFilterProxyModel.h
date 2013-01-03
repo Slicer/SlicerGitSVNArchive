@@ -53,15 +53,17 @@ class QMRML_WIDGETS_EXPORT qMRMLSortFilterProxyModel : public QSortFilterProxyMo
   /// This property controls whether the nodes with the HideFromEditor flag
   /// on are filtered by the proxy model or not.
   /// False by default.
+  /// \sa showHiddenForTypes
   Q_PROPERTY(bool showHidden READ showHidden WRITE setShowHidden)
 
   /// This property overrides the behavior of \a showHidden for specific types.
   /// Empty by default.
+  /// \sa showHidden
   Q_PROPERTY(QStringList showHiddenForTypes READ showHiddenForTypes WRITE setShowHiddenForTypes)
 
-  /// This property controls whether \a nodeType subclasses are visible
+  /// This property controls whether \a nodeType subclasses are visible.
   /// If \a showChildNodeTypes is false and \a nodeTypes is vtkMRMLVolumeNode
-  /// then vtkMRMLDScalarVolumeNode are not visible.
+  /// then vtkMRMLScalarVolumeNode are not visible.
   /// True by default.
   Q_PROPERTY(bool showChildNodeTypes READ showChildNodeTypes WRITE setShowChildNodeTypes)
 
@@ -77,7 +79,36 @@ class QMRML_WIDGETS_EXPORT qMRMLSortFilterProxyModel : public QSortFilterProxyMo
 
   /// This property controls the nodes to hide by node IDs.
   Q_PROPERTY(QStringList hiddenNodeIDs READ hiddenNodeIDs WRITE setHiddenNodeIDs)
+
+  /// This property controls whether nodes unaffiliated with a given node ID are
+  /// hidden or not.
+  /// All the nodes are visible (empty string) by default.
+  Q_PROPERTY(QString hideNodesUnaffiliatedWithNodeID READ hideNodesUnaffiliatedWithNodeID WRITE setHideNodesUnaffiliatedWithNodeID)
+
+  /// This property controls whether the proxy applies its filter or if it
+  /// shows or hides all the nodes.
+  /// UseFilters by defaults.
+  /// \sa showAll, hideAll
+  Q_PROPERTY(FilterType filterType READ filterType WRITE setFilterType)
+  Q_ENUMS(FilterType)
+  /// This property controls whether all the nodes are visible or not,
+  /// bypassing any filter.
+  /// False by default
+  /// \sa filterType, hideAll
+  Q_PROPERTY(bool showAll READ showAll WRITE setShowAll STORED false)
+  /// This property controls whether all the nodes are hidden or not,
+  /// bypassing any filter.
+  /// False by default.
+  Q_PROPERTY(bool hideAll READ hideAll WRITE setHideAll STORED false)
+
 public:
+  enum FilterType
+    {
+    HideAll = 0,
+    ShowAll,
+    UseFilters
+    };
+
   typedef QSortFilterProxyModel Superclass;
   qMRMLSortFilterProxyModel(QObject *parent=0);
   virtual ~qMRMLSortFilterProxyModel();
@@ -128,17 +159,51 @@ public:
   /// If a node is a nodeType, hide the node if it is also
   /// a ExcludedChildNodeType. (this can happen if nodeType is a
   /// mother class of ExcludedChildNodeType)
+  /// \sa hideChildNodeTypes, hideChildNodeTypes()
   void setHideChildNodeTypes(const QStringList& nodeTypes);
+  /// \sa hideChildNodeTypes, setHideChildNodeTypes()
   QStringList hideChildNodeTypes()const;
 
+  /// Set the list of nodes to hide.
+  /// \sa hiddenNodeIDs, hiddenNodeIDs()
   void setHiddenNodeIDs(const QStringList& nodeIDsToHide);
+  /// Return the list of nodes to hide.
+  /// \sa hiddenNodeIDs, setHiddenNodeIDs()
   QStringList hiddenNodeIDs()const;
 
+  /// Set the node ID used to filter out nodes that are not associated to it.
+  /// Recompute the filtering.
+  /// \sa hideNodesUnaffiliatedWithNodeID, hideNodesUnaffiliatedWithNodeID()
+  void setHideNodesUnaffiliatedWithNodeID(const QString& nodeID);
+  /// Return the node ID used to filter out nodes that are not associated to it.
+  /// \sa hideNodesUnaffiliatedWithNodeID, setHideNodesUnaffiliatedWithNodeID()
+  QString hideNodesUnaffiliatedWithNodeID()const;
+
+  /// Return the current filter type.
+  /// \sa filterType, setFilterType()
+  FilterType filterType()const;
+  /// Return true if all the nodes are visible.
+  /// \sa showAll, setShowAll()
+  bool showAll()const;
+  /// Return true if all the nodes are hidden
+  /// \sa hideAll, setHideAll()
+  bool hideAll()const;
+
   /// Return the scene model used as input if any.
-  qMRMLSceneModel* sceneModel()const;
+  Q_INVOKABLE qMRMLSceneModel* sceneModel()const;
 
 public slots:
-   void setShowHidden(bool);
+  void setShowHidden(bool);
+
+  /// Set the filter type.
+  /// \sa filterType, filterType()
+  void setFilterType(FilterType filterType);
+  /// Set whether all the nodes should be visible or not.
+  /// \sa showAll, showAll()
+  void setShowAll(bool show);
+  /// Set whether all the nodes should be hidden or not.
+  /// \sa hideAll, hideAll()
+  void setHideAll(bool hide);
 
   // TODO Add setMRMLScene() to propagate to the scene model
 protected:

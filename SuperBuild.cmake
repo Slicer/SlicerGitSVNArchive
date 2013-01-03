@@ -167,6 +167,10 @@ if(Slicer_BUILD_DWIConvert)
   list(APPEND Slicer_DEPENDENCIES DWIConvert)
 endif()
 
+if(DEFINED Slicer_ADDITIONAL_DEPENDENCIES)
+  list(APPEND Slicer_DEPENDENCIES ${Slicer_ADDITIONAL_DEPENDENCIES})
+endif()
+
 SlicerMacroCheckExternalProjectDependency(Slicer)
 
 #-----------------------------------------------------------------------------
@@ -191,6 +195,7 @@ set(ep_cmake_boolean_args
   Slicer_BUILD_CLI
   Slicer_BUILD_CLI_SUPPORT
   Slicer_BUILD_DICOM_SUPPORT
+  Slicer_BUILD_DIFFUSION_SUPPORT
   Slicer_BUILD_EXTENSIONMANAGER_SUPPORT
   Slicer_BUILD_QTLOADABLEMODULES
   Slicer_BUILD_QTSCRIPTEDMODULES
@@ -213,6 +218,8 @@ set(ep_cmake_boolean_args
   Slicer_BUILD_MultiVolumeExplorer
   Slicer_BUILD_MultiVolumeImporter
   Slicer_BUILD_SlicerWebGLExport
+  Slicer_BUILD_Extensions
+  Slicer_BUILD_SkullStripper
   )
 
 set(ep_superbuild_boolean_args)
@@ -328,6 +335,26 @@ if(Slicer_BUILD_EXTENSIONMANAGER_SUPPORT)
     )
 endif()
 
+# Projects that Slicer needs to download/configure/build/install...
+list(APPEND Slicer_ADDITIONAL_PROJECTS ${Slicer_ADDITIONAL_DEPENDENCIES})
+if (Slicer_ADDITIONAL_PROJECTS)
+  list(REMOVE_DUPLICATES Slicer_ADDITIONAL_PROJECTS)
+  set(Slicer_ADDITIONAL_PROJECTS_STRING)
+  foreach(additional_project ${Slicer_ADDITIONAL_PROJECTS})
+    # needed to do find_package within Slicer
+    list(APPEND ep_superbuild_extra_args
+      -D${additional_project}_DIR:PATH=${${additional_project}_DIR})
+    if(Slicer_ADDITIONAL_PROJECTS_STRING)
+      set(Slicer_ADDITIONAL_PROJECTS_STRING "${Slicer_ADDITIONAL_PROJECTS_STRING}^^${additional_project}")
+    else()
+      set(Slicer_ADDITIONAL_PROJECTS_STRING ${additional_project})
+    endif()
+  endforeach()
+  # needed for packaging
+  list(APPEND ep_superbuild_extra_args
+    -DSlicer_ADDITIONAL_PROJECTS:STRING=${Slicer_ADDITIONAL_PROJECTS_STRING})
+endif()
+
 # Set CMake OSX variable to pass down the external project
 set(CMAKE_OSX_EXTERNAL_PROJECT_ARGS)
 if(APPLE)
@@ -376,6 +403,14 @@ ExternalProject_Add(${proj}
     -DSlicer_SUPERBUILD:BOOL=OFF
     -DSlicer_SUPERBUILD_DIR:PATH=${Slicer_BINARY_DIR}
     -DSlicer_BUILD_WIN32_CONSOLE:BOOL=${Slicer_BUILD_WIN32_CONSOLE}
+    -DSlicer_MAIN_PROJECT:STRING=${Slicer_MAIN_PROJECT}
+    -D${Slicer_MAIN_PROJECT}_APPLICATION_NAME:STRING=${${Slicer_MAIN_PROJECT}_APPLICATION_NAME}
+    -D${Slicer_MAIN_PROJECT_APPLICATION_NAME}_VERSION_MAJOR:STRING=${${Slicer_MAIN_PROJECT_APPLICATION_NAME}_VERSION_MAJOR}
+    -D${Slicer_MAIN_PROJECT_APPLICATION_NAME}_VERSION_MINOR:STRING=${${Slicer_MAIN_PROJECT_APPLICATION_NAME}_VERSION_MINOR}
+    -D${Slicer_MAIN_PROJECT_APPLICATION_NAME}_VERSION_PATCH:STRING=${${Slicer_MAIN_PROJECT_APPLICATION_NAME}_VERSION_PATCH}
+    -D${Slicer_MAIN_PROJECT_APPLICATION_NAME}_VERSION_TWEAK:STRING=${${Slicer_MAIN_PROJECT_APPLICATION_NAME}_VERSION_TWEAK}
+    -D${Slicer_MAIN_PROJECT_APPLICATION_NAME}_VERSION_RC:STRING=${${Slicer_MAIN_PROJECT_APPLICATION_NAME}_VERSION_RC}
+    -DSlicer_APPLICATIONS_DIR:PATH=${Slicer_APPLICATIONS_DIR}
     -DSlicer_EXTENSION_SOURCE_DIRS:STRING=${Slicer_EXTENSION_SOURCE_DIRS}
     -DDOCUMENTATION_ARCHIVES_OUTPUT_DIRECTORY:PATH=${DOCUMENTATION_ARCHIVES_OUTPUT_DIRECTORY}
     -DDOXYGEN_EXECUTABLE:FILEPATH=${DOXYGEN_EXECUTABLE}

@@ -194,6 +194,7 @@ option(WITH_MEMCHECK "Run tests through valgrind." OFF)
 option(WITH_COVERAGE "Enable/Disable coverage" OFF)
 option(Slicer_USE_VTK_DEBUG_LEAKS "Enable VTKs Debug Leaks functionality in both VTK and Slicer." ON)
 option(Slicer_BUILD_DICOM_SUPPORT "Build Slicer with DICOM support" ON)
+option(Slicer_BUILD_DIFFUSION_SUPPORT "Build Slicer with diffusion (DWI, DTI) support" ON)
 option(Slicer_BUILD_QTLOADABLEMODULES "Build Slicer QT Loadable Modules" ON)
 mark_as_advanced(Slicer_BUILD_QTLOADABLEMODULES)
 option(Slicer_USE_PYTHONQT "Integrate a python-QT interpreter into Slicer." ON)
@@ -356,8 +357,14 @@ set(SLICER_REVISION_SPECIFIC_USER_SETTINGS_FILEBASENAME "")
 #-----------------------------------------------------------------------------
 # Main application
 #-----------------------------------------------------------------------------
-set(Slicer_MAIN_PROJECT SlicerApp CACHE INTERNAL "Main project name")
-set(${Slicer_MAIN_PROJECT}_APPLICATION_NAME Slicer CACHE INTERNAL "Main application name")
+if (NOT DEFINED Slicer_MAIN_PROJECT)
+  set(Slicer_MAIN_PROJECT SlicerApp CACHE INTERNAL "Main project name")
+endif()
+if (NOT DEFINED ${Slicer_MAIN_PROJECT}_APPLICATION_NAME)
+  set(${Slicer_MAIN_PROJECT}_APPLICATION_NAME Slicer CACHE INTERNAL "Main application name")
+else()
+  set(SlicerApp_APPLICATION_NAME Slicer)
+endif()
 
 set(Slicer_MAIN_PROJECT_APPLICATION_NAME ${${Slicer_MAIN_PROJECT}_APPLICATION_NAME})
 
@@ -868,7 +875,13 @@ set(Slicer_GUI_LIBRARY qSlicerBaseQTApp)
 add_subdirectory(Modules/Core)
 add_subdirectory(Base/QTApp)
 add_subdirectory(Modules)
-add_subdirectory(Applications)
+if (NOT Slicer_APPLICATIONS_DIR)
+  add_subdirectory(Applications)
+else()
+  add_subdirectory(${Slicer_APPLICATIONS_DIR}
+    ${CMAKE_CURRENT_BINARY_DIR}/Applications
+    )
+endif()
 
 # --------------------------------------------------------------------------
 # Bundle extension(s)

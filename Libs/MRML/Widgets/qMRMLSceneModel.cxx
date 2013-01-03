@@ -540,6 +540,26 @@ bool qMRMLSceneModel::reparent(vtkMRMLNode* node, vtkMRMLNode* newParent)
 }
 
 //------------------------------------------------------------------------------
+bool qMRMLSceneModel::isParentNode(vtkMRMLNode* child, vtkMRMLNode* parent)const
+{
+  for (; child; child = this->parentNode(child))
+    {
+    if (child == parent)
+      {
+      return true;
+      }
+    }
+  return false;
+}
+
+//------------------------------------------------------------------------------
+bool qMRMLSceneModel
+::isAffiliatedNode(vtkMRMLNode* nodeA, vtkMRMLNode* nodeB)const
+{
+  return this->isParentNode(nodeA, nodeB) || this->isParentNode(nodeB, nodeA);
+}
+
+//------------------------------------------------------------------------------
 void qMRMLSceneModel::setListenNodeModifiedEvent(bool listen)
 {
   Q_D(qMRMLSceneModel);
@@ -666,12 +686,14 @@ void qMRMLSceneModel::updateScene()
       preSceneItemCount,
       this->rowCount() - preSceneItemCount - postSceneItemCount);
     this->setColumnCount(oldColumnCount);
+    emit sceneUpdated();
     return;
     }
 
   // if there is no column, there is no scene item.
   if (!this->mrmlSceneItem())
     {
+    emit sceneUpdated();
     return;
     }
 
@@ -689,7 +711,7 @@ void qMRMLSceneModel::updateScene()
 
   // Populate scene with nodes
   this->populateScene();
-  emit this->sceneUpdated();
+  emit sceneUpdated();
 }
 
 //------------------------------------------------------------------------------

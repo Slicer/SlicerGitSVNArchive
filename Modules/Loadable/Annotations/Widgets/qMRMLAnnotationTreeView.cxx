@@ -84,6 +84,7 @@ void qMRMLAnnotationTreeViewPrivate::init()
   q->setNodeTypes(nodeTypes);
   this->SortFilterModel = q->sortFilterProxyModel();
 
+  q->setShowScene(false);
   //this->SortFilterModel->setSourceModel(this->SceneModel);
   //q->qMRMLTreeView::setModel(this->SortFilterModel);
 
@@ -139,6 +140,23 @@ void qMRMLAnnotationTreeView::onSelectionChanged(const QItemSelection& index,con
 }
 
 //------------------------------------------------------------------------------
+void qMRMLAnnotationTreeView::onCurrentRowChanged(const QModelIndex& index)
+{
+  Q_D(qMRMLAnnotationTreeView);
+
+  // if the user clicked on a hierarchy, set this as the active one
+  // this means, new annotations or new user-created hierarchies will be created
+  // as childs of this one
+  vtkMRMLNode *mrmlNode = d->SortFilterModel->mrmlNodeFromIndex(index);
+  vtkMRMLNode* activeNode =
+    this->annotationModel()->activeHierarchyNode(mrmlNode);
+  this->m_Logic->SetActiveHierarchyNodeID(
+    activeNode ? activeNode->GetID() : 0);
+
+  this->Superclass::onCurrentRowChanged(index);
+}
+
+//------------------------------------------------------------------------------
 void qMRMLAnnotationTreeView::onClicked(const QModelIndex& index)
 {
 
@@ -149,48 +167,26 @@ void qMRMLAnnotationTreeView::onClicked(const QModelIndex& index)
     {
     return;
     }
-  // if the user clicked on a hierarchy, set this as the active one
-  // this means, new annotations or new user-created hierarchies will be created
-  // as childs of this one
-
-  if(mrmlNode->IsA("vtkMRMLAnnotationHierarchyNode"))
-    {
-    this->m_Logic->SetActiveHierarchyNodeID(mrmlNode->GetID());
-    }
-  else
-    {
-    // if the user clicked on a row that isn't a hierarchy node, reset the
-    // active hierarchy to the parent hierarchy of this node (going via the
-    // hierarchy node associated with this node)
-    if(mrmlNode &&
-       !mrmlNode->IsA("vtkMRMLAnnotationHierarchyNode"))
-      {
-      vtkMRMLHierarchyNode *hnode = vtkMRMLAnnotationHierarchyNode::GetAssociatedHierarchyNode(this->mrmlScene(), mrmlNode->GetID());
-      if (hnode && hnode->GetParentNode())
-        {
-        this->m_Logic->SetActiveHierarchyNodeID(hnode->GetParentNode()->GetID());
-        }
-      }
-    }
 
   // check if user clicked on icon, this can happen even after we marked a
   // hierarchy as active
-  if (index.column() == qMRMLSceneAnnotationModel::CheckedColumn)
+  if (index.column() == d->SceneModel->checkableColumn())
     {
     // Let the superclass view to handle the event, it will update the item
     // which will update the node.
     }
-  else if (index.column() == qMRMLSceneAnnotationModel::VisibilityColumn)
+  else if (index.column() == d->SceneModel->visibilityColumn())
     {
+    // Let the superclass view to handle the event.
     // user wants to toggle the visibility of the annotation
-    this->onVisibilityColumnClicked(mrmlNode);
+    //this->onVisibilityColumnClicked(mrmlNode);
     }
-  else if (index.column() == qMRMLSceneAnnotationModel::LockColumn)
+  else if (index.column() == d->SceneModel->lockColumn())
     {
     // user wants to toggle the un-/lock of the annotation
     this->onLockColumnClicked(mrmlNode);
     }
-  else if (index.column() == qMRMLSceneAnnotationModel::EditColumn)
+  else if (index.column() == d->SceneModel->editColumn())
     {
     // user wants to edit the properties of this annotation
     // signal the widget
@@ -236,14 +232,16 @@ void qMRMLAnnotationTreeView::toggleLockForSelected()
     return;
     }
 
-  for (int i = 0; i < selected.size(); ++i) {
+  for (int i = 0; i < selected.size(); ++i)
+    {
 
     // we need to prevent looping through all columns
     // there we only update once a row
-    if (selected.at(i).column() == qMRMLSceneAnnotationModel::LockColumn)
+    if (selected.at(i).column() == d->SceneModel->lockColumn())
       {
 
-      vtkMRMLAnnotationNode* annotationNode = vtkMRMLAnnotationNode::SafeDownCast(d->SortFilterModel->mrmlNodeFromIndex(selected.at(i)));
+      vtkMRMLAnnotationNode* annotationNode = vtkMRMLAnnotationNode::SafeDownCast(
+        d->SortFilterModel->mrmlNodeFromIndex(selected.at(i)));
 
       if (annotationNode)
         {
@@ -262,27 +260,13 @@ void qMRMLAnnotationTreeView::toggleVisibilityForSelected()
   Q_D(qMRMLAnnotationTreeView);
   QModelIndexList selected = this->selectedIndexes();
 
-  // first, check if we selected anything
-  if (selected.isEmpty())
+  foreach(const QModelIndex& index, selected )
     {
-    return;
-    }
-
-  for (int i = 0; i < selected.size(); ++i)
-    {
-
     // we need to prevent looping through all columns
     // there we only update once a row
-    if (selected.at(i).column() == qMRMLSceneAnnotationModel::VisibilityColumn)
+    if (index.column() == d->SceneModel->visibilityColumn())
       {
-
-      vtkMRMLAnnotationNode* annotationNode = vtkMRMLAnnotationNode::SafeDownCast(d->SortFilterModel->mrmlNodeFromIndex(selected.at(i)));
-
-      if (annotationNode)
-        {
-        this->onVisibilityColumnClicked(annotationNode);
-        }
-
+      this->toggleVisibility(index);
       }
 
     } // for loop
@@ -367,7 +351,7 @@ void qMRMLAnnotationTreeView::deleteSelected()
 
     // we need to prevent looping through all columns
     // there we only update once a row
-    if (selected.at(i).column() == qMRMLSceneAnnotationModel::VisibilityColumn)
+    if (selected.at(i).column() == d->SceneModel->visibilityColumn())
       {
 
       vtkMRMLAnnotationNode* annotationNode = vtkMRMLAnnotationNode::SafeDownCast(d->SortFilterModel->mrmlNodeFromIndex(selected.at(i)));
@@ -426,17 +410,14 @@ void qMRMLAnnotationTreeView::selectedAsCollection(vtkCollection* collection)
 
       // we need to prevent looping through all columns
       // there we only update once a row
-      if (selected.at(i).column() == qMRMLSceneAnnotationModel::VisibilityColumn)
-        {
-
-        vtkMRMLNode* node = vtkMRMLNode::SafeDownCast(d->SortFilterModel->mrmlNodeFromIndex(selected.at(i)));
-
-        //if (node->IsA("vtkMRMLAnnotationNode"))
-         // {
-        collection->AddItem(node);
-         // }
-
-        }
+    if (selected.at(i).column() == d->SceneModel->visibilityColumn())
+      {
+      vtkMRMLNode* node = vtkMRMLNode::SafeDownCast(d->SortFilterModel->mrmlNodeFromIndex(selected.at(i)));
+      //if (node->IsA("vtkMRMLAnnotationNode"))
+      // {
+      collection->AddItem(node);
+      // }
+      }
 
     } // for
 
@@ -456,21 +437,24 @@ bool qMRMLAnnotationTreeView::viewportEvent(QEvent* e)
   // reset the cursor if we leave the viewport
   if(e->type() == QEvent::Leave)
     {
-    setCursor(QCursor());
+    this->setCursor(QCursor());
     }
 
-  return QTreeView::viewportEvent(e);
+  return this->Superclass::viewportEvent(e);
 }
 
 //------------------------------------------------------------------------------
 void qMRMLAnnotationTreeView::mouseMoveEvent(QMouseEvent* e)
 {
-  this->QTreeView::mouseMoveEvent(e);
+  Q_D(qMRMLAnnotationTreeView);
+  this->Superclass::mouseMoveEvent(e);
 
   // get the index of the current column
   QModelIndex index = indexAt(e->pos());
 
-  if (index.column() == qMRMLSceneAnnotationModel::VisibilityColumn || index.column() == qMRMLSceneAnnotationModel::LockColumn || index.column() == qMRMLSceneAnnotationModel::EditColumn)
+  if (index.column() == d->SceneModel->visibilityColumn() ||
+      index.column() == d->SceneModel->lockColumn() ||
+      index.column() == d->SceneModel->editColumn())
     {
     // we are over a column with a clickable icon
     // let's change the cursor
@@ -496,55 +480,14 @@ void qMRMLAnnotationTreeView::mouseMoveEvent(QMouseEvent* e)
 //------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------
-void qMRMLAnnotationTreeView::setSelectedNode(const char* id)
-{
-  Q_D(qMRMLAnnotationTreeView);
-
-  vtkMRMLNode* node = this->mrmlScene()->GetNodeByID(id);
-
-  if (node)
-    {
-    this->setCurrentIndex(d->SortFilterModel->indexFromMRMLNode(node));
-    }
-}
-
-//------------------------------------------------------------------------------
 void qMRMLAnnotationTreeView::hideScene()
 {
   Q_D(qMRMLAnnotationTreeView);
 
-  // first, we set the root index to the mrmlScene
-  // this works also if the scene is not defined yet
-  QModelIndex root = d->SceneModel->mrmlSceneIndex();
-
-  /* don't hide the top level node
-  if (this->m_Logic &&
-      this->m_Logic->GetMRMLScene())
-    {
-    // if the logic is already registered, we look for the first annotationHierarchyNode
-    vtkMRMLNode* toplevelNode = this->m_Logic->GetMRMLScene()->GetNthNodeByClass(0,"vtkMRMLAnnotationHierarchyNode");
-
-    if (toplevelNode)
-      {
-      // if we find it, we use it as the root index
-      root = d->SceneModel->indexes(toplevelNode)[0];
-      }
-    }
-  */
-  this->setRootIndex(d->SortFilterModel->mapFromSource(root));
-
-
   // set the column widths
-  // If the model hasn't been populated yet, the columns don't exist and
-  // QHeaderView::setResizeMode asserts.
-  if ( this->header()->visualIndex(qMRMLSceneAnnotationModel::LockColumn) != -1)
+  for (int i = 0; i < this->header()->count(); ++i)
     {
-    this->header()->setResizeMode(qMRMLSceneAnnotationModel::CheckedColumn, (QHeaderView::ResizeToContents));
-    this->header()->setResizeMode(qMRMLSceneAnnotationModel::VisibilityColumn, (QHeaderView::ResizeToContents));
-    this->header()->setResizeMode(qMRMLSceneAnnotationModel::LockColumn, (QHeaderView::ResizeToContents));
-    this->header()->setResizeMode(qMRMLSceneAnnotationModel::EditColumn, (QHeaderView::ResizeToContents));
-    this->header()->setResizeMode(qMRMLSceneAnnotationModel::ValueColumn, (QHeaderView::ResizeToContents));
-    this->header()->setResizeMode(qMRMLSceneAnnotationModel::TextColumn, (QHeaderView::ResizeToContents));
+    this->header()->setResizeMode(i, QHeaderView::ResizeToContents);
     }
 }
 
@@ -555,12 +498,12 @@ void qMRMLAnnotationTreeView::hideScene()
 //------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------
-void qMRMLAnnotationTreeView::onVisibilityColumnClicked(vtkMRMLNode* node)
+void qMRMLAnnotationTreeView::toggleVisibility(const QModelIndex& index)
 {
-
+  Q_D(qMRMLAnnotationTreeView);
+  vtkMRMLNode* node = d->SortFilterModel->mrmlNodeFromIndex(index);
   if (!node)
     {
-    // no node found!
     return;
     }
 
@@ -571,7 +514,10 @@ void qMRMLAnnotationTreeView::onVisibilityColumnClicked(vtkMRMLNode* node)
     // this is a valid annotationNode
     annotationNode->SetDisplayVisibility(!annotationNode->GetDisplayVisibility());
     }
-
+  else
+    {
+    this->Superclass::toggleVisibility(index);
+    }
   // taking out the switch for hierarchy nodes, do it via the buttons above
 /*
   vtkMRMLAnnotationHierarchyNode* hierarchyNode = vtkMRMLAnnotationHierarchyNode::SafeDownCast(node);
@@ -621,7 +567,7 @@ void qMRMLAnnotationTreeView::onLockColumnClicked(vtkMRMLNode* node)
 void qMRMLAnnotationTreeView::mousePressEvent(QMouseEvent* event)
 {
   // skip qMRMLTreeView
-  this->QTreeView::mousePressEvent(event);
+  this->Superclass::mousePressEvent(event);
 }
 
 //------------------------------------------------------------------------------
@@ -647,4 +593,13 @@ void qMRMLAnnotationTreeView::setLogic(vtkSlicerAnnotationModuleLogic* logic)
   // propagate down to model
   d->SceneModel->setLogic(this->m_Logic);
 
+}
+
+//-----------------------------------------------------------------------------
+/// Annotation model
+//-----------------------------------------------------------------------------
+qMRMLSceneAnnotationModel* qMRMLAnnotationTreeView::annotationModel()const
+{
+  Q_D(const qMRMLAnnotationTreeView);
+  return d->SceneModel;
 }

@@ -16,12 +16,13 @@ class vtkMRMLAnnotationTextDisplayNode;
 #include <string>
 
 /// \ingroup Slicer_QtModules_Annotation
-class VTK_SLICER_ANNOTATIONS_MODULE_LOGIC_EXPORT vtkSlicerAnnotationModuleLogic :
-  public vtkSlicerModuleLogic
+class VTK_SLICER_ANNOTATIONS_MODULE_LOGIC_EXPORT vtkSlicerAnnotationModuleLogic
+  :public vtkSlicerModuleLogic
 {
 public:
   enum Events{
-    RefreshRequestEvent = vtkCommand::UserEvent
+    RefreshRequestEvent = vtkCommand::UserEvent,
+    HierarchyNodeAddedEvent
   };
   static vtkSlicerAnnotationModuleLogic *New();
   vtkTypeRevisionMacro(vtkSlicerAnnotationModuleLogic,vtkSlicerModuleLogic);
@@ -138,6 +139,7 @@ public:
 
   /// Get the icon name of an Annotation MRML node
   const char * GetAnnotationIcon(const char * id);
+  const char * GetAnnotationIcon(vtkMRMLNode* mrmlNode);
 
   /// Get the lock flag of an Annotation MRML node
   int GetAnnotationLockedUnlocked(const char * id);
