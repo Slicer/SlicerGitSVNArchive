@@ -31,6 +31,7 @@
 #include "qMRMLItemDelegate.h"
 #include "qMRMLSceneDisplayableModel.h"
 #include "qMRMLSceneModelHierarchyModel.h"
+#include "qMRMLScenePatientHierarchyModel.h"
 #include "qMRMLSceneTransformModel.h"
 #include "qMRMLSortFilterHierarchyProxyModel.h"
 #include "qMRMLTreeView_p.h"
@@ -316,6 +317,11 @@ void qMRMLTreeView::setSceneModelType(const QString& modelName)
   else if (modelName == QString("ModelHierarchy"))
     {
     newModel = new qMRMLSceneModelHierarchyModel(this);
+    newFilterModel = new qMRMLSortFilterHierarchyProxyModel(this);
+    }
+  else if (modelName == QString("PatientHierarchy"))
+    {
+    newModel = new qMRMLScenePatientHierarchyModel(this);
     newFilterModel = new qMRMLSortFilterHierarchyProxyModel(this);
     }
   else if (modelName == QString(""))

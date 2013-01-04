@@ -27,11 +27,11 @@
 #ifndef __vtkMRMLPatientHierarchyNode_h
 #define __vtkMRMLPatientHierarchyNode_h
 
-#include "vtkMRMLDisplayableHierarchyNode.h"
+#include "vtkMRMLHierarchyNode.h"
 
 /// \brief MRML node to represent the patient hierarchy of DICOM objects
 ///        (Patient / Study / Series)
-class VTK_MRML_EXPORT vtkMRMLPatientHierarchyNode : public vtkMRMLDisplayableHierarchyNode
+class VTK_MRML_EXPORT vtkMRMLPatientHierarchyNode : public vtkMRMLHierarchyNode
 {
 public:
   enum PatientHierarchyLevel
@@ -45,7 +45,7 @@ public:
 
 public:
   static vtkMRMLPatientHierarchyNode *New();
-  vtkTypeMacro(vtkMRMLPatientHierarchyNode,vtkMRMLDisplayableHierarchyNode);
+  vtkTypeMacro(vtkMRMLPatientHierarchyNode,vtkMRMLHierarchyNode);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   virtual vtkMRMLNode* CreateNodeInstance();

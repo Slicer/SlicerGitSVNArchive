@@ -315,12 +315,13 @@ class DICOMScalarVolumePluginClass(DICOMPlugin):
 
       seriesNode = slicer.vtkMRMLPatientHierarchyNode()
       seriesNode.HideFromEditorsOff()
-      seriesNode.SetDisplayableNodeID(volumeNode.GetID())
+      seriesNode.SetAssociatedNodeID(volumeNode.GetID())
       seriesNode.SetLevel(slicer.vtkMRMLPatientHierarchyNode.Series)
       seriesNode.SetDicomDatabaseFileName(databaseFile)
       seriesDescription = slicer.dicomDatabase.fileValue(firstFile,self.tags['seriesDescription'])
       if seriesDescription == '':
         seriesDescription = 'No description'
+      seriesDescription = seriesDescription + '_Hierarchy'
       seriesNode.SetName(seriesDescription)
       seriesInstanceUid = slicer.dicomDatabase.fileValue(firstFile,self.tags['seriesInstanceUID'])
       seriesNode.SetInstanceUid(seriesInstanceUid)

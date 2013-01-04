@@ -144,7 +144,8 @@ vtkMRMLPatientHierarchyNode::GetPatientHierarchyNodeByInstanceUid(
   for (unsigned int i=0; i<numberOfNodes; i++)
     {
     vtkMRMLPatientHierarchyNode *node = vtkMRMLPatientHierarchyNode::SafeDownCast(patientHierarchyNodes[i]);
-    if (node && !strcmp(dicomDatabaseFileName, node->GetDicomDatabaseFileName())
+    if (node && node->GetInstanceUid()
+             && !strcmp(dicomDatabaseFileName, node->GetDicomDatabaseFileName())
              && !strcmp(instanceUid, node->GetInstanceUid()) )
       {
       return node;
