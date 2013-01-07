@@ -228,3 +228,101 @@ void vtkMRMLPatientHierarchyNode::InsertSeriesInHierarchy(
 
   seriesNode->SetParentNodeID(studyNode->GetID());
 }
+
+//---------------------------------------------------------------------------
+bool vtkMRMLPatientHierarchyNode::AreNodesInSameBranch( vtkMRMLScene *scene,
+                                                       const char* nodeId1, const char* nodeId2,
+                                                       PatientHierarchyLevel lowestCommonLevel )
+{
+  if ( !scene || !nodeId1 || !nodeId2 )
+    {
+    return false;
+    }
+
+  if (lowestCommonLevel < Patient)
+    {
+    vtkErrorWithObjectMacro(scene,
+      "vtkMRMLPatientHierarchyNode::AreNodesInSameBranch: Invalid lowest common level!");
+    return false;
+    }
+
+  if (lowestCommonLevel == Subseries)
+    {
+    vtkErrorWithObjectMacro(scene,
+      "vtkMRMLPatientHierarchyNode::AreNodesInSameBranch: Lowest common level must be Series or above!");
+    return false;
+    }
+
+  // Get input nodes
+  vtkMRMLPatientHierarchyNode* node1 = vtkMRMLPatientHierarchyNode::SafeDownCast(scene->GetNodeByID(nodeId1));
+  vtkMRMLPatientHierarchyNode* node2 = vtkMRMLPatientHierarchyNode::SafeDownCast(scene->GetNodeByID(nodeId2));
+
+  // If not hierarchy nodes, check if they have an associated patient hierarchy node
+  if (!node1)
+    {
+    node1 = vtkMRMLPatientHierarchyNode::SafeDownCast(
+      vtkMRMLHierarchyNode::GetAssociatedHierarchyNode(scene, nodeId1) );
+    }
+  if (!node2)
+    {
+    node2 = vtkMRMLPatientHierarchyNode::SafeDownCast(
+      vtkMRMLHierarchyNode::GetAssociatedHierarchyNode(scene, nodeId2) );
+    }
+
+  // Check if valid nodes are found
+  if (!node1 || !node2)
+    {
+    return false;
+    }
+
+  // If either input node is already higher level than the lowest common level then return with false
+  if (node1->GetLevel() < lowestCommonLevel || node2->GetLevel() < lowestCommonLevel)
+    {
+    return false;
+    }
+
+  // Walk the hierarchy up until we reach the lowest common level
+  while (node1->GetLevel() > lowestCommonLevel)
+    {
+    node1 = vtkMRMLPatientHierarchyNode::SafeDownCast(node1->GetParentNode());
+    }
+  while (node2->GetLevel() > lowestCommonLevel)
+    {
+    node2 = vtkMRMLPatientHierarchyNode::SafeDownCast(node2->GetParentNode());
+    }
+
+  // Sanity check
+  if (!node1 || !node2)
+    {
+    vtkErrorWithObjectMacro(scene,
+      "vtkMRMLPatientHierarchyNode::AreNodesInSameBranch: Invalid patient hierarchy tree - level inconsistency!");
+    return false;
+    }
+  if ( !node1->GetInstanceUid() || !node1->GetDicomDatabaseFileName()
+    || !node2->GetInstanceUid() || !node2->GetDicomDatabaseFileName() )
+    {
+    vtkErrorWithObjectMacro(scene,
+      "vtkMRMLPatientHierarchyNode::AreNodesInSameBranch: Found ancestor node contains empty Instance UID or DICOM database file name!");
+    return false;
+    }
+
+  // Check if the found nodes match
+  // (handling the case when two patient hierarchy nodes point to the same DICOM object)
+  if ( !strcmp(node1->GetInstanceUid(), node2->GetInstanceUid())
+    && !strcmp(node1->GetDicomDatabaseFileName(), node2->GetDicomDatabaseFileName()) )
+    {
+    return true;
+    }
+
+  return false;
+}
+
+//---------------------------------------------------------------------------
+bool vtkMRMLPatientHierarchyNode::AreNodesInSameBranch( vtkMRMLScene *scene,
+                                                       const char* nodeId1, const char* nodeId2,
+                                                       int lowestCommonLevel )
+{
+  return vtkMRMLPatientHierarchyNode::AreNodesInSameBranch(
+                                      scene, nodeId1, nodeId2,
+                                      (PatientHierarchyLevel)lowestCommonLevel );
+}

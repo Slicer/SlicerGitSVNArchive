@@ -84,6 +84,20 @@ public:
     vtkMRMLScene *scene, const char* dicomDatabaseFileName, 
     const char* patientId, const char* studyInstanceUid, const char* seriesInstanceUid );
 
+  /// Determine if two patient hierarchy nodes are in the same branch (share the same parent)
+  /// \param nodeId1 ID of the first node to check. Can be patient hierarchy node or a node
+  ///   associated with one
+  /// \param nodeId2 ID of the second node to check
+  /// \param lowestCommonLevel Lowest level on which they have to share an ancestor
+  /// \return True if the two nodes or their associated hierarchy nodes share a parent on the
+  ///   specified level, false otherwise
+  static bool AreNodesInSameBranch( vtkMRMLScene *scene,
+    const char* nodeId1, const char* nodeId2, PatientHierarchyLevel lowestCommonLevel );
+
+  /// Determine if two patient hierarchy nodes are in the same branch. For python compatibility
+  static bool AreNodesInSameBranch( vtkMRMLScene *scene,
+    const char* nodeId1, const char* nodeId2, int lowestCommonLevel );
+
 protected:
   /// The instance UID of the corresponding DICOM entity in the database
   char* InstanceUid;
