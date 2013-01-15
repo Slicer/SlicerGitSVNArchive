@@ -11,7 +11,20 @@ if(POLICY CMP0017)
   cmake_policy(SET CMP0017 OLD)
 endif()
 
-find_package(ITK REQUIRED)
+if(${ITK_VERSION_MAJOR} GREATER 3)
+  set(${CMAKE_PROJECT_NAME}_ITK_COMPONENTS
+    ITKCommon
+    ITKIOImageBase
+    ITKZLIB
+    )
+  find_package(ITK COMPONENTS ${${CMAKE_PROJECT_NAME}_ITK_COMPONENTS})
+else()
+  find_package(ITK REQUIRED)
+endif()
+if(${ITK_VERSION_MAJOR} GREATER 3)
+  set(ITK_NO_IO_FACTORY_REGISTER_MANAGER 1) # See Libs/ITKFactoryRegistration/CMakeLists.txt
+  list(APPEND ITK_LIBRARIES ITKFactoryRegistration)
+endif()
 include(${ITK_USE_FILE})
 
 if(NOT DEFINED BUILD_SHARED_LIBS)

@@ -257,11 +257,6 @@ CMAKE_DEPENDENT_OPTION(Slicer_USE_SimpleITK "Build Slicer with SimpleITK support
 # The following option has been added for conveniency so that "extension-like"
 # module can be enabled/disabled at the superbuild level.
 CMAKE_DEPENDENT_OPTION(
-  Slicer_BUILD_BRAINSTOOLS "Build the BRAINS subset of registration and segmentation tools." ON
-  "Slicer_BUILD_CLI_SUPPORT AND Slicer_BUILD_CLI" OFF)
-mark_as_advanced(Slicer_BUILD_BRAINSTOOLS)
-
-CMAKE_DEPENDENT_OPTION(
   Slicer_BUILD_ChangeTrackerPy "Build ChangeTrackerPy." ON
   "Slicer_BUILD_CLI_SUPPORT AND Slicer_BUILD_QTSCRIPTEDMODULES" OFF)
 mark_as_advanced(Slicer_BUILD_ChangeTrackerPy)
@@ -292,10 +287,10 @@ CMAKE_DEPENDENT_OPTION(
   "Slicer_BUILD_QTSCRIPTEDMODULES" OFF)
 mark_as_advanced(Slicer_BUILD_SlicerWebGLExport)
 
-## This does not yet build cleanly in the slicer environment, so turn off by default
-CMAKE_DEPENDENT_OPTION(Slicer_BUILD_DWIConvert "Build DWIConvert." OFF
-  "Slicer_BUILD_DICOM_SUPPORT" OFF)
-mark_as_advanced(Slicer_BUILD_DWIConvert)
+CMAKE_DEPENDENT_OPTION(
+  Slicer_BUILD_BRAINSTOOLS "Build the BRAINS subset of registration and segmentation tools." ON
+  "Slicer_BUILD_CLI_SUPPORT AND Slicer_BUILD_CLI" OFF)
+mark_as_advanced(Slicer_BUILD_BRAINSTOOLS)
 
 #-----------------------------------------------------------------------------
 # Install no development files by default, but allow the user to get
@@ -595,7 +590,85 @@ endif()
 # ITK
 #-----------------------------------------------------------------------------
 set(expected_ITK_VERSION_MAJOR ${ITK_VERSION_MAJOR})
-find_package(ITK REQUIRED)
+set(Slicer_ITK_COMPONENTS "")
+if(${ITK_VERSION_MAJOR} GREATER 3)
+  set(ITK_IO_MODULES_USED
+    ITKIOJPEG
+    ITKIOGDCM
+    ITKIOBMP
+    ITKIOLSM
+    ITKIOPNG
+    ITKIOTIFF
+    ITKIOVTK
+    ITKIOStimulate
+    ITKIOBioRad
+    ITKIOMeta
+    ITKIONIFTI
+    ITKIONRRD
+    ITKIOGIPL
+    )
+  if(Slicer_BUILD_DICOM_SUPPORT)
+    list(APPEND ITK_IO_MODULES_USED ITKIODCMTK)
+  endif()
+  set(Slicer_ITK_COMPONENTS
+    ITKAnisotropicSmoothing
+    ITKAntiAlias
+    ITKBiasCorrection
+    ITKBinaryMathematicalMorphology
+    ITKCommon
+    ITKConnectedComponents
+    ITKCurvatureFlow
+    ITKDeprecated
+    ITKDiffusionTensorImage
+    ITKDisplacementField
+    ITKDistanceMap
+    ITKFastMarching
+    ITKHDF5
+    ITKIOImageBase
+    ITKIOSpatialObjects
+    ITKIOStimulate
+    ITKIOTransformBase
+    ITKImageAdaptors
+    ITKImageCompare
+    ITKImageCompose
+    ITKImageFeature
+    ITKImageFilterBase
+    ITKImageFunction
+    ITKImageFusion
+    ITKImageGradient
+    ITKImageGrid
+    ITKImageIntensity
+    ITKImageSources
+    ITKImageStatistics
+    ITKLabelVoting
+    ITKLevelSets
+    ITKMathematicalMorphology
+    ITKMesh
+    ITKOptimizers
+    ITKPDEDeformableRegistration
+    ITKPath
+    ITKQuadEdgeMesh
+    ITKQuadEdgeMeshFiltering
+    ITKRegionGrowing
+    ITKRegistrationCommon
+    ITKReview
+    ITKSmoothing
+    ITKSpatialObjects
+    ITKStatistics
+    ITKTestKernel
+    ITKThresholding
+    ITKTransform
+    ITKV3Compatibility
+    ITKVTK
+    #    ITKVtkGlue
+    ITKZLIB
+    ${ITK_IO_MODULES_USED}
+    )
+  find_package(ITK COMPONENTS ${Slicer_ITK_COMPONENTS})
+else()
+  find_package(ITK REQUIRED)
+endif()
+
 if(${ITK_VERSION_MAJOR} VERSION_LESS ${expected_ITK_VERSION_MAJOR})
   # Note: Since ITKv3 doesn't include a ITKConfigVersion.cmake file, let's check the version
   #       explicitly instead of passing the version as an argument to find_package() command.
@@ -605,6 +678,10 @@ if(${ITK_VERSION_MAJOR} VERSION_LESS ${expected_ITK_VERSION_MAJOR})
                       "  ${ITK_CONFIG}, version: ${ITK_VERSION_MAJOR}.${ITK_VERSION_MINOR}.${ITK_VERSION_PATCH}\n")
 endif()
 
+if(${ITK_VERSION_MAJOR} GREATER 3)
+  set(ITK_NO_IO_FACTORY_REGISTER_MANAGER 1) # See Libs/ITKFactoryRegistration/CMakeLists.txt
+  list(APPEND ITK_LIBRARIES ITKFactoryRegistration)
+endif()
 include(${ITK_USE_FILE})
 
 #-----------------------------------------------------------------------------
@@ -753,6 +830,7 @@ endif()
 # SlicerExecutionModel settings
 #-----------------------------------------------------------------------------
 set(SlicerExecutionModel_EXTRA_INCLUDE_DIRECTORIES "" CACHE INTERNAL "SlicerExecutionModel extra includes" FORCE)
+set(SlicerExecutionModel_EXTRA_EXECUTABLE_TARGET_LIBRARIES "" CACHE INTERNAL "SlicerExecutionModel extra executable target libraries" FORCE)
 
 #-----------------------------------------------------------------------------
 # Set Slicer buildin libraries *_DIR variables

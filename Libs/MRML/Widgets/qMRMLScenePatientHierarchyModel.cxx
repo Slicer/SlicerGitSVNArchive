@@ -72,14 +72,14 @@ bool qMRMLScenePatientHierarchyModel::canBeAChild(vtkMRMLNode* node)const
     {
     return false;
     }
-  return node->IsA("vtkMRMLPatientHierarchyNode") || node->IsA("vtkMRMLNode");
+  return node->IsA("vtkMRMLPatientHierarchyNode")/* || node->IsA("vtkMRMLNode")*/;
 }
 
 //------------------------------------------------------------------------------
 bool qMRMLScenePatientHierarchyModel::canBeAParent(vtkMRMLNode* node)const
 {
   vtkMRMLPatientHierarchyNode* hnode = vtkMRMLPatientHierarchyNode::SafeDownCast(node);
-  if (hnode && hnode->GetAssociatedNodeID() == 0)
+  if (hnode/* && hnode->GetAssociatedNodeID() == 0*/)
     {
     return true;
     }

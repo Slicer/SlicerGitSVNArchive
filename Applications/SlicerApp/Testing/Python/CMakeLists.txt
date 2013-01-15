@@ -168,12 +168,14 @@ if(Slicer_USE_QtTesting AND Slicer_USE_PYTHONQT)
   slicer_add_python_unittest(SCRIPT AbdominalAtlasTest.py)
   slicer_add_python_unittest(SCRIPT KneeAtlasTest.py)
   slicer_add_python_unittest(SCRIPT fiber_visibility_crash2438.py)
+  slicer_add_python_unittest(SCRIPT test_tractography_display.py)
   slicer_add_python_unittest(SCRIPT labelToggleBug2049.py)
   slicer_add_python_unittest(SCRIPT sceneImport2428.py)
   slicer_add_python_unittest(SCRIPT SlicerMRBTest.py)
   slicer_add_python_unittest(SCRIPT Slicer4Minute.py)
   slicer_add_python_unittest(SCRIPT Charting.py)
   slicer_add_python_unittest(SCRIPT SliceLinkLogic.py)
+  slicer_add_python_unittest(SCRIPT ScenePerformance.py)
   slicer_add_python_unittest(SCRIPT RSNA2012Vis.py)
   slicer_add_python_unittest(SCRIPT RSNA2012Quant.py)
   slicer_add_python_unittest(SCRIPT slicerCloseCrashBug2590.py)
@@ -184,12 +186,14 @@ if(Slicer_USE_QtTesting AND Slicer_USE_PYTHONQT)
   set(KIT_PYTHON_SCRIPTS
     AtlasTests.py
     fiber_visibility_crash2438.py
+    test_tractography_display.py
     labelToggleBug2049.py
     sceneImport2428.py
     SlicerMRBTest.py
     Slicer4Minute.py
     Charting.py
     SliceLinkLogic.py
+    ScenePerformance.py
     RSNA2012Vis.py
     RSNA2012Quant.py
     slicerCloseCrashBug2590.py
@@ -198,6 +202,7 @@ if(Slicer_USE_QtTesting AND Slicer_USE_PYTHONQT)
     )
 
   set(KIT_PYTHON_RESOURCES
+    Resources/UI/ScenePerformance.ui
     )
 
   ctkMacroCompilePythonScript(

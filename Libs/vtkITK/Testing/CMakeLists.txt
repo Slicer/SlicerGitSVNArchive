@@ -1,17 +1,3 @@
-find_package(VTK REQUIRED)
-if(VTK_FOUND)
-   include(${VTK_USE_FILE})
-else(VTK_FOUND)
-   message(FATAL_ERROR "Cannot build without VTK")
-endif(VTK_FOUND)
-
-find_package( ITK )
-if( ITK_FOUND )
-  include(${ITK_USE_FILE})
-else( ITK_FOUND )
-  message( FATAL_ERROR "Cannot build without ITK" )
-endif( ITK_FOUND )
-
 
 ############################################################################
 # The test is a stand-alone executable.  However, the Slicer
