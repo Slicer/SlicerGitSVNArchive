@@ -113,7 +113,6 @@ void qSlicerDataModuleWidget::setup()
   d->MRMLSceneModelComboBox->addItem(QString("Transform"));
   d->MRMLSceneModelComboBox->addItem(QString("Displayable"));
   d->MRMLSceneModelComboBox->addItem(QString("ModelHierarchy"));
-  d->MRMLSceneModelComboBox->addItem(QString("PatientHierarchy"));
 
   connect(d->DisplayMRMLIDsCheckBox, SIGNAL(toggled(bool)),
           this, SLOT(setMRMLIDsVisible(bool)));

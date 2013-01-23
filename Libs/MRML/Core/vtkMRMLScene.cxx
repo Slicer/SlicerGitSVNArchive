@@ -38,7 +38,6 @@ Version:   $Revision: 1.18 $
 #include "vtkMRMLLinearTransformNode.h"
 #include "vtkMRMLModelNode.h"
 #include "vtkMRMLModelHierarchyNode.h"
-#include "vtkMRMLPatientHierarchyNode.h"
 #include "vtkMRMLROINode.h"
 #include "vtkMRMLROIListNode.h"
 #include "vtkMRMLScriptedModuleNode.h"
@@ -225,10 +224,6 @@ vtkMRMLScene::vtkMRMLScene()
   vtkMRMLDiffusionWeightedVolumeNode *dwvn = vtkMRMLDiffusionWeightedVolumeNode::New();
   this->RegisterNodeClass (dwvn);
   dwvn->Delete();
-
-  vtkMRMLPatientHierarchyNode* phn = vtkMRMLPatientHierarchyNode::New();
-  this->RegisterNodeClass(phn);
-  phn->Delete();
 
 #ifdef MRML_USE_vtkTeem
   vtkMRMLDiffusionTensorVolumeNode *dtvn = vtkMRMLDiffusionTensorVolumeNode::New();

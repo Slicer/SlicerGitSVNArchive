@@ -167,6 +167,7 @@ protected:
   vtkMRMLHierarchyNode(const vtkMRMLHierarchyNode&);
   void operator=(const vtkMRMLHierarchyNode&);
 
+
   /// 
   /// String ID of the parent hierarchy MRML node
   void SetParentNodeIDReference(const char* id);
@@ -199,6 +200,21 @@ protected:
   /// Create Associated to hierarchy map, 
   /// return number of Associated hierarchy nodes
   static int UpdateAssociatedToHierarchyMap(vtkMRMLScene *scene);
+  
+  typedef std::map<std::string, vtkMRMLHierarchyNode *> AssociatedHierarchyNodesType;
+
+  static std::map< vtkMRMLScene*, AssociatedHierarchyNodesType> SceneAssociatedHierarchyNodes;
+
+  static std::map< vtkMRMLScene*, unsigned long> SceneAssociatedHierarchyNodesMTime;
+
+  double SortingValue;
+
+  static double MaximumSortingValue;
+
+  void UpdateChildrenMap();
+
+  /// is this a node that's only supposed to have one child?
+  int AllowMultipleChildren;
 
   /// Invoke hierarchy modified event(s)
   /// It should be fired on any node that see its location changed relative to
@@ -206,28 +222,6 @@ protected:
   /// Invoke the event on the passed node if not null, otherwise on the
   /// associated node if not null.
   void InvokeHierarchyModifiedEvent(vtkMRMLNode *node = NULL);
-
-  ///
-  void UpdateChildrenMap();
-
-protected:
-  ///
-  typedef std::map<std::string, vtkMRMLHierarchyNode *> AssociatedHierarchyNodesType;
-
-  /// 
-  static std::map< vtkMRMLScene*, AssociatedHierarchyNodesType> SceneAssociatedHierarchyNodes;
-
-  /// 
-  static std::map< vtkMRMLScene*, unsigned long> SceneAssociatedHierarchyNodesMTime;
-
-  /// 
-  double SortingValue;
-
-  /// 
-  static double MaximumSortingValue;
-
-  /// is this a node that's only supposed to have one child?
-  int AllowMultipleChildren;
 };
 
 #endif

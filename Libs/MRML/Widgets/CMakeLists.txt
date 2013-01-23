@@ -116,8 +116,6 @@ set(MRMLWidgets_SRCS
   qMRMLSceneModel.h
   qMRMLSceneModelHierarchyModel.cxx
   qMRMLSceneModelHierarchyModel.h
-  qMRMLScenePatientHierarchyModel.cxx
-  qMRMLScenePatientHierarchyModel.h
   qMRMLSceneViewMenu.cxx
   qMRMLSceneViewMenu.h
   qMRMLSceneViewMenu_p.h
@@ -219,7 +217,6 @@ set(MRMLWidgets_MOC_SRCS
   qMRMLSceneFactoryWidget.h
   qMRMLSceneModel.h
   qMRMLSceneModelHierarchyModel.h
-  qMRMLScenePatientHierarchyModel.h
   qMRMLSceneViewMenu.h
   qMRMLSceneViewMenu_p.h
   qMRMLSceneTransformModel.h
