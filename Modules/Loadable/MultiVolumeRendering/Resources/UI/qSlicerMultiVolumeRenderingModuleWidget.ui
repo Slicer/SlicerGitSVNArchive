@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>qSlicerMultiVolumeRenderingModule</class>
- <widget class="qSlicerWidget" name="qSlicerMultiVolumeRenderingModule">
+ <class>qSlicerMultiVolumeRenderingModuleWidget</class>
+ <widget class="qSlicerWidget" name="qSlicerMultiVolumeRenderingModuleWidget">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -658,7 +658,7 @@
  </resources>
  <connections>
   <connection>
-   <sender>qSlicerMultiVolumeRenderingModule</sender>
+   <sender>qSlicerMultiVolumeRenderingModuleWidget</sender>
    <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
    <receiver>MRMLNodeComboBoxBackgroundVolume</receiver>
    <slot>setMRMLScene(vtkMRMLScene*)</slot>
@@ -674,7 +674,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>qSlicerMultiVolumeRenderingModule</sender>
+   <sender>qSlicerMultiVolumeRenderingModuleWidget</sender>
    <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
    <receiver>MRMLNodeComboBoxForegroundVolume</receiver>
    <slot>setMRMLScene(vtkMRMLScene*)</slot>
@@ -690,7 +690,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>qSlicerMultiVolumeRenderingModule</sender>
+   <sender>qSlicerMultiVolumeRenderingModuleWidget</sender>
    <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
    <receiver>MRMLNodeComboBoxLabelmapVolume</receiver>
    <slot>setMRMLScene(vtkMRMLScene*)</slot>

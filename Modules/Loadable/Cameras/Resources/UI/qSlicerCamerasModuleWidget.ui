@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>qSlicerCamerasModule</class>
- <widget class="qSlicerWidget" name="qSlicerCamerasModule">
+ <class>qSlicerCamerasModuleWidget</class>
+ <widget class="qSlicerWidget" name="qSlicerCamerasModuleWidget">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -110,7 +110,7 @@
  </resources>
  <connections>
   <connection>
-   <sender>qSlicerCamerasModule</sender>
+   <sender>qSlicerCamerasModuleWidget</sender>
    <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
    <receiver>ViewNodeSelector</receiver>
    <slot>setMRMLScene(vtkMRMLScene*)</slot>
@@ -126,7 +126,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>qSlicerCamerasModule</sender>
+   <sender>qSlicerCamerasModuleWidget</sender>
    <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
    <receiver>CameraNodeSelector</receiver>
    <slot>setMRMLScene(vtkMRMLScene*)</slot>

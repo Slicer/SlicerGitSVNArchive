@@ -202,14 +202,6 @@ qMRMLSortFilterProxyModel::AcceptType qMRMLSortFilterProxyModel
     {
     return Reject;
     }
-  if (this->showAll())
-    {
-    return true;
-    }
-  if (this->hideAll())
-    {
-    return false;
-    }
   if (d->HiddenNodeIDs.contains(node->GetID()))
     {
     return Reject;
@@ -240,17 +232,6 @@ qMRMLSortFilterProxyModel::AcceptType qMRMLSortFilterProxyModel
     if (!affiliated)
       {
       return Reject;
-      }
-    }
-
-  if (!d->HideNodesUnaffiliatedWithNodeID.isEmpty())
-    {
-    vtkMRMLNode* theNode = sceneModel->mrmlScene()->GetNodeByID(
-      d->HideNodesUnaffiliatedWithNodeID.toLatin1());
-    bool affiliated = sceneModel->isAffiliatedNode(node, theNode);
-    if (!affiliated)
-      {
-      return false;
       }
     }
 

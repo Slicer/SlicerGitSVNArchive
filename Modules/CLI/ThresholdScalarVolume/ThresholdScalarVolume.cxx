@@ -15,8 +15,10 @@
 
 =========================================================================*/
 
+// ITK includes
+#include "itkChangeLabelImageFilter.h"
 #include "itkImageFileWriter.h"
-
+#include "itkMaskNegatedImageFilter.h"
 #include "itkThresholdImageFilter.h"
 
 #include "itkPluginUtilities.h"
@@ -31,7 +33,7 @@ namespace
 {
 
 template <class T>
-int DoIt( int argc, char * argv[], T )
+int DoIt( int argc, char * argv[] )
 {
 
   PARSE_ARGS;
@@ -47,6 +49,16 @@ int DoIt( int argc, char * argv[], T )
 
   typedef itk::ThresholdImageFilter<
     InputImageType>  FilterType;
+  typedef itk::ImageSource<
+    InputImageType>  LastFilterType;
+  typedef itk::ChangeLabelImageFilter<InputImageType, InputImageType>
+    ChangeFilterType;
+  typedef itk::MaskNegatedImageFilter<
+    InputImageType, InputImageType>  NegateFilterType;
+
+  typename LastFilterType::Pointer lastFilter;
+  typename ChangeFilterType::Pointer changeFilter;
+  typename NegateFilterType::Pointer negateFilter;
 
   typename ReaderType::Pointer reader1 = ReaderType::New();
   itk::PluginFilterWatcher watchReader1(reader1, "Read Volume",
@@ -55,6 +67,7 @@ int DoIt( int argc, char * argv[], T )
   reader1->SetFileName( InputVolume.c_str() );
 
   typename FilterType::Pointer filter = FilterType::New();
+  lastFilter = filter;
   itk::PluginFilterWatcher watchFilter(filter,
                                        "Threshold image",
                                        CLPProcessInformation);
@@ -74,12 +87,40 @@ int DoIt( int argc, char * argv[], T )
     {
     filter->ThresholdAbove(ThresholdValue);
     }
+
+  if( Negate )
+    {
+    InputPixelType outsideValue =
+      (filter->GetLower() != itk::NumericTraits< InputPixelType >::NonpositiveMin()) ?
+      filter->GetLower() - 1 : filter->GetUpper() + 1;
+    filter->SetOutsideValue( outsideValue );
+    changeFilter = ChangeFilterType::New();
+    itk::PluginFilterWatcher watchChangeFilter(changeFilter,
+                                               "Relabel image",
+                                               CLPProcessInformation);
+    changeFilter->SetInput(0, filter->GetOutput());
+    changeFilter->SetChange(0, 1);
+    changeFilter->SetChange(outsideValue, 0);
+
+    // Where there is a 0 in the mask, keep the input value. Where there is
+    // a value other than 0 in the mask, set OutsideValue.
+    negateFilter = NegateFilterType::New();
+    lastFilter = negateFilter;
+    itk::PluginFilterWatcher watchNegateFilter(filter,
+                                               "Negate threshold",
+                                               CLPProcessInformation);
+
+    negateFilter->SetInput(0, reader1->GetOutput());
+    negateFilter->SetInput(1, changeFilter->GetOutput()); // filter is the mask
+    negateFilter->SetOutsideValue(OutsideValue);
+    negateFilter->Update();
+    }
   typename WriterType::Pointer writer = WriterType::New();
   itk::PluginFilterWatcher watchWriter(writer,
                                        "Write Volume",
                                        CLPProcessInformation);
   writer->SetFileName( OutputVolume.c_str() );
-  writer->SetInput( filter->GetOutput() );
+  writer->SetInput( lastFilter->GetOutput() );
   writer->SetUseCompression(1);
   writer->Update();
 
@@ -100,40 +141,37 @@ int main( int argc, char * argv[] )
     {
     itk::GetImageType(InputVolume, pixelType, componentType);
 
-    // This filter handles all types on input, but only produces
-    // signed types
-
     switch( componentType )
       {
       case itk::ImageIOBase::UCHAR:
-        return DoIt( argc, argv, static_cast<unsigned char>(0) );
+        return DoIt<unsigned char>( argc, argv );
         break;
       case itk::ImageIOBase::CHAR:
-        return DoIt( argc, argv, static_cast<char>(0) );
+        return DoIt<char>( argc, argv );
         break;
       case itk::ImageIOBase::USHORT:
-        return DoIt( argc, argv, static_cast<unsigned short>(0) );
+        return DoIt<unsigned short>( argc, argv );
         break;
       case itk::ImageIOBase::SHORT:
-        return DoIt( argc, argv, static_cast<short>(0) );
+        return DoIt<short>( argc, argv );
         break;
       case itk::ImageIOBase::UINT:
-        return DoIt( argc, argv, static_cast<unsigned int>(0) );
+        return DoIt<unsigned int>( argc, argv );
         break;
       case itk::ImageIOBase::INT:
-        return DoIt( argc, argv, static_cast<int>(0) );
+        return DoIt<int>( argc, argv );
         break;
       case itk::ImageIOBase::ULONG:
-        return DoIt( argc, argv, static_cast<unsigned long>(0) );
+        return DoIt<unsigned long>( argc, argv );
         break;
       case itk::ImageIOBase::LONG:
-        return DoIt( argc, argv, static_cast<long>(0) );
+        return DoIt<long>( argc, argv );
         break;
       case itk::ImageIOBase::FLOAT:
-        return DoIt( argc, argv, static_cast<float>(0) );
+        return DoIt<float>( argc, argv );
         break;
       case itk::ImageIOBase::DOUBLE:
-        return DoIt( argc, argv, static_cast<double>(0) );
+        return DoIt<double>( argc, argv );
         break;
       case itk::ImageIOBase::UNKNOWNCOMPONENTTYPE:
       default:
