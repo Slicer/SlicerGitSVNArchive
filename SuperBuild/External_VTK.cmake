@@ -36,7 +36,7 @@ endif()
 
 # Set dependency list
 set(${proj}_DEPENDENCIES "")
-if (Slicer_USE_PYTHONQT)
+if (${PROJECT_NAME}_USE_PYTHONQT)
   list(APPEND ${proj}_DEPENDENCIES python)
 endif()
 
@@ -60,12 +60,12 @@ if( ( NOT DEFINED ${extProjName}_DIR AND NOT ${USE_SYSTEM_${extProjName}} )
   set(VTK_WRAP_TCL OFF)
   set(VTK_WRAP_PYTHON OFF)
 
-  if (Slicer_USE_PYTHONQT)
+  if (${PROJECT_NAME}_USE_PYTHONQT)
     set(VTK_WRAP_PYTHON ON)
   endif()
 
   set(VTK_PYTHON_ARGS)
-  if(Slicer_USE_PYTHONQT)
+  if(${PROJECT_NAME}_USE_PYTHONQT)
     set(VTK_PYTHON_ARGS
       -DVTK_INSTALL_PYTHON_USING_CMAKE:BOOL=ON
       -DPYTHON_EXECUTABLE:PATH=${slicer_PYTHON_EXECUTABLE}
@@ -98,7 +98,7 @@ if( ( NOT DEFINED ${extProjName}_DIR AND NOT ${USE_SYSTEM_${extProjName}} )
   endif()
 
   # Disable Tk when Python wrapping is enabled
-  if (Slicer_USE_PYTHONQT)
+  if (${PROJECT_NAME}_USE_PYTHONQT)
     list(APPEND VTK_QT_ARGS -DVTK_USE_TK:BOOL=OFF)
   endif()
 
@@ -163,13 +163,13 @@ if( ( NOT DEFINED ${extProjName}_DIR AND NOT ${USE_SYSTEM_${extProjName}} )
       -DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
       -DBUILD_SHARED_LIBS:BOOL=ON
       -DVTK_USE_PARALLEL:BOOL=ON
-      -DVTK_DEBUG_LEAKS:BOOL=${Slicer_USE_VTK_DEBUG_LEAKS}
+      -DVTK_DEBUG_LEAKS:BOOL=${${PROJECT_NAME}_USE_VTK_DEBUG_LEAKS}
       -DVTK_LEGACY_REMOVE:BOOL=ON
       -DVTK_WRAP_TCL:BOOL=${VTK_WRAP_TCL}
       #-DVTK_USE_RPATH:BOOL=ON # Unused
       ${VTK_TCL_ARGS}
       -DVTK_WRAP_PYTHON:BOOL=${VTK_WRAP_PYTHON}
-      -DVTK_INSTALL_LIB_DIR:PATH=${Slicer_INSTALL_LIB_DIR}
+      -DVTK_INSTALL_LIB_DIR:PATH=${${PROJECT_NAME}_INSTALL_LIB_DIR}
       ${VTK_PYTHON_ARGS}
       ${VTK_QT_ARGS}
       ${VTK_MAC_ARGS}

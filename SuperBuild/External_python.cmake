@@ -32,7 +32,7 @@ endif()
 
 # Set dependency list
 set(python_DEPENDENCIES CTKAPPLAUNCHER)
-if(Slicer_USE_PYTHONQT_WITH_TCL)
+if(${PROJECT_NAME}_USE_PYTHONQT_WITH_TCL)
   if(WIN32)
     list(APPEND python_DEPENDENCIES tcl)
   else()

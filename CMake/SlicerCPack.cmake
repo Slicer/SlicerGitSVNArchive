@@ -10,7 +10,7 @@ endif()
 set(SlicerBlockInstallQtPlugins_subdirectories imageformats sqldrivers)
 include(${Slicer_CMAKE_DIR}/SlicerBlockInstallQtPlugins.cmake)
 
-if(Slicer_BUILD_DICOM_SUPPORT)
+if(${PROJECT_NAME}_BUILD_DICOM_SUPPORT)
   include(${Slicer_CMAKE_DIR}/SlicerBlockInstallDCMTKApps.cmake)
 endif()
 

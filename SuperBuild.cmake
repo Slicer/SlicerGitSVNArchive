@@ -65,9 +65,9 @@ include(SlicerMacroCheckExternalProjectDependency)
 # With CMake 2.8.9 or later, the UPDATE_COMMAND is required for updates to occur.
 # For earlier versions, we nullify the update state to prevent updates and
 # undesirable rebuild.
-set(slicer_external_disable_update UPDATE_COMMAND "")
+set(cmakeversion_external_disable_update UPDATE_COMMAND "")
 if(CMAKE_VERSION VERSION_LESS 2.8.9)
-  set(cmakeversion_external_update ${slicer_external_disable_update})
+  set(cmakeversion_external_update ${cmakeversion_external_disable_update})
 else()
   set(cmakeversion_external_update LOG_UPDATE 1)
 endif()

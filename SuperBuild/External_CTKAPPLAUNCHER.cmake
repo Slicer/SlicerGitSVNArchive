@@ -7,7 +7,7 @@ if(${CMAKE_CURRENT_LIST_FILENAME}_FILE_INCLUDED)
 endif()
 set(${CMAKE_CURRENT_LIST_FILENAME}_FILE_INCLUDED 1)
 
-if(Slicer_USE_CTKAPPLAUNCHER)
+if(${PROJECT_NAME}_USE_CTKAPPLAUNCHER)
 ## External_${extProjName}.cmake files can be recurisvely included,
 ## and cmake variables are global, so when including sub projects it
 ## is important make the extProjName and proj variables

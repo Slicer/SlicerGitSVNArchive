@@ -90,7 +90,7 @@ SlicerMacroCheckExternalProjectDependency(${proj})
   ExternalProject_Add(${proj}
     SVN_REPOSITORY ${tk_SVN_REPOSITORY}
     SVN_REVISION ${tk_SVN_REVISION}
-    "${slicer_external_disable_update}"
+    "${cmakeversion_external_disable_update}"
     SOURCE_DIR ${tk_SOURCE_DIR}
     BUILD_IN_SOURCE ${tk_BUILD_IN_SOURCE}
     CONFIGURE_COMMAND ${tk_CONFIGURE_COMMAND}

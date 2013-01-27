@@ -68,7 +68,7 @@ ExternalProject_Add(${proj}
   DOWNLOAD_DIR ${CMAKE_CURRENT_BINARY_DIR}
   SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/NUMPY
   BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/NUMPY
-  "${slicer_external_disable_update}"
+  "${cmakeversion_external_disable_update}"
   CONFIGURE_COMMAND ${CMAKE_COMMAND}
     -P ${CMAKE_CURRENT_BINARY_DIR}/${proj}_configure_step.cmake
   BUILD_COMMAND ${CMAKE_COMMAND}
@@ -76,7 +76,7 @@ ExternalProject_Add(${proj}
   INSTALL_COMMAND ${CMAKE_COMMAND}
     -P ${CMAKE_CURRENT_BINARY_DIR}/${proj}_install_step.cmake
   PATCH_COMMAND ${CMAKE_COMMAND}
-  -DNUMPY_SRC_DIR=${Slicer_BINARY_DIR}/NUMPY
+  -DNUMPY_SRC_DIR=${${PROJECT_NAME}_BINARY_DIR}/NUMPY
     -P ${CMAKE_CURRENT_LIST_DIR}/${proj}_patch.cmake
   DEPENDS
     ${${proj}_DEPENDENCIES}

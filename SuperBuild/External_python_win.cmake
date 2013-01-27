@@ -38,7 +38,7 @@ endif()
 
 # Point the tkinter build file to the slicer tcl-build
 set(python_PATCH_COMMAND "")
-if(Slicer_USE_PYTHONQT_WITH_TCL)
+if(${PROJECT_NAME}_USE_PYTHONQT_WITH_TCL)
   set(python_tkinter ${python_base}/pyproject.vsprops)
   # The following if statement is specific to VS2010
   if("${MSVC_VERSION}" VERSION_GREATER "1599")
@@ -85,7 +85,7 @@ set_ep_build_command_args(select)
 ExternalProject_Add(${proj}
   URL ${python_URL}
   URL_MD5 ${python_MD5}
-  "${slicer_external_disable_update}"
+  "${cmakeversion_external_disable_update}"
   DOWNLOAD_DIR ${CMAKE_CURRENT_BINARY_DIR}
   SOURCE_DIR python-build
   PATCH_COMMAND ${python_PATCH_COMMAND}
@@ -104,7 +104,7 @@ build_python_target(w9xpopen Build_kill_python)
 build_python_target(pythoncore Build_w9xpopen)
 build_python_target(_socket Build_pythoncore)
 
-if(Slicer_USE_PYTHONQT_WITH_TCL)
+if(${PROJECT_NAME}_USE_PYTHONQT_WITH_TCL)
   build_python_target(_tkinter Build__socket)
   build_python_target(_testcapi Build__tkinter)
 else()
@@ -154,7 +154,7 @@ ExternalProject_Add_Step(${proj} CopyPyconfigHeader
   DEPENDEES install
   )
 
-if(Slicer_USE_PYTHONQT_WITH_TCL)
+if(${PROJECT_NAME}_USE_PYTHONQT_WITH_TCL)
   ExternalProject_Add_Step(${proj} Copy_tkinterPyd
     COMMAND ${CMAKE_COMMAND} -E copy ${PythonPCBuildDir}/_tkinter.pyd ${CMAKE_BINARY_DIR}/python-build/Lib/_tkinter.pyd
     DEPENDEES install
