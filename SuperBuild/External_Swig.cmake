@@ -1,21 +1,40 @@
 
-# Make sure this file is included only once
+# Make sure this file is included only once by creating globally unique varibles
+# based on the name of this included file.
 get_filename_component(CMAKE_CURRENT_LIST_FILENAME ${CMAKE_CURRENT_LIST_FILE} NAME_WE)
 if(${CMAKE_CURRENT_LIST_FILENAME}_FILE_INCLUDED)
   return()
 endif()
 set(${CMAKE_CURRENT_LIST_FILENAME}_FILE_INCLUDED 1)
 
+## External_${extProjName}.cmake files can be recurisvely included,
+## and cmake variables are global, so when including sub projects it
+## is important make the extProjName and proj variables
+## appear to stay constant in one of these files.
+## Store global variables before overwriting (then restore at end of this file.)
+ProjectDependancyPush(CACHED_extProjName ${extProjName})
+ProjectDependancyPush(CACHED_proj ${proj})
+
+# Make sure that the ExtProjName/IntProjName variables are unique globally
+# even if other External_${ExtProjName}.cmake files are sourced by
+# SlicerMacroCheckExternalProjectDependency
+set(extProjName Swig) #The find_package known name
+set(proj        Swig) #This local name
+
+#if(${USE_SYSTEM_${extProjName}})
+#  unset(${extProjName}_DIR CACHE)
+#endif()
+
 # Sanity checks
-if(DEFINED Swig_DIR AND NOT EXISTS ${Swig_DIR})
-  message(FATAL_ERROR "Swig_DIR variable is defined but corresponds to non-existing directory")
+if(DEFINED ${extProjName}_DIR AND NOT EXISTS ${${extProjName}_DIR})
+  message(FATAL_ERROR "${extProjName}_DIR variable is defined but corresponds to non-existing directory")
 endif()
 
 set( TARGET_SWIG_VERSION 2.0.8 )
 if(NOT SWIG_DIR)
   if(WIN32)
     # swig.exe available as pre-built binary on Windows:
-    ExternalProject_Add(Swig
+    ExternalProject_Add(${proj}
       URL http://prdownloads.sourceforge.net/swig/swigwin-${TARGET_SWIG_VERSION}.zip
       URL_MD5 4ab8064b1a8894c8577ef9d0fb2523c8
       SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/swigwin-${TARGET_SWIG_VERSION}
@@ -30,10 +49,10 @@ if(NOT SWIG_DIR)
     set(Swig_DEPEND Swig)
   else()
     # Set dependency list
-    set(Swig_DEPENDENCIES "PCRE")
+    set(${proj}_DEPENDENCIES "PCRE")
 
     # Include dependent projects if any
-    SlicerMacroCheckExternalProjectDependency(Swig)
+    SlicerMacroCheckExternalProjectDependency(${proj})
     #
     # SWIG
     #
@@ -54,7 +73,7 @@ if(NOT SWIG_DIR)
       @ONLY)
     set ( swig_CONFIGURE_COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/swig_configure_step.cmake )
 
-    ExternalProject_add(Swig
+    ExternalProject_Add(${proj}
       URL http://prdownloads.sourceforge.net/swig/swig-${TARGET_SWIG_VERSION}.tar.gz
       URL_MD5  69f917e870efc0712c06ab53217b28d1
       CONFIGURE_COMMAND ${swig_CONFIGURE_COMMAND}
@@ -66,3 +85,6 @@ if(NOT SWIG_DIR)
     set(Swig_DEPEND Swig)
   endif()
 endif()
+
+ProjectDependancyPop(CACHED_extProjName extProjName)
+ProjectDependancyPop(CACHED_proj proj)

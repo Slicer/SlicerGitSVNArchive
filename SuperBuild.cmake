@@ -90,10 +90,14 @@ endif()
 #------------------------------------------------------------------------------
 # Slicer dependency list
 #------------------------------------------------------------------------------
+option(USE_SYSTEM_ITK "Build using an externally defined version of ITK" OFF)
+option(USE_SYSTEM_SlicerExecutionModel "Build using an externally defined version of SlicerExecutionModel"  OFF)
+option(USE_SYSTEM_VTK "Build using an externally defined version of VTK" OFF)
+option(USE_SYSTEM_DCMTK "Build using an externally defined version of DCMTK" OFF)
 
 set(ITK_EXTERNAL_NAME ITKv${ITK_VERSION_MAJOR})
 
-set(Slicer_DEPENDENCIES cmcurl teem VTK ${ITK_EXTERNAL_NAME} CTK jqPlot LibArchive)
+set(Slicer_DEPENDENCIES cmcurl Teem VTK ${ITK_EXTERNAL_NAME} CTK jqPlot LibArchive)
 
 if(Slicer_USE_OpenIGTLink)
   list(APPEND Slicer_DEPENDENCIES OpenIGTLink)
@@ -127,7 +131,7 @@ if(Slicer_BUILD_EXTENSIONMANAGER_SUPPORT)
   list(APPEND Slicer_DEPENDENCIES qMidasAPI)
 endif()
 
-if(Slicer_BUILD_DICOM_SUPPORT)
+if(Slicer_BUILD_DICOM_SUPPORT AND NOT DCMTK_DIR) ## NOTE: if dependancy already added, then don't add it again.
   list(APPEND Slicer_DEPENDENCIES DCMTK)
 endif()
 
@@ -167,7 +171,12 @@ if(DEFINED Slicer_ADDITIONAL_DEPENDENCIES)
   list(APPEND Slicer_DEPENDENCIES ${Slicer_ADDITIONAL_DEPENDENCIES})
 endif()
 
-SlicerMacroCheckExternalProjectDependency(Slicer)
+# Make sure that the ExtProjName/IntProjName variables are unique globally
+# even if other External_${ExtProjName}.cmake files are sourced by
+# SlicerMacroCheckExternalProjectDependency
+set(extProjName Slicer) #The find_package known name
+set(proj        Slicer) #This local name
+SlicerMacroCheckExternalProjectDependency(${proj})
 
 #-----------------------------------------------------------------------------
 # Dump Slicer external project dependencies
@@ -364,7 +373,6 @@ endif()
 #------------------------------------------------------------------------------
 # Configure and build Slicer
 #------------------------------------------------------------------------------
-set(proj Slicer)
 
 ExternalProject_Add(${proj}
   DEPENDS ${Slicer_DEPENDENCIES}

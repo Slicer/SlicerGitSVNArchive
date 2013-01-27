@@ -6,8 +6,6 @@ endif()
 set(python_SOURCE_DIR python)
 set(python_BUILD_IN_SOURCE 1)
 
-
-
 # Set slicer_PYTHON_INCLUDE, slicer_PYTHON_LIBRARY and slicer_PYTHON_EXECUTABLE variables
 set(python_IMPORT_SUFFIX so)
 if(APPLE)
