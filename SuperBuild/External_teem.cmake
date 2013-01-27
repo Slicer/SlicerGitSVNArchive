@@ -50,7 +50,7 @@ ExternalProject_Add(${proj}
   DOWNLOAD_DIR ${CMAKE_CURRENT_BINARY_DIR}
   SOURCE_DIR teem
   BINARY_DIR teem-build
-  "${slicer_external_update}"
+  "${cmakeversion_external_update}"
   CMAKE_GENERATOR ${gen}
   CMAKE_ARGS
       -DCMAKE_CXX_COMPILER:FILEPATH=${CMAKE_CXX_COMPILER}

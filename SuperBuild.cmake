@@ -67,9 +67,9 @@ include(SlicerMacroCheckExternalProjectDependency)
 # undesirable rebuild.
 set(slicer_external_disable_update UPDATE_COMMAND "")
 if(CMAKE_VERSION VERSION_LESS 2.8.9)
-  set(slicer_external_update ${slicer_external_disable_update})
+  set(cmakeversion_external_update ${slicer_external_disable_update})
 else()
-  set(slicer_external_update LOG_UPDATE 1)
+  set(cmakeversion_external_update LOG_UPDATE 1)
 endif()
 
 set(ep_base        "${CMAKE_BINARY_DIR}")
