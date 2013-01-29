@@ -1,26 +1,43 @@
 
-# Make sure this file is included only once
+# Make sure this file is included only once by creating globally unique varibles
+# based on the name of this included file.
 get_filename_component(CMAKE_CURRENT_LIST_FILENAME ${CMAKE_CURRENT_LIST_FILE} NAME_WE)
 if(${CMAKE_CURRENT_LIST_FILENAME}_FILE_INCLUDED)
   return()
 endif()
 set(${CMAKE_CURRENT_LIST_FILENAME}_FILE_INCLUDED 1)
 
+## External_${extProjName}.cmake files can be recurisvely included,
+## and cmake variables are global, so when including sub projects it
+## is important make the extProjName and proj variables
+## appear to stay constant in one of these files.
+## Store global variables before overwriting (then restore at end of this file.)
+ProjectDependancyPush(CACHED_extProjName ${extProjName})
+ProjectDependancyPush(CACHED_proj ${proj})
+
+# Make sure that the ExtProjName/IntProjName variables are unique globally
+# even if other External_${ExtProjName}.cmake files are sourced by
+# SlicerMacroCheckExternalProjectDependency
+set(extProjName zlib) #The find_package known name
+set(proj        zlib) #This local name
+
+#if(${USE_SYSTEM_${extProjName}})
+#  unset(${extProjName}_DIR CACHE)
+#endif()
+
+# Sanity checks
+if(DEFINED ${extProjName}_DIR AND NOT EXISTS ${${extProjName}_DIR})
+  message(FATAL_ERROR "${extProjName}_DIR variable is defined but corresponds to non-existing directory (${${extProjName}_DIR})")
+endif()
+
 # Set dependency list
-set(zlib_DEPENDENCIES "")
+set(${proj}_DEPENDENCIES "")
 
 # Include dependent projects if any
-SlicerMacroCheckExternalProjectDependency(zlib)
-set(proj zlib)
+SlicerMacroCheckExternalProjectDependency(${proj})
 
-if(NOT DEFINED zlib_DIR)
+if(NOT DEFINED ${extProjName}_DIR)
   #message(STATUS "${__indent}Adding project ${proj}")
-
-  set(ADDITIONAL_CMAKE_ARGS)
-  set(zlib_c_flags ${ep_common_c_flags})
-  if(WIN32)
-    set(zlib_c_flags "${ep_common_c_flags} /DZLIB_WINAPI")
-  endif()
 
   # Set CMake OSX variable to pass down the external project
   set(CMAKE_OSX_EXTERNAL_PROJECT_ARGS)
@@ -31,33 +48,59 @@ if(NOT DEFINED zlib_DIR)
       -DCMAKE_OSX_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET})
   endif()
 
-  if(NOT DEFINED git_protocol)
-    set(git_protocol "git")
+  ### --- Project specific additions here
+  set(ADDITIONAL_CMAKE_ARGS)
+  set(zlib_c_flags ${ep_common_c_flags})
+  if(WIN32)
+    set(zlib_c_flags "${ep_common_c_flags} /DZLIB_WINAPI")
   endif()
 
-  ExternalProject_Add(${proj}
-    GIT_REPOSITORY "${git_protocol}://github.com/commontk/zlib.git"
-    GIT_TAG "66a753054b356da85e1838a081aa94287226823e"
-    "${slicer_external_update}"
-    SOURCE_DIR zlib
-    BINARY_DIR zlib-build
-    INSTALL_DIR zlib-install
-    CMAKE_GENERATOR ${gen}
-    CMAKE_ARGS
-      ${CMAKE_OSX_EXTERNAL_PROJECT_ARGS}
+  if(NOT DEFINED git_protocol)
+      set(git_protocol "git")
+  endif()
+
+  set(${proj}_CMAKE_OPTIONS
       -DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
-      # -DCMAKE_CXX_FLAGS:STRING=${ep_common_cxx_flags} # Not used
-      -DCMAKE_C_FLAGS:STRING=${zlib_c_flags}
       -DZLIB_MANGLE_PREFIX:STRING=la_zlib_
       ${ADDITIONAL_CMAKE_ARGS}
       -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
-    DEPENDS
-      ${zlib_DEPENDENCIES}
     )
-  set(zlib_DIR ${CMAKE_BINARY_DIR}/zlib-install)
+  ### --- End Project specific additions
+  set(${proj}_REPOSITORY "${git_protocol}://github.com/commontk/zlib.git")
+  set(${proj}_GIT_TAG "66a753054b356da85e1838a081aa94287226823e")
+  ExternalProject_Add(${proj}
+    GIT_REPOSITORY ${${proj}_REPOSITORY}
+    GIT_TAG ${${proj}_GIT_TAG}
+    SOURCE_DIR ${proj}
+    BINARY_DIR ${proj}-build
+    "${cmakeversion_external_update}"
+    INSTALL_DIR zlib-install
+    CMAKE_GENERATOR ${gen}
+    CMAKE_ARGS
+      #-DCMAKE_CXX_COMPILER:FILEPATH=${CMAKE_CXX_COMPILER}
+      # -DCMAKE_CXX_FLAGS:STRING=${ep_common_cxx_flags} # Not used
+      -DCMAKE_C_COMPILER:FILEPATH=${CMAKE_C_COMPILER}
+      -DCMAKE_C_FLAGS:STRING=${zlib_c_flags}
+      ${CMAKE_OSX_EXTERNAL_PROJECT_ARGS}
+      ${${proj}_CMAKE_OPTIONS}
+    DEPENDS
+      ${${proj}_DEPENDENCIES}
+  )
+  set(${extProjName}_DIR ${CMAKE_BINARY_DIR}/${proj}-install)
 else()
-  # The project is provided using zlib_DIR, nevertheless since other project may depend on zlib,
-  # let's add an 'empty' one
-  SlicerMacroEmptyExternalProject(${proj} "${zlib_DEPENDENCIES}")
+  if(${USE_SYSTEM_${extProjName}})
+    find_package(${extProjName} ${ITK_VERSION_MAJOR} REQUIRED)
+    if(NOT ${extProjName}_DIR)
+      message(FATAL_ERROR "To use the system ${extProjName}, set ${extProjName}_DIR")
+    endif()
+    message("USING the system ${extProjName}, set ${extProjName}_DIR=${${extProjName}_DIR}")
+  endif()
+  # The project is provided using ${extProjName}_DIR, nevertheless since other
+  # project may depend on ${extProjName}, let's add an 'empty' one
+  SlicerMacroEmptyExternalProject(${proj} "${${proj}_DEPENDENCIES}")
 endif()
 
+list(APPEND ${CMAKE_PROJECT_NAME}_SUPERBUILD_EP_VARS ${extProjName}_DIR:PATH)
+
+ProjectDependancyPop(CACHED_extProjName extProjName)
+ProjectDependancyPop(CACHED_proj proj)

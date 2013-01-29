@@ -18,8 +18,8 @@ ProjectDependancyPush(CACHED_proj ${proj})
 # Make sure that the ExtProjName/IntProjName variables are unique globally
 # even if other External_${ExtProjName}.cmake files are sourced by
 # SlicerMacroCheckExternalProjectDependency
-set(extProjName DCMTK) #The find_package known name
-set(proj        DCMTK) #This local name
+set(extProjName Teem) #The find_package known name
+set(proj        Teem) #This local name
 
 #if(${USE_SYSTEM_${extProjName}})
 #  unset(${extProjName}_DIR CACHE)
@@ -31,7 +31,7 @@ if(DEFINED ${extProjName}_DIR AND NOT EXISTS ${${extProjName}_DIR})
 endif()
 
 # Set dependency list
-set(${proj}_DEPENDENCIES "")
+set(${proj}_DEPENDENCIES VTK)
 
 # Include dependent projects if any
 SlicerMacroCheckExternalProjectDependency(${proj})
@@ -51,48 +51,66 @@ if(NOT ( DEFINED "${extProjName}_DIR" OR ( DEFINED "${USE_SYSTEM_${extProjName}}
   set(CMAKE_PROJECT_INCLUDE_EXTERNAL_PROJECT_ARG)
   if(CTEST_USE_LAUNCHERS)
     set(CMAKE_PROJECT_INCLUDE_EXTERNAL_PROJECT_ARG
-      "-DCMAKE_PROJECT_${proj}_INCLUDE:FILEPATH=${CMAKE_ROOT}/Modules/CTestUseLaunchers.cmake")
+      "-DCMAKE_PROJECT_Teem_INCLUDE:FILEPATH=${CMAKE_ROOT}/Modules/CTestUseLaunchers.cmake")
   endif()
 
   ### --- Project specific additions here
+
+  if(WIN32)
+    set(${proj}_ZLIB_LIBRARY ${VTK_DIR}/bin/${CMAKE_CFG_INTDIR}/vtkzlib.lib)
+    set(${proj}_PNG_LIBRARY ${VTK_DIR}/bin/${CMAKE_CFG_INTDIR}/vtkpng.lib)
+  elseif(APPLE)
+    set(${proj}_ZLIB_LIBRARY ${VTK_DIR}/bin/libvtkzlib.dylib)
+    set(${proj}_PNG_LIBRARY ${VTK_DIR}/bin/libvtkpng.dylib)
+  else()
+    set(${proj}_ZLIB_LIBRARY ${VTK_DIR}/bin/libvtkzlib.so)
+    set(${proj}_PNG_LIBRARY ${VTK_DIR}/bin/libvtkpng.so)
+  endif()
+
   set(${proj}_CMAKE_OPTIONS
-      -DDCMTK_WITH_DOXYGEN:BOOL=OFF
-      -DDCMTK_WITH_ZLIB:BOOL=OFF # see CTK github issue #25
-      -DDCMTK_WITH_OPENSSL:BOOL=OFF # see CTK github issue #25
-      -DDCMTK_WITH_PNG:BOOL=OFF # see CTK github issue #25
-      -DDCMTK_WITH_TIFF:BOOL=OFF  # see CTK github issue #25
-      -DDCMTK_WITH_XML:BOOL=OFF  # see CTK github issue #25
-      -DDCMTK_WITH_ICONV:BOOL=OFF  # see CTK github issue #178
-      -DDCMTK_FORCE_FPIC_ON_UNIX:BOOL=ON
-      -DDCMTK_OVERWRITE_WIN32_COMPILER_FLAGS:BOOL=OFF
-      -DDCMTK_WITH_WRAP:BOOL=OFF   # CTK does not build on Mac with this option turned ON due to library dependencies missing
+    -DTeem_USE_LIB_INSTALL_SUBDIR:BOOL=ON
+    -DCMAKE_VERBOSE_MAKEFILE:BOOL=OFF
+    -DTeem_PTHREAD:BOOL=OFF
+    -DTeem_BZIP2:BOOL=OFF
+    -DTeem_ZLIB:BOOL=ON
+    -DTeem_PNG:BOOL=ON
+    -DTeem_VTK_MANGLE:BOOL=ON
+    -DTeem_VTK_TOOLKITS_IPATH:FILEPATH=${VTK_DIR}
+    -DZLIB_INCLUDE_DIR:PATH=${VTK_SOURCE_DIR}/Utilities
+    -DTeem_VTK_ZLIB_MANGLE_IPATH:PATH=${VTK_SOURCE_DIR}/Utilities/vtkzlib
+    -DTeem_ZLIB_DLLCONF_IPATH:PATH=${VTK_DIR}/Utilities
+    -DZLIB_LIBRARY:FILEPATH=${${proj}_ZLIB_LIBRARY}
+    -DPNG_PNG_INCLUDE_DIR:PATH=${VTK_SOURCE_DIR}/Utilities/vtkpng
+    -DTeem_PNG_DLLCONF_IPATH:PATH=${VTK_DIR}/Utilities
+    -DPNG_LIBRARY:FILEPATH=${${proj}_PNG_LIBRARY}
   )
   ### --- End Project specific additions
-  set(${proj}_REPOSITORY ${git_protocol}://github.com/commontk/DCMTK.git)
-  set(${proj}_GIT_TAG "d06e2b7d9bafb23df4e969482a68b50fc75aaaa9")
+  set(${proj}_URL http://svn.slicer.org/Slicer3-lib-mirrors/trunk/teem-1.10.0-src.tar.gz)
+  set(${proj}_MD5 efe219575adc89f6470994154d86c05b)
   ExternalProject_Add(${proj}
-    GIT_REPOSITORY ${${proj}_REPOSITORY}
-    GIT_TAG ${${proj}_GIT_TAG}
+    URL ${${proj}_URL}
+    URL_MD5 ${${proj}_MD5}
+    DOWNLOAD_DIR ${CMAKE_CURRENT_BINARY_DIR}
     SOURCE_DIR ${proj}
     BINARY_DIR ${proj}-build
-    INSTALL_DIR ${proj}-install
+    INSTALL_COMMAND ""
     "${cmakeversion_external_update}"
     CMAKE_GENERATOR ${gen}
     CMAKE_ARGS
       -DCMAKE_CXX_COMPILER:FILEPATH=${CMAKE_CXX_COMPILER}
-      -DCMAKE_CXX_FLAGS:STRING=${ep_common_cxx_flags}
+  # Not needed -DCMAKE_CXX_FLAGS:STRING=${ep_common_cxx_flags}
       -DCMAKE_C_COMPILER:FILEPATH=${CMAKE_C_COMPILER}
       -DCMAKE_C_FLAGS:STRING=${ep_common_c_flags}
-      -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
       ${CMAKE_OSX_EXTERNAL_PROJECT_ARGS}
-      ${CMAKE_PROJECT_INCLUDE_EXTERNAL_PROJECT_ARG}
       -DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
-      -DBUILD_SHARED_LIBS:BOOL=OFF
+      -DBUILD_TESTING:BOOL=OFF
+      -DBUILD_SHARED_LIBS:BOOL=ON
+      ${CMAKE_PROJECT_INCLUDE_EXTERNAL_PROJECT_ARG}
       ${${proj}_CMAKE_OPTIONS}
     DEPENDS
       ${${proj}_DEPENDENCIES}
   )
-  set(${extProjName}_DIR ${CMAKE_BINARY_DIR}/${proj}-install)
+  set(${proj}_DIR ${CMAKE_BINARY_DIR}/${proj}-build)
 else()
   if(${USE_SYSTEM_${extProjName}})
     find_package(${extProjName} REQUIRED)

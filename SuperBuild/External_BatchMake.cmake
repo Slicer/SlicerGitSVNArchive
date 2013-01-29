@@ -1,56 +1,104 @@
 
-# Make sure this file is included only once
+# Make sure this file is included only once by creating globally unique varibles
+# based on the name of this included file.
 get_filename_component(CMAKE_CURRENT_LIST_FILENAME ${CMAKE_CURRENT_LIST_FILE} NAME_WE)
 if(${CMAKE_CURRENT_LIST_FILENAME}_FILE_INCLUDED)
   return()
 endif()
 set(${CMAKE_CURRENT_LIST_FILENAME}_FILE_INCLUDED 1)
 
+## External_${extProjName}.cmake files can be recurisvely included,
+## and cmake variables are global, so when including sub projects it
+## is important make the extProjName and proj variables
+## appear to stay constant in one of these files.
+## Store global variables before overwriting (then restore at end of this file.)
+ProjectDependancyPush(CACHED_extProjName ${extProjName})
+ProjectDependancyPush(CACHED_proj ${proj})
+
+# Make sure that the ExtProjName/IntProjName variables are unique globally
+# even if other External_${ExtProjName}.cmake files are sourced by
+# SlicerMacroCheckExternalProjectDependency
+set(extProjName BatchMake) #The find_package known name
+set(proj        BatchMake) #This local name
+
+#if(${USE_SYSTEM_${extProjName}})
+#  unset(${extProjName}_DIR CACHE)
+#endif()
+
+# Sanity checks
+if(DEFINED ${extProjName}_DIR AND NOT EXISTS ${${extProjName}_DIR})
+  message(FATAL_ERROR "${extProjName}_DIR variable is defined but corresponds to non-existing directory (${${extProjName}_DIR})")
+endif()
+
 # Set dependency list
-set(BatchMake_DEPENDENCIES ${ITK_EXTERNAL_NAME})
+set(${proj}_DEPENDENCIES ${ITK_EXTERNAL_NAME})
 
 # Include dependent projects if any
-SlicerMacroCheckExternalProjectDependency(BatchMake)
-set(proj BatchMake)
+SlicerMacroCheckExternalProjectDependency(${proj})
 
-# Set CMake OSX variable to pass down the external project
-set(CMAKE_OSX_EXTERNAL_PROJECT_ARGS)
-if(APPLE)
-  list(APPEND CMAKE_OSX_EXTERNAL_PROJECT_ARGS
-    -DCMAKE_OSX_ARCHITECTURES=${CMAKE_OSX_ARCHITECTURES}
-    -DCMAKE_OSX_SYSROOT=${CMAKE_OSX_SYSROOT}
-    -DCMAKE_OSX_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET})
-endif()
+if(NOT ( DEFINED "${extProjName}_DIR" OR ( DEFINED "${USE_SYSTEM_${extProjName}}" AND NOT "${USE_SYSTEM_${extProjName}}" ) ) )
+  #message(STATUS "${__indent}Adding project ${proj}")
 
-if(NOT DEFINED git_protocol)
-  set(git_protocol "git")
-endif()
+  # Set CMake OSX variable to pass down the external project
+  set(CMAKE_OSX_EXTERNAL_PROJECT_ARGS)
+  if(APPLE)
+    list(APPEND CMAKE_OSX_EXTERNAL_PROJECT_ARGS
+      -DCMAKE_OSX_ARCHITECTURES=${CMAKE_OSX_ARCHITECTURES}
+      -DCMAKE_OSX_SYSROOT=${CMAKE_OSX_SYSROOT}
+      -DCMAKE_OSX_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET})
+  endif()
 
-#message(STATUS "${__indent}Adding project ${proj}")
-ExternalProject_Add(${proj}
-  GIT_REPOSITORY "${git_protocol}://batchmake.org/BatchMake.git"
-  GIT_TAG "1f5bf4f92e8678c34dc6f7558be5e6613804d988"
-  "${slicer_external_update}"
-  SOURCE_DIR BatchMake
-  BINARY_DIR BatchMake-build
-  CMAKE_GENERATOR ${gen}
-  CMAKE_ARGS
-    -DCMAKE_CXX_COMPILER:FILEPATH=${CMAKE_CXX_COMPILER}
-    -DCMAKE_CXX_FLAGS:STRING=${ep_common_cxx_flags}
-    -DCMAKE_C_COMPILER:FILEPATH=${CMAKE_C_COMPILER}
-    -DCMAKE_C_FLAGS:STRING=${ep_common_c_flags}
-    ${CMAKE_OSX_EXTERNAL_PROJECT_ARGS}
-    -DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
-    -DBUILD_TESTING:BOOL=OFF
-    -DBUILD_SHARED_LIBS:BOOL=ON
-    -DUSE_FLTK:BOOL=OFF
-    -DDASHBOARD_SUPPORT:BOOL=OFF
-    -DGRID_SUPPORT:BOOL=ON
-    -DUSE_SPLASHSCREEN:BOOL=OFF
-    -DITK_DIR:PATH=${ITK_DIR}
-  INSTALL_COMMAND ""
-  DEPENDS
-    ${BatchMake_DEPENDENCIES}
+  ### --- Project specific additions here
+  if(NOT DEFINED git_protocol)
+      set(git_protocol "git")
+  endif()
+
+  set(${proj}_CMAKE_OPTIONS
+      -DBUILD_TESTING:BOOL=OFF
+      -DBUILD_SHARED_LIBS:BOOL=ON
+      -DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
+      -DUSE_FLTK:BOOL=OFF
+      -DDASHBOARD_SUPPORT:BOOL=OFF
+      -DGRID_SUPPORT:BOOL=ON
+      -DUSE_SPLASHSCREEN:BOOL=OFF
+      -DITK_DIR:PATH=${ITK_DIR}
   )
+  ### --- End Project specific additions
+  set(${proj}_REPOSITORY "${git_protocol}://batchmake.org/BatchMake.git")
+  set(${proj}_GIT_TAG "1f5bf4f92e8678c34dc6f7558be5e6613804d988")
+  ExternalProject_Add(${proj}
+    GIT_REPOSITORY ${${proj}_REPOSITORY}
+    GIT_TAG ${${proj}_GIT_TAG}
+    SOURCE_DIR ${proj}
+    BINARY_DIR ${proj}-build
+    "${cmakeversion_external_update}"
+    CMAKE_GENERATOR ${gen}
+    CMAKE_ARGS
+      -DCMAKE_CXX_COMPILER:FILEPATH=${CMAKE_CXX_COMPILER}
+      -DCMAKE_CXX_FLAGS:STRING=${ep_common_cxx_flags}
+      -DCMAKE_C_COMPILER:FILEPATH=${CMAKE_C_COMPILER}
+      -DCMAKE_C_FLAGS:STRING=${ep_common_c_flags}
+      ${CMAKE_OSX_EXTERNAL_PROJECT_ARGS}
+      ${${proj}_CMAKE_OPTIONS}
+    INSTALL_COMMAND ""
+    DEPENDS
+      ${${proj}_DEPENDENCIES}
+  )
+  set(${extProjName}_DIR ${CMAKE_BINARY_DIR}/${proj}-build)
+else()
+  if(${USE_SYSTEM_${extProjName}})
+    find_package(${extProjName} ${ITK_VERSION_MAJOR} REQUIRED)
+    if(NOT ${extProjName}_DIR)
+      message(FATAL_ERROR "To use the system ${extProjName}, set ${extProjName}_DIR")
+    endif()
+    message("USING the system ${extProjName}, set ${extProjName}_DIR=${${extProjName}_DIR}")
+  endif()
+  # The project is provided using ${extProjName}_DIR, nevertheless since other
+  # project may depend on ${extProjName}, let's add an 'empty' one
+  SlicerMacroEmptyExternalProject(${proj} "${${proj}_DEPENDENCIES}")
+endif()
 
-set(BatchMake_DIR ${CMAKE_BINARY_DIR}/BatchMake-build)
+list(APPEND ${CMAKE_PROJECT_NAME}_SUPERBUILD_EP_VARS ${extProjName}_DIR:PATH)
+
+ProjectDependancyPop(CACHED_extProjName extProjName)
+ProjectDependancyPop(CACHED_proj proj)

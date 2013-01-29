@@ -6,8 +6,6 @@ endif()
 set(python_SOURCE_DIR python)
 set(python_BUILD_IN_SOURCE 1)
 
-
-
 # Set slicer_PYTHON_INCLUDE, slicer_PYTHON_LIBRARY and slicer_PYTHON_EXECUTABLE variables
 set(python_IMPORT_SUFFIX so)
 if(APPLE)
@@ -48,7 +46,7 @@ set(python_INSTALL_COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/pytho
 ExternalProject_Add(${proj}
   URL ${python_URL}
   URL_MD5 ${python_MD5}
-  "${slicer_external_disable_update}"
+  "${cmakeversion_external_disable_update}"
   DOWNLOAD_DIR ${CMAKE_CURRENT_BINARY_DIR}
   SOURCE_DIR ${python_SOURCE_DIR}
   BUILD_IN_SOURCE ${python_BUILD_IN_SOURCE}

@@ -65,11 +65,11 @@ include(SlicerMacroCheckExternalProjectDependency)
 # With CMake 2.8.9 or later, the UPDATE_COMMAND is required for updates to occur.
 # For earlier versions, we nullify the update state to prevent updates and
 # undesirable rebuild.
-set(slicer_external_disable_update UPDATE_COMMAND "")
+set(cmakeversion_external_disable_update UPDATE_COMMAND "")
 if(CMAKE_VERSION VERSION_LESS 2.8.9)
-  set(slicer_external_update ${slicer_external_disable_update})
+  set(cmakeversion_external_update ${cmakeversion_external_disable_update})
 else()
-  set(slicer_external_update LOG_UPDATE 1)
+  set(cmakeversion_external_update LOG_UPDATE 1)
 endif()
 
 set(ep_base        "${CMAKE_BINARY_DIR}")
@@ -90,10 +90,14 @@ endif()
 #------------------------------------------------------------------------------
 # Slicer dependency list
 #------------------------------------------------------------------------------
+option(USE_SYSTEM_ITK "Build using an externally defined version of ITK" OFF)
+option(USE_SYSTEM_SlicerExecutionModel "Build using an externally defined version of SlicerExecutionModel"  OFF)
+option(USE_SYSTEM_VTK "Build using an externally defined version of VTK" OFF)
+option(USE_SYSTEM_DCMTK "Build using an externally defined version of DCMTK" OFF)
 
 set(ITK_EXTERNAL_NAME ITKv${ITK_VERSION_MAJOR})
 
-set(Slicer_DEPENDENCIES cmcurl teem VTK ${ITK_EXTERNAL_NAME} CTK jqPlot LibArchive)
+set(Slicer_DEPENDENCIES cmcurl Teem VTK ${ITK_EXTERNAL_NAME} CTK jqPlot LibArchive)
 
 if(Slicer_USE_OpenIGTLink)
   list(APPEND Slicer_DEPENDENCIES OpenIGTLink)
@@ -127,7 +131,7 @@ if(Slicer_BUILD_EXTENSIONMANAGER_SUPPORT)
   list(APPEND Slicer_DEPENDENCIES qMidasAPI)
 endif()
 
-if(Slicer_BUILD_DICOM_SUPPORT)
+if(Slicer_BUILD_DICOM_SUPPORT AND NOT DCMTK_DIR) ## NOTE: if dependancy already added, then don't add it again.
   list(APPEND Slicer_DEPENDENCIES DCMTK)
 endif()
 
@@ -167,7 +171,12 @@ if(DEFINED Slicer_ADDITIONAL_DEPENDENCIES)
   list(APPEND Slicer_DEPENDENCIES ${Slicer_ADDITIONAL_DEPENDENCIES})
 endif()
 
-SlicerMacroCheckExternalProjectDependency(Slicer)
+# Make sure that the ExtProjName/IntProjName variables are unique globally
+# even if other External_${ExtProjName}.cmake files are sourced by
+# SlicerMacroCheckExternalProjectDependency
+set(extProjName Slicer) #The find_package known name
+set(proj        Slicer) #This local name
+SlicerMacroCheckExternalProjectDependency(${proj})
 
 #-----------------------------------------------------------------------------
 # Dump Slicer external project dependencies
@@ -364,7 +373,6 @@ endif()
 #------------------------------------------------------------------------------
 # Configure and build Slicer
 #------------------------------------------------------------------------------
-set(proj Slicer)
 
 ExternalProject_Add(${proj}
   DEPENDS ${Slicer_DEPENDENCIES}

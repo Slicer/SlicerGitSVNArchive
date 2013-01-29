@@ -22,6 +22,18 @@ if(NOT EXISTS "${EXTERNAL_PROJECT_DIR}")
   set(EXTERNAL_PROJECT_DIR ${${CMAKE_PROJECT_NAME}_SOURCE_DIR}/SuperBuild)
 endif()
 
+###  
+macro(ProjectDependancyPush CACHE_LIST VALUE)
+  list(APPEND ${CACHE_LIST} ${VALUE})
+  #message(STATUS "PUSHING ${VALUE} onto ${CACHE_LIST}:  --> ${${CACHE_LIST}}")
+endmacro()
+
+macro(ProjectDependancyPop CACHE_LIST TVAR)
+  list(GET ${CACHE_LIST} -1 ${TVAR})
+  list(REMOVE_AT ${CACHE_LIST} -1)
+  #message(STATUS "POPING ${${TVAR}} from ${CACHE_LIST}:  --> ${${CACHE_LIST}}")
+endmacro()
+
 macro(SlicerMacroCheckExternalProjectDependency proj)
   # Set indent variable if needed
   if(NOT DEFINED __indent)

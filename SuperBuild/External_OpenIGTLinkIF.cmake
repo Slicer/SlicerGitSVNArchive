@@ -1,43 +1,89 @@
 
-# Make sure this file is included only once
+# Make sure this file is included only once by creating globally unique varibles
+# based on the name of this included file.
 get_filename_component(CMAKE_CURRENT_LIST_FILENAME ${CMAKE_CURRENT_LIST_FILE} NAME_WE)
 if(${CMAKE_CURRENT_LIST_FILENAME}_FILE_INCLUDED)
   return()
 endif()
 set(${CMAKE_CURRENT_LIST_FILENAME}_FILE_INCLUDED 1)
 
+## External_${extProjName}.cmake files can be recurisvely included,
+## and cmake variables are global, so when including sub projects it
+## is important make the extProjName and proj variables
+## appear to stay constant in one of these files.
+## Store global variables before overwriting (then restore at end of this file.)
+ProjectDependancyPush(CACHED_extProjName ${extProjName})
+ProjectDependancyPush(CACHED_proj ${proj})
+
+# Make sure that the ExtProjName/IntProjName variables are unique globally
+# even if other External_${ExtProjName}.cmake files are sourced by
+# SlicerMacroCheckExternalProjectDependency
+set(extProjName OpenIGTLinkIF) #The find_package known name
+set(proj        OpenIGTLinkIF) #This local name
+
+#if(${USE_SYSTEM_${extProjName}})
+#  unset(${extProjName}_DIR CACHE)
+#endif()
+
 # Sanity checks
-if(DEFINED OpenIGTLinkIF_SOURCE_DIR AND NOT EXISTS ${OpenIGTLinkIF_SOURCE_DIR})
-  message(FATAL_ERROR "OpenIGTLinkIF_SOURCE_DIR variable is defined but corresponds to non-existing directory")
+if(DEFINED ${extProjName}_SOURCE_DIR AND NOT EXISTS ${${extProjName}_SOURCE_DIR})
+  message(FATAL_ERROR "${extProjName}_SOURCE_DIR variable is defined but corresponds to non-existing directory")
 endif()
 
 # Set dependency list
-set(OpenIGTLinkIF_DEPENDENCIES OpenIGTLink)
+set(${proj}_DEPENDENCIES OpenIGTLink)
 
 # Include dependent projects if any
-SlicerMacroCheckExternalProjectDependency(OpenIGTLinkIF)
-set(proj OpenIGTLinkIF)
+SlicerMacroCheckExternalProjectDependency(${proj})
 
-if(NOT DEFINED OpenIGTLinkIF_SOURCE_DIR)
+if(NOT DEFINED ${extProjName}_SOURCE_DIR)
   #message(STATUS "${__indent}Adding project ${proj}")
+
+  # Set CMake OSX variable to pass down the external project
+  set(CMAKE_OSX_EXTERNAL_PROJECT_ARGS)
+  if(APPLE)
+    list(APPEND CMAKE_OSX_EXTERNAL_PROJECT_ARGS
+      -DCMAKE_OSX_ARCHITECTURES=${CMAKE_OSX_ARCHITECTURES}
+      -DCMAKE_OSX_SYSROOT=${CMAKE_OSX_SYSROOT}
+      -DCMAKE_OSX_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET})
+  endif()
+
+  ### --- Project specific additions here
+  set(${proj}_CMAKE_OPTIONS
+  )
+  ### --- End Project specific additions
+  set(${proj}_REPOSITORY "${git_protocol}://github.com/Slicer/OpenIGTLinkIF.git")
+  set(${proj}_GIT_TAG "8330b769cc8c607067134296d577b64ae7c92b87")
   ExternalProject_Add(${proj}
+   #GIT_REPOSITORY ${${proj}_REPOSITORY}
+   #GIT_TAG ${${proj}_GIT_TAG}
     SVN_REPOSITORY "http://svn.na-mic.org/NAMICSandBox/trunk/IGTLoadableModules/QtModules/OpenIGTLinkIF/"
     SVN_REVISION -r "8024"
-    "${slicer_external_update}"
-    #GIT_REPOSITORY "${git_protocol}://github.com/Slicer/OpenIGTLinkIF.git"
-    #GIT_TAG "8330b769cc8c607067134296d577b64ae7c92b87"
-    SOURCE_DIR ${CMAKE_BINARY_DIR}/${proj}
+    SOURCE_DIR ${proj}
     BINARY_DIR ${proj}-build
+    "${cmakeversion_external_update}"
     CMAKE_GENERATOR ${gen}
     CONFIGURE_COMMAND ""
     BUILD_COMMAND ""
     INSTALL_COMMAND ""
     DEPENDS
-      ${OpenIGTLinkIF_DEPENDENCIES}
-    )
-  set(OpenIGTLinkIF_SOURCE_DIR ${CMAKE_BINARY_DIR}/${proj})
+      ${${proj}_DEPENDENCIES}
+  )
+  set(${extProjName}_SOURCE_DIR ${CMAKE_BINARY_DIR}/${proj})
 else()
-  # The project is provided using OpenIGTLinkIF_SOURCE_DIR, nevertheless since other project may depend on OpenIGTLinkIF,
-  # let's add an 'empty' one
-  SlicerMacroEmptyExternalProject(${proj} "${OpenIGTLinkIF_DEPENDENCIES}")
+  if(${USE_SYSTEM_${extProjName}})
+    find_package(${extProjName} ${ITK_VERSION_MAJOR} REQUIRED)
+    if(NOT ${extProjName}_DIR)
+      message(FATAL_ERROR "To use the system ${extProjName}, set ${extProjName}_DIR")
+    endif()
+    message("USING the system ${extProjName}, set ${extProjName}_DIR=${${extProjName}_DIR}")
+  endif()
+  # The project is provided using ${extProjName}_DIR, nevertheless since other
+  # project may depend on ${extProjName}, let's add an 'empty' one
+  SlicerMacroEmptyExternalProject(${proj} "${${proj}_DEPENDENCIES}")
 endif()
+
+list(APPEND ${CMAKE_PROJECT_NAME}_SUPERBUILD_EP_VARS ${extProjName}_DIR:PATH)
+
+ProjectDependancyPop(CACHED_extProjName extProjName)
+ProjectDependancyPop(CACHED_proj proj)
