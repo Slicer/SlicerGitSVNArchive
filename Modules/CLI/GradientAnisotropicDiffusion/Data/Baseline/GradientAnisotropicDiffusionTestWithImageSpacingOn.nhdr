@@ -10,4 +10,4 @@ kinds: domain domain domain
 endian: little
 encoding: gzip
 space origin: (-130,-119.90000000000001,-73.700000000000003)
-data file: GradientAnisotropicDiffusionTest2.raw.gz
+data file: GradientAnisotropicDiffusionTestWithImageSpacingOn.raw.gz
