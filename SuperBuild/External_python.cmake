@@ -106,6 +106,8 @@ if(NOT DEFINED python_DIR)
       -DBUILD_STATIC:BOOL=OFF
       -DUSE_SYSTEM_LIBRARIES:BOOL=OFF
       ${python_TCL_EXTERNAL_PROJECT_ARGS}
+    BUILD_COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}/${proj}-build --config Release # Force Release mode build
+    INSTALL_COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}/${proj}-build --config Release --target install # Force Release mode build
     DEPENDS
       python-source ${python_DEPENDENCIES}
     )
