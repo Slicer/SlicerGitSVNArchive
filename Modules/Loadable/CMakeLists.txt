@@ -21,6 +21,7 @@ set(qtmodules
   ViewControllers
   Volumes
   VolumeRendering # Volume Rendering depends of Volumes
+  RSSLoadableModule
   )
 if(Slicer_BUILD_CLI_SUPPORT)
   list(APPEND qtmodules
