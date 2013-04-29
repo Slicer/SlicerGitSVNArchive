@@ -18,8 +18,8 @@ set(zlib_DEPENDENCIES "")
 SlicerMacroCheckExternalProjectDependency(zlib)
 set(proj zlib)
 
-if(NOT DEFINED ${proj}_DIR)
-  #message(STATUS "${__indent}Adding project ${proj}")
+if(NOT DEFINED zlib_DIR)
+  #message(STATUS "${__indent}Adding project zlib")
 
   set(ADDITIONAL_CMAKE_ARGS)
   set(zlib_c_flags ${ep_common_c_flags})
@@ -40,13 +40,13 @@ if(NOT DEFINED ${proj}_DIR)
     set(git_protocol "git")
   endif()
 
-  ExternalProject_Add(${proj}
+  ExternalProject_Add(zlib
     GIT_REPOSITORY "${git_protocol}://github.com/commontk/zlib.git"
     GIT_TAG "66a753054b356da85e1838a081aa94287226823e"
     "${${PROJECT_NAME}_EP_UPDATE_IF_GREATER_288}"
-    SOURCE_DIR ${proj}
-    BINARY_DIR ${proj}-build
-    INSTALL_DIR ${proj}-install
+    SOURCE_DIR zlib
+    BINARY_DIR zlib-build
+    INSTALL_DIR zlib-install
     CMAKE_GENERATOR ${gen}
     CMAKE_ARGS
       ## CXX should not be needed, but it a cmake default test
@@ -72,5 +72,5 @@ if(NOT DEFINED ${proj}_DIR)
 else()
   # The project is provided using zlib_DIR, nevertheless since other project may depend on zlib,
   # let's add an 'empty' one
-  SlicerMacroEmptyExternalProject(${proj} "${zlib_DEPENDENCIES}")
+  SlicerMacroEmptyExternalProject(zlib "${zlib_DEPENDENCIES}")
 endif()

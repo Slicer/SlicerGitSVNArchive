@@ -723,7 +723,7 @@ endif()
 # ZLIB
 #-----------------------------------------------------------------------------
 find_package(ZLIB REQUIRED)
-include_directories(BEFORE ${ZLIB_INCLUDE_DIRS} )
+include_directories(${ZLIB_INCLUDE_DIRS} )
 
 #-----------------------------------------------------------------------------
 # qMidasAPI

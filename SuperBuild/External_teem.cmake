@@ -31,13 +31,10 @@ endif()
 #message(STATUS "${__indent}Adding project ${proj}")
 
 if(WIN32)
-#set(teem_ZLIB_LIBRARY ${VTK_DIR}/bin/${CMAKE_CFG_INTDIR}/vtkzlib.lib)
   set(teem_PNG_LIBRARY ${VTK_DIR}/bin/${CMAKE_CFG_INTDIR}/vtkpng.lib)
 elseif(APPLE)
-#set(teem_ZLIB_LIBRARY ${VTK_DIR}/bin/libvtkzlib.dylib)
   set(teem_PNG_LIBRARY ${VTK_DIR}/bin/libvtkpng.dylib)
 else()
-#set(teem_ZLIB_LIBRARY ${VTK_DIR}/bin/libvtkzlib.so)
   set(teem_PNG_LIBRARY ${VTK_DIR}/bin/libvtkpng.so)
 endif()
 
