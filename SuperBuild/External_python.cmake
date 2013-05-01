@@ -7,7 +7,7 @@ endif()
 set(${CMAKE_CURRENT_LIST_FILENAME}_FILE_INCLUDED 1)
 
 # Set dependency list
-set(python_DEPENDENCIES CTKAPPLAUNCHER)
+set(python_DEPENDENCIES zlib CTKAPPLAUNCHER)
 if(Slicer_USE_PYTHONQT_WITH_TCL)
   if(WIN32)
     list(APPEND python_DEPENDENCIES tcl)
@@ -91,8 +91,8 @@ if(NOT DEFINED python_DIR)
   set(CMAKE_CFG_INTDIR "Release")
 
   ExternalProject_Add(${proj}
-    GIT_REPOSITORY "${git_protocol}://github.com/davidsansome/python-cmake-buildsystem.git"
-    GIT_TAG "60ee8280184b5c2ace915777193f457df57f605a"
+    GIT_REPOSITORY "${git_protocol}://github.com/hjmjohnson/python-cmake-buildsystem.git"
+    GIT_TAG "ac696dc5ee868c8ce5f75dd5ee4fda687104b422"
     "${${PROJECT_NAME}_EP_UPDATE_IF_GREATER_288}"
     SOURCE_DIR ${CMAKE_BINARY_DIR}/${proj}
     BINARY_DIR ${proj}-build
@@ -108,7 +108,19 @@ if(NOT DEFINED python_DIR)
       #-DBUILD_TESTING:BOOL=OFF
       -DBUILD_SHARED:BOOL=ON
       -DBUILD_STATIC:BOOL=OFF
-      -DUSE_SYSTEM_LIBRARIES:BOOL=OFF
+      -DUSE_SYSTEM_LIBRARIES:BOOL=ON
+      -DUSE_SYSTEM_Curses:BOOL=OFF
+      -DUSE_SYSTEM_DB:BOOL=OFF
+      -DUSE_SYSTEM_EXPAT:BOOL=OFF
+      -DUSE_SYSTEM_GDBM:BOOL=OFF
+      -DUSE_SYSTEM_OpenSSL:BOOL=OFF
+      -DUSE_SYSTEM_READLINE:BOOL=OFF
+      -DUSE_SYSTEM_SQLITE3:BOOL=OFF
+      -DUSE_SYSTEM_TCL:BOOL=OFF
+      -DUSE_SYSTEM_ZLIB:BOOL=ON
+      -DZLIB_ROOT:PATH=${SLICER_ZLIB_ROOT}
+      -DZLIB_INCLUDE_DIR:PATH=${SLICER_ZLIB_INCLUDE_DIR}
+      -DZLIB_LIBRARY:FILEPATH=${SLICER_ZLIB_LIBRARY}
       ${python_TCL_EXTERNAL_PROJECT_ARGS}
     DEPENDS
       python-source ${python_DEPENDENCIES}
