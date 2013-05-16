@@ -54,8 +54,8 @@ if(NOT DEFINED LibArchive_DIR)
   endif()
 
   ExternalProject_Add(${proj}
-    GIT_REPOSITORY "${git_protocol}://github.com/libarchive/libarchive.git"
-    GIT_TAG "v3.0.4"
+    GIT_REPOSITORY "${git_protocol}://github.com/hjmjohnson/libarchive.git"
+    GIT_TAG "SlicerBuildEnhancments"
     SOURCE_DIR ${CMAKE_BINARY_DIR}/${proj}
     BINARY_DIR ${proj}-build
     INSTALL_DIR LibArchive-install
@@ -72,6 +72,15 @@ if(NOT DEFINED LibArchive_DIR)
       -DENABLE_TAR:BOOL=OFF
       -DENABLE_TEST:BOOL=OFF
       -DENABLE_XATTR:BOOL=OFF
+      -DENABLE_BZip2:BOOL=OFF
+      -DENABLE_EXPAT:BOOL=OFF
+      -DENABLE_ICONV:BOOL=OFF
+      -DENABLE_LZMA:BOOL=OFF
+      -DENABLE_LibGCC:BOOL=OFF
+      -DENABLE_NETTLE:BOOL=OFF
+      -DENABLE_PCREPOSIX:BOOL=OFF
+      -DENABLE_SAFESEH:BOOL=AUTO
+      -DENABLE_ZLIB:BOOL=ON
       -DZLIB_ROOT:PATH=${SLICER_ZLIB_ROOT}
       -DZLIB_INCLUDE_DIR:PATH=${SLICER_ZLIB_INCLUDE_DIR}
       -DZLIB_LIBRARY:FILEPATH=${SLICER_ZLIB_LIBRARY}
