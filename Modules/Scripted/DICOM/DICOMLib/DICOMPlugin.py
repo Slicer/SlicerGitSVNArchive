@@ -141,6 +141,13 @@ class DICOMPlugin(object):
     Virtual: should be overridden by the subclass
     """
     return True
+    
+  def onLoadFinished(self):
+    """Perform steps needed after all selected loadables have
+    been loaded
+    Virtual: should be overridden by the subclass
+    """
+    pass
 
   def exportOptions(self):
     """Return a list of DICOMExporter instances that describe the

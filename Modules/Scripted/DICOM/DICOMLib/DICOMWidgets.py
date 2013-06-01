@@ -318,6 +318,8 @@ class DICOMDetailsPopup(object):
           step += 1
           self.progress.setValue(step)
           slicer.app.processEvents()
+    for plugin in self.loadablesByPlugin:
+      plugin.onLoadFinished()
     self.progress.close()
     self.progress = None
     self.close()
