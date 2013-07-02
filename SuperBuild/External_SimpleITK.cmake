@@ -11,6 +11,13 @@ if(DEFINED SimpleITK_DIR AND NOT EXISTS ${SimpleITK_DIR})
   message(FATAL_ERROR "SimpleITK_DIR variable is defined but corresponds to non-existing directory")
 endif()
 
+if(WIN32 AND MSVC)
+  if( CMAKE_CXX_COMPILER_VERSION VERSION_LESS "15.0.30729.1" )
+    message( WARNING "SimpleITK requires Microsoft Visual Studio 2008 (VS9) SP1 or greater!"
+      "http://www.itk.org/Wiki/SimpleITK/FAQ#How_do_I_build_with_Visual_Studio_2008.3F" )
+  endif()
+endif()
+
 # Set dependency list
 set(SimpleITK_DEPENDENCIES ITKv4 Swig python)
 
