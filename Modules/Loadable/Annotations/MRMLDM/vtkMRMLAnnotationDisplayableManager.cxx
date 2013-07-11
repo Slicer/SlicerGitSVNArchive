@@ -927,13 +927,17 @@ void vtkMRMLAnnotationDisplayableManager::OnMRMLSliceNodeModifiedEvent(vtkMRMLSl
               rep->GetPoint2Representation()->GetSelectedProperty()->SetOpacity(0.0);
               rep->GetLineHandleRepresentation()->GetProperty()->SetOpacity(0.0);
               rep->GetLineHandleRepresentation()->GetSelectedProperty()->SetOpacity(0.0);
+              rep->GetLineProperty()->SetLineWidth(overLineWidth);
+              rep->GetLineHandleRepresentation()->DragableOff();
+              rep->GetLineHandleRepresentation()->PickableOff();
 
               overLine = vtkLineWidget2::New();
               overLine->CreateDefaultRepresentation();
               overLine->SetRepresentation(rep.GetPointer());
               overLine->SetInteractor(this->GetInteractor());
               overLine->SetCurrentRenderer(this->GetRenderer());
-              overLine->ProcessEventsOff();
+              overLine->ProcessEventsOff();	      
+              overLine->ManagesCursorOff();
               this->Helper->WidgetOverLineProjections[rulerNode] = overLine;
               }
 
@@ -955,13 +959,16 @@ void vtkMRMLAnnotationDisplayableManager::OnMRMLSliceNodeModifiedEvent(vtkMRMLSl
                 rep->GetLineHandleRepresentation()->GetProperty()->SetOpacity(0.0);
                 rep->GetLineHandleRepresentation()->GetSelectedProperty()->SetOpacity(0.0);
                 rep->GetLineProperty()->SetLineWidth(underLineWidth);
-
+                rep->GetLineHandleRepresentation()->DragableOff();
+                rep->GetLineHandleRepresentation()->PickableOff();
+	      
                 underLine = vtkLineWidget2::New();
                 underLine->CreateDefaultRepresentation();
                 underLine->SetRepresentation(rep.GetPointer());
                 underLine->SetInteractor(this->GetInteractor());
                 underLine->SetCurrentRenderer(this->GetRenderer());
                 underLine->ProcessEventsOff();
+                underLine->ManagesCursorOff();
                 this->Helper->WidgetUnderLineProjections[rulerNode] = underLine;
                 }
 
@@ -1142,6 +1149,7 @@ void vtkMRMLAnnotationDisplayableManager::OnMRMLSliceNodeModifiedEvent(vtkMRMLSl
             projectionSeed->SetCurrentRenderer(this->GetRenderer());
             projectionSeed->CreateNewHandle();
             projectionSeed->ProcessEventsOff();
+            projectionSeed->ManagesCursorOff();
             projectionSeed->On();
             projectionSeed->CompleteInteraction();
             this->Helper->WidgetPointProjections[fiducialNode] = projectionSeed;
