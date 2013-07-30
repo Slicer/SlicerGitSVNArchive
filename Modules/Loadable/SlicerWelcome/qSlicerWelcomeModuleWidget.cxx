@@ -25,7 +25,7 @@
 #include <QSettings>
 
 // Slicer includes
-#include "vtkSlicerConfigure.h" // For Slicer_BUILD_DICOM_SUPPORT
+#include "vtkSlicerConfigure.h"
 #include "vtkSlicerVersionConfigure.h"
 
 // SlicerQt includes
@@ -139,10 +139,6 @@ void qSlicerWelcomeModuleWidget::setup()
           this, SLOT (loadRemoteSampleData()));
   connect(d->EditApplicationSettingsButton, SIGNAL(clicked()),
           this, SLOT (editApplicationSettings()));
-
-#ifndef Slicer_BUILD_DICOM_SUPPORT
-  d->LoadDicomDataButton->setDisabled(true);
-#endif
 
   this->Superclass::setup();
 }

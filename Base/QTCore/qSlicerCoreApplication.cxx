@@ -102,9 +102,7 @@
 // Slicer includes
 #include "vtkSlicerVersionConfigure.h" // For Slicer_VERSION_{MINOR, MAJOR}, Slicer_VERSION_FULL
 
-#ifdef Slicer_BUILD_DICOM_SUPPORT
 #include <ctkDICOMDatabase.h>
-#endif
 
 //-----------------------------------------------------------------------------
 // qSlicerCoreApplicationPrivate methods
@@ -121,9 +119,7 @@ qSlicerCoreApplicationPrivate::qSlicerCoreApplicationPrivate(
   this->ReturnCode = qSlicerCoreApplication::ExitNotRequested;
   this->CoreCommandOptions = QSharedPointer<qSlicerCoreCommandOptions>(coreCommandOptions);
   this->CoreIOManager = QSharedPointer<qSlicerCoreIOManager>(coreIOManager);
-#ifdef Slicer_BUILD_DICOM_SUPPORT
   this->DICOMDatabase = 0;
-#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -1357,7 +1353,6 @@ QString qSlicerCoreApplication::os()const
   return Slicer_OS;
 }
 
-#ifdef Slicer_BUILD_DICOM_SUPPORT
 //-----------------------------------------------------------------------------
 void qSlicerCoreApplication::setDICOMDatabase(ctkDICOMDatabase* dicomDatabase)
 {
@@ -1371,8 +1366,6 @@ ctkDICOMDatabase* qSlicerCoreApplication::dicomDatabase()const
   Q_D(const qSlicerCoreApplication);
   return d->DICOMDatabase;
 }
-#endif
-
 
 //-----------------------------------------------------------------------------
 void qSlicerCoreApplication::restart()
