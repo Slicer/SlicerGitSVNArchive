@@ -34,6 +34,9 @@ vtkCxxSetReferenceStringMacro(vtkMRMLSelectionNode, ActiveViewID);
 vtkCxxSetReferenceStringMacro(vtkMRMLSelectionNode, ActiveLayoutID);
 vtkCxxSetReferenceStringMacro(vtkMRMLSelectionNode, ActiveVolumeID);
 
+const char* vtkMRMLSelectionNode::UnitNodeReferenceRole = "unit/";
+const char* vtkMRMLSelectionNode::UnitNodeReferenceMRMLAttributeName = "UnitNodeRef";
+
 //----------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLSelectionNode);
 
@@ -51,6 +54,9 @@ vtkMRMLSelectionNode::vtkMRMLSelectionNode()
   this->ActiveCameraID = NULL;
   this->ActiveViewID = NULL;
   this->ActiveLayoutID = NULL;
+
+  this->AddNodeReferenceRole(this->GetUnitNodeReferenceRole(),
+                             this->GetUnitNodeReferenceMRMLAttributeName());
 }
 
 //----------------------------------------------------------------------------
@@ -101,6 +107,18 @@ vtkMRMLSelectionNode::~vtkMRMLSelectionNode()
     delete [] this->ActiveLayoutID;
     this->ActiveLayoutID = NULL;
     }
+}
+
+//----------------------------------------------------------------------------
+const char* vtkMRMLSelectionNode::GetUnitNodeReferenceRole()
+{
+  return vtkMRMLSelectionNode::UnitNodeReferenceRole;
+}
+
+//----------------------------------------------------------------------------
+const char* vtkMRMLSelectionNode::GetUnitNodeReferenceMRMLAttributeName()
+{
+  return vtkMRMLSelectionNode::UnitNodeReferenceMRMLAttributeName;
 }
 
 //----------------------------------------------------------------------------
@@ -216,7 +234,7 @@ void vtkMRMLSelectionNode::ReadXMLAttributes(const char** atts)
 {
   int disabledModify = this->StartModify();
 
-  Superclass::ReadXMLAttributes(atts);
+  this->Superclass::ReadXMLAttributes(atts);
 
   const char* attName;
   const char* attValue;
@@ -290,8 +308,7 @@ void vtkMRMLSelectionNode::Copy(vtkMRMLNode *anode)
   this->SetActiveLayoutID (node->GetActiveLayoutID() );
 
   this->EndModify(disabledModify);
-  
-  }
+}
 
 //----------------------------------------------------------------------------
 void vtkMRMLSelectionNode::PrintSelf(ostream& os, vtkIndent indent)
@@ -459,11 +476,12 @@ void vtkMRMLSelectionNode::SetReferenceActiveAnnotationID (const char *id)
 //----------------------------------------------------------------------------
 void vtkMRMLSelectionNode::GetUnitNodes(std::vector<vtkMRMLUnitNode*>& units)
 {
-  std::string unit = "Unit/";
   for (NodeReferencesType::const_iterator it = this->NodeReferences.begin();
     it != this->NodeReferences.end(); ++it)
     {
-    if (it->first.compare(0, unit.size(), unit) == 0)
+    if (it->first.compare(0, strlen(this->GetUnitNodeReferenceRole()),
+                          this->GetUnitNodeReferenceRole()) == 0 &&
+        it->second.size() > 0)
       {
       // there is only one referenced node per reference role
       units.push_back(
@@ -475,20 +493,28 @@ void vtkMRMLSelectionNode::GetUnitNodes(std::vector<vtkMRMLUnitNode*>& units)
 //----------------------------------------------------------------------------
 const char* vtkMRMLSelectionNode::GetUnitNodeID(const char* quantity)
 {
-  std::string referenceRole = "Unit/";
-  referenceRole += quantity ? quantity : "";
+  std::string safeQuantity = quantity ? quantity : "";
+  std::string referenceRole = this->GetUnitNodeReferenceRole() + safeQuantity;
   return this->GetNodeReferenceID(referenceRole.c_str());
+}
+
+//----------------------------------------------------------------------------
+vtkMRMLUnitNode* vtkMRMLSelectionNode::GetUnitNode(const char* quantity)
+{
+  std::string safeQuantity = quantity ? quantity : "";
+  std::string referenceRole = this->GetUnitNodeReferenceRole() + safeQuantity;
+  return vtkMRMLUnitNode::SafeDownCast(this->GetNodeReference(referenceRole.c_str()));
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLSelectionNode::SetUnitNodeID(const char* quantity, const char* id)
 {
   std::string safeQuantity = quantity ? quantity : "";
-  std::string referenceRole = "Unit/" + safeQuantity;
+  std::string referenceRole = this->GetUnitNodeReferenceRole() + safeQuantity;
 
   unsigned long mTime = this->GetMTime();
   this->SetAndObserveNodeReferenceID(referenceRole.c_str(), id);
-
+  // \todo a bit too much hackish...
   if (this->GetMTime() > mTime)
     {
     // Node changed, propaged unit modified event

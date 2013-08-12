@@ -58,19 +58,33 @@ public:
   /// Get node XML tag name (like Volume, Model)
   virtual const char* GetNodeTagName() {return "Unit";};
 
+  /// Reimplemented to prevent reset if unit node is a singleton.
+  virtual void Reset();
+
   ///
   /// Set/Get the quantity the unit belongs to. A unit can only
   /// have one quantity. Default is "".
   const char* GetQuantity();
   void SetQuantity(const char* quantity);
 
-  ///
-  /// Helper functions that wrap the given string with the
-  /// suffix and or the prefix. A space is used between the
-  /// prefix and the value as well as between the value and the suffix.
-  std::string WrapValueWithPrefix(const std::string& value) const;
-  std::string WrapValueWithSuffix(const std::string& value) const;
-  std::string WrapValueWithPrefixAndSuffix(const std::string& value) const;
+  /// Return the value multiplied by DisplayCoefficient and summed by
+  /// DisplayOffset.
+  /// \sa GetValueFromDisplayValue(), GetDisplayStringFromValue(),
+  /// GetDisplayCoefficient(), GetDisplayOffset()
+  virtual double GetDisplayValueFromValue(double value);
+  /// Return the value subtracted from DisplayOffset and divided by
+  /// DisplayCoefficient.
+  /// \sa GetDisplayValueFromValue(), GetDisplayStringFromValue()
+  virtual double GetValueFromDisplayValue(double value);
+  /// Return the display value with prefix and suffix.
+  /// \sa GetDisplayValueFromValue(), GetValueFromDisplayValue()
+  const char* GetDisplayStringFromValue(double value);
+
+  /// Return the display string format to use with printf/sprintf.
+  /// Note that the value passed to the format must be the DisplayValue.
+  /// For example: "%#6.3g mm" if the precision is 3 and the suffix mm.
+  /// \sa GetDisplayValueFromValue(), GetDisplayStringFromValue()
+  const char* GetDisplayStringFormat();
 
   ///
   /// Set the name of the unit. Since unit nodes are singleton,
@@ -112,17 +126,45 @@ public:
   vtkGetMacro(MaximumValue, double);
   vtkSetMacro(MaximumValue, double);
 
+  ///
+  /// Multiply the value with DisplayCoefficient for display.
+  /// \sa GetDisplayOffset(), GetDisplayValueFromValue()
+  vtkGetMacro(DisplayCoefficient, double);
+  vtkSetMacro(DisplayCoefficient, double);
+
+  ///
+  /// Addition the value with DisplayOffset for display.
+  /// \sa GetDisplayCoefficient(), GetDisplayValueFromValue()
+  vtkGetMacro(DisplayOffset, double);
+  vtkSetMacro(DisplayOffset, double);
+
 protected:
   vtkMRMLUnitNode();
   virtual ~vtkMRMLUnitNode();
   vtkMRMLUnitNode(const vtkMRMLUnitNode&);
   void operator=(const vtkMRMLUnitNode&);
 
+  virtual const char* GetDisplayValueStringFromDisplayValue(double displayValue);
+  virtual const char* GetDisplayStringFromDisplayValueString(const char* displayValue);
+  ///
+  /// Helper functions that wrap the given string with the
+  /// suffix and or the prefix. A space is used between the
+  /// prefix and the value as well as between the value and the suffix.
+  std::string WrapValueWithPrefix(const std::string& value) const;
+  std::string WrapValueWithSuffix(const std::string& value) const;
+  std::string WrapValueWithPrefixAndSuffix(const std::string& value) const;
+
   char* Prefix;
   char* Suffix;
   int Precision;
   double MinimumValue;
   double MaximumValue;
+
+  double DisplayCoefficient;
+  double DisplayOffset;
+
+  std::string LastValueString;
+  std::string LastDisplayString;
 };
 
 #endif

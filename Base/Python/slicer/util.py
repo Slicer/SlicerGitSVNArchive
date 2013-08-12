@@ -280,7 +280,7 @@ def selectModule(module):
 
 def moduleNames():
   from slicer import app
-  return app.moduleManager().factoryManager().moduleNames()
+  return app.moduleManager().factoryManager().loadedModuleNames()
 
 def getModule(moduleName):
   from slicer import app
@@ -294,13 +294,19 @@ def getModule(moduleName):
 def getModuleGui(module):
   if isinstance(module, basestring):
     module = getModule(module)
-  if not module:
-    return None
   widgetRepr = module.widgetRepresentation()
   if not widgetRepr:
     import sys
-    print("Could not find module widget representation with name '%s" % moduleName, file=sys.stderr)
-    return None
+    print("Could not find module widget representation with name '%s" % module.name, file=sys.stderr)
+  return widgetRepr
+
+def getNewModuleGui(module):
+  if isinstance(module, basestring):
+    module = getModule(module)
+  widgetRepr = module.createNewWidgetRepresentation()
+  if not widgetRepr:
+    import sys
+    print("Could not find module widget representation with name '%s" % module.name, file=sys.stderr)
   return widgetRepr
 
 #
@@ -345,6 +351,7 @@ def array(pattern = "", index = 0):
   used in scripts to be sure you get exactly what you want.
   """
   vectorTypes = ('vtkMRMLVectorVolumeNode', 'vtkMRMLMultiVolumeNode')
+  tensorTypes = ('vtkMRMLDiffusionTensorVolumeNode',)
   import vtk.util.numpy_support
   n = getNode(pattern=pattern, index=index)
   if n.GetClassName() == 'vtkMRMLScalarVolumeNode':
@@ -362,5 +369,11 @@ def array(pattern = "", index = 0):
       shape.append(components)
     a = vtk.util.numpy_support.vtk_to_numpy(i.GetPointData().GetScalars()).reshape(shape)
     return a
-  # TODO: accessors for other node types: tensors, polydata (verts, polys...), colors
+  elif n.GetClassName() in tensorTypes:
+    i = n.GetImageData()
+    shape = list(n.GetImageData().GetDimensions())
+    shape.reverse()
+    a = vtk.util.numpy_support.vtk_to_numpy(i.GetPointData().GetTensors()).reshape(shape+[3,3])
+    return a
+  # TODO: accessors for other node types: polydata (verts, polys...), colors
 

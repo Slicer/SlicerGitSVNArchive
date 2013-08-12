@@ -18,6 +18,13 @@
 #
 ################################################################################
 
+if(NOT DEFINED Slicer_DONT_USE_EXTENSION)
+  set(Slicer_DONT_USE_EXTENSION FALSE)
+endif()
+if(Slicer_DONT_USE_EXTENSION)
+  message(STATUS "Skipping extension packaging - Extension support is disabled.")
+  return()
+endif()
 
 # -------------------------------------------------------------------------
 # Sanity checks
@@ -30,7 +37,7 @@ foreach(var ${expected_nonempty_vars})
 endforeach()
 
 if(Slicer_SOURCE_DIR)
-  message(STATUS "Skipping extension packaging: ${EXTENSION_NAME}")
+  message(STATUS "Skipping extension packaging: ${EXTENSION_NAME} - Slicer_SOURCE_DIR is defined.")
   return()
 endif()
 
@@ -52,6 +59,18 @@ SlicerMacroExtractRepositoryInfo(VAR_PREFIX ${EXTENSION_NAME})
 #-----------------------------------------------------------------------------
 if(NOT "${Slicer_CPACK_SKIP_GENERATE_EXTENSION_DESCRIPTION}")
   include(SlicerFunctionGenerateExtensionDescription)
+
+  set(${EXTENSION_NAME}_WC_READONLY_URL ${${EXTENSION_NAME}_WC_URL})
+  set(${EXTENSION_NAME}_WC_READONLY_ROOT ${${EXTENSION_NAME}_WC_ROOT})
+  # A git read-only repository url is expected
+  if(${${EXTENSION_NAME}_WC_TYPE} STREQUAL "git")
+    if(${${EXTENSION_NAME}_WC_READONLY_URL} MATCHES "^git@")
+      string(REPLACE ":" "/" ${EXTENSION_NAME}_WC_READONLY_URL ${${EXTENSION_NAME}_WC_READONLY_URL})
+      string(REPLACE "git@" "git://" ${EXTENSION_NAME}_WC_READONLY_URL ${${EXTENSION_NAME}_WC_READONLY_URL})
+    endif()
+    set(${EXTENSION_NAME}_WC_READONLY_ROOT ${${EXTENSION_NAME}_WC_READONLY_URL})
+  endif()
+
   slicerFunctionGenerateExtensionDescription(
     EXTENSION_NAME ${EXTENSION_NAME}
     EXTENSION_CATEGORY ${EXTENSION_CATEGORY}
@@ -66,8 +85,8 @@ if(NOT "${Slicer_CPACK_SKIP_GENERATE_EXTENSION_DESCRIPTION}")
     EXTENSION_BUILD_SUBDIRECTORY ${EXTENSION_BUILD_SUBDIRECTORY}
     EXTENSION_WC_TYPE ${${EXTENSION_NAME}_WC_TYPE}
     EXTENSION_WC_REVISION ${${EXTENSION_NAME}_WC_REVISION}
-    EXTENSION_WC_ROOT ${${EXTENSION_NAME}_WC_ROOT}
-    EXTENSION_WC_URL ${${EXTENSION_NAME}_WC_URL}
+    EXTENSION_WC_ROOT ${${EXTENSION_NAME}_WC_READONLY_ROOT}
+    EXTENSION_WC_URL ${${EXTENSION_NAME}_WC_READONLY_URL}
     DESTINATION_DIR ${CMAKE_BINARY_DIR}
     SLICER_WC_REVISION ${Slicer_WC_REVISION}
     SLICER_WC_ROOT ${Slicer_WC_ROOT}

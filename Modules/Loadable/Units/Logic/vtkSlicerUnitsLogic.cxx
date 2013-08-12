@@ -41,6 +41,7 @@ vtkStandardNewMacro(vtkSlicerUnitsLogic);
 vtkSlicerUnitsLogic::vtkSlicerUnitsLogic()
 {
   this->UnitsScene = vtkMRMLScene::New();
+  this->RestoringDefaultUnits = false;
   this->AddBuiltInUnits(this->UnitsScene);
 }
 
@@ -78,7 +79,9 @@ vtkMRMLScene* vtkSlicerUnitsLogic::GetUnitsScene() const
 vtkMRMLUnitNode* vtkSlicerUnitsLogic
 ::AddUnitNodeToScene(vtkMRMLScene* scene, const char* name,
                      const char* quantity, const char* prefix,
-                     const char* suffix, int precision, double min, double max)
+                     const char* suffix, int precision,
+                     double min, double max,
+                     double displayCoeff, double displayOffset)
 {
   if (!scene)
     {
@@ -93,6 +96,8 @@ vtkMRMLUnitNode* vtkSlicerUnitsLogic
   unitNode->SetPrecision(precision);
   unitNode->SetMinimumValue(min);
   unitNode->SetMaximumValue(max);
+  unitNode->SetDisplayCoefficient(displayCoeff);
+  unitNode->SetDisplayOffset(displayOffset);
 
   scene->AddNode(unitNode);
   unitNode->Delete();
@@ -103,9 +108,16 @@ vtkMRMLUnitNode* vtkSlicerUnitsLogic
 void vtkSlicerUnitsLogic::SetMRMLSceneInternal(vtkMRMLScene * newScene)
 {
   vtkNew<vtkIntArray> events;
-  this->Superclass::SetMRMLSceneInternal(newScene);
+  events->InsertNextValue(vtkMRMLScene::StartBatchProcessEvent);
+  events->InsertNextValue(vtkMRMLScene::EndBatchProcessEvent);
+  this->SetAndObserveMRMLSceneEventsInternal(newScene, events.GetPointer());
+}
 
+//---------------------------------------------------------------------------
+void vtkSlicerUnitsLogic::ObserveMRMLScene()
+{
   this->AddDefaultsUnits();
+  this->Superclass::ObserveMRMLScene();
 }
 
 //---------------------------------------------------------------------------
@@ -133,30 +145,33 @@ void vtkSlicerUnitsLogic::AddBuiltInUnits(vtkMRMLScene* scene)
 
   // Add defaults nodes here
   this->AddUnitNodeToScene(scene,
-    "metre", "length", "", "m", 3);
+    "Meter", "length", "", "m", 3, -10000., 10000., 0.001, 0.);
   this->AddUnitNodeToScene(scene,
-    "centimetre", "length", "", "cm", 3);
+    "Centimeter", "length", "", "cm", 3, -10000., 10000., 0.1, 0.);
   this->AddUnitNodeToScene(scene,
-    "millimetre", "length", "", "mm", 3);
+    "Millimeter", "length", "", "mm", 3, -10000., 10000., 1., 0.);
   this->AddUnitNodeToScene(scene,
-    "micrometre", "length", "", "µm", 3);
+    "Micrometer", "length", "", "µm", 3, -10000., 10000., 1000., 0.);
   this->AddUnitNodeToScene(scene,
-    "nanometre", "length", "", "nm", 3);
+    "Nanometer", "length", "", "nm", 3, -10000., 10000., 1000000., 0.);
 
+  // 30.436875 is average number of days in a month
   this->AddUnitNodeToScene(scene,
-    "year", "time", "", "year", 3);
+    "Year", "time", "", "year", 2, -10000., 10000., 1.0 / 12.0*30.436875*24.0*60.0*60.0, 0.);
   this->AddUnitNodeToScene(scene,
-    "month", "time", "", "month", 3);
+    "Month", "time", "", "month", 2, -10000., 10000., 1.0 / 30.436875*24.0*60.0*60.0, 0.);
   this->AddUnitNodeToScene(scene,
-    "day", "time", "", "day", 3);
+    "Day", "time", "", "day", 2, -10000., 10000., 1.0 / 24.0*60.0*60.0, 0.);
   this->AddUnitNodeToScene(scene,
-    "hour", "time", "", "h", 3);
+    "Hour", "time", "", "h", 2, -10000., 10000., 1.0 / 60.0*60.0, 0.);
   this->AddUnitNodeToScene(scene,
-    "second", "time", "", "s", 3);
+    "Minute", "time", "", "min", 2, -10000., 10000., 1.0/60.0, 0.);
   this->AddUnitNodeToScene(scene,
-    "millisecond", "time", "", "ms", 3);
+    "Second", "time", "", "s", 3, -10000., 10000., 1., 0.);
   this->AddUnitNodeToScene(scene,
-    "microsecond", "time", "", "µs", 3);
+    "Millisecond", "time", "", "ms", 3, -10000., 10000., 1000., 0.);
+  this->AddUnitNodeToScene(scene,
+    "Microsecond", "time", "", "µs", 3, -10000., 10000., 1000., 0.);
 }
 
 //-----------------------------------------------------------------------------
@@ -172,6 +187,11 @@ void vtkSlicerUnitsLogic::SetDefaultUnit(const char* quantity, const char* id)
   if (selectionNode)
     {
     selectionNode->SetUnitNodeID(quantity, id);
+    if (!vtkIsObservedMRMLNodeEventMacro(selectionNode,
+                                         vtkCommand::ModifiedEvent))
+      {
+      vtkObserveMRMLNodeMacro(selectionNode);
+      }
     }
 }
 
@@ -188,4 +208,68 @@ void vtkSlicerUnitsLogic::RegisterNodesInternal(vtkMRMLScene* scene)
 
   vtkNew<vtkMRMLUnitNode> unitNode;
   scene->RegisterNodeClass(unitNode.GetPointer());
+}
+
+//-----------------------------------------------------------------------------
+void vtkSlicerUnitsLogic::OnMRMLSceneStartBatchProcess()
+{
+  this->SaveDefaultUnits();
+}
+
+//-----------------------------------------------------------------------------
+void vtkSlicerUnitsLogic::OnMRMLNodeModified(vtkMRMLNode* node)
+{
+  if (vtkMRMLSelectionNode::SafeDownCast(node) &&
+      !this->RestoringDefaultUnits)
+    {
+    this->RestoreDefaultUnits();
+    }
+}
+
+//-----------------------------------------------------------------------------
+void vtkSlicerUnitsLogic::SaveDefaultUnits()
+{
+  // Save selection node units.
+  std::vector<vtkMRMLUnitNode*> units;
+  vtkMRMLSelectionNode* selectionNode =  vtkMRMLSelectionNode::SafeDownCast(
+    this->GetMRMLScene()->GetNthNodeByClass(0, "vtkMRMLSelectionNode"));
+  if (selectionNode)
+    {
+    selectionNode->GetUnitNodes(units);
+    }
+  this->CachedDefaultUnits.clear();
+  std::vector<vtkMRMLUnitNode*>::const_iterator it;
+  for ( it = units.begin(); it != units.end(); ++it)
+    {
+    vtkMRMLUnitNode* unit = (*it);
+    assert(unit);
+    this->CachedDefaultUnits[unit->GetQuantity()] = unit->GetID();
+    }
+}
+
+//-----------------------------------------------------------------------------
+void vtkSlicerUnitsLogic::RestoreDefaultUnits()
+{
+  this->RestoringDefaultUnits = true;
+  vtkMRMLSelectionNode* selectionNode =  vtkMRMLSelectionNode::SafeDownCast(
+    this->GetMRMLScene()->GetNthNodeByClass(0, "vtkMRMLSelectionNode"));
+  std::vector<vtkMRMLUnitNode*> units;
+  int wasModifying = 0;
+  if (selectionNode)
+    {
+    wasModifying = selectionNode->StartModify();
+    }
+  // Restore selection node units.
+  std::map<std::string, std::string>::const_iterator it;
+  for ( it = this->CachedDefaultUnits.begin() ;
+        it != this->CachedDefaultUnits.end();
+        ++it )
+    {
+    this->SetDefaultUnit(it->first.c_str(), it->second.c_str());
+    }
+  if (selectionNode)
+    {
+    selectionNode->EndModify(wasModifying);
+    }
+  this->RestoringDefaultUnits = false;
 }

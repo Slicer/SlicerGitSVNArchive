@@ -467,8 +467,16 @@ QFileInfo qSlicerSaveDataDialogPrivate::nodeFileInfo(vtkMRMLStorableNode* node)
     if (snode->GetFileName() && node->GetName())
       {
       QFileInfo existingInfo(snode->GetFileName());
-      QFileInfo newInfo(existingInfo.absoluteDir(), QString(node->GetName() + QString(".") + existingInfo.suffix()));
-      snode->SetFileName(newInfo.absoluteFilePath().toLatin1());
+      QFileInfo newInfo(existingInfo.absoluteDir(), QString(node->GetName() + QString(".") + existingInfo.completeSuffix()));
+      // Only reset the file name if the user has set the name explicitly (that is,
+      // if the name isn't the default created by qSlicerVolumesIOOptionsWidget::setFileNames
+      // TODO: this logic relies on the GUI so we should consider moving it into MRML proper
+      // with a way for storage nodes to generate their default node names from a given filename
+      if (existingInfo.completeBaseName() != QString(node->GetName()))
+        {
+        snode->SetFileName(newInfo.absoluteFilePath().toLatin1());
+        node->StorableModified();
+        }
       }
     }
   if (snode->GetFileName() == 0 && !this->DirectoryButton->directory().isEmpty())

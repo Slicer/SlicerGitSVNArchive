@@ -583,7 +583,7 @@ void vtkMRMLSliceNode::UpdateMatrices()
 
     this->SetOrientationString( orientationString );
 
-    // as UpdateMatrices can be called from CopyWithSceneWithoutModifiedEvent
+    // as UpdateMatrices can be called with DisableModifiedEvent
     // (typically when the scene is closed, slice nodes are reset but shouldn't
     // fire events. We should respect the modifiedWasDisabled flag.
     this->EndModify(disabledModify);
@@ -1817,7 +1817,7 @@ void vtkMRMLSliceNode::RotateToVolumePlane(vtkMRMLVolumeNode *volumeNode)
                    {  0,  0,  1 },   // superior
                    {  0,  0, -1 } }; // inferior
   
-  int closestAxis[3] = {0., 0., 0.};
+  int closestAxis[3] = {0, 0, 0};
   double closestDot[3] = {-1., -1., -1.};
 
   int direction;
@@ -1967,5 +1967,5 @@ void vtkMRMLSliceNode::RotateToVolumePlane(vtkMRMLVolumeNode *volumeNode)
 
   this->SetOrientationToReformat(); // just sets the string - indicates that this is not patient aligned
 
-  this->Modified();
+  this->UpdateMatrices();
 }

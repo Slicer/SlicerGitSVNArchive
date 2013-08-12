@@ -68,6 +68,12 @@ class DataProbeInfoWidget(object):
   def __init__(self, parent=None,type='small'):
     self.type = type
     self.nameSize = 24
+    # the currentLayoutName is tag on the slice node that corresponds
+    # view which should currently be shown in the DataProbe window.
+    # Keeping track of this allows us to respond to non-interactor updates
+    # to the slice (like from an external tracker) but only in the view where
+    # the mouse has most recently entered.
+    self.currentLayoutName = None
 
     # Default observer priority is 0.0, and the widgets have a 0.5 priority
     # so we set this to 1 in order to get events that would
@@ -95,9 +101,11 @@ class DataProbeInfoWidget(object):
   def __del__(self):
     self.removeObservers()
 
-  def fitName(self,name):
-    if len(name) > self.nameSize:
-      preSize = self.nameSize / 2
+  def fitName(self,name,nameSize=None):
+    if not nameSize:
+      nameSize = self.nameSize
+    if len(name) > nameSize:
+      preSize = nameSize / 2
       postSize = preSize - 3
       name = name[:preSize] + "..." + name[-postSize:]
     return name
@@ -130,7 +138,8 @@ class DataProbeInfoWidget(object):
         for event in events:
           tag = style.AddObserver(event, self.processEvent, self.priority)
           self.styleObserverTags.append([style,tag])
-      # TODO: also observe the slice nodes
+        tag = sliceNode.AddObserver("ModifiedEvent", self.processEvent, self.priority)
+        self.styleObserverTags.append([sliceNode,tag])
 
   def getPixelString(self,volumeNode,ijk):
     """Given a volume node, create a human readable
@@ -200,6 +209,7 @@ class DataProbeInfoWidget(object):
   def processEvent(self,observee,event):
     # TODO: use a timer to delay calculation and compress events
     if event == 'LeaveEvent':
+      self.currentLayoutName = None
       # reset all the readouts
       self.viewerColor.setText( "" )
       self.viewerName.setText( "" )
@@ -212,6 +222,20 @@ class DataProbeInfoWidget(object):
         self.layerIJKs[layer].setText( "" )
         self.layerValues[layer].setText( "" )
       return
+    if event == 'EnterEvent':
+      sliceWidget = self.sliceWidgetsPerStyle[observee]
+      self.currentLayoutName = None
+      sliceLogic = sliceWidget.sliceLogic()
+      sliceNode = sliceWidget.mrmlSliceNode()
+      self.currentLayoutName = sliceNode.GetLayoutName()
+    if observee.IsA('vtkMRMLSliceNode'):
+      # for a slice node, get the corresponding style and
+      # set it as the observee so update is made for that sliceWidget
+      # if it is the current layout name
+      layoutManager = slicer.app.layoutManager()
+      sliceWidget = layoutManager.sliceWidget(observee.GetLayoutName())
+      if sliceWidget and observee.GetLayoutName() == self.currentLayoutName:
+        observee = sliceWidget.sliceView().interactor()
     if self.sliceWidgetsPerStyle.has_key(observee):
       sliceWidget = self.sliceWidgetsPerStyle[observee]
       sliceLogic = sliceWidget.sliceLogic()
@@ -260,6 +284,11 @@ class DataProbeInfoWidget(object):
         self.layerNames[layer].setText( '<b>' + nameLabel )
         self.layerIJKs[layer].setText( '(' + ijkLabel + ')' )
         self.layerValues[layer].setText( '<b>' + valueLabel )
+    sceneName = slicer.mrmlScene.GetURL()
+    if sceneName != "":
+      self.frame.parent().text = "Data Probe: %s" % self.fitName(sceneName,nameSize=2*self.nameSize)
+    else:
+      self.frame.parent().text = "Data Probe"
 
   def createSmall(self):
     """Make the internals of the widget to display in the

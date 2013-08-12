@@ -44,7 +44,7 @@
 #include <vtkSmartPointer.h>
 #include <vtkStringArray.h>
 #include <vtksys/SystemTools.hxx>
-
+#include <vtkWeakPointer.h>
 
 //----------------------------------------------------------------------------
 namespace
@@ -679,11 +679,9 @@ void vtkSlicerVolumesLogic
     {
     return;
     }
-  vtkMRMLDisplayNode *oldDisplayNode = scalarNode->GetDisplayNode();
-  if (oldDisplayNode)
-    {
-    scalarNode->GetScene()->RemoveNode(oldDisplayNode);
-    }
+
+  vtkWeakPointer<vtkMRMLDisplayNode> oldDisplayNode = scalarNode->GetDisplayNode();
+
   vtkMRMLVolumeDisplayNode* displayNode = 0;
   if (labelMap)
     {
@@ -696,9 +694,16 @@ void vtkSlicerVolumesLogic
   displayNode->SetAndObserveColorNodeID (
     labelMap ? "vtkMRMLColorTableNodeLabels" : "vtkMRMLColorTableNodeGrey");
   scalarNode->GetScene()->AddNode(displayNode);
-  scalarNode->SetAndObserveDisplayNodeID( displayNode->GetID() );
   scalarNode->SetLabelMap( labelMap );
+  scalarNode->SetAndObserveDisplayNodeID( displayNode->GetID() );
   displayNode->Delete();
+
+  // We need to remove it after the new display node is set otherwise the
+  // slice layer logic would create one between the scene removal and the set.
+  if (oldDisplayNode.GetPointer())
+    {
+    scalarNode->GetScene()->RemoveNode(oldDisplayNode);
+    }
 }
 
 
@@ -981,6 +986,50 @@ void vtkSlicerVolumesLogic::ComputeTkRegVox2RASMatrix ( vtkMRMLVolumeNode *VNode
     M->SetElement ( 2, 1, -dR );
     M->SetElement ( 2, 3, Nr/2.0 );
     M->SetElement ( 3, 3, 1.0 );
+}
+
+//-------------------------------------------------------------------------
+void vtkSlicerVolumesLogic::CenterVolume(vtkMRMLVolumeNode* volumeNode)
+{
+  if (!volumeNode || !volumeNode->GetImageData())
+    {
+    return;
+    }
+  double origin[3];
+  this->GetVolumeCenteredOrigin(volumeNode, origin);
+  volumeNode->SetOrigin(origin);
+}
+
+//------------------------------------------------------------------------------
+void vtkSlicerVolumesLogic
+::GetVolumeCenteredOrigin(vtkMRMLVolumeNode* volumeNode, double* origin)
+{
+  // WARNING: this code is duplicated in qMRMLVolumeInfoWidget !
+  origin[0] = 0.;
+  origin[1] = 0.;
+  origin[2] = 0.;
+
+  vtkImageData *imageData = volumeNode ? volumeNode->GetImageData() : 0;
+  if (!imageData)
+    {
+    return;
+    }
+
+  int *dims = imageData->GetDimensions();
+  double dimsH[4];
+  dimsH[0] = dims[0] - 1;
+  dimsH[1] = dims[1] - 1;
+  dimsH[2] = dims[2] - 1;
+  dimsH[3] = 0.;
+
+  vtkSmartPointer<vtkMatrix4x4> ijkToRAS = vtkSmartPointer<vtkMatrix4x4>::New();
+  volumeNode->GetIJKToRASMatrix(ijkToRAS);
+  double rasCorner[4];
+  ijkToRAS->MultiplyPoint(dimsH, rasCorner);
+
+  origin[0] = -0.5 * rasCorner[0];
+  origin[1] = -0.5 * rasCorner[1];
+  origin[2] = -0.5 * rasCorner[2];
 }
 
 //-------------------------------------------------------------------------

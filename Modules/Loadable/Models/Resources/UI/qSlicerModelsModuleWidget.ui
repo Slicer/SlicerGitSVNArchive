@@ -17,7 +17,7 @@
    </sizepolicy>
   </property>
   <property name="windowTitle">
-   <string>Models Module</string>
+   <string>Models</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <property name="margin">
@@ -49,6 +49,16 @@
            </size>
           </property>
          </spacer>
+        </item>
+        <item>
+         <widget class="ctkSearchBox" name="ScrollToModelSearchBox">
+          <property name="placeholderText">
+           <string>Scroll to...</string>
+          </property>
+          <property name="showSearchIcon">
+           <bool>true</bool>
+          </property>
+         </widget>
         </item>
         <item>
          <widget class="QPushButton" name="hideAllModelsButton">
@@ -258,6 +268,11 @@
    <header>ctkExpandableWidget.h</header>
    <container>1</container>
   </customwidget>
+  <customwidget>
+   <class>ctkSearchBox</class>
+   <extends>QLineEdit</extends>
+   <header>ctkSearchBox.h</header>
+  </customwidget>
  </customwidgets>
  <resources/>
  <connections>
@@ -370,6 +385,38 @@
     <hint type="destinationlabel">
      <x>528</x>
      <y>-9</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>ScrollToModelSearchBox</sender>
+   <signal>textChanged(QString)</signal>
+   <receiver>ModelHierarchyTreeView</receiver>
+   <slot>scrollTo(QString)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>311</x>
+     <y>17</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>296</x>
+     <y>84</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>ScrollToModelSearchBox</sender>
+   <signal>returnPressed()</signal>
+   <receiver>ModelHierarchyTreeView</receiver>
+   <slot>scrollToNext()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>335</x>
+     <y>14</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>333</x>
+     <y>71</y>
     </hint>
    </hints>
   </connection>

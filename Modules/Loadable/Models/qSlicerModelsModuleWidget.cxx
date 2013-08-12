@@ -86,6 +86,7 @@ void qSlicerModelsModuleWidget::setup()
   Q_D(qSlicerModelsModuleWidget);
 
   d->setupUi(this);
+
   d->ClipModelsNodeComboBox->setVisible(false);
 
   this->updateTreeViewModel();

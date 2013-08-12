@@ -131,6 +131,13 @@ void qSlicerAppMainWindowPrivate::setupUi(QMainWindow * mainWindow)
   qSlicerApplication * app = qSlicerApplication::application();
 
   //----------------------------------------------------------------------------
+  // Load data shortcuts for backward compatibility
+  //----------------------------------------------------------------------------
+  QList<QKeySequence> addShortcuts = this->actionFileAddData->shortcuts();
+  addShortcuts << QKeySequence(Qt::CTRL + Qt::Key_A);
+  this->actionFileAddData->setShortcuts(addShortcuts);
+
+  //----------------------------------------------------------------------------
   // Recently loaded files
   //----------------------------------------------------------------------------
   QObject::connect(app->coreIOManager(), SIGNAL(newFileLoaded(qSlicerIO::IOProperties)),
@@ -226,6 +233,10 @@ void qSlicerAppMainWindowPrivate::setupUi(QMainWindow * mainWindow)
   toolBarActions << this->MouseModeToolBar->toggleViewAction();
   toolBarActions << this->CaptureToolBar->toggleViewAction();
   toolBarActions << this->ViewersToolBar->toggleViewAction();
+#ifdef Slicer_BUILD_EXTENSIONMANAGER_SUPPORT
+  toolBarActions << this->DialogToolBar->toggleViewAction();
+#endif
+  toolBarActions << this->DialogToolBar->toggleViewAction();
 
   this->menuWindowToolBars->insertActions(
     this->actionWindowToolbarsResetToDefault, toolBarActions);
@@ -771,6 +782,7 @@ void qSlicerAppMainWindow::setupMenuActions()
   d->actionViewLayoutThreeOverThreeQuantitative->setData(vtkMRMLLayoutNode::SlicerLayoutThreeOverThreeQuantitativeView);
   d->actionViewLayoutFourOverFour->setData(vtkMRMLLayoutNode::SlicerLayoutFourOverFourView);
   d->actionViewLayoutTwoOverTwo->setData(vtkMRMLLayoutNode::SlicerLayoutTwoOverTwoView);
+  d->actionViewLayoutSideBySide->setData(vtkMRMLLayoutNode::SlicerLayoutSideBySideView);
 
   d->actionViewLayoutCompare_2_viewers->setData(2);
   d->actionViewLayoutCompare_3_viewers->setData(3);
@@ -791,6 +803,9 @@ void qSlicerAppMainWindow::setupMenuActions()
   d->actionViewLayoutCompareGrid_2x2_viewers->setData(2);
   d->actionViewLayoutCompareGrid_3x3_viewers->setData(3);
   d->actionViewLayoutCompareGrid_4x4_viewers->setData(4);
+
+  d->actionWindowErrorLog->setIcon(
+        this->style()->standardIcon(QStyle::SP_MessageBoxCritical));
 
   connect(d->actionWindowErrorLog, SIGNAL(triggered(bool)),
           d->Core, SLOT(onWindowErrorLogActionTriggered(bool)));

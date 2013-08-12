@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>660</width>
-    <height>366</height>
+    <height>424</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -32,20 +32,20 @@
      <property name="enabled">
       <bool>false</bool>
      </property>
-     <property name="decimals" stdset="0">
+     <property name="decimals">
       <number>0</number>
      </property>
-     <property name="minimum" stdset="0">
+     <property name="minimum">
       <double>0.000000000000000</double>
      </property>
-     <property name="maximum" stdset="0">
+     <property name="maximum">
       <double>100000.000000000000000</double>
      </property>
      <property name="coordinates" stdset="0">
       <string>1,1,1</string>
      </property>
-     <property name="quantity">
-      <string>length</string>
+     <property name="unitAwareProperties">
+      <set>qMRMLCoordinatesWidget::MaximumValue|qMRMLCoordinatesWidget::MinimumValue|qMRMLCoordinatesWidget::Precision|qMRMLCoordinatesWidget::Prefix|qMRMLCoordinatesWidget::Scaling|qMRMLCoordinatesWidget::Suffix</set>
      </property>
     </widget>
    </item>
@@ -61,17 +61,23 @@
      <property name="decimals">
       <number>4</number>
      </property>
-     <property name="minimum" stdset="0">
-      <double>0.00010000000000000</double>
+     <property name="decimalsOption">
+      <set>ctkDoubleSpinBox::DecimalsByKey|ctkDoubleSpinBox::DecimalsByShortcuts|ctkDoubleSpinBox::DecimalsByValue</set>
+     </property>
+     <property name="minimum">
+      <double>0.000000000000000</double>
+     </property>
+     <property name="maximum">
+      <double>1000000000.000000000000000</double>
      </property>
      <property name="coordinates" stdset="0">
-      <string>1,1,1</string>
+      <string>0,0,0</string>
      </property>
      <property name="quantity">
       <string>length</string>
      </property>
      <property name="unitAwareProperties">
-      <set>qMRMLCoordinatesWidget::Prefix|qMRMLCoordinatesWidget::Suffix</set>
+      <set>qMRMLCoordinatesWidget::Precision|qMRMLCoordinatesWidget::Prefix|qMRMLCoordinatesWidget::Scaling|qMRMLCoordinatesWidget::Suffix</set>
      </property>
     </widget>
    </item>
@@ -87,14 +93,20 @@
      <property name="decimals">
       <number>4</number>
      </property>
-     <property name="minimum" stdset="0">
-      <double>-1000000.000000000000000</double>
+     <property name="decimalsOption">
+      <set>ctkDoubleSpinBox::DecimalsByKey|ctkDoubleSpinBox::DecimalsByShortcuts|ctkDoubleSpinBox::DecimalsByValue</set>
      </property>
-     <property name="maximum" stdset="0">
-      <double>1000000.000000000000000</double>
+     <property name="minimum">
+      <double>-1000000000.000000000000000</double>
+     </property>
+     <property name="maximum">
+      <double>1000000000.000000000000000</double>
      </property>
      <property name="quantity">
       <string>length</string>
+     </property>
+     <property name="unitAwareProperties">
+      <set>qMRMLCoordinatesWidget::Precision|qMRMLCoordinatesWidget::Prefix|qMRMLCoordinatesWidget::Scaling|qMRMLCoordinatesWidget::Suffix</set>
      </property>
     </widget>
    </item>
@@ -127,6 +139,9 @@
      </property>
      <property name="decimals">
       <number>4</number>
+     </property>
+     <property name="decimalsOption">
+      <set>ctkDoubleSpinBox::DecimalsByKey|ctkDoubleSpinBox::DecimalsByShortcuts|ctkDoubleSpinBox::DecimalsByValue</set>
      </property>
      <property name="singleStep">
       <double>0.000100000000000</double>
@@ -206,12 +221,21 @@
       </widget>
      </item>
      <item>
-      <widget class="ctkSpinBox" name="MinScalarDoubleSpinBox">
+      <widget class="ctkDoubleSpinBox" name="MinScalarDoubleSpinBox">
        <property name="enabled">
         <bool>false</bool>
        </property>
        <property name="alignment">
         <set>Qt::AlignCenter</set>
+       </property>
+       <property name="decimals">
+        <number>0</number>
+       </property>
+       <property name="decimalsOption">
+        <set>ctkDoubleSpinBox::DecimalsByShortcuts|ctkDoubleSpinBox::DecimalsByValue</set>
+       </property>
+       <property name="maximum">
+        <double>1000000000.000000000000000</double>
        </property>
       </widget>
      </item>
@@ -232,12 +256,21 @@
       </widget>
      </item>
      <item>
-      <widget class="ctkSpinBox" name="MaxScalarDoubleSpinBox">
+      <widget class="ctkDoubleSpinBox" name="MaxScalarDoubleSpinBox">
        <property name="enabled">
         <bool>false</bool>
        </property>
        <property name="alignment">
         <set>Qt::AlignCenter</set>
+       </property>
+       <property name="decimals">
+        <number>0</number>
+       </property>
+       <property name="decimalsOption">
+        <set>ctkDoubleSpinBox::DecimalsByShortcuts|ctkDoubleSpinBox::DecimalsByValue</set>
+       </property>
+       <property name="maximum">
+        <double>1000000000.000000000000000</double>
        </property>
       </widget>
      </item>
@@ -314,14 +347,14 @@
    <header>ctkCoordinatesWidget.h</header>
   </customwidget>
   <customwidget>
+   <class>ctkDoubleSpinBox</class>
+   <extends>QWidget</extends>
+   <header>ctkDoubleSpinBox.h</header>
+  </customwidget>
+  <customwidget>
    <class>ctkMatrixWidget</class>
    <extends>QWidget</extends>
    <header>ctkMatrixWidget.h</header>
-  </customwidget>
-  <customwidget>
-   <class>ctkSpinBox</class>
-   <extends>QWidget</extends>
-   <header>ctkSpinBox.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

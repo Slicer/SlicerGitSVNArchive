@@ -139,8 +139,13 @@ public:
   /// since read", only calling Modified() on StorableModifiedTime does.
   /// GetModifiedSinceRead() can be overwritten to handle special storable
   /// property modification time.
-  /// \sa GetStoredTime() StorableModifiedTime Modified()
+  /// \sa GetStoredTime() StorableModifiedTime Modified() StorableModified()
   virtual bool GetModifiedSinceRead();
+
+  /// Allows external code to mark that the storable has been modified
+  /// and should therefore be selected for saving by default.
+  /// \sa GetStoredTime() StorableModifiedTime Modified() GetModifiedSinceRead()
+  virtual void StorableModified() {this->StorableModifiedTime.Modified();};
 
  protected:
   vtkMRMLStorableNode();
@@ -148,15 +153,11 @@ public:
   vtkMRMLStorableNode(const vtkMRMLStorableNode&);
   void operator=(const vtkMRMLStorableNode&);
 
-  char* StorageNodeReferenceRole;
-  char* StorageNodeReferenceRererenceMRMLAttributeName;
+  static const char* StorageNodeReferenceRole;
+  static const char* StorageNodeReferenceMRMLAttributeName;
 
-  vtkSetStringMacro(StorageNodeReferenceRole);
-  vtkGetStringMacro(StorageNodeReferenceRole);
- 
-  vtkSetStringMacro(StorageNodeReferenceRererenceMRMLAttributeName);
-  vtkGetStringMacro(StorageNodeReferenceRererenceMRMLAttributeName);
-
+  virtual const char* GetStorageNodeReferenceRole();
+  virtual const char* GetStorageNodeReferenceMRMLAttributeName();
 
   vtkTagTable *UserTagTable;
 

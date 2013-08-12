@@ -23,9 +23,18 @@ if(BUILD_TESTING)
       qSlicerCorePythonManagerWithoutApplicationTest.cxx
       )
   endif()
+  if(Slicer_USE_PYTHONQT_WITH_OPENSSL)
+    list(APPEND KIT_TEST_SRCS
+      qSlicerSslTest.cxx
+      )
+  endif()
   create_test_sourcelist(Tests ${KIT}CxxTests.cxx
     ${KIT_TEST_SRCS}
     EXTRA_INCLUDE vtkMRMLDebugLeaksMacro.h
+    )
+
+  QT4_GENERATE_MOCS(
+    qSlicerSslTest.cxx
     )
 
   if(Slicer_BUILD_EXTENSIONMANAGER_SUPPORT)
@@ -68,6 +77,10 @@ if(BUILD_TESTING)
 
   if(Slicer_USE_PYTHONQT)
     simple_test( qSlicerCorePythonManagerWithoutApplicationTest )
+  endif()
+
+  if(Slicer_USE_PYTHONQT_WITH_OPENSSL)
+    simple_test( qSlicerSslTest )
   endif()
 
 endif()

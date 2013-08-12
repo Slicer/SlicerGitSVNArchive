@@ -22,26 +22,34 @@ Version:   $Revision: 1.14 $
 #include <vtkMatrixToLinearTransform.h>
 #include <vtkMatrix4x4.h>
 
+const char* vtkMRMLTransformableNode::TransformNodeReferenceRole = "transform";
+const char* vtkMRMLTransformableNode::TransformNodeReferenceMRMLAttributeName = "transformNodeRef";
 
 //----------------------------------------------------------------------------
 vtkMRMLTransformableNode::vtkMRMLTransformableNode()
 {
   this->TransformNodeIDInternal = 0;
-  this->TransformNodeReferenceRole = 0;
-  this->TransformNodeReferenceRererenceMRMLAttributeName = 0;
-
-  this->SetTransformNodeReferenceRole("transform");
-  this->SetTransformNodeReferenceRererenceMRMLAttributeName("transformNodeRef");
-
 
   this->HideFromEditors = 0;
   this->AddNodeReferenceRole(this->GetTransformNodeReferenceRole(),
-                             this->GetTransformNodeReferenceRererenceMRMLAttributeName());
+                             this->GetTransformNodeReferenceMRMLAttributeName());
 }
 
 //----------------------------------------------------------------------------
 vtkMRMLTransformableNode::~vtkMRMLTransformableNode()
 {
+}
+
+//----------------------------------------------------------------------------
+const char* vtkMRMLTransformableNode::GetTransformNodeReferenceRole()
+{
+  return vtkMRMLTransformableNode::TransformNodeReferenceRole;
+}
+
+//----------------------------------------------------------------------------
+const char* vtkMRMLTransformableNode::GetTransformNodeReferenceMRMLAttributeName()
+{
+  return vtkMRMLTransformableNode::TransformNodeReferenceMRMLAttributeName;
 }
 
 //----------------------------------------------------------------------------
@@ -103,6 +111,13 @@ void vtkMRMLTransformableNode::SetAndObserveTransformNodeID(const char *transfor
     return;
     }
 
+  if (transformNodeID != 0 && this->GetNodeReferenceID(this->GetTransformNodeReferenceRole()) != 0 &&
+      !strcmp(transformNodeID, this->GetNodeReferenceID(this->GetTransformNodeReferenceRole())))
+    {
+    //the same ID, nothing to do
+    return;
+    }
+
   vtkMRMLTransformNode* tnode = vtkMRMLTransformNode::SafeDownCast(
     this->GetScene() != 0 ?this->GetScene()->GetNodeByID(transformNodeID) : 0);
 
@@ -118,6 +133,8 @@ void vtkMRMLTransformableNode::SetAndObserveTransformNodeID(const char *transfor
   events->InsertNextValue(vtkMRMLTransformableNode::TransformModifiedEvent);
   this->SetAndObserveNodeReferenceID(this->GetTransformNodeReferenceRole(), transformNodeID, events);
   events->Delete();
+
+  this->InvokeEvent(vtkMRMLTransformableNode::TransformModifiedEvent, NULL);
 }
 
 //---------------------------------------------------------------------------

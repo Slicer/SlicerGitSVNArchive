@@ -24,6 +24,7 @@
 // Qt includes
 #include <QApplication>
 #include <QMetaType>
+#include <QVariant>
 
 // CTK includes
 #include <ctkVTKObject.h>
@@ -57,6 +58,10 @@ class Q_SLICER_BASE_QTCORE_EXPORT qSlicerCoreApplication : public QApplication
   QVTK_OBJECT
   Q_ENUMS(ReturnCode)
 
+  /// This property holds the path where the Slicer application is.
+  /// For example, for an installed Slicer on Windows, the path can be
+  /// "C:\Program Files (x86)\Slicer 4.3.0\".
+  /// \sa slicerHome(), temporaryPath, isInstalled
   Q_PROPERTY(QString slicerHome READ slicerHome CONSTANT)
   Q_PROPERTY(QString temporaryPath READ temporaryPath WRITE setTemporaryPath)
   Q_PROPERTY(QString launcherExecutableFilePath READ launcherExecutableFilePath CONSTANT)
@@ -136,6 +141,7 @@ public:
   Q_INVOKABLE vtkSlicerApplicationLogic* applicationLogic() const;
 
   /// Get slicer home directory
+  /// \sa slicerHome
   QString slicerHome() const;
 
   /// Returns True if module identified by \a moduleFileName is a descendant of slicer home.
@@ -289,6 +295,12 @@ public:
 
   static void loadLanguage();
 
+  /// If system certificates couldn't be found, load certicates bundled into 'Slicer.crt'.
+  /// For more details, see Slicer/Base/QTCore/Resources/Certs/README
+  /// Returns \a False if 'Slicer.crt' also failed to be loaded.
+  /// \sa QSslSocket::defaultCaCertificates()
+  static bool loadCaCertificates();
+
 public slots:
 
   /// Restart the application with the arguments passed at startup time
@@ -317,13 +329,16 @@ protected slots:
 
   /// Called when the application logic requests a delayed event invokation.
   /// When the singleton application logic fires the RequestInvokeEvent,
-  /// a timer is created, and on timeout, \a invokeEvent() is called to
-  /// propagate the requested event invocation.
   /// \sa invokeEvent(), vtkMRMLApplicationLogic::InvokeRequest
   /// \sa onSlicerApplicationLogicRequest(), processAppLogicModified()
   void requestInvokeEvent(vtkObject* caller, void* callData);
 
-  /// Called only when a special QTimer times out.
+  /// a timer is created, and on timeout, \a invokeEvent() is called to
+  /// propagate the requested event invocation.
+  /// \sa invokeEventRequested(), requestInvokeEvent(), invokeEvent()
+  void scheduleInvokeEvent(unsigned int delay, void* caller, unsigned long event, void* callData);
+
+  /// Internal method called only when a special QTimer times out.
   /// The timer contains dynamic properties describing an event to invoke on
   /// a specific object.
   /// \sa requestInvokeEvent
@@ -331,6 +346,11 @@ protected slots:
 
 signals:
   void mrmlSceneChanged(vtkMRMLScene* mrmlScene);
+
+  /// Internal method used to move an invocation from a thread to the main thread.
+  /// \sa requestInvokeEvent(), scheduleInvokeEvent()
+  void invokeEventRequested(unsigned int delay, void* caller,
+                            unsigned long event, void* callData);
 
 protected:
   qSlicerCoreApplication(qSlicerCoreApplicationPrivate* pimpl, int &argc, char **argv);

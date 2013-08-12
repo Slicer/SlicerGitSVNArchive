@@ -61,6 +61,7 @@
 # include "qSlicerSettingsQtTestingPanel.h"
 #endif
 #include "qSlicerSettingsModulesPanel.h"
+#include "qSlicerSettingsStylesPanel.h"
 
 // qMRMLWidget includes
 #include "qMRMLEventBrokerConnection.h"
@@ -176,10 +177,15 @@ void qSlicerApplicationPrivate::init()
   this->SettingsDialog = new ctkSettingsDialog(0);
   this->SettingsDialog->setResetButton(true);
 
-  this->SettingsDialog->addPanel("General", new qSlicerSettingsGeneralPanel);
+  qSlicerSettingsGeneralPanel* generalPanel = new qSlicerSettingsGeneralPanel;
+  this->SettingsDialog->addPanel("General", generalPanel);
 
   qSlicerSettingsModulesPanel * settingsModulesPanel = new qSlicerSettingsModulesPanel;
   this->SettingsDialog->addPanel("Modules", settingsModulesPanel);
+
+  qSlicerSettingsStylesPanel* settingsStylesPanel =
+    new qSlicerSettingsStylesPanel(generalPanel);
+  this->SettingsDialog->addPanel("Appearance", settingsStylesPanel);
 
 #ifdef Slicer_BUILD_EXTENSIONMANAGER_SUPPORT
   qSlicerSettingsExtensionsPanel * settingsExtensionsPanel = new qSlicerSettingsExtensionsPanel;
@@ -284,6 +290,30 @@ qSlicerApplication* qSlicerApplication::application()
   qSlicerApplication* app = qobject_cast<qSlicerApplication*>(QApplication::instance());
   return app;
 }
+
+//-----------------------------------------------------------------------------
+bool qSlicerApplication::notify(QObject *receiver, QEvent *event)
+{
+  try
+    {
+    return QApplication::notify(receiver, event);
+    }
+  catch( std::exception& exception )
+    {
+    QString errorMessage;
+    errorMessage = tr("Slicer has caught an internal error.\n\n");
+    errorMessage += tr("You may be able to continue from this point, but results are undefined.\n\n");
+    errorMessage += tr("Suggested action is to save your work and restart.");
+    errorMessage += tr("\n\nIf you have a repeatable sequence of steps that causes this message, ");
+    errorMessage += tr("please report the issue following instructions available at http://slicer.org\n\n\n");
+    errorMessage += tr("The message detail is:\n\n");
+    errorMessage += tr("Exception thrown in event: ") + exception.what();
+    qCritical() << errorMessage;
+    QMessageBox::critical(this->mainWindow(),tr("Internal Error"), errorMessage);
+    }
+  return false;
+}
+
 
 //-----------------------------------------------------------------------------
 qSlicerCommandOptions* qSlicerApplication::commandOptions()

@@ -20,6 +20,9 @@
 
 #include "qMRMLSliderWidget.h"
 
+// CTK includes
+#include <ctkLinearValueProxy.h>
+
 // MRML includes
 #include <vtkMRMLNode.h>
 #include <vtkMRMLScene.h>
@@ -40,13 +43,16 @@ protected:
   qMRMLSliderWidget* const q_ptr;
 public:
   qMRMLSliderWidgetPrivate(qMRMLSliderWidget& object);
+  ~qMRMLSliderWidgetPrivate();
 
   void setAndObserveSelectionNode();
+  void updateValueProxy(vtkMRMLUnitNode* unitNode);
 
   QString Quantity;
   vtkMRMLScene* MRMLScene;
   vtkMRMLSelectionNode* SelectionNode;
   qMRMLSliderWidget::UnitAwareProperties Flags;
+  ctkLinearValueProxy* Proxy;
 };
 
 // --------------------------------------------------------------------------
@@ -59,6 +65,13 @@ qMRMLSliderWidgetPrivate::qMRMLSliderWidgetPrivate(qMRMLSliderWidget& object)
   this->Flags = qMRMLSliderWidget::Prefix | qMRMLSliderWidget::Suffix
     | qMRMLSliderWidget::Precision
     | qMRMLSliderWidget::MinimumValue | qMRMLSliderWidget::MaximumValue;
+  this->Proxy = new ctkLinearValueProxy;
+}
+
+// --------------------------------------------------------------------------
+qMRMLSliderWidgetPrivate::~qMRMLSliderWidgetPrivate()
+{
+  delete this->Proxy;
 }
 
 // --------------------------------------------------------------------------
@@ -71,7 +84,6 @@ void qMRMLSliderWidgetPrivate::setAndObserveSelectionNode()
     {
     selectionNode = vtkMRMLSelectionNode::SafeDownCast(
       this->MRMLScene->GetNthNodeByClass(0, "vtkMRMLSelectionNode"));
-    Q_ASSERT(selectionNode);
     }
 
   q->qvtkReconnect(this->SelectionNode, selectionNode,
@@ -82,6 +94,23 @@ void qMRMLSliderWidgetPrivate::setAndObserveSelectionNode()
 }
 
 // --------------------------------------------------------------------------
+void qMRMLSliderWidgetPrivate::updateValueProxy(vtkMRMLUnitNode* unitNode)
+{
+  Q_Q(qMRMLSliderWidget);
+  if (!unitNode)
+    {
+    q->setValueProxy(0);
+    this->Proxy->setCoefficient(1.0);
+    this->Proxy->setOffset(0.0);
+    return;
+    }
+
+  q->setValueProxy(this->Proxy);
+  this->Proxy->setOffset(unitNode->GetDisplayOffset());
+  this->Proxy->setCoefficient(unitNode->GetDisplayCoefficient());
+}
+
+// --------------------------------------------------------------------------
 // qMRMLSliderWidget
 
 // --------------------------------------------------------------------------
@@ -89,7 +118,6 @@ qMRMLSliderWidget::qMRMLSliderWidget(QWidget* parentWidget)
   : Superclass(parentWidget)
   , d_ptr(new qMRMLSliderWidgetPrivate(*this))
 {
-  Q_D(qMRMLSliderWidget);
 }
 
 // --------------------------------------------------------------------------
@@ -190,9 +218,13 @@ void qMRMLSliderWidget::updateWidgetFromUnitNode()
         {
         this->setMinimum(unitNode->GetMinimumValue());
         }
-      if (d->Flags.testFlag(qMRMLSliderWidget::MinimumValue))
+      if (d->Flags.testFlag(qMRMLSliderWidget::MaximumValue))
         {
         this->setMaximum(unitNode->GetMaximumValue());
+        }
+      if (d->Flags.testFlag(qMRMLSliderWidget::Scaling))
+        {
+        d->updateValueProxy(unitNode);
         }
       }
     }

@@ -76,6 +76,7 @@ public:
   vtkSmartPointer<vtkMRMLSliceLinkLogic> SliceLinkLogic;
   vtkSmartPointer<vtkMRMLModelHierarchyLogic> ModelHierarchyLogic;
   vtkSmartPointer<vtkMRMLColorLogic> ColorLogic;
+  std::string TemporaryPath;
 
 };
 
@@ -549,14 +550,14 @@ bool vtkMRMLApplicationLogic::SaveSceneToSlicerDataBundleDirectory(const char *s
       }
     if (mrmlNode->IsA("vtkMRMLStorableNode"))
       {
-      // adjust the file paths
+      // adjust the file paths for storable nodes
       vtkMRMLStorableNode *storableNode = vtkMRMLStorableNode::SafeDownCast(mrmlNode);
       if (storableNode && storableNode->GetSaveWithScene())
         {
         vtkMRMLStorageNode *storageNode = storableNode->GetStorageNode();
         if (!storageNode)
           {
-          // have to create one!
+          // no storage node, so we have to create one with a valid name in the new directory
           vtkWarningMacro("creating a new storage node for " << storableNode->GetID());
           storageNode = storableNode->CreateDefaultStorageNode();
           if (storageNode)
@@ -578,27 +579,36 @@ bool vtkMRMLApplicationLogic::SaveSceneToSlicerDataBundleDirectory(const char *s
           }
         if (storageNode)
           {
-          // save the old values
+          // save the old values for the storage nodes
+          // - origStorageNodeFileNames has the old filename (absolute path)
+          // - origStorageNodeDirs has old paths
           std::string fileName(storageNode->GetFileName());
           origStorageNodeFileNames[storageNode] = fileName;
 
           std::vector<std::string> pathComponents;
           vtksys::SystemTools::SplitPath(fileName.c_str(), pathComponents);
+          // new file name is encoded to handle : or / characters in the node names
+          std::string fileBaseName = this->PercentEncode(pathComponents.back());
           pathComponents.pop_back();
           origStorageNodeDirs[storageNode] = vtksys::SystemTools::JoinPath(pathComponents);
 
+          std::string ext = std::string(".") + std::string(storageNode->GetDefaultWriteFileExtension());
+          std::string uniqueFileName = fileBaseName;
+          if (ext != vtksys::SystemTools::GetFilenameExtension(fileBaseName))
+            {
+            uniqueFileName = uniqueFileName + ext;
+            }
+          storageNode->SetFileName(uniqueFileName.c_str());
           storageNode->SetDataDirectory(dataDir.c_str());
           vtkDebugMacro("set data directory to "
             << dataDir.c_str() << ", storable node " << storableNode->GetID()
             << " file name is now: " << storageNode->GetFileName());
-          // deal with existing files
+          // deal with existing files by creating a numeric suffix
           if (vtksys::SystemTools::FileExists(storageNode->GetFileName(), true))
             {
             vtkWarningMacro("file " << storageNode->GetFileName() << " already exists, renaming!");
             std::string baseName = vtksys::SystemTools::GetFilenameWithoutExtension(storageNode->GetFileName());
-            std::string ext = vtksys::SystemTools::GetFilenameExtension(storageNode->GetFileName());
             bool uniqueName = false;
-            std::string uniqueFileName;
             int v = 1;
             while (!uniqueName)
               {
@@ -848,4 +858,28 @@ void vtkMRMLApplicationLogic
   request.EventID = eventID;
   request.CallData = callData;
   this->InvokeEvent(vtkMRMLApplicationLogic::RequestInvokeEvent, &request);
+}
+
+//----------------------------------------------------------------------------
+const char* vtkMRMLApplicationLogic::GetTemporaryPath()
+{
+    return this->Internal->TemporaryPath.c_str();
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLApplicationLogic::SetTemporaryPath(const char* path)
+{
+    if (path == NULL)
+      {
+      this->Internal->TemporaryPath.clear();
+      }
+    else if (this->Internal->TemporaryPath == std::string(path))
+      {
+      return;
+      }
+    else
+      {
+      this->Internal->TemporaryPath = std::string(path);
+      }
+    this->Modified();
 }

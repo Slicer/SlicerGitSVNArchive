@@ -13,6 +13,7 @@ def findSource(dir):
               fnmatch.fnmatch(file, "*.cxx") or \
               fnmatch.fnmatch(file, "*.cpp") or \
               fnmatch.fnmatch(file, "CMakeLists.txt") or \
+              fnmatch.fnmatch(file, "*.cmake") or \
               fnmatch.fnmatch(file, "*.ui") or \
               fnmatch.fnmatch(file, "*.qrc") or \
               fnmatch.fnmatch(file, "*.py") or \
@@ -55,7 +56,7 @@ def usage():
   print ("  ./Utilities/Scripts/ModuleWizard.py --template ./Extensions/Testing/ScriptedLoadableExtensionTemplate --target ../MyScript MyScript")
   print ("  ./Utilities/Scripts/ModuleWizard.py --template ./Extensions/Testing/EditorExtensionTemplate --target ../MyEditorEffect MyEditorEffect")
   print ("  ./Utilities/Scripts/ModuleWizard.py --template ./Extensions/Testing/CLIExtensionTemplate --target ../MyCLI MyCLI")
-  print ("  ./Utilities/Scripts/ModuleWizard.py --template ./Extensions/Testing/SuperBuildLoadableExtensionTemplate --target ../MySuperBuild MySuperBuild")
+  print ("  ./Utilities/Scripts/ModuleWizard.py --template ./Extensions/Testing/SuperBuildExtensionTemplate --target ../MySuperBuild MySuperBuild")
   print ("")
 
 def main(argv):

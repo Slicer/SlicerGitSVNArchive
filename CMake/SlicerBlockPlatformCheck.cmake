@@ -42,4 +42,32 @@ if(Slicer_PLATFORM_CHECK)
   if (DARWIN_MAJOR_VERSION LESS "8")
     message(FATAL_ERROR "Only Mac OSX >= 10.4 are supported !")
   endif()
+
+  if(MSVC)
+    # See http://www.cmake.org/cmake/help/v2.8.10/cmake.html#variable:MSVC_VERSION
+    # and https://en.wikipedia.org/wiki/Microsoft_Visual_Studio#Version_history
+    #   1200 = VS  6.0 (Visual Studio 6.0)
+    #   1300 = VS  7.0 (Visual Studio .NET (2002))
+    #   1310 = VS  7.1 (Visual Studio .NET 2003)
+    #   1400 = VS  8.0 (Visual Studio 2005)
+    #   1500 = VS  9.0 (Visual Studio 2008)
+    #   1600 = VS 10.0 (Visual Studio 2010)
+    #   1700 = VS 11.0 (Visual Studio 2012)
+    if(MSVC_VERSION VERSION_LESS 1500)
+      message(FATAL_ERROR "Visual Studio >= 2008 is required !")
+    endif()
+
+    # See https://github.com/Kitware/CMake/blob/master/Modules/CMakeDetermineVSServicePack.cmake
+    #  14.00.50727.42  - vc80
+    #  14.00.50727.762 - vc80sp1
+    #  15.00.21022.08  - vc90
+    #  15.00.30729.01  - vc90sp1
+    #  16.00.30319.01  - vc100
+    #  16.00.40219.01  - vc100sp1
+    #  17.00.50727.1   - vc110
+    if(MSVC90 AND NOT "${CMAKE_CXX_COMPILER_VERSION}" VERSION_EQUAL "15.00.30729.01")
+      message(FATAL_ERROR "Slicer requires Microsoft Visual Studio 2008 (VS9) SP1 or greater!"
+                          "See http://www.microsoft.com/en-us/download/details.aspx?id=10986" )
+    endif()
+  endif()
 endif()

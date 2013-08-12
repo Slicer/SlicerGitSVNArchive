@@ -18,9 +18,13 @@
 
 ==============================================================================*/
 
+// standard library includes
+#include  <clocale>
+
 // Qt includes
 #include <QDebug>
 #include <QDir>
+#include <QLocale>
 #include <QMessageBox>
 #include <QTimer>
 #include <QNetworkProxyFactory>
@@ -52,6 +56,11 @@
 #ifdef Slicer_USE_PYTHONQT
 // PythonQt includes
 #include <PythonQt.h>
+#endif
+
+#ifdef Slicer_USE_PYTHONQT_WITH_OPENSSL
+#include <QSslCertificate>
+#include <QSslSocket>
 #endif
 
 // SlicerQt includes
@@ -139,13 +148,6 @@ void qSlicerCoreApplicationPrivate::init()
 {
   Q_Q(qSlicerCoreApplication);
 
-  if(qApp->arguments().contains("--attach-process"))
-    {
-    QString msg("This message box is here to give you time to attach "
-                "your debugger to process [PID %1]");
-    QMessageBox::information(0, "Attach process", msg.arg(QCoreApplication::applicationPid()));
-    }
-
   // Minimize the number of call to 'systemEnvironment()' by keeping
   // a reference to 'Environment'. Indeed, re-creating QProcessEnvironment is a non-trivial
   // operation. See http://doc.qt.nokia.com/4.7/qprocessenvironment.html#systemEnvironment
@@ -153,6 +155,37 @@ void qSlicerCoreApplicationPrivate::init()
   // 'Environment' is maintained 'up-to-date'. Nevertheless, if the environment
   // is udpated solely using 'putenv(...)' function, 'Environment' won't be updated.
   this->Environment = QProcessEnvironment::systemEnvironment();
+
+  // Set the locale to be "C" to avoid issues related to reading and writing
+  // of floating point numbers.  For example, when the decimal point is set to be
+  // a comma instead of a period, there can be truncation of data.
+  // See these previous commits and the bug report.
+  // http://viewvc.slicer.org/viewvc.cgi/Slicer4?view=revision&revision=21856
+  // http://viewvc.slicer.org/viewvc.cgi/Slicer4?view=revision&revision=21865
+  // http://slicer-devel.65872.n3.nabble.com/Re-Rounding-to-integer-tt4027985.html
+  // http://slicer-devel.65872.n3.nabble.com/Re-slicer-users-Slicer4-can-t-really-use-it-yet-td4028040.html
+  // http://slicer-users.65878.n3.nabble.com/Slicer4-DICOM-many-problems-td4025919.html
+  // and issue #3029
+  // Set both the Qt locale, and the standard library locale to cover
+  // all supported read and write methods.
+  QLocale::setDefault(QLocale::C);
+  setlocale(LC_ALL, "C");
+
+  // allow a debugger to be attached during startup
+  if(qApp->arguments().contains("--attach-process"))
+    {
+    QString msg("This message box is here to give you time to attach "
+                "your debugger to process [PID %1]");
+    QMessageBox::information(0, "Attach process", msg.arg(QCoreApplication::applicationPid()));
+    }
+
+#ifdef Slicer_USE_PYTHONQT_WITH_OPENSSL
+  if (!QSslSocket::supportsSsl())
+    {
+    qDebug() << "[SSL] SSL support disabled - Failed to load SSL library !";
+    }
+  qSlicerCoreApplication::loadCaCertificates();
+#endif
 
   QCoreApplication::setOrganizationDomain(Slicer_ORGANIZATION_DOMAIN);
   QCoreApplication::setOrganizationName(Slicer_ORGANIZATION_NAME);
@@ -195,10 +228,13 @@ void qSlicerCoreApplicationPrivate::init()
 
   // Create the application Logic object,
   this->AppLogic = vtkSmartPointer<vtkSlicerApplicationLogic>::New();
+  this->AppLogic->SetTemporaryPath(q->temporaryPath().toLatin1());
   q->qvtkConnect(this->AppLogic, vtkCommand::ModifiedEvent,
               q, SLOT(onSlicerApplicationLogicModified()));
   q->qvtkConnect(this->AppLogic, vtkSlicerApplicationLogic::RequestInvokeEvent,
-                 q, SLOT(requestInvokeEvent(vtkObject*,void*)));
+                 q, SLOT(requestInvokeEvent(vtkObject*,void*)), 0.0, Qt::DirectConnection);
+  q->connect(q, SIGNAL(invokeEventRequested(unsigned int,void*,unsigned long,void*)),
+             q, SLOT(scheduleInvokeEvent(unsigned int,void*,unsigned long,void*)), Qt::AutoConnection);
   q->qvtkConnect(this->AppLogic, vtkSlicerApplicationLogic::RequestModifiedEvent,
               q, SLOT(onSlicerApplicationLogicRequest(vtkObject*,void*,ulong)));
   q->qvtkConnect(this->AppLogic, vtkSlicerApplicationLogic::RequestReadDataEvent,
@@ -1115,6 +1151,7 @@ void qSlicerCoreApplication::setTemporaryPath(const QString& path)
   QSettings* appSettings = this->userSettings();
   Q_ASSERT(appSettings);
   appSettings->setValue("TemporaryPath", path);
+  this->applicationLogic()->SetTemporaryPath(path.toLatin1());
 }
 
 //-----------------------------------------------------------------------------
@@ -1362,27 +1399,29 @@ void qSlicerCoreApplication::onSlicerApplicationLogicModified()
 void qSlicerCoreApplication
 ::requestInvokeEvent(vtkObject* caller, void* callData)
 {
+  // This method can be called by any thread.
   Q_UNUSED(caller);
   vtkMRMLApplicationLogic::InvokeRequest* request =
     reinterpret_cast<vtkMRMLApplicationLogic::InvokeRequest *>(callData);
-  QTimer* timer = new QTimer(this);
-  timer->setSingleShot(true);
-  QVariant invokeCaller =
-    qVariantFromValue(reinterpret_cast<void*>(request->Caller));
-  timer->setProperty("caller", invokeCaller);
-
-  QVariant invokeEventID =
-    qVariantFromValue(request->EventID);
-  timer->setProperty("eventID", invokeEventID);
-
-  QVariant invokeCallData =
-    qVariantFromValue(reinterpret_cast<void*>(request->CallData));
-  timer->setProperty("callData", invokeCallData);
-
-  timer->connect(timer, SIGNAL(timeout()),this, SLOT(invokeEvent()));
-  timer->start(request->Delay);
+  // If the thread is the same as the main thread then it is executed directly,
+  // otherwise it is queued to be executed by the main thread.
+  emit invokeEventRequested(request->Delay, request->Caller,
+                            request->EventID, request->CallData);
 }
 
+//-----------------------------------------------------------------------------
+void qSlicerCoreApplication
+::scheduleInvokeEvent(unsigned int delay, void* caller,
+                      unsigned long eventID, void* callData)
+{
+  QTimer* timer = new QTimer(this);
+  timer->setSingleShot(true);
+  timer->setProperty("caller", qVariantFromValue(caller));
+  timer->setProperty("eventID", qVariantFromValue(eventID));
+  timer->setProperty("callData", qVariantFromValue(callData));
+  timer->connect(timer, SIGNAL(timeout()),this, SLOT(invokeEvent()));
+  timer->start(delay);
+}
 
 //-----------------------------------------------------------------------------
 void qSlicerCoreApplication
@@ -1519,5 +1558,20 @@ void qSlicerCoreApplication::loadLanguage()
       app->loadTranslations(qmDir);
       }
     }
+#endif
+}
+
+//----------------------------------------------------------------------------
+bool qSlicerCoreApplication::loadCaCertificates()
+{
+#ifdef Slicer_USE_PYTHONQT_WITH_OPENSSL
+  if (QSslSocket::supportsSsl() && QSslSocket::defaultCaCertificates().empty())
+    {
+    qDebug() << "[SSL] No default CA certificates found - Loading Slicer.crt";
+    QSslSocket::setDefaultCaCertificates(QSslCertificate::fromPath(":/Certs/Slicer.crt"));
+    }
+  return !QSslSocket::defaultCaCertificates().empty();
+#else
+  return false;
 #endif
 }

@@ -53,6 +53,8 @@ public:
   /// Get the label for the view (abbreviation for the view name)
   QString viewLabel()const;
 
+  void setQuadBufferStereoSupportEnabled(bool value);
+
 public slots:
   void setThreeDView(qMRMLThreeDView* threeDView);
   void setMRMLViewNode(vtkMRMLViewNode* viewNode);
@@ -73,6 +75,11 @@ public slots:
   void set3DAxisVisible(bool visible);
   void set3DAxisLabelVisible(bool visible);
 
+  /// Use or not depth peeling in the first renderer.
+  /// False by default.
+  void setUseDepthPeeling(bool use);
+  /// Show or hide the FPS in the lower right corner.
+  /// False by default.
   void setFPSVisible(bool visible);
 
   /// Utility function to change the color of the background to blue

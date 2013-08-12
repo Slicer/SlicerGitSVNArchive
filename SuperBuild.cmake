@@ -126,6 +126,7 @@ if(Slicer_USE_CTKAPPLAUNCHER)
 endif()
 
 if(Slicer_USE_PYTHONQT)
+  set(PYTHON_ENABLE_SSL ${Slicer_USE_PYTHONQT_WITH_OPENSSL})
   list(APPEND Slicer_DEPENDENCIES python)
 endif()
 
@@ -143,6 +144,10 @@ endif()
 
 if(Slicer_BUILD_MultiVolumeImporter)
   list(APPEND Slicer_DEPENDENCIES MultiVolumeImporter)
+endif()
+
+if(Slicer_BUILD_SimpleFilters)
+  list(APPEND Slicer_DEPENDENCIES SimpleFilters)
 endif()
 
 if(Slicer_BUILD_DWIConvert)
@@ -185,6 +190,7 @@ foreach(ep_cmake_arg
   Slicer_BUILD_OpenIGTLinkIF
   Slicer_UPDATE_TRANSLATION
   Slicer_USE_PYTHONQT
+  Slicer_USE_PYTHONQT_WITH_OPENSSL
   Slicer_USE_PYTHONQT_WITH_TCL
   Slicer_USE_CTKAPPLAUNCHER
   Slicer_USE_BatchMake
@@ -194,10 +200,12 @@ foreach(ep_cmake_arg
   Slicer_USE_NUMPY
   Slicer_USE_QtTesting
   Slicer_USE_SimpleITK
+  Slicer_USE_SimpleITK_SHARED
   Slicer_BUILD_BRAINSTOOLS
   Slicer_BUILD_EMSegment
   Slicer_BUILD_MultiVolumeExplorer
   Slicer_BUILD_MultiVolumeImporter
+  Slicer_PLATFORM_CHECK
   )
   list(APPEND EXTERNAL_PROJECT_OPTIONAL_ARGS -D${ep_cmake_arg}:BOOL=${${ep_cmake_arg}})
 endforeach()
@@ -224,6 +232,13 @@ if(Slicer_USE_PYTHONQT)
     )
 endif()
 
+if(Slicer_USE_PYTHONQT_WITH_OPENSSL)
+  list(APPEND EXTERNAL_PROJECT_OPTIONAL_ARGS
+    -DOpenSSL_LIBRARIES:STRING=${EP_OpenSSL_LIBRARIES}
+    -DOpenSSL_EXPORT_LIBRARY_DIR:PATH=${EP_OpenSSL_EXPORT_LIBRARY_DIR}
+    )
+endif()
+
 if(Slicer_USE_PYTHONQT_WITH_TCL)
   list(APPEND EXTERNAL_PROJECT_OPTIONAL_ARGS
     -DSlicer_TCL_DIR:PATH=${tcl_build}
@@ -236,6 +251,12 @@ if(Slicer_USE_PYTHONQT_WITH_TCL)
       -DINCR_TCL_VERSION_DOT:STRING=${INCR_TCL_VERSION_DOT}
       )
   endif()
+endif()
+
+if(Slicer_USE_SimpleITK)
+   list(APPEND EXTERNAL_PROJECT_OPTIONAL_ARGS
+     -DSimpleITK_DIR:PATH=${SimpleITK_DIR}
+     )
 endif()
 
 if(Slicer_BUILD_QTLOADABLEMODULES)
@@ -280,6 +301,10 @@ endif()
 
 if(Slicer_BUILD_MultiVolumeImporter)
   list(APPEND EXTERNAL_PROJECT_OPTIONAL_ARGS -DMultiVolumeImporter_SOURCE_DIR:PATH=${MultiVolumeImporter_SOURCE_DIR})
+endif()
+
+if(Slicer_BUILD_SimpleFilters)
+  list(APPEND EXTERNAL_PROJECT_OPTIONAL_ARGS -DSimpleFilters_SOURCE_DIR:PATH=${SimpleFilters_SOURCE_DIR})
 endif()
 
 if(Slicer_BUILD_EMSegment)

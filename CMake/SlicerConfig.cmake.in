@@ -51,6 +51,12 @@
 #  ConfigurePrerequisites    | Slicer_USE_NOEXTENSIONSUPPORT
 #                            | Slicer_DONT_USE_EXTENSION
 # --------------------------------------------------------------------------
+
+foreach(component NoExtensionSupport ConfigurePrerequisites)
+  string(TOUPPER ${component} _COMPONENT)
+  set(Slicer_USE_${_COMPONENT} 0)
+endforeach()
+
 if(Slicer_FIND_COMPONENTS)
   foreach(component ${Slicer_FIND_COMPONENTS})
     string(TOUPPER ${component} _COMPONENT)
@@ -84,18 +90,20 @@ set(CMAKE_MODULE_PATH
   )
 
 # --------------------------------------------------------------------------
-if(Slicer_USE_CONFIGUREPREREQUISITES AND NOT Slicer_PREREQUISITES_CONFIGURED)
-  # Note: By setting CMAKE_OSX_* variables before any enable_language() or project() calls,
-  #       we ensure that the bitness will be properly detected.
-  include(SlicerBlockSetCMakeOSXVariables)
-  if(DEFINED CMAKE_C_COMPILER OR DEFINED CMAKE_CXX_COMPILER)
-    message(FATAL_ERROR
-      "To be effective, 'find_package(Slicer COMPONENTS ConfigurePrerequisites)' should "
-      "be placed before any calls to 'project()' or 'enable_language()'."
-      "Before re-configuring, make sure to clean the build directory: ${CMAKE_CURRENT_BINARY_DIR}"
-      )
+if(Slicer_USE_CONFIGUREPREREQUISITES)
+  if(NOT Slicer_PREREQUISITES_CONFIGURED)
+    # Note: By setting CMAKE_OSX_* variables before any enable_language() or project() calls,
+    #       we ensure that the bitness will be properly detected.
+    include(SlicerBlockSetCMakeOSXVariables)
+    if(DEFINED CMAKE_C_COMPILER OR DEFINED CMAKE_CXX_COMPILER)
+      message(FATAL_ERROR
+        "To be effective, 'find_package(Slicer COMPONENTS ConfigurePrerequisites)' should "
+        "be placed before any calls to 'project()' or 'enable_language()'."
+        "Before re-configuring, make sure to clean the build directory: ${CMAKE_CURRENT_BINARY_DIR}"
+        )
+    endif()
+    set(Slicer_PREREQUISITES_CONFIGURED 1 CACHE INTERNAL "True if component 'ConfigurePrerequisites' has already been included")
   endif()
-  set(Slicer_PREREQUISITES_CONFIGURED 1 CACHE INTERNAL "True if UseSlicer has already been included")
   return()
 endif()
 
@@ -109,6 +117,7 @@ set(Slicer_USE_OpenIGTLink "@Slicer_USE_OpenIGTLink@")
 set(Slicer_USE_PYTHONQT "@Slicer_USE_PYTHONQT@")
 set(Slicer_USE_PYTHONQT_WITH_TCL "@Slicer_USE_PYTHONQT_WITH_TCL@")
 set(Slicer_USE_QtTesting "@Slicer_USE_QtTesting@")
+set(Slicer_USE_SimpleITK "@Slicer_USE_SimpleITK@")
 set(Slicer_BUILD_CLI_SUPPORT "@Slicer_BUILD_CLI_SUPPORT@")
 set(Slicer_BUILD_DICOM_SUPPORT "@Slicer_BUILD_DICOM_SUPPORT@")
 set(Slicer_BUILD_DIFFUSION_SUPPORT "@Slicer_BUILD_DIFFUSION_SUPPORT@")
@@ -356,6 +365,11 @@ slicer_config_set_ep(
   CACHE PATH "Path to ITK build or install directory" FORCE)
 
 slicer_config_set_ep(
+  SimpleITK_DIR
+  "@SimpleITK_DIR_CONFIG@"
+  CACHE PATH "Path to SimpleITK build or install directory" FORCE)
+
+slicer_config_set_ep(
   OpenIGTLink_DIR
   "@OpenIGTLink_DIR_CONFIG@"
   CACHE PATH "Path to OpenIGTLink build or install directory" FORCE)
@@ -452,6 +466,27 @@ slicer_config_set_compiler_ep( CMAKE_CXX_COMPILER "@Slicer_CMAKE_CXX_COMPILER_CO
 
 set(CMAKE_CXX_FLAGS    "@Slicer_CMAKE_CXX_FLAGS_CONFIG@")
 set(CMAKE_C_FLAGS      "@Slicer_CMAKE_C_FLAGS_CONFIG@")
+
+# On platform (i.e. Windows with Visual Studio) where it is possible to use
+# either a 32 or 64 bits generator, it is important to compare bitness of Slicer
+# project against project depending on Slicer (i.e. extension) to ensure there
+# are no mismatch.
+set(Slicer_CMAKE_SIZEOF_VOID_P "@CMAKE_SIZEOF_VOID_P@")
+set(Slicer_CMAKE_GENERATOR "@CMAKE_GENERATOR@")
+if(NOT DEFINED Slicer_SKIP_CMAKE_SIZEOF_VOID_P_CHECK)
+  set(Slicer_SKIP_CMAKE_SIZEOF_VOID_P_CHECK FALSE)
+endif()
+if(NOT ${Slicer_SKIP_CMAKE_SIZEOF_VOID_P_CHECK})
+  if(NOT Slicer_CMAKE_SIZEOF_VOID_P EQUAL CMAKE_SIZEOF_VOID_P)
+    message(FATAL_ERROR
+      "Mismatch between bitness of '${CMAKE_PROJECT_NAME}' and 'Slicer' project !\n"
+      "\tSlicer_CMAKE_SIZEOF_VOID_P:${Slicer_CMAKE_SIZEOF_VOID_P}\n"
+      "\tCMAKE_SIZEOF_VOID_P:${CMAKE_SIZEOF_VOID_P}\n"
+      "Reconfigure '${CMAKE_PROJECT_NAME}' project using a compatible Generator.\n"
+      "Generator used to configure Slicer was: ${Slicer_CMAKE_GENERATOR}\n"
+      "See http://www.cmake.org/cmake/help/v2.8.11/cmake.html#opt:-Ggenerator-name")
+  endif()
+endif()
 
 # List all required external project
 set(Slicer_EXTERNAL_PROJECTS @Slicer_EXTERNAL_PROJECTS_CONFIG@)

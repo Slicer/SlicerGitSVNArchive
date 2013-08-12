@@ -32,7 +32,7 @@
 #include <ctkDoubleSlider.h>
 #include <ctkPopupWidget.h>
 #include <ctkSignalMapper.h>
-#include <ctkSpinBox.h>
+#include <ctkDoubleSpinBox.h>
 
 // qMRML includes
 #include "qMRMLColors.h"
@@ -85,6 +85,7 @@ qMRMLSliceControllerWidgetPrivate::qMRMLSliceControllerWidgetPrivate(qMRMLSliceC
   this->CompositingMenu = 0;
   this->SliceSpacingMenu = 0;
   this->SliceModelMenu = 0;
+  this->LabelMapMenu = 0;
 
   this->SliceSpacingSpinBox = 0;
   this->SliceFOVSpinBox = 0;
@@ -129,23 +130,23 @@ void qMRMLSliceControllerWidgetPrivate::setupPopupUi()
   this->ForegroundOpacitySlider->spinBox()->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
   this->BackgroundOpacitySlider->spinBox()->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
 
-  this->LabelMapOpacitySlider->slider()->setOrientation(Qt::Vertical);
   this->ForegroundOpacitySlider->slider()->setOrientation(Qt::Vertical);
   this->BackgroundOpacitySlider->slider()->setOrientation(Qt::Vertical);
 
-  this->LabelMapOpacitySlider->popup()->setHideDelay(400);
-  this->ForegroundOpacitySlider->popup()->setHideDelay(400);
   this->BackgroundOpacitySlider->popup()->setHideDelay(400);
 
-  this->LabelMapOpacitySlider->popup()->setAlignment(Qt::AlignTop | Qt::AlignLeft);
-  this->ForegroundOpacitySlider->popup()->setAlignment(Qt::AlignTop | Qt::AlignLeft);
   this->BackgroundOpacitySlider->popup()->setAlignment(Qt::AlignBottom | Qt::AlignLeft);
 
   int popupHeight = this->PopupWidget->sizeHint().height() / 2;
-  this->LabelMapOpacitySlider->popup()->setFixedHeight(popupHeight);
-  this->ForegroundOpacitySlider->popup()->setFixedHeight(popupHeight);
   this->BackgroundOpacitySlider->popup()->setFixedHeight(popupHeight);
 
+  QGridLayout* popupLayout =
+    qobject_cast<QGridLayout*>(this->PopupWidget->layout());
+  popupLayout->addWidget(this->ForegroundOpacitySlider->spinBox(), 2, 2);
+  this->connect(this->MoreButton, SIGNAL(toggled(bool)),
+                this->ForegroundOpacitySlider->spinBox(), SLOT(setVisible(bool)));
+  this->connect(this->ForegroundComboBox, SIGNAL(currentNodeChanged(bool)),
+                this->ForegroundOpacitySlider->spinBox(), SLOT(setEnabled(bool)));
   // Set selector attributes
   // Background and Foreground volume selectors can display LabelMap volumes. No
   // need to add the LabelMap attribute for them.
@@ -228,6 +229,7 @@ void qMRMLSliceControllerWidgetPrivate::setupPopupUi()
   this->setupCompositingMenu();
   this->setupSliceSpacingMenu();
   this->setupSliceModelMenu();
+  this->setupLabelMapMenu();
 
   // Visibility column
   this->connect(this->actionLabelMapVisibility, SIGNAL(triggered(bool)),
@@ -310,8 +312,7 @@ void qMRMLSliceControllerWidgetPrivate::setupPopupUi()
   //this->setupMoreOptionsMenu();
 
   this->LabelMapVisibilityButton->setDefaultAction(this->actionLabelMapVisibility);
-  this->ForegroundVisibilityButton->setDefaultAction(this->actionForegroundVisibility);
-  this->BackgroundVisibilityButton->setDefaultAction(this->actionBackgroundVisibility);
+  this->LabelMapVisibilityButton->setMenu(this->LabelMapMenu);
 
   this->LabelMapOutlineButton->setDefaultAction(this->actionLabelMapOutline);
   this->ForegroundInterpolationButton->setDefaultAction(this->actionForegroundInterpolation);
@@ -355,10 +356,15 @@ void qMRMLSliceControllerWidgetPrivate::init()
   this->SliceOffsetSlider->setTracking(false);
   this->SliceOffsetSlider->setToolTip(q->tr("Slice distance from RAS origin"));
   this->SliceOffsetSlider->setQuantity("length");
-  this->SliceOffsetSlider->setUnitAwareProperties(qMRMLSliderWidget::Suffix);
+  this->SliceOffsetSlider->setUnitAwareProperties(
+    qMRMLSliderWidget::Suffix|qMRMLSliderWidget::Precision|qMRMLSliderWidget::Scaling);
+  this->SliceOffsetSlider->spinBox()->setDecimalsOption(
+    ctkDoubleSpinBox::DecimalsByShortcuts |
+    ctkDoubleSpinBox::DecimalsByKey |
+    ctkDoubleSpinBox::DecimalsAsMin );
 
   //this->SliceOffsetSlider->spinBox()->setParent(this->PopupWidget);
-  ctkSpinBox* spinBox = this->SliceOffsetSlider->spinBox();
+  ctkDoubleSpinBox* spinBox = this->SliceOffsetSlider->spinBox();
   spinBox->setFrame(false);
   spinBox->spinBox()->setButtonSymbols(QAbstractSpinBox::NoButtons);
   spinBox->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Ignored);
@@ -507,7 +513,7 @@ void qMRMLSliceControllerWidgetPrivate::setupSliceSpacingMenu()
   QMenu* sliceSpacingManualMode = new QMenu(tr("Manual spacing"), this->SliceSpacingMenu);
   sliceSpacingManualMode->setObjectName("slicerSpacingManualMode");
   sliceSpacingManualMode->setIcon(QIcon(":/Icon/SlicerManualSliceSpacing.png"));
-  this->SliceSpacingSpinBox = new ctkSpinBox(sliceSpacingManualMode);
+  this->SliceSpacingSpinBox = new ctkDoubleSpinBox(sliceSpacingManualMode);
   this->SliceSpacingSpinBox->setDecimals(3);
   this->SliceSpacingSpinBox->setRange(0.001, VTK_LARGE_FLOAT);
   this->SliceSpacingSpinBox->setSingleStep(0.1);
@@ -525,7 +531,7 @@ void qMRMLSliceControllerWidgetPrivate::setupSliceSpacingMenu()
   QWidget* sliceFOVWidget = new QWidget(this->SliceSpacingMenu);
   QHBoxLayout* sliceFOVLayout = new QHBoxLayout(sliceFOVWidget);
   sliceFOVLayout->setContentsMargins(0,0,0,0);
-  this->SliceFOVSpinBox = new ctkSpinBox(sliceFOVWidget);
+  this->SliceFOVSpinBox = new ctkDoubleSpinBox(sliceFOVWidget);
   this->SliceFOVSpinBox->setRange(0.01, 10000.);
   this->SliceFOVSpinBox->setValue(250.);
   QObject::connect(this->SliceFOVSpinBox, SIGNAL(valueChanged(double)),
@@ -551,10 +557,6 @@ void qMRMLSliceControllerWidgetPrivate::setupSliceModelMenu()
   this->SliceModelMenu->addAction(this->actionSliceModelModeVolumes_2D);
   //this->SliceModelMenu->addAction(this->actionSliceModelModeCustom);
 
-  this->SliceVisibilityButton->setCheckable(true);
-  this->SliceVisibilityButton->setToolButtonStyle(Qt::ToolButtonIconOnly);
-  this->SliceVisibilityButton->setPopupMode(QToolButton::MenuButtonPopup);
-
   // TODO add custom sliders
   double UVWExtents[] = {256,256,256};
   double UVWOrigin[] = {0,0,0};
@@ -570,13 +572,13 @@ void qMRMLSliceControllerWidgetPrivate::setupSliceModelMenu()
   QWidget* fovSliceModel = new QWidget(this->SliceModelMenu);
   QHBoxLayout* fovSliceModelLayout = new QHBoxLayout(fovSliceModel);
 
-  this->SliceModelFOVXSpinBox = new ctkSpinBox(fovSliceModel);
+  this->SliceModelFOVXSpinBox = new ctkDoubleSpinBox(fovSliceModel);
   this->SliceModelFOVXSpinBox->setRange(0.01, 10000.);
   this->SliceModelFOVXSpinBox->setValue(UVWExtents[0]);
   QObject::connect(this->SliceModelFOVXSpinBox, SIGNAL(valueChanged(double)),
                    q, SLOT(setSliceModelFOVX(double)));
 
-  this->SliceModelFOVYSpinBox = new ctkSpinBox(fovSliceModel);
+  this->SliceModelFOVYSpinBox = new ctkDoubleSpinBox(fovSliceModel);
   this->SliceModelFOVYSpinBox->setRange(0.01, 10000.);
   this->SliceModelFOVYSpinBox->setValue(UVWExtents[1]);
   QObject::connect(this->SliceModelFOVYSpinBox, SIGNAL(valueChanged(double)),
@@ -620,13 +622,13 @@ void qMRMLSliceControllerWidgetPrivate::setupSliceModelMenu()
   QWidget* originSliceModel = new QWidget(this->SliceModelMenu);
   QHBoxLayout* originSliceModelLayout = new QHBoxLayout(originSliceModel);
 
-  this->SliceModelOriginXSpinBox = new ctkSpinBox(originSliceModel);
+  this->SliceModelOriginXSpinBox = new ctkDoubleSpinBox(originSliceModel);
   this->SliceModelOriginXSpinBox->setRange(-1000., 1000.);
   this->SliceModelOriginXSpinBox->setValue(UVWOrigin[0]);
   QObject::connect(this->SliceModelOriginXSpinBox, SIGNAL(valueChanged(double)),
                    q, SLOT(setSliceModelOriginX(double)));
 
-  this->SliceModelOriginYSpinBox = new ctkSpinBox(originSliceModel);
+  this->SliceModelOriginYSpinBox = new ctkDoubleSpinBox(originSliceModel);
   this->SliceModelOriginYSpinBox->setRange(-1000, 1000.);
   this->SliceModelOriginYSpinBox->setValue(UVWOrigin[1]);
   QObject::connect(this->SliceModelOriginYSpinBox, SIGNAL(valueChanged(double)),
@@ -641,6 +643,15 @@ void qMRMLSliceControllerWidgetPrivate::setupSliceModelMenu()
   originSliceModelMenu->addAction(originSliceModelAction);
   this->SliceModelMenu->addMenu(originSliceModelMenu);
   
+}
+
+// --------------------------------------------------------------------------
+void qMRMLSliceControllerWidgetPrivate::setupLabelMapMenu()
+{
+  this->LabelMapMenu = new QMenu(tr("LabelMap"), this->LabelMapVisibilityButton);
+  QWidgetAction* opacityAction = new QWidgetAction(this->LabelMapOpacitySlider);
+  opacityAction->setDefaultWidget(this->LabelMapOpacitySlider->slider());
+  this->LabelMapMenu->addAction(opacityAction);
 }
 
 // --------------------------------------------------------------------------

@@ -57,6 +57,7 @@ class QMRML_WIDGETS_EXPORT qMRMLNodeComboBox
 {
   Q_OBJECT
   Q_PROPERTY(QString currentNodeID READ currentNodeID WRITE setCurrentNodeID NOTIFY currentNodeIDChanged DESIGNABLE false)
+  Q_PROPERTY(QString currentNodeId READ currentNodeId WRITE setCurrentNode DESIGNABLE false) // \deprecated
   Q_PROPERTY(QStringList nodeTypes READ nodeTypes WRITE setNodeTypes)
   Q_PROPERTY(bool showHidden READ showHidden WRITE setShowHidden)
   Q_PROPERTY(bool showChildNodeTypes READ showChildNodeTypes WRITE setShowChildNodeTypes)
@@ -160,7 +161,7 @@ public:
 
   /// \deprecated
   /// Use currentNodeID instead
-  QString currentNodeId()const;
+  Q_INVOKABLE QString currentNodeId()const;
 
   /// if true, when the user create a node using "Add node", the node will be
   /// automatically selected. It doesn't apply if the node is programatically
@@ -234,6 +235,17 @@ public:
   QComboBox::SizeAdjustPolicy sizeAdjustPolicy()const;
   void setSizeAdjustPolicy(QComboBox::SizeAdjustPolicy policy);
 
+  /// Allow addition of menu actions in addition to the default actions that
+  /// can be flagged on or off via \a setAddEnabled() etc.
+  /// New actions are saved to the UserMenuActions list, and are added to the
+  /// extra items list in \a updateActionItems(bool resetRootIndex) and set as
+  /// post items on the scene model. The new actions are checked for and
+  /// triggered in \a activateExtraItem(const QModelIndex& index)
+  /// Checks for action text duplicates and doesn't add them.
+  /// Also checks for action text that will be hidden by the default action
+  /// texts and doesn't add it.
+  virtual void addMenuAction(QAction *newAction);
+
 public slots:
   /// Set the scene the combobox listens to. The scene is observed and when new
   /// nodes are added to the scene, the menu list is populated.
@@ -242,6 +254,10 @@ public slots:
   /// Select the node to be current
   void setCurrentNode(vtkMRMLNode* node);
 
+  /// \deprecated
+  /// Use setCurrentNodeID instead
+  void setCurrentNode(const QString& nodeID);
+
   /// Select the node to be current. If \nodeId is invalid (or can't be found
   /// in the scene), the current node becomes 0.
   void setCurrentNodeID(const QString& nodeID);
@@ -249,7 +265,7 @@ public slots:
   /// Select the current node by index. The index refers to the order of the nodes
   /// into the list. If \a index is 0, the first node will be selected (even if
   /// "NoneEnabled" is true).
-  /// \sa nodeCount, setCurrentNode(vtkMRMLNode* ), setCurrentNodeId(const QString&)
+  /// \sa nodeCount, setCurrentNode(vtkMRMLNode* ), setCurrentNodeID(const QString&)
   void setCurrentNodeIndex(int index);
 
   /// Creates a node of the same type than on the "node types" properties.

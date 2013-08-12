@@ -99,14 +99,11 @@ protected:
   vtkMRMLTransformableNode(const vtkMRMLTransformableNode&);
   void operator=(const vtkMRMLTransformableNode&);
 
-  char* TransformNodeReferenceRole;
-  char* TransformNodeReferenceRererenceMRMLAttributeName;
+  static const char* TransformNodeReferenceRole;
+  static const char* TransformNodeReferenceMRMLAttributeName;
 
-  vtkSetStringMacro(TransformNodeReferenceRole);
-  vtkGetStringMacro(TransformNodeReferenceRole);
- 
-  vtkSetStringMacro(TransformNodeReferenceRererenceMRMLAttributeName);
-  vtkGetStringMacro(TransformNodeReferenceRererenceMRMLAttributeName);
+  virtual const char* GetTransformNodeReferenceRole();
+  virtual const char* GetTransformNodeReferenceMRMLAttributeName();
 
 private:
   char* TransformNodeIDInternal;

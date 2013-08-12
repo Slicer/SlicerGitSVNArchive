@@ -210,6 +210,9 @@ mark_as_advanced(Slicer_FORCED_WC_REVISION)
 # External projects related options
 #-----------------------------------------------------------------------------
 CMAKE_DEPENDENT_OPTION(
+  Slicer_USE_PYTHONQT_WITH_OPENSSL "Enable PythonQt SSL support" OFF
+  "Slicer_USE_PYTHONQT" OFF)
+CMAKE_DEPENDENT_OPTION(
   Slicer_USE_PYTHONQT_WITH_TCL "Enable PythonQt Tcl adapter layer" ON
   "Slicer_USE_PYTHONQT" OFF)
 CMAKE_DEPENDENT_OPTION(
@@ -241,6 +244,22 @@ endif()
 
 CMAKE_DEPENDENT_OPTION(Slicer_USE_SimpleITK "Build Slicer with SimpleITK support" OFF "USE_ITKv4" OFF)
 
+#
+# SimpleITK has large internal libraries, which take an extremely long
+# time to link on windows when they are static. Creating shared
+# SimpleITK internal libraries can reduce linking time. Also the size
+# of the debug libraries are monstrous. Using shared libraries for
+# debug, reduce disc requirements, and can improve linking
+# times. However, these shared libraries take longer to load than the
+# monolithic target from static libraries.
+#
+set( Slicer_USE_SimpleITK_SHARED_DEFAULT OFF)
+string(TOUPPER "${CMAKE_BUILD_TYPE}" _CMAKE_BUILD_TYPE)
+if(MSVC OR _CMAKE_BUILD_TYPE MATCHES "DEBUG")
+  set(Slicer_USE_SimpleITK_SHARED_DEFAULT ON)
+endif()
+CMAKE_DEPENDENT_OPTION(Slicer_USE_SimpleITK_SHARED "Build SimpleITK with shared libraries. Reduces linking time, increases run-time load time." ${Slicer_USE_SimpleITK_SHARED_DEFAULT} "Slicer_USE_SimpleITK" OFF )
+
 #-----------------------------------------------------------------------------
 # The following option has been added for conveniency so that "extension-like"
 # module can be enabled/disabled at the superbuild level.
@@ -253,12 +272,17 @@ option(Slicer_BUILD_MULTIVOLUME_SUPPORT "Build MultiVolume support." ON)
 mark_as_advanced(Slicer_BUILD_MULTIVOLUME_SUPPORT)
 CMAKE_DEPENDENT_OPTION(
   Slicer_BUILD_MultiVolumeImporter "Build MultiVolumeImporter." ON
-  "Slicer_BUILD_QTSCRIPTEDMODULES AND Slicer_BUILD_MULTIVOLUME_SUPPORT" OFF)
+  "Slicer_BUILD_QTSCRIPTEDMODULES AND Slicer_BUILD_MULTIVOLUME_SUPPORT AND Slicer_USE_NUMPY" OFF)
 mark_as_advanced(Slicer_BUILD_MultiVolumeImporter)
 CMAKE_DEPENDENT_OPTION(
   Slicer_BUILD_MultiVolumeExplorer "Build MultiVolumeExplorer." ON
   "Slicer_BUILD_QTLOADABLEMODULES AND Slicer_BUILD_MULTIVOLUME_SUPPORT AND Slicer_USE_PYTHONQT" OFF)
 mark_as_advanced(Slicer_BUILD_MultiVolumeExplorer)
+
+CMAKE_DEPENDENT_OPTION(
+  Slicer_BUILD_SimpleFilters "Build SimpleFilters." ON
+  "Slicer_BUILD_QTSCRIPTEDMODULES AND Slicer_USE_SimpleITK" OFF)
+mark_as_advanced(Slicer_BUILD_SimpleFilters)
 
 CMAKE_DEPENDENT_OPTION(
   Slicer_BUILD_BRAINSTOOLS "Build the BRAINS subset of registration and segmentation tools." ON
@@ -982,6 +1006,12 @@ set(Slicer_DIR "${Slicer_BINARY_DIR}/Extensions")
 configure_file(
   ${Slicer_SOURCE_DIR}/CMake/SlicerConfig.cmake.in
   ${Slicer_DIR}/SlicerConfig.cmake @ONLY)
+
+message(STATUS "--------------------------------------------------")
+message(STATUS "Configuring remote modules")
+message(STATUS "--------------------------------------------------")
+add_subdirectory(Modules/Remote)
+
 # List of extension source directories can be passed at configuration time
 # using the following syntax:
 #  cmake -DSlicer_EXTENSION_SOURCE_DIRS:STRING=/path/to/ExtensionA;/path/to/ExtensionB /path/to/source/Slicer

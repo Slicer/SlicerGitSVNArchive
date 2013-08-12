@@ -193,7 +193,7 @@ void vtkMRMLTractographyDisplayDisplayableManager::OnInteractorStyleEvent(int ev
             this->SelectPickedFibers(fiberBundleNode, cellIDs);
             }
           }
-        else if (displayNode->GetColorMode() != vtkMRMLFiberBundleDisplayNode::colorModeScalar)
+        else if (displayNode && displayNode->GetColorMode() != vtkMRMLFiberBundleDisplayNode::colorModeScalar)
           {
           this->ClearSelectedFibers();
           }
@@ -418,7 +418,7 @@ void vtkMRMLTractographyDisplayDisplayableManager::SetMRMLSceneInternal(vtkMRMLS
 
 //---------------------------------------------------------------------------
 void vtkMRMLTractographyDisplayDisplayableManager
-::ProcessMRMLNodesEvents(vtkObject *caller,unsigned long event,void *callData)
+::ProcessMRMLNodesEvents(vtkObject *caller, unsigned long event, void * vtkNotUsed(callData))
 {
 
   vtkMRMLInteractionNode * interactionNode = vtkMRMLInteractionNode::SafeDownCast(caller);

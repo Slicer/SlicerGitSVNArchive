@@ -40,7 +40,7 @@
 #include <vtkWeakPointer.h>
 
 class ctkSignalMapper;
-class ctkSpinBox;
+class ctkDoubleSpinBox;
 class ctkVTKSliceView;
 class QSpinBox;
 class qMRMLSliderWidget;
@@ -77,6 +77,7 @@ public:
   void setupCompositingMenu();
   void setupSliceSpacingMenu();
   void setupSliceModelMenu();
+  void setupLabelMapMenu();
   void setupMoreOptionsMenu();
 
   vtkSmartPointer<vtkCollection> saveNodesForUndo(const QString& nodeTypes);
@@ -149,17 +150,18 @@ public:
   QMenu*                              CompositingMenu;
   QMenu*                              SliceSpacingMenu;
   QMenu*                              SliceModelMenu;
+  QMenu*                              LabelMapMenu;
 
-  ctkSpinBox*                         SliceSpacingSpinBox;
-  ctkSpinBox*                         SliceFOVSpinBox;
+  ctkDoubleSpinBox*                         SliceSpacingSpinBox;
+  ctkDoubleSpinBox*                         SliceFOVSpinBox;
   QSpinBox*                           LightBoxRowsSpinBox;
   QSpinBox*                           LightBoxColumnsSpinBox;
 
-  ctkSpinBox*                         SliceModelFOVXSpinBox;
-  ctkSpinBox*                         SliceModelFOVYSpinBox;
+  ctkDoubleSpinBox*                         SliceModelFOVXSpinBox;
+  ctkDoubleSpinBox*                         SliceModelFOVYSpinBox;
 
-  ctkSpinBox*                         SliceModelOriginXSpinBox;
-  ctkSpinBox*                         SliceModelOriginYSpinBox;
+  ctkDoubleSpinBox*                         SliceModelOriginXSpinBox;
+  ctkDoubleSpinBox*                         SliceModelOriginYSpinBox;
 
   QSpinBox*                           SliceModelDimensionXSpinBox;
   QSpinBox*                           SliceModelDimensionYSpinBox;

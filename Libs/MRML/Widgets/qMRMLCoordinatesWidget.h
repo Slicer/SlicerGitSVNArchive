@@ -90,6 +90,8 @@ public:
     Precision = 0x04,
     MinimumValue = 0x08,
     MaximumValue = 0x10,
+    Scaling = 0x20,
+    All = Prefix | Suffix | Precision | MinimumValue | MaximumValue | Scaling
     };
   Q_DECLARE_FLAGS(UnitAwareProperties, UnitAwareProperty)
 
