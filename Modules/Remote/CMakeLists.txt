@@ -17,7 +17,7 @@ if(Slicer_USE_OpenIGTLink AND Slicer_BUILD_OpenIGTLinkIF)
     )
 endif()
 
-if(Slicer_BUILD_MultiVolumeExplorer AND Slicer_BUILD_DICOM_SUPPORT)
+if(Slicer_BUILD_MultiVolumeExplorer)
   # NOTE: MultiVolumeExplorer source code is checkout using "External_MultiVolumeExplorer.cmake".
   add_subdirectory(
     ${MultiVolumeExplorer_SOURCE_DIR}

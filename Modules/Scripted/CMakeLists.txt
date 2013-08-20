@@ -17,16 +17,14 @@ if(Slicer_USE_NUMPY)
     Endoscopy
     )
 endif()
-if(Slicer_BUILD_DICOM_SUPPORT)
+list(APPEND modules
+  DICOM
+  DICOMPlugins
+  )
+if(Slicer_BUILD_DIFFUSION_SUPPORT)
   list(APPEND modules
-    DICOM
-    DICOMPlugins
+    DICOM2FullBrainTractography
     )
-  if(Slicer_BUILD_DIFFUSION_SUPPORT)
-    list(APPEND modules
-      DICOM2FullBrainTractography
-      )
-  endif()
 endif()
 
 foreach(module ${modules})

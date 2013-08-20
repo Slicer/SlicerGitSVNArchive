@@ -152,10 +152,8 @@ public:
   QHash<QString, QString>                     EnvironmentVariablesCache;
 #endif
 
-#ifdef Slicer_BUILD_DICOM_SUPPORT
   /// Application-wide database instance
   ctkDICOMDatabase*                           DICOMDatabase;
-#endif
 };
 
 #endif

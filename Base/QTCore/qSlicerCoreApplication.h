@@ -34,9 +34,7 @@
 #include "qSlicerBaseQTCoreExport.h"
 
 class ctkErrorLogModel;
-#ifdef Slicer_BUILD_DICOM_SUPPORT
 class ctkDICOMDatabase;
-#endif
 class QSettings;
 class qSlicerCoreIOManager;
 class qSlicerCoreCommandOptions;
@@ -282,14 +280,12 @@ public:
   /// \sa qSlicerCoreApplicationPrivate::discoverRepository
   QString os()const;
 
-#ifdef Slicer_BUILD_DICOM_SUPPORT
   /// Return the active slicer dicom database (will be NULL until set by dicom
   /// management code).
   Q_INVOKABLE ctkDICOMDatabase* dicomDatabase() const;
 
   /// Set the current application dicomDatabase.
   Q_INVOKABLE void setDICOMDatabase(ctkDICOMDatabase* dicomDatabase);
-#endif
 
   static void loadTranslations(const QString& dir);
 

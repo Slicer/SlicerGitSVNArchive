@@ -16,9 +16,7 @@ set(CTK_DEPENDENCIES VTK ${ITK_EXTERNAL_NAME})
 if(Slicer_USE_PYTHONQT)
   list(APPEND CTK_DEPENDENCIES python)
 endif()
-if(Slicer_BUILD_DICOM_SUPPORT)
-  list(APPEND CTK_DEPENDENCIES DCMTK)
-endif()
+list(APPEND CTK_DEPENDENCIES DCMTK)
 
 # Include dependent projects if any
 SlicerMacroCheckExternalProjectDependency(CTK)
@@ -59,11 +57,9 @@ if(NOT DEFINED CTK_DIR)
       )
   endif()
 
-  if(Slicer_BUILD_DICOM_SUPPORT)
-    list(APPEND EXTERNAL_PROJECT_OPTIONAL_ARGS
+  list(APPEND EXTERNAL_PROJECT_OPTIONAL_ARGS
       -DDCMTK_DIR:PATH=${DCMTK_DIR}
-      )
-  endif()
+  )
 
   if(NOT DEFINED git_protocol)
     set(git_protocol "git")
@@ -96,9 +92,9 @@ if(NOT DEFINED CTK_DIR)
       -DCTK_LIB_ImageProcessing/ITK/Core:BOOL=ON
       -DCTK_LIB_PluginFramework:BOOL=OFF
       -DCTK_PLUGIN_org.commontk.eventbus:BOOL=OFF
-      -DCTK_APP_ctkDICOM:BOOL=${Slicer_BUILD_DICOM_SUPPORT}
-      -DCTK_LIB_DICOM/Core:BOOL=${Slicer_BUILD_DICOM_SUPPORT}
-      -DCTK_LIB_DICOM/Widgets:BOOL=${Slicer_BUILD_DICOM_SUPPORT}
+      -DCTK_APP_ctkDICOM:BOOL=ON
+      -DCTK_LIB_DICOM/Core:BOOL=ON
+      -DCTK_LIB_DICOM/Widgets:BOOL=ON
       -DCTK_USE_QTTESTING:BOOL=${Slicer_USE_QtTesting}
       -DGIT_EXECUTABLE:FILEPATH=${GIT_EXECUTABLE}
       ${EXTERNAL_PROJECT_OPTIONAL_ARGS}

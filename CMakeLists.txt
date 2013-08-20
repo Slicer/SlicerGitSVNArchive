@@ -180,7 +180,6 @@ option(BUILD_TESTING "Test the project" ON)
 #option(WITH_MEMCHECK "Run tests through valgrind." OFF)
 option(WITH_COVERAGE "Enable/Disable coverage" OFF)
 option(Slicer_USE_VTK_DEBUG_LEAKS "Enable VTKs Debug Leaks functionality in both VTK and Slicer." ON)
-option(Slicer_BUILD_DICOM_SUPPORT "Build Slicer with DICOM support" ON)
 option(Slicer_BUILD_DIFFUSION_SUPPORT "Build Slicer with diffusion (DWI, DTI) support" ON)
 option(Slicer_BUILD_I18N_SUPPORT "Build Slicer with Internationalization support" OFF)
 option(Slicer_BUILD_QTLOADABLEMODULES "Build Slicer QT Loadable Modules" ON)
@@ -622,10 +621,8 @@ if(${ITK_VERSION_MAJOR} GREATER 3)
     ITKIONIFTI
     ITKIONRRD
     ITKIOGIPL
+    ITKIODCMTK
     )
-  if(Slicer_BUILD_DICOM_SUPPORT)
-    list(APPEND ITK_IO_MODULES_USED ITKIODCMTK)
-  endif()
   set(Slicer_ITK_COMPONENTS
     ITKAnisotropicSmoothing
     ITKAntiAlias
