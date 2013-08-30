@@ -15,7 +15,7 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <layout class="QGridLayout" name="gridLayout_5" columnstretch="0,0,1,0,0">
+    <layout class="QGridLayout" name="gridLayout_5" columnstretch="0,0,0,0,0">
      <item row="0" column="0">
       <widget class="QLabel" name="typeLabel">
        <property name="sizePolicy">
@@ -238,6 +238,9 @@
        <property name="quantity">
         <string>length</string>
        </property>
+       <property name="unitAwareProperties">
+        <set>qMRMLCoordinatesWidget::MaximumValue|qMRMLCoordinatesWidget::MinimumValue|qMRMLCoordinatesWidget::Precision|qMRMLCoordinatesWidget::Prefix|qMRMLCoordinatesWidget::Scaling|qMRMLCoordinatesWidget::Suffix</set>
+       </property>
       </widget>
      </item>
     </layout>
@@ -258,9 +261,9 @@
        </item>
        <item row="0" column="1">
         <widget class="ctkSliderWidget" name="hierarchyTextScaleSlider">
-          <property name="toolTip">
-            <string>Apply text scale to all annotations in this hierarchy (current setting may not reflect text scales, this is a push to list only setting, use default button to get back to standard size)</string>
-          </property>
+         <property name="toolTip">
+          <string>Apply text scale to all annotations in this hierarchy (current setting may not reflect text scales, this is a push to list only setting, use default button to get back to standard size)</string>
+         </property>
          <property name="singleStep">
           <double>0.100000000000000</double>
          </property>
@@ -295,9 +298,9 @@
        </item>
        <item row="0" column="1">
         <widget class="ctkSliderWidget" name="hierarchyPointSizeSlider">
-          <property name="toolTip">
-            <string>Apply glyph scale to all annotations in this hierarchy (current setting may not reflect glyph scales, this is a push to list only setting, use default button to get back to standard size)</string>
-          </property>
+         <property name="toolTip">
+          <string>Apply glyph scale to all annotations in this hierarchy (current setting may not reflect glyph scales, this is a push to list only setting, use default button to get back to standard size)</string>
+         </property>
          <property name="singleStep">
           <double>0.100000000000000</double>
          </property>
@@ -332,12 +335,12 @@
        </item>
        <item row="0" column="1">
         <widget class="QComboBox" name="hierarchyPointGlyphTypeComboBox">
-          <property name="toolTip">
-            <string>Apply glyph type to all annotations in this hierarchy (current setting may not reflect glyph types, this is a push to list only setting, use default button to get back to standard glyph)</string>
-          </property>
-          <property name="accessibleDescription">
-            <string>Glyph type combo box</string>
-          </property>
+         <property name="toolTip">
+          <string>Apply glyph type to all annotations in this hierarchy (current setting may not reflect glyph types, this is a push to list only setting, use default button to get back to standard glyph)</string>
+         </property>
+         <property name="accessibleDescription">
+          <string>Glyph type combo box</string>
+         </property>
          <property name="layoutDirection">
           <enum>Qt::LeftToRight</enum>
          </property>
@@ -441,7 +444,7 @@
              </widget>
             </item>
             <item row="1" column="1">
-             <widget class="qMRMLSliderWidget" name="textScaleSliderSpinBoxWidget">
+             <widget class="ctkSliderWidget" name="textScaleSliderSpinBoxWidget">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                 <horstretch>0</horstretch>
@@ -453,12 +456,6 @@
               </property>
               <property name="maximum">
                <double>20.000000000000000</double>
-              </property>
-              <property name="quantity">
-               <string>length</string>
-              </property>
-              <property name="unitAwareProperties">
-               <set>qMRMLSliderWidget::Prefix|qMRMLSliderWidget::Suffix</set>
               </property>
              </widget>
             </item>
@@ -679,18 +676,12 @@
              </widget>
             </item>
             <item row="0" column="1">
-             <widget class="qMRMLSliderWidget" name="pointSizeSliderSpinBoxWidget">
+             <widget class="ctkSliderWidget" name="pointSizeSliderSpinBoxWidget">
               <property name="singleStep">
                <double>0.100000000000000</double>
               </property>
               <property name="maximum">
                <double>20.000000000000000</double>
-              </property>
-              <property name="quantity">
-               <string>length</string>
-              </property>
-              <property name="unitAwareProperties">
-               <set>qMRMLSliderWidget::Prefix|qMRMLSliderWidget::Suffix</set>
               </property>
              </widget>
             </item>
@@ -773,8 +764,8 @@
             </item>
             <item row="0" column="2">
              <widget class="ctkSliderWidget" name="lineWidthSliderSpinBoxWidget_2">
-              <property name="singleStep">
-               <double>0.100000000000000</double>
+              <property name="decimals">
+               <number>0</number>
               </property>
               <property name="maximum">
                <double>20.000000000000000</double>
@@ -898,7 +889,7 @@
                <string>length</string>
               </property>
               <property name="unitAwareProperties">
-               <set>qMRMLSliderWidget::Prefix|qMRMLSliderWidget::Suffix</set>
+               <set>qMRMLSliderWidget::Prefix|qMRMLSliderWidget::Suffix|qMRMLSliderWidget::Scaling</set>
               </property>
              </widget>
             </item>
@@ -1077,13 +1068,9 @@
    <extends>QWidget</extends>
    <header>ctkSliderWidget.h</header>
   </customwidget>
-  <customwidget>
-   <class>ctkDoubleSpinBox</class>
-   <extends>QWidget</extends>
-   <header>ctkDoubleSpinBox.h</header>
-  </customwidget>
  </customwidgets>
  <resources>
+  <include location="../qSlicerAnnotationModule.qrc"/>
   <include location="../qSlicerAnnotationModule.qrc"/>
   <include location="../qSlicerAnnotationModule.qrc"/>
   <include location="../qSlicerAnnotationModule.qrc"/>

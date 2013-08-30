@@ -14,6 +14,7 @@ class vtkMRMLNode;
 class vtkMRMLFiberBundleNode;
 class vtkMRMLDiffusionTensorVolumeNode;
 class vtkMRMLTractographyInteractiveSeedingNode;
+class vtkIntArray;
 
 /// \ingroup Slicer_QtModules_TractographyInteractiveSeeding
 class Q_SLICER_QTMODULES_TRACTOGRAPHYINTERACTIVESEEDING_EXPORT qSlicerTractographyInteractiveSeedingModuleWidget :  public qSlicerAbstractModuleWidget
@@ -52,6 +53,12 @@ public slots:
   void onSceneImportedEvent();
   /// Process restored scene
   void onSceneRestoredEvent();
+
+  /// Set parameter node to one of resets:
+  /// 0 - Slicer4
+  /// 1- Slicer3 FiducialSeeding module
+  /// 2- Slicer3 Labe Map Seeding module
+  void setParametersPreset(int index);
 
   /// Set current parameter node
   void setTractographyInteractiveSeedingNode(vtkMRMLNode *node);
@@ -104,8 +111,11 @@ public slots:
   /// Set linear measure start threshold
   void setLinearMeasureStart(double value);
 
-  /// Set RPO label
-  void setROILabel(int value);
+  /// Set RPO label from Qt widgjet
+  void setROILabels();
+
+  /// Set RPO label from string
+  void setROILabels(const QString &labels);
 
   /// Set random grid
   void setRandomGrid(int value);

@@ -26,6 +26,7 @@
 #include <QVariantMap>
 
 // CTK includes
+#include <ctkErrorLogModel.h>
 #include <ctkPimpl.h>
 #include <ctkVTKObject.h>
 
@@ -79,6 +80,8 @@ protected slots:
   void onLayoutChanged(int);
   void loadDICOMActionTriggered();
 
+  void onWarningsOrErrorsOccurred(ctkErrorLogLevel::LogLevel logLevel);
+
 protected:
 
   /// Connect MainWindow action with slots defined in MainWindowCore
@@ -94,8 +97,13 @@ protected:
   /// Forward the dropEvent to the IOManager.
   void dropEvent(QDropEvent *event);
 
-  /// Reimplemented to catch show/hide events
-  bool eventFilter(QObject* object, QEvent* event);
+  /// Reimplemented to catch activationChange/show/hide events.
+  /// More specifically it allows to:
+  ///  1. update the state of the errorLog and python console QAction when
+  ///  associated dialog are visible or not.
+  ///  2. set the state of ErrorLog button based on the activation state of
+  ///  the error log dialog.
+  virtual bool eventFilter(QObject* object, QEvent* event);
 
   virtual void closeEvent(QCloseEvent *event);
   virtual void showEvent(QShowEvent *event);

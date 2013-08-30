@@ -23,6 +23,7 @@
 #include <QSettings>
 #include <QSplashScreen>
 #include <QString>
+#include <QStyleFactory>
 #include <QTimer>
 
 // Slicer includes
@@ -101,7 +102,7 @@ int SlicerAppMain(int argc, char* argv[])
   QCoreApplication::setApplicationVersion(Slicer_VERSION_FULL);
   //vtkObject::SetGlobalWarningDisplay(false);
   QApplication::setDesktopSettingsAware(false);
-  QApplication::setStyle(new qSlicerStyle);
+  QApplication::setStyle(new qSlicerStyle());
 
   qSlicerApplication app(argc, argv);
   if (app.returnCode() != -1)
@@ -145,12 +146,18 @@ int SlicerAppMain(int argc, char* argv[])
   // Register and instantiate modules
   splashMessage(splashScreen, "Registering modules...");
   moduleFactoryManager->registerModules();
-  qDebug() << "Number of registered modules:"
-           << moduleFactoryManager->registeredModuleNames().count();
+  if (app.commandOptions()->verbose())
+    {
+    qDebug() << "Number of registered modules:"
+             << moduleFactoryManager->registeredModuleNames().count();
+    }
   splashMessage(splashScreen, "Instantiating modules...");
   moduleFactoryManager->instantiateModules();
-  qDebug() << "Number of instantiated modules:"
-           << moduleFactoryManager->instantiatedModuleNames().count();
+  if (app.commandOptions()->verbose())
+    {
+    qDebug() << "Number of instantiated modules:"
+             << moduleFactoryManager->instantiatedModuleNames().count();
+    }
   // Create main window
   splashMessage(splashScreen, "Initializing user interface...");
   QScopedPointer<qSlicerAppMainWindow> window;
@@ -167,7 +174,10 @@ int SlicerAppMain(int argc, char* argv[])
     splashMessage(splashScreen, "Loading module \"" + name + "\"...");
     moduleFactoryManager->loadModule(name);
     }
-  qDebug() << "Number of loaded modules:" << moduleManager->modulesNames().count();
+  if (app.commandOptions()->verbose())
+    {
+    qDebug() << "Number of loaded modules:" << moduleManager->modulesNames().count();
+    }
 
   splashMessage(splashScreen, QString());
 

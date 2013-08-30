@@ -21,6 +21,7 @@ Version:   $Revision: 1.14 $
 // VTK includes
 #include <vtkCallbackCommand.h>
 #include <vtkImageData.h>
+#include <vtkMathUtilities.h>
 #include <vtkMatrix4x4.h>
 #include <vtkSmartPointer.h>
 
@@ -109,36 +110,42 @@ void vtkMRMLVolumeNode::ReadXMLAttributes(const char** atts)
       std::stringstream ss;
       double val;
       ss << attValue;
+      double dirs[3][3];
       for(int i=0; i<3; i++) 
         {
         for(int j=0; j<3; j++) 
           {
           ss >> val;
-          this->IJKToRASDirections[i][j] = val;
+          dirs[i][j] = val;
           }
         }
+      this->SetIJKToRASDirections(dirs);
       }
     if (!strcmp(attName, "spacing")) 
       {
       std::stringstream ss;
       double val;
+      double spacing[3];
       ss << attValue;
       for(int i=0; i<3; i++) 
         {
         ss >> val;
-        this->Spacing[i] = val;
+        spacing[i] = val;
         }
+      this->SetSpacing(spacing);
       }
     if (!strcmp(attName, "origin")) 
       {
       std::stringstream ss;
       double val;
+      double origin[3];
       ss << attValue;
       for(int i=0; i<3; i++) 
         {
         ss >> val;
-        this->Origin[i] = val;
+        origin[i] = val;
         }
+      this->SetOrigin(origin);
       }
    }  
 
@@ -165,15 +172,7 @@ void vtkMRMLVolumeNode::Copy(vtkMRMLNode *anode)
   // don't overwrite good values with defaults
   if (node->GetAddToScene())
     {
-    for(int i=0; i<3; i++) 
-      {
-      this->Origin[i] = node->Origin[i];
-      this->Spacing[i] = node->Spacing[i];
-      for(int j=0; j<3; j++) 
-        {
-        this->IJKToRASDirections[i][j] = node->IJKToRASDirections[i][j];
-        }
-      }
+    this->CopyOrientation(node);
     }
 
   if (node->ImageData != NULL)
@@ -192,17 +191,14 @@ void vtkMRMLVolumeNode::Copy(vtkMRMLNode *anode)
 //----------------------------------------------------------------------------
 void vtkMRMLVolumeNode::CopyOrientation(vtkMRMLVolumeNode *node)
 {
+  double dirs[3][3];
+  node->GetIJKToRASDirections(dirs);
 
-  // Matrices
-  for(int i=0; i<3; i++) 
-    {
-    for(int j=0; j<3; j++) 
-      {
-      this->IJKToRASDirections[i][j] = node->IJKToRASDirections[i][j];
-      }
-    }
+  int disabledModify = this->StartModify();
+  this->SetIJKToRASDirections(dirs);
   this->SetOrigin(node->GetOrigin());
   this->SetSpacing(node->GetSpacing());
+  this->EndModify(disabledModify);
 }
 
 //----------------------------------------------------------------------------
@@ -247,53 +243,64 @@ void vtkMRMLVolumeNode::PrintSelf(ostream& os, vtkIndent indent)
 //----------------------------------------------------------------------------
 void vtkMRMLVolumeNode::SetIJKToRASDirections(double dirs[3][3])
 {
+  bool isModified = false;
   for (int i=0; i<3; i++) 
     {
     for (int j=0; j<3; j++) 
       {
-      IJKToRASDirections[i][j] = dirs[i][j];
+      if (!vtkMathUtilities::FuzzyCompare<double>(this->IJKToRASDirections[i][j], dirs[i][j]))
+        {
+        this->IJKToRASDirections[i][j] = dirs[i][j];
+        isModified = true;
+        }
       }
+    }
+  if (isModified)
+    {
+    this->StorableModifiedTime.Modified();
+    this->Modified();
     }
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLVolumeNode::SetIJKToRASDirections(double ir, double ia, double is,
-                                              double jr, double ja, double js,
-                                              double kr, double ka, double ks)
+void vtkMRMLVolumeNode::SetIJKToRASDirections(double ir, double jr, double kr,
+                                              double ia, double ja, double ka,
+                                              double is, double js, double ks)
 {
-  IJKToRASDirections[0][0] = ir;
-  IJKToRASDirections[0][1] = ia;
-  IJKToRASDirections[0][2] = is;
-  IJKToRASDirections[1][0] = jr;
-  IJKToRASDirections[1][1] = ja;
-  IJKToRASDirections[1][2] = js;
-  IJKToRASDirections[2][0] = kr;
-  IJKToRASDirections[2][1] = ka;
-  IJKToRASDirections[2][2] = ks;
+  double dirs[3][3] = {{ir, jr, kr},
+                       {ia, ja, ka},
+                       {is, js, ks}};
+  this->SetIJKToRASDirections(dirs);
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLVolumeNode::SetIToRASDirection(double ir, double ia, double is)
 {
-  IJKToRASDirections[0][0] = ir;
-  IJKToRASDirections[1][0] = ia;
-  IJKToRASDirections[2][0] = is;
+  double dirs[3][3] = {
+    {ir, this->IJKToRASDirections[0][1], this->IJKToRASDirections[0][2]},
+    {ia, this->IJKToRASDirections[1][1], this->IJKToRASDirections[1][2]},
+    {is, this->IJKToRASDirections[2][1], this->IJKToRASDirections[2][2]}};
+  this->SetIJKToRASDirections(dirs);
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLVolumeNode::SetJToRASDirection(double jr, double ja, double js)
 {
-  IJKToRASDirections[0][1] = jr;
-  IJKToRASDirections[1][1] = ja;
-  IJKToRASDirections[2][1] = js;
+  double dirs[3][3] = {
+    {this->IJKToRASDirections[0][0], jr, this->IJKToRASDirections[0][2]},
+    {this->IJKToRASDirections[1][0], ja, this->IJKToRASDirections[1][2]},
+    {this->IJKToRASDirections[2][0], js, this->IJKToRASDirections[2][2]}};
+  this->SetIJKToRASDirections(dirs);
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLVolumeNode::SetKToRASDirection(double kr, double ka, double ks)
 {
-  IJKToRASDirections[0][2] = kr;
-  IJKToRASDirections[1][2] = ka;
-  IJKToRASDirections[2][2] = ks;
+  double dirs[3][3] = {
+    {this->IJKToRASDirections[0][0], this->IJKToRASDirections[0][1], kr},
+    {this->IJKToRASDirections[1][0], this->IJKToRASDirections[1][1], ka},
+    {this->IJKToRASDirections[2][0], this->IJKToRASDirections[2][1], ks}};
+  this->SetIJKToRASDirections(dirs);
 }
 
 //----------------------------------------------------------------------------
@@ -321,6 +328,48 @@ void vtkMRMLVolumeNode::GetKToRASDirection(double dirs[3])
     {
     dirs[i] = IJKToRASDirections[i][2];
     }
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLVolumeNode::SetSpacing(double arg1, double arg2, double arg3)
+{
+  if (!vtkMathUtilities::FuzzyCompare<double>(this->Spacing[0], arg1) ||
+      !vtkMathUtilities::FuzzyCompare<double>(this->Spacing[1], arg2) ||
+      !vtkMathUtilities::FuzzyCompare<double>(this->Spacing[2], arg3))
+    {
+    this->Spacing[0] = arg1;
+    this->Spacing[1] = arg2;
+    this->Spacing[2] = arg3;
+    this->StorableModifiedTime.Modified();
+    this->Modified();
+    }
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLVolumeNode::SetSpacing(double arg[3])
+{
+  this->SetSpacing(arg[0], arg[1], arg[2]);
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLVolumeNode::SetOrigin(double arg1, double arg2, double arg3)
+{
+  if (!vtkMathUtilities::FuzzyCompare<double>(this->Origin[0], arg1) ||
+      !vtkMathUtilities::FuzzyCompare<double>(this->Origin[1], arg2) ||
+      !vtkMathUtilities::FuzzyCompare<double>(this->Origin[2], arg3))
+    {
+    this->Origin[0] = arg1;
+    this->Origin[1] = arg2;
+    this->Origin[2] = arg3;
+    this->StorableModifiedTime.Modified();
+    this->Modified();
+    }
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLVolumeNode::SetOrigin(double arg[3])
+{
+  this->SetOrigin(arg[0], arg[1], arg[2]);
 }
 
 //----------------------------------------------------------------------------
@@ -382,16 +431,22 @@ void vtkMRMLVolumeNode::SetIJKToRASMatrix(vtkMatrix4x4* argMat)
       }
     }
 
-  int row;
-  for (row=0; row<3; row++) 
+  double dirs[3][3];
+  double origin[3];
+  for (int row=0; row<3; row++)
     {
-    for (col=0; col<3; col++) 
+    for (int col=0; col<3; col++)
       {
-      this->IJKToRASDirections[row][col] = mat->GetElement(row, col);
+      dirs[row][col] = mat->GetElement(row, col);
       }
-    this->Spacing[row] = spacing[row];
-    this->Origin[row] = mat->GetElement(row,3);
+    origin[row] = mat->GetElement(row, 3);
     }
+
+  int disabledModify = this->StartModify();
+  this->SetIJKToRASDirections(dirs);
+  this->SetSpacing(spacing);
+  this->SetOrigin(origin);
+  this->EndModify(disabledModify);
 }
 
 //----------------------------------------------------------------------------

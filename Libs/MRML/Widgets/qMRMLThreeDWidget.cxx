@@ -34,6 +34,9 @@
 #include "qMRMLThreeDView.h"
 #include "qMRMLThreeDWidget.h"
 
+// VTK includes
+#include <vtkCollection.h>
+
 //--------------------------------------------------------------------------
 // qMRMLSliceViewPrivate
 class qMRMLThreeDWidgetPrivate
@@ -141,8 +144,22 @@ void qMRMLThreeDWidget::setViewLabel(const QString& newViewLabel)
 }
 
 //---------------------------------------------------------------------------
+void qMRMLThreeDWidget::setQuadBufferStereoSupportEnabled(bool value)
+{
+  Q_D(qMRMLThreeDWidget);
+  d->ThreeDController->setQuadBufferStereoSupportEnabled(value);
+}
+
+//---------------------------------------------------------------------------
 QString qMRMLThreeDWidget::viewLabel()const
 {
   Q_D(const qMRMLThreeDWidget);
   return d->ThreeDController->viewLabel();
+}
+
+//------------------------------------------------------------------------------
+void qMRMLThreeDWidget::getDisplayableManagers(vtkCollection *displayableManagers)
+{
+  Q_D(qMRMLThreeDWidget);
+  d->ThreeDView->getDisplayableManagers(displayableManagers);
 }

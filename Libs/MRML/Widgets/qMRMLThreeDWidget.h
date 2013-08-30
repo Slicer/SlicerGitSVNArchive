@@ -35,6 +35,9 @@ class qMRMLThreeDWidgetPrivate;
 class vtkMRMLScene;
 class vtkMRMLViewNode;
 
+// VTK includes
+class vtkCollection;
+
 class QMRML_WIDGETS_EXPORT qMRMLThreeDWidget : public qMRMLWidget
 {
   Q_OBJECT
@@ -59,14 +62,18 @@ public:
 
   /// \sa qMRMLThreeDView::addDisplayableManager
   void addDisplayableManager(const QString& displayableManager);
+  Q_INVOKABLE void getDisplayableManagers(vtkCollection *displayableManagers);
 
-  /// \sa qMRMLThreeDControllerWidget::viewLabel()
+  /// \sa qMRMLThreeDViewControllerWidget::viewLabel()
   /// \sa setiewLabel()
   QString viewLabel()const;
 
-  /// \sa qMRMLThreeDControllerWidget::viewLabel()
+  /// \sa qMRMLThreeDViewControllerWidget::viewLabel()
   /// \sa viewLabel()
   void setViewLabel(const QString& newViewLabel);
+
+  /// \sa qMRMLThreeDViewControllerWidget::setQuadBufferStereoSupportEnabled
+  void setQuadBufferStereoSupportEnabled(bool value);
 
 public slots:
   /// Set the current \a viewNode to observe

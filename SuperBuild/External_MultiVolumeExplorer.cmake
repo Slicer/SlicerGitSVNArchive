@@ -27,7 +27,7 @@ if(NOT DEFINED MultiVolumeExplorer_SOURCE_DIR)
 
   ExternalProject_Add(${proj}
     GIT_REPOSITORY "${git_protocol}://github.com/fedorov/MultiVolumeExplorer.git"
-    GIT_TAG "ece91b888f4b235e1d68ab20275274e753667ffb"
+    GIT_TAG "b22dadfc1db0c5f5a9c927cab45f691c1da8efe1"
     SOURCE_DIR ${CMAKE_BINARY_DIR}/${proj}
     BINARY_DIR ${proj}-build
     CMAKE_GENERATOR ${gen}

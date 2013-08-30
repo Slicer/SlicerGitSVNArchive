@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>660</width>
-    <height>366</height>
+    <height>424</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -44,6 +44,9 @@
      <property name="coordinates" stdset="0">
       <string>1,1,1</string>
      </property>
+     <property name="unitAwareProperties">
+      <set>qMRMLCoordinatesWidget::MaximumValue|qMRMLCoordinatesWidget::MinimumValue|qMRMLCoordinatesWidget::Precision|qMRMLCoordinatesWidget::Prefix|qMRMLCoordinatesWidget::Scaling|qMRMLCoordinatesWidget::Suffix</set>
+     </property>
     </widget>
    </item>
    <item row="1" column="0">
@@ -61,14 +64,20 @@
      <property name="decimalsOption">
       <set>ctkDoubleSpinBox::DecimalsByKey|ctkDoubleSpinBox::DecimalsByShortcuts|ctkDoubleSpinBox::DecimalsByValue</set>
      </property>
-     <property name="minimum" stdset="0">
+     <property name="minimum">
       <double>0.000000000000000</double>
+     </property>
+     <property name="maximum">
+      <double>1000000000.000000000000000</double>
      </property>
      <property name="coordinates" stdset="0">
       <string>0,0,0</string>
      </property>
      <property name="quantity">
       <string>length</string>
+     </property>
+     <property name="unitAwareProperties">
+      <set>qMRMLCoordinatesWidget::Precision|qMRMLCoordinatesWidget::Prefix|qMRMLCoordinatesWidget::Scaling|qMRMLCoordinatesWidget::Suffix</set>
      </property>
     </widget>
    </item>
@@ -87,14 +96,17 @@
      <property name="decimalsOption">
       <set>ctkDoubleSpinBox::DecimalsByKey|ctkDoubleSpinBox::DecimalsByShortcuts|ctkDoubleSpinBox::DecimalsByValue</set>
      </property>
-     <property name="minimum" stdset="0">
-      <double>-1000000.000000000000000</double>
+     <property name="minimum">
+      <double>-1000000000.000000000000000</double>
      </property>
-     <property name="maximum" stdset="0">
-      <double>1000000.000000000000000</double>
+     <property name="maximum">
+      <double>1000000000.000000000000000</double>
      </property>
      <property name="quantity">
       <string>length</string>
+     </property>
+     <property name="unitAwareProperties">
+      <set>qMRMLCoordinatesWidget::Precision|qMRMLCoordinatesWidget::Prefix|qMRMLCoordinatesWidget::Scaling|qMRMLCoordinatesWidget::Suffix</set>
      </property>
     </widget>
    </item>
@@ -335,14 +347,14 @@
    <header>ctkCoordinatesWidget.h</header>
   </customwidget>
   <customwidget>
-   <class>ctkMatrixWidget</class>
-   <extends>QWidget</extends>
-   <header>ctkMatrixWidget.h</header>
-  </customwidget>
-  <customwidget>
    <class>ctkDoubleSpinBox</class>
    <extends>QWidget</extends>
    <header>ctkDoubleSpinBox.h</header>
+  </customwidget>
+  <customwidget>
+   <class>ctkMatrixWidget</class>
+   <extends>QWidget</extends>
+   <header>ctkMatrixWidget.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

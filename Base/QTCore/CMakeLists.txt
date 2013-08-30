@@ -61,6 +61,8 @@ set(KIT_SRCS
   qSlicerModuleManager.h
   qSlicerObject.cxx
   qSlicerObject.h
+  qSlicerPersistentCookieJar.cxx
+  qSlicerPersistentCookieJar.h
   qSlicerSceneBundleIO.cxx
   qSlicerSceneBundleIO.h
   qSlicerSlicer2SceneReader.cxx
@@ -75,8 +77,13 @@ if(Slicer_BUILD_EXTENSIONMANAGER_SUPPORT)
   list(APPEND KIT_SRCS
     qSlicerExtensionsManagerModel.cxx
     qSlicerExtensionsManagerModel.h
-    qSlicerPersistentCookieJar.cxx
-    qSlicerPersistentCookieJar.h
+    )
+endif()
+
+if(Slicer_USE_PYTHONQT)
+  list(APPEND KIT_SRCS
+    qSlicerScriptedFileWriter.cxx
+    qSlicerScriptedFileWriter.h
     )
 endif()
 
@@ -108,6 +115,12 @@ set(KIT_MOC_SRCS
 if(Slicer_BUILD_EXTENSIONMANAGER_SUPPORT)
   list(APPEND KIT_MOC_SRCS
     qSlicerExtensionsManagerModel.h
+    )
+endif()
+
+if(Slicer_USE_PYTHONQT)
+  list(APPEND KIT_MOC_SRCS
+    qSlicerScriptedFileWriter.h
     )
 endif()
 

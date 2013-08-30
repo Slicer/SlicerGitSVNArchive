@@ -63,6 +63,20 @@ public:
   /// Return a reference to the application singleton
   static qSlicerApplication* application();
 
+  /// Avoid some crashes due to execeptions thrown during inside event handlers
+  /// (such as slots).  When exceptions are thown from slots, Qt generates this message:
+  ///
+  ///   > Qt has caught an exception thrown from an event handler. Throwing
+  ///   > exceptions from an event handler is not supported in Qt. You must
+  ///   > reimplement QApplication::notify() and catch all exceptions there.
+  ///
+  /// so we follow the pattern suggested here:
+  ///
+  /// http://stackoverflow.com/questions/13878373/where-am-i-supposed-to-reimplement-qapplicationnotify-function
+  ///
+  virtual bool notify(QObject * receiver, QEvent * event);
+
+
   /// Get commandOptions
   Q_INVOKABLE qSlicerCommandOptions* commandOptions();
 
@@ -90,13 +104,13 @@ public:
   /// See http://doc.trolltech.com/4.6/qapplication.html#commitData
   /// and http://doc.trolltech.com/4.6/qsessionmanager.html#allowsInteraction
   //virtual void commitData(QSessionManager & manager);
-  
+
   /// Enable/Disable tooltips
   void setToolTipsEnabled(bool enable);
 
   /// Return the best module name for a given node.
   /// \note qSlicerApplication is a temporary host for the function as it should be
-  /// moved into a DataManager where module can register new node 
+  /// moved into a DataManager where module can register new node
   /// types/modules
   QString nodeModule(vtkMRMLNode* node)const;
 
@@ -107,7 +121,7 @@ public slots:
   /// Utility function that retrieve the best module for a node and trigger
   /// its associated QAction which eventually opens the module.
   /// \note qSlicerApplication is a temporary host for the function as it should be
-  /// moved into a DataManager where module can register new node 
+  /// moved into a DataManager where module can register new node
   /// types/modules
   void openNodeModule(vtkMRMLNode* node);
 

@@ -374,7 +374,7 @@ void vtkMRMLVolumeGlyphSliceDisplayableManager::vtkInternal
     }
   // Make sure there is no more display nodes than the volume has
   assert( displayNodesIt->second.size() <=
-          displayNodesIt->first->GetNumberOfDisplayNodes());
+          (unsigned int) displayNodesIt->first->GetNumberOfDisplayNodes());
 }
 
 //---------------------------------------------------------------------------
@@ -574,7 +574,7 @@ void vtkMRMLVolumeGlyphSliceDisplayableManager
     {
     if (vtkMRMLDisplayableNode::SafeDownCast(caller))
       {
-      if (callData == 0) // a display node is added/removed
+        if (callData == 0 || vtkMRMLDiffusionTensorVolumeSliceDisplayNode::SafeDownCast((vtkObject *)callData) !=0 ) // a display node is added/removed/modified
         {
         this->Internal->UpdateVolume(vtkMRMLDisplayableNode::SafeDownCast(caller));
         }

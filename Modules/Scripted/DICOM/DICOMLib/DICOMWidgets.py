@@ -8,7 +8,7 @@ import DICOMLib
 
 #########################################################
 #
-# 
+#
 comment = """
 
 DICOMWidgets are helper classes to build an interface
@@ -17,7 +17,7 @@ to manage DICOM data in the context of slicer.
 This code is slicer-specific and relies on the slicer python module
 for elements like slicer.dicomDatabase and slicer.mrmlScene
 
-# TODO : 
+# TODO :
 """
 #
 #########################################################
@@ -42,7 +42,7 @@ class DICOMDetailsPopup(object):
   def create(self,widgetType='window',showHeader=False,showPreview=False):
     """
     main window is a frame with widgets from the app
-    widget repacked into it along with slicer-specific 
+    widget repacked into it along with slicer-specific
     extra widgets
     """
 
@@ -69,7 +69,7 @@ class DICOMDetailsPopup(object):
     elif widgetType == 'dock':
       self.dock = qt.QDockWidget(slicer.util.mainWindow())
       self.dock.setFeatures( qt.QDockWidget.DockWidgetFloatable |
-                                qt.QDockWidget.DockWidgetMovable | 
+                                qt.QDockWidget.DockWidgetMovable |
                                 qt.QDockWidget.DockWidgetClosable )
       slicer.util.mainWindow().addDockWidget(0x15, self.dock)
       self.window = qt.QFrame()
@@ -116,7 +116,7 @@ class DICOMDetailsPopup(object):
     self.actionLayout = qt.QVBoxLayout()
     self.layout.addLayout(self.actionLayout,selectionRow,1)
     self.actionLayout.addWidget(self.userFrame)
-    
+
     tableWidth = 350 if showHeader else 700
     self.loadableTable = DICOMLoadableTable(self.userFrame,width=tableWidth)
     self.actionLayout.addWidget(self.loadableTable.widget)
@@ -132,7 +132,7 @@ class DICOMDetailsPopup(object):
     self.uncheckAllButton.connect('clicked()', self.uncheckAllLoadables)
 
     self.loadButton = qt.QPushButton('Load Selection to Slicer')
-    self.loadButton.enabled = False 
+    self.loadButton.enabled = False
     self.actionButtonLayout.addWidget(self.loadButton)
     self.loadButton.connect('clicked()', self.loadCheckedLoadables)
 
@@ -290,7 +290,7 @@ class DICOMDetailsPopup(object):
   def loadCheckedLoadables(self):
     """Invoke the load method on each plugin for the DICOMLoadable
     instances that are selected"""
-    self.loadableTable.updateCheckstate()
+    self.loadableTable.updateSelectedFromCheckstate()
     loadableCount = 0
     for plugin in self.loadablesByPlugin:
       for loadable in self.loadablesByPlugin[plugin]:
@@ -313,7 +313,7 @@ class DICOMDetailsPopup(object):
           self.progress.labelText = '\nLoading %s' % loadable.name
           slicer.app.processEvents()
           if not plugin.load(loadable):
-            qt.QMessageBox.warning(slicer.util.mainWindow(), 
+            qt.QMessageBox.warning(slicer.util.mainWindow(),
                 'Load', 'Could not load: %s as a %s' % (loadable.name,plugin.loadType))
           step += 1
           self.progress.setValue(step)
@@ -324,7 +324,7 @@ class DICOMDetailsPopup(object):
 
 class DICOMLoadableTable(object):
   """Implement the Qt code for a table of
-  selectable slicer data to be made from 
+  selectable slicer data to be made from
   the given dicom files
   """
 
@@ -341,20 +341,8 @@ class DICOMLoadableTable(object):
   def addLoadableRow(self,loadable,row,reader):
     """Add a row to the loadable table
     """
-    # set checked state to unckecked if there is a loadable with the 
-    # same file list in the table already
-    if len(self.loadables) > 0:
-      for addedRow in self.loadables.keys():
-        if len(self.loadables[addedRow].files) == 1 and len(loadable.files) == 1:
-          # needed because of the tuple-sequence comparison does not work, 
-          # and sometimes tuples are created by some reason
-          if self.loadables[addedRow].files[0] == loadable.files[0]:
-            loadable.selected = False
-            break
-        elif self.loadables[addedRow].files == loadable.files:
-          loadable.selected = False
-          break
     # name and check state
+    qt_ItemIsEditable = 2 # not in PythonQt
     self.loadables[row] = loadable
     item = qt.QTableWidgetItem(loadable.name)
     item.setCheckState(loadable.selected * 2)
@@ -364,12 +352,14 @@ class DICOMLoadableTable(object):
     # reader
     if reader:
       readerItem = qt.QTableWidgetItem(reader)
+      readerItem.setFlags(readerItem.flags() ^ qt_ItemIsEditable)
       self.items.append(readerItem)
       self.widget.setItem(row,1,readerItem)
       readerItem.setToolTip(item.toolTip())
     # warning
     if loadable.warning:
       warnItem = qt.QTableWidgetItem(loadable.warning)
+      warnItem.setFlags(warnItem.flags() ^ qt_ItemIsEditable)
       self.items.append(warnItem)
       self.widget.setItem(row,2,warnItem)
       item.setToolTip(item.toolTip() + "\n" + loadable.warning)
@@ -393,6 +383,21 @@ class DICOMLoadableTable(object):
     self.loadables = {}
     row = 0
 
+    for plugin in loadablesByPlugin:
+      for thisLoadableId in xrange(len(loadablesByPlugin[plugin])):
+        for prevLoadableId in xrange(0,thisLoadableId):
+          thisLoadable = loadablesByPlugin[plugin][thisLoadableId]
+          prevLoadable = loadablesByPlugin[plugin][prevLoadableId]
+          if len(thisLoadable.files) == 1 and len(prevLoadable.files) == 1:
+            # needed because of the tuple-sequence comparison does not work,
+            # and sometimes tuples are created by some reason
+            if thisLoadable.files[0] == prevLoadable.files[0]:
+              thisLoadable.selected = False
+              break
+          elif thisLoadable.files == prevLoadable.files:
+            thisLoadable.selected = False
+            break
+
     for selectState in (True,False):
       for plugin in loadablesByPlugin:
         for loadable in loadablesByPlugin[plugin]:
@@ -407,16 +412,29 @@ class DICOMLoadableTable(object):
       item = self.widget.item(row,0)
       item.setCheckState(False)
 
-  def updateCheckstate(self):
+  def updateSelectedFromCheckstate(self):
     for row in xrange(self.widget.rowCount):
       item = self.widget.item(row,0)
       self.loadables[row].selected = (item.checkState() != 0)
+      # updating the names
+      self.loadables[row].name = item.text()
+
+  def updateCheckstateFromSelected(self):
+    print('updateCheckstateFromSelected')
+    for row in xrange(self.widget.rowCount):
+      if self.loadables[row].name.find('MultiVolume')>0:
+        print('Setting selected state to '+str(self.loadables[row].selected))
+      item = self.widget.item(row,0)
+      item.setCheckState(self.loadables[row].selected * 2)
+
+
+
 
 class DICOMHeaderWidget(object):
   """Implement the Qt code for a table of
   DICOM header values
   """
-  # TODO: move this to ctk and use data dictionary for 
+  # TODO: move this to ctk and use data dictionary for
   # tag names
 
   def __init__(self,parent):
@@ -509,7 +527,7 @@ class DICOMRecentActivityWidget(object):
   def recentSeriesList(self):
     """Return a list of series sorted by insert time
     (counting backwards from today)
-    Assume that first insert time of series is valid 
+    Assume that first insert time of series is valid
     for entire series (should be close enough for this purpose)
     """
     recentSeries = []
@@ -528,7 +546,7 @@ class DICOMRecentActivityWidget(object):
               # accessible to the dicom database, so we should ignore it here
               continue
             seriesDescription = self.dicomDatabase.instanceValue(instance,self.tags['seriesDescription'])
-            elapsed = seriesTime.secsTo(now) 
+            elapsed = seriesTime.secsTo(now)
             secondsPerHour = 60 * 60
             secondsPerDay = secondsPerHour * 24
             timeNote = None
@@ -697,7 +715,7 @@ class DICOMSendDialog(object):
     self.dicomFormLayout = qt.QFormLayout()
     self.dicomFrame.setLayout(self.dicomFormLayout)
     self.dicomEntries = {}
-    self.dicomParameters = { 
+    self.dicomParameters = {
       "Destination Address": self.sendAddress,
       "Destination Port": self.sendPort
     }
@@ -747,7 +765,7 @@ class DICOMStudyBrowser(object):
   """Create a dialog for looking at studies and series
 
     TODO: this is an experiment to implement some of the ideas from:
-     https://www.assembla.com/spaces/sparkit/wiki/20120125_Slicer_DICOM_browser_meeting 
+     https://www.assembla.com/spaces/sparkit/wiki/20120125_Slicer_DICOM_browser_meeting
     Still a work in progress
  """
   def __init__(self):
@@ -781,15 +799,15 @@ class DICOMStudyTable(object):
   def __init__(self,parent,db):
     self.view = qt.QTableView(parent)
     self.model = qt.QSqlQueryModel()
-    self.statement = """ SELECT 
+    self.statement = """ SELECT
                             Patients.PatientsName, Patients.PatientID, Patients.PatientsBirthDate,
                             Studies.StudyDate, Studies.StudyDescription, Studies.ModalitiesInStudy,
                             Studies.StudyInstanceUID
-                         FROM 
-                            Patients,Studies 
-                          WHERE 
+                         FROM
+                            Patients,Studies
+                          WHERE
                             Patients.UID=Studies.PatientsUID
-                         ORDER BY 
+                         ORDER BY
                             Patients.PatientsName
                          ; """
     self.query = qt.QSqlQuery(db)
@@ -820,13 +838,13 @@ class DICOMSeriesTable(object):
     self.model = qt.QSqlQueryModel()
 
     self.statementFormat = """SELECT
-                            Series.SeriesNumber, Series.SeriesDescription, 
+                            Series.SeriesNumber, Series.SeriesDescription,
                             Series.SeriesDate, Series.SeriesTime, Series.SeriesInstanceUID
-                         FROM 
+                         FROM
                             Series
-                          WHERE 
+                          WHERE
                             Series.StudyInstanceUID='{StudyInstanceUID}'
-                         ORDER BY 
+                         ORDER BY
                             Series.SeriesNumber
                          ; """
     self.query = qt.QSqlQuery(db)

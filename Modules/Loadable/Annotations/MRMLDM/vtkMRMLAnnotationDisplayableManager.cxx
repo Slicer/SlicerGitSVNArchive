@@ -1476,7 +1476,7 @@ bool vtkMRMLAnnotationDisplayableManager::IsWidgetDisplayable(vtkMRMLSliceNode* 
     pokedRenderer->NormalizedDisplayToViewport(coords[0],coords[1]);
     pokedRenderer->ViewportToNormalizedViewport(coords[0],coords[1]);
 
-    if ((coords[0]>0.0) && (coords[1]<1.0) && (coords[1]>0.0) && (coords[1]<1.0))
+    if ((coords[0]>0.0) && (coords[0]<1.0) && (coords[1]>0.0) && (coords[1]<1.0))
       {
       // current point is inside of view
       inViewport = true;
@@ -1518,6 +1518,16 @@ void vtkMRMLAnnotationDisplayableManager::OnInteractorStyleEvent(int eventid)
   else if (eventid == vtkCommand::LeftButtonPressEvent)
     {
 //    vtkWarningMacro("OnInteractorStyleEvent: unhandled left button press event " << eventid);
+    }
+  else if (eventid == vtkCommand::RightButtonReleaseEvent)
+    {
+    // if we're in persistent place mode, go back to view transform mode, but
+    // leave the persistent flag on
+    if (this->GetInteractionNode()->GetCurrentInteractionMode() == vtkMRMLInteractionNode::Place &&
+        this->GetInteractionNode()->GetPlaceModePersistence() == 1)
+      {
+      this->GetInteractionNode()->SwitchToViewTransformMode();
+      }
     }
   else
     {
@@ -1955,13 +1965,13 @@ bool vtkMRMLAnnotationDisplayableManager::IsCorrectDisplayableManager()
     vtkErrorMacro ( "IsCorrectDisplayableManager: No selection node in the scene." );
     return false;
     }
-  if ( selectionNode->GetActiveAnnotationID() == 0)
+  if ( selectionNode->GetActivePlaceNodeClassName() == 0)
     {
     //vtkErrorMacro ( "IsCorrectDisplayableManager: no active annotation");
     return false;
     }
   // the purpose of the displayableManager is hardcoded
-  return this->IsManageable(selectionNode->GetActiveAnnotationID());
+  return this->IsManageable(selectionNode->GetActivePlaceNodeClassName());
 
 }
 
@@ -1972,9 +1982,9 @@ bool vtkMRMLAnnotationDisplayableManager::IsManageable(vtkMRMLNode* node)
 }
 
 //---------------------------------------------------------------------------
-bool vtkMRMLAnnotationDisplayableManager::IsManageable(const char* nodeID)
+bool vtkMRMLAnnotationDisplayableManager::IsManageable(const char* nodeClassName)
 {
-  return nodeID && !strcmp(nodeID, this->m_Focus);
+  return nodeClassName && !strcmp(nodeClassName, this->m_Focus);
 }
 
 //---------------------------------------------------------------------------
