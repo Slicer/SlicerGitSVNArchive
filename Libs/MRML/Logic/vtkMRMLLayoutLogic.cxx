@@ -588,7 +588,7 @@ const char* sideBySideView =
   "  </item>"
   "</layout>";
 
-const char* fourOverThreeSliceView =
+const char* fourByThreeSliceView =
   "<layout type=\"vertical\">"
   " <item>"
   "  <layout type=\"horizontal\">"
@@ -688,7 +688,7 @@ const char* fourOverThreeSliceView =
   " </item>"
   "</layout>";
 
-const char* fourOverTwoSliceView =
+const char* fourByTwoSliceView =
   "<layout type=\"vertical\">"
   " <item>"
   "  <layout type=\"horizontal\">"
@@ -756,7 +756,7 @@ const char* fourOverTwoSliceView =
   " </item>"
   "</layout>";
 
-const char* fiveOverTwoSliceView =
+const char* fiveByTwoSliceView =
   "<layout type=\"vertical\">"
   " <item>"
   "  <layout type=\"horizontal\">"
@@ -1271,12 +1271,12 @@ void vtkMRMLLayoutLogic::AddDefaultLayouts()
                                          threeOverThreeQuantitativeView);
   this->LayoutNode->AddLayoutDescription(vtkMRMLLayoutNode::SlicerLayoutSideBySideView,
                                          sideBySideView);
-  this->LayoutNode->AddLayoutDescription(vtkMRMLLayoutNode::SlicerLayoutFourOverThreeSliceView,
-                                         fourOverThreeSliceView);
-  this->LayoutNode->AddLayoutDescription(vtkMRMLLayoutNode::SlicerLayoutFourOverTwoSliceView,
-                                         fourOverTwoSliceView);
-  this->LayoutNode->AddLayoutDescription(vtkMRMLLayoutNode::SlicerLayoutFiveOverTwoSliceView,
-                                         fiveOverTwoSliceView);
+  this->LayoutNode->AddLayoutDescription(vtkMRMLLayoutNode::SlicerLayoutFourByThreeSliceView,
+                                         fourByThreeSliceView);
+  this->LayoutNode->AddLayoutDescription(vtkMRMLLayoutNode::SlicerLayoutFourByTwoSliceView,
+                                         fourByTwoSliceView);
+  this->LayoutNode->AddLayoutDescription(vtkMRMLLayoutNode::SlicerLayoutFiveByTwoSliceView,
+                                         fiveByTwoSliceView);
   // add the CompareView modes which are defined programmatically
   this->UpdateCompareViewLayoutDefinitions();
   this->LayoutNode->EndModify(wasModifying);

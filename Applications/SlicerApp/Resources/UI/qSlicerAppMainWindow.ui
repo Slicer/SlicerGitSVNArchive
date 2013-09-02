@@ -89,9 +89,9 @@
      <addaction name="actionViewLayoutFourOverFour"/>
      <addaction name="actionViewLayoutTwoOverTwo"/>
      <addaction name="actionViewLayoutSideBySide"/>
-     <addaction name="actionViewLayoutFourOverThreeSliceView" />
-     <addaction name="actionViewLayoutFourOverTwoSliceView" />
-     <addaction name="actionViewLayoutFiveOverTwoSliceView" />
+     <addaction name="actionViewLayoutFourByThreeSliceView" />
+     <addaction name="actionViewLayoutFourByTwoSliceView" />
+     <addaction name="actionViewLayoutFiveByTwoSliceView" />
     </widget>
     <widget class="QMenu" name="menuWindowToolBars">
      <property name="title">
@@ -269,9 +269,9 @@
    <addaction name="actionViewLayoutThreeOverThreeQuantitative"/>
    <addaction name="actionViewLayoutFourOverFour"/>
    <addaction name="actionViewLayoutSideBySide"/>
-   <addaction name="actionViewLayoutFourOverThreeSliceView" />
-   <addaction name="actionViewLayoutFourOverTwoSliceView" />
-   <addaction name="actionViewLayoutFiveOverTwoSliceView" />
+   <addaction name="actionViewLayoutFourByThreeSliceView" />
+   <addaction name="actionViewLayoutFourByTwoSliceView" />
+   <addaction name="actionViewLayoutFiveByTwoSliceView" />
   </widget>
   <widget class="qSlicerMouseModeToolBar" name="MouseModeToolBar">
    <property name="enabled">
@@ -1184,40 +1184,40 @@
     <string>Side by side</string>
    </property>
   </action>
-  <action name="actionViewLayoutFourOverThreeSliceView">
+  <action name="actionViewLayoutFourByThreeSliceView">
    <property name="icon">
     <iconset resource="../../../../Libs/MRML/Widgets/Resources/qMRMLWidgets.qrc">
      <normaloff>:/Icons/LayoutThreeOverThreeView.png</normaloff>:/Icons/LayoutThreeOverThreeView.png</iconset>
    </property>
    <property name="text">
-    <string>Four over three slice views</string>
+    <string>Four by three slice views</string>
    </property>
    <property name="toolTip">
-    <string>Four over three slice views</string>
+    <string>Four by three slice views</string>
    </property>
   </action>
-  <action name="actionViewLayoutFourOverTwoSliceView">
+  <action name="actionViewLayoutFourByTwoSliceView">
    <property name="icon">
     <iconset resource="../../../../Libs/MRML/Widgets/Resources/qMRMLWidgets.qrc">
      <normaloff>:/Icons/LayoutThreeOverThreeView.png</normaloff>:/Icons/LayoutThreeOverThreeView.png</iconset>
    </property>
    <property name="text">
-    <string>Four over two slice views</string>
+    <string>Four by two slice views</string>
    </property>
    <property name="toolTip">
-    <string>Four over two slice views</string>
+    <string>Four by two slice views</string>
    </property>
   </action>
-  <action name="actionViewLayoutFiveOverTwoSliceView">
+  <action name="actionViewLayoutFiveByTwoSliceView">
    <property name="icon">
     <iconset resource="../../../../Libs/MRML/Widgets/Resources/qMRMLWidgets.qrc">
      <normaloff>:/Icons/LayoutThreeOverThreeView.png</normaloff>:/Icons/LayoutThreeOverThreeView.png</iconset>
    </property>
    <property name="text">
-    <string>Five over two slice views</string>
+    <string>Five by two slice views</string>
    </property>
    <property name="toolTip">
-    <string>Five over two slice views</string>
+    <string>Five by two slice views</string>
    </property>
   </action>
 
