@@ -820,6 +820,9 @@ void qSlicerAppMainWindow::setupMenuActions()
   d->actionViewLayoutFourOverFour->setData(vtkMRMLLayoutNode::SlicerLayoutFourOverFourView);
   d->actionViewLayoutTwoOverTwo->setData(vtkMRMLLayoutNode::SlicerLayoutTwoOverTwoView);
   d->actionViewLayoutSideBySide->setData(vtkMRMLLayoutNode::SlicerLayoutSideBySideView);
+  d->actionViewLayoutFourByThreeSliceView->setData(vtkMRMLLayoutNode::SlicerLayoutFourByThreeSliceView);
+  d->actionViewLayoutFourByTwoSliceView->setData(vtkMRMLLayoutNode::SlicerLayoutFourByTwoSliceView);
+  d->actionViewLayoutFiveByTwoSliceView->setData(vtkMRMLLayoutNode::SlicerLayoutFiveByTwoSliceView);
 
   d->actionViewLayoutCompare_2_viewers->setData(2);
   d->actionViewLayoutCompare_3_viewers->setData(3);
