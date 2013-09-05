@@ -1,0 +1,11 @@
+<MRML>
+<Camera
+ id="vtkMRMLCameraNode1" name="Camera1"  hideFromEditors="true"  position="1.26247 0.628757 -0.668912" focalPoint="0 0 0" viewUp="-0.566328 0.729902 -0.382773" parallelProjection="false" parallelScale="0" active="true"></Camera>
+
+<ModelStorage
+ id="vtkMRMLModelStorageNode1" name=""  hideFromEditors="true" fileName="TestData/cube.vtk" ></ModelStorage>
+<ModelDisplay
+ id="vtkMRMLModelDisplayNode4" name=""  hideFromEditors="true"  color="0.5 0.5 0.5" ambient="0" diffuse="1" specular="0" power="1" opacity="1" visibility="true" clipping="false" backfaceCulling="true" scalarVisibility="false" vectorVisibility="false" tensorVisibility="false" scalarRange="0 100"></ModelDisplay>
+<Model
+ id="vtkMRMLModelNode4" name="cube.vtk"  hideFromEditors="false" storageNodeRef="vtkMRMLModelStorageNode1" displayNodeRef="vtkMRMLModelDisplayNode4" ></Model>
+</MRML>
