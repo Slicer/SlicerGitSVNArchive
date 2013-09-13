@@ -29,7 +29,7 @@ set(Slicer_CMAKE_DIR ${Slicer_SOURCE_DIR}/CMake)
 set(Slicer_EXTENSIONS_CMAKE_DIR ${Slicer_SOURCE_DIR}/Extensions/CMake)
 
 #-----------------------------------------------------------------------------
-# http://www.slicer.org/slicerWiki/index.php/Documentation/Nightly/Developers/DevelopmentWithGit
+# http://www.slicer.org/slicerWiki/index.php/Documentation/4.3/Developers/DevelopmentWithGit
 #-----------------------------------------------------------------------------
 include(SlicerCheckSourceTree)
 
@@ -394,7 +394,7 @@ set(Slicer_MAIN_PROJECT_APPLICATION_NAME ${${Slicer_MAIN_PROJECT}_APPLICATION_NA
 # Slicer version number.
 #-----------------------------------------------------------------------------
 set(Slicer_VERSION_MAJOR "4")
-set(Slicer_VERSION_MINOR "2")
+set(Slicer_VERSION_MINOR "3")
 set(Slicer_VERSION_PATCH "0")
 # Releases define a tweak level
 #set(Slicer_VERSION_TWEAK 0)

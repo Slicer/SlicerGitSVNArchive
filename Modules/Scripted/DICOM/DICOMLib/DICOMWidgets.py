@@ -344,6 +344,7 @@ class DICOMLoadableTable(object):
     """Add a row to the loadable table
     """
     # name and check state
+    qt_ItemIsEditable = 2 # not in PythonQt
     self.loadables[row] = loadable
     item = qt.QTableWidgetItem(loadable.name)
     item.setCheckState(loadable.selected * 2)
@@ -353,16 +354,21 @@ class DICOMLoadableTable(object):
     # reader
     if reader:
       readerItem = qt.QTableWidgetItem(reader)
+      readerItem.setFlags(readerItem.flags() ^ qt_ItemIsEditable)
       self.items.append(readerItem)
       self.widget.setItem(row,1,readerItem)
       readerItem.setToolTip(item.toolTip())
     # warning
     if loadable.warning:
-      warnItem = qt.QTableWidgetItem(loadable.warning)
-      self.items.append(warnItem)
-      self.widget.setItem(row,2,warnItem)
-      item.setToolTip(item.toolTip() + "\n" + loadable.warning)
-      warnItem.setToolTip(item.toolTip())
+      warning = loadable.warning
+    else:
+      warning = ''
+    warnItem = qt.QTableWidgetItem(loadable.warning)
+    warnItem.setFlags(warnItem.flags() ^ qt_ItemIsEditable)
+    self.items.append(warnItem)
+    self.widget.setItem(row,2,warnItem)
+    item.setToolTip(item.toolTip() + "\n" + warning)
+    warnItem.setToolTip(item.toolTip())
 
   def setLoadables(self,loadablesByPlugin):
     """Load the table widget with a list
@@ -415,6 +421,8 @@ class DICOMLoadableTable(object):
     for row in xrange(self.widget.rowCount):
       item = self.widget.item(row,0)
       self.loadables[row].selected = (item.checkState() != 0)
+      # updating the names
+      self.loadables[row].name = item.text()
 
   def updateCheckstateFromSelected(self):
     print('updateCheckstateFromSelected')

@@ -430,21 +430,12 @@ vtkMRMLColorNode* vtkMRMLColorLogic::LoadColorFile(const char *fileName, const c
     std::string uname( this->GetMRMLScene()->GetUniqueNameByString(nodeName));
     node->SetName(uname.c_str());
     }
-  //std::string id = std::string(node->GetSingletonTag());
-  //if (this->GetMRMLScene()->GetNodeByID(id) != NULL)
-  //  {
-  //  vtkDebugMacro("LoadColorFile: File already exists: " <<  fileName);  
-  //  return 0;
-  //  }
-  //this->GetMRMLScene()->RequestNodeID(node, id.c_str());
-  this->GetMRMLScene()->AddNode(node);
+  vtkMRMLColorNode * singletonNode =
+      vtkMRMLColorNode::SafeDownCast(this->GetMRMLScene()->AddNode(node));
   vtkDebugMacro("LoadColorFile: Done: Read and added file node: " <<  fileName);
-  // don't add the name to the list of files, otherwise it will get loaded
-  //again with the default ones
-  //this->AddColorFile(fileName);
   node->Delete();  
   
-  return node;
+  return singletonNode;
 }
 
 //------------------------------------------------------------------------------
@@ -957,6 +948,7 @@ vtkMRMLColorTableNode* vtkMRMLColorLogic::CopyNode(vtkMRMLColorNode* nodeToCopy,
   colorNode->SetName(copyName);
   colorNode->SetTypeToUser();
   colorNode->SetAttribute("Category", "User Generated");
+  colorNode->SetHideFromEditors(false);
   if (nodeToCopy->GetLookupTable())
     {
     double* range = nodeToCopy->GetLookupTable()->GetRange();

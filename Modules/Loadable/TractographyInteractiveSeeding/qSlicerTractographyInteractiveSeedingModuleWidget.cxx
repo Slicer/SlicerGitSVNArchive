@@ -102,25 +102,35 @@ void qSlicerTractographyInteractiveSeedingModuleWidget::onEnter()
     }
 
   // if we have one Fiducial List node select it
-  nodes.clear();
-  this->mrmlScene()->GetNodesByClass("vtkMRMLAnnotationHierarchyNode", nodes);
-  if (nodes.size() > 1 && d->FiducialNodeSelector->currentNode() == 0)
+  if (d->FiducialNodeSelector->currentNode() == 0)
     {
-    for (unsigned int i=0; i<nodes.size(); i++)
+    int numAnnotationLists = this->mrmlScene()->GetNumberOfNodesByClass("vtkMRMLAnnotationHierarchyNode");
+    int numMarkups = this->mrmlScene()->GetNumberOfNodesByClass("vtkMRMLMarkupsFiducialNode");
+    nodes.clear();
+    if (numMarkups > 0)
       {
-      vtkMRMLAnnotationHierarchyNode *hnode = vtkMRMLAnnotationHierarchyNode::SafeDownCast(nodes[i]);
-      vtkCollection *cnodes = vtkCollection::New();
-      hnode->GetDirectChildren(cnodes);
-      if (cnodes->GetNumberOfItems() > 0 && cnodes->GetNumberOfItems() < 5 &&
-          vtkMRMLAnnotationFiducialNode::SafeDownCast(cnodes->GetItemAsObject(0)) != NULL)
+      this->mrmlScene()->GetNodesByClass("vtkMRMLMarkupsFiducialNode", nodes);
+      this->setSeedingNode(nodes[0]);
+      }
+    else if (numAnnotationLists > 1)
+      {
+      this->mrmlScene()->GetNodesByClass("vtkMRMLAnnotationHierarchyNode", nodes);
+      for (unsigned int i=0; i<nodes.size(); i++)
         {
-        this->setSeedingNode(nodes[i]);
+        vtkMRMLAnnotationHierarchyNode *hnode = vtkMRMLAnnotationHierarchyNode::SafeDownCast(nodes[i]);
+        vtkCollection *cnodes = vtkCollection::New();
+        hnode->GetDirectChildren(cnodes);
+        if (cnodes->GetNumberOfItems() > 0 && cnodes->GetNumberOfItems() < 5 &&
+            vtkMRMLAnnotationFiducialNode::SafeDownCast(cnodes->GetItemAsObject(0)) != NULL)
+          {
+          this->setSeedingNode(nodes[i]);
+          cnodes->RemoveAllItems();
+          cnodes->Delete();
+          break;
+          }
         cnodes->RemoveAllItems();
         cnodes->Delete();
-        break;
         }
-      cnodes->RemoveAllItems();
-      cnodes->Delete();
       }
     }
 
@@ -220,6 +230,10 @@ void qSlicerTractographyInteractiveSeedingModuleWidget::setup()
   QObject::connect(d->FiberNodeSelector, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this,
                                          SLOT(setFiberBundleNode(vtkMRMLNode*)));
 
+  QObject::connect(d->PresetsComboBox, 
+                SIGNAL(currentIndexChanged(int)),
+                SLOT(setParametersPreset(int)));
+
   QObject::connect(d->StoppingCurvatureSpinBox,
                 SIGNAL(valueChanged(double)),
                 SLOT(setStoppingCurvature(double)));
@@ -306,6 +320,7 @@ void qSlicerTractographyInteractiveSeedingModuleWidget::setup()
 
   QObject::connect(d->ParameterNodeSelector, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this,
                                              SLOT(setTractographyInteractiveSeedingNode(vtkMRMLNode*)));
+
 }
 
 //-----------------------------------------------------------------------------
@@ -370,6 +385,63 @@ void qSlicerTractographyInteractiveSeedingModuleWidget::setTractographyInteracti
   this->updateWidgetFromMRML();
 }
 
+//-----------------------------------------------------------------------------
+void qSlicerTractographyInteractiveSeedingModuleWidget::setParametersPreset(int index)
+{
+  if (this->TractographyInteractiveSeedingNode == 0)
+    {
+    return;
+    }
+  if (index == 0) //Slicer4 Interctive Seeding Defaults
+    {
+     this->TractographyInteractiveSeedingNode->SetStoppingMode(0); //FA
+     this->TractographyInteractiveSeedingNode->SetStoppingValue(0.25);
+     this->TractographyInteractiveSeedingNode->SetStoppingCurvature(0.7);
+     this->TractographyInteractiveSeedingNode->SetIntegrationStep(0.5);
+     this->TractographyInteractiveSeedingNode->SetSeedingRegionSize(2.5);
+     this->TractographyInteractiveSeedingNode->SetSeedingRegionStep(1.0);
+     this->TractographyInteractiveSeedingNode->SetMinimumPathLength(20.0);
+     this->TractographyInteractiveSeedingNode->SetMaximumPathLength(800.0);
+     this->TractographyInteractiveSeedingNode->SetMaxNumberOfSeeds(100);
+     this->TractographyInteractiveSeedingNode->SetRandomGrid(0);
+     this->TractographyInteractiveSeedingNode->SetUseIndexSpace(0);
+     this->TractographyInteractiveSeedingNode->SetLinearMeasureStart(0.3);
+     this->TractographyInteractiveSeedingNode->SetSeedSpacing(2.0);
+    }
+  else if (index == 1) //Slicer3 Fiducial Seeding Defaults
+    {
+     this->TractographyInteractiveSeedingNode->SetStoppingMode(1); //LM
+     this->TractographyInteractiveSeedingNode->SetStoppingValue(0.25);
+     this->TractographyInteractiveSeedingNode->SetStoppingCurvature(0.7);
+     this->TractographyInteractiveSeedingNode->SetIntegrationStep(0.5);
+     this->TractographyInteractiveSeedingNode->SetSeedingRegionSize(5);
+     this->TractographyInteractiveSeedingNode->SetSeedingRegionStep(1.6);
+     this->TractographyInteractiveSeedingNode->SetMinimumPathLength(20.0);
+     this->TractographyInteractiveSeedingNode->SetMaximumPathLength(800.0);
+     this->TractographyInteractiveSeedingNode->SetMaxNumberOfSeeds(100);
+     this->TractographyInteractiveSeedingNode->SetRandomGrid(0);
+     this->TractographyInteractiveSeedingNode->SetUseIndexSpace(0);
+     this->TractographyInteractiveSeedingNode->SetLinearMeasureStart(0.3);
+     this->TractographyInteractiveSeedingNode->SetSeedSpacing(2.0);
+    }
+  else if (index == 2) //Slicer3 Labelmap Seeding Defaults
+    {
+     this->TractographyInteractiveSeedingNode->SetStoppingMode(1); // LM
+     this->TractographyInteractiveSeedingNode->SetStoppingValue(0.1);
+     this->TractographyInteractiveSeedingNode->SetStoppingCurvature(0.8);
+     this->TractographyInteractiveSeedingNode->SetIntegrationStep(0.5);
+     this->TractographyInteractiveSeedingNode->SetSeedingRegionSize(2.5);
+     this->TractographyInteractiveSeedingNode->SetSeedingRegionStep(1.0);
+     this->TractographyInteractiveSeedingNode->SetMinimumPathLength(10.0);
+     this->TractographyInteractiveSeedingNode->SetMaximumPathLength(800.0);
+     this->TractographyInteractiveSeedingNode->SetMaxNumberOfSeeds(100);
+     this->TractographyInteractiveSeedingNode->SetRandomGrid(0);
+     this->TractographyInteractiveSeedingNode->SetUseIndexSpace(0);
+     this->TractographyInteractiveSeedingNode->SetLinearMeasureStart(0.3);
+     this->TractographyInteractiveSeedingNode->SetSeedSpacing(2.0);
+    }
+  this->updateWidgetFromMRML();
+}
 
 //-----------------------------------------------------------------------------
 void qSlicerTractographyInteractiveSeedingModuleWidget::setSeedingNode(vtkMRMLNode *node)

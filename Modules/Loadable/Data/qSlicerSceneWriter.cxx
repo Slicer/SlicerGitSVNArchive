@@ -180,6 +180,15 @@ bool qSlicerSceneWriter::writeToMRB(const qSlicerIO::IOProperties& properties)
   // named based on the user's selection.
   //
 
+  QFileInfo fileInfo(properties["fileName"].toString());
+  QString basePath = fileInfo.absolutePath();
+  if (!QFileInfo(basePath).isWritable())
+    {
+    qWarning() << "Failed to save" << fileInfo.absoluteFilePath() << ":"
+               << "Path" << basePath << "is not writable";
+    return false;
+    }
+
   // TODO: switch to QTemporaryDir in Qt5.
   // For now, create a named directory and use Qt calls to remove it
   QString tempDir = qSlicerCoreApplication::application()->temporaryPath();
@@ -189,7 +198,6 @@ bool qSlicerSceneWriter::writeToMRB(const qSlicerIO::IOProperties& properties)
   qDebug() << "packing to " << pack.absoluteFilePath();
 
   // make a subdirectory with the name the user has chosen
-  QFileInfo fileInfo(properties["fileName"].toString());
   QFileInfo bundle = QFileInfo(QDir(pack.absoluteFilePath()),
                                fileInfo.baseName());
   QString bundlePath = bundle.absoluteFilePath();

@@ -1,6 +1,6 @@
 
 #-----------------------------------------------------------------------------
-set(MODULE_NAME "Annotations")  # Do not use 'project()'
+set(MODULE_NAME "Annotations")
 set(MODULE_TITLE "${MODULE_NAME}")
 
 string(TOUPPER ${MODULE_NAME} MODULE_NAME_UPPER)
@@ -83,7 +83,7 @@ set(MODULE_TARGET_LIBRARIES
   )
 
 #-----------------------------------------------------------------------------
-slicerMacroBuildQtModule(
+slicerMacroBuildLoadableModule(
   NAME ${MODULE_NAME}
   TITLE ${MODULE_TITLE}
   EXPORT_DIRECTIVE ${MODULE_EXPORT_DIRECTIVE}

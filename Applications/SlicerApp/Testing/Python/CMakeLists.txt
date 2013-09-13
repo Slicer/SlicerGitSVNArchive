@@ -183,7 +183,7 @@ slicer_add_python_unittest(
 
 #
 # SelfTests
-# see http://wiki.slicer.org/slicerWiki/index.php/Documentation/Nightly/Developers/Tutorials/SelfTestModule
+# see http://wiki.slicer.org/slicerWiki/index.php/Documentation/4.3/Developers/Tutorials/SelfTestModule
 #
 
 if(Slicer_USE_QtTesting AND Slicer_USE_PYTHONQT)
@@ -263,13 +263,7 @@ if(Slicer_USE_QtTesting AND Slicer_USE_PYTHONQT)
       SLICER_ARGS --launcher-no-splash --qt-testing
       )
 
-    slicer_add_python_test(
-      SCRIPT DiffusionTensorImagingTutorial.py
-      SLICER_ARGS --launcher-no-splash --qt-testing
-      )
-
     list(APPEND tests_using_qttesting
-      py_DiffusionTensorImagingTutorial
       py_NeurosurgicalPlanningTutorial
       )
   endif()

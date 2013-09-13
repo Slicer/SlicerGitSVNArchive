@@ -91,32 +91,63 @@ void vtkMRMLAnnotationControlPointsNode::WriteXML(ostream& of, int nIndent)
     }
 
   of << indent << " ctrlPtsNumberingScheme=\"" << this->NumberingScheme << "\"";
-  
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLAnnotationControlPointsNode::WriteCLI(std::ostringstream& ss, std::string prefix)
+void vtkMRMLAnnotationControlPointsNode::
+WriteCLI(std::vector<std::string>& commandLine, std::string prefix,
+         int coordinateSystem, int multipleFlag)
 {
-  Superclass::WriteCLI(ss, prefix);
+  Superclass::WriteCLI(commandLine, prefix, coordinateSystem, multipleFlag);
+
+  // Ignoring multipleFlag, because by convention there is only one annotation
+  // per node, so if there's a 6 point ROI, it needs to have all of it's
+  // points written out. The multiple flag is managed at the CLI module logic
+  // level where it determines which child nodes in an annotation hierarchy
+  // are added to the command line
 
   if (this->GetPoints())
     {
     vtkPoints *points = this->GetPoints();
     int n = points->GetNumberOfPoints();
 
-    for (int i = 0; i < n; i++ ) 
+    if (multipleFlag == false &&
+        n > 1)
+      {
+      vtkWarningMacro("WriteCLI - Ignoring 'multipleFlag' and writing all "
+                      << n << " points for annotation " << this->GetID()
+                      << ". For more details see "
+                      << "http://www.na-mic.org/Bug/view.php?id=1910");
+      }
+
+    std::stringstream ss;
+    for (int i = 0; i < n; i++ )
       {
       double* ptr = points->GetPoint(i);
-      if (prefix.compare("") != 0)
+      if (i==0 && prefix.compare("") != 0)
         {
         ss << prefix << " ";
         }
-      ss << ptr[0] << "," <<  ptr[1] << "," <<  ptr[2] ;
-      if (i < n-1) 
-        { 
-          ss << " ";
+      else if (i>0)
+        {
+        ss << ",";
+        }
+      if (coordinateSystem == 0)
+        {
+        // RAS
+        ss << ptr[0] << "," <<  ptr[1] << "," <<  ptr[2] ;
+        }
+      else if (coordinateSystem == 1)
+        {
+        // LPS
+        double lps[3];
+        lps[0] = -1.0 * ptr[0];
+        lps[1] = -1.0 * ptr[1];
+        lps[2] = ptr[2];
+        ss << lps[0] << "," <<  lps[1] << "," <<  lps[2] ;
         }
       }
+    commandLine.push_back(ss.str());
     }
 }
 
@@ -498,6 +529,7 @@ int vtkMRMLAnnotationControlPointsNode::SetControlPoint(int id, double newContro
   this->SetAnnotationAttribute(id, CP_VISIBLE, visibleFlag);
 
   //this->InvokeEvent(vtkMRMLAnnotationControlPointsNode::ControlPointModifiedEvent);
+  this->StorableModifiedTime.Modified();
   this->Modified();
 
   return 1;
@@ -566,6 +598,7 @@ int vtkMRMLAnnotationControlPointsNode::SetControlPoint(int id, double newContro
   this->SetAnnotationAttribute(id, CP_SELECTED, selectedFlag);
   this->SetAnnotationAttribute(id, CP_VISIBLE, visibleFlag);
   //this->InvokeEvent(vtkMRMLAnnotationControlPointsNode::ControlPointModifiedEvent);
+  this->StorableModifiedTime.Modified();
   this->Modified();
 
   return 1;

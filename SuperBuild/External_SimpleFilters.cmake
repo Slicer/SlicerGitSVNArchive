@@ -26,7 +26,7 @@ if(NOT DEFINED SimpleFilters_SOURCE_DIR)
 
   ExternalProject_Add(${proj}
     GIT_REPOSITORY "${git_protocol}://github.com/SimpleITK/SlicerSimpleFilters.git"
-    GIT_TAG "61f68b377d714b108b634d264d18a3108bdd6321"
+    GIT_TAG "ceb1a619bf325a7b191eff0986eb74075966e8ac"
     SOURCE_DIR ${CMAKE_BINARY_DIR}/${proj}
     BINARY_DIR ${CMAKE_BINARY_DIR}/${proj}
     CONFIGURE_COMMAND ""

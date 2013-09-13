@@ -197,7 +197,9 @@ public:
   {
     return new vtkSlicerCLIEditTransformHierarchyCallback;
   }
-  virtual void Execute(vtkObject* caller, unsigned long eid, void *callData)
+  virtual void Execute(vtkObject* vtkNotUsed(caller),
+                       unsigned long vtkNotUsed(eid),
+                       void * vtkNotUsed(callData))
   {
     vtkMRMLNode *nd =  this->CLIModuleLogic->GetMRMLScene()->GetNodeByID(this->NodeID.c_str());
     vtkMRMLTransformableNode *tnd = vtkMRMLTransformableNode::SafeDownCast(nd);
@@ -207,7 +209,7 @@ public:
       tnd->SetAndObserveTransformNodeID(this->TransformNodeID.c_str());
       this->CLIModuleLogic->GetMRMLScene()->Edited();
     }
-}
+  }
 
   void SetCLIModuleLogic(vtkSlicerCLIModuleLogic* logic)
   {
@@ -1350,12 +1352,26 @@ void vtkSlicerCLIModuleLogic::ApplyTask(void *clientdata)
           }
         if ((*pit).GetTag() == "point")
           {
+          // check for a coordinate system flag
+          std::string coordinateSystemStr = (*pit).GetCoordinateSystem();
+          // markups storage has RAS as 0, LPS as 1, IJK as 2
+          int coordinateSystemFlag = 0;
+          if (coordinateSystemStr.compare("lps") == 0)
+            {
+            coordinateSystemFlag = 1;
+            }
+          else if (coordinateSystemStr.compare("ijk") == 0)
+            {
+            coordinateSystemFlag = 2;
+            }
+
           // get the fiducial list node
           vtkMRMLNode *node
             = this->GetMRMLScene()->GetNodeByID((*pit).GetDefault().c_str());
           vtkMRMLFiducialListNode *fiducials
             = vtkMRMLFiducialListNode::SafeDownCast(node);
           vtkMRMLDisplayableHierarchyNode *points = vtkMRMLDisplayableHierarchyNode::SafeDownCast(node);
+          vtkMRMLDisplayableNode *markups = vtkMRMLDisplayableNode::SafeDownCast(node);
           if (fiducials)
             {
             // check to see if module can handle more than one point
@@ -1393,6 +1409,15 @@ void vtkSlicerCLIModuleLogic::ApplyTask(void *clientdata)
               vtkErrorMacro("Module does not support multiple fiducials.");
               }
             }
+          else if (markups && markups->IsA("vtkMRMLMarkupsNode"))
+            {
+            int multipleFlag = 1;
+            if ((*pit).GetMultiple() == "false")
+              {
+              multipleFlag = 0;
+              }
+            markups->WriteCLI(commandLineAsString, prefix+flag, coordinateSystemFlag, multipleFlag);
+            }
           else if (points)
             {
             // find the children of this hierarchy node
@@ -1405,6 +1430,11 @@ void vtkSlicerCLIModuleLogic::ApplyTask(void *clientdata)
               numChildren = col->GetNumberOfItems();
               }
             vtkDebugMacro("Displayable hierarchy has " << numChildren << " child nodes");
+            int multipleFlag = 1;
+            if ((*pit).GetMultiple() == "false")
+              {
+              multipleFlag = 0;
+              }
             for (unsigned int c = 0; c < numChildren; c++)
               {
               // the hierarchy nodes have a sorting index that's respected by
@@ -1422,10 +1452,12 @@ void vtkSlicerCLIModuleLogic::ApplyTask(void *clientdata)
                 if (displayableNode)
                   {
                   vtkDebugMacro("Found displayable node with id " << displayableNode->GetID());
-                  std::ostringstream ss;
-                  displayableNode->WriteCLI(ss, prefix+flag);
-                  vtkDebugMacro("WriteCL output = " << ss.str());
-                  commandLineAsString.push_back(ss.str());
+                  displayableNode->WriteCLI(commandLineAsString, prefix+flag, coordinateSystemFlag);
+                  if (multipleFlag == 0)
+                    {
+                    // only write out the first child in the hierarchy
+                    break;
+                    }
                   }
                 }
               }
@@ -1434,11 +1466,34 @@ void vtkSlicerCLIModuleLogic::ApplyTask(void *clientdata)
           }
         if ((*pit).GetTag() == "region")
           {
+          // check for a coordinate system flag
+          std::string coordinateSystemStr = (*pit).GetCoordinateSystem();
+          // markups storage has RAS as 0, LPS as 1, IJK as 2
+          int coordinateSystemFlag = 0;
+          if (coordinateSystemStr.compare("lps") == 0)
+            {
+            coordinateSystemFlag = 1;
+            }
+          else if (coordinateSystemStr.compare("ijk") == 0)
+            {
+            coordinateSystemFlag = 2;
+            }
+
+          // check multiple flag
+          int multipleFlag = 1;
+          if ((*pit).GetMultiple() == "false")
+            {
+            multipleFlag = 0;
+            }
+
           // get the region node
           vtkMRMLNode *node
             = this->GetMRMLScene()->GetNodeByID((*pit).GetDefault().c_str());
           vtkMRMLROIListNode *regions = vtkMRMLROIListNode::SafeDownCast(node);
 
+          vtkMRMLDisplayableHierarchyNode *points = vtkMRMLDisplayableHierarchyNode::SafeDownCast(node);
+          vtkMRMLDisplayableNode *roi = vtkMRMLDisplayableNode::SafeDownCast(node);
+ 
           if (regions)
             {
             // check to see if module can handle more than one region
@@ -1472,11 +1527,42 @@ void vtkSlicerCLIModuleLogic::ApplyTask(void *clientdata)
                   }
                 }
               }
-            else
+            }
+          else if (roi && roi->IsA("vtkMRMLAnnotationROINode"))
+            {
+            roi->WriteCLI(commandLineAsString, prefix+flag, coordinateSystemFlag, multipleFlag);
+            }
+          else if (points)
+            {
+            // find the children of this hierarchy node
+            vtkSmartPointer<vtkCollection> col = vtkSmartPointer<vtkCollection>::New();
+            points->GetChildrenDisplayableNodes(col);
+            vtkDebugMacro("Getting children displayable nodes from points " << points->GetID());
+            unsigned int numChildren = 0;
+            if (col)
               {
-              // Can't support this command line with this region
-              // list
-              vtkErrorMacro("Module does not support multiple regions. Region list contains " << numberOfSelectedRegions << " selected regions.");
+              numChildren = col->GetNumberOfItems();
+              }
+            vtkDebugMacro("Displayable hierarchy has " << numChildren << " child nodes");
+            for (unsigned int c = 0; c < numChildren; c++)
+              {
+              // the hierarchy nodes have a sorting index that's respected by
+              // GetNthChildNode
+              vtkMRMLHierarchyNode *nthHierarchyNode = points->GetNthChildNode(c);
+              // then get the displayable node from that hierarchy node
+              if (nthHierarchyNode)
+                {
+                vtkMRMLDisplayableHierarchyNode *nthDisplayableHierarchyNode = vtkMRMLDisplayableHierarchyNode::SafeDownCast(nthHierarchyNode);
+                vtkMRMLDisplayableNode *displayableNode = NULL;
+                if (nthDisplayableHierarchyNode)
+                  {
+                  displayableNode = nthDisplayableHierarchyNode->GetDisplayableNode();
+                  }
+                if (displayableNode)
+                  {
+                  displayableNode->WriteCLI(commandLineAsString, prefix+flag, coordinateSystemFlag, multipleFlag);
+                  }
+                }
               }
             }
           continue;
@@ -1484,7 +1570,7 @@ void vtkSlicerCLIModuleLogic::ApplyTask(void *clientdata)
         }
       }
     }
-
+  
   // now tack on any parameters that are based on indices
   //
   // build a list of indices to traverse in order
