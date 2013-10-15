@@ -20,10 +20,8 @@
 
 // Qt includes
 #include <QDebug>
-#include <QDesktopServices>
 #include <QNetworkCookieJar>
 #include <QNetworkReply>
-#include <QSettings>
 #include <QTime>
 #include <QUrl>
 #include <QWebFrame>
@@ -241,7 +239,9 @@ bool qSlicerWebWidget::eventFilter(QObject* obj, QEvent* event)
       (event->type() == QEvent::Show || event->type() == QEvent::Hide))
     {
     d->setDocumentWebkitHidden(!d->WebView->isVisible());
-    this->evalJS("$.event.trigger({type: 'webkitvisibilitychange'})"); // Assume jquery is available
+    this->evalJS("if (typeof $ != 'undefined') {"
+                 "  $.event.trigger({type: 'webkitvisibilitychange'})"
+                 "} else { console.info('JQuery not loaded - Failed to trigger webkitvisibilitychange') }");
     }
   return QObject::eventFilter(obj, event);
 }

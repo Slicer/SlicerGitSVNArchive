@@ -129,7 +129,7 @@ vtkMRMLNode::~vtkMRMLNode()
 void vtkMRMLNode::DeleteAllReferences(bool callOnNodeReferenceRemoved)
 {
   NodeReferencesType::iterator it;
-  for (it = this->NodeReferences.begin(); it != NodeReferences.end(); it++)
+  for (it = this->NodeReferences.begin(); it != this->NodeReferences.end(); it++)
     {
     std::vector< vtkMRMLNodeReference *>::iterator it1;
     for (it1 = it->second.begin(); it1 != it->second.end(); it1++)
@@ -151,8 +151,16 @@ void vtkMRMLNode::DeleteAllReferences(bool callOnNodeReferenceRemoved)
       (*it1)->Delete();
       }
     }
-    this->NodeReferences.clear();
+  this->NodeReferences.clear();
 
+  std::map< std::string, vtkIntArray*>::iterator it1;
+  for (it1 = this->NodeReferenceEvents.begin(); it1 != this->NodeReferenceEvents.end(); it1++)
+    {
+    if (it1->second)
+      {
+      it1->second->Delete();
+      }
+    }
 }
 
 //----------------------------------------------------------------------------
@@ -297,9 +305,13 @@ void vtkMRMLNode::PrintSelf(ostream& os, vtkIndent indent)
   for (it = this->NodeReferences.begin(); it != this->NodeReferences.end(); it++)
     {
     const std::string& referenceRole = it->first;
-    const std::string referenceMRMLAttributeName =
+    const char* refAttribute = 
       this->GetMRMLAttributeNameFromReferenceRole(referenceRole.c_str());
-
+    if (refAttribute == 0)
+      {
+      continue;
+      }
+    const std::string referenceMRMLAttributeName(refAttribute);
     std::stringstream ss;
     int numReferencedNodes = this->GetNumberOfNodeReferences(referenceRole.c_str());
 
@@ -326,6 +338,8 @@ void vtkMRMLNode::PrintSelf(ostream& os, vtkIndent indent)
 void vtkMRMLNode::ReadXMLAttributes(const char** atts)
 {
   int disabledModify = this->StartModify();
+
+  std::map<std::string, std::string> references;
 
   const char* attName;
   const char* attValue;
@@ -391,25 +405,72 @@ void vtkMRMLNode::ReadXMLAttributes(const char** atts)
          this->SetAttribute(name.c_str(), value.c_str());
          }
        }
+     else if (!strcmp(attName, "references"))
+       {
+       this->ParseReferencesAttribute(attValue, references);
+       }
      else if ( const char* referenceRole =
                  this->GetReferenceRoleFromMRMLAttributeName(attName) )
        {
        std::stringstream ss(attValue);
        while (!ss.eof())
-        {
-        std::string id;
-        ss >> id;
-        if (!id.empty())
-          {
-          this->AddNodeReferenceID(referenceRole, id.c_str());
-          }
-        }
+         {
+         std::string id;
+         ss >> id;
+         if (!id.empty())
+           {
+           if (references.find(id) == references.end() ||
+             references.find(id)->second != referenceRole)
+             {
+             this->AddNodeReferenceID(referenceRole, id.c_str());
+             references[id] = std::string(referenceRole);
+             }
+           }
+         }
        }
     }
   this->EndModify(disabledModify);
 
   return;
 }
+
+
+//----------------------------------------------------------------------------
+void vtkMRMLNode::ParseReferencesAttribute(const char *attValue,
+                                           std::map<std::string, std::string> &references)
+{
+  /// parse refernces in the form "role1:id1 id2;role2:id3;"
+  std::string attribute(attValue);
+
+  std::size_t start = 0;
+  std::size_t end = attribute.find_first_of(';', start);
+  std::size_t sep = attribute.find_first_of(':', start);
+  while (start != std::string::npos && sep != std::string::npos && start != end && start != sep)
+    {
+    std::string ref = attribute.substr(start, end-start);
+    std::string role = attribute.substr(start, sep-start);
+    std::string ids = attribute.substr(sep+1, end-sep-1);
+    std::stringstream ss(ids);
+    while (!ss.eof())
+      {
+      std::string id;
+      ss >> id;
+      if (!id.empty())
+        {
+        if (references.find(id) == references.end() ||
+          references.find(id)->second != role )
+          {
+          this->AddNodeReferenceID(role.c_str(), id.c_str());
+          references[id] = role;
+          }
+        }
+      }
+    start = (end == std::string::npos) ? std::string::npos : end+1;
+    end = attribute.find_first_of(';', start);
+    sep = attribute.find_first_of(':', start);
+    }
+}
+
 
 //----------------------------------------------------------------------------
 void vtkMRMLNode::WriteXML(ostream& of, int nIndent)
@@ -449,32 +510,53 @@ void vtkMRMLNode::WriteXML(ostream& of, int nIndent)
     }
 
   //write node references
+  std::stringstream ssRef;
   NodeReferencesType::iterator it;
   std::map< std::string, std::string>::iterator itName;
   for (it = this->NodeReferences.begin(); it != this->NodeReferences.end(); it++)
     {
+    std::string referenceMRMLAttributeName;
     const std::string& referenceRole = it->first;
-    const std::string referenceMRMLAttributeName =
-      this->GetMRMLAttributeNameFromReferenceRole(referenceRole.c_str());
-
+    const char *attName = this->GetMRMLAttributeNameFromReferenceRole(referenceRole.c_str());
+    if (attName != 0)
+      {
+      referenceMRMLAttributeName = std::string(attName);
+      }
     std::stringstream ss;
+
     int numReferencedNodes = this->GetNumberOfNodeReferences(referenceRole.c_str());
+
+    if (numReferencedNodes > 0)
+      {
+      ssRef << referenceRole << ":";
+      }
 
     for (int n=0; n < numReferencedNodes; n++)
       {
       const char * id = this->GetNthNodeReferenceID(referenceRole.c_str(), n);
 
       ss << id;
+      ssRef << id;
       if (n < numReferencedNodes-1)
         {
         ss << " ";
+        ssRef << " ";
         }
       }
     if (numReferencedNodes > 0)
       {
-      of << indent << " " << referenceMRMLAttributeName << "=\"" << ss.str().c_str() << "\"";
+      if (referenceMRMLAttributeName.length() > 0)
+        {
+        of << indent << " " << referenceMRMLAttributeName << "=\"" << ss.str().c_str() << "\"";
+        }
+      ssRef << ";";
       }
-    }
+    }//for (it = this->NodeReferences.begin(); it != this->NodeReferences.end(); it++)
+
+    if (!(ssRef.str().empty()))
+      {
+      of << indent << " " << "references=\"" << ssRef.str().c_str() << "\"";
+      }
 }
 
 //----------------------------------------------------------------------------
@@ -530,7 +612,7 @@ void vtkMRMLNode::SetScene(vtkMRMLScene* scene)
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLNode::AddNodeReferenceRole(const char *refRole, const char *mrmlAttributeName)
+void vtkMRMLNode::AddNodeReferenceRole(const char *refRole, const char *mrmlAttributeName, vtkIntArray *events)
 {
   if (!refRole)
     {
@@ -542,6 +624,15 @@ void vtkMRMLNode::AddNodeReferenceRole(const char *refRole, const char *mrmlAttr
   if (!this->IsReferenceRoleGeneric(refRole))
     {
     this->NodeReferences[referenceRole] = std::vector< vtkMRMLNodeReference *>();
+    }    
+  
+  this->NodeReferenceEvents[referenceRole] = vtkIntArray::New();
+  if (events)
+    {
+    for (int i=0; i<events->GetNumberOfTuples(); i++)
+      {
+      this->NodeReferenceEvents[referenceRole]->InsertNextValue(events->GetValue(i));
+      }
     }
 }
 
@@ -1021,7 +1112,14 @@ void vtkMRMLNode::UpdateNthNodeReference(vtkMRMLNodeReference *reference, int n)
   vtkMRMLNode* node = this->GetScene() ?
     this->GetScene()->GetNodeByID(reference->GetReferencedNodeID()) : 0;
 
-  this->SetAndObserveNthNodeReference(reference->GetReferenceRole(), n, node, reference->Events);
+  vtkIntArray *events = reference->Events;
+  const char* referenceRole = reference->GetReferenceRole();
+  if (events == 0 && this->NodeReferenceEvents[referenceRole] && this->NodeReferenceEvents[referenceRole]->GetNumberOfTuples() > 0)
+    {
+    events = NodeReferenceEvents[referenceRole];
+    }
+
+  this->SetAndObserveNthNodeReference(reference->GetReferenceRole(), n, node, events);
   reference->ReferencedNode = node;
   reference->ReferencingNode = this;
 }
@@ -1153,10 +1251,20 @@ void vtkMRMLNode::UpdateNthNodeReference(const char* referenceRole, int n)
 //----------------------------------------------------------------------------
  vtkMRMLNode* vtkMRMLNode::SetAndObserveNthNodeReferenceID(const char* referenceRole, 
                                                            int n, 
-                                                           const char* referencedNodeID, 
+                                                           const char* referencedNodeID,
                                                            vtkIntArray *events)
 {
+  if (referenceRole == 0)
+    {
+    return 0;
+    }
+
   vtkMRMLNode* referencedNode = NULL;
+
+  if (events == 0 && this->NodeReferenceEvents[referenceRole] && this->NodeReferenceEvents[referenceRole]->GetNumberOfTuples() > 0)
+    {
+    events = NodeReferenceEvents[referenceRole];
+    }
 
   std::vector< vtkMRMLNodeReference *> referencedNodes;
   if (referenceRole)
@@ -1229,6 +1337,7 @@ void vtkMRMLNode::UpdateNthNodeReference(const char* referenceRole, int n)
   if (newReferencedNodeID.empty())
     {
     /// Need to unobserve
+    (*referencedNodesIt)->SetReferencedNodeID(0);
     this->SetAndObserveNthNodeReference(referenceRole, n, 0, (*referencedNodesIt)->Events);
     vtkMRMLNodeReference *tmp = (*referencedNodesIt);
     referencedNodes.erase(referencedNodesIt);
@@ -1402,7 +1511,15 @@ int vtkMRMLNode::GetNumberOfNodeReferences(const char* referenceRole)
   int n=0;
   if (referenceRole)
     {
-    n = static_cast<int>(this->NodeReferences[std::string(referenceRole)].size());
+    std::vector< vtkMRMLNodeReference *> &references = this->NodeReferences[std::string(referenceRole)];
+    std::vector< vtkMRMLNodeReference *>::iterator it;
+    for (it = references.begin(); it != references.end(); it++)
+      {
+      if ((*it)->GetReferencedNodeID() != 0)
+        {
+        n++;
+        }
+      }
     }
   return n;
 }

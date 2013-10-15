@@ -134,10 +134,8 @@ public:
   vtkSmartPointer<vtkMRMLSliceLogic>  SliceLogic;
   vtkCollection*                      SliceLogics;
   vtkWeakPointer<vtkImageData>        ImageData;
-  QString                             SliceOrientation;
   QHash<QString, qMRMLOrientation>    SliceOrientationToDescription;
   QString                             SliceViewName;
-  QString                             SliceViewLabel;
   QButtonGroup*                       ControllerButtonGroup;
 
   QToolButton*                        FitToWindowToolButton;

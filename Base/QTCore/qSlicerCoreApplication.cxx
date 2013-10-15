@@ -214,10 +214,10 @@ void qSlicerCoreApplicationPrivate::init()
   // Instantiate ErrorLogModel
   this->ErrorLogModel = QSharedPointer<ctkErrorLogModel>(new ctkErrorLogModel);
   this->ErrorLogModel->setLogEntryGrouping(true);
-#if defined (_WIN32) && !defined (Slicer_BUILD_WIN32_CONSOLE)
-  this->ErrorLogModel->setTerminalOutputs(ctkErrorLogModel::None);
+  this->ErrorLogModel->setTerminalOutputs(
+        this->CoreCommandOptions->disableTerminalOutputs() ? ctkErrorLogModel::None : ctkErrorLogModel::All);
+#if defined (Q_OS_WIN32) && !defined (Slicer_BUILD_WIN32_CONSOLE)
 #else
-  this->ErrorLogModel->setTerminalOutputs(ctkErrorLogModel::All);
   this->ErrorLogModel->registerMsgHandler(new ctkErrorLogFDMessageHandler);
 #endif
   this->ErrorLogModel->registerMsgHandler(new ctkErrorLogQtMessageHandler);
@@ -1379,13 +1379,19 @@ void qSlicerCoreApplication::restart()
 {
   qSlicerCoreApplication * coreApp = qSlicerCoreApplication::application();
   bool launcherAvailable = QFile::exists(coreApp->launcherExecutableFilePath());
+  QStringList arguments = coreApp->arguments();
+  arguments.removeFirst(); // Remove program name
+#if defined (Q_OS_WIN32) && !defined (Slicer_BUILD_WIN32_CONSOLE)
+#else
+  arguments.prepend("--disable-terminal-outputs");
+#endif
   if (launcherAvailable)
     {
-    QProcess::startDetached(coreApp->launcherExecutableFilePath(), coreApp->arguments());
+    QProcess::startDetached(coreApp->launcherExecutableFilePath(), arguments);
     }
   else
     {
-    QProcess::startDetached(coreApp->applicationFilePath(), coreApp->arguments());
+    QProcess::startDetached(coreApp->applicationFilePath(), arguments);
     }
   QCoreApplication::quit();
 }
