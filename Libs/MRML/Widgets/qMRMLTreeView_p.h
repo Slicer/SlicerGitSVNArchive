@@ -25,6 +25,9 @@
 class QAction;
 class QMenu;
 
+// MRML includes
+class vtkMRMLHierarchyNode;
+
 // MRMLWidgets includes
 #include "qMRMLTreeView.h"
 class qMRMLSceneModel;
@@ -51,6 +54,9 @@ public:
   /// vtkMRMLDisplayableHierarchyNode
   void saveChildrenExpandState(QModelIndex& parentIndex);
   void scrollTo(const QString& name, bool next);
+
+  /// Returns true if the hierarchy node has mode children (and descendant) nodes than manyThreshold
+  static bool ManyChildrenNodes(vtkMRMLHierarchyNode* rootNode, int manyThreshold);
 
   qMRMLSceneModel*           SceneModel;
   qMRMLSortFilterProxyModel* SortFilterModel;
