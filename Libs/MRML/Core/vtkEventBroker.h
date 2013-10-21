@@ -104,7 +104,7 @@ public:
   ObservationVector GetSubjectObservations(vtkObject *subject);
   /// If event is != 0 , only observations matching the events are returned
   /// If observer is != 0 , only observations matching the observer are returned
-  /// If notify is != 0, only observations matching the callback are are returned
+  /// If notify is != 0, only observations matching the callback are returned
   /// If maxReturnedObservations is != 0, only up to this number of observations are are returned
   ObservationVector GetObservations (vtkObject *subject,
                                                   unsigned long event = 0,

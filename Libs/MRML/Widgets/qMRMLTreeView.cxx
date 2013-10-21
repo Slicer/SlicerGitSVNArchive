@@ -18,10 +18,6 @@
 
 ==============================================================================*/
 
-// If the number of child nodes is more than this number then show/hide operations
-// are performed in batch processing mode.
-static const int BATCH_VISIBILITY_UPDATE_THRESHOLD=30;
-
 // STL includes
 #include <deque>
 
@@ -294,39 +290,6 @@ void qMRMLTreeViewPrivate::scrollTo(const QString& name, bool next)
     modelIndex, QAbstractItemView::PositionAtTop);
   q->selectionModel()->setCurrentIndex(
     modelIndex, QItemSelectionModel::Current);
-}
-
-//-----------------------------------------------------------------------------
-bool qMRMLTreeViewPrivate::ManyChildrenNodes(vtkMRMLHierarchyNode* rootNode, int manyThreshold)
-{
-  int totalChildrenCount=0;
-  std::deque<vtkMRMLHierarchyNode*> parentNodesToProcess;
-  parentNodesToProcess.push_back(rootNode);
-  while (!parentNodesToProcess.empty())
-  {
-    vtkMRMLHierarchyNode* parent=parentNodesToProcess.front();
-    if (parent==NULL)
-    {
-      continue;
-    }
-
-    int childrenCount=parent->GetNumberOfChildrenNodes();
-    totalChildrenCount+=childrenCount;
-    if (totalChildrenCount>manyThreshold)
-    {
-      return true;
-    }
-    for ( int i = 0; i < childrenCount; ++i)
-    {
-      vtkMRMLHierarchyNode* child = parent->GetNthChildNode(i);
-      if (child && child->GetNumberOfChildrenNodes()>0)
-      {
-        parentNodesToProcess.push_back(child);
-      }
-    }
-    parentNodesToProcess.pop_front();
-  }
-  return false;
 }
 
 //------------------------------------------------------------------------------
@@ -873,6 +836,8 @@ bool qMRMLTreeView::clickDecoration(const QModelIndex& index)
 //------------------------------------------------------------------------------
 void qMRMLTreeView::toggleVisibility(const QModelIndex& index)
 {
+  Q_D(qMRMLTreeView);
+
   vtkMRMLNode* node = this->sortFilterProxyModel()->mrmlNodeFromIndex(index);
   vtkMRMLDisplayNode* displayNode =
     vtkMRMLDisplayNode::SafeDownCast(node);
@@ -888,16 +853,7 @@ void qMRMLTreeView::toggleVisibility(const QModelIndex& index)
       {
       visibility = (hierDisplayNode->GetVisibility() ? 0 : 1);
       }
-    bool batchProcess=qMRMLTreeViewPrivate::ManyChildrenNodes(displayableHierarchyNode,BATCH_VISIBILITY_UPDATE_THRESHOLD);
-    if (batchProcess)
-      {
-      this->mrmlScene()->StartState(vtkMRMLScene::BatchProcessState);
-      }
     vtkMRMLModelHierarchyLogic::SetChildrenVisibility(displayableHierarchyNode,visibility);
-    if (batchProcess)
-      {
-      this->mrmlScene()->EndState(vtkMRMLScene::BatchProcessState);
-      }
     }
   else if (displayNode)
     {

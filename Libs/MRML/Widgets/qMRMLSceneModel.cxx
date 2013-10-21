@@ -448,24 +448,23 @@ QModelIndex qMRMLSceneModel::indexFromNode(vtkMRMLNode* node, int column)const
   QModelIndex nodeIndex;
 
   // Try to find the nodeIndex in the cache first
-  std::map<vtkMRMLNode*,QPersistentModelIndex>::iterator rowCacheIt=d->RowCache.find(node);
+  QMap<vtkMRMLNode*,QPersistentModelIndex>::iterator rowCacheIt=d->RowCache.find(node);
   if (rowCacheIt==d->RowCache.end())
     {
     // not found in cache, therefore it cannot be in the model
     return nodeIndex;
     }
-  if (rowCacheIt->second.isValid())
+  if (rowCacheIt.value().isValid())
     {
     // An entry found in the cache. If the item at the cached index matches the requested node ID
     // then we use it.
-    QStandardItem* nodeItem = this->itemFromIndex(rowCacheIt->second);
+    QStandardItem* nodeItem = this->itemFromIndex(rowCacheIt.value());
     if (nodeItem!=NULL)
       {
-      std::string idInFoundItem=nodeItem->data(qMRMLSceneModel::UIDRole).toString().toLatin1();
-      if (idInFoundItem.compare(node->GetID())==0)
+      if (nodeItem->data(qMRMLSceneModel::UIDRole).toString().compare(QLatin1String(node->GetID()))==0)
         {
         // id matched
-        nodeIndex=rowCacheIt->second;
+        nodeIndex=rowCacheIt.value();
         }
       }
     }
@@ -483,7 +482,7 @@ QModelIndex qMRMLSceneModel::indexFromNode(vtkMRMLNode* node, int column)const
       {
       // maybe the node hasn't been added to the scene yet...
       // (if it's called from populateScene/inserteNode)
-      d->RowCache.erase(node);
+      d->RowCache.remove(node);
       return QModelIndex();
       }
     nodeIndex=nodeIndexes[0];

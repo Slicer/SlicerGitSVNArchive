@@ -333,7 +333,7 @@ void vtkMRMLScene::RemoveAllNodes(bool removeSingletons)
     }
   for(std::deque< std::string >::iterator nodeIt=removeNodeIds.begin(); nodeIt!=removeNodeIds.end(); ++nodeIt)
     {
-    vtkMRMLNode* node=GetNodeByID(*nodeIt);
+    vtkMRMLNode* node=this->GetNodeByID(*nodeIt);
     if (node)
       {
       // node is still in the scene
@@ -687,13 +687,15 @@ int vtkMRMLScene::Import()
     addNodesTimer->StopTimer();
     updateSceneTimer->StartTimer();
 #endif
-    // Update the node references to the changed node IDs (that conflicted in the current scene and the imported scene)
+    // Update the node references to the changed node IDs
+    // (that conflicted in the current scene and the imported scene)
     this->UpdateNodeReferences(loadedNodes);
     this->RemoveReservedIDs();
 
     this->InvokeEvent(vtkMRMLScene::NewSceneEvent, NULL);
 
-    // Notify the imported nodes about that all nodes are created (so the observers can be attached to referenced nodes, etc.)
+    // Notify the imported nodes about that all nodes are created
+    // (so the observers can be attached to referenced nodes, etc.)
     // by calling UpdateScene on each node
     for (loadedNodes->InitTraversal(it);
          (node = (vtkMRMLNode*)loadedNodes->GetNextItemAsObject(it)) ;)
@@ -743,7 +745,7 @@ int vtkMRMLScene::Import()
   int returnCode = parsingSuccess; // nonzero = success
   if (this->GetErrorCode() != 0)
     {
-    // error was repored, return with 0 (failure)
+    // error was reported, return with 0 (failure)
     returnCode = 0;
     }
 #ifdef MRMLSCENE_VERBOSE
@@ -1206,8 +1208,11 @@ void vtkMRMLScene::RemoveNode(vtkMRMLNode *n)
 
   this->InvokeEvent(vtkMRMLScene::NodeRemovedEvent, n);
 
-  if (!this->IsBatchProcessing() && !this->IsClosing()) // node references will be all removed all the nodes have been removed
+  if (!this->IsBatchProcessing() && !this->IsClosing())
     {
+    // We are not doing batch processing, so update the node references now.
+    // Node references will be all removed for the removed node and for
+    // all the nodes that the deleted node referred to.
     this->RemoveNodeReferences(n);
     // Notify nodes that referred to the deleted node to update their references
     NodeReferencesType::iterator referencedNodeIdIt=this->NodeReferences.find(nid);
@@ -1217,7 +1222,7 @@ void vtkMRMLScene::RemoveNode(vtkMRMLNode *n)
         referringNodesIt != referencedNodeIdIt->second.end();
         ++referringNodesIt)
         {
-        vtkMRMLNode* node=GetNodeByID(*referringNodesIt);
+        vtkMRMLNode* node=this->GetNodeByID(*referringNodesIt);
         if (node)
           {
           node->UpdateReferences();
@@ -2579,7 +2584,7 @@ void vtkMRMLScene::AddReferencedNodeID(const char *id, vtkMRMLNode *referencingN
       referencingNode->GetScene() && referencingNode->GetID() &&
       !this->IsNodeReferencingNodeID(referencingNode, id))
     {
-      this->NodeReferences[id].insert(referencingNode->GetID());
+    this->NodeReferences[id].insert(referencingNode->GetID());
     }
 }
 
@@ -2764,7 +2769,7 @@ void vtkMRMLScene::GetReferencingNodes(vtkMRMLNode* referencedNode, std::vector<
     referringNodesIt != referencedNodeIdIt->second.end();
     ++referringNodesIt)
     {
-    vtkMRMLNode* node=GetNodeByID(*referringNodesIt);
+    vtkMRMLNode* node=this->GetNodeByID(*referringNodesIt);
     if (node)
       {
       referencingNodes.push_back(node);
@@ -3120,7 +3125,7 @@ vtkMRMLNode* vtkMRMLScene::GetNthReferencingNode(int n)
       {
       NodeReferencesType::value_type::second_type::iterator referringNodesIt=referenceIt->second.begin();
       std::advance( referringNodesIt, n );
-      return GetNodeByID(*referringNodesIt);
+      return this->GetNodeByID(*referringNodesIt);
       }
     n-=referenceIt->second.size();
     }

@@ -148,8 +148,8 @@ vtkMRMLFiberBundleDisplayNode* qSlicerTractographyDisplayWidget::FiberBundleDisp
 vtkMRMLDiffusionTensorDisplayPropertiesNode* qSlicerTractographyDisplayWidget::DiffusionTensorDisplayPropertiesNode()const
 {
   Q_D(const qSlicerTractographyDisplayWidget);
-  return FiberBundleDisplayNode() ?
-    FiberBundleDisplayNode()->GetDiffusionTensorDisplayPropertiesNode() : 0;
+  return this->FiberBundleDisplayNode() ?
+    this->FiberBundleDisplayNode()->GetDiffusionTensorDisplayPropertiesNode() : 0;
 }
 
 //------------------------------------------------------------------------------
@@ -183,15 +183,15 @@ void qSlicerTractographyDisplayWidget::setFiberBundleDisplayNode(vtkMRMLNode* no
 }
 
 //------------------------------------------------------------------------------
-void qSlicerTractographyDisplayWidget::setFiberBundleDisplayNode(vtkMRMLFiberBundleDisplayNode* FiberBundleDisplayNode)
+void qSlicerTractographyDisplayWidget::setFiberBundleDisplayNode(vtkMRMLFiberBundleDisplayNode* fiberBundleDisplayNode)
 {
   Q_D(qSlicerTractographyDisplayWidget);
 
   vtkMRMLFiberBundleDisplayNode *oldDisplayNode = d->FiberBundleDisplayNode;
   vtkMRMLDiffusionTensorDisplayPropertiesNode *oldDisplayPropertiesNode = d->DiffusionTensorDisplayPropertiesNode;
-  d->FiberBundleDisplayNode = FiberBundleDisplayNode;
+  d->FiberBundleDisplayNode = fiberBundleDisplayNode;
   d->DiffusionTensorDisplayPropertiesNode = this->DiffusionTensorDisplayPropertiesNode();
-  qvtkReconnect( oldDisplayNode, this->FiberBundleDisplayNode(),
+  qvtkReconnect( oldDisplayNode, d->FiberBundleDisplayNode,
                 vtkCommand::ModifiedEvent, this, SLOT(updateWidgetFromMRML()) );
   qvtkReconnect( oldDisplayPropertiesNode, d->DiffusionTensorDisplayPropertiesNode,
                 vtkCommand::ModifiedEvent, this, SLOT(updateWidgetFromMRML()) );

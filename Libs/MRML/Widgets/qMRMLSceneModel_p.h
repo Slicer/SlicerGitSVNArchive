@@ -24,6 +24,7 @@
 // Qt includes
 class QStandardItemModel;
 #include <QFlags>
+#include <QMap>
 
 // qMRML includes
 #include "qMRMLSceneModel.h"
@@ -88,7 +89,7 @@ public:
   // not guaranteed to contain up-to-date information, should be just used
   // as a search hint. If the node cannot be found at the given index then
   // we need to browse through all model items.
-  mutable std::map<vtkMRMLNode*,QPersistentModelIndex> RowCache;
+  mutable QMap<vtkMRMLNode*,QPersistentModelIndex> RowCache;
 };
 
 #endif
