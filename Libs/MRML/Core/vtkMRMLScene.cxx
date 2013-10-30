@@ -3125,7 +3125,7 @@ vtkMRMLNode* vtkMRMLScene::GetNthReferencingNode(int n)
     referenceIt != this->NodeReferences.end();
     ++referenceIt)
     {
-    if (n<referenceIt->second.size())
+    if (n<static_cast<int>(referenceIt->second.size()))
       {
       NodeReferencesType::value_type::second_type::iterator referringNodesIt=referenceIt->second.begin();
       std::advance( referringNodesIt, n );
@@ -3143,7 +3143,7 @@ const char* vtkMRMLScene::GetNthReferencedID(int n)
     referenceIt != this->NodeReferences.end();
     ++referenceIt)
     {
-    if (n<referenceIt->second.size())
+    if (n<static_cast<int>(referenceIt->second.size()))
       {
       NodeReferencesType::value_type::second_type::iterator referringNodesIt=referenceIt->second.begin();
       return referenceIt->first.c_str();
