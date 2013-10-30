@@ -1214,12 +1214,15 @@ void vtkMRMLScene::RemoveNode(vtkMRMLNode *n)
     // Node references will be all removed for the removed node and for
     // all the nodes that the deleted node referred to.
     this->RemoveNodeReferences(n);
+
     // Notify nodes that referred to the deleted node to update their references
     NodeReferencesType::iterator referencedNodeIdIt=this->NodeReferences.find(nid);
     if (referencedNodeIdIt!=this->NodeReferences.end())
       {
-      for (NodeReferencesType::value_type::second_type::iterator referringNodesIt = referencedNodeIdIt->second.begin();
-        referringNodesIt != referencedNodeIdIt->second.end();
+      // make a copy of the referring node list, as the list may change as a result of UpdateReferences calls
+      std::set<std::string> referringNodes=referencedNodeIdIt->second;
+      for (NodeReferencesType::value_type::second_type::iterator referringNodesIt = referringNodes.begin();
+        referringNodesIt != referringNodes.end();
         ++referringNodesIt)
         {
         vtkMRMLNode* node=this->GetNodeByID(*referringNodesIt);
@@ -1292,7 +1295,7 @@ void vtkMRMLScene::RemoveNodeReferences(vtkMRMLNode *n)
 //------------------------------------------------------------------------------
 void vtkMRMLScene::RemoveUnusedNodeReferences()
 {
-  // Remove Referencing nodes that have are no longer in the scene
+  // Remove Referring node IDs that are no longer in the scene
   NodeReferencesType::value_type::second_type::iterator referringNodesIt;
   for (NodeReferencesType::iterator referenceIt = this->NodeReferences.begin();
     referenceIt != this->NodeReferences.end();
@@ -1313,7 +1316,7 @@ void vtkMRMLScene::RemoveUnusedNodeReferences()
       }
     }
 
-  // Remove Referenced IDs that are no longer in the scene
+  // Remove Referenced node IDs that are no longer in the scene
   for (NodeReferencesType::iterator referenceIt = this->NodeReferences.begin();
     referenceIt != this->NodeReferences.end();
     /*upon deletion the increment is done already, so don't increment here*/)
@@ -2677,7 +2680,8 @@ void vtkMRMLScene::UpdateNodeReferences(vtkCollection* checkNodes/*=NULL*/)
       // this updated ID is not observed by any node
       continue;
       }
-    std::set<std::string> nodesToNotify=referencedIdIt->second; // make a copy of the node list, as the list may change as a result of UpdateReferenceID calls
+    // make a copy of the node list, as the list may change as a result of UpdateReferenceID calls
+    std::set<std::string> nodesToNotify=referencedIdIt->second;
     for (NodeReferencesType::value_type::second_type::iterator referringNodesIt = nodesToNotify.begin();
       referringNodesIt!=nodesToNotify.end();
       ++referringNodesIt)
