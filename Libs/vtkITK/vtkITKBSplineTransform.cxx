@@ -844,7 +844,8 @@ ForwardTransformDerivativeHelper( vtkITKBSplineTransformHelperImpl<O>* helper,
     out[1] = -out[1];
     }
 
-  typename BSplineType::JacobianType jacobian = helper->BSpline->GetJacobian( inputPoint );
+  typename BSplineType::JacobianType jacobian;
+  helper->BSpline->ComputeJacobianWithRespectToParameters( inputPoint, jacobian );
   for( unsigned i=0; i<3; ++i )
   {
     derivative[i][0] = static_cast<T>( jacobian( i, 0 ) );
@@ -976,7 +977,8 @@ InverseTransformDerivativeHelper( vtkITKBSplineTransformHelperImpl<O>* helper,
     pt[1] = -pt[1];
     }
 
-  JacobianType const& jacobian = helper->BSpline->GetJacobian( pt );
+  JacobianType jacobian;
+  helper->BSpline->ComputeJacobianWithRespectToParameters( pt, jacobian );
   for( unsigned i=0; i<3; ++i )
   {
     derivative[i][0] = static_cast<T>( jacobian( i, 0 ) );
