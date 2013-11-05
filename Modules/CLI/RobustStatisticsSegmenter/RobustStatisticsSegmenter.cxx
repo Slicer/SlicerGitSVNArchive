@@ -71,7 +71,7 @@ preprocessInputLabelImage(const InputLabelImageType* inputLabelImage, typename I
 
 template <typename TPixel>
 itk::Image<short, 3>::Pointer
-getFinalMask(typename itk::Image<TPixel, 3>::Pointer img, unsigned char l, TPixel thod = 0)
+getFinalMask(typename itk::Image<TPixel, 3>::Pointer img, unsigned char l, TPixel thod)
 {
   typedef itk::Image<short, 3> MaskType;
 
@@ -110,6 +110,37 @@ getFinalMask(typename itk::Image<TPixel, 3>::Pointer img, unsigned char l, TPixe
     }
 
   return mask;
+}
+
+void
+postProcessFinalMask(itk::Image<short, 3>* finalMask, unsigned char l, const itk::Image<short, 3>* inputLabelImage)
+{
+  typedef itk::Image<short, 3> MaskType;
+
+  MaskType::SizeType size = finalMask->GetLargestPossibleRegion().GetSize();
+
+  long nx = size[0];
+  long ny = size[1];
+  long nz = size[2];
+
+  for( long ix = 0; ix < nx; ++ix )
+    {
+    for( long iy = 0; iy < ny; ++iy )
+      {
+      for( long iz = 0; iz < nz; ++iz )
+        {
+          MaskType::IndexType idx = {{ix, iy, iz}};
+          MaskType::PixelType v = inputLabelImage->GetPixel(idx);
+
+          if (v != l && v != 0)
+            {
+              finalMask->SetPixel(idx, 0);
+            }
+        }
+      }
+    }
+
+  return;
 }
 
 } // end of anonymous namespace
@@ -164,34 +195,15 @@ int main(int argc, char* * argv)
     }
 
   // preprocess label map (labelImg, the naming is confusing.....)
-  //LabelImage_t::Pointer newLabelMap = preprocessLabelMap<LabelImage_t::PixelType>(labelImg, labelValue);
-
   LabelImage_t::Pointer labelImageOnlyContainsTarget;
   LabelImage_t::Pointer rejectionLabelImage;
 
   bool bUseRejctionLabelImage = preprocessInputLabelImage<LabelImage_t>(labelImg, labelValue, labelImageOnlyContainsTarget, rejectionLabelImage);
 
-  // typedef itk::ImageFileReader< LabelImage_t > RejctionMaskReader_t;
-  // RejctionMaskReader_t::Pointer rejctionReader = RejctionMaskReader_t::New();
-
   if ( bUseRejctionLabelImage )
     {
     std::cout << "Using rejection mask." << std::endl;
-
-    // rejctionReader->SetFileName( rejectionlabelImageFileName.c_str() );
-
-    // try
-    //   {
-    //   rejctionReader->Update();
-    //   }
-    // catch ( itk::ExceptionObject &err)
-    //   {
-    //   std::cerr<< "ExceptionObject caught !" << std::endl;
-    //   std::cerr<< err << std::endl;
-    //   raise(SIGABRT);
-    //   }
     }
-
 
   // do seg
   SFLSRobustStatSegmentor3DLabelMap_c seg;
@@ -201,8 +213,6 @@ int main(int argc, char* * argv)
   seg.setMaxVolume(expectedVolume);
   seg.setInputLabelImage(labelImageOnlyContainsTarget);
 
-
-  // seg.setNumIter(numOfIteration);
   seg.setMaxRunningTime(maxRunningTime);
 
   seg.setIntensityHomogeneity(intensityHomogeneity);
@@ -216,49 +226,12 @@ int main(int argc, char* * argv)
 
   seg.doSegmenation();
 
-//   typedef int PixelType;
-//   typedef itk::Image< PixelType, 3 > ImageType;
-
-//   typedef itk::ImageFileReader< ImageType > ImageReaderType;
-//   ImageReaderType::Pointer reader = ImageReaderType::New();
-//   reader->SetFileName(originalImageFileName.c_str());
-
-//   ImageType::Pointer img;
-
-//   try
-//     {
-//       reader->Update();
-//       img = reader->GetOutput();
-//     }
-//   catch ( itk::ExceptionObject &err)
-//     {
-//       std::cerr<< "ExceptionObject caught !" << std::endl;
-//       std::cerr<< err << std::endl;
-//       raise(SIGABRT);
-//     }
-
-// //   std::vector<std::vector<long> > seedListIJK;
-// //   seedsPreprocess<ImageType>(img, seed, seedListIJK);
-
-//   CSFLSRobustStatSegmentor3D< PixelType > seg;
-//   seg.setImage(img);
-
-//   seg.setSeeds(seedListIJK);
-//   seg.setMaxRunningTime(maxRunningTime);
-//   seg.setMaxVolume(expectedVolume);
-
-//   seg.setIntensityHomogeneity(intensityHomogeneity);
-
-//   //seg.setNumIter(numOfIteration);
-
-//   seg.setCurvatureWeight(curvatureWeight/2.0); // in the interface, it's 0~1 scale, internally, it's 0~0.5
-
-//   seg.doSegmenation();
-
   typedef itk::Image<short, 3> MaskImageType;
 
   MaskImageType::Pointer finalMask = getFinalMask<float>(seg.mp_phi, labelValue, levelSetThreshold);
   finalMask->CopyInformation(img);
+
+  postProcessFinalMask(finalMask, labelValue, labelImg);
 
   typedef itk::ImageFileWriter<MaskImageType> WriterType;
   WriterType::Pointer outputWriter = WriterType::New();
