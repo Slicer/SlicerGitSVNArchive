@@ -231,7 +231,10 @@ int main(int argc, char* * argv)
   MaskImageType::Pointer finalMask = getFinalMask<float>(seg.mp_phi, labelValue, levelSetThreshold);
   finalMask->CopyInformation(img);
 
-  postProcessFinalMask(finalMask, labelValue, labelImg);
+  if ( bUseRejctionLabelImage )
+    {
+      postProcessFinalMask(finalMask, labelValue, labelImg);
+    }
 
   typedef itk::ImageFileWriter<MaskImageType> WriterType;
   WriterType::Pointer outputWriter = WriterType::New();
