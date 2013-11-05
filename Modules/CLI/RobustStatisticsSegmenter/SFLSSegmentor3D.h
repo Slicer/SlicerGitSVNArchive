@@ -6,9 +6,6 @@
 #include <list>
 #include <vector>
 
-// douher
-// #include "cArray3D.h"
-
 // itk
 #include "itkImage.h"
 
@@ -57,6 +54,15 @@ public:
 
   void setImage(typename ImageType::Pointer img);
   void setMask(typename MaskImageType::Pointer mask);
+
+
+  void setRejectionMask( typename ShortImageType::Pointer rejectionMask ) { mp_rejectionMask = rejectionMask; UseRejectionMaskOn(); }
+  void UseRejectionMaskOn() { m_bUseRejectionMask = true; }
+  void UseRejectionMaskOff() { m_bUseRejectionMask = false; }
+  bool UseRejectionMask() { return m_bUseRejectionMask; }
+
+
+
 
   virtual void computeForce() = 0;
 
@@ -112,6 +118,10 @@ public:
   typename LabelImageType::Pointer mp_label;
   typename MaskImageType::Pointer mp_mask; // 0, non-0 mask for object
   typename LSImageType::Pointer mp_phi;
+
+  typename ShortImageType::Pointer mp_rejectionMask; // 0, non-0 mask for object
+  bool m_bUseRejectionMask;
+
 
   //  std::list< double > m_force;
   std::vector<double> m_force;

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <executable>
-  <category>Segmentation.Specialized</category>
+  <category>Segmentation</category>
   <title>Robust Statistics Segmenter</title>
   <description><![CDATA[Active contour segmentation using robust statistic.]]></description>
   <version>1.0</version>
@@ -56,8 +56,8 @@
     <integer>
       <name>labelValue</name>
       <longflag>labelValue</longflag>
-      <description><![CDATA[Label value of the output image]]></description>
-      <label>Output Label Value</label>
+      <description><![CDATA[Label of interest. This is the label user want to segment in the input label image (which may contain several labels values). Also this value will be indicating the target in the output image]]></description>
+      <label>Label of interest</label>
       <default>1</default>
       <constraints>
         <minimum>1</minimum>
@@ -65,18 +65,6 @@
         <step>1</step>
       </constraints>
     </integer>
-    <double>
-      <name>maxRunningTime</name>
-      <longflag>maxRunningTime</longflag>
-      <description><![CDATA[The program will stop if this time is reached.]]></description>
-      <label>Max running time(min)</label>
-      <default>10</default>
-      <constraints>
-        <minimum>0</minimum>
-        <maximum>60</maximum>
-        <step>1</step>
-      </constraints>
-    </double>
   </parameters>
   <parameters>
     <label>IO</label>
@@ -99,8 +87,36 @@
       <name>segmentedImageFileName</name>
       <label>Output Volume</label>
       <channel>output</channel>
-      <index>2</index>
+      <index>3</index>
       <description><![CDATA[Segmented image]]></description>
     </image>
+  </parameters>
+  <parameters advanced="true">
+    <label>Advanced Parameters</label>
+    <description><![CDATA[Change advanced Parameters.]]></description>
+    <double>
+      <name>maxRunningTime</name>
+      <longflag>maxRunningTime</longflag>
+      <description><![CDATA[The program will stop if this time is reached.]]></description>
+      <label>Max running time(min)</label>
+      <default>10</default>
+      <constraints>
+        <minimum>0</minimum>
+        <maximum>60</maximum>
+        <step>1</step>
+      </constraints>
+    </double>
+    <double>
+      <name>levelSetThreshold</name>
+      <longflag>levelSetThreshold</longflag>
+      <description><![CDATA[Final threshold to cut the level set function to get the binary map.]]></description>
+      <label>Level Set Threshold(-2.9-2.9)</label>
+      <default>0</default>
+      <constraints>
+        <minimum>-2.9</minimum>
+        <maximum>2.9</maximum>
+        <step>0.1</step>
+      </constraints>
+    </double>
   </parameters>
 </executable>

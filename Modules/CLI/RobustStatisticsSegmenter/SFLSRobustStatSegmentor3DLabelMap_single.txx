@@ -8,6 +8,8 @@
 
 #include <limits>
 
+#include "omp.h"
+
 // //debug//
 // #include "cArrayOp.h"
 #include <fstream>
@@ -15,6 +17,10 @@
 
 #include "itkImageRegionConstIteratorWithIndex.h"
 #include "itkImageRegionConstIterator.h"
+
+// dbg
+#include "itkImageFileWriter.h"
+// dbg, end
 
 /* ============================================================   */
 template <typename TPixel>
@@ -32,6 +38,8 @@ CSFLSRobustStatSegmentor3DLabelMap<TPixel>
 
   m_inputImageIntensityMin = 0;
   m_inputImageIntensityMax = 0;
+
+  m_labelOfInterest = 1;
 
   return;
 }
@@ -77,6 +85,17 @@ CSFLSRobustStatSegmentor3DLabelMap<TPixel>
 template <typename TPixel>
 void
 CSFLSRobustStatSegmentor3DLabelMap<TPixel>
+::setLabelOfInterest(typename TLabelImage::PixelType loi)
+{
+  m_labelOfInterest = loi;
+
+  return;
+}
+
+/* ============================================================  */
+template <typename TPixel>
+void
+CSFLSRobustStatSegmentor3DLabelMap<TPixel>
 ::computeForce()
 {
   double fmax = std::numeric_limits<double>::min();
@@ -95,43 +114,87 @@ CSFLSRobustStatSegmentor3DLabelMap<TPixel>
       }
     }
 
-// #ifndef NDEBUG
-//     std::ofstream ff("/tmp/force.txt");
-// #endif
-  for( long i = 0; i < n; ++i )
+#pragma omp parallel
     {
-    typename CSFLSLayer::iterator itz = m_lzIterVct[i];
+      double fmaxOfThisThread = std::numeric_limits<double>::min();
+      double kappaMaxOfThisThread = std::numeric_limits<double>::min();
 
-    long ix = (*itz)[0];
-    long iy = (*itz)[1];
-    long iz = (*itz)[2];
+#pragma omp for
+      for( long i = 0; i < n; ++i )
+        {
+          typename CSFLSLayer::iterator itz = m_lzIterVct[i];
 
-    TIndex idx = {{ix, iy, iz}};
+          long ix = (*itz)[0];
+          long iy = (*itz)[1];
+          long iz = (*itz)[2];
 
-    kappaOnZeroLS[i] = this->computeKappa(ix, iy, iz);
+          TIndex idx = {{ix, iy, iz}};
 
-    std::vector<double> f(m_numberOfFeature);
+          kappaOnZeroLS[i] = this->computeKappa(ix, iy, iz);
 
-    computeFeatureAt(idx, f);
+          std::vector<double> f(m_numberOfFeature);
 
-    // double a = -kernelEvaluation(f);
-    double a = -kernelEvaluationUsingPDF(f);
+          computeFeatureAt(idx, f);
 
-    fmax = fmax > fabs(a) ? fmax : fabs(a);
-    kappaMax = kappaMax > fabs(kappaOnZeroLS[i]) ? kappaMax : fabs(kappaOnZeroLS[i]);
+          // double a = -kernelEvaluation(f);
+          double a = -kernelEvaluationUsingPDF(f);
 
-    cvForce[i] = a;
+          fmax = fmax > fabs(a) ? fmax : fabs(a);
+          kappaMax = kappaMax > fabs(kappaOnZeroLS[i]) ? kappaMax : fabs(kappaOnZeroLS[i]);
+
+          cvForce[i] = a;
+        }
+
+#pragma omp critical
+      {
+        fmax = fmax>fmaxOfThisThread?fmax:fmaxOfThisThread;
+        kappaMax = kappaMax>kappaMaxOfThisThread?kappaMax:kappaMaxOfThisThread;
+      }
     }
 
   // std::cout<<"fmax = "<<fmax<<std::endl;
 
-  this->m_force.resize(n);
-  for( long i = 0; i < n; ++i )
-    {
-    // this->m_force.push_back(cvForce[i]/(fmax + 1e-10) +  (this->m_curvatureWeight)*kappaOnZeroLS[i]);
-    this->m_force[i] = (1 - (this->m_curvatureWeight) ) * cvForce[i] / (fmax + 1e-10) \
-      +  (this->m_curvatureWeight) * kappaOnZeroLS[i] / (kappaMax + 1e-10);
-    }
+    this->m_force.resize(n);
+    if ( this->m_bUseRejectionMask )
+      {
+      // mask restriction. Force the force to zero if it is in a mask region
+
+#pragma omp parallel for
+      for (long i = 0; i < n; ++i)
+        {
+
+        typename CSFLSLayer::iterator itz = m_lzIterVct[i];
+
+        long ix = (*itz)[0];
+        long iy = (*itz)[1];
+        long iz = (*itz)[2];
+
+        TIndex idx = {{ix, iy, iz}};
+
+        this->m_force[i] = (this->mp_rejectionMask->GetPixel( idx ) == 0)*(1 - (this->m_curvatureWeight))*cvForce[i]/(fmax + 1e-10) \
+          +  (this->m_curvatureWeight)*kappaOnZeroLS[i]/(kappaMax + 1e-10);
+
+        // if ( this->mp_rejectionMask->GetPixel( idx ) != 0 )
+        //   {
+        //   this->m_force[i] = 0;  // in mask, don't continue evolving here
+        //   //std::cout<<"rejected! \n"<<std::flush;
+        //   }
+        // else
+        //   {
+        //   //this->m_force.push_back(cvForce[i]/(fmax + 1e-10) +  (this->m_curvatureWeight)*kappaOnZeroLS[i]);
+        //   }
+        }
+      }
+    else
+      { // no mask restriction for the rejection
+#pragma omp parallel for
+        for (long i = 0; i < n; ++i)
+          {
+            //this->m_force.push_back(cvForce[i]/(fmax + 1e-10) +  (this->m_curvatureWeight)*kappaOnZeroLS[i]);
+            this->m_force[i] = (1 - (this->m_curvatureWeight))*cvForce[i]/(fmax + 1e-10) \
+              +  (this->m_curvatureWeight)*kappaOnZeroLS[i]/(kappaMax + 1e-10);
+          }
+      }
 
   delete[] kappaOnZeroLS;
   delete[] cvForce;
@@ -183,6 +246,7 @@ CSFLSRobustStatSegmentor3DLabelMap<TPixel>
    2. Compute feature at each point
    3. Extract feature at/around the seeds
   */
+  checkIfLabelOfInterestExist();
 
   inputLableImageToSeeds();
 
@@ -201,6 +265,36 @@ CSFLSRobustStatSegmentor3DLabelMap<TPixel>
 
   return;
 }
+
+/* ============================================================  */
+template <typename TPixel>
+void
+CSFLSRobustStatSegmentor3DLabelMap<TPixel>
+::checkIfLabelOfInterestExist()
+{
+  typedef itk::ImageRegionConstIterator<TLabelImage> ImageRegionConstIteratorType;
+  ImageRegionConstIteratorType it(m_inputLabelImage, m_inputLabelImage->GetLargestPossibleRegion());
+
+  bool loiExistInInputLabelImage = false;
+
+  for (it.GoToBegin(); !it.IsAtEnd(); ++it)
+    {
+      if (it.Get() == m_labelOfInterest)
+        {
+          loiExistInInputLabelImage = true;
+          break;
+        }
+    }
+
+  if (!loiExistInInputLabelImage)
+    {
+      std::cerr<<"Error: label of interest does not exist in input label image.\n";
+      abort();
+    }
+
+  return;
+}
+
 
 /* ============================================================ */
 template <typename TPixel>
@@ -321,6 +415,27 @@ CSFLSRobustStatSegmentor3DLabelMap<TPixel>
    * 3. mp_phi.
    */
   this->initializeSFLS();
+
+
+
+
+    // dbg
+    char mhdName[1000];
+    sprintf(mhdName, "/tmp/cliForDebugingRSS_%d.mhd", 0);
+    // char rawName[1000];
+    // sprintf(rawName, "/tmp/cliForDebugingRSS_%d.raw", 0);
+
+    typedef itk::ImageFileWriter< typename SuperClassType::LabelImageType > WriterType;
+    typename WriterType::Pointer writer = WriterType::New();
+    writer->SetFileName( mhdName );
+    writer->SetInput(this->mp_label);
+    writer->UseCompressionOff();
+    writer->Update();
+    // dbg, end
+
+
+
+
 
 // #ifndef NDEBUG
 //   std::ofstream dbgf("/tmp/dbgo.txt", std::ios_base::app);
@@ -804,11 +919,6 @@ CSFLSRobustStatSegmentor3DLabelMap<TPixel>
 
   computeMinMax(); // so we have the range of all pdfs
 
-// #ifndef NDEBUG
-//   std::cout<<"m_inputImageIntensityMin = "<<m_inputImageIntensityMin<<std::endl;
-//   std::cout<<"m_inputImageIntensityMax = "<<m_inputImageIntensityMax<<std::endl;
-// #endif
-
   long n = m_seeds.size();
   for( long ifeature = 0; ifeature < m_numberOfFeature; ++ifeature )
     {
@@ -816,19 +926,10 @@ CSFLSRobustStatSegmentor3DLabelMap<TPixel>
     // assumption: TPixel are of integer types.
 
     double stdDev = m_kernelStddev[ifeature] / m_kernelWidthFactor; // /10 as in Eric's appendix
-
-    // std::cout<<"kernel sigma of "<<ifeature<<"-th feature is "<<stdDev<<std::endl;
-
-// #ifndef NDEBUG
-//       std::cout<<"stdDev of "<<ifeature<<"-th feature = "<<stdDev<<std::endl;
-// #endif
-
-//       //#ifndef NDEBUG
-//       std::ofstream df("/tmp/detail.txt");
-//       //#endif
-
     double var2 = -1.0 / (2 * stdDev * stdDev);
     double c = 1.0 / sqrt(2 * (vnl_math::pi) ) / stdDev;
+
+#pragma omp parallel for
     for( TPixel a = m_inputImageIntensityMin; a <= m_inputImageIntensityMax; ++a )
       {
       long ia = static_cast<long>(a - m_inputImageIntensityMin);

@@ -61,6 +61,8 @@ public:
 
   void setInputLabelImage(TLabelImagePointer l);
 
+  void setLabelOfInterest(typename TLabelImage::PixelType loi);
+
   void doSegmenation();
 
   void computeForce();
@@ -97,6 +99,9 @@ protected:
   void initFeatureImage();
 
   // void computeFeature();
+
+  void checkIfLabelOfInterestExist();
+
   void computeFeatureAt(TIndex idx, std::vector<double>& f);
 
   void getRobustStatistics(std::vector<double>& samples, std::vector<double>& robustStat);
@@ -114,6 +119,8 @@ protected:
   TPixel m_inputImageIntensityMin;
   TPixel m_inputImageIntensityMax;
   void computeMinMax();
+
+  typename TLabelImage::PixelType m_labelOfInterest;
 
   std::vector<std::vector<double> > m_PDFlearnedFromSeeds;  // each feature corresponds to a inner std::vector<double>
   void estimatePDFs();
