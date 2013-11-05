@@ -198,9 +198,9 @@ int main(int argc, char* * argv)
   LabelImage_t::Pointer labelImageOnlyContainsTarget;
   LabelImage_t::Pointer rejectionLabelImage;
 
-  bool bUseRejctionLabelImage = preprocessInputLabelImage<LabelImage_t>(labelImg, labelValue, labelImageOnlyContainsTarget, rejectionLabelImage);
+  bool useRejctionLabelImage = preprocessInputLabelImage<LabelImage_t>(labelImg, labelValue, labelImageOnlyContainsTarget, rejectionLabelImage);
 
-  if ( bUseRejctionLabelImage )
+  if ( useRejctionLabelImage )
     {
     std::cout << "Using rejection mask." << std::endl;
     }
@@ -218,7 +218,7 @@ int main(int argc, char* * argv)
   seg.setIntensityHomogeneity(intensityHomogeneity);
   seg.setCurvatureWeight(curvatureWeight / 1.5);
 
-  if ( bUseRejctionLabelImage )
+  if ( useRejctionLabelImage )
     {
     seg.setRejectionMask( rejectionLabelImage );
     }
@@ -231,7 +231,7 @@ int main(int argc, char* * argv)
   MaskImageType::Pointer finalMask = getFinalMask<float>(seg.mp_phi, labelValue, levelSetThreshold);
   finalMask->CopyInformation(img);
 
-  if ( bUseRejctionLabelImage )
+  if ( useRejctionLabelImage )
     {
       postProcessFinalMask(finalMask, labelValue, labelImg);
     }
