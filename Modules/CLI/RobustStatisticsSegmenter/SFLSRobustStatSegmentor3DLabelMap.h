@@ -1,12 +1,10 @@
-#ifndef SFLSRobustStatSegmentor3DLabelMap_single_h_
-#define SFLSRobustStatSegmentor3DLabelMap_single_h_
+#ifndef SFLSRobustStatSegmentor3DLabelMap_h_
+#define SFLSRobustStatSegmentor3DLabelMap_h_
 
 #include "SFLSSegmentor3D.h"
 
 #include <list>
 #include <vector>
-
-// #include "boost/shared_ptr.hpp"
 
 template <typename TPixel>
 class CSFLSRobustStatSegmentor3DLabelMap : public CSFLSSegmentor3D<TPixel>
@@ -137,6 +135,6 @@ protected:
 
 };
 
-#include "SFLSRobustStatSegmentor3DLabelMap_single.txx"
+#include "SFLSRobustStatSegmentor3DLabelMap.hxx"
 
 #endif

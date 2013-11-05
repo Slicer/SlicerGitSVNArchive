@@ -2,15 +2,13 @@
 
 #include <iostream>
 
-#include "SFLSRobustStatSegmentor3DLabelMap_single.h"
+#include "SFLSRobustStatSegmentor3DLabelMap.h"
 
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
 
 #include "itkImageRegionConstIterator.h"
 #include "itkImageRegionIterator.h"
-
-//#include "labelMapPreprocessor.h"
 
 // Use an anonymous namespace to keep class types and function names
 // from colliding when module is used as shared object module.  Every

@@ -169,6 +169,6 @@ protected:
 
 };
 
-#include "SFLSSegmentor3D.txx"
+#include "SFLSSegmentor3D.hxx"
 
 #endif

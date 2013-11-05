@@ -1,17 +1,14 @@
-#ifndef SFLSRobustStatSegmentor3DLabelMap_single_txx_
-#define SFLSRobustStatSegmentor3DLabelMap_single_txx_
+#ifndef SFLSRobustStatSegmentor3DLabelMap_hxx_
+#define SFLSRobustStatSegmentor3DLabelMap_hxx_
 
-#include "SFLSRobustStatSegmentor3DLabelMap_single.h"
+#include "SFLSRobustStatSegmentor3DLabelMap.h"
 
 #include <algorithm>
 #include <ctime>
 
 #include <limits>
 
-#include "omp.h"
-
 // //debug//
-// #include "cArrayOp.h"
 #include <fstream>
 // //DEBUG//
 
@@ -114,12 +111,10 @@ CSFLSRobustStatSegmentor3DLabelMap<TPixel>
       }
     }
 
-#pragma omp parallel
     {
       double fmaxOfThisThread = std::numeric_limits<double>::min();
       double kappaMaxOfThisThread = std::numeric_limits<double>::min();
 
-#pragma omp for
       for( long i = 0; i < n; ++i )
         {
           typename CSFLSLayer::iterator itz = m_lzIterVct[i];
@@ -145,7 +140,6 @@ CSFLSRobustStatSegmentor3DLabelMap<TPixel>
           cvForce[i] = a;
         }
 
-#pragma omp critical
       {
         fmax = fmax>fmaxOfThisThread?fmax:fmaxOfThisThread;
         kappaMax = kappaMax>kappaMaxOfThisThread?kappaMax:kappaMaxOfThisThread;
@@ -159,7 +153,6 @@ CSFLSRobustStatSegmentor3DLabelMap<TPixel>
       {
       // mask restriction. Force the force to zero if it is in a mask region
 
-#pragma omp parallel for
       for (long i = 0; i < n; ++i)
         {
 
@@ -187,7 +180,6 @@ CSFLSRobustStatSegmentor3DLabelMap<TPixel>
       }
     else
       { // no mask restriction for the rejection
-#pragma omp parallel for
         for (long i = 0; i < n; ++i)
           {
             //this->m_force.push_back(cvForce[i]/(fmax + 1e-10) +  (this->m_curvatureWeight)*kappaOnZeroLS[i]);
@@ -929,7 +921,6 @@ CSFLSRobustStatSegmentor3DLabelMap<TPixel>
     double var2 = -1.0 / (2 * stdDev * stdDev);
     double c = 1.0 / sqrt(2 * (vnl_math::pi) ) / stdDev;
 
-#pragma omp parallel for
     for( TPixel a = m_inputImageIntensityMin; a <= m_inputImageIntensityMax; ++a )
       {
       long ia = static_cast<long>(a - m_inputImageIntensityMin);

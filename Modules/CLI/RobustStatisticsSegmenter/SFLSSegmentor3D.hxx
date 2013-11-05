@@ -1,5 +1,5 @@
-#ifndef SFLSSegmentor3D_hpp_
-#define SFLSSegmentor3D_hpp_
+#ifndef SFLSSegmentor3D_hxx_
+#define SFLSSegmentor3D_hxx_
 
 #include "SFLSSegmentor3D.h"
 
@@ -11,12 +11,6 @@
 #include <fstream>
 
 #include "itkImageRegionIteratorWithIndex.h"
-
-#include "omp.h"
-
-// dbg
-#include "itkImageFileWriter.h"
-// dbg, end
 
 
 template <typename TPixel>
@@ -451,7 +445,6 @@ CSFLSSegmentor3D<TPixel>
     //    for (CSFLSLayer::iterator itz = m_lz.begin(); itz != m_lz.end(); ++itf)
 
       /// Using this will cause some racing conditions. But faster speed may be more important?
-      //#pragma omp parallel for
     for( long iiizzz = 0; iiizzz < nz; ++iiizzz )
       {
       long itf = iiizzz;
@@ -908,17 +901,6 @@ CSFLSSegmentor3D<TPixel>
 
   mp_label->FillBuffer(defaultLabel);
 
-
-  // dbg
-  typedef itk::ImageFileWriter< LabelImageType > WriterType;
-  typename WriterType::Pointer writer = WriterType::New();
-  writer->SetFileName( "/tmp/cliForDebugLabel0.mhd" );
-  writer->SetInput(this->mp_label);
-  writer->UseCompressionOff();
-  writer->Update();
-  // dbg, end
-
-
   return;
 }
 
@@ -1279,25 +1261,6 @@ CSFLSSegmentor3D<TPixel>
       m_lp2.push_back( NodeType(ix, iy, iz - 1) );
       }
     }
-
-
-  {
-    // dbg
-    char mhdName[1000];
-    sprintf(mhdName, "/tmp/cliForDebuging-fromMask_%d.mhd", 4);
-    // char rawName[1000];
-    // sprintf(rawName, "/tmp/cliForDebugingRSS_%d.raw", 4);
-
-    typedef itk::ImageFileWriter< LabelImageType > WriterType;
-    typename WriterType::Pointer writer = WriterType::New();
-    writer->SetFileName( mhdName );
-    writer->SetInput(this->mp_label);
-    writer->UseCompressionOff();
-    writer->Update();
-    // dbg, end
-  }
-
-
 }
 
 // /* ============================================================
