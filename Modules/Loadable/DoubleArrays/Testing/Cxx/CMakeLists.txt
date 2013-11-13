@@ -1,0 +1,19 @@
+set(KIT qSlicer${MODULE_NAME}Module)
+
+#-----------------------------------------------------------------------------
+set(INPUT "${MRMLCore_SOURCE_DIR}/Testing/TestData/")
+
+#-----------------------------------------------------------------------------
+set(KIT_TEST_SRCS
+  vtkSlicerDoubleArraysLogicAddFileTest.cxx
+  )
+
+#-----------------------------------------------------------------------------
+slicerMacroConfigureModuleCxxTestDriver(
+  NAME ${KIT}
+  SOURCES ${KIT_TEST_SRCS}
+  WITH_VTK_DEBUG_LEAKS_CHECK
+  )
+
+#-----------------------------------------------------------------------------
+simple_test(vtkSlicerDoubleArraysLogicAddFileTest ${INPUT}/doubleArray.csv)

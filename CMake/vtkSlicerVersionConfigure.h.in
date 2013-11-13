@@ -1,0 +1,32 @@
+/*=auto=========================================================================
+
+ Portions (c) Copyright 2005 Brigham and Women's Hospital (BWH)
+ All Rights Reserved.
+
+ See COPYRIGHT.txt
+ or http://www.slicer.org/copyright/copyright.txt for details.
+
+ Program:   3D Slicer
+
+=========================================================================auto=*/
+
+#ifndef __vtkSlicerVersionConfigure_h
+#define __vtkSlicerVersionConfigure_h
+
+#define Slicer_VERSION_MAJOR @Slicer_VERSION_MAJOR@
+#define Slicer_VERSION_MINOR @Slicer_VERSION_MINOR@
+#define Slicer_VERSION_PATCH @Slicer_VERSION_PATCH@
+#define Slicer_VERSION "@Slicer_VERSION@"
+#define Slicer_VERSION_FULL "@Slicer_VERSION_FULL@"
+
+#define Slicer_OS_LINUX_NAME "@Slicer_OS_LINUX_NAME@"
+#define Slicer_OS_MAC_NAME "@Slicer_OS_MAC_NAME@"
+#define Slicer_OS_WIN_NAME "@Slicer_OS_WIN_NAME@"
+
+#define Slicer_ARCHITECTURE "@Slicer_ARCHITECTURE@"
+#define Slicer_OS "@Slicer_OS@"
+#define Slicer_BUILDDATE "@Slicer_BUILDDATE@"
+#define Slicer_WC_URL "@Slicer_WC_URL@"
+#define Slicer_WC_REVISION "@Slicer_WC_REVISION@"
+
+#endif // __vtkSlicerVersionConfigure_h

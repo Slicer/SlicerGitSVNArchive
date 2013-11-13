@@ -1,0 +1,151 @@
+<!DOCTYPE RCC><RCC version="1.0">
+  <qresource>
+    <file>Icons/SaveScene.png</file>
+    <file>Icons/Small/SlicerLoadDICOM.png</file>
+    <file>Icons/Medium/SlicerLoadDICOM.png</file>
+    <file>Icons/Small/SlicerLoadData.png</file>
+    <file>Icons/Medium/SlicerLoadData.png</file>
+    <file>Icons/Small/SlicerSave.png</file>
+    <file>Icons/Medium/SlicerSave.png</file>
+    <file>Icons/Small/SlicerDataBundle.png</file>
+    <file>Icons/Medium/SlicerDataBundle.png</file>
+    <file>Icons/Small/SlicerCloseScene.png</file>
+    <file>Icons/Medium/SlicerCloseScene.png</file>
+
+    <file>Icons/Small/SlicerAddColorLUT.png</file>
+    <file>Icons/Medium/SlicerAddColorLUT.png</file>
+    <file>Icons/Large/SlicerAddColorLUT.png</file>
+    <file>Icons/XLarge/SlicerAddColorLUT.png</file>
+
+    <file>Icons/Small/SlicerAddData.png</file>
+    <file>Icons/Medium/SlicerAddData.png</file>
+    <file>Icons/Large/SlicerAddData.png</file>
+    <file>Icons/XLarge/SlicerAddData.png</file>
+
+    <file>Icons/Small/SlicerAddFiducialList.png</file>
+    <file>Icons/Medium/SlicerAddFiducialList.png</file>
+    <file>Icons/Large/SlicerAddFiducialList.png</file>
+    <file>Icons/XLarge/SlicerAddFiducialList.png</file>
+
+    <file>Icons/Small/SlicerAddModel.png</file>
+    <file>Icons/Medium/SlicerAddModel.png</file>
+    <file>Icons/Large/SlicerAddModel.png</file>
+    <file>Icons/XLarge/SlicerAddModel.png</file>
+
+    <file>Icons/Small/SlicerAddScalarOverlay.png</file>
+    <file>Icons/Medium/SlicerAddScalarOverlay.png</file>
+    <file>Icons/Large/SlicerAddScalarOverlay.png</file>
+    <file>Icons/XLarge/SlicerAddScalarOverlay.png</file>
+
+    <file>Icons/Small/SlicerAddScene.png</file>
+    <file>Icons/Medium/SlicerAddScene.png</file>
+    <file>Icons/Large/SlicerAddScene.png</file>
+    <file>Icons/XLarge/SlicerAddScene.png</file>
+
+    <file>Icons/Small/SlicerDownloadMRHead.png</file>
+    <file>Icons/Medium/SlicerDownloadMRHead.png</file>
+    <file>Icons/Large/SlicerDownloadMRHead.png</file>
+    <file>Icons/XLarge/SlicerDownloadMRHead.png</file>
+
+    <file>Icons/Small/SlicerAddTransform.png</file>
+    <file>Icons/Medium/SlicerAddTransform.png</file>
+    <file>Icons/Large/SlicerAddTransform.png</file>
+    <file>Icons/XLarge/SlicerAddTransform.png</file>
+
+    <file>Icons/Small/SlicerAddVolume.png</file>
+    <file>Icons/Medium/SlicerAddVolume.png</file>
+    <file>Icons/Large/SlicerAddVolume.png</file>
+    <file>Icons/XLarge/SlicerAddVolume.png</file>
+
+    <file>Icons/Small/SlicerEditCopy.png</file>
+    <file>Icons/Medium/SlicerEditCopy.png</file>
+    <file>Icons/Large/SlicerEditCopy.png</file>
+    <file>Icons/XLarge/SlicerEditCopy.png</file>
+
+    <file>Icons/Small/SlicerEditCut.png</file>
+    <file>Icons/Medium/SlicerEditCut.png</file>
+    <file>Icons/Large/SlicerEditCut.png</file>
+    <file>Icons/XLarge/SlicerEditCut.png</file>
+
+    <file>Icons/Small/SlicerEditPaste.png</file>
+    <file>Icons/Medium/SlicerEditPaste.png</file>
+    <file>Icons/Large/SlicerEditPaste.png</file>
+    <file>Icons/XLarge/SlicerEditPaste.png</file>
+
+    <file>Icons/Small/SlicerHome.png</file>
+    <file>Icons/Medium/SlicerHome.png</file>
+    <file>Icons/Large/SlicerHome.png</file>
+    <file>Icons/XLarge/SlicerHome.png</file>
+
+    <file>Icons/Small/SlicerLoadScene.png</file>
+    <file>Icons/Medium/SlicerLoadScene.png</file>
+    <file>Icons/Large/SlicerLoadScene.png</file>
+    <file>Icons/XLarge/SlicerLoadScene.png</file>
+
+    <file>Icons/ModuleHistory.png</file>
+    <file>Icons/Undo.png</file>
+    <file>Icons/Redo.png</file>
+
+    <file>Icons/CheckModified.png</file>
+    <file>Icons/CheckModifiedData.png</file>
+
+    <file>Icons/DownloadExtension.png</file>
+    <file>Icons/Extension.png</file>
+    <file>Icons/ExtensionDefaultIcon.png</file>
+    <!-- Source: http://openclipart.org/detail/14428/signs-hazard-warning-by-h0us3s-14428 -->
+    <file alias="Icons/ExtensionIncompatible.png">Icons/warning-17.png</file>
+    <file alias="Icons/ExtensionError.png">Icons/gtk-dialog-warning.png</file>
+
+    <file>Icons/Go.png</file>
+
+    <file>Icons/MousePickMode.png</file>
+    <file>Icons/MouseSinglePickMode.png</file>
+    <file>Icons/MousePlaceMode.png</file>
+    <file>Icons/MouseSinglePlaceMode.png</file>
+    <file>Icons/MouseRotateMode.png</file>
+
+    <file>Icons/TreeClose.png</file>
+    <file>Icons/TreeOpen.png</file>
+
+    <file>Icons/Small/SlicerVisibleInvisible.png</file>
+    <file>Icons/Medium/SlicerVisibleInvisible.png</file>
+    <file>Icons/Large/SlicerVisibleInvisible.png</file>
+    <file>Icons/XLarge/SlicerVisibleInvisible.png</file>
+
+    <file>Icons/Small/SlicerVisible.png</file>
+    <file>Icons/Medium/SlicerVisible.png</file>
+    <file>Icons/Large/SlicerVisible.png</file>
+    <file>Icons/XLarge/SlicerVisible.png</file>
+
+    <file>Icons/Small/SlicerInvisible.png</file>
+    <file>Icons/Medium/SlicerInvisible.png</file>
+    <file>Icons/Large/SlicerInvisible.png</file>
+    <file>Icons/XLarge/SlicerInvisible.png</file>
+
+    <file>Icons/Small/SlicerLockUnlock.png</file>
+    <file>Icons/Medium/SlicerLockUnlock.png</file>
+    <file>Icons/Large/SlicerLockUnlock.png</file>
+    <file>Icons/XLarge/SlicerLockUnlock.png</file>
+
+    <file>Icons/Small/SlicerLock.png</file>
+    <file>Icons/Medium/SlicerLock.png</file>
+    <file>Icons/Large/SlicerLock.png</file>
+    <file>Icons/XLarge/SlicerLock.png</file>
+
+    <file>Icons/Small/SlicerUnlock.png</file>
+    <file>Icons/Medium/SlicerUnlock.png</file>
+    <file>Icons/Large/SlicerUnlock.png</file>
+    <file>Icons/XLarge/SlicerUnlock.png</file>
+
+    <file>Icons/Small/SlicerAddHierarchy.png</file>
+    <file>Icons/Medium/SlicerAddHierarchy.png</file>
+    <file>Icons/Large/SlicerAddHierarchy.png</file>
+    <file>Icons/XLarge/SlicerAddHierarchy.png</file>
+
+    <file>Icons/Small/SlicerHierarchy.png</file>
+    <file>Icons/Medium/SlicerHierarchy.png</file>
+    <file>Icons/Large/SlicerHierarchy.png</file>
+    <file>Icons/XLarge/SlicerHierarchy.png</file>
+
+  </qresource>
+</RCC>
