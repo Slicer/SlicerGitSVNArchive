@@ -19,6 +19,7 @@
 ==============================================================================*/
 
 // Qt includes
+#include <QDebug>
 #include <QFileInfo>
 
 // SlicerQt includes
