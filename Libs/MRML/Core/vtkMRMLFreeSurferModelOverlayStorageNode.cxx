@@ -98,12 +98,7 @@ int vtkMRMLFreeSurferModelOverlayStorageNode::ReadDataInternal(vtkMRMLNode *refN
 
   // compute file prefix
   std::string name(fullName);
-  std::string::size_type loc = name.find_last_of(".");
-  if( loc == std::string::npos )
-    {
-    vtkErrorMacro("ReadData: no file extension specified");
-    }
-  std::string extension = name.substr(loc);
+  std::string extension=vtkMRMLStorageNode::GetLowercaseExtensionFromFileName(fullName);
 
   vtkDebugMacro("ReadData: extension = " << extension.c_str());
   // don't delete the polydata if reading in a scalar overlay

@@ -55,13 +55,12 @@ int vtkMRMLUnstructuredGridStorageNode::ReadDataInternal(vtkMRMLNode *refNode)
 
   // compute file prefix
   std::string name(fullName);
-  std::string::size_type loc = name.find(".");
-  if( loc == std::string::npos ) 
+  std::string extension=vtkMRMLStorageNode::GetLowercaseExtensionFromFileName(fullName);
+  if( extension.empty() )
     {
     vtkErrorMacro("ReadData: no file extension specified: " << name.c_str());
     return result;
     }
-  std::string extension = name.substr(loc);
 
   vtkDebugMacro("ReadData: extension = " << extension.c_str());
 
@@ -112,7 +111,7 @@ int vtkMRMLUnstructuredGridStorageNode::WriteDataInternal(vtkMRMLNode *refNode)
     return 0;
     }
 
-  std::string extension = itksys::SystemTools::GetFilenameLastExtension(fullName);
+  std::string extension=vtkMRMLStorageNode::GetLowercaseExtensionFromFileName(fullName);
 
   int result = 1;
   if (extension == ".vtk")

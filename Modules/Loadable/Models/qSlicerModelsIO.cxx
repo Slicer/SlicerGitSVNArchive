@@ -106,7 +106,15 @@ bool qSlicerModelsIO::load(const IOProperties& properties)
     {
     return false;
     }
-  this->setLoadedNodes( QStringList(QString(node->GetID())) );
+  if (node->GetID())
+    {
+    this->setLoadedNodes( QStringList(QString(node->GetID())) );
+    }
+  else
+    {
+    qCritical() << "qSlicerModelsIO::load failed: invalid node is created";
+    this->setLoadedNodes( QStringList() );
+    }
   if (properties.contains("name"))
     {
     std::string uname = this->mrmlScene()->GetUniqueNameByString(
