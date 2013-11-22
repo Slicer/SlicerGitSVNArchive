@@ -407,6 +407,9 @@ if(NOT Slicer_FORCED_WC_REVISION STREQUAL "")
   set(Slicer_WC_REVISION "${Slicer_FORCED_WC_REVISION}")
 endif()
 
+# XXX Comment the following lines when doing the next tweak release
+set(Slicer_VERSION_TWEAK "${Slicer_VERSION_TWEAK}-${Slicer_BUILDDATE}")
+
 if(NOT DEFINED Slicer_VERSION_TWEAK)
   # if it's not a release, use the date as a tweak
   set(Slicer_VERSION_TWEAK "${Slicer_BUILDDATE}")
