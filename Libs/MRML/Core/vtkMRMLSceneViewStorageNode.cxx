@@ -84,13 +84,12 @@ int vtkMRMLSceneViewStorageNode::ReadDataInternal(vtkMRMLNode *refNode)
     }
   // compute file prefix
   std::string name(fullName);
-  std::string::size_type loc = name.find_last_of(".");
-  if( loc == std::string::npos ) 
+  std::string extension=vtkMRMLStorageNode::GetLowercaseExtensionFromFileName(name);
+  if( extension.empty() )
     {
     vtkErrorMacro("ReadData: no file extension specified: " << name.c_str());
     return 0;
     }
-  std::string extension = name.substr(loc);
 
   vtkDebugMacro("ReadData: extension = " << extension.c_str());
 
@@ -179,7 +178,7 @@ int vtkMRMLSceneViewStorageNode::WriteDataInternal(vtkMRMLNode *refNode)
     return 0;
   }
 
-  std::string extension = itksys::SystemTools::GetFilenameLastExtension(fullName);
+  std::string extension=vtkMRMLStorageNode::GetLowercaseExtensionFromFileName(fullName);
 
   int result = 1;
   if (extension == ".png")

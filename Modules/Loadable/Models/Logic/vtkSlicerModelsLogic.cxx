@@ -143,12 +143,6 @@ vtkMRMLModelNode* vtkSlicerModelsLogic::AddModel (const char* filename)
     {
     return 0;
     }
-  vtkNew<vtkMRMLModelNode> modelNode;
-  vtkNew<vtkMRMLModelDisplayNode> displayNode;
-  vtkNew<vtkMRMLModelStorageNode> mStorageNode;
-  vtkNew<vtkMRMLFreeSurferModelStorageNode> fsmStorageNode;
-  fsmStorageNode->SetUseStripper(0);  // turn off stripping by default (breaks some pickers)
-  vtkSmartPointer<vtkMRMLStorageNode> storageNode;
 
   // check for local or remote files
   int useURI = 0; // false;
@@ -157,9 +151,12 @@ vtkMRMLModelNode* vtkSlicerModelsLogic::AddModel (const char* filename)
     useURI = this->GetMRMLScene()->GetCacheManager()->IsRemoteReference(filename);
     vtkDebugMacro("AddModel: file name is remote: " << filename);
     }
-  
-  itksys_stl::string name;
-  const char *localFile;
+
+  vtkNew<vtkMRMLModelStorageNode> mStorageNode;
+  vtkNew<vtkMRMLFreeSurferModelStorageNode> fsmStorageNode;
+  fsmStorageNode->SetUseStripper(0);  // turn off stripping by default (breaks some pickers)
+
+  const char *localFile=0;
   if (useURI)
     {
     mStorageNode->SetURI(filename);
@@ -173,13 +170,14 @@ vtkMRMLModelNode* vtkSlicerModelsLogic::AddModel (const char* filename)
     fsmStorageNode->SetFileName(filename);
     localFile = filename;
     }
-  const itksys_stl::string fname(localFile);
+  const itksys_stl::string fname(localFile?localFile:"");
   // the model name is based on the file name (itksys call should work even if
   // file is not on disk yet)
-  name = itksys::SystemTools::GetFilenameName(fname);
+  itksys_stl::string name = itksys::SystemTools::GetFilenameName(fname);
   vtkDebugMacro("AddModel: got model name = " << name.c_str());
-  
+
   // check to see which node can read this type of file
+  vtkMRMLStorageNode* storageNode=NULL;
   if (mStorageNode->SupportedFileType(name.c_str()))
     {
     storageNode = mStorageNode.GetPointer();
@@ -200,15 +198,19 @@ vtkMRMLModelNode* vtkSlicerModelsLogic::AddModel (const char* filename)
     storageNode = fsmStorageNode;
     }
   */
+  vtkMRMLModelNode* modelNodeToReturn=NULL;
   if (storageNode != NULL)
     {
+    vtkNew<vtkMRMLModelNode> modelNode;
+    vtkNew<vtkMRMLModelDisplayNode> displayNode;
+
     itksys_stl::string baseName = itksys::SystemTools::GetFilenameWithoutExtension(fname);
     std::string uname( this->GetMRMLScene()->GetUniqueNameByString(baseName.c_str()));
     modelNode->SetName(uname.c_str());
 
     this->GetMRMLScene()->SaveStateForUndo();
 
-    this->GetMRMLScene()->AddNode(storageNode.GetPointer());
+    this->GetMRMLScene()->AddNode(storageNode);
     this->GetMRMLScene()->AddNode(displayNode.GetPointer());
 
     // Set the scene so that SetAndObserve[Display|Storage]NodeID can find the
@@ -221,8 +223,12 @@ vtkMRMLModelNode* vtkSlicerModelsLogic::AddModel (const char* filename)
 
     // now set up the reading
     vtkDebugMacro("AddModel: calling read on the storage node");
-    int retval = storageNode->ReadData(modelNode.GetPointer());
-    if (retval != 1)
+    int success = storageNode->ReadData(modelNode.GetPointer());
+    if (success)
+      {
+      modelNodeToReturn=modelNode.GetPointer();
+      }
+    else
       {
       vtkErrorMacro("AddModel: error reading " << filename);
       this->GetMRMLScene()->RemoveNode(modelNode.GetPointer());
@@ -230,10 +236,10 @@ vtkMRMLModelNode* vtkSlicerModelsLogic::AddModel (const char* filename)
     }
   else
     {
-    vtkDebugMacro("Couldn't read file, returning null model node: " << filename);
+    vtkErrorMacro("Couldn't read file: " << filename);
     }
 
-  return modelNode.GetPointer();
+  return modelNodeToReturn;
 }
 
 //----------------------------------------------------------------------------
