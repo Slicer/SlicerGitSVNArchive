@@ -299,7 +299,8 @@ void qSlicerModuleSelectorToolBar::actionSelected(QAction* action)
       {
       previousActions.push_front(lastAction);
       }
-    nextActions.clear();
+    // just insert this action into the history, but keep keep the list of next actions
+    // so that we can easily revisit those
     }
   // don't keep more than X history
   previousActions = previousActions.mid(0, 8);
