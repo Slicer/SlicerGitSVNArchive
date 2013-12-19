@@ -1055,6 +1055,11 @@ vtkMRMLNode*  vtkMRMLScene::AddNodeNoNotify(vtkMRMLNode *n)
       oldID = n->GetID();
       }
     n->SetID(this->GenerateUniqueID(n).c_str());
+    if (n->GetScene())
+      {
+      // The scene is set already so update the ID references for this new ID
+      n->SetSceneReferences();
+      }
 
     vtkDebugMacro("AddNodeNoNotify: got unique id for new " << n->GetClassName() << " node: " << n->GetID() << endl);
     std::string newID(n->GetID());
@@ -1774,6 +1779,11 @@ vtkMRMLNode* vtkMRMLScene::InsertAfterNode(vtkMRMLNode *item, vtkMRMLNode *n)
     int modifyStatus = n->GetDisableModifiedEvent();
     n->SetDisableModifiedEvent(1);
     n->SetID(this->GenerateUniqueID(n).c_str());
+    if (n->GetScene())
+      {
+      // The scene is set already so update the ID references for this new ID
+      n->SetSceneReferences();
+      }
     n->SetDisableModifiedEvent(modifyStatus);
     std::string newID(n->GetID());
     if (oldID != newID)
@@ -1853,6 +1863,11 @@ vtkMRMLNode* vtkMRMLScene::InsertBeforeNode(vtkMRMLNode *item, vtkMRMLNode *n)
     int modifyStatus = n->GetDisableModifiedEvent();
     n->SetDisableModifiedEvent(1);
     n->SetID(this->GenerateUniqueID(n).c_str());
+    if (n->GetScene())
+      {
+      // The scene is set already so update the ID references for this new ID
+      n->SetSceneReferences();
+      }
     n->SetDisableModifiedEvent(modifyStatus);
     std::string newID(n->GetID());
     if (oldID != newID)
@@ -2626,12 +2641,32 @@ void vtkMRMLScene::ClearRedoStack()
 //------------------------------------------------------------------------------
 void vtkMRMLScene::AddReferencedNodeID(const char *id, vtkMRMLNode *referencingNode)
 {
-  if (id && referencingNode &&
-      referencingNode->GetScene() && referencingNode->GetID() &&
-      !this->IsNodeReferencingNodeID(referencingNode, id))
+  if (id==NULL)
     {
-    this->NodeReferences[id].insert(referencingNode->GetID());
+    // vtkErrorMacro("Failed to add node reference: invalid referenced node ID");
+    // Do not log an error for now, because many places there are calls like
+    //   this->Scene->AddReferencedNodeID(this->ActiveVolumeID, this);
+    // TODO: replace manual reference handling by proper node references
+    //   then this error checking can be activated.
+    return;
     }
+  if (referencingNode==NULL)
+    {
+    vtkErrorMacro("Failed to add node reference: the referencing node is invalid");
+    return;
+    }
+  if (referencingNode->GetScene()==NULL || referencingNode->GetID()==NULL)
+    {
+    // Scene is not yet set for the referencing node, so we don't need to add the reference to the scene yet.
+    // When the scene will be set then all the references will be added.
+    return;
+    }
+  if (this->IsNodeReferencingNodeID(referencingNode, id))
+    {
+    // this reference already exists, there is nothing to do
+    return;
+    }
+  this->NodeReferences[id].insert(referencingNode->GetID());
 }
 
 //------------------------------------------------------------------------------
