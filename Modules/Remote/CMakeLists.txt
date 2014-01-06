@@ -37,6 +37,7 @@ if(Slicer_BUILD_BRAINSTOOLS)
 
   ## BRAINSTools comes with some extra tool
   ## options that should not be compiled by default.
+  set(USE_BRAINSStripRotation            OFF CACHE BOOL "A special tool for testing image registration" FORCE)
   set(USE_AutoWorkup                     OFF CACHE BOOL "" FORCE)
   set(USE_ANTS                           OFF CACHE BOOL "Build with ANTS capabilities" )
   set(USE_GTRACT                         OFF CACHE BOOL "" FORCE)
