@@ -25,7 +25,7 @@ if(NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
   set(SimpleITK_INSTALL_COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/SimpleITK_install_step.cmake)
 
   set(SimpleITK_REPOSITORY ${git_protocol}://itk.org/SimpleITK.git)
-  set(SimpleITK_GIT_TAG 83c344feff4b085df0879fd259337740f3f38c5d) # Patched v0.7.1
+  set(SimpleITK_GIT_TAG eb16d9834f21c85530e2f38b8fa07962d91d5b93) # updates for clang Xcode 5
 
   ExternalProject_add(SimpleITK
     ${${proj}_EP_ARGS}
