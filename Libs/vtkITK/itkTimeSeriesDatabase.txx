@@ -281,7 +281,10 @@ void TimeSeriesDatabase<TPixel>::GenerateData()
             std::cout << "Block Region: " << BR;
             std::cout << "Image Region: " << IR;
           }
-          Index<3> BlockIndex = {{ CurrentBlock[0] * TimeSeriesBlockSize,  CurrentBlock[1] * TimeSeriesBlockSize,  CurrentBlock[2] * TimeSeriesBlockSize }};
+          typedef typename Index<3>::IndexValueType ValueType;
+          Index<3> BlockIndex = {{static_cast<ValueType>(CurrentBlock[0] * TimeSeriesBlockSize ), 
+                                  static_cast<ValueType>(CurrentBlock[1] * TimeSeriesBlockSize ),  
+                                  static_cast<ValueType>(CurrentBlock[2] * TimeSeriesBlockSize ) }};
           BlockRegion.SetIndex ( BlockIndex );
           ImageRegionIterator<OutputImageType> it ( output, IR );
           it.GoToBegin();
@@ -453,7 +456,10 @@ void TimeSeriesDatabase<TPixel>::CreateFromFileArchetype ( const char* TSDFilena
                && ( ( CurrentBlock[2] * TimeSeriesBlockSize + TimeSeriesBlockSize ) < region.GetSize()[2] ) )
             {
             // Good we can use an iterator!
-            Index<3> BlockIndex = { {CurrentBlock[0] * TimeSeriesBlockSize,  CurrentBlock[1] * TimeSeriesBlockSize,  CurrentBlock[2] * TimeSeriesBlockSize }};
+            typedef typename Index<3>::IndexValueType ValueType;
+            Index<3> BlockIndex = { {static_cast<ValueType>(CurrentBlock[0] * TimeSeriesBlockSize),  
+                                     static_cast<ValueType>(CurrentBlock[1] * TimeSeriesBlockSize),  
+                                     static_cast<ValueType>(CurrentBlock[2] * TimeSeriesBlockSize) }};
             BlockRegion.SetIndex ( BlockIndex );
             ImageRegionIteratorWithIndex<ImageType> it ( reader->GetOutput(), BlockRegion );
             it.GoToBegin();
