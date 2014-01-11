@@ -31,8 +31,6 @@ set(cli_modules
   N4ITKBiasFieldCorrection
   OrientScalarVolume
   ProbeVolumeWithModel
-  ResampleDTIVolume # Needed by ResampleScalarVectorDWIVolume
-  ResampleScalarVectorDWIVolume # Depends on DiffusionApplications, needed by CropVolume
   RobustStatisticsSegmenter
   ROITest
   SimpleRegionGrowingSegmentation
@@ -40,6 +38,8 @@ set(cli_modules
   ThresholdScalarVolume
   VotingBinaryHoleFillingImageFilter
   )
+  #HACK ResampleDTIVolume # Needed by ResampleScalarVectorDWIVolume
+  #HACK ResampleScalarVectorDWIVolume # Depends on DiffusionApplications, needed by CropVolume
 
 if(Slicer_BUILD_DICOM_SUPPORT)
   list(APPEND cli_modules CreateDICOMSeries)
