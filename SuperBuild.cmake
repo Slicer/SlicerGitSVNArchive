@@ -200,7 +200,7 @@ list_conditional_append(Slicer_BUILD_SimpleFilters Slicer_REMOTE_DEPENDENCIES Si
 
 Slicer_Remote_Add(BRAINSTools
   GIT_REPOSITORY "${git_protocol}://github.com/BRAINSia/BRAINSTools.git"
-  GIT_TAG "bd755e2d82b7b8b8454fcb579d416e39b16dff80"
+  GIT_TAG "757dfc616e59752396eed24670e0fba0cafc5589"
   OPTION_NAME Slicer_BUILD_BRAINSTOOLS
   OPTION_DEPENDS "Slicer_BUILD_CLI_SUPPORT;Slicer_BUILD_CLI"
   #LABELS REMOTE_MODULE # Do not specify label, source directory will be explictly added.

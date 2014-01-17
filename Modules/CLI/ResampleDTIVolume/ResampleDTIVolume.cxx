@@ -953,8 +953,7 @@ int Do( parameters list )
     nonRigid->SetTransform( dynamic_cast<typename
                                          NonRigidTransformType::TransformType *>
                             (warpTransform.GetPointer() ) );
-    typename itk::DiffusionTensor3DAffineTransform<PixelType>::Pointer affine;
-    affine = FSOrPPD<PixelType>( list.ppd );
+    typename itk::DiffusionTensor3DAffineTransform<PixelType>::Pointer affine = FSOrPPD<PixelType>( list.ppd );
     nonRigid->SetAffineTransformType( affine );
     transform = nonRigid;
     }
