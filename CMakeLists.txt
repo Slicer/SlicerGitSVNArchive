@@ -1,10 +1,20 @@
-#-----------------------------------------------------------------------------
+
 cmake_minimum_required(VERSION 2.8.9)
+
+#-----------------------------------------------------------------------------
+set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake" ${CMAKE_MODULE_PATH})
+include(ExternalProject)
+include(ExternalProjectDependency)
+
 #-----------------------------------------------------------------------------
 if(APPLE)
   # Note: By setting CMAKE_OSX_* variables before any enable_language() or project() calls,
   #       we ensure that the bitness will be properly detected.
-  include(${CMAKE_SOURCE_DIR}/CMake/SlicerBlockSetCMakeOSXVariables.cmake)
+  include(SlicerBlockSetCMakeOSXVariables)
+  mark_as_superbuild(
+    VARS CMAKE_OSX_ARCHITECTURES:STRING CMAKE_OSX_SYSROOT:PATH CMAKE_OSX_DEPLOYMENT_TARGET:STRING
+    ALL_PROJECTS
+    )
 endif()
 
 project(Slicer)
@@ -20,7 +30,6 @@ endif()
 # Update CMake module path
 #------------------------------------------------------------------------------
 set(CMAKE_MODULE_PATH
-  ${Slicer_SOURCE_DIR}/CMake
   ${Slicer_SOURCE_DIR}/Extensions/CMake
   ${CMAKE_MODULE_PATH}
   )
@@ -101,9 +110,13 @@ endif()
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
   message(STATUS "Setting build type to 'Debug' as none was specified.")
   set(CMAKE_BUILD_TYPE Debug CACHE STRING "Choose the type of build." FORCE)
+  mark_as_advanced(CMAKE_BUILD_TYPE)
   # Set the possible values of build type for cmake-gui
   set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release"
     "MinSizeRel" "RelWithDebInfo")
+endif()
+if(NOT CMAKE_CONFIGURATION_TYPES)
+  mark_as_superbuild(VARS CMAKE_BUILD_TYPE ALL_PROJECTS)
 endif()
 
 #-----------------------------------------------------------------------------
@@ -117,6 +130,7 @@ set(Slicer_LOGOS_RESOURCE "${Slicer_SOURCE_DIR}/Resources/qSlicer.qrc")
 # Platform checks
 #-----------------------------------------------------------------------------
 include(SlicerBlockPlatformCheck)
+mark_as_superbuild(Slicer_PLATFORM_CHECK:BOOL)
 
 #-----------------------------------------------------------------------------
 # Determine endian type
@@ -131,24 +145,26 @@ find_package(Subversion)
 if(NOT Subversion_FOUND)
   message(FATAL_ERROR "error: Install SVN and try to re-configure")
 endif()
+mark_as_superbuild(Subversion_SVN_EXECUTABLE)
 
 find_package(Git)
 if(NOT GIT_FOUND)
   message(FATAL_ERROR "error: Install Git and try to re-configure")
 endif()
+mark_as_superbuild(GIT_EXECUTABLE)
 
 #-----------------------------------------------------------------------------
 # Qt requirements
 #-----------------------------------------------------------------------------
 if(NOT DEFINED Slicer_REQUIRED_QT_VERSION)
-  set(Slicer_REQUIRED_QT_VERSION "4.7.4" CACHE STRING "Exact required Qt version" FORCE)
+  set(Slicer_REQUIRED_QT_VERSION "4.7.4" CACHE STRING "Minimum required Qt version" FORCE)
 endif()
-set(Slicer_EXPERIMENTAL_QT_VERSION "4.8.4")
+mark_as_superbuild(Slicer_REQUIRED_QT_VERSION)
 
 #-----------------------------------------------------------------------------
 # Superbuild Option - Enabled by default
 #-----------------------------------------------------------------------------
-option(Slicer_SUPERBUILD "Build Slicer and the projects it depends on via SuperBuild.cmake." ON)
+option(Slicer_SUPERBUILD "Build ${PROJECT_NAME} and the projects it depends on." ON)
 mark_as_advanced(Slicer_SUPERBUILD)
 
 set(Slicer_BINARY_INNER_SUBDIR Slicer-build)
@@ -158,12 +174,14 @@ set(Slicer_BINARY_INNER_SUBDIR Slicer-build)
 #------------------------------------------------------------------------------
 # option(BUILD_SHARED_LIBS "Build Slicer with shared libraries." ON)
 set(BUILD_SHARED_LIBS ON)
+mark_as_superbuild(BUILD_SHARED_LIBS:BOOL)
 
 #-----------------------------------------------------------------------------
 # Append the library version information to the library target properties.
 #------------------------------------------------------------------------------
 option(Slicer_WITH_LIBRARY_VERSION "Build with library version information" OFF)
 mark_as_advanced(Slicer_WITH_LIBRARY_VERSION)
+mark_as_superbuild(Slicer_WITH_LIBRARY_VERSION)
 if(Slicer_WITH_LIBRARY_VERSION)
   set(Slicer_LIBRARY_PROPERTIES ${Slicer_LIBRARY_PROPERTIES}
     VERSION ${Slicer_VERSION_FULL}
@@ -177,31 +195,58 @@ endif()
 include(CMakeDependentOption)
 
 option(BUILD_TESTING "Test the project" ON)
+mark_as_superbuild(BUILD_TESTING)
+
 #option(WITH_MEMCHECK "Run tests through valgrind." OFF)
+#mark_as_superbuild(WITH_MEMCHECK)
+
 option(WITH_COVERAGE "Enable/Disable coverage" OFF)
+mark_as_superbuild(WITH_COVERAGE)
+
 option(Slicer_USE_VTK_DEBUG_LEAKS "Enable VTKs Debug Leaks functionality in both VTK and Slicer." ON)
+set(VTK_DEBUG_LEAKS ${Slicer_USE_VTK_DEBUG_LEAKS})
+mark_as_superbuild(VTK_DEBUG_LEAKS:BOOL)
+
 option(Slicer_BUILD_DICOM_SUPPORT "Build Slicer with DICOM support" ON)
+mark_as_superbuild(Slicer_BUILD_DICOM_SUPPORT)
+
 option(Slicer_BUILD_DIFFUSION_SUPPORT "Build Slicer with diffusion (DWI, DTI) support" ON)
+mark_as_superbuild(Slicer_BUILD_DIFFUSION_SUPPORT)
+
 option(Slicer_BUILD_I18N_SUPPORT "Build Slicer with Internationalization support" OFF)
+
 option(Slicer_BUILD_QTLOADABLEMODULES "Build Slicer QT Loadable Modules" ON)
 mark_as_advanced(Slicer_BUILD_QTLOADABLEMODULES)
+mark_as_superbuild(Slicer_BUILD_QTLOADABLEMODULES)
+
 option(Slicer_USE_PYTHONQT "Integrate a python-QT interpreter into Slicer." ON)
+mark_as_superbuild(Slicer_USE_PYTHONQT)
+
 CMAKE_DEPENDENT_OPTION(
   Slicer_BUILD_QTSCRIPTEDMODULES "Build Slicer Python QT Modules" ON
   "Slicer_USE_PYTHONQT" OFF)
 mark_as_advanced(Slicer_BUILD_QTSCRIPTEDMODULES)
+mark_as_superbuild(Slicer_BUILD_QTSCRIPTEDMODULES)
+
 option(Slicer_BUILD_CLI_SUPPORT "Build Slicer with CLI support" ON)
+mark_as_superbuild(Slicer_BUILD_CLI_SUPPORT)
 CMAKE_DEPENDENT_OPTION(
   Slicer_BUILD_CLI "Build Slicer CLI Plugins" ON
   "Slicer_BUILD_CLI_SUPPORT" OFF
   )
+
+mark_as_superbuild(Slicer_BUILD_CLI)
 CMAKE_DEPENDENT_OPTION(
   Slicer_BUILD_LEGACY_CLI "Build Slicer LEGACY_CLI Plugins" ON
   "Slicer_BUILD_CLI" OFF
   )
+
 option(Slicer_BUILD_EXTENSIONMANAGER_SUPPORT "Build Slicer extension manager" ON)
+mark_as_superbuild(Slicer_BUILD_EXTENSIONMANAGER_SUPPORT)
+
 CMAKE_DEPENDENT_OPTION(Slicer_UPDATE_TRANSLATION "update translation" OFF "Slicer_BUILD_I18N_SUPPORT" OFF)
 mark_as_advanced(Slicer_UPDATE_TRANSLATION)
+mark_as_superbuild(Slicer_UPDATE_TRANSLATION)
 
 set(Slicer_FORCED_WC_REVISION "" CACHE STRING "Overwrite value of auto-discovered Slicer_WC_REVISION")
 mark_as_advanced(Slicer_FORCED_WC_REVISION)
@@ -212,20 +257,34 @@ mark_as_advanced(Slicer_FORCED_WC_REVISION)
 CMAKE_DEPENDENT_OPTION(
   Slicer_USE_PYTHONQT_WITH_OPENSSL "Enable PythonQt SSL support" OFF
   "Slicer_USE_PYTHONQT" OFF)
+mark_as_superbuild(Slicer_USE_PYTHONQT_WITH_OPENSSL)
+
 CMAKE_DEPENDENT_OPTION(
   Slicer_USE_PYTHONQT_WITH_TCL "Enable PythonQt Tcl adapter layer" ON
   "Slicer_USE_PYTHONQT" OFF)
+mark_as_superbuild(Slicer_USE_PYTHONQT_WITH_TCL)
+
 CMAKE_DEPENDENT_OPTION(
   Slicer_USE_NUMPY "Build Slicer with NumPy" ON
   "Slicer_USE_PYTHONQT" OFF)
-# option(Slicer_USE_BatchMake   "Build Slicer with BatchMake support." ON)
+mark_as_superbuild(Slicer_USE_NUMPY)
+
 set(Slicer_USE_BatchMake OFF CACHE INTERNAL "Build Slicer with BatchMake support." FORCE)
+mark_as_superbuild(Slicer_USE_BatchMake:BOOL)
+
 option(Slicer_USE_MIDAS       "Build Slicer with MIDAS support." OFF)
+mark_as_superbuild(Slicer_USE_MIDAS)
+
 option(Slicer_USE_OpenIGTLink "Build Slicer with OpenIGTLink support." ON)
+mark_as_superbuild(Slicer_USE_OpenIGTLink)
+
 option(Slicer_USE_CTKAPPLAUNCHER "Configure ctkAppLauncher." ON)
 mark_as_advanced(Slicer_USE_CTKAPPLAUNCHER)
+mark_as_superbuild(Slicer_USE_CTKAPPLAUNCHER)
+
 option(Slicer_USE_QtTesting    "Integrate QtTesting framework into Slicer." ON)
 mark_as_advanced(Slicer_USE_QtTesting)
+mark_as_superbuild(Slicer_USE_QtTesting)
 
 set(ITK_VERSION_MAJOR 4 CACHE STRING "Choose the expected ITK major version to build Slicer (3 or 4).")
 # Set the possible values of ITK major version for cmake-gui
@@ -234,6 +293,7 @@ if(NOT "${ITK_VERSION_MAJOR}" STREQUAL "3" AND NOT "${ITK_VERSION_MAJOR}" STREQU
   set(ITK_VERSION_MAJOR 3 CACHE STRING "Choose the expected ITK major version to build Slicer (3 or 4)." FORCE)
   message(WARNING "Setting ITK_VERSION_MAJOR to '3' as an valid value was specified.")
 endif()
+mark_as_superbuild(ITK_VERSION_MAJOR)
 
 set(USE_ITKv3 OFF)
 set(USE_ITKv4 ON)
@@ -243,6 +303,7 @@ if(${ITK_VERSION_MAJOR} STREQUAL "3")
 endif()
 
 CMAKE_DEPENDENT_OPTION(Slicer_USE_SimpleITK "Build Slicer with SimpleITK support" OFF "USE_ITKv4" OFF)
+mark_as_superbuild(Slicer_USE_SimpleITK)
 
 #
 # SimpleITK has large internal libraries, which take an extremely long
@@ -259,40 +320,7 @@ if(MSVC OR _CMAKE_BUILD_TYPE MATCHES "DEBUG")
   set(Slicer_USE_SimpleITK_SHARED_DEFAULT ON)
 endif()
 CMAKE_DEPENDENT_OPTION(Slicer_USE_SimpleITK_SHARED "Build SimpleITK with shared libraries. Reduces linking time, increases run-time load time." ${Slicer_USE_SimpleITK_SHARED_DEFAULT} "Slicer_USE_SimpleITK" OFF )
-
-#-----------------------------------------------------------------------------
-# The following option has been added for conveniency so that "extension-like"
-# module can be enabled/disabled at the superbuild level.
-CMAKE_DEPENDENT_OPTION(
-  Slicer_BUILD_OpenIGTLinkIF "Build OpenIGTLinkIF." ON
-  "Slicer_BUILD_QTLOADABLEMODULES AND Slicer_USE_OpenIGTLink" OFF)
-mark_as_advanced(CLEAR Slicer_BUILD_OpenIGTLinkIF)
-
-option(Slicer_BUILD_MULTIVOLUME_SUPPORT "Build MultiVolume support." ON)
-mark_as_advanced(Slicer_BUILD_MULTIVOLUME_SUPPORT)
-CMAKE_DEPENDENT_OPTION(
-  Slicer_BUILD_MultiVolumeImporter "Build MultiVolumeImporter." ON
-  "Slicer_BUILD_QTSCRIPTEDMODULES AND Slicer_BUILD_MULTIVOLUME_SUPPORT AND Slicer_USE_NUMPY" OFF)
-mark_as_advanced(Slicer_BUILD_MultiVolumeImporter)
-CMAKE_DEPENDENT_OPTION(
-  Slicer_BUILD_MultiVolumeExplorer "Build MultiVolumeExplorer." ON
-  "Slicer_BUILD_QTLOADABLEMODULES AND Slicer_BUILD_MULTIVOLUME_SUPPORT AND Slicer_USE_PYTHONQT" OFF)
-mark_as_advanced(Slicer_BUILD_MultiVolumeExplorer)
-
-CMAKE_DEPENDENT_OPTION(
-  Slicer_BUILD_SimpleFilters "Build SimpleFilters." ON
-  "Slicer_BUILD_QTSCRIPTEDMODULES AND Slicer_USE_SimpleITK" OFF)
-mark_as_advanced(Slicer_BUILD_SimpleFilters)
-
-CMAKE_DEPENDENT_OPTION(
-  Slicer_BUILD_BRAINSTOOLS "Build the BRAINS subset of registration and segmentation tools." ON
-  "Slicer_BUILD_CLI_SUPPORT AND Slicer_BUILD_CLI" OFF)
-mark_as_advanced(Slicer_BUILD_BRAINSTOOLS)
-
-CMAKE_DEPENDENT_OPTION(
-  Slicer_BUILD_EMSegment "Build EMSegment." ON
-  "Slicer_BUILD_BRAINSTOOLS AND Slicer_BUILD_QTLOADABLEMODULES AND Slicer_USE_PYTHONQT" OFF)
-mark_as_advanced(Slicer_BUILD_EMSegment)
+mark_as_superbuild(Slicer_USE_SimpleITK_SHARED)
 
 #-----------------------------------------------------------------------------
 # Install no development files by default, but allow the user to get
@@ -313,12 +341,16 @@ endif()
 find_package(Doxygen QUIET)
 
 if(DOXYGEN_DOT_FOUND)
+  mark_as_superbuild(DOXYGEN_EXECUTABLE)
+
   set(DOCUMENTATION_ARCHIVES_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
    CACHE PATH "Where documentation archives should be stored")
   mark_as_advanced(DOCUMENTATION_ARCHIVES_OUTPUT_DIRECTORY)
+  mark_as_superbuild(DOCUMENTATION_ARCHIVES_OUTPUT_DIRECTORY)
 
   option(DOCUMENTATION_TARGET_IN_ALL "Include the custom target for building documentation in 'all'" OFF)
   mark_as_advanced(DOCUMENTATION_TARGET_IN_ALL)
+  mark_as_superbuild(DOCUMENTATION_TARGET_IN_ALL)
 endif()
 
 #-----------------------------------------------------------------------------
@@ -346,7 +378,6 @@ include(CMakeParseArguments)
 include(Slicer3PluginsMacros)
 include(SlicerMacroExtractRepositoryInfo)
 include(SlicerMacroGetOperatingSystemArchitectureBitness)
-include(SlicerMacroEmptyExternalProject)
 if(Slicer_BUILD_I18N_SUPPORT)
   include(SlicerMacroTranslation)
 endif()
@@ -382,6 +413,7 @@ set(SLICER_REVISION_SPECIFIC_USER_SETTINGS_FILEBASENAME "")
 if(NOT DEFINED Slicer_MAIN_PROJECT)
   set(Slicer_MAIN_PROJECT SlicerApp CACHE INTERNAL "Main project name")
 endif()
+mark_as_superbuild(Slicer_MAIN_PROJECT:STRING)
 if(NOT DEFINED ${Slicer_MAIN_PROJECT}_APPLICATION_NAME)
   set(${Slicer_MAIN_PROJECT}_APPLICATION_NAME Slicer CACHE INTERNAL "Main application name")
 else()
@@ -394,8 +426,8 @@ set(Slicer_MAIN_PROJECT_APPLICATION_NAME ${${Slicer_MAIN_PROJECT}_APPLICATION_NA
 # Slicer version number.
 #-----------------------------------------------------------------------------
 set(Slicer_VERSION_MAJOR "4")
-set(Slicer_VERSION_MINOR "2")
-set(Slicer_VERSION_PATCH "2")
+set(Slicer_VERSION_MINOR "3")
+set(Slicer_VERSION_PATCH "1")
 # Releases define a tweak level
 #set(Slicer_VERSION_TWEAK 0)
 #set(Slicer_VERSION_RC 0)
@@ -472,23 +504,126 @@ if(Slicer_BUILD_CLI_SUPPORT)
 endif()
 
 #-----------------------------------------------------------------------------
+# ITKv4 - Slicer_ITK_COMPONENTS
+#-----------------------------------------------------------------------------
+set(Slicer_ITK_COMPONENTS "")
+if(${ITK_VERSION_MAJOR} GREATER 3)
+  set(ITK_IO_MODULES_USED
+    ITKIOJPEG
+    ITKIOGDCM
+    ITKIOBMP
+    ITKIOLSM
+    ITKIOPNG
+    ITKIOTIFF
+    ITKIOVTK
+    ITKIOStimulate
+    ITKIOBioRad
+    ITKIOMeta
+    ITKIONIFTI
+    ITKIONRRD
+    ITKIOGIPL
+    )
+  if(Slicer_BUILD_DICOM_SUPPORT)
+    list(APPEND ITK_IO_MODULES_USED ITKIODCMTK)
+  endif()
+  set(Slicer_ITK_COMPONENTS
+    ITKAnisotropicSmoothing
+    ITKAntiAlias
+    ITKBiasCorrection
+    ITKBinaryMathematicalMorphology
+    ITKCommon
+    ITKConnectedComponents
+    ITKCurvatureFlow
+    ITKDeprecated
+    ITKDiffusionTensorImage
+    ITKDisplacementField
+    ITKDistanceMap
+    ITKFastMarching
+    ITKHDF5
+    ITKIOImageBase
+    ITKIOSpatialObjects
+    ITKIOStimulate
+    ITKIOTransformBase
+    ITKImageAdaptors
+    ITKImageCompare
+    ITKImageCompose
+    ITKImageFeature
+    ITKImageFilterBase
+    ITKImageFunction
+    ITKImageFusion
+    ITKImageGradient
+    ITKImageGrid
+    ITKImageIntensity
+    ITKImageSources
+    ITKImageStatistics
+    ITKLabelVoting
+    ITKLevelSets
+    ITKMathematicalMorphology
+    ITKMesh
+    ITKOptimizers
+    ITKPDEDeformableRegistration
+    ITKPath
+    ITKQuadEdgeMesh
+    ITKQuadEdgeMeshFiltering
+    ITKRegionGrowing
+    ITKRegistrationCommon
+    ITKReview
+    ITKSmoothing
+    ITKSpatialObjects
+    ITKStatistics
+    ITKTestKernel
+    ITKThresholding
+    ITKTransform
+    ITKV3Compatibility
+    ITKVTK
+    #    ITKVtkGlue
+    ITKZLIB
+    ${ITK_IO_MODULES_USED}
+    )
+endif()
+
+#-----------------------------------------------------------------------------
 # Qt - Slicer_REQUIRED_QT_MODULES
 #-----------------------------------------------------------------------------
 # Module name should be specified as they appear in FindQt4.cmake
-# For example, the module name associated with the variable QT_USE_QTXML is XML.
-set(Slicer_REQUIRED_QT_MODULES CORE GUI NETWORK UITOOLS XML WEBKIT SVG SQL)
+# For example, the module name associated with the variable QT_USE_QTXML is QTXML.
+# Note that the modules will be installed when packaging.
+set(Slicer_REQUIRED_QT_MODULES
+  QTCORE QTGUI
+  QTNETWORK QTOPENGL
+  QTUITOOLS #no dll
+  QTXML QTXMLPATTERNS
+  QTWEBKIT
+  QTSVG QTSQL
+  )
+if(WIN32)
+  list(APPEND Slicer_REQUIRED_QT_MODULES PHONON) # webkit requires phonon
+endif()
 if(Slicer_BUILD_EXTENSIONMANAGER_SUPPORT)
-  list(APPEND Slicer_REQUIRED_QT_MODULES SCRIPT)
+  list(APPEND Slicer_REQUIRED_QT_MODULES QTSCRIPT)
 endif()
 if(BUILD_TESTING)
-  list(APPEND Slicer_REQUIRED_QT_MODULES TEST)
+  list(APPEND Slicer_REQUIRED_QT_MODULES QTTEST)
 endif()
+list(APPEND Slicer_REQUIRED_QT_MODULES ${Slicer_ADDITIONAL_REQUIRED_QT_MODULES})
+
+if(DEFINED Slicer_ADDITIONAL_REQUIRED_QT_MODULES)
+  mark_as_superbuild(Slicer_ADDITIONAL_REQUIRED_QT_MODULES:STRING)
+endif()
+
+mark_as_superbuild(Slicer_USE_SYSTEM_QT:BOOL)
 
 #-----------------------------------------------------------------------------
 # Qt plugins (designer, imageformats, ...) relative directories
 #-----------------------------------------------------------------------------
 set(Slicer_QtPlugins_DIR "lib/QtPlugins")
 set(Slicer_INSTALL_QtPlugins_DIR "${Slicer_INSTALL_ROOT}${Slicer_QtPlugins_DIR}")
+
+#-----------------------------------------------------------------------------
+# Qt
+#-----------------------------------------------------------------------------
+include(SlicerBlockFindQtAndCheckVersion)
+mark_as_superbuild(VARS QT_QMAKE_EXECUTABLE LABELS "FIND_PACKAGE")
 
 #-----------------------------------------------------------------------------
 # Testing
@@ -516,6 +651,12 @@ if(Slicer_SUPERBUILD)
   include("${CMAKE_CURRENT_SOURCE_DIR}/SuperBuild.cmake")
   return()
 endif()
+
+foreach(dep QT ${Slicer_DEPENDENCIES})
+  if(Slicer_USE_SYSTEM_${dep})
+    message(STATUS "Using system ${dep}")
+  endif()
+endforeach()
 
 #-----------------------------------------------------------------------------
 # CMake Function(s) and Macro(s)
@@ -608,78 +749,6 @@ endif()
 set(expected_ITK_VERSION_MAJOR ${ITK_VERSION_MAJOR})
 set(Slicer_ITK_COMPONENTS "")
 if(${ITK_VERSION_MAJOR} GREATER 3)
-  set(ITK_IO_MODULES_USED
-    ITKIOJPEG
-    ITKIOGDCM
-    ITKIOBMP
-    ITKIOLSM
-    ITKIOPNG
-    ITKIOTIFF
-    ITKIOVTK
-    ITKIOStimulate
-    ITKIOBioRad
-    ITKIOMeta
-    ITKIONIFTI
-    ITKIONRRD
-    ITKIOGIPL
-    )
-  if(Slicer_BUILD_DICOM_SUPPORT)
-    list(APPEND ITK_IO_MODULES_USED ITKIODCMTK)
-  endif()
-  set(Slicer_ITK_COMPONENTS
-    ITKAnisotropicSmoothing
-    ITKAntiAlias
-    ITKBiasCorrection
-    ITKBinaryMathematicalMorphology
-    ITKCommon
-    ITKConnectedComponents
-    ITKCurvatureFlow
-    ITKDeprecated
-    ITKDiffusionTensorImage
-    ITKDisplacementField
-    ITKDistanceMap
-    ITKFastMarching
-    ITKHDF5
-    ITKIOImageBase
-    ITKIOSpatialObjects
-    ITKIOStimulate
-    ITKIOTransformBase
-    ITKImageAdaptors
-    ITKImageCompare
-    ITKImageCompose
-    ITKImageFeature
-    ITKImageFilterBase
-    ITKImageFunction
-    ITKImageFusion
-    ITKImageGradient
-    ITKImageGrid
-    ITKImageIntensity
-    ITKImageSources
-    ITKImageStatistics
-    ITKLabelVoting
-    ITKLevelSets
-    ITKMathematicalMorphology
-    ITKMesh
-    ITKOptimizers
-    ITKPDEDeformableRegistration
-    ITKPath
-    ITKQuadEdgeMesh
-    ITKQuadEdgeMeshFiltering
-    ITKRegionGrowing
-    ITKRegistrationCommon
-    ITKReview
-    ITKSmoothing
-    ITKSpatialObjects
-    ITKStatistics
-    ITKTestKernel
-    ITKThresholding
-    ITKTransform
-    ITKV3Compatibility
-    ITKVTK
-    #    ITKVtkGlue
-    ITKZLIB
-    ${ITK_IO_MODULES_USED}
-    )
   find_package(ITK COMPONENTS ${Slicer_ITK_COMPONENTS})
 else()
   find_package(ITK REQUIRED)
@@ -746,11 +815,6 @@ if(Slicer_BUILD_EXTENSIONMANAGER_SUPPORT)
 endif()
 
 #-----------------------------------------------------------------------------
-# Qt
-#-----------------------------------------------------------------------------
-include(SlicerBlockFindQtAndCheckVersion)
-
-#-----------------------------------------------------------------------------
 # Update CMake module path
 #-----------------------------------------------------------------------------
 set(CMAKE_MODULE_PATH
@@ -815,23 +879,13 @@ include(${Teem_USE_FILE})
 #-----------------------------------------------------------------------------
 # SlicerLibCurl
 #-----------------------------------------------------------------------------
-find_package(SLICERLIBCURL REQUIRED)
-include(${SLICERLIBCURL_USE_FILE})
+find_package(CURL REQUIRED)
+include_directories(${CURL_INCLUDE_DIRS})
 
 #-----------------------------------------------------------------------------
 # LibArchive
 #-----------------------------------------------------------------------------
-set(LibArchive_INCLUDE_DIR ${LibArchive_DIR}/include)
-if(WIN32)
-  set(LibArchive_LIBRARY ${LibArchive_DIR}/lib/${CMAKE_SHARED_LIBRARY_PREFIX}archive.lib)
-else()
-  set(LibArchive_LIBRARY ${LibArchive_DIR}/lib/${CMAKE_SHARED_LIBRARY_PREFIX}archive${CMAKE_SHARED_LIBRARY_SUFFIX})
-endif()
-foreach(var LibArchive_LIBRARY LibArchive_INCLUDE_DIR)
-  if(NOT EXISTS "${${var}}")
-    message(FATAL_ERROR "error: ${var} corresponds to an inexistant file or directory. [${${var}}]")
-  endif()
-endforeach()
+find_package(LibArchive REQUIRED MODULE)
 
 #-----------------------------------------------------------------------------
 # BatchMake

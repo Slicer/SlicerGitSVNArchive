@@ -20,10 +20,8 @@
 
 // Qt includes
 #include <QDebug>
-#include <QDesktopServices>
 #include <QNetworkCookieJar>
 #include <QNetworkReply>
-#include <QSettings>
 #include <QTime>
 #include <QUrl>
 #include <QWebFrame>
@@ -91,8 +89,6 @@ void qSlicerWebWidgetPrivate::init()
   this->ProgressBar->setVisible(false);
 
   this->mainFrame()->setScrollBarPolicy(Qt::Vertical, Qt::ScrollBarAlwaysOn);
-
-  this->WebView->page()->setLinkDelegationPolicy(QWebPage::DelegateExternalLinks);
 
   QObject::connect(this->WebView->page(), SIGNAL(linkClicked(QUrl)),
                    q, SLOT(onLinkClicked(QUrl)));
@@ -218,24 +214,24 @@ void qSlicerWebWidget::onLoadFinished(bool ok)
 // --------------------------------------------------------------------------
 void qSlicerWebWidget::onLinkClicked(const QUrl& url)
 {
-  if(!QDesktopServices::openUrl(url))
-    {
-    qWarning() << "Failed to open url:" << url;
-    }
+  this->webView()->setUrl(url);
 }
 
 // --------------------------------------------------------------------------
-#ifdef Slicer_USE_PYTHONQT_WITH_OPENSSL
 void qSlicerWebWidget::handleSslErrors(QNetworkReply* reply,
                                        const QList<QSslError> &errors)
 {
+#ifdef QT_NO_OPENSSL
+  Q_UNUSED(reply)
+  Q_UNUSED(errors)
+#else
   foreach (QSslError e, errors)
     {
     qDebug() << "[SSL] [" << qPrintable(reply->url().host().trimmed()) << "]"
              << qPrintable(e.errorString());
     }
-}
 #endif
+}
 
 // --------------------------------------------------------------------------
 bool qSlicerWebWidget::eventFilter(QObject* obj, QEvent* event)
@@ -246,7 +242,9 @@ bool qSlicerWebWidget::eventFilter(QObject* obj, QEvent* event)
       (event->type() == QEvent::Show || event->type() == QEvent::Hide))
     {
     d->setDocumentWebkitHidden(!d->WebView->isVisible());
-    this->evalJS("$.event.trigger({type: 'webkitvisibilitychange'})"); // Assume jquery is available
+    this->evalJS("if (typeof $ != 'undefined') {"
+                 "  $.event.trigger({type: 'webkitvisibilitychange'})"
+                 "} else { console.info('JQuery not loaded - Failed to trigger webkitvisibilitychange') }");
     }
   return QObject::eventFilter(obj, event);
 }

@@ -1,45 +1,27 @@
 
-# Make sure this file is included only once
-get_filename_component(CMAKE_CURRENT_LIST_FILENAME ${CMAKE_CURRENT_LIST_FILE} NAME_WE)
-if(${CMAKE_CURRENT_LIST_FILENAME}_FILE_INCLUDED)
-  return()
-endif()
-set(${CMAKE_CURRENT_LIST_FILENAME}_FILE_INCLUDED 1)
-
-# Set dependency list
-set(BatchMake_DEPENDENCIES ${ITK_EXTERNAL_NAME})
-
-# Include dependent projects if any
-SlicerMacroCheckExternalProjectDependency(BatchMake)
 set(proj BatchMake)
 
-set(EXTERNAL_PROJECT_OPTIONAL_ARGS)
+# Set dependency list
+set(${proj}_DEPENDENCIES ${ITK_EXTERNAL_NAME})
 
-# Set CMake OSX variable to pass down the external project
-if(APPLE)
-  list(APPEND EXTERNAL_PROJECT_OPTIONAL_ARGS
-    -DCMAKE_OSX_ARCHITECTURES=${CMAKE_OSX_ARCHITECTURES}
-    -DCMAKE_OSX_SYSROOT=${CMAKE_OSX_SYSROOT}
-    -DCMAKE_OSX_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET})
-endif()
+# Include dependent projects if any
+ExternalProject_Include_Dependencies(${proj} PROJECT_VAR proj DEPENDS_VAR ${proj}_DEPENDENCIES)
 
-if(NOT CMAKE_CONFIGURATION_TYPES)
-  list(APPEND EXTERNAL_PROJECT_OPTIONAL_ARGS
-    -DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE})
+if(${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
+  message(FATAL_ERROR "Enabling ${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj} is not supported !")
 endif()
 
 if(NOT DEFINED git_protocol)
   set(git_protocol "git")
 endif()
 
-#message(STATUS "${__indent}Adding project ${proj}")
 ExternalProject_Add(${proj}
+  ${${proj}_EP_ARGS}
   GIT_REPOSITORY "${git_protocol}://batchmake.org/BatchMake.git"
   GIT_TAG "1f5bf4f92e8678c34dc6f7558be5e6613804d988"
   SOURCE_DIR BatchMake
   BINARY_DIR BatchMake-build
-  CMAKE_GENERATOR ${gen}
-  CMAKE_ARGS
+  CMAKE_CACHE_ARGS
     -DCMAKE_CXX_COMPILER:FILEPATH=${CMAKE_CXX_COMPILER}
     -DCMAKE_CXX_FLAGS:STRING=${ep_common_cxx_flags}
     -DCMAKE_C_COMPILER:FILEPATH=${CMAKE_C_COMPILER}
@@ -51,10 +33,14 @@ ExternalProject_Add(${proj}
     -DGRID_SUPPORT:BOOL=ON
     -DUSE_SPLASHSCREEN:BOOL=OFF
     -DITK_DIR:PATH=${ITK_DIR}
-    ${EXTERNAL_PROJECT_OPTIONAL_ARGS}
   INSTALL_COMMAND ""
   DEPENDS
-    ${BatchMake_DEPENDENCIES}
+    ${${proj}_DEPENDENCIES}
   )
 
 set(BatchMake_DIR ${CMAKE_BINARY_DIR}/BatchMake-build)
+
+mark_as_superbuild(
+  VARS BatchMake_DIR:PATH
+  LABELS "FIND_PACKAGE"
+  )

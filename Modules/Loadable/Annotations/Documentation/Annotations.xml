@@ -2,9 +2,9 @@
 <executable>
   <category>Base</category>
   <title>Annotations</title>
-  <description><![CDATA[Create and edit annotations, supplementary information associated with a scene. Currently supported annotations are fiducial points, rulers, and regions of interest (ROIs).]]></description>
-  <version>4.2</version>
-  <documentation-url>http://wiki.slicer.org/slicerWiki/index.php/Documentation/4.2/Modules/Annotations</documentation-url>
+  <description><![CDATA[Create and edit annotations, supplementary information associated with a scene. Currently supported annotations are rulers and regions of interest (ROIs). Use the Markups module for fiducials.]]></description>
+  <version>4.3</version>
+  <documentation-url>http://wiki.slicer.org/slicerWiki/index.php/Documentation/4.3/Modules/Annotations</documentation-url>
   <license>slicer4</license>
   <contributor>Nicole Aucoin (SPL, BWH), Daniel Haehn (SPL, BWH), Kilian Pohl (UPenn), Yong Zhang (IBM), Wendy Plesniak (SPL, BWH)</contributor>
   <acknowledgements><![CDATA[The research was funded by an ARRA supplement to NIH NCRR (P41 RR13218).This work is part of the National Alliance for Medical Image Computing (NAMIC), funded by the National Institutes of Health through the NIH Roadmap for Medical Research, Grant U54 EB005149.]]></acknowledgements>
@@ -87,7 +87,7 @@
     </parameter>
     <parameter>
       <label>Value</label>
-      <description><![CDATA[A useful value associated with the annotation (location for fiducials, length for rulers)]]></description>
+      <description><![CDATA[A useful value associated with the annotation (length for rulers)]]></description>
     </parameter>
     <parameter>
       <label>Name</label>
@@ -141,7 +141,7 @@
     <label>Modify Annotation Properties</label>
     <parameter>
       <label>Type</label>
-      <description><![CDATA[The class type for this annotation, is it a fiducial, ruler, region of interest?]]></description>
+      <description><![CDATA[The class type for this annotation, is it a ruler, region of interest?]]></description>
     </parameter>
     <parameter>
       <label>Color</label>

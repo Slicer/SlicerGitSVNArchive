@@ -19,11 +19,13 @@
 #include <vtkMRMLFreeSurferModelStorageNode.h>
 #include <vtkMRMLModelDisplayNode.h>
 #include <vtkMRMLModelNode.h>
+#include <vtkMRMLScene.h>
 #include <vtkMRMLTransformNode.h>
 
 /// VTK includes
 #include <vtkGeneralTransform.h>
 #include <vtkNew.h>
+#include <vtkObjectFactory.h>
 #include <vtkPolyDataNormals.h>
 #include <vtkSmartPointer.h>
 #include <vtkTagTable.h>
@@ -64,9 +66,9 @@ vtkSlicerModelsLogic::~vtkSlicerModelsLogic()
 //----------------------------------------------------------------------------
 void vtkSlicerModelsLogic::SetMRMLSceneInternal(vtkMRMLScene* newScene)
 {
-  vtkSmartPointer<vtkIntArray> sceneEvents = vtkSmartPointer<vtkIntArray>::New();
+  vtkNew<vtkIntArray> sceneEvents;
   sceneEvents->InsertNextValue(vtkMRMLScene::NodeRemovedEvent);
-  this->SetAndObserveMRMLSceneEventsInternal(newScene, sceneEvents);
+  this->SetAndObserveMRMLSceneEventsInternal(newScene, sceneEvents.GetPointer());
 }
 
 //----------------------------------------------------------------------------
@@ -76,9 +78,7 @@ void vtkSlicerModelsLogic::ObserveMRMLScene()
       this->GetMRMLScene()->GetNthNodeByClass(0, "vtkMRMLClipModelsNode") == 0)
     {
     // vtkMRMLClipModelsNode is a singleton
-    vtkMRMLClipModelsNode* clipNode = vtkMRMLClipModelsNode::New();
-    this->GetMRMLScene()->AddNode(clipNode);
-    clipNode->Delete();
+    this->GetMRMLScene()->AddNode(vtkSmartPointer<vtkMRMLClipModelsNode>::New());
     }
   this->Superclass::ObserveMRMLScene();
 }
@@ -145,10 +145,10 @@ vtkMRMLModelNode* vtkSlicerModelsLogic::AddModel (const char* filename)
     {
     return 0;
     }
-  vtkSmartPointer<vtkMRMLModelNode> modelNode = vtkSmartPointer<vtkMRMLModelNode>::New();
-  vtkSmartPointer<vtkMRMLModelDisplayNode> displayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
-  vtkSmartPointer<vtkMRMLModelStorageNode> mStorageNode = vtkSmartPointer<vtkMRMLModelStorageNode>::New();
-  vtkSmartPointer<vtkMRMLFreeSurferModelStorageNode> fsmStorageNode = vtkSmartPointer<vtkMRMLFreeSurferModelStorageNode>::New();
+  vtkNew<vtkMRMLModelNode> modelNode;
+  vtkNew<vtkMRMLModelDisplayNode> displayNode;
+  vtkNew<vtkMRMLModelStorageNode> mStorageNode;
+  vtkNew<vtkMRMLFreeSurferModelStorageNode> fsmStorageNode;
   fsmStorageNode->SetUseStripper(0);  // turn off stripping by default (breaks some pickers)
   vtkSmartPointer<vtkMRMLStorageNode> storageNode;
 
@@ -159,9 +159,7 @@ vtkMRMLModelNode* vtkSlicerModelsLogic::AddModel (const char* filename)
     useURI = this->GetMRMLScene()->GetCacheManager()->IsRemoteReference(filename);
     vtkDebugMacro("AddModel: file name is remote: " << filename);
     }
-  
-  itksys_stl::string name;
-  const char *localFile;
+  const char *localFile=0;
   if (useURI)
     {
     mStorageNode->SetURI(filename);
@@ -175,21 +173,21 @@ vtkMRMLModelNode* vtkSlicerModelsLogic::AddModel (const char* filename)
     fsmStorageNode->SetFileName(filename);
     localFile = filename;
     }
-  const itksys_stl::string fname(localFile);
+  const itksys_stl::string fname(localFile?localFile:"");
   // the model name is based on the file name (itksys call should work even if
   // file is not on disk yet)
-  name = itksys::SystemTools::GetFilenameName(fname);
+  itksys_stl::string name = itksys::SystemTools::GetFilenameName(fname);
   vtkDebugMacro("AddModel: got model name = " << name.c_str());
-  
+
   // check to see which node can read this type of file
   if (mStorageNode->SupportedFileType(name.c_str()))
     {
-    storageNode = mStorageNode;
+    storageNode = mStorageNode.GetPointer();
     }
   else if (fsmStorageNode->SupportedFileType(name.c_str()))
     {
     vtkDebugMacro("AddModel: have a freesurfer type model file.");
-    storageNode = fsmStorageNode;
+    storageNode = fsmStorageNode.GetPointer();
     }
 
   /* don't read just yet, need to add to the scene first for remote reading
@@ -210,8 +208,8 @@ vtkMRMLModelNode* vtkSlicerModelsLogic::AddModel (const char* filename)
 
     this->GetMRMLScene()->SaveStateForUndo();
 
-    this->GetMRMLScene()->AddNode(storageNode);
-    this->GetMRMLScene()->AddNode(displayNode);
+    this->GetMRMLScene()->AddNode(storageNode.GetPointer());
+    this->GetMRMLScene()->AddNode(displayNode.GetPointer());
 
     // Set the scene so that SetAndObserve[Display|Storage]NodeID can find the
     // node in the scene (so that DisplayNodes return something not empty)
@@ -219,25 +217,23 @@ vtkMRMLModelNode* vtkSlicerModelsLogic::AddModel (const char* filename)
     modelNode->SetAndObserveStorageNodeID(storageNode->GetID());
     modelNode->SetAndObserveDisplayNodeID(displayNode->GetID());
 
-    this->GetMRMLScene()->AddNode(modelNode);
+    this->GetMRMLScene()->AddNode(modelNode.GetPointer());
 
     // now set up the reading
     vtkDebugMacro("AddModel: calling read on the storage node");
-    int retval = storageNode->ReadData(modelNode);
+    int retval = storageNode->ReadData(modelNode.GetPointer());
     if (retval != 1)
       {
       vtkErrorMacro("AddModel: error reading " << filename);
-      this->GetMRMLScene()->RemoveNode(modelNode);
-      modelNode = NULL;
+      this->GetMRMLScene()->RemoveNode(modelNode.GetPointer());
       }
     }
   else
     {
-    vtkDebugMacro("Couldn't read file, returning null model node: " << filename);
-    modelNode = NULL;
+    vtkErrorMacro("Couldn't read file: " << filename);
     }
 
-  return modelNode;
+  return modelNode.GetPointer();
 }
 
 //----------------------------------------------------------------------------
@@ -413,9 +409,8 @@ void vtkSlicerModelsLogic::TransformModel(vtkMRMLTransformNode *tnode,
     return;
     }
 
-  vtkPolyData *poly = vtkPolyData::New();
-  modelOut->SetAndObservePolyData(poly);
-  poly->Delete();
+  vtkNew<vtkPolyData> poly;
+  modelOut->SetAndObservePolyData(poly.GetPointer());
 
   poly->DeepCopy(modelNode->GetPolyData());
 
@@ -431,8 +426,8 @@ void vtkSlicerModelsLogic::TransformModel(vtkMRMLTransformNode *tnode,
     //--- triangle strips only. Normals are not computed for lines or vertices.
     //--- Triangle strips are broken up into triangle polygons.
     //--- Polygons are not automatically re-stripped.
-    vtkPolyDataNormals *normals = vtkPolyDataNormals::New();
-    normals->SetInput ( poly );
+    vtkNew<vtkPolyDataNormals> normals;
+    normals->SetInput(poly.GetPointer());
     //--- NOTE: This assumes a completely closed surface
     //---(i.e. no boundary edges) and no non-manifold edges.
     //--- If these constraints do not hold, the AutoOrientNormals
@@ -447,8 +442,6 @@ void vtkSlicerModelsLogic::TransformModel(vtkMRMLTransformNode *tnode,
 
     normals->Update();
     modelOut->SetAndObservePolyData(normals->GetOutput());
-
-    normals->Delete();
    }
 
   modelOut->SetAndObserveTransformNodeID(mtnode == NULL ? NULL : mtnode->GetID());

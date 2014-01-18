@@ -15,17 +15,21 @@
 #include "vtkMRMLScene.h"
 
 // VTK includes
-#include <vtkNew.h>
 #include <vtkCollection.h>
+#include <vtkNew.h>
+#include <vtkObjectFactory.h>
+
+// STD includes
+#include <sstream>
 
 //---------------------------------------------------------------------------
 class vtkMRMLNodeTestHelper1 : public vtkMRMLNode
 {
 public:
   // Provide a concrete New.
-  static vtkMRMLNodeTestHelper1 *New(){return new vtkMRMLNodeTestHelper1;};
+  static vtkMRMLNodeTestHelper1 *New();
 
-  vtkTypeMacro( vtkMRMLNodeTestHelper1,vtkMRMLNode);
+  vtkTypeMacro(vtkMRMLNodeTestHelper1,vtkMRMLNode);
 
   NodeReferencesType& GetInternalReferencedNodes()
     {
@@ -34,13 +38,14 @@ public:
 
   virtual vtkMRMLNode* CreateNodeInstance()
     {
-    return new vtkMRMLNodeTestHelper1;
+    return vtkMRMLNodeTestHelper1::New();
     }
   virtual const char* GetNodeTagName()
     {
     return "vtkMRMLNodeTestHelper1";
     }
 };
+vtkStandardNewMacro(vtkMRMLNodeTestHelper1);
 
 //---------------------------------------------------------------------------
 bool TestAttribute();
@@ -54,18 +59,19 @@ bool TestRemoveReferencingNode();
 bool TestNodeReferences();
 bool TestReferenceModifiedEvent();
 bool TestReferencesWithEvent();
-bool TestAddReferenceedNodeIDEventsWithNoScene();
+bool TestAddReferencedNodeIDEventsWithNoScene();
 bool TestReferenceNodeNoObservers();
+bool TestNodeReferenceSerialization();
 
 
 //---------------------------------------------------------------------------
 int vtkMRMLNodeTest1(int , char * [] )
 {
-  vtkSmartPointer< vtkMRMLNodeTestHelper1 > node1 = vtkSmartPointer< vtkMRMLNodeTestHelper1 >::New();
+  vtkNew<vtkMRMLNodeTestHelper1> node1;
 
-  EXERCISE_BASIC_OBJECT_METHODS( node1 );
+  EXERCISE_BASIC_OBJECT_METHODS(node1.GetPointer());
 
-  EXERCISE_BASIC_MRML_METHODS(vtkMRMLNodeTestHelper1, node1);
+  EXERCISE_BASIC_MRML_METHODS(vtkMRMLNodeTestHelper1, node1.GetPointer());
 
   bool res = true;
   res = TestAttribute();
@@ -79,8 +85,9 @@ int vtkMRMLNodeTest1(int , char * [] )
   res = TestNodeReferences() && res;
   res = TestReferenceModifiedEvent() && res;
   res = TestReferencesWithEvent() && res;
-  res = TestAddReferenceedNodeIDEventsWithNoScene() && res;
+  res = TestAddReferencedNodeIDEventsWithNoScene() && res;
   res = TestReferenceNodeNoObservers() && res;
+  res = TestNodeReferenceSerialization() && res;
 
   return res ? EXIT_SUCCESS : EXIT_FAILURE;
 }
@@ -101,7 +108,7 @@ bool TestSetAttribute(const char* attribute, const char* value,
   if ((expectedValue == 0 && node->GetAttribute(attribute) != 0) ||
       (expectedValue != 0 && strcmp(expectedValue, node->GetAttribute(attribute)) != 0))
     {
-    std::cout << __LINE__ << ": TestSetAttribute failed: "
+    std::cerr << __LINE__ << ": TestSetAttribute failed: "
               << "attribute: " << (attribute ? attribute : "null") << " "
               << "value: " << (value ? value : "null")
               << std::endl;
@@ -109,7 +116,7 @@ bool TestSetAttribute(const char* attribute, const char* value,
     }
   if (node->GetAttributeNames().size() != expectedSize)
     {
-    std::cout << __LINE__ << ": TestSetAttribute failed: "
+    std::cerr << __LINE__ << ": TestSetAttribute failed: "
               << "attribute: " << (attribute ? attribute : "null") << " "
               << "value: " << (value ? value : "null")
               << std::endl;
@@ -118,7 +125,7 @@ bool TestSetAttribute(const char* attribute, const char* value,
   if (spy->GetTotalNumberOfEvents() != expectedModified ||
     spy->GetNumberOfEvents(vtkCommand::ModifiedEvent) != expectedModified)
     {
-    std::cout << __LINE__ << ": SetViewArrangement failed. "
+    std::cerr << __LINE__ << ": SetViewArrangement failed. "
               << spy->GetTotalNumberOfEvents() << " events, "
               << spy->GetNumberOfEvents(vtkCommand::ModifiedEvent) << " modified events"
               << std::endl;
@@ -138,7 +145,7 @@ bool TestAttribute()
       node->GetAttribute("") != 0 ||
       node->GetAttribute("Attribute1") != 0)
     {
-    std::cout << "vtkMRMLNode bad default attributes" << std::endl;
+    std::cerr << "vtkMRMLNode bad default attributes" << std::endl;
     return false;
     }
 
@@ -183,7 +190,7 @@ bool TestAddReferenceNodeID()
       referencingNode->GetNthNodeReference(role1.c_str(), 0) != 0 || 
       returnNode != 0)
     {
-    std::cout << __LINE__ << ": AddAndObserveNodeReferenceID failed" << std::endl;
+    std::cerr << __LINE__ << ": AddAndObserveNodeReferenceID failed" << std::endl;
     return false;
     }
 
@@ -194,7 +201,7 @@ bool TestAddReferenceNodeID()
       referencingNode->GetNthNodeReference(role1.c_str(), 0) != 0 || 
       returnNode != 0)
     {
-    std::cout << __LINE__ << ": AddAndObserveNodeReferenceID failed" << std::endl;
+    std::cerr << __LINE__ << ": AddAndObserveNodeReferenceID failed" << std::endl;
     return false;
     }
 
@@ -214,7 +221,7 @@ bool TestAddReferenceNodeID()
       newReferencedNodesCount != (referencedNodesCount + 1) ||
       returnNode != referencedNode1.GetPointer())
     {
-    std::cout << __LINE__ << ": AddAndObserveNodeReferenceID failed" << std::endl;
+    std::cerr << __LINE__ << ": AddAndObserveNodeReferenceID failed" << std::endl;
     return false;
     }
 
@@ -225,7 +232,7 @@ bool TestAddReferenceNodeID()
       referencingNode->GetNthNodeReference(role1.c_str(), 1) != 0 || 
       returnNode != 0)
     {
-    std::cout << __LINE__ << ": AddAndObserveNodeReferenceID failed" << std::endl;
+    std::cerr << __LINE__ << ": AddAndObserveNodeReferenceID failed" << std::endl;
     return false;
     }
 
@@ -240,7 +247,7 @@ bool TestAddReferenceNodeID()
       referencingNode->GetNthNodeReference(role1.c_str(), 0) != referencedNode2.GetPointer() ||
       returnNode != referencedNode2.GetPointer())
     {
-    std::cout << __LINE__ << ": SetAndObserveNodeReferenceID failed" << std::endl;
+    std::cerr << __LINE__ << ": SetAndObserveNodeReferenceID failed" << std::endl;
     return false;
     }
 
@@ -259,7 +266,7 @@ bool TestAddReferenceNodeID()
       referencingNode->GetNthNodeReference(role1.c_str(), 0) != referencedNode2.GetPointer() ||
       returnNode != referencedNode3.GetPointer())
     {
-    std::cout << __LINE__ << ": SetAndObserveNodeReferenceID failed" << std::endl;
+    std::cerr << __LINE__ << ": SetAndObserveNodeReferenceID failed" << std::endl;
     return false;
     }
 
@@ -275,7 +282,7 @@ bool TestAddReferenceNodeID()
       referencingNode->GetNthNodeReference(role2.c_str(), 0) != referencedNode22.GetPointer() ||
       returnNode != referencedNode22.GetPointer())
     {
-    std::cout << __LINE__ << ": SetAndObserveNodeReferenceID failed" << std::endl;
+    std::cerr << __LINE__ << ": SetAndObserveNodeReferenceID failed" << std::endl;
     return false;
     }
 
@@ -294,7 +301,7 @@ bool TestAddReferenceNodeID()
       referencingNode->GetNthNodeReference(role2.c_str(), 0) != referencedNode22.GetPointer() ||
       returnNode != referencedNode23.GetPointer())
     {
-    std::cout << __LINE__ << ": SetAndObserveNodeReferenceID failed" << std::endl;
+    std::cerr << __LINE__ << ": SetAndObserveNodeReferenceID failed" << std::endl;
     return false;
     }
 
@@ -307,7 +314,7 @@ bool TestAddReferenceNodeID()
       strcmp(referencingNode->GetNthNodeReferenceID(role1.c_str(), 0), referencedNode2->GetID()) ||
       referencingNode->GetNthNodeReference(role1.c_str(), 0) != referencedNode2.GetPointer())
     {
-    std::cout << __LINE__ << ": SetAndObserveNodeReferenceID failed" << std::endl;
+    std::cerr << __LINE__ << ": SetAndObserveNodeReferenceID failed" << std::endl;
     return false;
     }
 
@@ -319,7 +326,7 @@ bool TestAddReferenceNodeID()
       referencingNode->GetNthNodeReference(role2.c_str(), 1) != referencedNode3.GetPointer() ||
       returnNode != referencedNode3.GetPointer())
     {
-    std::cout << __LINE__ << ": SetAndObserveNodeReferenceID failed" << std::endl;
+    std::cerr << __LINE__ << ": SetAndObserveNodeReferenceID failed" << std::endl;
     return false;
     }
 
@@ -348,7 +355,7 @@ bool TestAddRefrencedNodeIDWithNoScene()
       strcmp(referencingNode->GetNthNodeReferenceID(role1.c_str(), 0), referencedNode1->GetID()) ||
       referencingNode->GetNthNodeReference(role1.c_str(), 0) != 0)
     {
-    std::cout << __LINE__ << ": SetAndObserveNodeReferenceID failed" << std::endl;
+    std::cerr << __LINE__ << ": SetAndObserveNodeReferenceID failed" << std::endl;
     return false;
     }
 
@@ -362,7 +369,7 @@ bool TestAddRefrencedNodeIDWithNoScene()
       strcmp(referencingNode->GetNthNodeReferenceID(role1.c_str(), 0), referencedNode2->GetID()) ||
       referencingNode->GetNthNodeReference(role1.c_str(), 0) != 0)
     {
-    std::cout << __LINE__ << ": SetAndObserveNodeReferenceID failed" << std::endl;
+    std::cerr << __LINE__ << ": SetAndObserveNodeReferenceID failed" << std::endl;
     return false;
     }
 
@@ -380,7 +387,7 @@ bool TestAddRefrencedNodeIDWithNoScene()
       strcmp(referencingNode->GetNthNodeReferenceID(role1.c_str(), 0), referencedNode2->GetID()) ||
       referencingNode->GetNthNodeReference(role1.c_str(), 0) != 0)
     {
-    std::cout << __LINE__ << ": AddAndObserveNodeReferenceID failed" << std::endl;
+    std::cerr << __LINE__ << ": AddAndObserveNodeReferenceID failed" << std::endl;
     return false;
     }
 
@@ -397,7 +404,7 @@ bool TestAddRefrencedNodeIDWithNoScene()
       strcmp(referencingNode->GetNthNodeReferenceID(role1.c_str(), 0), referencedNode2->GetID()) ||
       referencingNode->GetNthNodeReference(role1.c_str(), 0) != referencedNode2.GetPointer())
     {
-    std::cout << __LINE__ << ": AddNode failed" << std::endl;
+    std::cerr << __LINE__ << ": AddNode failed" << std::endl;
     return false;
     }
   return true;
@@ -422,7 +429,7 @@ bool TestAddDelayedReferenceNode()
       strcmp(referencingNode->GetNthNodeReferenceID(role1.c_str(), 0), "vtkMRMLNodeTestHelper12") ||
       referencingNode->GetNthNodeReference(role1.c_str(), 0) != 0)
     {
-    std::cout << __LINE__ << ": SetAndObserveNodeReferenceID failed" << std::endl;
+    std::cerr << __LINE__ << ": SetAndObserveNodeReferenceID failed" << std::endl;
     return false;
     }
 
@@ -432,7 +439,7 @@ bool TestAddDelayedReferenceNode()
       strcmp(referencingNode->GetNthNodeReferenceID(role1.c_str(), 0), "vtkMRMLNodeTestHelper12") ||
       referencingNode->GetInternalReferencedNodes()[role1][0]->ReferencedNode != 0)
     {
-    std::cout << __LINE__ << ": SetAndObserveNodeReferenceID failed" << std::endl;
+    std::cerr << __LINE__ << ": SetAndObserveNodeReferenceID failed" << std::endl;
     return false;
     }
 
@@ -444,7 +451,7 @@ bool TestAddDelayedReferenceNode()
       referencedNode != referencedNode1.GetPointer() ||
       referencingNode->GetNthNodeReference(role1.c_str(), 0) != referencedNode1.GetPointer())
     {
-    std::cout << __LINE__ << ": SetAndObserveNodeReferenceID failed" << std::endl;
+    std::cerr << __LINE__ << ": SetAndObserveNodeReferenceID failed" << std::endl;
     return false;
     }
   return true;
@@ -483,7 +490,7 @@ bool TestRemoveReferencedNodeID()
       strcmp(referencingNode->GetNthNodeReferenceID(role1.c_str(), 1), referencedNode3->GetID()) ||
       referencingNode->GetNthNodeReference(role1.c_str(), 1) != referencedNode3.GetPointer())
     {
-    std::cout << __LINE__ << ": RemoveNthNodeReferenceID failed" << std::endl;
+    std::cerr << __LINE__ << ": RemoveNthNodeReferenceID failed" << std::endl;
     return false;
     }
 
@@ -494,7 +501,7 @@ bool TestRemoveReferencedNodeID()
       strcmp(referencingNode->GetNthNodeReferenceID(role1.c_str(), 0), referencedNode1->GetID()) ||
       referencingNode->GetNthNodeReference(role1.c_str(), 0) != referencedNode1.GetPointer())
     {
-    std::cout << __LINE__ << ": SetAndObserveNodeReferenceID(1, 0) failed" << std::endl;
+    std::cerr << __LINE__ << ": SetAndObserveNodeReferenceID(1, 0) failed" << std::endl;
     return false;
     }
 
@@ -511,7 +518,7 @@ bool TestRemoveReferencedNodeID()
       referencingNode->GetNthNodeReferenceID(role1.c_str(), 0) == 0 ||
       strcmp(referencingNode->GetNthNodeReferenceID(role1.c_str(), 0), referencedNode1->GetID()) )
     {
-    std::cout << __LINE__ << ": RemoveNthNodeReferenceID failed" << std::endl;
+    std::cerr << __LINE__ << ": RemoveNthNodeReferenceID failed" << std::endl;
     return false;
     }
 
@@ -525,7 +532,7 @@ bool TestRemoveReferencedNodeID()
       referencingNode->GetNthNodeReferenceID(role2.c_str(), 0) == 0 ||
       strcmp(referencingNode->GetNthNodeReferenceID(role2.c_str(), 0), referencedNode2->GetID()))
     {
-    std::cout << __LINE__ << ": RemoveAllNodeReferenceIDs failed" << std::endl;
+    std::cerr << __LINE__ << ": RemoveAllNodeReferenceIDs failed" << std::endl;
     return false;
     }
 
@@ -535,7 +542,7 @@ bool TestRemoveReferencedNodeID()
       referencingNode->GetNthNodeReferenceID(role1.c_str(), 0) != 0 ||
       referencingNode->GetNthNodeReference(role1.c_str(), 0) != 0)
     {
-    std::cout << __LINE__ << ": RemoveAllNodeReferenceIDs failed" << std::endl;
+    std::cerr << __LINE__ << ": RemoveAllNodeReferenceIDs failed" << std::endl;
     return false;
     }
 
@@ -546,7 +553,6 @@ bool TestRemoveReferencedNodeID()
 bool TestRemoveReferencedNode()
 {
   std::string role1("refrole1");
-  std::string role2("refrole2");
 
   vtkNew<vtkMRMLScene> scene;
 
@@ -574,7 +580,7 @@ bool TestRemoveReferencedNode()
       strcmp(referencingNode->GetNthNodeReferenceID(role1.c_str(), 1), referencedNode2->GetID()) ||
       referencingNode->GetNthNodeReference(role1.c_str(), 1) != referencedNode2.GetPointer())
     {
-    std::cout << __LINE__ << ": RemoveNthReferenceNodeID failed" << std::endl;
+    std::cerr << __LINE__ << ": RemoveNthReferenceNodeID failed" << std::endl;
     return false;
     }
 
@@ -585,7 +591,6 @@ bool TestRemoveReferencedNode()
 bool TestRemoveReferencingNode()
 {
   std::string role1("refrole1");
-  std::string role2("refrole2");
 
   vtkNew<vtkMRMLScene> scene;
 
@@ -627,7 +632,7 @@ bool TestRemoveReferencingNode()
       referencingNode->GetNthNodeReference(role1.c_str(), 2) != 0
       )
     {
-    std::cout << __LINE__ << ": RemoveNode failed" << std::endl;
+    std::cerr << __LINE__ << ": RemoveNode failed" << std::endl;
     return false;
     }
 
@@ -660,7 +665,7 @@ bool TestNodeReferences()
       referencedNodes->GetItemAsObject(0) != referencingNode.GetPointer() ||
       referencedNodes->GetItemAsObject(1) != referencedNode1.GetPointer())
     {
-    std::cout << __LINE__ << ": SetAndObserveNodeReferenceID failed:" << std::endl
+    std::cerr << __LINE__ << ": SetAndObserveNodeReferenceID failed:" << std::endl
               << referencedNodes->GetNumberOfItems() << std::endl;
     return false;
     }
@@ -678,7 +683,7 @@ bool TestNodeReferences()
       referencedNodes->GetItemAsObject(0) != referencingNode.GetPointer() ||
       referencedNodes->GetItemAsObject(1) != referencedNode1.GetPointer())
     {
-    std::cout << __LINE__ << ": SetAndObserveNodeReferenceID failed:" << std::endl
+    std::cerr << __LINE__ << ": SetAndObserveNodeReferenceID failed:" << std::endl
               << referencedNodes->GetNumberOfItems() << std::endl;
     return false;
     }
@@ -693,7 +698,7 @@ bool TestNodeReferences()
       referencedNodes->GetItemAsObject(1) != referencedNode1.GetPointer() ||
       referencedNodes->GetItemAsObject(2) != referencedNode2.GetPointer())
     {
-    std::cout << __LINE__ << ": SetAndObserveNodeReferenceID failed:" << std::endl
+    std::cerr << __LINE__ << ": SetAndObserveNodeReferenceID failed:" << std::endl
               << referencedNodes->GetNumberOfItems() << std::endl;
     return false;
     }
@@ -712,7 +717,7 @@ bool TestNodeReferences()
       referencedNodes->GetItemAsObject(1) != referencedNode1.GetPointer() ||
       referencedNodes->GetItemAsObject(2) != referencedNode2.GetPointer())
     {
-    std::cout << __LINE__ << ": SetAndObserveNodeReferenceID failed:" << std::endl
+    std::cerr << __LINE__ << ": SetAndObserveNodeReferenceID failed:" << std::endl
               << referencedNodes->GetNumberOfItems() << std::endl;
     return false;
     }
@@ -751,7 +756,7 @@ bool TestReferenceModifiedEvent()
       spy->GetNumberOfEvents(vtkCommand::ModifiedEvent) != 1 ||
       spy->GetNumberOfEvents(vtkMRMLNode::ReferenceAddedEvent) != 1)
     {
-    std::cout << __LINE__ << ": SetAndObserveNodeReferenceID failed:" << std::endl
+    std::cerr << __LINE__ << ": SetAndObserveNodeReferenceID failed:" << std::endl
               << spy->GetTotalNumberOfEvents() << " "
               << spy->GetNumberOfEvents(vtkCommand::ModifiedEvent) << " "
               << spy->GetNumberOfEvents(vtkMRMLNode::ReferenceAddedEvent) << std::endl;
@@ -767,7 +772,7 @@ bool TestReferenceModifiedEvent()
       spy->GetNumberOfEvents(vtkCommand::ModifiedEvent) != 1 ||
       spy->GetNumberOfEvents(vtkMRMLNode::ReferenceModifiedEvent) != 1)
     {
-    std::cout << __LINE__ << ": SetAndObserveNodeReferenceID failed:" << std::endl
+    std::cerr << __LINE__ << ": SetAndObserveNodeReferenceID failed:" << std::endl
               << spy->GetTotalNumberOfEvents() << " "
               << spy->GetNumberOfEvents(vtkCommand::ModifiedEvent) << " "
               << spy->GetNumberOfEvents(vtkMRMLNode::ReferenceAddedEvent) << std::endl;
@@ -781,7 +786,7 @@ bool TestReferenceModifiedEvent()
       spy->GetNumberOfEvents(vtkCommand::ModifiedEvent) != 1 ||
       spy->GetNumberOfEvents(vtkMRMLNode::ReferenceRemovedEvent) != 1)
     {
-    std::cout << __LINE__ << ": SetAndObserveNodeReferenceID failed:" << std::endl
+    std::cerr << __LINE__ << ": SetAndObserveNodeReferenceID failed:" << std::endl
               << spy->GetTotalNumberOfEvents() << " "
               << spy->GetNumberOfEvents(vtkCommand::ModifiedEvent) << " "
               << spy->GetNumberOfEvents(vtkMRMLNode::ReferenceAddedEvent) << std::endl;
@@ -795,7 +800,7 @@ bool TestReferenceModifiedEvent()
   if (spy->GetTotalNumberOfEvents() != 1 ||
       spy->GetNumberOfEvents(vtkCommand::ModifiedEvent) != 1)
     {
-    std::cout << __LINE__ << ": SetAndObserveNodeReferenceID failed:" << std::endl
+    std::cerr << __LINE__ << ": SetAndObserveNodeReferenceID failed:" << std::endl
               << spy->GetTotalNumberOfEvents() << " "
               << spy->GetNumberOfEvents(vtkCommand::ModifiedEvent) << " "
               << spy->GetNumberOfEvents(vtkMRMLNode::ReferenceAddedEvent) << std::endl;
@@ -811,7 +816,7 @@ bool TestReferenceModifiedEvent()
       spy->GetNumberOfEvents(vtkMRMLNode::ReferenceAddedEvent) != 1 ||
       referencedNode != referencedNode3.GetPointer())
     {
-    std::cout << __LINE__ << ": SetAndObserveNodeReferenceID failed:" << std::endl
+    std::cerr << __LINE__ << ": SetAndObserveNodeReferenceID failed:" << std::endl
               << spy->GetTotalNumberOfEvents() << " "
               << spy->GetNumberOfEvents(vtkCommand::ModifiedEvent) << " "
               << spy->GetNumberOfEvents(vtkMRMLNode::ReferenceAddedEvent) << std::endl;
@@ -848,7 +853,7 @@ bool TestReferencesWithEvent()
       spy->GetNumberOfEvents(vtkCommand::ModifiedEvent) != 1 ||
       spy->GetNumberOfEvents(vtkMRMLNode::ReferenceAddedEvent) != 1 )
     {
-    std::cout << __LINE__ << ": SetAndObserveNodeReferenceID failed:" << std::endl
+    std::cerr << __LINE__ << ": SetAndObserveNodeReferenceID failed:" << std::endl
               << spy->GetTotalNumberOfEvents() << " "
               << spy->GetNumberOfEvents(vtkCommand::ModifiedEvent) << " "
               << spy->GetNumberOfEvents(vtkMRMLNode::ReferenceAddedEvent) << std::endl;
@@ -860,7 +865,7 @@ bool TestReferencesWithEvent()
       referencingNode->GetInternalReferencedNodes()[role1][0]->Events->GetValue(0) != 777 ||
       referencingNode->GetInternalReferencedNodes()[role1][0]->Events->GetValue(1) != 888)
     {
-    std::cout << __LINE__ << ": SetAndObserveNodeReferenceID failed: events are incorrect" << std::endl
+    std::cerr << __LINE__ << ": SetAndObserveNodeReferenceID failed: events are incorrect" << std::endl
               << spy->GetTotalNumberOfEvents() << " "
               << spy->GetNumberOfEvents(vtkCommand::ModifiedEvent) << " "
               << spy->GetNumberOfEvents(vtkMRMLNode::ReferenceAddedEvent) << std::endl;
@@ -877,7 +882,7 @@ bool TestReferencesWithEvent()
       spy->GetNumberOfEvents(vtkCommand::ModifiedEvent) != 1 ||
       spy->GetNumberOfEvents(vtkMRMLNode::ReferenceModifiedEvent) != 1)
     {
-    std::cout << __LINE__ << ": SetAndObserveNodeReferenceID failed:" << std::endl
+    std::cerr << __LINE__ << ": SetAndObserveNodeReferenceID failed:" << std::endl
               << spy->GetTotalNumberOfEvents() << " "
               << spy->GetNumberOfEvents(vtkCommand::ModifiedEvent) << " "
               << spy->GetNumberOfEvents(vtkMRMLNode::ReferenceAddedEvent) << std::endl;
@@ -888,7 +893,7 @@ bool TestReferencesWithEvent()
       referencingNode->GetInternalReferencedNodes()[role1][0]->Events->GetValue(0) != 777 ||
       referencingNode->GetInternalReferencedNodes()[role1][0]->Events->GetValue(1) != 888)
     {
-    std::cout << __LINE__ << ": SetAndObserveNodeReferenceID failed: events are incorrect" << std::endl
+    std::cerr << __LINE__ << ": SetAndObserveNodeReferenceID failed: events are incorrect" << std::endl
               << spy->GetTotalNumberOfEvents() << " "
               << spy->GetNumberOfEvents(vtkCommand::ModifiedEvent) << " "
               << spy->GetNumberOfEvents(vtkMRMLNode::ReferenceAddedEvent) << std::endl;
@@ -903,7 +908,7 @@ bool TestReferencesWithEvent()
       spy->GetNumberOfEvents(vtkCommand::ModifiedEvent) != 1 ||
       spy->GetNumberOfEvents(vtkMRMLNode::ReferenceRemovedEvent) != 1)
     {
-    std::cout << __LINE__ << ": SetAndObserveNodeReferenceID failed:" << std::endl
+    std::cerr << __LINE__ << ": SetAndObserveNodeReferenceID failed:" << std::endl
               << spy->GetTotalNumberOfEvents() << " "
               << spy->GetNumberOfEvents(vtkCommand::ModifiedEvent) << " "
               << spy->GetNumberOfEvents(vtkMRMLNode::ReferenceAddedEvent) << std::endl;
@@ -919,7 +924,7 @@ bool TestReferencesWithEvent()
       referencingNode->GetInternalReferencedNodes()[role1][0]->Events->GetValue(0) != 777 ||
       referencingNode->GetInternalReferencedNodes()[role1][0]->Events->GetValue(1) != 888)
     {
-    std::cout << __LINE__ << ": SetAndObserveNodeReferenceID failed: events are incorrect" << std::endl
+    std::cerr << __LINE__ << ": SetAndObserveNodeReferenceID failed: events are incorrect" << std::endl
               << spy->GetTotalNumberOfEvents() << " "
               << spy->GetNumberOfEvents(vtkCommand::ModifiedEvent) << " "
               << spy->GetNumberOfEvents(vtkMRMLNode::ReferenceAddedEvent) << std::endl;
@@ -936,7 +941,7 @@ bool TestReferencesWithEvent()
       referencingNode->GetInternalReferencedNodes()[role1][0]->Events->GetValue(0) != 777 ||
       referencingNode->GetInternalReferencedNodes()[role1][0]->Events->GetValue(1) != 888)
     {
-    std::cout << __LINE__ << ": SetAndObserveNodeReferenceID failed: events are incorrect" << std::endl
+    std::cerr << __LINE__ << ": SetAndObserveNodeReferenceID failed: events are incorrect" << std::endl
               << spy->GetTotalNumberOfEvents() << " "
               << spy->GetNumberOfEvents(vtkCommand::ModifiedEvent) << " "
               << spy->GetNumberOfEvents(vtkMRMLNode::ReferenceAddedEvent) << std::endl;
@@ -953,7 +958,7 @@ bool TestReferencesWithEvent()
 
 
 //----------------------------------------------------------------------------
-bool TestAddReferenceedNodeIDEventsWithNoScene()
+bool TestAddReferencedNodeIDEventsWithNoScene()
 {
   std::string role1("refrole1");
 
@@ -1010,7 +1015,7 @@ bool TestReferenceNodeNoObservers()
       referencingNode->GetNthNodeReference(role1.c_str(), 0) != 0 || 
       returnNode != 0)
     {
-    std::cout << __LINE__ << ": AddNodeReferenceID failed" << std::endl;
+    std::cerr << __LINE__ << ": AddNodeReferenceID failed" << std::endl;
     return false;
     }
 
@@ -1021,7 +1026,7 @@ bool TestReferenceNodeNoObservers()
       referencingNode->GetNthNodeReference(role1.c_str(), 0) != 0 || 
       returnNode != 0)
     {
-    std::cout << __LINE__ << ": AddNodeReferenceID failed" << std::endl;
+    std::cerr << __LINE__ << ": AddNodeReferenceID failed" << std::endl;
     return false;
     }
 
@@ -1041,7 +1046,7 @@ bool TestReferenceNodeNoObservers()
       newReferencedNodesCount != (referencedNodesCount + 1) ||
       returnNode != referencedNode1.GetPointer())
     {
-    std::cout << __LINE__ << ": AddNodeReferenceID failed" << std::endl;
+    std::cerr << __LINE__ << ": AddNodeReferenceID failed" << std::endl;
     return false;
     }
 
@@ -1052,7 +1057,7 @@ bool TestReferenceNodeNoObservers()
       referencingNode->GetNthNodeReference(role1.c_str(), 1) != 0 || 
       returnNode != 0)
     {
-    std::cout << __LINE__ << ": AddNodeReferenceID failed" << std::endl;
+    std::cerr << __LINE__ << ": AddNodeReferenceID failed" << std::endl;
     return false;
     }
 
@@ -1068,7 +1073,7 @@ bool TestReferenceNodeNoObservers()
       referencingNode->GetNthNodeReference(role1.c_str(), 0) != referencedNode2.GetPointer() ||
       returnNode != referencedNode2.GetPointer())
     {
-    std::cout << __LINE__ << ": SetNodeReferenceID failed" << std::endl;
+    std::cerr << __LINE__ << ": SetNodeReferenceID failed" << std::endl;
     return false;
     }
 
@@ -1087,7 +1092,7 @@ bool TestReferenceNodeNoObservers()
       referencingNode->GetNthNodeReference(role1.c_str(), 0) != referencedNode2.GetPointer() ||
       returnNode != referencedNode3.GetPointer())
     {
-    std::cout << __LINE__ << ": SetNodeReferenceID failed" << std::endl;
+    std::cerr << __LINE__ << ": SetNodeReferenceID failed" << std::endl;
     return false;
     }
 
@@ -1103,7 +1108,7 @@ bool TestReferenceNodeNoObservers()
       referencingNode->GetNthNodeReference(role2.c_str(), 0) != referencedNode22.GetPointer() ||
       returnNode != referencedNode22.GetPointer())
     {
-    std::cout << __LINE__ << ": SetNodeReferenceID failed" << std::endl;
+    std::cerr << __LINE__ << ": SetNodeReferenceID failed" << std::endl;
     return false;
     }
 
@@ -1122,7 +1127,7 @@ bool TestReferenceNodeNoObservers()
       referencingNode->GetNthNodeReference(role2.c_str(), 0) != referencedNode22.GetPointer() ||
       returnNode != referencedNode23.GetPointer())
     {
-    std::cout << __LINE__ << ": SetNodeReferenceID failed" << std::endl;
+    std::cerr << __LINE__ << ": SetNodeReferenceID failed" << std::endl;
     return false;
     }
 
@@ -1135,7 +1140,7 @@ bool TestReferenceNodeNoObservers()
       strcmp(referencingNode->GetNthNodeReferenceID(role1.c_str(), 0), referencedNode2->GetID()) ||
       referencingNode->GetNthNodeReference(role1.c_str(), 0) != referencedNode2.GetPointer())
     {
-    std::cout << __LINE__ << ": SetNodeReferenceID failed" << std::endl;
+    std::cerr << __LINE__ << ": SetNodeReferenceID failed" << std::endl;
     return false;
     }
 
@@ -1147,10 +1152,72 @@ bool TestReferenceNodeNoObservers()
       referencingNode->GetNthNodeReference(role2.c_str(), 1) != referencedNode3.GetPointer() ||
       returnNode != referencedNode3.GetPointer())
     {
-    std::cout << __LINE__ << ": SetNodeReferenceID failed" << std::endl;
+    std::cerr << __LINE__ << ": SetNodeReferenceID failed" << std::endl;
     return false;
     }
 
 
+  return true;
+}
+
+//----------------------------------------------------------------------------
+bool TestNodeReferenceSerialization()
+{
+  std::string role1("refrole1");
+  std::string role2("refrole2");
+
+  vtkNew<vtkMRMLScene> scene;
+  scene->RegisterNodeClass(vtkSmartPointer<vtkMRMLNodeTestHelper1>::New());
+
+  vtkNew<vtkMRMLNodeTestHelper1> referencingNode;
+  scene->AddNode(referencingNode.GetPointer());
+
+  vtkNew<vtkMRMLNodeTestHelper1> referencedNode11;
+  scene->AddNode(referencedNode11.GetPointer());
+  referencingNode->AddNodeReferenceID(role1.c_str(), referencedNode11->GetID());
+  
+  vtkNew<vtkMRMLNodeTestHelper1> referencedNode21;
+  vtkNew<vtkMRMLNodeTestHelper1> referencedNode22;
+  scene->AddNode(referencedNode21.GetPointer());
+  scene->AddNode(referencedNode22.GetPointer());
+  referencingNode->AddNodeReferenceID(role2.c_str(), referencedNode21->GetID());
+  referencingNode->AddNodeReferenceID(role2.c_str(), referencedNode22->GetID());
+
+  std::stringstream ss;
+
+  // Write scene to XML string
+  scene->SetSaveToXMLString(1);
+  scene->Commit();
+  std::string sceneXMLString = scene->GetSceneXMLString();
+
+  vtkNew<vtkMRMLScene> scene2;
+  scene2->RegisterNodeClass(vtkSmartPointer<vtkMRMLNodeTestHelper1>::New());
+  scene2->SetLoadFromXMLString(1);
+  scene2->SetSceneXMLString(sceneXMLString);
+  scene2->Import();
+
+  vtkMRMLNode* referencingNodeImported = NULL;
+  if (scene2->GetNumberOfNodes() != 4 ||
+      (referencingNodeImported = scene2->GetNodeByID(referencingNode->GetID())) == 0 ||
+      referencingNodeImported->GetNumberOfNodeReferences(role1.c_str()) != 1 || 
+      referencingNodeImported->GetNumberOfNodeReferences(role2.c_str()) != 2 ||
+      referencingNodeImported->GetNthNodeReferenceID(role1.c_str(), 0) == 0 ||
+      strcmp(referencingNodeImported->GetNthNodeReferenceID(role1.c_str(), 0),
+             referencedNode11->GetID()) != 0 ||
+      referencingNodeImported->GetNthNodeReferenceID(role2.c_str(), 0) == 0 ||
+      strcmp(referencingNodeImported->GetNthNodeReferenceID(role2.c_str(), 0),
+             referencedNode21->GetID()) != 0 ||
+      referencingNodeImported->GetNthNodeReferenceID(role2.c_str(), 1) == 0 ||
+      strcmp(referencingNodeImported->GetNthNodeReferenceID(role2.c_str(), 1),
+             referencedNode22->GetID()) != 0)
+    {
+    std::cerr << __LINE__ << ": TestNodeReferenceSerialization failed" << std::endl
+      << "Number of nodes: " << scene2->GetNumberOfNodes()
+      << "Number of role1 references: "
+        << referencingNodeImported->GetNumberOfNodeReferences(role1.c_str())
+      << "Number of role2 references: "
+        << referencingNodeImported->GetNumberOfNodeReferences(role2.c_str());
+    return false;
+    }
   return true;
 }

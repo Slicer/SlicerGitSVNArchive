@@ -153,9 +153,9 @@ bool qSlicerSceneWriter::writeToMRML(const qSlicerIO::IOProperties& properties)
     sceneViewNode->SetScreenShotType(4);
     QImage screenShot = properties["screenShot"].value<QImage>();  
     // convert to vtkImageData
-    vtkSmartPointer<vtkImageData> imageData = vtkSmartPointer<vtkImageData>::New();
-    qMRMLUtils::qImageToVtkImageData(screenShot, imageData);
-    sceneViewNode->SetScreenShot(imageData);
+    vtkNew<vtkImageData> imageData;
+    qMRMLUtils::qImageToVtkImageData(screenShot, imageData.GetPointer());
+    sceneViewNode->SetScreenShot(imageData.GetPointer());
     }
   sceneViewNode->StoreScene();
 
@@ -180,6 +180,15 @@ bool qSlicerSceneWriter::writeToMRB(const qSlicerIO::IOProperties& properties)
   // named based on the user's selection.
   //
 
+  QFileInfo fileInfo(properties["fileName"].toString());
+  QString basePath = fileInfo.absolutePath();
+  if (!QFileInfo(basePath).isWritable())
+    {
+    qWarning() << "Failed to save" << fileInfo.absoluteFilePath() << ":"
+               << "Path" << basePath << "is not writable";
+    return false;
+    }
+
   // TODO: switch to QTemporaryDir in Qt5.
   // For now, create a named directory and use Qt calls to remove it
   QString tempDir = qSlicerCoreApplication::application()->temporaryPath();
@@ -189,7 +198,6 @@ bool qSlicerSceneWriter::writeToMRB(const qSlicerIO::IOProperties& properties)
   qDebug() << "packing to " << pack.absoluteFilePath();
 
   // make a subdirectory with the name the user has chosen
-  QFileInfo fileInfo(properties["fileName"].toString());
   QFileInfo bundle = QFileInfo(QDir(pack.absoluteFilePath()),
                                fileInfo.baseName());
   QString bundlePath = bundle.absoluteFilePath();
@@ -249,9 +257,6 @@ bool qSlicerSceneWriter::writeToMRB(const qSlicerIO::IOProperties& properties)
     QMessageBox::critical(0, tr("Save scene as MRB"), tr("Could not remove temp directory"));
     return false;
     }
-
-  // save the path to the MRB so it will be used as the default next save time
-  this->mrmlScene()->SetURL(properties["fileName"].toString().toLatin1());
 
   qDebug() << "saved " << fileInfo.absoluteFilePath();
   return true;

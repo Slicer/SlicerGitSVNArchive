@@ -27,7 +27,7 @@
 # built in a standalone fashion very easily without passing extra option
 # at configure time:
 #
-#  find_package(Slicer COMPONENTS ConfigurePrerequisites [...] REQUIRED)
+#  find_package(Slicer COMPONENTS ConfigurePrerequisites REQUIRED)
 #
 #  project(Foo)
 #
@@ -47,9 +47,9 @@
 #  COMPONENTS                | CMAKE VARIABLE(S)
 # --------------------------------------------------------------------------
 #  NoExtensionSupport        | Slicer_USE_NOEXTENSIONSUPPORT
-# --------------------------------------------------------------------------
-#  ConfigurePrerequisites    | Slicer_USE_NOEXTENSIONSUPPORT
 #                            | Slicer_DONT_USE_EXTENSION
+# --------------------------------------------------------------------------
+#  ConfigurePrerequisites    | Slicer_USE_CONFIGUREPREREQUISITES
 # --------------------------------------------------------------------------
 
 foreach(component NoExtensionSupport ConfigurePrerequisites)
@@ -125,7 +125,6 @@ set(Slicer_BUILD_EXTENSIONMANAGER_SUPPORT "@Slicer_BUILD_EXTENSIONMANAGER_SUPPOR
 set(Slicer_BUILD_TESTING "@BUILD_TESTING@")
 
 set(Slicer_REQUIRED_QT_VERSION "@Slicer_REQUIRED_QT_VERSION@")
-set(Slicer_EXPERIMENTAL_QT_VERSION "@Slicer_EXPERIMENTAL_QT_VERSION@")
 set(Slicer_REQUIRED_QT_MODULES "@Slicer_REQUIRED_QT_MODULES@")
 
 # Launcher command
@@ -187,6 +186,18 @@ set(MRML_LIBRARIES @MRML_LIBRARIES@)
 # Slicer Libs VTK wrapped libraries
 set(Slicer_Libs_VTK_WRAPPED_LIBRARIES "@Slicer_Libs_VTK_WRAPPED_LIBRARIES@")
 
+# Slicer include directories for module
+@Slicer_INCLUDE_MODULE_DIRS_CONFIG@
+
+# Slicer include directories for module logic
+@Slicer_INCLUDE_MODULE_LOGIC_DIRS_CONFIG@
+
+# Slicer include directories for module mrml
+@Slicer_INCLUDE_MODULE_MRML_DIRS_CONFIG@
+
+# Slicer include directories for module Widget
+@Slicer_INCLUDE_MODULE_WIDGET_DIRS_CONFIG@
+
 # Slicer Libs include file directories.
 set(Slicer_Libs_INCLUDE_DIRS "@Slicer_Libs_INCLUDE_DIRS_CONFIG@")
 
@@ -213,6 +224,9 @@ set(ITKFactoryRegistration_INCLUDE_DIRS "@ITKFactoryRegistration_INCLUDE_DIRS_CO
 
 set(MRMLCore_INCLUDE_DIRS "@MRMLCore_INCLUDE_DIRS_CONFIG@"
   CACHE INTERNAL "MRMLCore includes" FORCE)
+
+set(MRMLLogic_INCLUDE_DIRS "@MRMLLogic_INCLUDE_DIRS_CONFIG@"
+  CACHE INTERNAL "MRMLLogic includes" FORCE)
 
 set(RemoteIO_INCLUDE_DIRS "@RemoteIO_INCLUDE_DIRS_CONFIG@"
   CACHE INTERNAL "RemoteIO includes" FORCE)
@@ -331,98 +345,13 @@ macro(slicer_config_set_ep var value)
   endif()
 endmacro()
 
-# For sake of simplification, the macro 'slicer_config_set_ep' is not invoked conditionally, if
-# the configured 'value' parameter is an empty string, the macro 'slicer_config_set_ep' is a no-op.
-
-slicer_config_set_ep(
-  QT_QMAKE_EXECUTABLE
-  "@QT_QMAKE_EXECUTABLE_CONFIG@"
-  )
-
-slicer_config_set_ep(
-  BatchMake_DIR
-  "@BatchMake_DIR_CONFIG@"
-  CACHE PATH "Path to BatchMake build or install directory" FORCE)
-
-slicer_config_set_ep(
-  DCMTK_DIR
-  "@DCMTK_DIR_CONFIG@"
-  CACHE PATH "Path to DCMTK build or install directory" FORCE)
-
-slicer_config_set_ep(
-  CTK_DIR
-  "@CTK_DIR_CONFIG@"
-  CACHE PATH "Path to CTK build or install directory" FORCE)
-
-slicer_config_set_ep(
-  QtTesting_DIR
-  "@QtTesting_DIR_CONFIG@"
-  CACHE PATH "Path to QtTesting build or install directory" FORCE)
-
-slicer_config_set_ep(
-  ITK_DIR
-  "@ITK_DIR_CONFIG@"
-  CACHE PATH "Path to ITK build or install directory" FORCE)
-
-slicer_config_set_ep(
-  SimpleITK_DIR
-  "@SimpleITK_DIR_CONFIG@"
-  CACHE PATH "Path to SimpleITK build or install directory" FORCE)
-
-slicer_config_set_ep(
-  OpenIGTLink_DIR
-  "@OpenIGTLink_DIR_CONFIG@"
-  CACHE PATH "Path to OpenIGTLink build or install directory" FORCE)
-
-slicer_config_set_ep(
-  PYTHON_EXECUTABLE
-  "@PYTHON_EXECUTABLE_CONFIG@"
-  CACHE PATH "Path to Python executable" FORCE)
-
-slicer_config_set_ep(
-  PYTHON_INCLUDE_DIR
-  "@PYTHON_INCLUDE_DIR_CONFIG@"
-  CACHE PATH "Path to Python include directory" FORCE)
-
-slicer_config_set_ep(
-  PYTHON_LIBRARY
-  "@PYTHON_LIBRARY_CONFIG@"
-  CACHE FILEPATH "Path to Python library" FORCE)
-
-slicer_config_set_ep(
-  PYTHON_DEBUG_LIBRARY
-  "@PYTHON_DEBUG_LIBRARY_CONFIG@"
-  CACHE FILEPATH "Path to Python debug library" FORCE)
-
-slicer_config_set_ep(
-  qRestAPI_DIR
-  "@qRestAPI_DIR_CONFIG@"
-  CACHE PATH "Path to qRestAPI build or install directory" FORCE)
-
-slicer_config_set_ep(
-  SLICERLIBCURL_DIR
-  "@SLICERLIBCURL_DIR_CONFIG@"
-  CACHE PATH "Path to Curl build or install directory" FORCE)
-
 # SlicerExecutionModel settings
 set(SlicerExecutionModel_CLI_LIBRARY_WRAPPER_CXX "@SlicerExecutionModel_CLI_LIBRARY_WRAPPER_CXX_CONFIG@")
 set(SlicerExecutionModel_EXTRA_INCLUDE_DIRECTORIES "@SlicerExecutionModel_EXTRA_INCLUDE_DIRECTORIES_CONFIG@")
 set(SlicerExecutionModel_EXTRA_EXECUTABLE_TARGET_LIBRARIES "@SlicerExecutionModel_EXTRA_EXECUTABLE_TARGET_LIBRARIES_CONFIG@")
 
-slicer_config_set_ep(
-  SlicerExecutionModel_DIR
-  "@SlicerExecutionModel_DIR_CONFIG@"
-  CACHE PATH "Path to SlicerExecutionModel build or install directory" FORCE)
-
-slicer_config_set_ep(
-  Teem_DIR
-  "@Teem_DIR_CONFIG@"
-  CACHE PATH "Path to Teem build or install directory")
-
-slicer_config_set_ep(
-  VTK_DIR
-  "@VTK_DIR_CONFIG@"
-  CACHE PATH "Path to VTK build or install directory")
+# Slicer external projects variables
+@Slicer_SUPERBUILD_EP_VARS_CONFIG@
 
 # --------------------------------------------------------------------------
 # Consistent Compiler Selections

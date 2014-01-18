@@ -3,21 +3,20 @@
 
 // MRML includes
 #include <vtkMRMLLayoutNode.h>
+#include <vtkMRMLScene.h>
 #include <vtkMRMLSliceNode.h>
 #include <vtkMRMLViewNode.h>
 
 // VTK includes
 #include <vtkCollection.h>
 
-// STD includes
-
 #include "vtkMRMLCoreTestingMacros.h"
 
 int vtkMRMLLayoutLogicTest1(int , char * [] )
 {
-  vtkSmartPointer<vtkMRMLScene> scene = vtkSmartPointer<vtkMRMLScene>::New();
-  vtkSmartPointer<vtkMRMLLayoutLogic> layoutLogic = vtkSmartPointer<vtkMRMLLayoutLogic>::New();
-  layoutLogic->SetMRMLScene(scene);
+  vtkNew<vtkMRMLScene> scene;
+  vtkNew<vtkMRMLLayoutLogic> layoutLogic;
+  layoutLogic->SetMRMLScene(scene.GetPointer());
   vtkMRMLLayoutNode* layoutNode = layoutLogic->GetLayoutNode();
   if (!layoutNode)
     {

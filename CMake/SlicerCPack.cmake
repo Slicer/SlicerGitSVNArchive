@@ -1,16 +1,19 @@
-if(Slicer_USE_PYTHONQT)
+
+if(Slicer_USE_PYTHONQT AND NOT Slicer_USE_SYSTEM_python)
   # Python install rules are common to both 'bundled' and 'regular' package
   include(${Slicer_CMAKE_DIR}/SlicerBlockInstallPython.cmake)
 endif()
-if(Slicer_USE_PYTHONQT_WITH_TCL)
+if(Slicer_USE_PYTHONQT_WITH_TCL AND NOT Slicer_USE_SYSTEM_tcl)
   # Tcl install rules are common to both 'bundled' and 'regular' package
   include(${Slicer_CMAKE_DIR}/SlicerBlockInstallTcl.cmake)
 endif()
 
-set(SlicerBlockInstallQtPlugins_subdirectories imageformats sqldrivers)
-include(${Slicer_CMAKE_DIR}/SlicerBlockInstallQtPlugins.cmake)
+if(NOT Slicer_USE_SYSTEM_QT)
+  set(SlicerBlockInstallQtPlugins_subdirectories imageformats sqldrivers)
+  include(${Slicer_CMAKE_DIR}/SlicerBlockInstallQtPlugins.cmake)
+endif()
 
-if(Slicer_BUILD_DICOM_SUPPORT)
+if(Slicer_BUILD_DICOM_SUPPORT AND NOT Slicer_USE_SYSTEM_DCMTK)
   include(${Slicer_CMAKE_DIR}/SlicerBlockInstallDCMTKApps.cmake)
 endif()
 
@@ -23,22 +26,39 @@ if(NOT "${CTK_DIR}" STREQUAL "" AND EXISTS "${CTK_DIR}/CTK-build/CMakeCache.txt"
 endif()
 
 if(NOT APPLE)
-  include(${Slicer_CMAKE_DIR}/SlicerBlockInstallQt.cmake)
-  if(Slicer_BUILD_DICOM_SUPPORT)
+  if(NOT Slicer_USE_SYSTEM_QT)
+    include(${Slicer_CMAKE_DIR}/SlicerBlockInstallQt.cmake)
+  endif()
+  if(Slicer_BUILD_DICOM_SUPPORT AND NOT Slicer_USE_SYSTEM_DCMTK)
     include(${Slicer_CMAKE_DIR}/SlicerBlockInstallDCMTKLibs.cmake)
   endif()
-  if(Slicer_USE_PYTHONQT)
+  if(Slicer_USE_PYTHONQT AND NOT Slicer_USE_SYSTEM_CTK)
     include(${Slicer_CMAKE_DIR}/SlicerBlockInstallPythonQt.cmake)
   endif()
-  if(Slicer_USE_PYTHONQT_WITH_OPENSSL)
+  if(Slicer_USE_PYTHONQT_WITH_OPENSSL AND NOT Slicer_USE_SYSTEM_OpenSSL)
     include(${Slicer_CMAKE_DIR}/SlicerBlockInstallOpenSSL.cmake)
   endif()
-  if(Slicer_USE_QtTesting)
+  if(Slicer_USE_QtTesting AND NOT Slicer_USE_SYSTEM_CTK)
     include(${Slicer_CMAKE_DIR}/SlicerBlockInstallQtTesting.cmake)
   endif()
-  include(${Slicer_CMAKE_DIR}/SlicerBlockInstallLibArchive.cmake)
+  if(NOT Slicer_USE_SYSTEM_LibArchive)
+    include(${Slicer_CMAKE_DIR}/SlicerBlockInstallLibArchive.cmake)
+  endif()
   include(InstallRequiredSystemLibraries)
   include(${Slicer_CMAKE_DIR}/SlicerBlockInstallCMakeProjects.cmake)
+
+  # Remove development files installed by teem. Ideally, teem project itself should be updated.
+  # See http://na-mic.org/Mantis/view.php?id=3455
+  set(dollar "$")
+  install(CODE "execute_process(COMMAND \"@CMAKE_COMMAND@\" -E remove_directory \"${dollar}{CMAKE_INSTALL_PREFIX}/${Slicer_INSTALL_ROOT}include/teem\")")
+  foreach(file
+    lib/Teem-1.10.0/TeemBuildSettings.cmake
+    lib/Teem-1.10.0/TeemConfig.cmake
+    lib/Teem-1.10.0/TeemLibraryDepends.cmake
+    lib/Teem-1.10.0/TeemUse.cmake
+    )
+    install(CODE "execute_process(COMMAND \"@CMAKE_COMMAND@\" -E remove \"${dollar}{CMAKE_INSTALL_PREFIX}/${Slicer_INSTALL_ROOT}${file}\")")
+  endforeach()
 else()
 
   set(CMAKE_INSTALL_NAME_TOOL "" CACHE FILEPATH "" FORCE)
@@ -77,15 +97,17 @@ endif()
 # variables of the Slicer_MAIN_PROJECT if different from SlicerApp
 set(additional_projects ${Slicer_ADDITIONAL_DEPENDENCIES} ${Slicer_ADDITIONAL_PROJECTS})
 foreach(additional_project ${additional_projects})
-  find_package(${additional_project})
-  if (${additional_project}_FOUND)
-    if (${additional_project}_USE_FILE)
-      include(${${additional_project}_USE_FILE})
-    endif()
-    if(NOT APPLE)
-      if (DEFINED ${additional_project}_CPACK_INSTALL_CMAKE_PROJECTS)
-        set(CPACK_INSTALL_CMAKE_PROJECTS
-          "${CPACK_INSTALL_CMAKE_PROJECTS};${${additional_project}_CPACK_INSTALL_CMAKE_PROJECTS}")
+  if(NOT Slicer_USE_SYSTEM_${additional_project})
+    find_package(${additional_project})
+    if(${additional_project}_FOUND)
+      if(${additional_project}_USE_FILE)
+        include(${${additional_project}_USE_FILE})
+      endif()
+      if(NOT APPLE)
+        if(DEFINED ${additional_project}_CPACK_INSTALL_CMAKE_PROJECTS)
+          set(CPACK_INSTALL_CMAKE_PROJECTS
+            "${CPACK_INSTALL_CMAKE_PROJECTS};${${additional_project}_CPACK_INSTALL_CMAKE_PROJECTS}")
+        endif()
       endif()
     endif()
   endif()

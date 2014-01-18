@@ -44,6 +44,7 @@ public:
   qSlicerDiffusionTensorVolumeDisplayWidgetPrivate(qSlicerDiffusionTensorVolumeDisplayWidget& object);
   ~qSlicerDiffusionTensorVolumeDisplayWidgetPrivate();
   void init();
+  void glyphsOnSlicesDisplaySetEnabled(bool enabled);
   vtkMRMLDiffusionTensorVolumeNode* VolumeNode;
 };
 
@@ -78,6 +79,18 @@ void qSlicerDiffusionTensorVolumeDisplayWidgetPrivate::init()
                    q, SLOT(setYellowSliceVisible(bool)));
   QObject::connect(this->GreenSliceCheckBox, SIGNAL(toggled(bool)),
                    q, SLOT(setGreenSliceVisible(bool)));
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerDiffusionTensorVolumeDisplayWidgetPrivate::glyphsOnSlicesDisplaySetEnabled(bool enabled)
+{
+  this->GlyphsOnSlicesDisplayCollapsibleGroupBox->setEnabled(enabled);
+  if (!enabled)
+    {
+    this->RedSliceCheckBox->setCheckState(Qt::Unchecked);
+    this->YellowSliceCheckBox->setCheckState(Qt::Unchecked);
+    this->GreenSliceCheckBox->setCheckState(Qt::Unchecked);
+    }
 }
 
 // --------------------------------------------------------------------------
@@ -150,6 +163,7 @@ void qSlicerDiffusionTensorVolumeDisplayWidget::setMRMLVolumeNode(vtkMRMLDiffusi
   d->VolumeNode = volumeNode;
   d->ScalarVolumeDisplayWidget->setMRMLVolumeNode(volumeNode);
   vtkMRMLDiffusionTensorVolumeDisplayNode* newVolumeDisplayNode = this->volumeDisplayNode();
+  vtkMRMLGlyphableVolumeSliceDisplayNode* glyphableVolumeSliceNode = 0;
   if (newVolumeDisplayNode)
     {
     std::vector< vtkMRMLGlyphableVolumeSliceDisplayNode*> dtiSliceDisplayNodes =
@@ -161,12 +175,14 @@ void qSlicerDiffusionTensorVolumeDisplayWidget::setMRMLVolumeNode(vtkMRMLDiffusi
         newVolumeDisplayNode->GetSliceGlyphDisplayNodes(d->VolumeNode);
       }
     Q_ASSERT(dtiSliceDisplayNodes.size());
-    d->DTISliceDisplayWidget->setMRMLDTISliceDisplayNode(dtiSliceDisplayNodes[0]);
-    qvtkDisconnect(0, vtkCommand::ModifiedEvent, this, SLOT(synchronizeSliceDisplayNodes()));
-    qvtkConnect(dtiSliceDisplayNodes[0], vtkCommand::ModifiedEvent,
-                this, SLOT(synchronizeSliceDisplayNodes()));
-    this->synchronizeSliceDisplayNodes();
+    glyphableVolumeSliceNode = dtiSliceDisplayNodes[0];
     }
+  // The update tasks are also needed when scene is closed (newVolumeDisplayNode is NULL)
+  d->DTISliceDisplayWidget->setMRMLDTISliceDisplayNode(glyphableVolumeSliceNode);
+  qvtkDisconnect(0, vtkCommand::ModifiedEvent, this, SLOT(synchronizeSliceDisplayNodes()));
+  qvtkConnect(glyphableVolumeSliceNode, vtkCommand::ModifiedEvent,
+              this, SLOT(synchronizeSliceDisplayNodes()));
+  this->synchronizeSliceDisplayNodes();
   this->updateWidgetFromMRML();
 }
 
@@ -182,11 +198,11 @@ void qSlicerDiffusionTensorVolumeDisplayWidget::updateWidgetFromMRML()
     return;
     }
   d->ScalarInvariantComboBox->setScalarInvariant(displayNode->GetScalarInvariant());
-  if ( 
+  if (
     displayNode->GetScalarInvariant() == vtkMRMLDiffusionTensorDisplayPropertiesNode::ColorOrientation ||
     displayNode->GetScalarInvariant() == vtkMRMLDiffusionTensorDisplayPropertiesNode::ColorOrientationMiddleEigenvector ||
-    displayNode->GetScalarInvariant() == vtkMRMLDiffusionTensorDisplayPropertiesNode::ColorOrientationMinEigenvector 
-    ) 
+    displayNode->GetScalarInvariant() == vtkMRMLDiffusionTensorDisplayPropertiesNode::ColorOrientationMinEigenvector
+    )
   {
     d->ScalarVolumeDisplayWidget->setColorTableComboBoxEnabled(false);
     d->ScalarVolumeDisplayWidget->setMRMLWindowLevelWidgetEnabled(false);
@@ -223,10 +239,28 @@ void qSlicerDiffusionTensorVolumeDisplayWidget::synchronizeSliceDisplayNodes()
 //----------------------------------------------------------------------------
 void qSlicerDiffusionTensorVolumeDisplayWidget::setVolumeScalarInvariant(int scalarInvariant)
 {
+  Q_D(qSlicerDiffusionTensorVolumeDisplayWidget);
   vtkMRMLDiffusionTensorVolumeDisplayNode* volumeDisplayNode = this->volumeDisplayNode();
   if (!volumeDisplayNode)
     {
     return;
+    }
+  /// As described in but #3323, having a scalar (like FA) as the invariant
+  /// mode with the glyphs visible leads to a crash.  This appears to be
+  /// deep in the pipeline for glyphing. (TODO: fix the pipeline).
+  /// So the solution (workaround) here is to turn off any visible slice
+  /// glyphs when changing the invarient to anything other than color by
+  /// orientation and to disable the glyping panel.
+  if (scalarInvariant ==  vtkMRMLDiffusionTensorDisplayPropertiesNode::ColorOrientation)
+    {
+    d->glyphsOnSlicesDisplaySetEnabled(true);
+    }
+  else
+    {
+    d->glyphsOnSlicesDisplaySetEnabled(false);
+    this->setRedSliceVisible(false);
+    this->setYellowSliceVisible(false);
+    this->setGreenSliceVisible(false);
     }
   volumeDisplayNode->SetScalarInvariant(scalarInvariant);
 }

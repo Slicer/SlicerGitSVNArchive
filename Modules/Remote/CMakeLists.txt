@@ -1,49 +1,17 @@
 
-if(Slicer_BUILD_CLI_SUPPORT AND Slicer_BUILD_EMSegment)
-  # NOTE: EMSegment source code is checkout from Slicer3 repository using
-  #       "External_EMSegment.cmake".
-  add_subdirectory(
-    ${EMSegment_SOURCE_DIR}
-    ${CMAKE_CURRENT_BINARY_DIR}/EMSegment
-    )
+if(Slicer_EP_LABEL_REMOTE_MODULE)
+  foreach(varname ${Slicer_EP_LABEL_REMOTE_MODULE})
+    set(_source_dir ${${varname}})
+    get_filename_component(_project_name ${_source_dir} NAME_WE)
+    add_subdirectory(
+      ${_source_dir}
+      ${CMAKE_CURRENT_BINARY_DIR}/${_project_name}
+      )
+  endforeach()
 endif()
 
-if(Slicer_USE_OpenIGTLink AND Slicer_BUILD_OpenIGTLinkIF)
-  # NOTE: OpenIGTLinkIF source code is checkout from NAMICSandBox repository using
-  #       "External_OpenIGTLinkIF.cmake".
-  add_subdirectory(
-    ${OpenIGTLinkIF_SOURCE_DIR}
-    ${CMAKE_CURRENT_BINARY_DIR}/OpenIGTLinkIF
-    )
-endif()
-
-if(Slicer_BUILD_MultiVolumeExplorer AND Slicer_BUILD_DICOM_SUPPORT)
-  # NOTE: MultiVolumeExplorer source code is checkout using "External_MultiVolumeExplorer.cmake".
-  add_subdirectory(
-    ${MultiVolumeExplorer_SOURCE_DIR}
-    ${CMAKE_CURRENT_BINARY_DIR}/MultiVolumeExplorer
-    )
-endif()
-
-if(Slicer_BUILD_MultiVolumeImporter)
-  # NOTE: MultiVolumeImporter source code is checkout using "External_MultiVolumeImporter.cmake".
-  add_subdirectory(
-    ${MultiVolumeImporter_SOURCE_DIR}
-    ${CMAKE_CURRENT_BINARY_DIR}/MultiVolumeImporter
-    )
-endif()
-
-
-if(Slicer_BUILD_SimpleFilters)
-  # NOTE: SimpleFilters source is checkout in Superbuild
-  add_subdirectory(
-    ${SimpleFilters_SOURCE_DIR}
-    ${CMAKE_CURRENT_BINARY_DIR}/SimpleFilters
-    )
-endif()
-
-if(Slicer_BUILD_BRAINSTOOLS)
-  # NOTE: BRAINSTools source code is checkout using "External_BRAINSTools.cmake".
+if(Slicer_BUILD_CLI AND Slicer_BUILD_BRAINSTOOLS)
+  # NOTE: BRAINSTools source code is checkout using 'Slicer_Remote_Add' called in SuperBuild.cmake
   set(BRAINSTools_CLI_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${Slicer_CLIMODULES_LIB_DIR} CACHE PATH "" FORCE)
   set(BRAINSTools_CLI_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${Slicer_CLIMODULES_LIB_DIR} CACHE PATH "" FORCE)
   set(BRAINSTools_CLI_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${Slicer_CLIMODULES_BIN_DIR} CACHE PATH "" FORCE)
@@ -61,7 +29,7 @@ if(Slicer_BUILD_BRAINSTOOLS)
   set(USE_BRAINSDemonWarp                 ON CACHE BOOL "Build BRAINSDemonWarp ")
   if("${ITK_VERSION_MAJOR}" GREATER 3)
     set(USE_BRAINSTransformConvert          ON CACHE BOOL "Build BRAINSTransformConvert ")
-    set(USE_DWIConvert                      ON CACHE BOOL "Build DWIConvert ") ## Need to figure out library linking
+    set(USE_DWIConvert                      ${Slicer_BUILD_DICOM_SUPPORT} CACHE BOOL "Build DWIConvert ") ## Need to figure out library linking
   else()
     set(USE_BRAINSTransformConvert          OFF CACHE BOOL "Build BRAINSTransformConvert ")
     set(USE_DWIConvert                      OFF CACHE BOOL "Build DWIConvert ")

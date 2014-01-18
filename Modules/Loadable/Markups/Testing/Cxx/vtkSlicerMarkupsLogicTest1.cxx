@@ -181,9 +181,23 @@ int vtkSlicerMarkupsLogicTest1(int , char * [] )
               << fidIndex << std::endl;
       return EXIT_FAILURE;
     }
+
+  if (logic1->StartPlaceMode(0))
+    {
+    std::cerr << "Failed to fail starting place mode!" << std::endl;
+    return EXIT_FAILURE;
+    }
+
   // add a selection node
   vtkMRMLApplicationLogic* applicationLogic = vtkMRMLApplicationLogic::New();
   applicationLogic->SetMRMLScene(scene);
+
+  if (!logic1->StartPlaceMode(1))
+    {
+    std::cerr << "Failed to start place mode after adding a selection node!"
+              << std::endl;
+    return EXIT_FAILURE;
+    }
 
   // test adding a fiducial to an active list - no app logic
   fidIndex = logic1->AddFiducial(-1.1, 100.0, 500.0);
@@ -250,6 +264,26 @@ int vtkSlicerMarkupsLogicTest1(int , char * [] )
               << activeMarkupsNode->GetNthMarkupLabel(i).c_str() << std::endl;
     }
 
+  // test setting active list id
+  std::string newID = logic1->AddNewFiducialNode("New list", scene);
+  activeListID = logic1->GetActiveListID();
+  if (activeListID.compare(newID) != 0)
+    {
+    std::cerr << "Failed to set new fiducial node active. newID = "
+              << newID.c_str() << ", active id = "
+              << activeListID.c_str() << std::endl;
+    return EXIT_FAILURE;
+    }
+  // set the old one active
+  logic1->SetActiveListID(activeMarkupsNode);
+  activeListID = logic1->GetActiveListID();
+  if (activeListID.compare(activeMarkupsNode->GetID()) != 0)
+    {
+    std::cerr << "Failed to set old fiducial node active. old id = "
+              << activeMarkupsNode->GetID() << ", current active id = "
+              << activeListID.c_str() << std::endl;
+    return EXIT_FAILURE;
+    }
   // cleanup
   applicationLogic->Delete();
 

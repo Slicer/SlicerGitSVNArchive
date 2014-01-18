@@ -35,6 +35,10 @@ class qSlicerWebWidgetPrivate;
 class QUrl;
 class QWebView;
 
+#ifdef QT_NO_OPENSSL
+struct QSslError{};
+#endif
+
 class Q_SLICER_BASE_QTGUI_EXPORT qSlicerWebWidget
   : public QWidget
 {
@@ -68,10 +72,7 @@ protected slots:
   virtual void onLoadStarted();
   virtual void onLoadFinished(bool ok);
   virtual void onLinkClicked(const QUrl& url);
-
-#ifdef Slicer_USE_PYTHONQT_WITH_OPENSSL
   void handleSslErrors(QNetworkReply* reply, const QList<QSslError> &errors);
-#endif
 
 protected:
   QScopedPointer<qSlicerWebWidgetPrivate> d_ptr;

@@ -31,6 +31,7 @@
 #include "vtkMRMLDiffusionWeightedVolumeNode.h"
 #include "vtkMRMLLabelMapVolumeDisplayNode.h"
 #include "vtkMRMLNRRDStorageNode.h"
+#include "vtkMRMLScene.h"
 #include "vtkMRMLVectorVolumeDisplayNode.h"
 #include "vtkMRMLVectorVolumeNode.h"
 #include "vtkMRMLVolumeArchetypeStorageNode.h"
@@ -41,6 +42,7 @@
 #include <vtkImageThreshold.h>
 #include <vtkMatrix4x4.h>
 #include <vtkNew.h>
+#include <vtkObjectFactory.h>
 #include <vtkSmartPointer.h>
 #include <vtkStringArray.h>
 #include <vtksys/SystemTools.hxx>
@@ -520,19 +522,27 @@ vtkMRMLVolumeNode* vtkSlicerVolumesLogic::AddArchetypeVolume (
     {
     ArchetypeVolumeNodeSet nodeSet( (*fit)(volumeName, this->GetMRMLScene(), loadingOptions) );
 
-    nodeSet.StorageNode->AddObserver(vtkCommand::ErrorEvent, errorSink.GetPointer());
-    nodeSet.StorageNode->AddObserver(vtkCommand::ProgressEvent,  this->GetMRMLNodesCallbackCommand());
-
     // if the labelMap flags for reader and factory are consistent
     // (both true or both false)
     if (labelMap == nodeSet.LabelMap)
       {
+
+      // connect the observers
+      nodeSet.StorageNode->AddObserver(vtkCommand::ErrorEvent, errorSink.GetPointer());
+      nodeSet.StorageNode->AddObserver(vtkCommand::ProgressEvent,  this->GetMRMLNodesCallbackCommand());
+
       this->InitializeStorageNode(nodeSet.StorageNode, filename, fileList);
 
       vtkDebugMacro("Attempt to read file as a volume of type "
                     << nodeSet.Node->GetNodeTagName() << " using "
                     << nodeSet.Node->GetClassName() << " [filename = " << filename << "]");
-      if (nodeSet.StorageNode->ReadData(nodeSet.Node))
+      bool success = nodeSet.StorageNode->ReadData(nodeSet.Node);
+
+      // disconnect the observers
+      nodeSet.StorageNode->RemoveObservers(vtkCommand::ErrorEvent, errorSink.GetPointer());
+      nodeSet.StorageNode->RemoveObservers(vtkCommand::ProgressEvent,  this->GetMRMLNodesCallbackCommand());
+
+      if (success)
         {
         displayNode = nodeSet.DisplayNode;
         volumeNode =  nodeSet.Node;
@@ -546,10 +556,6 @@ vtkMRMLVolumeNode* vtkSlicerVolumesLogic::AddArchetypeVolume (
     // 
     // Wasn't the right factory, so we need to clean up
     //
-    
-    // disconnect the observers
-    nodeSet.StorageNode->RemoveObservers(vtkCommand::ErrorEvent, errorSink.GetPointer());
-    nodeSet.StorageNode->RemoveObservers(vtkCommand::ProgressEvent,  this->GetMRMLNodesCallbackCommand());
 
     // clean up the scene
     nodeSet.Node->SetAndObserveDisplayNodeID(NULL);
@@ -923,21 +929,13 @@ int vtkSlicerVolumesLogic::IsFreeSurferVolume (const char* filename)
     {
     return 0;
     }
-  std::string fname(filename);
-  std::string::size_type loc = fname.find(".");
-  if (loc != std::string::npos)
+
+  std::string extension = vtksys::SystemTools::LowerCase( vtksys::SystemTools::GetFilenameLastExtension(filename) );
+  if (extension == std::string(".mgz") ||
+      extension == std::string(".mgh") ||
+      extension == std::string(".mgh.gz"))
     {
-    std::string extension = fname.substr(loc);
-    if (extension == std::string(".mgz") ||
-        extension == std::string(".mgh") ||
-        extension == std::string(".mgh.gz"))
-      {
-      return 1;
-      }
-    else
-      {
-      return 0;
-      }
+    return 1;
     }
   else
     {
@@ -1022,8 +1020,8 @@ void vtkSlicerVolumesLogic
   dimsH[2] = dims[2] - 1;
   dimsH[3] = 0.;
 
-  vtkSmartPointer<vtkMatrix4x4> ijkToRAS = vtkSmartPointer<vtkMatrix4x4>::New();
-  volumeNode->GetIJKToRASMatrix(ijkToRAS);
+  vtkNew<vtkMatrix4x4> ijkToRAS;
+  volumeNode->GetIJKToRASMatrix(ijkToRAS.GetPointer());
   double rasCorner[4];
   ijkToRAS->MultiplyPoint(dimsH, rasCorner);
 
@@ -1040,11 +1038,6 @@ void vtkSlicerVolumesLogic::TranslateFreeSurferRegistrationMatrixIntoSlicerRASTo
 {
   if  ( V1Node  && V2Node && FSRegistrationMatrix  && RAS2RASMatrix )
     {
-
-    if ( RAS2RASMatrix == NULL )
-      {
-      RAS2RASMatrix = vtkMatrix4x4::New();
-      }
     RAS2RASMatrix->Zero();
     
     //
@@ -1085,36 +1078,36 @@ void vtkSlicerVolumesLogic::TranslateFreeSurferRegistrationMatrixIntoSlicerRASTo
     // volume. But for an Axial volume, these two matrices are different.
     // How do we compute the correct orientation for FreeSurfer Data?
   
-    vtkSmartPointer<vtkMatrix4x4> T = vtkSmartPointer<vtkMatrix4x4>::New();
-    vtkSmartPointer<vtkMatrix4x4> S = vtkSmartPointer<vtkMatrix4x4>::New();
-    vtkSmartPointer<vtkMatrix4x4> Sinv = vtkSmartPointer<vtkMatrix4x4>::New();
-    vtkSmartPointer<vtkMatrix4x4> M = vtkSmartPointer<vtkMatrix4x4>::New();
-    vtkSmartPointer<vtkMatrix4x4> Minv = vtkSmartPointer<vtkMatrix4x4>::New();
-    vtkSmartPointer<vtkMatrix4x4> N = vtkSmartPointer<vtkMatrix4x4>::New();
-    vtkSmartPointer<vtkMatrix4x4> Ninv = vtkSmartPointer<vtkMatrix4x4>::New();
+    vtkNew<vtkMatrix4x4> T;
+    vtkNew<vtkMatrix4x4> S;
+    vtkNew<vtkMatrix4x4> Sinv;
+    vtkNew<vtkMatrix4x4> M;
+    vtkNew<vtkMatrix4x4> Minv;
+    vtkNew<vtkMatrix4x4> N;
+    vtkNew<vtkMatrix4x4> Ninv;
 
     //--
     // compute FreeSurfer tkRegVox2RAS for V1 volume
     //--
-    ComputeTkRegVox2RASMatrix ( V1Node, T );
+    ComputeTkRegVox2RASMatrix(V1Node, T.GetPointer());
 
     //--
     // compute FreeSurfer tkRegVox2RAS for V2 volume
     //--
-    ComputeTkRegVox2RASMatrix ( V2Node, S );
+    ComputeTkRegVox2RASMatrix(V2Node, S.GetPointer());
 
     // Probably a faster way to do these things?
-    vtkMatrix4x4::Invert (S, Sinv );
-    V1Node->GetIJKToRASMatrix( M );
-    V2Node->GetRASToIJKMatrix( N );
-    vtkMatrix4x4::Invert (M, Minv );
-    vtkMatrix4x4::Invert (N, Ninv );
+    vtkMatrix4x4::Invert(S.GetPointer(), Sinv.GetPointer());
+    V1Node->GetIJKToRASMatrix(M.GetPointer());
+    V2Node->GetRASToIJKMatrix(N.GetPointer());
+    vtkMatrix4x4::Invert(M.GetPointer(), Minv.GetPointer());
+    vtkMatrix4x4::Invert(N.GetPointer(), Ninv.GetPointer());
 
     //    [Ninv]  [Sinv]  [R]  [T]  [Minv]
-    vtkMatrix4x4::Multiply4x4 ( T, Minv, RAS2RASMatrix );
-    vtkMatrix4x4::Multiply4x4 ( FSRegistrationMatrix, RAS2RASMatrix, RAS2RASMatrix );
-    vtkMatrix4x4::Multiply4x4 ( Sinv, RAS2RASMatrix, RAS2RASMatrix );
-    vtkMatrix4x4::Multiply4x4 ( Ninv, RAS2RASMatrix, RAS2RASMatrix );    
+    vtkMatrix4x4::Multiply4x4(T.GetPointer(), Minv.GetPointer(), RAS2RASMatrix );
+    vtkMatrix4x4::Multiply4x4(FSRegistrationMatrix, RAS2RASMatrix, RAS2RASMatrix );
+    vtkMatrix4x4::Multiply4x4(Sinv.GetPointer(), RAS2RASMatrix, RAS2RASMatrix );
+    vtkMatrix4x4::Multiply4x4(Ninv.GetPointer(), RAS2RASMatrix, RAS2RASMatrix );
     }
 }
 

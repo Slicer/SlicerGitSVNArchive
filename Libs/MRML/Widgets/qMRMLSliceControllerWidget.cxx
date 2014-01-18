@@ -45,9 +45,11 @@
 // MRML includes
 #include <vtkMRMLLayoutNode.h>
 #include <vtkMRMLScalarVolumeDisplayNode.h>
+#include <vtkMRMLScene.h>
 #include <vtkMRMLSliceCompositeNode.h>
 
-
+// VTK includes
+#include <vtkNew.h>
 
 //--------------------------------------------------------------------------
 // qMRMLSliceViewPrivate methods
@@ -62,7 +64,6 @@ qMRMLSliceControllerWidgetPrivate::qMRMLSliceControllerWidgetPrivate(qMRMLSliceC
   this->SliceLogics = 0;
 
   this->ControllerButtonGroup = 0;
-  this->SliceOrientation = "Axial";
 
   qMRMLOrientation axialOrientation = {qMRMLSliceControllerWidget::tr("S: "), qMRMLSliceControllerWidget::tr("I <-----> S")};
   qMRMLOrientation sagittalOrientation = {qMRMLSliceControllerWidget::tr("R: "), qMRMLSliceControllerWidget::tr("L <-----> R")};
@@ -395,9 +396,8 @@ void qMRMLSliceControllerWidgetPrivate::init()
   // Hide all buttons by default
   this->MoreButton->setChecked(false);
 
-  vtkSmartPointer<vtkMRMLSliceLogic> defaultLogic =
-    vtkSmartPointer<vtkMRMLSliceLogic>::New();
-  q->setSliceLogic(defaultLogic);
+  vtkNew<vtkMRMLSliceLogic> defaultLogic;
+  q->setSliceLogic(defaultLogic.GetPointer());
 
   q->setSliceViewName("Red");
 }
@@ -771,9 +771,10 @@ void qMRMLSliceControllerWidgetPrivate::updateWidgetFromMRMLSliceNode()
     return;
     }
 
-  //qDebug() << "qMRMLSliceControllerWidgetPrivate::updateWidgetFromMRMLSliceNode";
-
   bool wasBlocked;
+
+  // Update abbreviated slice view name
+  this->ViewLabel->setText(this->MRMLSliceNode->GetLayoutLabel());
 
   // Update orientation selector state
   int index = this->SliceOrientationSelector->findText(
@@ -781,9 +782,9 @@ void qMRMLSliceControllerWidgetPrivate::updateWidgetFromMRMLSliceNode()
   Q_ASSERT(index>=0 && index <=4);
 
   // We block the signal to avoid calling setSliceOrientation from the MRMLNode
-  this->SliceOrientationSelector->blockSignals(true);
+  wasBlocked = this->SliceOrientationSelector->blockSignals(true);
   this->SliceOrientationSelector->setCurrentIndex(index);
-  this->SliceOrientationSelector->blockSignals(false);
+  this->SliceOrientationSelector->blockSignals(wasBlocked);
 
   // Update slice offset slider tooltip
   qMRMLOrientation orientation = this->SliceOrientationToDescription[
@@ -1474,19 +1475,19 @@ QColor qMRMLSliceControllerWidget::sliceViewColor(const QString& sliceViewName)
 void qMRMLSliceControllerWidget::setSliceViewLabel(const QString& newSliceViewLabel)
 {
   Q_D(qMRMLSliceControllerWidget);
-
-  if (d->MRMLSliceNode)
+  if (!d->MRMLSliceNode)
     {
-    qCritical() << "qMRMLSliceControllerWidget::setSliceViewLabel should be called before setMRMLSliceNode !";
     return;
     }
-
-  d->SliceViewLabel = newSliceViewLabel;
-  d->ViewLabel->setText(d->SliceViewLabel);
+  d->MRMLSliceNode->SetLayoutLabel(newSliceViewLabel.toLatin1());
 }
 
 //---------------------------------------------------------------------------
-CTK_GET_CPP(qMRMLSliceControllerWidget, QString, sliceViewLabel, SliceViewLabel);
+QString qMRMLSliceControllerWidget::sliceViewLabel()const
+{
+  Q_D(const qMRMLSliceControllerWidget);
+  return d->ViewLabel->text();
+}
 
 //---------------------------------------------------------------------------
 void qMRMLSliceControllerWidget::setSliceViewColor(const QColor& newSliceViewColor)

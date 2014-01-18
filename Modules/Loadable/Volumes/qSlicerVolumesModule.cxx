@@ -31,12 +31,16 @@
 #include <vtkSlicerVolumesLogic.h>
 
 // Volumes QTModule includes
-#include "qSlicerVolumesIO.h"
+#include "qSlicerVolumesReader.h"
 #include "qSlicerVolumesModule.h"
 #include "qSlicerVolumesModuleWidget.h"
 
 // MRML Logic includes
 #include <vtkMRMLColorLogic.h>
+
+// MRML includes
+#include <vtkMRMLScene.h>
+
 
 //-----------------------------------------------------------------------------
 Q_EXPORT_PLUGIN2(qSlicerVolumesModule, qSlicerVolumesModule);
@@ -147,7 +151,7 @@ void qSlicerVolumesModule::setup()
 
   qSlicerCoreIOManager* ioManager =
     qSlicerCoreApplication::application()->coreIOManager();
-  ioManager->registerIO(new qSlicerVolumesIO(volumesLogic,this));
+  ioManager->registerIO(new qSlicerVolumesReader(volumesLogic,this));
   ioManager->registerIO(new qSlicerNodeWriter(
     "Volumes", QString("VolumeFile"),
     QStringList() << "vtkMRMLVolumeNode", this));

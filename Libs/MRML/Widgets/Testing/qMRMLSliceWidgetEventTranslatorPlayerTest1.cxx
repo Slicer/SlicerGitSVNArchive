@@ -36,15 +36,16 @@
 #include "qMRMLNodeObject.h"
 
 // MRML includes
-#include <vtkMRMLColorTableNode.h>
+#include <vtkMRMLApplicationLogic.h>
+#include <vtkMRMLColorLogic.h>
 #include <vtkMRMLDisplayNode.h>
 #include <vtkMRMLScene.h>
 #include <vtkMRMLSliceNode.h>
 #include <vtkMRMLVolumeNode.h>
 
 // VTK includes
-#include <vtkSmartPointer.h>
 #include <vtkMultiThreader.h>
+#include <vtkNew.h>
 
 // STD includes
 #include <cstdlib>
@@ -73,8 +74,14 @@ int qMRMLSliceWidgetEventTranslatorPlayerTest1(int argc, char * argv [] )
   ctkQtTestingUtility* testUtility = new ctkQtTestingUtility(&etpWidget);
   etpWidget.setTestUtility(testUtility);
 
+  vtkNew<vtkMRMLApplicationLogic> applicationLogic;
+  vtkNew<vtkMRMLColorLogic> colorLogic;
+
   // Test case 1
-  vtkSmartPointer<vtkMRMLScene> scene = vtkSmartPointer<vtkMRMLScene>::New();
+  vtkNew<vtkMRMLScene> scene;
+  applicationLogic->SetMRMLScene(scene.GetPointer());
+  colorLogic->SetMRMLScene(scene.GetPointer());
+
   scene->SetURL(argv[2]);
   scene->Connect();
 
@@ -82,6 +89,7 @@ int qMRMLSliceWidgetEventTranslatorPlayerTest1(int argc, char * argv [] )
   // search for a red slice node
   std::vector<vtkMRMLNode*> sliceNodes;
   scene->GetNodesByClass("vtkMRMLSliceNode", sliceNodes);
+
   for (unsigned int i = 0; i < sliceNodes.size(); ++i)
     {
     vtkMRMLSliceNode* sliceNode = vtkMRMLSliceNode::SafeDownCast(sliceNodes[i]);
@@ -99,7 +107,7 @@ int qMRMLSliceWidgetEventTranslatorPlayerTest1(int argc, char * argv [] )
 
   // "Red" slice by default
   qMRMLSliceWidget sliceWidget;
-  sliceWidget.setMRMLScene(scene);
+  sliceWidget.setMRMLScene(scene.GetPointer());
 
   sliceWidget.setMRMLSliceNode(redSliceNode);
 

@@ -19,14 +19,17 @@
 
 // MRML includes
 #include <vtkEventBroker.h>
+#include <vtkMRMLScene.h>
 #include <vtkMRMLSliceCompositeNode.h>
 #include <vtkMRMLSliceNode.h>
 
 // VTK includes
 #include <vtkCollection.h>
+#include <vtkFloatArray.h>
 #include <vtkMath.h>
 #include <vtkMatrix4x4.h>
 #include <vtkNew.h>
+#include <vtkObjectFactory.h>
 #include <vtkSmartPointer.h>
 #include <vtkTransform.h>
 
@@ -72,8 +75,8 @@ int vtkMRMLSliceLinkLogic::GetBroadcastingEvents()
 void vtkMRMLSliceLinkLogic::SetMRMLSceneInternal(vtkMRMLScene * newScene)
 {
   // List of events the slice logics should listen
-  vtkSmartPointer<vtkIntArray> events = vtkSmartPointer<vtkIntArray>::New();
-  vtkSmartPointer<vtkFloatArray> priorities =vtkSmartPointer<vtkFloatArray>::New();
+  vtkNew<vtkIntArray> events;
+  vtkNew<vtkFloatArray> priorities;
 
   float normalPriority = 0.0;
   float lowPriority = -0.5;
@@ -101,7 +104,7 @@ void vtkMRMLSliceLinkLogic::SetMRMLSceneInternal(vtkMRMLScene * newScene)
   events->InsertNextValue(vtkMRMLScene::EndRestoreEvent);
   priorities->InsertNextValue(lowPriority);
 
-  this->SetAndObserveMRMLSceneEventsInternal(newScene, events, priorities);
+  this->SetAndObserveMRMLSceneEventsInternal(newScene, events.GetPointer(), priorities.GetPointer());
 
   this->ProcessMRMLSceneEvents(newScene, vtkCommand::ModifiedEvent, 0);
 }

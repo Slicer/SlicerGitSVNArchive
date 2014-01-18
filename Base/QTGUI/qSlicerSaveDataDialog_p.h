@@ -1,6 +1,17 @@
 #ifndef __qSlicerSaveDataDialog_p_h
 #define __qSlicerSaveDataDialog_p_h
 
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Slicer API.  It exists purely as an
+// implementation detail.  This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
+
 // Qt includes
 #include <QDialog>
 #include <QDir>
@@ -23,6 +34,7 @@ class qSlicerSaveDataDialogPrivate
 {
   Q_OBJECT
 public:
+  typedef qSlicerSaveDataDialogPrivate Self;
   explicit qSlicerSaveDataDialogPrivate(QWidget* _parent=0);
   virtual ~qSlicerSaveDataDialogPrivate();
 
@@ -44,7 +56,7 @@ protected slots:
   void formatChanged();
   bool saveScene();
   bool saveNodes();
-  QFileInfo sceneFile()const;
+  QFileInfo sceneFile()const; // ### Slicer 4.4: Move as protected
   void showMoreColumns(bool);
   void updateSize();
   void onSceneFormatChanged();
@@ -64,12 +76,21 @@ protected:
     NodeStatusColumn = 6
   };
 
+  enum CustomRole
+  {
+    SceneTypeRole = Qt::UserRole,
+    FileExtensionRole,
+    UIDRole
+  };
+
   int               findSceneRow()const;
   bool              mustSceneBeSaved()const;
   bool              prepareForSaving();
   void              restoreAfterSaving();
   void              setSceneRootDirectory(const QString& rootDirectory);
   void              updateOptionsWidget(int row);
+
+  QString           sceneFileFormat()const;
 
   void              populateScene();
   void              populateNode(vtkMRMLNode* node);
@@ -79,8 +100,11 @@ protected:
   QTableWidgetItem* createNodeTypeItem(vtkMRMLStorableNode* node);
   QTableWidgetItem* createNodeStatusItem(vtkMRMLStorableNode* node, const QFileInfo& fileInfo);
   QWidget*          createFileFormatsWidget(vtkMRMLStorableNode* node, QFileInfo& fileInfo);
-  QTableWidgetItem* createFileNameItem(const QFileInfo& fileInfo, const QString& extension = QString());
-  QWidget*          createFileDirectoryWidget(const QFileInfo& fileInfo);
+  QTableWidgetItem* createFileNameItem(const QFileInfo& fileInfo, const QString& extension, const QString& nodeID);
+  ctkDirectoryButton* createFileDirectoryWidget(const QFileInfo& fileInfo);
+
+  static QString extractKnownExtension(const QString& fileName, vtkObject* object);
+  static QString stripKnownExtension(const QString& fileName, vtkObject* object);
 
   QFileInfo         file(int row)const;
   vtkObject*        object(int row)const;
@@ -91,6 +115,9 @@ protected:
 
   vtkMRMLScene* MRMLScene;
   QString MRMLSceneRootDirectoryBeforeSaving;
+  QString LastMRMLSceneFileFormat;
+
+  friend class qSlicerFileNameItemDelegate;
 };
 
 //-----------------------------------------------------------------------------
@@ -105,13 +132,16 @@ public:
   virtual void setModelData(QWidget *editor,
                             QAbstractItemModel *model,
                             const QModelIndex &index) const;
-  static QString fixupFileName(const QString& fileName, const QString& extension = QString());
+  static QString fixupFileName(const QString& fileName, const QString& extension,
+                               vtkMRMLScene *mrmlScene, const QString &nodeID);
   /// Generate a regular expression that can ensure a filename has a valid
   /// extension.
   /// Example of supported extensions:
   /// "", "*", ".*", ".jpg", ".png" ".tar.gz"...
   /// An empty extension or "*" means any filename (or directory) is valid
   static QRegExp fileNameRegExp(const QString& extension = QString());
+
+  vtkMRMLScene* MRMLScene;
 };
 
 #endif

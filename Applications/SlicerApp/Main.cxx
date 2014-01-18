@@ -24,6 +24,7 @@
 #include <QSplashScreen>
 #include <QString>
 #include <QStyleFactory>
+#include <QSysInfo>
 #include <QTimer>
 
 // Slicer includes
@@ -97,6 +98,17 @@ int SlicerAppMain(int argc, char* argv[])
 #if ITK_VERSION_MAJOR > 3
   itk::itkFactoryRegistration(); 
 #endif
+
+#if QT_VERSION >= 0x040803
+#ifdef Q_OS_MACX
+  if (QSysInfo::MacintoshVersion > QSysInfo::MV_10_8)
+    {
+    // Fix Mac OS X 10.9 (mavericks) font issue
+    // https://bugreports.qt-project.org/browse/QTBUG-32789
+    QFont::insertSubstitution(".Lucida Grande UI", "Lucida Grande");
+    }
+#endif
+#endif
   
   QCoreApplication::setApplicationName("Slicer");
   QCoreApplication::setApplicationVersion(Slicer_VERSION_FULL);
@@ -146,12 +158,18 @@ int SlicerAppMain(int argc, char* argv[])
   // Register and instantiate modules
   splashMessage(splashScreen, "Registering modules...");
   moduleFactoryManager->registerModules();
-  qDebug() << "Number of registered modules:"
-           << moduleFactoryManager->registeredModuleNames().count();
+  if (app.commandOptions()->verbose())
+    {
+    qDebug() << "Number of registered modules:"
+             << moduleFactoryManager->registeredModuleNames().count();
+    }
   splashMessage(splashScreen, "Instantiating modules...");
   moduleFactoryManager->instantiateModules();
-  qDebug() << "Number of instantiated modules:"
-           << moduleFactoryManager->instantiatedModuleNames().count();
+  if (app.commandOptions()->verbose())
+    {
+    qDebug() << "Number of instantiated modules:"
+             << moduleFactoryManager->instantiatedModuleNames().count();
+    }
   // Create main window
   splashMessage(splashScreen, "Initializing user interface...");
   QScopedPointer<qSlicerAppMainWindow> window;
@@ -168,7 +186,10 @@ int SlicerAppMain(int argc, char* argv[])
     splashMessage(splashScreen, "Loading module \"" + name + "\"...");
     moduleFactoryManager->loadModule(name);
     }
-  qDebug() << "Number of loaded modules:" << moduleManager->modulesNames().count();
+  if (app.commandOptions()->verbose())
+    {
+    qDebug() << "Number of loaded modules:" << moduleManager->modulesNames().count();
+    }
 
   splashMessage(splashScreen, QString());
 

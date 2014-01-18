@@ -18,29 +18,29 @@
 #include "vtkMRMLScene.h"
 
 // VTK includes
-#include "vtkBYUReader.h"
-#include "vtkCellArray.h"
-#include "vtkDataSetSurfaceFilter.h"
-#include "vtkOBJReader.h"
-#include "vtkObjectFactory.h"
-#include "vtkPLYReader.h"
-#include "vtkPLYWriter.h"
-#include "vtkPolyDataReader.h"
-#include "vtkSTLReader.h"
-#include "vtkSTLWriter.h"
-#include "vtkSmartPointer.h"
-#include "vtkStringArray.h"
-#include "vtkTriangleFilter.h"
-#include "vtkUnstructuredGrid.h"
-#include "vtkUnstructuredGridReader.h"
-#include "vtkXMLPolyDataReader.h"
-#include "vtkXMLPolyDataWriter.h"
-#include "vtksys/SystemTools.hxx"
+#include <vtkBYUReader.h>
+#include <vtkCellArray.h>
+#include <vtkDataSetSurfaceFilter.h>
+#include <vtkNew.h>
+#include <vtkObjectFactory.h>
+#include <vtkOBJReader.h>
+#include <vtkPLYReader.h>
+#include <vtkPLYWriter.h>
+#include <vtkPolyDataReader.h>
+#include <vtkSTLReader.h>
+#include <vtkSTLWriter.h>
+#include <vtkStringArray.h>
+#include <vtksys/SystemTools.hxx>
+#include <vtkTriangleFilter.h>
+#include <vtkUnstructuredGrid.h>
+#include <vtkUnstructuredGridReader.h>
+#include <vtkXMLPolyDataReader.h>
+#include <vtkXMLPolyDataWriter.h>
 
 // ITK includes
-#include "itkDefaultDynamicMeshTraits.h"
-#include "itkSpatialObjectReader.h"
-#include "itkSpatialObjectWriter.h"
+#include <itkDefaultDynamicMeshTraits.h>
+#include <itkSpatialObjectReader.h>
+#include <itkSpatialObjectWriter.h>
 
 typedef itk::DefaultDynamicMeshTraits< vtkFloatingPointType , 3, 3, double > MeshTrait;
 typedef itk::Mesh<vtkFloatingPointType,3,MeshTrait> floatMesh;
@@ -116,14 +116,12 @@ int vtkMRMLModelStorageNode::ReadDataInternal(vtkMRMLNode *refNode)
     }
       
   // compute file prefix
-  std::string name(fullName);
-  std::string::size_type loc = name.find_last_of(".");
-  if( loc == std::string::npos )
+  std::string extension = vtkMRMLStorageNode::GetLowercaseExtensionFromFileName(fullName);
+  if( extension.empty() )
     {
-    vtkErrorMacro("ReadDataInternal: no file extension specified: " << name.c_str());
+    vtkErrorMacro("ReadData: no file extension specified: " << fullName.c_str());
     return 0;
     }
-  std::string extension = name.substr(loc);
 
   vtkDebugMacro("ReadDataInternal: extension = " << extension.c_str());
 
@@ -132,7 +130,7 @@ int vtkMRMLModelStorageNode::ReadDataInternal(vtkMRMLNode *refNode)
     {
     if ( extension == std::string(".g") || extension == std::string(".byu") )
       {
-      vtkSmartPointer<vtkBYUReader> reader = vtkSmartPointer<vtkBYUReader>::New();
+      vtkNew<vtkBYUReader> reader;
       reader->SetGeometryFileName(fullName.c_str());
       reader->Update();
       modelNode->SetAndObservePolyData(reader->GetOutput());
@@ -140,12 +138,10 @@ int vtkMRMLModelStorageNode::ReadDataInternal(vtkMRMLNode *refNode)
     else if (extension == std::string(".vtk"))
       {
       vtkPolyData* output = 0;
-      vtkSmartPointer<vtkPolyDataReader> reader = vtkSmartPointer<vtkPolyDataReader>::New();
+      vtkNew<vtkPolyDataReader> reader;
       reader->SetFileName(fullName.c_str());
-      vtkSmartPointer<vtkUnstructuredGridReader> unstructuredGridReader =
-          vtkSmartPointer<vtkUnstructuredGridReader>::New();
-      vtkSmartPointer<vtkDataSetSurfaceFilter> surfaceFilter =
-        vtkSmartPointer<vtkDataSetSurfaceFilter>::New();
+      vtkNew<vtkUnstructuredGridReader> unstructuredGridReader;
+      vtkNew<vtkDataSetSurfaceFilter> surfaceFilter;
 
       unstructuredGridReader->SetFileName(fullName.c_str());
       if (reader->IsFilePolyData())
@@ -177,28 +173,28 @@ int vtkMRMLModelStorageNode::ReadDataInternal(vtkMRMLNode *refNode)
       }
     else if (extension == std::string(".vtp"))
       {
-      vtkSmartPointer<vtkXMLPolyDataReader> reader = vtkSmartPointer<vtkXMLPolyDataReader>::New();
+      vtkNew<vtkXMLPolyDataReader> reader;
       reader->SetFileName(fullName.c_str());
       reader->Update();
       modelNode->SetAndObservePolyData(reader->GetOutput());
       }
     else if (extension == std::string(".stl"))
       {
-      vtkSmartPointer<vtkSTLReader> reader = vtkSmartPointer<vtkSTLReader>::New();
+      vtkNew<vtkSTLReader> reader;
       reader->SetFileName(fullName.c_str());
       modelNode->SetAndObservePolyData(reader->GetOutput());
       reader->Update();
       }
     else if (extension == std::string(".ply"))
       {
-      vtkSmartPointer<vtkPLYReader> reader = vtkSmartPointer<vtkPLYReader>::New();
+      vtkNew<vtkPLYReader> reader;
       reader->SetFileName(fullName.c_str());
       modelNode->SetAndObservePolyData(reader->GetOutput());
       reader->Update();
       }
     else if (extension == std::string(".obj"))
       {
-      vtkSmartPointer<vtkOBJReader> reader = vtkSmartPointer<vtkOBJReader>::New();
+      vtkNew<vtkOBJReader> reader;
       reader->SetFileName(fullName.c_str());
       modelNode->SetAndObservePolyData(reader->GetOutput());
       reader->Update();
@@ -224,13 +220,13 @@ int vtkMRMLModelStorageNode::ReadDataInternal(vtkMRMLNode *refNode)
         std::cout<<ex.GetDescription()<<std::endl;
         result = 0;
         }
-      vtkSmartPointer<vtkPolyData> vtkMesh = vtkSmartPointer<vtkPolyData>::New();
+      vtkNew<vtkPolyData> vtkMesh;
       // Get the number of points in the mesh
       int numPoints = surfaceMesh->GetNumberOfPoints();
       //int numCells = surfaceMesh->GetNumberOfCells();
 
       // Create the vtkPoints object and set the number of points
-      vtkSmartPointer<vtkPoints> vpoints = vtkSmartPointer<vtkPoints>::New();
+      vtkNew<vtkPoints> vpoints;
       vpoints->SetNumberOfPoints(numPoints);
       // iterate over all the points in the itk mesh filling in
       // the vtkPoints object as we go
@@ -242,9 +238,9 @@ int vtkMRMLModelStorageNode::ReadDataInternal(vtkMRMLNode *refNode)
         int idx = i->Index();
         vpoints->SetPoint(idx, const_cast<vtkFloatingPointType*>(i->Value().GetDataPointer()));
         }
-      vtkMesh->SetPoints(vpoints);
+      vtkMesh->SetPoints(vpoints.GetPointer());
 
-      vtkSmartPointer<vtkCellArray> cells = vtkSmartPointer<vtkCellArray>::New();
+      vtkNew<vtkCellArray> cells;
       floatMesh::CellsContainerIterator itCells = surfaceMesh->GetCells()->begin();
       floatMesh::CellsContainerIterator itCellsEnd = surfaceMesh->GetCells()->end();
       for ( ; itCells != itCellsEnd; ++itCells )
@@ -260,13 +256,13 @@ int vtkMRMLModelStorageNode::ReadDataInternal(vtkMRMLNode *refNode)
         cells->InsertNextCell(nPts, ptIdList);
         }
 
-      vtkMesh->SetPolys ( cells );
+      vtkMesh->SetPolys(cells.GetPointer());
 
-      modelNode->SetAndObservePolyData( vtkMesh );
+      modelNode->SetAndObservePolyData(vtkMesh.GetPointer());
       }
     else
       {
-      vtkDebugMacro("Cannot read model file '" << name.c_str() << "' (extension = " << extension.c_str() << ")");
+      vtkDebugMacro("Cannot read model file '" << fullName.c_str() << "' (extension = " << extension.c_str() << ")");
       return 0;
       }
     }
@@ -304,12 +300,12 @@ int vtkMRMLModelStorageNode::WriteDataInternal(vtkMRMLNode *refNode)
     return 0;
     }
 
-  std::string extension = itksys::SystemTools::GetFilenameLastExtension(fullName);
+  std::string extension = vtkMRMLStorageNode::GetLowercaseExtensionFromFileName(fullName);
 
   int result = 1;
   if (extension == ".vtk")
     {
-    vtkSmartPointer<vtkPolyDataWriter> writer = vtkSmartPointer<vtkPolyDataWriter>::New();
+    vtkNew<vtkPolyDataWriter> writer;
     writer->SetFileName(fullName.c_str());
     writer->SetFileType(this->GetUseCompression() ? VTK_BINARY : VTK_ASCII );
     writer->SetInput( modelNode->GetPolyData() );
@@ -324,7 +320,7 @@ int vtkMRMLModelStorageNode::WriteDataInternal(vtkMRMLNode *refNode)
     }
   else if (extension == ".vtp")
     {
-    vtkSmartPointer<vtkXMLPolyDataWriter> writer = vtkSmartPointer<vtkXMLPolyDataWriter>::New();
+    vtkNew<vtkXMLPolyDataWriter> writer;
     writer->SetFileName(fullName.c_str());
     writer->SetCompressorType(
       this->GetUseCompression() ? vtkXMLWriter::ZLIB : vtkXMLWriter::NONE);
@@ -342,8 +338,8 @@ int vtkMRMLModelStorageNode::WriteDataInternal(vtkMRMLNode *refNode)
     }
   else if (extension == ".stl")
     {
-    vtkSmartPointer<vtkTriangleFilter> triangulator = vtkSmartPointer<vtkTriangleFilter>::New();
-    vtkSmartPointer<vtkSTLWriter> writer = vtkSmartPointer<vtkSTLWriter>::New();
+    vtkNew<vtkTriangleFilter> triangulator;
+    vtkNew<vtkSTLWriter> writer;
     writer->SetFileName(fullName.c_str());
     writer->SetFileType(this->GetUseCompression() ? VTK_BINARY : VTK_ASCII );
     triangulator->SetInput( modelNode->GetPolyData() );
@@ -359,8 +355,8 @@ int vtkMRMLModelStorageNode::WriteDataInternal(vtkMRMLNode *refNode)
     }
   else if (extension == ".ply")
     {
-    vtkSmartPointer<vtkTriangleFilter> triangulator = vtkSmartPointer<vtkTriangleFilter>::New();
-    vtkSmartPointer<vtkPLYWriter> writer = vtkSmartPointer<vtkPLYWriter>::New();
+    vtkNew<vtkTriangleFilter> triangulator;
+    vtkNew<vtkPLYWriter> writer;
     writer->SetFileName(fullName.c_str());
     writer->SetFileType(this->GetUseCompression() ? VTK_BINARY : VTK_ASCII );
     triangulator->SetInput( modelNode->GetPolyData() );

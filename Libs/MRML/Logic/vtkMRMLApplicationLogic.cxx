@@ -30,6 +30,7 @@
 
 // MRML includes
 #include <vtkMRMLInteractionNode.h>
+#include <vtkMRMLScene.h>
 #include <vtkMRMLSelectionNode.h>
 #include <vtkMRMLSliceCompositeNode.h>
 #include <vtkMRMLSliceNode.h>
@@ -41,6 +42,7 @@
 #include <vtkCollection.h>
 #include <vtkImageData.h>
 #include <vtkNew.h>
+#include <vtkObjectFactory.h>
 #include <vtkSmartPointer.h>
 
 // VTKSYS includes
@@ -392,8 +394,8 @@ bool vtkMRMLApplicationLogic::OpenSlicerDataBundle(const char *sdbFilePath, cons
     }
 
   this->GetMRMLScene()->SetURL( mrmlFile.c_str() );
-  int result = this->GetMRMLScene()->Connect();
-  if ( result )
+  int success = this->GetMRMLScene()->Connect();
+  if ( !success )
     {
     vtkErrorMacro("Could not connect to scene");
     return false;
@@ -740,11 +742,13 @@ void vtkMRMLApplicationLogic::SaveStorableNodeToSlicerDataBundleDirectory(vtkMRM
     pathComponents.pop_back();
     this->OriginalStorageNodeDirs[storageNode] = vtksys::SystemTools::JoinPath(pathComponents);
 
-    std::string ext = std::string(".") + std::string(storageNode->GetDefaultWriteFileExtension());
+    std::string defaultWriteExtension = std::string(".")
+      + vtksys::SystemTools::LowerCase(storageNode->GetDefaultWriteFileExtension());
     std::string uniqueFileName = fileBaseName;
-    if (ext != vtksys::SystemTools::GetFilenameExtension(fileBaseName))
+    std::string extension = vtkMRMLStorageNode::GetLowercaseExtensionFromFileName(fileBaseName);
+    if (defaultWriteExtension != extension)
       {
-      uniqueFileName = uniqueFileName + ext;
+      uniqueFileName = uniqueFileName + defaultWriteExtension;
       }
     storageNode->SetFileName(uniqueFileName.c_str());
     storageNode->SetDataDirectory(dataDir.c_str());

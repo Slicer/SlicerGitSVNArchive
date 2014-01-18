@@ -31,6 +31,7 @@
 #include <vtkCacheManager.h>
 #include <vtkMRMLColorNode.h>
 #include <vtkMRMLLabelMapVolumeDisplayNode.h>
+#include <vtkMRMLScene.h>
 #include <vtkMRMLViewNode.h>
 #include <vtkMRMLVectorVolumeDisplayNode.h>
 #include <vtkMRMLVectorVolumeNode.h>
@@ -46,6 +47,7 @@
 #include <vtkImageData.h>
 #include <vtkLookupTable.h>
 #include <vtkNew.h>
+#include <vtkObjectFactory.h>
 #include <vtkPiecewiseFunction.h>
 #include <vtkPointData.h>
 #include <vtkVolumeProperty.h>
@@ -506,10 +508,6 @@ void vtkSlicerVolumeRenderingLogic
                                  vtkVolumeProperty* volumeProp)
 {
   assert(scalarRange && volumeProp);
-
-  double gradientRange[2];
-  gradientRange[0] = 0.;
-  gradientRange[1] = (scalarRange[1] - scalarRange[0]); // *0.25;
 
   double previous = VTK_DOUBLE_MIN;
   vtkNew<vtkPiecewiseFunction> opacity;
@@ -1086,7 +1084,7 @@ bool vtkSlicerVolumeRenderingLogic::LoadPresets(vtkMRMLScene* scene)
   std::string presetFileName = this->GetModuleShareDirectory() + "/presets.xml";
   scene->SetURL(presetFileName.c_str());
   int connected = scene->Connect();
-  if (connected != 1)
+  if (!connected)
     {
     vtkErrorMacro(<< "Failed to load presets [" << presetFileName << "]");
     return false;

@@ -45,61 +45,86 @@ set(Slicer_EXTENSION_CPACK_BUNDLE_FIXUP_CONFIG ${Slicer_SOURCE_DIR}/CMake/Slicer
 set(Slicer_GUI_LIBRARY_CONFIG ${Slicer_GUI_LIBRARY})
 set(Slicer_CORE_LIBRARY_CONFIG ${Slicer_CORE_LIBRARY})
 
+get_property(_module_targets GLOBAL PROPERTY SLICER_MODULE_TARGETS)
+if(_module_targets)
+  foreach(target ${_module_targets})
+    set(Slicer_INCLUDE_MODULE_DIRS_CONFIG
+"${Slicer_INCLUDE_MODULE_DIRS_CONFIG}
+set(${target}_INCLUDE_DIRS
+  \"${${target}_SOURCE_DIR}\"
+  \"${${target}_BINARY_DIR}\")"
+)
+  endforeach()
+endif()
+
+get_property(_module_logic_targets GLOBAL PROPERTY SLICER_MODULE_LOGIC_TARGETS)
+if(_module_logic_targets)
+  foreach(target ${_module_logic_targets})
+    set(Slicer_INCLUDE_MODULE_LOGIC_DIRS_CONFIG
+"${Slicer_INCLUDE_MODULE_LOGIC_DIRS_CONFIG}
+set(${target}_INCLUDE_DIRS
+  \"${${target}_SOURCE_DIR}\"
+  \"${${target}_BINARY_DIR}\")"
+)
+    list(APPEND Slicer_ModuleLogic_INCLUDE_DIRS_CONFIG "\${${target}_INCLUDE_DIRS}")
+  endforeach()
+endif()
+
+get_property(_module_mrml_targets GLOBAL PROPERTY SLICER_MODULE_MRML_TARGETS)
+if(_module_mrml_targets)
+  foreach(target ${_module_mrml_targets})
+    set(Slicer_INCLUDE_MODULE_MRML_DIRS_CONFIG
+"${Slicer_INCLUDE_MODULE_MRML_DIRS_CONFIG}
+set(${target}_INCLUDE_DIRS
+  \"${${target}_SOURCE_DIR}\"
+  \"${${target}_BINARY_DIR}\")"
+)
+    list(APPEND Slicer_ModuleMRML_INCLUDE_DIRS_CONFIG "\${${target}_INCLUDE_DIRS}")
+  endforeach()
+endif()
+
+get_property(_module_widget_targets GLOBAL PROPERTY SLICER_MODULE_WIDGET_TARGETS)
+if(_module_widget_targets)
+  foreach(target ${_module_widget_targets})
+    set(Slicer_INCLUDE_MODULE_WIDGET_DIRS_CONFIG
+"${Slicer_INCLUDE_MODULE_WIDGET_DIRS_CONFIG}
+set(${target}_INCLUDE_DIRS
+  \"${${target}_SOURCE_DIR}\"
+  \"${${target}_BINARY_DIR}\")"
+)
+    list(APPEND Slicer_ModuleWidgets_INCLUDE_DIRS_CONFIG "\${${target}_INCLUDE_DIRS}")
+  endforeach()
+endif()
+
 set(Slicer_Libs_INCLUDE_DIRS_CONFIG ${Slicer_Libs_INCLUDE_DIRS})
 set(Slicer_Base_INCLUDE_DIRS_CONFIG ${Slicer_Base_INCLUDE_DIRS})
-set(Slicer_ModuleLogic_INCLUDE_DIRS_CONFIG ${Slicer_ModuleLogic_INCLUDE_DIRS})
-set(Slicer_ModuleMRML_INCLUDE_DIRS_CONFIG ${Slicer_ModuleMRML_INCLUDE_DIRS})
-set(Slicer_ModuleWidgets_INCLUDE_DIRS_CONFIG ${Slicer_ModuleWidgets_INCLUDE_DIRS})
 
 set(FreeSurfer_INCLUDE_DIRS_CONFIG ${FreeSurfer_INCLUDE_DIRS})
 set(ITKFactoryRegistration_INCLUDE_DIRS_CONFIG ${ITKFactoryRegistration_INCLUDE_DIRS})
 set(MRMLCore_INCLUDE_DIRS_CONFIG ${MRMLCore_INCLUDE_DIRS})
+set(MRMLLogic_INCLUDE_DIRS_CONFIG ${MRMLLogic_INCLUDE_DIRS})
 set(RemoteIO_INCLUDE_DIRS_CONFIG ${RemoteIO_INCLUDE_DIRS})
 set(vtkTeem_INCLUDE_DIRS_CONFIG ${vtkTeem_INCLUDE_DIRS})
 set(vtkITK_INCLUDE_DIRS_CONFIG ${vtkITK_INCLUDE_DIRS})
 
-# Qt
-set(QT_QMAKE_EXECUTABLE_CONFIG ${QT_QMAKE_EXECUTABLE})
+# Note: For sake of simplification, the macro 'slicer_config_set_ep' is not invoked conditionally, if
+# the configured 'value' parameter is an empty string, the macro 'slicer_config_set_ep' is a no-op.
 
-# External project
-if(Slicer_USE_BatchMake)
-  set(BatchMake_DIR_CONFIG ${BatchMake_DIR})
-endif()
-set(CTK_DIR_CONFIG ${CTK_DIR})
-if(Slicer_BUILD_DICOM_SUPPORT)
-  set(DCMTK_DIR_CONFIG ${DCMTK_DIR})
-endif()
-if(Slicer_USE_QtTesting)
-  set(QtTesting_DIR_CONFIG ${QtTesting_DIR})
-endif()
-set(ITK_DIR_CONFIG ${ITK_DIR})
-if(Slicer_USE_SimpleITK)
-  set(SimpleITK_DIR_CONFIG ${SimpleITK_DIR})
-endif()
-if(Slicer_BUILD_EXTENSIONMANAGER_SUPPORT)
-  set(qRestAPI_DIR_CONFIG ${qRestAPI_DIR})
-endif()
-if(Slicer_USE_OpenIGTLink)
-  set(OpenIGTLink_DIR_CONFIG ${OpenIGTLink_DIR})
-endif()
-if(Slicer_USE_PYTHONQT)
-  set(PYTHON_EXECUTABLE_CONFIG ${PYTHON_EXECUTABLE})
-  set(PYTHON_INCLUDE_DIR_CONFIG ${PYTHON_INCLUDE_DIR})
-  set(PYTHON_LIBRARY_CONFIG ${PYTHON_LIBRARY})
-  if(WIN32)
-    set(PYTHON_DEBUG_LIBRARY_CONFIG ${PYTHON_DEBUG_LIBRARY})
-  endif()
-endif()
-if(Slicer_BUILD_CLI_SUPPORT)
-  set(SlicerExecutionModel_DIR_CONFIG ${SlicerExecutionModel_DIR})
-endif()
-set(SLICERLIBCURL_DIR_CONFIG ${SLICERLIBCURL_DIR})
-set(Teem_DIR_CONFIG ${Teem_DIR})
-set(VTK_DIR_CONFIG ${VTK_DIR})
+# Slicer external projects variables
+set(Slicer_SUPERBUILD_EP_VARS_CONFIG)
+foreach(varname ${Slicer_EP_LABEL_FIND_PACKAGE} QtTesting_DIR)
+  set(Slicer_SUPERBUILD_EP_VARS_CONFIG
+   "${Slicer_SUPERBUILD_EP_VARS_CONFIG}
+slicer_config_set_ep(
+  ${varname}
+  \"${${varname}}\"
+  CACHE STRING \"Path to project build directory or file\" FORCE)
+")
+endforeach()
 
 # List all required external project
-set(Slicer_EXTERNAL_PROJECTS_CONFIG CTK ITK SLICERLIBCURL Teem VTK)
-set(Slicer_EXTERNAL_PROJECTS_NO_USEFILE_CONFIG)
+set(Slicer_EXTERNAL_PROJECTS_CONFIG CTK ITK CURL Teem VTK)
+set(Slicer_EXTERNAL_PROJECTS_NO_USEFILE_CONFIG CURL)
 if(Slicer_USE_QtTesting)
   list(APPEND Slicer_EXTERNAL_PROJECTS_CONFIG QtTesting)
   list(APPEND Slicer_EXTERNAL_PROJECTS_NO_USEFILE_CONFIG QtTesting)
@@ -138,12 +163,3 @@ set(Slicer_TARGETS_FILE "${Slicer_BINARY_DIR}/SlicerTargets.cmake")
 configure_file(
   ${Slicer_SOURCE_DIR}/CMake/SlicerConfig.cmake.in
   ${Slicer_BINARY_DIR}/SlicerConfig.cmake @ONLY)
-
-# Settings specific for installation trees
-#
-# (Note we configure from a different file than use for the build tree)
-
-# Configure SlicerConfig.cmake for the install tree.
-configure_file(
-  ${Slicer_SOURCE_DIR}/CMake/SlicerInstallConfig.cmake.in
-  ${Slicer_BINARY_DIR}/Utilities/SlicerConfig.cmake @ONLY)

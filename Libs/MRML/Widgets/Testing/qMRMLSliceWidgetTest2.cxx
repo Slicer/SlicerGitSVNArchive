@@ -24,11 +24,14 @@
 
 // qMRML includes
 #include "qMRMLSliceControllerWidget.h"
+#include "qMRMLSliceView.h"
 #include "qMRMLSliceWidget.h"
 #include "qMRMLNodeObject.h"
 
 // MRML includes
+#include <vtkMRMLAbstractSliceViewDisplayableManager.h>
 #include <vtkMRMLColorTableNode.h>
+#include <vtkMRMLScene.h>
 #include <vtkMRMLSliceLogic.h>
 #include <vtkMRMLSliceCompositeNode.h>
 #include <vtkMRMLScalarVolumeNode.h>
@@ -36,15 +39,14 @@
 #include <vtkMRMLVolumeArchetypeStorageNode.h>
 
 // VTK includes
-#include <vtkSmartPointer.h>
-
-// STD includes
+#include <vtkCollection.h>
+#include <vtkNew.h>
 
 vtkMRMLScalarVolumeNode* loadVolume(const char* volume, vtkMRMLScene* scene)
 {
-  vtkSmartPointer<vtkMRMLScalarVolumeDisplayNode> displayNode = vtkSmartPointer<vtkMRMLScalarVolumeDisplayNode>::New();
-  vtkSmartPointer<vtkMRMLScalarVolumeNode> scalarNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
-  vtkSmartPointer<vtkMRMLVolumeArchetypeStorageNode> storageNode = vtkSmartPointer<vtkMRMLVolumeArchetypeStorageNode>::New();
+  vtkNew<vtkMRMLScalarVolumeDisplayNode> displayNode;
+  vtkNew<vtkMRMLScalarVolumeNode> scalarNode;
+  vtkNew<vtkMRMLVolumeArchetypeStorageNode> storageNode;
 
   displayNode->SetAutoWindowLevel(false);
   displayNode->SetInterpolate(false);
@@ -60,12 +62,12 @@ vtkMRMLScalarVolumeNode* loadVolume(const char* volume, vtkMRMLScene* scene)
   //vtkSlicerColorLogic *colorLogic = vtkSlicerColorLogic::New();
   //displayNode->SetAndObserveColorNodeID(colorLogic->GetDefaultVolumeColorNodeID());
   //colorLogic->Delete();
-  scene->AddNode(storageNode);
-  scene->AddNode(displayNode);
+  scene->AddNode(storageNode.GetPointer());
+  scene->AddNode(displayNode.GetPointer());
   scalarNode->SetAndObserveStorageNodeID(storageNode->GetID());
   scalarNode->SetAndObserveDisplayNodeID(displayNode->GetID());
-  scene->AddNode(scalarNode);
-  storageNode->ReadData(scalarNode);
+  scene->AddNode(scalarNode.GetPointer());
+  storageNode->ReadData(scalarNode.GetPointer());
 
   vtkMRMLColorTableNode* colorNode = vtkMRMLColorTableNode::New();
   colorNode->SetTypeToGrey();
@@ -87,8 +89,8 @@ int qMRMLSliceWidgetTest2(int argc, char * argv [] )
     return EXIT_FAILURE;
     }
 
-  vtkSmartPointer<vtkMRMLScene> scene = vtkSmartPointer<vtkMRMLScene>::New();
-  vtkMRMLScalarVolumeNode* scalarNode = loadVolume(argv[1], scene);
+  vtkNew<vtkMRMLScene> scene;
+  vtkMRMLScalarVolumeNode* scalarNode = loadVolume(argv[1], scene.GetPointer());
   if (scalarNode == 0)
     {
     std::cerr << "Not a valid volume: " << argv[1] << std::endl;
@@ -97,7 +99,7 @@ int qMRMLSliceWidgetTest2(int argc, char * argv [] )
 
   QSize viewSize(256, 256);
   qMRMLSliceWidget sliceWidget;
-  sliceWidget.setMRMLScene(scene);
+  sliceWidget.setMRMLScene(scene.GetPointer());
   sliceWidget.resize(viewSize.width(), sliceWidget.sliceController()->height() + viewSize.height() );
 
   vtkMRMLSliceCompositeNode* sliceCompositeNode = sliceWidget.sliceLogic()->GetSliceCompositeNode();
@@ -117,6 +119,46 @@ int qMRMLSliceWidgetTest2(int argc, char * argv [] )
     {
     nodeObject.modify();
     }
+
+  // test the list of displayable managers
+  QStringList expectedDisplayableManagerClassNames =
+    QStringList() << "vtkMRMLVolumeGlyphSliceDisplayableManager"
+                  << "vtkMRMLModelSliceDisplayableManager"
+                  << "vtkMRMLCrosshairDisplayableManager";
+  qMRMLSliceView *sliceView = const_cast<qMRMLSliceView*>(sliceWidget.sliceView());
+  vtkNew<vtkCollection> collection;
+  sliceView->getDisplayableManagers(collection.GetPointer());
+  int numManagers = collection->GetNumberOfItems();
+  std::cout << "Slice widget slice view has " << numManagers
+            << " displayable managers." << std::endl;
+  if (numManagers != expectedDisplayableManagerClassNames.size())
+    {
+    std::cerr << "Incorrect number of displayable managers, expected "
+              << expectedDisplayableManagerClassNames.size()
+              << " but got " << numManagers << std::endl;
+    return EXIT_FAILURE;
+    }
+  for (int i = 0; i < numManagers; ++i)
+    {
+    vtkMRMLAbstractSliceViewDisplayableManager *sliceViewDM =
+      vtkMRMLAbstractSliceViewDisplayableManager::SafeDownCast(collection->GetItemAsObject(i));
+    if (sliceViewDM)
+      {
+      std::cout << "\tDisplayable manager " << i << " class name = " << sliceViewDM->GetClassName() << std::endl;
+      if (!expectedDisplayableManagerClassNames.contains(sliceViewDM->GetClassName()))
+        {
+        std::cerr << "\t\tnot in expected list!" << std::endl;
+        return EXIT_FAILURE;
+        }
+      }
+    else
+      {
+      std::cerr << "\tDisplayable manager " << i << " is null." << std::endl;
+      return EXIT_FAILURE;
+      }
+    }
+  collection->RemoveAllItems();
+
 /*
   QTimer modifyTimer;
   modifyTimer.setInterval(0);

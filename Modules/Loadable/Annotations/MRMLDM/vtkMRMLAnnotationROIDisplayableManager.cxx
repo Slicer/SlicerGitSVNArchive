@@ -18,6 +18,7 @@
 // MRML includes
 #include <vtkMRMLInteractionNode.h>
 #include <vtkMRMLLinearTransformNode.h>
+#include <vtkMRMLScene.h>
 #include <vtkMRMLSliceNode.h>
 #include <vtkMRMLTransformNode.h>
 
@@ -36,7 +37,6 @@
 #include <vtkPolyDataMapper2D.h>
 #include <vtkProperty.h>
 #include <vtkRenderer.h>
-#include <vtkSmartPointer.h>
 #include <vtkTransform.h>
 #include <vtkTransformPolyDataFilter.h>
 
@@ -340,18 +340,18 @@ void vtkMRMLAnnotationROIDisplayableManager::PropagateMRMLToWidget(vtkMRMLAnnota
 
 
   // handle ROI transform to world space
-  vtkSmartPointer<vtkMatrix4x4> transformToWorld = vtkSmartPointer<vtkMatrix4x4>::New();
+  vtkNew<vtkMatrix4x4> transformToWorld;
   transformToWorld->Identity();
 
   vtkMRMLTransformNode* tnode = roiNode->GetParentTransformNode();
   if (tnode != NULL && tnode->IsLinear())
     {
     vtkMRMLLinearTransformNode *lnode = vtkMRMLLinearTransformNode::SafeDownCast(tnode);
-    lnode->GetMatrixTransformToWorld(transformToWorld);
+    lnode->GetMatrixTransformToWorld(transformToWorld.GetPointer());
     }
   transformToWorld->Invert();
 
-  rep->SetWorldToLocalMatrix(transformToWorld);
+  rep->SetWorldToLocalMatrix(transformToWorld.GetPointer());
 
   // update widget from mrml
   double xyz[3];
@@ -475,29 +475,29 @@ void vtkMRMLAnnotationROIDisplayableManager::PropagateMRMLToWidget2D(vtkMRMLAnno
   //this->SetParentTransformToWidget(roiNode, roiWidget);
 
   // handle ROI transform to world space
-  vtkSmartPointer<vtkMatrix4x4> transformToWorld = vtkSmartPointer<vtkMatrix4x4>::New();
+  vtkNew<vtkMatrix4x4> transformToWorld;
   transformToWorld->Identity();
 
   vtkMRMLTransformNode* tnode = roiNode->GetParentTransformNode();
   if (tnode != NULL && tnode->IsLinear())
     {
     vtkMRMLLinearTransformNode *lnode = vtkMRMLLinearTransformNode::SafeDownCast(tnode);
-    lnode->GetMatrixTransformToWorld(transformToWorld);
+    lnode->GetMatrixTransformToWorld(transformToWorld.GetPointer());
     }
 
   // update the transform from world to screen space
   // for the extracted cut plane
-  vtkSmartPointer<vtkMatrix4x4> rasToXY = vtkSmartPointer<vtkMatrix4x4>::New();
+  vtkNew<vtkMatrix4x4> rasToXY;
   rasToXY->DeepCopy(sliceNode->GetXYToRAS());
   rasToXY->Invert();
 
-  vtkSmartPointer<vtkMatrix4x4> XYToWorld = vtkSmartPointer<vtkMatrix4x4>::New();
+  vtkNew<vtkMatrix4x4> XYToWorld;
   XYToWorld->Identity();
-  XYToWorld->Multiply4x4(rasToXY, transformToWorld, XYToWorld);
+  XYToWorld->Multiply4x4(rasToXY.GetPointer(), transformToWorld.GetPointer(), XYToWorld.GetPointer());
 
   vtkSmartPointer<vtkTransform> transform = rep->GetIntersectionPlaneTransform();
 
-  transform->SetMatrix(XYToWorld);
+  transform->SetMatrix(XYToWorld.GetPointer());
 
   //
   // update the plane equation for the current slice cutting plane
@@ -506,10 +506,10 @@ void vtkMRMLAnnotationROIDisplayableManager::PropagateMRMLToWidget2D(vtkMRMLAnno
   transformToWorld->Invert();
   rasToXY->DeepCopy(sliceNode->GetXYToRAS());
 
-  vtkSmartPointer<vtkMatrix4x4> mat = vtkSmartPointer<vtkMatrix4x4>::New();
+  vtkNew<vtkMatrix4x4> mat;
   mat->Identity();
-  mat->Multiply4x4(transformToWorld, rasToXY, mat);
-  rasToXY->DeepCopy(mat);
+  mat->Multiply4x4(transformToWorld.GetPointer(), rasToXY.GetPointer(), mat.GetPointer());
+  rasToXY->DeepCopy(mat.GetPointer());
 
   double normal[4]={0,0,0,1};
   double origin[4]={0,0,0,1};
@@ -732,7 +732,7 @@ void vtkMRMLAnnotationROIDisplayableManager::SetParentTransformToWidget(vtkMRMLA
 
   vtkAnnotationROIRepresentation *rep = vtkAnnotationROIRepresentation::SafeDownCast(widget->GetRepresentation());
 
-  vtkSmartPointer<vtkMatrix4x4> transformToWorld = vtkSmartPointer<vtkMatrix4x4>::New();
+  vtkNew<vtkMatrix4x4> transformToWorld;
   transformToWorld->Identity();
 
   // get the nodes's transform node
@@ -740,7 +740,7 @@ void vtkMRMLAnnotationROIDisplayableManager::SetParentTransformToWidget(vtkMRMLA
   if (rep != NULL && tnode != NULL && tnode->IsLinear())
     {
     vtkMRMLLinearTransformNode *lnode = vtkMRMLLinearTransformNode::SafeDownCast(tnode);
-    lnode->GetMatrixTransformToWorld(transformToWorld);
+    lnode->GetMatrixTransformToWorld(transformToWorld.GetPointer());
     }
 
   vtkNew<vtkPropCollection> actors;
@@ -749,7 +749,7 @@ void vtkMRMLAnnotationROIDisplayableManager::SetParentTransformToWidget(vtkMRMLA
   for (int i=0; i<actors->GetNumberOfItems(); i++)
     {
     vtkActor *actor = vtkActor::SafeDownCast(actors->GetItemAsObject(i));
-    actor->SetUserMatrix(transformToWorld);
+    actor->SetUserMatrix(transformToWorld.GetPointer());
     }
   //rep->SetTransform(xform);
 

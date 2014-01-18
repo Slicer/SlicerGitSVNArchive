@@ -14,24 +14,11 @@ endif()
 find_package(VTK REQUIRED)
 include(${VTK_USE_FILE})
 
-if(${ITK_VERSION_MAJOR} GREATER 3)
-  set(${CMAKE_PROJECT_NAME}_ITK_COMPONENTS
-    ITKCommon
-    ITKIOImageBase
-    )
-  find_package(ITK COMPONENTS ${${CMAKE_PROJECT_NAME}_ITK_COMPONENTS})
-else()
-  find_package(ITK REQUIRED)
-endif()
-if(${ITK_VERSION_MAJOR} GREATER 3)
-  set(ITK_NO_IO_FACTORY_REGISTER_MANAGER 1) # See Libs/ITKFactoryRegistration/CMakeLists.txt
-  list(APPEND ITK_LIBRARIES ITKFactoryRegistration)
-  list(APPEND ITK_INCLUDE_DIRS ${ITKFactoryRegistration_INCLUDE_DIRS})
-endif()
-include(${ITK_USE_FILE})
+find_package(CURL REQUIRED)
 
-find_package(SLICERLIBCURL REQUIRED)
-include(${SLICERLIBCURL_USE_FILE})
+if(Slicer_USE_PYTHONQT_WITH_OPENSSL)
+  find_package(OpenSSL REQUIRED)
+endif()
 
 # Disable MSVC 8 warnings
 if(WIN32)
@@ -54,6 +41,7 @@ set(include_dirs
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_CURRENT_BINARY_DIR}
   ${MRMLCore_INCLUDE_DIRS}
+  ${CURL_INCLUDE_DIRS}
   )
 include_directories(${include_dirs})
 
@@ -84,12 +72,6 @@ endif()
 # --------------------------------------------------------------------------
 set(RemoteIO_SRCS
   vtkHTTPHandler.cxx
-  vtkSRBHandler.cxx
-  vtkXNATHandler.cxx
-  vtkHIDHandler.cxx
-  vtkXNDHandler.cxx
-  vtkHIDTagTable.cxx
-  vtkXNDTagTable.cxx
   )
 
 # --------------------------------------------------------------------------
@@ -101,9 +83,14 @@ set(srcs ${RemoteIO_SRCS})
 add_library(${lib_name} ${srcs})
 
 set(libs
-  ${SLICERLIBCURL_LIBRARIES}
+  ${CURL_LIBRARIES}
   MRMLCore
   )
+if(Slicer_USE_PYTHONQT_WITH_OPENSSL)
+  list(APPEND libs
+    ${OPENSSL_LIBRARIES}
+    )
+endif()
 target_link_libraries(${lib_name} ${libs})
 
 # Apply user-defined properties to the library target.
@@ -134,28 +121,6 @@ install(TARGETS ${lib_name}
   LIBRARY DESTINATION ${${PROJECT_NAME}_INSTALL_LIB_DIR} COMPONENT RuntimeLibraries
   ARCHIVE DESTINATION ${${PROJECT_NAME}_INSTALL_LIB_DIR} COMPONENT Development
   )
-
-# --------------------------------------------------------------------------
-# Python Wrapping
-# --------------------------------------------------------------------------
-if(VTK_WRAP_PYTHON)
-  vtkMacroKitPythonWrap(
-    KIT_NAME ${lib_name}
-    KIT_SRCS ${RemoteIO_SRCS}
-    KIT_PYTHON_LIBRARIES MRMLCorePythonD
-    KIT_INSTALL_BIN_DIR ${${PROJECT_NAME}_INSTALL_BIN_DIR}
-    KIT_INSTALL_LIB_DIR ${${PROJECT_NAME}_INSTALL_LIB_DIR}
-    )
-  # Export target
-  export(TARGETS ${lib_name}Python ${lib_name}PythonD APPEND FILE ${${PROJECT_NAME}_EXPORT_FILE})
-endif()
-
-# --------------------------------------------------------------------------
-# Testing (requires some of the examples)
-# --------------------------------------------------------------------------
-if(BUILD_TESTING)
-  #  add_subdirectory(Testing)
-endif()
 
 # --------------------------------------------------------------------------
 # Set INCLUDE_DIRS variable

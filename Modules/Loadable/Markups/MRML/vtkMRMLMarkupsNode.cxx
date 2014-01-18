@@ -30,6 +30,7 @@
 #include <vtkBitArray.h>
 #include <vtkCommand.h>
 #include <vtkMatrix4x4.h>
+#include <vtkNew.h>
 #include <vtkObjectFactory.h>
 #include <vtkPointData.h>
 #include <vtkPolyData.h>
@@ -581,12 +582,12 @@ int vtkMRMLMarkupsNode::GetMarkupPointWorld(int markupIndex, int pointIndex, dou
   xyz[2] = vectorPoint.GetZ();
   // get the markup's transform node
   vtkMRMLTransformNode* tnode = this->GetParentTransformNode();
-  vtkSmartPointer<vtkMatrix4x4> transformToWorld = vtkSmartPointer<vtkMatrix4x4>::New();
+  vtkNew<vtkMatrix4x4> transformToWorld;
   transformToWorld->Identity();
   if (tnode != NULL && tnode->IsLinear())
     {
     vtkMRMLLinearTransformNode *lnode = vtkMRMLLinearTransformNode::SafeDownCast(tnode);
-    lnode->GetMatrixTransformToWorld(transformToWorld);
+    lnode->GetMatrixTransformToWorld(transformToWorld.GetPointer());
     }
   // convert by the parent transform
   double  xyzw[4];
@@ -783,14 +784,14 @@ void vtkMRMLMarkupsNode::SetMarkupPointWorld(const int markupIndex, const int po
     }
   // get the markup's transform node
   vtkMRMLTransformNode* tnode = this->GetParentTransformNode();
-  vtkSmartPointer<vtkMatrix4x4> transformToWorld = vtkSmartPointer<vtkMatrix4x4>::New();
+  vtkNew<vtkMatrix4x4> transformToWorld;
   transformToWorld->Identity();
   if (tnode != NULL)
   {
       if (tnode->IsLinear())
     {
     vtkMRMLLinearTransformNode *lnode = vtkMRMLLinearTransformNode::SafeDownCast(tnode);
-    lnode->GetMatrixTransformToWorld(transformToWorld);
+    lnode->GetMatrixTransformToWorld(transformToWorld.GetPointer());
     }
   }
   // convert by the inverted parent transform
@@ -1262,9 +1263,11 @@ void vtkMRMLMarkupsNode::ApplyTransform(vtkAbstractTransform* transform)
 }
 
 //---------------------------------------------------------------------------
-void vtkMRMLMarkupsNode::WriteCLI(std::ostringstream& ss, std::string prefix, int coordinateSystem)
+void vtkMRMLMarkupsNode::
+WriteCLI(std::vector<std::string>& commandLine, std::string prefix,
+         int coordinateSystem, int multipleFlag)
 {
-  Superclass::WriteCLI(ss, prefix, coordinateSystem);
+  Superclass::WriteCLI(commandLine, prefix, coordinateSystem, multipleFlag);
 
   int numMarkups = this->GetNumberOfMarkups();
 
@@ -1285,6 +1288,7 @@ void vtkMRMLMarkupsNode::WriteCLI(std::ostringstream& ss, std::string prefix, in
       // loop over the points
       for (int n=0; n<numPoints; n++)
         {
+        std::stringstream ss;
         double point[3];
         if (useLPS)
           {
@@ -1297,22 +1301,19 @@ void vtkMRMLMarkupsNode::WriteCLI(std::ostringstream& ss, std::string prefix, in
         // write
         if (prefix.compare("") != 0)
           {
-          ss << prefix << " ";
+          commandLine.push_back(prefix);
           }
         // avoid scientific notation
         //ss.precision(5);
         //ss << std::fixed << point[0] << "," <<  point[1] << "," <<  point[2] ;
         ss << point[0] << "," <<  point[1] << "," <<  point[2];
-        if (n < numPoints-1)
-          {
-          // put a space after each point if there's another point to print
-          ss << " ";
-          }
+        commandLine.push_back(ss.str());
         }
-      // add a space if there are more markups to print
-      if (m < numMarkups-1)
+      if (multipleFlag == 0)
         {
-         ss << " ";
+        // only print out one markup, but print out all the points in that markup
+        // (if have a ruler, need to do 2 points)
+        break;
         }
       }
     }

@@ -25,6 +25,7 @@
 #include <vtkMRMLLinearTransformNode.h>
 #include <vtkMRMLModelDisplayNode.h>
 #include <vtkMRMLModelNode.h>
+#include <vtkMRMLScene.h>
 #include <vtkMRMLSliceCompositeNode.h>
 #include <vtkMRMLSliceNode.h>
 #include <vtkMRMLTransformNode.h>
@@ -35,6 +36,7 @@
 #include <vtkEventBroker.h>
 #include <vtkMatrix4x4.h>
 #include <vtkNew.h>
+#include <vtkObjectFactory.h>
 #include <vtkPlane.h>
 #include <vtkPolyDataMapper2D.h>
 #include <vtkProperty2D.h>
@@ -261,6 +263,17 @@ void vtkMRMLModelSliceDisplayableManager::vtkInternal
     return;
     }
 
+  // Do not add the display node if it is already associated with a pipeline object.
+  // This happens when a model node already associated with a display node
+  // is copied into an other (using vtkMRMLNode::Copy()) and is added to the scene afterward.
+  // Related issue are #3428 and #2608
+  PipelinesCacheType::iterator it;
+  it = this->DisplayPipelines.find(displayNode);
+  if (it != this->DisplayPipelines.end())
+    {
+    return;
+    }
+
   vtkNew<vtkActor2D> actor;
   if (displayNode->IsA("vtkMRMLModelDisplayNode"))
     {
@@ -346,8 +359,8 @@ void vtkMRMLModelSliceDisplayableManager::vtkInternal
 
     // Update transform matrices
 
-    vtkSmartPointer<vtkMatrix4x4> tempMat1 = vtkSmartPointer<vtkMatrix4x4>::New();
-    vtkSmartPointer<vtkMatrix4x4> tempMat2 = vtkSmartPointer<vtkMatrix4x4>::New();
+    vtkNew<vtkMatrix4x4> tempMat1;
+    vtkNew<vtkMatrix4x4> tempMat2;
     tempMat1->Identity();
     tempMat2->Identity();
 
@@ -355,15 +368,15 @@ void vtkMRMLModelSliceDisplayableManager::vtkInternal
     tempMat1->Identity();
     tempMat1->DeepCopy(pipeline->NodeToWorld);
     tempMat1->Invert();
-    vtkMatrix4x4::Multiply4x4(tempMat1, this->SliceXYToRAS, tempMat2);
-    this->SetSlicePlaneFromMatrix(tempMat2, pipeline->Plane);
+    vtkMatrix4x4::Multiply4x4(tempMat1.GetPointer(), this->SliceXYToRAS, tempMat2.GetPointer());
+    this->SetSlicePlaneFromMatrix(tempMat2.GetPointer(), pipeline->Plane);
 
     //    Set PolyData Transform
     tempMat1->DeepCopy(this->SliceXYToRAS);
     tempMat1->Invert();
-    vtkMatrix4x4::Multiply4x4(tempMat1,
-                              pipeline->NodeToWorld, tempMat2);
-    pipeline->TransformToSlice->SetMatrix(tempMat2);
+    vtkMatrix4x4::Multiply4x4(tempMat1.GetPointer(),
+                              pipeline->NodeToWorld, tempMat2.GetPointer());
+    pipeline->TransformToSlice->SetMatrix(tempMat2.GetPointer());
 
     pipeline->Plane->Modified(); 
     
@@ -371,11 +384,11 @@ void vtkMRMLModelSliceDisplayableManager::vtkInternal
     // no need for 50^3 default locator divisons
     if (polyData->GetPoints() != NULL && polyData->GetNumberOfPoints() <= 4)
     {
-      vtkSmartPointer<vtkPointLocator> locator = vtkSmartPointer<vtkPointLocator>::New();
+      vtkNew<vtkPointLocator> locator;
       double *bounds = polyData->GetBounds();
       locator->SetDivisions(2,2,2);
       locator->InitPointInsertion(polyData->GetPoints(), bounds);
-      pipeline->Cutter->SetLocator(locator);
+      pipeline->Cutter->SetLocator(locator.GetPointer());
     }
 
     // Update pipeline actor
@@ -398,27 +411,24 @@ void vtkMRMLModelSliceDisplayableManager::vtkInternal
 ::AddObservations(vtkMRMLDisplayableNode* node)
 {
   vtkEventBroker* broker = vtkEventBroker::GetInstance();
-  std::vector< vtkObservation* > observations;
+  vtkEventBroker::ObservationVector observations;
 
-  observations = broker->GetObservations(node, vtkMRMLDisplayableNode::TransformModifiedEvent,
-                                          this->External, this->External->GetMRMLNodesCallbackCommand() );
-  if (observations.size() == 0)
+  if (!broker->GetObservationExist(node, vtkMRMLDisplayableNode::TransformModifiedEvent,
+                                          this->External, this->External->GetMRMLNodesCallbackCommand() ))
     {
     broker->AddObservation(node, vtkMRMLDisplayableNode::TransformModifiedEvent,
                             this->External, this->External->GetMRMLNodesCallbackCommand() );
     }
 
-  observations = broker->GetObservations(node, vtkMRMLDisplayableNode::DisplayModifiedEvent,
-                                          this->External, this->External->GetMRMLNodesCallbackCommand() );
-  if (observations.size() == 0)
+  if (!broker->GetObservationExist(node, vtkMRMLDisplayableNode::DisplayModifiedEvent,
+                                          this->External, this->External->GetMRMLNodesCallbackCommand() ))
     {
     broker->AddObservation(node, vtkMRMLDisplayableNode::DisplayModifiedEvent,
                             this->External, this->External->GetMRMLNodesCallbackCommand() );
     }
 
-  observations = broker->GetObservations(node, vtkMRMLModelNode::PolyDataModifiedEvent,
-                                          this->External, this->External->GetMRMLNodesCallbackCommand() );
-  if (observations.size() == 0)
+  if (!broker->GetObservationExist(node, vtkMRMLModelNode::PolyDataModifiedEvent,
+                                          this->External, this->External->GetMRMLNodesCallbackCommand() ))
     {
     broker->AddObservation(node, vtkMRMLModelNode::PolyDataModifiedEvent,
                             this->External, this->External->GetMRMLNodesCallbackCommand() );
@@ -430,7 +440,7 @@ void vtkMRMLModelSliceDisplayableManager::vtkInternal
 ::RemoveObservations(vtkMRMLDisplayableNode* node)
 {
   vtkEventBroker* broker = vtkEventBroker::GetInstance();
-  std::vector< vtkObservation* > observations;
+  vtkEventBroker::ObservationVector observations;
   observations = broker->GetObservations(
     node, vtkMRMLModelNode::PolyDataModifiedEvent, this->External, this->External->GetMRMLNodesCallbackCommand() );
   broker->RemoveObservations(observations);

@@ -183,7 +183,7 @@ slicer_add_python_unittest(
 
 #
 # SelfTests
-# see http://wiki.slicer.org/slicerWiki/index.php/Documentation/Nightly/Developers/Tutorials/SelfTestModule
+# see http://wiki.slicer.org/slicerWiki/index.php/Documentation/4.3/Developers/Tutorials/SelfTestModule
 #
 
 if(Slicer_USE_QtTesting AND Slicer_USE_PYTHONQT)
@@ -201,12 +201,13 @@ if(Slicer_USE_QtTesting AND Slicer_USE_PYTHONQT)
   slicer_add_python_unittest(SCRIPT Charting.py)
   slicer_add_python_unittest(SCRIPT SliceLinkLogic.py)
   slicer_add_python_unittest(SCRIPT ScenePerformance.py)
-  slicer_add_python_unittest(SCRIPT RSNA2012Vis.py)
-  slicer_add_python_unittest(SCRIPT RSNA2012Quant.py)
+  slicer_add_python_unittest(SCRIPT RSNAVisTutorial.py)
+  slicer_add_python_unittest(SCRIPT RSNAQuantTutorial.py)
   slicer_add_python_unittest(SCRIPT slicerCloseCrashBug2590.py)
   slicer_add_python_unittest(SCRIPT ViewControllersSliceInterpolationBug1926.py)
   slicer_add_python_unittest(SCRIPT RSNA2012ProstateDemo.py)
   slicer_add_python_unittest(SCRIPT JRC2013Vis.py)
+  slicer_add_python_unittest(SCRIPT FiducialLayoutSwitchBug1914.py)
 
   # add as hidden module for use at run time
   set(KIT_PYTHON_SCRIPTS
@@ -220,12 +221,13 @@ if(Slicer_USE_QtTesting AND Slicer_USE_PYTHONQT)
     Charting.py
     SliceLinkLogic.py
     ScenePerformance.py
-    RSNA2012Vis.py
-    RSNA2012Quant.py
+    RSNAVisTutorial.py
+    RSNAQuantTutorial.py
     slicerCloseCrashBug2590.py
     ViewControllersSliceInterpolationBug1926.py  
     RSNA2012ProstateDemo.py
     JRC2013Vis.py
+    FiducialLayoutSwitchBug1914.py
     )
 
   set(KIT_PYTHON_RESOURCES
@@ -263,13 +265,7 @@ if(Slicer_USE_QtTesting AND Slicer_USE_PYTHONQT)
       SLICER_ARGS --launcher-no-splash --qt-testing
       )
 
-    slicer_add_python_test(
-      SCRIPT DiffusionTensorImagingTutorial.py
-      SLICER_ARGS --launcher-no-splash --qt-testing
-      )
-
     list(APPEND tests_using_qttesting
-      py_DiffusionTensorImagingTutorial
       py_NeurosurgicalPlanningTutorial
       )
   endif()

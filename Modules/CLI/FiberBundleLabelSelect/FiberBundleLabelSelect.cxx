@@ -8,32 +8,33 @@
 
 #include "FiberBundleLabelSelectCLP.h"
 
-#include <iostream>
-#include <algorithm>
-#include <string>
-
 #include "itkPluginFilterWatcher.h"
 #include "itkPluginUtilities.h"
 
-#include "vtkFloatArray.h"
-#include "vtkCellArray.h"
-#include "vtkTransformPolyDataFilter.h"
-#include "vtkSmartPointer.h"
-#include "vtkPolyDataWriter.h"
-#include "vtkTimerLog.h"
-#include "vtkMath.h"
-
+// vtkITK includes
 #include <vtkITKArchetypeImageSeriesScalarReader.h>
+
+// VTK includes
+#include <vtkCellArray.h>
+#include <vtkFloatArray.h>
 #include <vtkImageCast.h>
+#include <vtkImageData.h>
+#include <vtkMath.h>
+#include <vtkNew.h>
+#include <vtkPointData.h>
+#include <vtkPolyData.h>
+#include <vtkPolyDataWriter.h>
+#include <vtkSmartPointer.h>
+#include <vtkTimerLog.h>
+#include <vtkTransform.h>
+#include <vtkTransformPolyDataFilter.h>
+#include <vtkXMLPolyDataReader.h>
+#include <vtkXMLPolyDataWriter.h>
 
-#include "vtkImageData.h"
-
-#include "vtkPolyData.h"
-#include "vtkPointData.h"
-#include "vtkXMLPolyDataReader.h"
-#include "vtkTransform.h"
-#include "vtkXMLPolyDataWriter.h"
-
+// STD includes
+#include <iostream>
+#include <algorithm>
+#include <string>
 
 int main( int argc, char * argv[] )
 {
@@ -74,8 +75,8 @@ int main( int argc, char * argv[] )
     }
 
   // Read in Label volume inputs
-  vtkSmartPointer<vtkImageCast> imageCastLabel_A = vtkSmartPointer<vtkImageCast>::New();
-  vtkSmartPointer<vtkITKArchetypeImageSeriesScalarReader> readerLabel_A = vtkSmartPointer<vtkITKArchetypeImageSeriesScalarReader>::New();
+  vtkNew<vtkImageCast> imageCastLabel_A;
+  vtkNew<vtkITKArchetypeImageSeriesScalarReader> readerLabel_A;
   readerLabel_A->SetArchetype(InputLabel_A.c_str());
   readerLabel_A->SetUseOrientationFromFile(1);
   readerLabel_A->SetUseNativeOriginOn();
@@ -89,23 +90,23 @@ int main( int argc, char * argv[] )
   imageCastLabel_A->Update();
 
   // Read in fiber bundle input to be selected.
-  vtkSmartPointer<vtkXMLPolyDataReader> readerPD = vtkSmartPointer<vtkXMLPolyDataReader>::New();
+  vtkNew<vtkXMLPolyDataReader> readerPD;
   readerPD->SetFileName(InputFibers.c_str());
   readerPD->Update();
 
 
   //1. Set up matrices to put fibers into ijk space of volume
   // This assumes fibers are in RAS space of volume (i.e. RAS==world)
-  vtkSmartPointer<vtkMatrix4x4> Label_A_RASToIJK = vtkSmartPointer<vtkMatrix4x4>::New();
+  vtkNew<vtkMatrix4x4> Label_A_RASToIJK;
   Label_A_RASToIJK->DeepCopy(readerLabel_A->GetRasToIjkMatrix());
   
   //the volume we're probing knows its spacing so take this out of the matrix
   double sp[3];
   imageCastLabel_A->GetOutput()->GetSpacing(sp);
-  vtkSmartPointer<vtkTransform> trans = vtkSmartPointer<vtkTransform>::New();
+  vtkNew<vtkTransform> trans;
   trans->Identity();
   trans->PreMultiply();
-  trans->SetMatrix(Label_A_RASToIJK);
+  trans->SetMatrix(Label_A_RASToIJK.GetPointer());
 
   /**
   // Trans from IJK to RAS
@@ -139,6 +140,13 @@ int main( int argc, char * argv[] )
   vtkIdType j;
   double p[3];
 
+  unsigned int label;
+  std::vector<bool> passAll;
+  for (label=0; label<PassLabel.size(); label++)
+    {
+    passAll.push_back(false);
+    }
+
   int *labelDims = imageCastLabel_A->GetOutput()->GetDimensions();
   // Check lines
   vtkIdType inCellId;
@@ -153,7 +161,6 @@ int main( int argc, char * argv[] )
       }
     double pIJK[3];
     int pt[3];
-    unsigned int label;
     short *inPtr;
     bool addLine = false;
     bool pass = false;
@@ -168,7 +175,7 @@ int main( int argc, char * argv[] )
       if (pt[0] < 0 || pt[1] < 0 || pt[2] < 0 ||
           pt[0] >= labelDims[0] || pt[1] >= labelDims[1] || pt[2] >= labelDims[2])
         {
-        std::cerr << "point #" << j <<" on the line #" << inCellId << " is outside the label";
+        std::cerr << "point #" << j <<" on the line #" << inCellId << " is outside the label\n";
         continue;
         }
         
@@ -210,20 +217,26 @@ int main( int argc, char * argv[] )
           }
         else if (includeOperation == 1) // AND
           {
-          bool passAll = true;
           for(label=0; label<PassLabel.size(); label++)
             {
-              if (*inPtr != PassLabel[label])
-                {
-                passAll = false;
-                break;
-                }
-            }
-          pass = passAll;
-          }
-
-        }
+            if (*inPtr == PassLabel[label])
+              {
+              passAll[label] = true;
+              break;
+              }
+            } // for(label=0; 
+          } // else if (includeOperation == 1)
+        } // if !(PassLabel.size() == 0)
       } //for (j=0; j < npts; j++)
+    
+    if (includeOperation == 1 && PassLabel.size() > 0) // AND
+      {
+      pass = true;
+      for (label=0; label<passAll.size(); label++)
+        {
+        pass = pass & passAll[label];
+        }
+      }
     addLine = pass && !nopass;
 
     addLines.push_back(addLine);
@@ -238,15 +251,15 @@ int main( int argc, char * argv[] )
   // Add lines
 
   //Preallocate PolyData elements
-  vtkSmartPointer<vtkPolyData> outFibers = vtkSmartPointer<vtkPolyData>::New();
+  vtkNew<vtkPolyData> outFibers;
 
-  vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
+  vtkNew<vtkPoints> points;
   points->Allocate(numNewPts);
-  outFibers->SetPoints(points);
+  outFibers->SetPoints(points.GetPointer());
 
-  vtkSmartPointer<vtkCellArray> outFibersCellArray = vtkSmartPointer<vtkCellArray>::New();
+  vtkNew<vtkCellArray> outFibersCellArray;
   outFibersCellArray->Allocate(numNewPts+numNewCells);
-  outFibers->SetLines(outFibersCellArray);
+  outFibers->SetLines(outFibersCellArray.GetPointer());
 
   //outFibersCellArray->SetNumberOfCells(numNewCells);
   //outFibersCellArray = outFibers->GetLines();
@@ -254,15 +267,19 @@ int main( int argc, char * argv[] )
   //vtkIdTypeArray *cellArray=outFibersCellArray->GetData();
   //cellArray->SetNumberOfTuples(numNewPts+numNewCells);
 
+  // if the input has tensors, copy them to the output
+  vtkDataArray *oldTensors = input->GetPointData()->GetTensors();
   vtkSmartPointer<vtkFloatArray> newTensors = vtkSmartPointer<vtkFloatArray>::New();
-  newTensors->SetNumberOfComponents(9);
-  newTensors->Allocate(9*numNewPts);
-  outFibers->GetPointData()->SetTensors(newTensors);
-  newTensors = static_cast<vtkFloatArray *> (outFibers->GetPointData()->GetTensors());
+  if (oldTensors)
+    {
+    newTensors->SetNumberOfComponents(9);
+    newTensors->Allocate(9*numNewPts);
+    outFibers->GetPointData()->SetTensors(newTensors);
+    newTensors = static_cast<vtkFloatArray *> (outFibers->GetPointData()->GetTensors());
+    }
 
 
   vtkIdType ptId = 0;
-  vtkDataArray *oldTensors = input->GetPointData()->GetTensors();
   double tensor[9];
 
   for (inCellId=0, inLines->InitTraversal(); 
@@ -287,9 +304,9 @@ int main( int argc, char * argv[] )
     }
 
   //3. Save the output
-  vtkSmartPointer<vtkXMLPolyDataWriter> writer = vtkSmartPointer<vtkXMLPolyDataWriter>::New();
+  vtkNew<vtkXMLPolyDataWriter> writer;
   writer->SetFileName(OutputFibers.c_str());
-  writer->SetInput( outFibers );
+  writer->SetInput(outFibers.GetPointer());
   writer->Write();
   }
   catch ( ... )

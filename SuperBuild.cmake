@@ -47,35 +47,37 @@ if(NOT ${CMAKE_PROJECT_NAME}_USE_GIT_PROTOCOL)
     endif()
   endfunction()
 
-  _check_for_required_git_config_insteadof("http://itk.org/" "git://itk.org/")
-endif()
+  if("${ITK_VERSION_MAJOR}" LESS 4)
+    _check_for_required_git_config_insteadof("http://itk.org/" "git://itk.org/")
+  endif()
 
-#-----------------------------------------------------------------------------
-# Qt - Let's check if a valid version of Qt is available
-#-----------------------------------------------------------------------------
-include(SlicerBlockFindQtAndCheckVersion)
+endif()
 
 #-----------------------------------------------------------------------------
 # Enable and setup External project global properties
 #-----------------------------------------------------------------------------
-include(ExternalProject)
-include(ListToString)
-include(SlicerMacroCheckExternalProjectDependency)
-
-set(ep_base        "${CMAKE_BINARY_DIR}")
-#set(ep_install_dir "${ep_base}/Install")
-
-set(ep_list_separator "^^")
 
 set(ep_common_c_flags "${CMAKE_C_FLAGS_INIT} ${ADDITIONAL_C_FLAGS}")
 set(ep_common_cxx_flags "${CMAKE_CXX_FLAGS_INIT} ${ADDITIONAL_CXX_FLAGS}")
 
-# Compute -G arg for configuring external projects with the same CMake generator:
-if(CMAKE_EXTRA_GENERATOR)
-  set(gen "${CMAKE_EXTRA_GENERATOR} - ${CMAKE_GENERATOR}")
-else()
-  set(gen "${CMAKE_GENERATOR}")
+#-----------------------------------------------------------------------------
+# Define list of additional options used to configure Slicer
+#------------------------------------------------------------------------------
+
+if(DEFINED CTEST_CONFIGURATION_TYPE)
+  mark_as_superbuild(CTEST_CONFIGURATION_TYPE)
 endif()
+
+if(DEFINED CMAKE_CONFIGURATION_TYPES)
+  mark_as_superbuild(CMAKE_CONFIGURATION_TYPES)
+endif()
+
+# Provide a mechanism to disable one or more modules.
+mark_as_superbuild(
+  Slicer_QTLOADABLEMODULES_DISABLED:STRING
+  Slicer_QTSCRIPTEDMODULES_DISABLED:STRING
+  Slicer_CLIMODULES_DISABLED:STRING
+  )
 
 #------------------------------------------------------------------------------
 # Slicer dependency list
@@ -83,14 +85,12 @@ endif()
 
 set(ITK_EXTERNAL_NAME ITKv${ITK_VERSION_MAJOR})
 
-set(Slicer_DEPENDENCIES cmcurl teem VTK ${ITK_EXTERNAL_NAME} CTK jqPlot LibArchive)
+set(Slicer_DEPENDENCIES curl teem VTK ${ITK_EXTERNAL_NAME} CTK LibArchive)
+
+set(CURL_ENABLE_SSL ${Slicer_USE_PYTHONQT_WITH_OPENSSL})
 
 if(Slicer_USE_OpenIGTLink)
   list(APPEND Slicer_DEPENDENCIES OpenIGTLink)
-endif()
-
-if(Slicer_BUILD_OpenIGTLinkIF)
-  list(APPEND Slicer_DEPENDENCIES OpenIGTLinkIF)
 endif()
 
 if(Slicer_USE_SimpleITK)
@@ -101,20 +101,16 @@ if(Slicer_BUILD_CLI_SUPPORT)
   list(APPEND Slicer_DEPENDENCIES SlicerExecutionModel)
 endif()
 
-if(Slicer_BUILD_BRAINSTOOLS)
-    list(APPEND Slicer_DEPENDENCIES BRAINSTools)
-endif()
-
-if(Slicer_BUILD_EMSegment)
-  list(APPEND Slicer_DEPENDENCIES EMSegment)
-endif()
-
 if(Slicer_BUILD_EXTENSIONMANAGER_SUPPORT)
   list(APPEND Slicer_DEPENDENCIES qRestAPI)
 endif()
 
 if(Slicer_BUILD_DICOM_SUPPORT)
   list(APPEND Slicer_DEPENDENCIES DCMTK)
+endif()
+
+if(Slicer_BUILD_DICOM_SUPPORT AND Slicer_USE_PYTHONQT_WITH_OPENSSL)
+  list(APPEND Slicer_DEPENDENCIES pydicom)
 endif()
 
 if(Slicer_USE_BatchMake)
@@ -138,230 +134,138 @@ if(Slicer_USE_PYTHONQT_WITH_TCL AND UNIX)
   list(APPEND Slicer_DEPENDENCIES incrTcl)
 endif()
 
-if(Slicer_BUILD_MultiVolumeExplorer)
-  list(APPEND Slicer_DEPENDENCIES MultiVolumeExplorer)
-endif()
-
-if(Slicer_BUILD_MultiVolumeImporter)
-  list(APPEND Slicer_DEPENDENCIES MultiVolumeImporter)
-endif()
-
-if(Slicer_BUILD_SimpleFilters)
-  list(APPEND Slicer_DEPENDENCIES SimpleFilters)
-endif()
-
-if(Slicer_BUILD_DWIConvert)
-  list(APPEND Slicer_DEPENDENCIES DWIConvert)
-endif()
-
 if(DEFINED Slicer_ADDITIONAL_DEPENDENCIES)
   list(APPEND Slicer_DEPENDENCIES ${Slicer_ADDITIONAL_DEPENDENCIES})
 endif()
 
-SlicerMacroCheckExternalProjectDependency(Slicer)
+mark_as_superbuild(Slicer_DEPENDENCIES:STRING)
 
-#-----------------------------------------------------------------------------
-# Dump Slicer external project dependencies
 #------------------------------------------------------------------------------
-#set(ep_dependency_graph "# External project dependencies")
-#foreach(ep ${Slicer_DEPENDENCIES})
-#  set(ep_dependency_graph "${ep_dependency_graph}\n${ep}:${${ep}_DEPENDENCIES}")
-#endforeach()
-#file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/SlicerDependencies.txt "${ep_dependency_graph}\n")
-#message(STATUS "Generated ${CMAKE_CURRENT_BINARY_DIR}/SlicerDependencies.txt")
+# Include remote modules
+#------------------------------------------------------------------------------
+include(ExternalProjectAddSource)
+
+macro(list_conditional_append cond list)
+  if(${cond})
+    list(APPEND ${list} ${ARGN})
+  endif()
+endmacro()
+
+Slicer_Remote_Add(jqPlot
+  URL http://slicer.kitware.com/midas3/download?items=15065&dummy=jquery.jqplot.1.0.4r1120.tar.gz
+  URL_MD5 5c5d73730145c3963f09e1d3ca355580
+  SOURCE_DIR_VAR jqPlot_DIR
+  LABELS FIND_PACKAGE
+  )
+list(APPEND Slicer_REMOTE_DEPENDENCIES jqPlot)
+
+Slicer_Remote_Add(OpenIGTLinkIF
+  GIT_REPOSITORY ${git_protocol}://github.com/openigtlink/OpenIGTLinkIF.git
+  GIT_TAG b73e6a31119e20ec4793a644d83fc03ab7e716d9
+  OPTION_NAME Slicer_BUILD_OpenIGTLinkIF
+  OPTION_DEPENDS "Slicer_BUILD_QTLOADABLEMODULES;Slicer_USE_OpenIGTLink"
+  LABELS REMOTE_MODULE
+  )
+list_conditional_append(Slicer_BUILD_OpenIGTLinkIF Slicer_REMOTE_DEPENDENCIES OpenIGTLinkIF)
+
+option(Slicer_BUILD_MULTIVOLUME_SUPPORT "Build MultiVolume support." ON)
+mark_as_advanced(Slicer_BUILD_MULTIVOLUME_SUPPORT)
+
+Slicer_Remote_Add(MultiVolumeExplorer
+  GIT_REPOSITORY ${git_protocol}://github.com/fedorov/MultiVolumeExplorer.git
+  GIT_TAG 8e1ad5f885a32a05c34b1699f945239cdba099b5
+  OPTION_NAME Slicer_BUILD_MultiVolumeExplorer
+  OPTION_DEPENDS "Slicer_BUILD_QTLOADABLEMODULES;Slicer_BUILD_MULTIVOLUME_SUPPORT;Slicer_USE_PYTHONQT"
+  LABELS REMOTE_MODULE
+  )
+list_conditional_append(Slicer_BUILD_MultiVolumeExplorer Slicer_REMOTE_DEPENDENCIES MultiVolumeExplorer)
+
+Slicer_Remote_Add(MultiVolumeImporter
+  GIT_REPOSITORY ${git_protocol}://github.com/fedorov/MultiVolumeImporter.git
+  GIT_TAG b40cd3e199c3bf9b43e6be40c96e8a6c496fc15b
+  OPTION_NAME Slicer_BUILD_MultiVolumeImporter
+  OPTION_DEPENDS "Slicer_BUILD_QTLOADABLEMODULES;Slicer_BUILD_MULTIVOLUME_SUPPORT;Slicer_USE_PYTHONQT"
+  LABELS REMOTE_MODULE
+  )
+list_conditional_append(Slicer_BUILD_MultiVolumeImporter Slicer_REMOTE_DEPENDENCIES MultiVolumeImporter)
+
+Slicer_Remote_Add(SimpleFilters
+  GIT_REPOSITORY ${git_protocol}://github.com/SimpleITK/SlicerSimpleFilters.git
+  GIT_TAG fc1f06ce52aec9272f928f3d1e0fa59b1a1c8bd6
+  OPTION_NAME Slicer_BUILD_SimpleFilters
+  OPTION_DEPENDS "Slicer_BUILD_QTSCRIPTEDMODULES;Slicer_USE_SimpleITK"
+  LABELS REMOTE_MODULE
+  )
+list_conditional_append(Slicer_BUILD_SimpleFilters Slicer_REMOTE_DEPENDENCIES SimpleFilters)
+
+Slicer_Remote_Add(BRAINSTools
+  GIT_REPOSITORY "${git_protocol}://github.com/BRAINSia/BRAINSTools.git"
+  GIT_TAG "bd755e2d82b7b8b8454fcb579d416e39b16dff80"
+  OPTION_NAME Slicer_BUILD_BRAINSTOOLS
+  OPTION_DEPENDS "Slicer_BUILD_CLI_SUPPORT;Slicer_BUILD_CLI"
+  #LABELS REMOTE_MODULE # Do not specify label, source directory will be explictly added.
+  )
+list_conditional_append(Slicer_BUILD_BRAINSTOOLS Slicer_REMOTE_DEPENDENCIES BRAINSTools)
+
+Slicer_Remote_Add(EMSegment
+  SVN_REPOSITORY "http://svn.slicer.org/Slicer3/trunk/Modules/EMSegment"
+  SVN_REVISION -r "17040"
+  OPTION_NAME Slicer_BUILD_EMSegment
+  OPTION_DEPENDS "Slicer_BUILD_BRAINSTOOLS;Slicer_BUILD_QTLOADABLEMODULES;Slicer_USE_PYTHONQT_WITH_TCL"
+  LABELS REMOTE_MODULE
+  )
+list_conditional_append(Slicer_BUILD_EMSegment Slicer_REMOTE_DEPENDENCIES EMSegment)
+
+Slicer_Remote_Add(DataStore
+  GIT_REPOSITORY "${git_protocol}://github.com/Slicer/Slicer-DataStore"
+  GIT_TAG "6ed2b737c1234c9105140bacc0619d2378c9d15e"
+  OPTION_NAME Slicer_BUILD_DataStore
+  LABELS REMOTE_MODULE
+  )
+list_conditional_append(Slicer_BUILD_DataStore Slicer_REMOTE_DEPENDENCIES DataStore)
+
+Slicer_Remote_Add(CompareVolumes
+  GIT_REPOSITORY "${git_protocol}://github.com/pieper/CompareVolumes"
+  GIT_TAG "51d44e6c977842063207732ae430f16708724d45"
+  OPTION_NAME Slicer_BUILD_CompareVolumes
+  OPTION_DEPENDS "Slicer_USE_PYTHONQT"
+  LABELS REMOTE_MODULE
+  )
+list_conditional_append(Slicer_BUILD_CompareVolumes Slicer_REMOTE_DEPENDENCIES CompareVolumes)
+
+Slicer_Remote_Add(LandmarkRegistration
+  GIT_REPOSITORY "${git_protocol}://github.com/pieper/LandmarkRegistration"
+  GIT_TAG "7373eef79f9e6741274e4a2d41c01fd8694a46e3"
+  OPTION_NAME Slicer_BUILD_LandmarkRegistration
+  OPTION_DEPENDS "Slicer_BUILD_CompareVolumes;Slicer_USE_PYTHONQT"
+  LABELS REMOTE_MODULE
+  )
+list_conditional_append(Slicer_BUILD_LandmarkRegistration Slicer_REMOTE_DEPENDENCIES LandmarkRegistration)
 
 #-----------------------------------------------------------------------------
 # Define list of additional options used to configure Slicer
 #------------------------------------------------------------------------------
-set(EXTERNAL_PROJECT_OPTIONAL_ARGS)
-
-foreach(ep_cmake_arg
-  BUILD_TESTING
-  BUILD_SHARED_LIBS
-  WITH_COVERAGE
-  #WITH_MEMCHECK
-  Slicer_BUILD_CLI
-  Slicer_BUILD_CLI_SUPPORT
-  Slicer_BUILD_DICOM_SUPPORT
-  Slicer_BUILD_DIFFUSION_SUPPORT
-  Slicer_BUILD_EXTENSIONMANAGER_SUPPORT
-  Slicer_BUILD_QTLOADABLEMODULES
-  Slicer_BUILD_QTSCRIPTEDMODULES
-  Slicer_BUILD_OpenIGTLinkIF
-  Slicer_UPDATE_TRANSLATION
-  Slicer_USE_PYTHONQT
-  Slicer_USE_PYTHONQT_WITH_OPENSSL
-  Slicer_USE_PYTHONQT_WITH_TCL
-  Slicer_USE_CTKAPPLAUNCHER
-  Slicer_USE_BatchMake
-  Slicer_USE_MIDAS
-  Slicer_USE_OpenIGTLink
-  Slicer_WITH_LIBRARY_VERSION
-  Slicer_USE_NUMPY
-  Slicer_USE_QtTesting
-  Slicer_USE_SimpleITK
-  Slicer_USE_SimpleITK_SHARED
-  Slicer_BUILD_BRAINSTOOLS
-  Slicer_BUILD_EMSegment
-  Slicer_BUILD_MultiVolumeExplorer
-  Slicer_BUILD_MultiVolumeImporter
-  Slicer_PLATFORM_CHECK
-  )
-  list(APPEND EXTERNAL_PROJECT_OPTIONAL_ARGS -D${ep_cmake_arg}:BOOL=${${ep_cmake_arg}})
-endforeach()
-
-if(DEFINED CTEST_CONFIGURATION_TYPE)
-  list_to_string(${ep_list_separator} "${CTEST_CONFIGURATION_TYPE}" ep_CTEST_CONFIGURATION_TYPE)
-  list(APPEND EXTERNAL_PROJECT_OPTIONAL_ARGS -DCTEST_CONFIGURATION_TYPE:STRING=${ep_CTEST_CONFIGURATION_TYPE})
-endif()
-
-if(DEFINED CMAKE_CONFIGURATION_TYPES)
-  list_to_string(${ep_list_separator} "${CMAKE_CONFIGURATION_TYPES}" ep_CMAKE_CONFIGURATION_TYPES)
-  list(APPEND EXTERNAL_PROJECT_OPTIONAL_ARGS -DCMAKE_CONFIGURATION_TYPES:STRING=${ep_CMAKE_CONFIGURATION_TYPES})
-endif()
-
-if(WIN32)
-  list(APPEND EXTERNAL_PROJECT_OPTIONAL_ARGS -DSlicer_SKIP_ROOT_DIR_MAX_LENGTH_CHECK:BOOL=ON)
-endif()
-
-if(Slicer_USE_PYTHONQT)
-  list(APPEND EXTERNAL_PROJECT_OPTIONAL_ARGS
-    -DPYTHON_EXECUTABLE:FILEPATH=${slicer_PYTHON_EXECUTABLE}
-    -DPYTHON_INCLUDE_DIR:PATH=${slicer_PYTHON_INCLUDE}
-    -DPYTHON_LIBRARY:FILEPATH=${slicer_PYTHON_LIBRARY}
-    )
-endif()
-
-if(Slicer_USE_PYTHONQT_WITH_OPENSSL)
-  list(APPEND EXTERNAL_PROJECT_OPTIONAL_ARGS
-    -DOpenSSL_LIBRARIES:STRING=${EP_OpenSSL_LIBRARIES}
-    -DOpenSSL_EXPORT_LIBRARY_DIR:PATH=${EP_OpenSSL_EXPORT_LIBRARY_DIR}
-    )
-endif()
-
-if(Slicer_USE_PYTHONQT_WITH_TCL)
-  list(APPEND EXTERNAL_PROJECT_OPTIONAL_ARGS
-    -DSlicer_TCL_DIR:PATH=${tcl_build}
-    -DTCL_TK_VERSION:STRING=${TCL_TK_VERSION}
-    -DTCL_TK_VERSION_DOT:STRING=${TCL_TK_VERSION_DOT}
-    )
-  if(INCR_TCL_VERSION)
-    list(APPEND EXTERNAL_PROJECT_OPTIONAL_ARGS
-      -DINCR_TCL_VERSION:STRING=${INCR_TCL_VERSION}
-      -DINCR_TCL_VERSION_DOT:STRING=${INCR_TCL_VERSION_DOT}
-      )
-  endif()
-endif()
-
-if(Slicer_USE_SimpleITK)
-   list(APPEND EXTERNAL_PROJECT_OPTIONAL_ARGS
-     -DSimpleITK_DIR:PATH=${SimpleITK_DIR}
-     )
-endif()
-
-if(Slicer_BUILD_QTLOADABLEMODULES)
-  # Provide a mechanism to disable one or more loadable modules.
-  list(APPEND EXTERNAL_PROJECT_OPTIONAL_ARGS -DSlicer_QTLOADABLEMODULES_DISABLED:STRING=${Slicer_QTLOADABLEMODULES_DISABLED})
-endif()
-
-if(Slicer_BUILD_QTSCRIPTEDMODULES)
-  # Provide a mechanism to disable one or more scripted modules.
-  list(APPEND eq_superbuild_extra_args -DSlicer_QTSCRIPTEDMODULES_DISABLED:STRING=${Slicer_QTSCRIPTEDMODULES_DISABLED})
-endif()
-
-if(Slicer_USE_BatchMake)
-  list(APPEND EXTERNAL_PROJECT_OPTIONAL_ARGS -DBatchMake_DIR:PATH=${BatchMake_DIR})
-endif()
-
-if(Slicer_USE_OpenIGTLink)
-  list(APPEND EXTERNAL_PROJECT_OPTIONAL_ARGS -DOpenIGTLink_DIR:PATH=${OpenIGTLink_DIR})
-endif()
-
-if(Slicer_BUILD_OpenIGTLinkIF)
-  list(APPEND EXTERNAL_PROJECT_OPTIONAL_ARGS -DOpenIGTLinkIF_SOURCE_DIR:PATH=${OpenIGTLinkIF_SOURCE_DIR})
-endif()
-
-if(Slicer_USE_CTKAPPLAUNCHER)
-  list(APPEND EXTERNAL_PROJECT_OPTIONAL_ARGS -DCTKAPPLAUNCHER_DIR:PATH=${CTKAPPLAUNCHER_DIR})
-endif()
-
-if(Slicer_BUILD_CLI_SUPPORT)
-  # Provide a mechanism to disable one or more CLI modules.
-  list(APPEND EXTERNAL_PROJECT_OPTIONAL_ARGS -DSlicer_CLIMODULES_DISABLED:STRING=${Slicer_CLIMODULES_DISABLED})
-  list(APPEND EXTERNAL_PROJECT_OPTIONAL_ARGS -DSlicerExecutionModel_DIR:PATH=${SlicerExecutionModel_DIR})
-endif()
-
-if(Slicer_BUILD_BRAINSTOOLS)
-  list(APPEND EXTERNAL_PROJECT_OPTIONAL_ARGS -DBRAINSTools_SOURCE_DIR:PATH=${BRAINSTools_SOURCE_DIR})
-endif()
-
-if(Slicer_BUILD_MultiVolumeExplorer)
-  list(APPEND EXTERNAL_PROJECT_OPTIONAL_ARGS -DMultiVolumeExplorer_SOURCE_DIR:PATH=${MultiVolumeExplorer_SOURCE_DIR})
-endif()
-
-if(Slicer_BUILD_MultiVolumeImporter)
-  list(APPEND EXTERNAL_PROJECT_OPTIONAL_ARGS -DMultiVolumeImporter_SOURCE_DIR:PATH=${MultiVolumeImporter_SOURCE_DIR})
-endif()
-
-if(Slicer_BUILD_SimpleFilters)
-  list(APPEND EXTERNAL_PROJECT_OPTIONAL_ARGS -DSimpleFilters_SOURCE_DIR:PATH=${SimpleFilters_SOURCE_DIR})
-endif()
-
-if(Slicer_BUILD_EMSegment)
-  list(APPEND EXTERNAL_PROJECT_OPTIONAL_ARGS -DEMSegment_SOURCE_DIR:PATH=${EMSegment_SOURCE_DIR})
-endif()
-
-if(Slicer_BUILD_EXTENSIONMANAGER_SUPPORT)
-  list(APPEND EXTERNAL_PROJECT_OPTIONAL_ARGS
-    -DqRestAPI_DIR:PATH=${qRestAPI_DIR}
-    )
-endif()
 
 # Projects that Slicer needs to download/configure/build/install...
 list(APPEND Slicer_ADDITIONAL_PROJECTS ${Slicer_ADDITIONAL_DEPENDENCIES})
 if(Slicer_ADDITIONAL_PROJECTS)
   list(REMOVE_DUPLICATES Slicer_ADDITIONAL_PROJECTS)
-  set(Slicer_ADDITIONAL_PROJECTS_STRING)
   foreach(additional_project ${Slicer_ADDITIONAL_PROJECTS})
     # needed to do find_package within Slicer
-    list(APPEND EXTERNAL_PROJECT_OPTIONAL_ARGS
-      -D${additional_project}_DIR:PATH=${${additional_project}_DIR})
-    if(Slicer_ADDITIONAL_PROJECTS_STRING)
-      set(Slicer_ADDITIONAL_PROJECTS_STRING "${Slicer_ADDITIONAL_PROJECTS_STRING}^^${additional_project}")
-    else()
-      set(Slicer_ADDITIONAL_PROJECTS_STRING ${additional_project})
-    endif()
+    mark_as_superbuild(${additional_project}_DIR:PATH)
   endforeach()
-  # needed for packaging
-  list(APPEND EXTERNAL_PROJECT_OPTIONAL_ARGS
-    -DSlicer_ADDITIONAL_PROJECTS:STRING=${Slicer_ADDITIONAL_PROJECTS_STRING})
+  mark_as_superbuild(Slicer_ADDITIONAL_PROJECTS:STRING)
 endif()
 
-# Set CMake OSX variable to pass down the external project
-if(APPLE)
-  list(APPEND EXTERNAL_PROJECT_OPTIONAL_ARGS
-    -DCMAKE_OSX_ARCHITECTURES=${CMAKE_OSX_ARCHITECTURES}
-    -DCMAKE_OSX_SYSROOT=${CMAKE_OSX_SYSROOT}
-    -DCMAKE_OSX_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET})
+include(ListToString)
+
+ExternalProject_Include_Dependencies(Slicer DEPENDS_VAR Slicer_DEPENDENCIES)
+
+set(EXTERNAL_PROJECT_OPTIONAL_ARGS)
+if(WIN32)
+  list(APPEND EXTERNAL_PROJECT_OPTIONAL_ARGS -DSlicer_SKIP_ROOT_DIR_MAX_LENGTH_CHECK:BOOL=ON)
 endif()
 
-if(DOXYGEN_DOT_FOUND)
-  list(APPEND EXTERNAL_PROJECT_OPTIONAL_ARGS
-    -DDOCUMENTATION_ARCHIVES_OUTPUT_DIRECTORY:PATH=${DOCUMENTATION_ARCHIVES_OUTPUT_DIRECTORY}
-    -DDOCUMENTATION_TARGET_IN_ALL:BOOL=${DOCUMENTATION_TARGET_IN_ALL}
-    )
-endif()
-
-if(Slicer_BUILD_DWIConvert)
-  list(APPEND EXTERNAL_PROJECT_OPTIONAL_ARGS
-    -DDWIConvert_SOURCE_DIR:PATH=${DWIConvert_SOURCE_DIR}
-    )
-endif()
-
-# message("Slicer External project args:")
-# foreach(arg ${EXTERNAL_PROJECT_OPTIONAL_ARGS})
-#   message("  ${arg}")
-# endforeach()
 
 #------------------------------------------------------------------------------
 # Configure and build Slicer
@@ -369,31 +273,24 @@ endif()
 set(proj Slicer)
 
 ExternalProject_Add(${proj}
-  DEPENDS ${Slicer_DEPENDENCIES}
-  DOWNLOAD_COMMAND ""
+  ${${proj}_EP_ARGS}
+  DEPENDS ${Slicer_DEPENDENCIES} ${Slicer_REMOTE_DEPENDENCIES}
   SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}
   BINARY_DIR ${Slicer_BINARY_INNER_SUBDIR}
-  CMAKE_GENERATOR ${gen}
+  DOWNLOAD_COMMAND ""
   UPDATE_COMMAND ""
-  LIST_SEPARATOR ${ep_list_separator}
-  CMAKE_ARGS
+  CMAKE_CACHE_ARGS
     -DCMAKE_CXX_COMPILER:FILEPATH=${CMAKE_CXX_COMPILER}
     -DCMAKE_CXX_FLAGS:STRING=${ep_common_cxx_flags}
     -DCMAKE_C_COMPILER:FILEPATH=${CMAKE_C_COMPILER}
     -DCMAKE_C_FLAGS:STRING=${ep_common_c_flags}
-    -DBUILD_SHARED_LIBS:BOOL=${BUILD_SHARED_LIBS}
     -DADDITIONAL_C_FLAGS:STRING=${ADDITIONAL_C_FLAGS}
     -DADDITIONAL_CXX_FLAGS:STRING=${ADDITIONAL_CXX_FLAGS}
     -DSlicer_REQUIRED_C_FLAGS:STRING=${Slicer_REQUIRED_C_FLAGS}
     -DSlicer_REQUIRED_CXX_FLAGS:STRING=${Slicer_REQUIRED_CXX_FLAGS}
-    -DWITH_COVERAGE:BOOL=${WITH_COVERAGE}
-    -DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
-    -DSubversion_SVN_EXECUTABLE:FILEPATH=${Subversion_SVN_EXECUTABLE}
-    -DGIT_EXECUTABLE:FILEPATH=${GIT_EXECUTABLE}
     -DSlicer_SUPERBUILD:BOOL=OFF
     -DSlicer_SUPERBUILD_DIR:PATH=${Slicer_BINARY_DIR}
     -DSlicer_BUILD_WIN32_CONSOLE:BOOL=${Slicer_BUILD_WIN32_CONSOLE}
-    -DSlicer_MAIN_PROJECT:STRING=${Slicer_MAIN_PROJECT}
     -D${Slicer_MAIN_PROJECT}_APPLICATION_NAME:STRING=${${Slicer_MAIN_PROJECT}_APPLICATION_NAME}
     -D${Slicer_MAIN_PROJECT_APPLICATION_NAME}_VERSION_MAJOR:STRING=${${Slicer_MAIN_PROJECT_APPLICATION_NAME}_VERSION_MAJOR}
     -D${Slicer_MAIN_PROJECT_APPLICATION_NAME}_VERSION_MINOR:STRING=${${Slicer_MAIN_PROJECT_APPLICATION_NAME}_VERSION_MINOR}
@@ -402,33 +299,7 @@ ExternalProject_Add(${proj}
     -D${Slicer_MAIN_PROJECT_APPLICATION_NAME}_VERSION_RC:STRING=${${Slicer_MAIN_PROJECT_APPLICATION_NAME}_VERSION_RC}
     -DSlicer_APPLICATIONS_DIR:PATH=${Slicer_APPLICATIONS_DIR}
     -DSlicer_EXTENSION_SOURCE_DIRS:STRING=${Slicer_EXTENSION_SOURCE_DIRS}
-    -DDOXYGEN_EXECUTABLE:FILEPATH=${DOXYGEN_EXECUTABLE}
     ${EXTERNAL_PROJECT_OPTIONAL_ARGS}
-    # ITK
-    -DITK_VERSION_MAJOR:STRING=${ITK_VERSION_MAJOR}
-    -DITK_DIR:PATH=${ITK_DIR}
-    # Teem
-    -DTeem_DIR:PATH=${Teem_DIR}
-    # VTK
-    -DVTK_DIR:PATH=${VTK_DIR}
-    -DVTK_DEBUG_LEAKS:BOOL=${Slicer_USE_VTK_DEBUG_LEAKS}
-    # cmcurl
-    -DSLICERLIBCURL_DIR:PATH=${SLICERLIBCURL_DIR}
-    # Qt
-    -DSlicer_REQUIRED_QT_VERSION:STRING=${Slicer_REQUIRED_QT_VERSION}
-    -DQT_QMAKE_EXECUTABLE:PATH=${QT_QMAKE_EXECUTABLE}
-    # CTK
-    -DCTK_DIR:PATH=${CTK_DIR}
-    # DCMTK
-    -DDCMTK_DIR:PATH=${DCMTK_DIR}
-    # jqPlot
-    -DjqPlot_DIR:PATH=${jqPlot_DIR}
-    # LibArchive
-    -DLibArchive_DIR:PATH=${LibArchive_DIR}
-    # zlib
-    -DZLIB_ROOT:PATH=${SLICER_ZLIB_ROOT}
-    -DZLIB_INCLUDE_DIR:PATH=${SLICER_ZLIB_INCLUDE_DIR}
-    -DZLIB_LIBRARY:FILEPATH=${SLICER_ZLIB_LIBRARY}
   INSTALL_COMMAND ""
   )
 

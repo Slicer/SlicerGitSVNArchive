@@ -46,7 +46,7 @@ class ScenePerformanceWidget:
   def setup(self):
 
     loader = qt.QUiLoader()
-    moduleName = 'ScenePerformance' #scriptedModulesPath = '/Users/exxos/Work/Slicer/Slicer4/Slicer-Debug/Slicer-build/lib/Slicer-4.2/qt-scripted-modules'
+    moduleName = 'ScenePerformance' #scriptedModulesPath = '/Users/exxos/Work/Slicer/Slicer4/Slicer-Debug/Slicer-build/lib/Slicer-4.3/qt-scripted-modules'
     scriptedModulesPath = eval('slicer.modules.%s.path' % moduleName.lower())
     scriptedModulesPath = os.path.dirname(scriptedModulesPath)
     path = os.path.join(scriptedModulesPath, 'Resources', 'UI', 'ScenePerformance.ui')
@@ -350,6 +350,7 @@ class ScenePerformanceTest(unittest.TestCase):
     averageTime = 0
     for x in range(self.Repeat):
       newNode = node.CreateNodeInstance()
+      newNode.UnRegister(node)
       newNode.Copy(node)
       logic.startTiming()
       slicer.mrmlScene.AddNode(newNode)

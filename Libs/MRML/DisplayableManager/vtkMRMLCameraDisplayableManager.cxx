@@ -25,11 +25,13 @@
 
 // MRML includes
 #include <vtkEventBroker.h>
+#include <vtkMRMLScene.h>
 #include <vtkMRMLViewNode.h>
 
 // VTK includes
 #include <vtkIntArray.h>
 #include <vtkNew.h>
+#include <vtkObjectFactory.h>
 #include <vtkRenderer.h>
 #include <vtkRenderWindowInteractor.h>
 
@@ -486,7 +488,7 @@ void vtkMRMLCameraDisplayableManager::UpdateCameraNode()
 }
 
 //---------------------------------------------------------------------------
-void vtkMRMLCameraDisplayableManager::AdditionnalInitializeStep()
+void vtkMRMLCameraDisplayableManager::AdditionalInitializeStep()
 {
   assert(this->GetRenderer());
   this->SetCameraToRenderer();

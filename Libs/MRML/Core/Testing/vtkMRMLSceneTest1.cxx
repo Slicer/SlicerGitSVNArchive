@@ -17,18 +17,15 @@
 
 int vtkMRMLSceneTest1(int , char * [] )
 {
-  vtkSmartPointer< vtkMRMLScene > scene1 = vtkSmartPointer< vtkMRMLScene >::New();
+  vtkNew<vtkMRMLScene> scene1;
 
-  EXERCISE_BASIC_OBJECT_METHODS( scene1 );
+  EXERCISE_BASIC_OBJECT_METHODS(scene1.GetPointer());
 
   std::cout << "GetNumberOfRegisteredNodeClasses() = ";
   std::cout << scene1->GetNumberOfRegisteredNodeClasses() << std::endl;
 
-  std::cout << "GetNodeClasses() = " << std::endl;
-  std::cout << scene1->GetNodeClasses() << std::endl;
-
-  TEST_SET_GET_STRING( scene1, URL );
-  TEST_SET_GET_STRING( scene1, RootDirectory );
+  TEST_SET_GET_STRING(scene1.GetPointer(), URL);
+  TEST_SET_GET_STRING(scene1.GetPointer(), RootDirectory);
 
   scene1->ResetNodes();
 

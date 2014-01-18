@@ -34,6 +34,7 @@
 #include "qSlicerLayoutManager.h"
 
 // MRML includes
+#include "vtkMRMLScene.h"
 #include "vtkMRMLSliceNode.h"
 #include "vtkMRMLViewNode.h"
 
@@ -276,7 +277,7 @@ void qSlicerViewControllersModuleWidget::onNodeAddedEvent(vtkObject*, vtkObject*
   vtkMRMLSliceNode* sliceNode = vtkMRMLSliceNode::SafeDownCast(node);
   if (sliceNode)
     {
-    QString layoutName = sliceNode->GetLayoutName();
+    //QString layoutName = sliceNode->GetLayoutName();
     //qDebug() << "qSlicerViewControllersModuleWidget::onNodeAddedEvent - layoutName:" << layoutName;
 
     // create the slice controller
@@ -286,7 +287,7 @@ void qSlicerViewControllersModuleWidget::onNodeAddedEvent(vtkObject*, vtkObject*
   vtkMRMLViewNode* viewNode = vtkMRMLViewNode::SafeDownCast(node);
   if (viewNode)
     {
-    QString layoutName = viewNode->GetName();
+    //QString layoutName = viewNode->GetName();
     //qDebug() << "qSlicerViewControllersModuleWidget::onNodeAddedEvent - layoutName:" << layoutName;
 
     // create the view controller

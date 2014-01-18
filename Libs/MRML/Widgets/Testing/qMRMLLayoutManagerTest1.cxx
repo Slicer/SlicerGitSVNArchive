@@ -23,39 +23,53 @@
 #include <QTimer>
 #include <QWidget>
 
-// SlicerQt includes
+// Slicer includes
 #include "qMRMLLayoutManager.h"
 
 // MRML includes
+#include <vtkMRMLApplicationLogic.h>
 #include <vtkMRMLScene.h>
 
-// STD includes
+// VTK includes
+#include <vtkNew.h>
 
 int qMRMLLayoutManagerTest1(int argc, char * argv[] )
 {
   QApplication app(argc, argv);
-  qMRMLLayoutManager* layoutManager = new qMRMLLayoutManager(0);
+  qMRMLLayoutManager * layoutManager = new qMRMLLayoutManager();
 
-  vtkMRMLScene* scene = vtkMRMLScene::New();
-  layoutManager->setMRMLScene(scene);
-  if (layoutManager->mrmlScene() != scene)
-    {
-    std::cerr << "scene incorrectly set." << std::endl;
-    return EXIT_FAILURE;
-    }
-  layoutManager->setMRMLScene(0);
-  scene->Delete();
-  scene = vtkMRMLScene::New();
-  layoutManager->setMRMLScene(scene);
-  QWidget* viewport = new QWidget(0);
+  vtkNew<vtkMRMLApplicationLogic> applicationLogic;
+
+  {
+    vtkNew<vtkMRMLScene> scene;
+    applicationLogic->SetMRMLScene(scene.GetPointer());
+    layoutManager->setMRMLScene(scene.GetPointer());
+    if (layoutManager->mrmlScene() != scene.GetPointer())
+      {
+      std::cerr << "Line " << __LINE__ << " - Problem with qMRMLLayoutManager::setMRMLScene()" << std::endl;
+      return EXIT_FAILURE;
+      }
+    layoutManager->setMRMLScene(0);
+    applicationLogic->SetMRMLScene(0);
+    if (layoutManager->mrmlScene() != 0)
+      {
+      std::cerr << "Line " << __LINE__ << " - Problem with qMRMLLayoutManager::setMRMLScene()" << std::endl;
+      return EXIT_FAILURE;
+      }
+  }
+
+  vtkNew<vtkMRMLScene> scene;
+  applicationLogic->SetMRMLScene(scene.GetPointer());
+  layoutManager->setMRMLScene(scene.GetPointer());
+
+  QWidget * viewport = new QWidget;
   viewport->setWindowTitle("Old widget");
   layoutManager->setViewport(viewport);
   viewport->show();
-
   layoutManager->setViewport(0);
   layoutManager->setViewport(viewport);
 
-  QWidget* viewport2 = new QWidget(0);
+  QWidget * viewport2 = new QWidget;
   viewport2->setWindowTitle("New widget");
   layoutManager->setViewport(viewport2);
   viewport2->show();
@@ -67,8 +81,6 @@ int qMRMLLayoutManagerTest1(int argc, char * argv[] )
     autoExit.start(1000);
     }
   int res = app.exec();
-
-  scene->Delete();
   delete layoutManager;
   delete viewport;
   delete viewport2;

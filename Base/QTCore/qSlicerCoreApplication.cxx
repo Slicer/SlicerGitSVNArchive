@@ -94,6 +94,7 @@
 #ifdef Slicer_BUILD_CLI_SUPPORT
 # include <vtkMRMLCommandLineModuleNode.h>
 #endif
+#include <vtkMRMLScene.h>
 
 // VTK includes
 #include <vtkNew.h>
@@ -214,10 +215,10 @@ void qSlicerCoreApplicationPrivate::init()
   // Instantiate ErrorLogModel
   this->ErrorLogModel = QSharedPointer<ctkErrorLogModel>(new ctkErrorLogModel);
   this->ErrorLogModel->setLogEntryGrouping(true);
-#if defined (_WIN32) && !defined (Slicer_BUILD_WIN32_CONSOLE)
-  this->ErrorLogModel->setTerminalOutputs(ctkErrorLogModel::None);
+  this->ErrorLogModel->setTerminalOutputs(
+        this->CoreCommandOptions->disableTerminalOutputs() ? ctkErrorLogModel::None : ctkErrorLogModel::All);
+#if defined (Q_OS_WIN32) && !defined (Slicer_BUILD_WIN32_CONSOLE)
 #else
-  this->ErrorLogModel->setTerminalOutputs(ctkErrorLogModel::All);
   this->ErrorLogModel->registerMsgHandler(new ctkErrorLogFDMessageHandler);
 #endif
   this->ErrorLogModel->registerMsgHandler(new ctkErrorLogQtMessageHandler);
@@ -564,7 +565,7 @@ void qSlicerCoreApplicationPrivate::setTclEnvironmentVariables()
     else
       {
       this->setEnvironmentVariable(
-            "TCL_LIBRARY", app->slicerHome() + "/lib/TclTk/lib/tcl"Slicer_TCL_TK_VERSION_DOT);
+            "TCL_LIBRARY", app->slicerHome() + "/lib/TclTk/lib/tcl" Slicer_TCL_TK_VERSION_DOT);
       }
     }
   if (this->Environment.value("TK_LIBRARY").isEmpty())
@@ -576,7 +577,7 @@ void qSlicerCoreApplicationPrivate::setTclEnvironmentVariables()
     else
       {
       this->setEnvironmentVariable(
-            "TK_LIBRARY", app->slicerHome() + "/lib/TclTk/lib/tk"Slicer_TCL_TK_VERSION_DOT);
+            "TK_LIBRARY", app->slicerHome() + "/lib/TclTk/lib/tk" Slicer_TCL_TK_VERSION_DOT);
       }
     }
   if (this->Environment.value("TCLLIBPATH").isEmpty())
@@ -588,8 +589,8 @@ void qSlicerCoreApplicationPrivate::setTclEnvironmentVariables()
     else
       {
       QStringList tclLibPaths;
-      tclLibPaths << app->slicerHome() + "/lib/TclTk/lib/itcl"Slicer_INCR_TCL_VERSION_DOT;
-      tclLibPaths << app->slicerHome() + "/lib/TclTk/lib/itk"Slicer_INCR_TCL_VERSION_DOT;
+      tclLibPaths << app->slicerHome() + "/lib/TclTk/lib/itcl" Slicer_INCR_TCL_VERSION_DOT;
+      tclLibPaths << app->slicerHome() + "/lib/TclTk/lib/itk" Slicer_INCR_TCL_VERSION_DOT;
       this->setEnvironmentVariable("TCLLIBPATH", tclLibPaths.join(" "));
       }
     }
@@ -830,7 +831,9 @@ void qSlicerCoreApplication::handleCommandLineArguments()
   qSlicerCoreCommandOptions* options = this->coreCommandOptions();
 
   QStringList unparsedArguments = options->unparsedArguments();
-  if (unparsedArguments.length() > 0)
+  if (unparsedArguments.length() > 0 &&
+      options->pythonScript().isEmpty() &&
+      options->extraPythonScript().isEmpty())
     {
     foreach(QString fileName, unparsedArguments)
       {
@@ -1379,13 +1382,19 @@ void qSlicerCoreApplication::restart()
 {
   qSlicerCoreApplication * coreApp = qSlicerCoreApplication::application();
   bool launcherAvailable = QFile::exists(coreApp->launcherExecutableFilePath());
+  QStringList arguments = coreApp->arguments();
+  arguments.removeFirst(); // Remove program name
+#if defined (Q_OS_WIN32) && !defined (Slicer_BUILD_WIN32_CONSOLE)
+#else
+  arguments.prepend("--disable-terminal-outputs");
+#endif
   if (launcherAvailable)
     {
-    QProcess::startDetached(coreApp->launcherExecutableFilePath(), coreApp->arguments());
+    QProcess::startDetached(coreApp->launcherExecutableFilePath(), arguments);
     }
   else
     {
-    QProcess::startDetached(coreApp->applicationFilePath(), coreApp->arguments());
+    QProcess::startDetached(coreApp->applicationFilePath(), arguments);
     }
   QCoreApplication::quit();
 }

@@ -24,6 +24,9 @@
 // VTK includes
 #include <vtkNew.h>
 
+// STD includes
+#include <string>
+
 //-----------------------------------------------------------------------------
 int vtkMRMLApplicationLogicTest1(int , char * [])
 {
@@ -32,7 +35,7 @@ int vtkMRMLApplicationLogicTest1(int , char * [])
   // Test const char* vtkMRMLApplicationLogic::GetTemporaryPath();
   //-----------------------------------------------------------------------------
 
-    vtkSmartPointer<vtkMRMLApplicationLogic> MRMLAppLogic = vtkSmartPointer<vtkMRMLApplicationLogic>::New();
+    vtkNew<vtkMRMLApplicationLogic> MRMLAppLogic;
 
     MRMLAppLogic->SetTemporaryPath(NULL); // Test NULL
     if (strlen(MRMLAppLogic->GetTemporaryPath()) != 0)

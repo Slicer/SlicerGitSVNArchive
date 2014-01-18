@@ -28,12 +28,14 @@
 
 // MRML includes
 #include <vtkMRMLInteractionNode.h>
+#include <vtkMRMLScene.h>
 #include <vtkMRMLSelectionNode.h>
 
 // VTK includes
 #include <vtkCallbackCommand.h>
 #include <vtkInteractorStyle.h>
 #include <vtkNew.h>
+#include <vtkObjectFactory.h>
 #include <vtkRenderer.h>
 #include <vtkRenderWindow.h>
 #include <vtkRenderWindowInteractor.h>
@@ -823,7 +825,10 @@ void vtkMRMLAbstractDisplayableManager::SetAndObserveMRMLDisplayableNode(
   this->SetMRMLScene(sceneToObserve);
   this->SetUpdateFromMRMLRequested(true);
   this->CreateIfPossible();
-  this->RequestRender();
+  if (newMRMLDisplayableNode != 0)
+    {
+    this->RequestRender();
+    }
 }
 
 //---------------------------------------------------------------------------

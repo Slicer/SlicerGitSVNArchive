@@ -1,6 +1,6 @@
 
 #-----------------------------------------------------------------------------
-set(MODULE_NAME "Annotations")  # Do not use 'project()'
+set(MODULE_NAME "Annotations")
 set(MODULE_TITLE "${MODULE_NAME}")
 
 string(TOUPPER ${MODULE_NAME} MODULE_NAME_UPPER)
@@ -40,21 +40,21 @@ set(GUI_SRCS
 
 set(MODULE_SRCS
   ${GUI_SRCS}
-  qSlicerAnnotationsIO.cxx
-  qSlicerAnnotationsIO.h
   qSlicerAnnotationsIOOptionsWidget.cxx
   qSlicerAnnotationsIOOptionsWidget.h
   qSlicerAnnotationsModule.cxx
   qSlicerAnnotationsModule.h
-  qSlicerFiducialsIO.cxx
-  qSlicerFiducialsIO.h
+  qSlicerAnnotationsReader.cxx
+  qSlicerAnnotationsReader.h
+  qSlicerFiducialsReader.cxx
+  qSlicerFiducialsReader.h
   )
 
 set(MODULE_MOC_SRCS
-  qSlicerAnnotationsIO.h
   qSlicerAnnotationsIOOptionsWidget.h
   qSlicerAnnotationsModule.h
-  qSlicerFiducialsIO.h
+  qSlicerAnnotationsReader.h
+  qSlicerFiducialsReader.h
   GUI/qSlicerAnnotationModuleWidget.h
   GUI/qSlicerAnnotationModulePropertyDialog.h
   GUI/qSlicerAnnotationModuleReportDialog.h

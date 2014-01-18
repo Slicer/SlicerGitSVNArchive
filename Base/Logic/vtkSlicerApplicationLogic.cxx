@@ -12,10 +12,6 @@
 #include "vtkSlicerConfigure.h" // For Slicer_BUILD_CLI_SUPPORT
 #include "vtkSlicerTask.h"
 
-// VTK includes
-#include <vtkPointData.h>
-#include <vtkPolyData.h>
-
 // MRML includes
 #include <vtkCacheManager.h>
 #include <vtkMRMLColorTableStorageNode.h>
@@ -37,6 +33,7 @@
 #include <vtkMRMLModelHierarchyNode.h>
 #include <vtkMRMLNRRDStorageNode.h>
 #include <vtkMRMLNonlinearTransformNode.h>
+#include <vtkMRMLScene.h>
 #include <vtkMRMLSelectionNode.h>
 #include <vtkMRMLSliceCompositeNode.h>
 #include <vtkMRMLSliceNode.h>
@@ -45,14 +42,24 @@
 #include <vtkMRMLVectorVolumeNode.h>
 #include <vtkMRMLVolumeArchetypeStorageNode.h>
 
+// VTK includes
+#include <vtkNew.h>
+#include <vtkObjectFactory.h>
+#include <vtkPointData.h>
+#include <vtkPolyData.h>
+
 // ITKSYS includes
 #include <itksys/SystemTools.hxx>
 
 // STD includes
 #include <algorithm>
-#ifdef linux
+
+#ifdef ITK_USE_PTHREADS
 # include <unistd.h>
+# include <sys/time.h>
+# include <sys/resource.h>
 #endif
+
 #include <queue>
 
 //----------------------------------------------------------------------------
@@ -395,7 +402,13 @@ vtkSlicerApplicationLogic
 
 #ifdef ITK_USE_PTHREADS
   // Adjust the priority of all PROCESS level threads.  Not a perfect solution.
-  int ret = nice(20);
+  int which = PRIO_PROCESS;
+  id_t pid;
+  int priority = 20;
+  int ret;
+
+  pid = getpid();
+  ret = setpriority(which, pid, priority);
   ret = ret; // dummy code to use the return value and avoid a compiler warning
 #endif
 
@@ -471,7 +484,13 @@ vtkSlicerApplicationLogic
 
 #ifdef ITK_USE_PTHREADS
   // Adjust the priority of all PROCESS level threads.  Not a perfect solution.
-  int ret = nice(20);
+  int which = PRIO_PROCESS;
+  id_t pid;
+  int priority = 20;
+  int ret;
+
+  pid = getpid();
+  ret = setpriority(which, pid, priority);
   ret = ret; // dummy code to use the return value and avoid a compiler warning
 #endif
 
@@ -1319,7 +1338,7 @@ void vtkSlicerApplicationLogic::ProcessReadSceneData(ReadDataRequest& req)
     return;
     }
 
-  vtkSmartPointer<vtkMRMLScene> miniscene = vtkSmartPointer<vtkMRMLScene>::New();
+  vtkNew<vtkMRMLScene> miniscene;
   miniscene->SetURL( req.GetFilename().c_str() );
   miniscene->Import();
 

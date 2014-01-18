@@ -59,16 +59,28 @@ public:
 
   /// Utility method to return the id of the active place node.
   /// Returns an empty string on failure.
+  /// \sa SetActiveListID
   std::string GetActiveListID();
 
-  /// Create a new display node and observe it on the markups node
+  /// Utility method to set the active place node from the passed markups
+  /// node. Does not set the interaction mode to place.
+  /// \sa GetActiveListID, StartPlaceMode
+  /// \sa vtkMRMLSelectionNode::SetReferenceActivePlaceNodeClassName
+  /// \sa vtkMRMLSelectionNode::SetActivePlaceNodeID
+  void SetActiveListID(vtkMRMLMarkupsNode *markupsNode);
+
+  /// Create a new display node and observe it on the markups node.
   /// On success, return the id, on failure return an empty string.
+  /// If a display node already exists for this node, return the id of that
+  /// node.
   std::string AddNewDisplayNodeForMarkupsNode(vtkMRMLNode *mrmlNode);
 
   /// Create a new markups fiducial node and associated display node, adding both to
-  /// the scene. Also make it the active on on the selection node.
+  /// the scene. If the scene argument is null use the scene set on the logic
+  /// class, and also make it the active on on the selection node, otherwise
+  /// add to the passed scene.
   /// On success, return the id, on failure return an empty string.
-  std::string AddNewFiducialNode(const char *name = "F");
+  std::string AddNewFiducialNode(const char *name = "F", vtkMRMLScene *scene = NULL);
 
   /// Add a new fiducial to the currently active list at the given RAS
   /// coordinates (default 0,0,0). Will create a list is one is not active.
@@ -130,6 +142,13 @@ public:
   /// utility method to set up a display node from the defaults
   void SetDisplayNodeToDefaults(vtkMRMLMarkupsDisplayNode *displayNode);
 
+  /// utility method to copy a markup from one list to another, adding it
+  /// to the end of the new list
+  /// \sa vtkMRMLMarkupsNode::AddMarkup
+  /// Returns true on success, false on failure
+  bool CopyNthMarkupToNewList(int n, vtkMRMLMarkupsNode *markupsNode,
+                              vtkMRMLMarkupsNode *newMarkupsNode);
+
   /// utility method to move a markup from one list to another, trying to
   /// insert it at the given new index. If the new index is larger than the
   /// number of markups in the list, adds it to the end. If new index is
@@ -152,6 +171,12 @@ public:
   /// Will work if there's a %d, %g or %f in the format string, but precision
   /// is not handled.
   void RenameAllMarkupsFromCurrentFormat(vtkMRMLMarkupsNode *markupsNode);
+
+  /// Put the interaction node into place mode, and set the persistence of
+  /// place mode according to the persistent flag.
+  /// Return true on sucessfully going into place mode, false otherwise.
+  /// \sa SetActiveIDList
+  bool StartPlaceMode(bool persistent);
 
 protected:
   vtkSlicerMarkupsLogic();

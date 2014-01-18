@@ -507,10 +507,10 @@ QWidget* qSlicerCLIModuleUIHelperPrivate::createPointTagWidget(const ModuleParam
   QString _name = QString::fromStdString(moduleParameter.GetName());
   qMRMLNodeComboBox* widget = new qMRMLNodeComboBox;
   QStringList nodeTypes;
-  nodeTypes += "vtkMRMLFiducialListNode";
+  nodeTypes += "vtkMRMLMarkupsFiducialNode";
   //TODO - specify to point hierarchy
   nodeTypes += "vtkMRMLAnnotationHierarchyNode";
-  nodeTypes += "vtkMRMLMarkupsFiducialNode";
+
   widget->setNodeTypes(nodeTypes);
   //TODO - title + " FiducialList"
   //TODO - tparameter->SetNewNodeEnabled(1);
@@ -533,7 +533,11 @@ QWidget* qSlicerCLIModuleUIHelperPrivate::createRegionTagWidget(const ModulePara
   QString _label = QString::fromStdString(moduleParameter.GetLabel());
   QString _name = QString::fromStdString(moduleParameter.GetName());
   qMRMLNodeComboBox* widget = new qMRMLNodeComboBox;
-  widget->setNodeTypes(QStringList("vtkMRMLROIListNode"));
+  QStringList nodeTypes;
+  nodeTypes += "vtkMRMLROIListNode";
+  nodeTypes += "vtkMRMLAnnotationHierarchyNode";
+  nodeTypes += "vtkMRMLAnnotationROINode";
+  widget->setNodeTypes(QStringList(nodeTypes));
   //TODO - title + " RegionList"
   //TODO - tparameter->SetNewNodeEnabled(1);
   //TODO - tparameter->SetNoneEnabled(noneEnabled);

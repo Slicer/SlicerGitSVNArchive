@@ -22,16 +22,17 @@
 #include <QApplication>
 #include <QWidget>
 
-// SlicerQt includes
+// Slicer includes
 #include "qMRMLLayoutManager.h"
 
 // MRML includes
+#include <vtkMRMLApplicationLogic.h>
 #include <vtkMRMLLayoutLogic.h>
 #include <vtkMRMLLayoutNode.h>
+#include <vtkMRMLScene.h>
 
 // VTK includes
-
-// STD includes
+#include <vtkNew.h>
 
 int qMRMLLayoutManagerTest4(int argc, char * argv[] )
 {
@@ -42,14 +43,16 @@ int qMRMLLayoutManagerTest4(int argc, char * argv[] )
 
   qMRMLLayoutManager layoutManager(&w, &w);
 
-  vtkMRMLScene* scene = vtkMRMLScene::New();
+  vtkNew<vtkMRMLApplicationLogic> applicationLogic;
 
-  vtkMRMLLayoutNode* layoutNode = vtkMRMLLayoutNode::New();
+  vtkNew<vtkMRMLScene> scene;
+  vtkNew<vtkMRMLLayoutNode> layoutNode;
+
   layoutNode->SetViewArrangement(vtkMRMLLayoutNode::SlicerLayoutOneUpRedSliceView);
-  scene->AddNode(layoutNode);
-  layoutNode->Delete();
+  scene->AddNode(layoutNode.GetPointer());
 
-  layoutManager.setMRMLScene(scene);
+  applicationLogic->SetMRMLScene(scene.GetPointer());
+  layoutManager.setMRMLScene(scene.GetPointer());
 
   for (int i = vtkMRMLLayoutNode::SlicerLayoutInitialView;
        i < vtkMRMLLayoutNode::SlicerLayoutFourOverFourView; ++i)
@@ -58,8 +61,5 @@ int qMRMLLayoutManagerTest4(int argc, char * argv[] )
     scene->Clear(false);
     }
 
-  scene->Delete();
-
   return EXIT_SUCCESS;
 }
-

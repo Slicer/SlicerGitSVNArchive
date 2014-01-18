@@ -30,6 +30,7 @@
 #include <vtkMRMLApplicationLogic.h>
 #include <vtkMRMLInteractionNode.h>
 #include <vtkMRMLLinearTransformNode.h>
+#include <vtkMRMLScene.h>
 #include <vtkMRMLSelectionNode.h>
 #include <vtkMRMLSliceCompositeNode.h>
 #include <vtkMRMLSliceLogic.h>
@@ -56,7 +57,6 @@
 #include <vtkRenderWindowInteractor.h>
 #include <vtkSeedRepresentation.h>
 #include <vtkSeedWidget.h>
-#include <vtkSmartPointer.h>
 #include <vtkWidgetRepresentation.h>
 
 // STD includes
@@ -146,6 +146,7 @@ void vtkMRMLMarkupsDisplayableManager2D::SetAndObserveNode(vtkMRMLMarkupsNode *m
   nodeEvents->InsertNextValue(vtkMRMLMarkupsNode::MarkupRemovedEvent);
   nodeEvents->InsertNextValue(vtkMRMLMarkupsNode::LockModifiedEvent);
   nodeEvents->InsertNextValue(vtkMRMLTransformableNode::TransformModifiedEvent);
+  nodeEvents->InsertNextValue(vtkMRMLDisplayableNode::DisplayModifiedEvent);
 
  if (markupsNode)// && !markupsNode->HasObserver(vtkMRMLTransformableNode::TransformModifiedEvent))
    {
@@ -344,6 +345,11 @@ void vtkMRMLMarkupsDisplayableManager2D
         break;
       case vtkMRMLMarkupsNode::LockModifiedEvent:
         this->OnMRMLMarkupsNodeLockModifiedEvent(markupsNode);
+        break;
+      case vtkMRMLDisplayableNode::DisplayModifiedEvent:
+        // get the display node and process the change
+        vtkMRMLNode *displayNode = markupsNode->GetDisplayNode();
+        this->OnMRMLMarkupsDisplayNodeModifiedEvent(displayNode);
         break;
       }
     }
@@ -545,6 +551,12 @@ void vtkMRMLMarkupsDisplayableManager2D::OnMRMLMarkupsNodeModifiedEvent(vtkMRMLN
 //---------------------------------------------------------------------------
 void vtkMRMLMarkupsDisplayableManager2D::OnMRMLMarkupsDisplayNodeModifiedEvent(vtkMRMLNode* node)
 {
+  if (!node)
+    {
+    vtkErrorMacro("OnMRMLMarkupsDisplayNodeModifiedEvent: no node!");
+    return;
+    }
+
   //this->DebugOn();
 
   if (this->Updating)
@@ -793,6 +805,13 @@ bool vtkMRMLMarkupsDisplayableManager2D::IsWidgetDisplayableOnSlice(vtkMRMLMarku
 
   bool showWidget = true;
   bool inViewport = false;
+
+  // allow annotations to appear only in designated viewers
+  vtkMRMLDisplayNode *displayNode = node->GetDisplayNode();
+  if (displayNode && !displayNode->IsDisplayableInView(sliceNode->GetID()))
+    {
+    return 0;
+    }
 
   // down cast the node as a controlpoints node to get the coordinates
   vtkMRMLMarkupsNode * controlPointsNode = vtkMRMLMarkupsNode::SafeDownCast(node);
@@ -1445,10 +1464,10 @@ void vtkMRMLMarkupsDisplayableManager2D::GetWorldToLocalCoordinates(vtkMRMLMarku
   vtkMRMLTransformNode* tnode = node->GetParentTransformNode();
   if (tnode != NULL && tnode->IsLinear())
     {
-    vtkSmartPointer<vtkMatrix4x4> transformToWorld = vtkSmartPointer<vtkMatrix4x4>::New();
+    vtkNew<vtkMatrix4x4> transformToWorld;
     transformToWorld->Identity();
     vtkMRMLLinearTransformNode *lnode = vtkMRMLLinearTransformNode::SafeDownCast(tnode);
-    lnode->GetMatrixTransformToWorld(transformToWorld);
+    lnode->GetMatrixTransformToWorld(transformToWorld.GetPointer());
     transformToWorld->Invert();
 
     double p[4];
