@@ -81,6 +81,8 @@ void vtkMRMLLinearTransformNode::WriteXML(ostream& of, int nIndent)
 //----------------------------------------------------------------------------
 void vtkMRMLLinearTransformNode::ReadXMLAttributes(const char** atts)
 {
+  // Temporarily disable all Modified and TransformModified events to make sure that
+  // the operations are performed without interruption.
   int oldTransformModify=this->StartTransformModify();
   int disabledModify = this->StartModify();
 
@@ -124,6 +126,8 @@ void vtkMRMLLinearTransformNode::ReadXMLAttributes(const char** atts)
 // Does NOT copy: ID, FilePrefix, Name, VolumeID
 void vtkMRMLLinearTransformNode::Copy(vtkMRMLNode *anode)
 {
+  // Temporarily disable all Modified and TransformModified events to make sure that
+  // the operations are performed without interruption.
   int oldTransformModify=this->StartTransformModify();
   int disabledModify = this->StartModify();
 
@@ -180,6 +184,11 @@ void vtkMRMLLinearTransformNode::PrintSelf(ostream& os, vtkIndent indent)
 //----------------------------------------------------------------------------
 vtkGeneralTransform* vtkMRMLLinearTransformNode::GetTransformToParent()
 {
+  // When a transform is set, we do not compute the inverse transform immediately
+  // because for non-linear transforms it is an expensive operation.
+  // We do not compute it for linear transforms either to make the implementation
+  // consistent for all kind of transforms (and also because theoretically we may want
+  // to be able to manage projection transforms, which are not invertible).
   if (NeedToComputeTransformToParentFromInverse())
   {
     GetMatrixTransformToParent(); // this updates this->TransformToParent
@@ -190,7 +199,11 @@ vtkGeneralTransform* vtkMRMLLinearTransformNode::GetTransformToParent()
 //----------------------------------------------------------------------------
 vtkGeneralTransform* vtkMRMLLinearTransformNode::GetTransformFromParent()
 {
-  if (NeedToComputeTransformFromParentFromInverse())
+  // When a transform is set, we do not compute the inverse transform immediately
+  // because for non-linear transforms it is an expensive operation.
+  // We do not compute it for linear transforms either to make the implementation
+  // consistent for all kind of transforms (and also because theoretically we may want
+  // to be able to manage projection transforms, which are not invertible)
   {
     GetMatrixTransformFromParent(); // this updates this->TransformToParent
   }
@@ -202,6 +215,8 @@ vtkMatrix4x4* vtkMRMLLinearTransformNode::GetMatrixTransformToParent()
 {
   bool computeFromInverse = this->MatrixTransformFromParent && NeedToComputeTransformToParentFromInverse();
 
+  // Temporarily disable all Modified and TransformModified events to make sure that
+  // the operations are performed without interruption.
   int oldTransformModify=this->StartTransformModify();
   int oldModify=this->StartModify();
 
@@ -236,6 +251,8 @@ vtkMatrix4x4* vtkMRMLLinearTransformNode::GetMatrixTransformFromParent()
 {
   bool computeFromInverse =  this->MatrixTransformToParent && NeedToComputeTransformFromParentFromInverse();
 
+  // Temporarily disable all Modified and TransformModified events to make sure that
+  // the operations are performed without interruption.
   int oldTransformModify=this->StartTransformModify();
   int oldModify=this->StartModify();
 
@@ -385,10 +402,12 @@ void vtkMRMLLinearTransformNode::SetAndObserveMatrixTransformToParent(vtkMatrix4
     return;
     }
 
-  // Set the specific transform
+  // Temporarily disable all Modified and TransformModified events to make sure that
+  // the operations are performed without interruption.
   int oldTransformModify=this->StartTransformModify();
   int oldModify=this->StartModify();
 
+  // Set the specific transform
   vtkSetAndObserveMRMLObjectMacro(this->MatrixTransformToParent, matrix);
   if (matrix==NULL)
     {
@@ -408,9 +427,9 @@ void vtkMRMLLinearTransformNode::SetAndObserveMatrixTransformToParent(vtkMatrix4
   else
     {
     // Clear TransformFromParent and TransformToParent
-    vtkSetMRMLObjectMacro(this->TransformToParent, NULL);
+    this->TransformToParent->Identity();
     this->TransformToParentComputedFromInverseMTime=0;
-    vtkSetMRMLObjectMacro(this->TransformFromParent, NULL);
+    this->TransformFromParent->Identity();
     this->TransformFromParentComputedFromInverseMTime=0;
     }
 
@@ -429,10 +448,12 @@ void vtkMRMLLinearTransformNode::SetAndObserveMatrixTransformFromParent(vtkMatri
     return;
     }
 
-  // Set the specific transform
+  // Temporarily disable all Modified and TransformModified events to make sure that
+  // the operations are performed without interruption.
   int oldTransformModify=this->StartTransformModify();
   int oldModify=this->StartModify();
 
+  // Set the specific transform
   vtkSetAndObserveMRMLObjectMacro(this->MatrixTransformFromParent, matrix);
   if (matrix==NULL)
     {
@@ -452,9 +473,9 @@ void vtkMRMLLinearTransformNode::SetAndObserveMatrixTransformFromParent(vtkMatri
   else
     {
     // Clear TransformToParent and TransformFromParent
-    vtkSetMRMLObjectMacro(this->TransformFromParent, NULL);
+    this->TransformFromParent->Identity();
     this->TransformFromParentComputedFromInverseMTime=0;
-    vtkSetMRMLObjectMacro(this->TransformToParent, NULL);
+    this->TransformToParent->Identity();
     this->TransformToParentComputedFromInverseMTime=0;
     }
 

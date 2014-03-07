@@ -239,6 +239,9 @@ vtkWarpTransform* vtkMRMLGridTransformNode::GetWarpTransformToParent()
 {
   bool computeFromInverse = this->WarpTransformFromParent && NeedToComputeTransformToParentFromInverse();
 
+  // Temporarily disable all Modified and TransformModified events to make sure that
+  // the operations are performed without interruption.
+  int oldTransformModify=this->StartTransformModify();
   int oldModify=this->StartModify();
 
   // Update the specific transform
@@ -263,6 +266,7 @@ vtkWarpTransform* vtkMRMLGridTransformNode::GetWarpTransformToParent()
     }
 
   this->EndModify(oldModify);
+  this->EndTransformModify(oldTransformModify);
 
   return this->WarpTransformToParent;
 }
@@ -272,6 +276,9 @@ vtkWarpTransform* vtkMRMLGridTransformNode::GetWarpTransformFromParent()
 {
   bool computeFromInverse = this->WarpTransformToParent && NeedToComputeTransformFromParentFromInverse();
 
+  // Temporarily disable all Modified and TransformModified events to make sure that
+  // the operations are performed without interruption.
+  int oldTransformModify=this->StartTransformModify();
   int oldModify=this->StartModify();
 
   // Update the specific transform
@@ -296,6 +303,7 @@ vtkWarpTransform* vtkMRMLGridTransformNode::GetWarpTransformFromParent()
     }
 
   this->EndModify(oldModify);
+  this->EndTransformModify(oldTransformModify);
 
   return this->WarpTransformFromParent;
 }

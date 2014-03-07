@@ -42,6 +42,10 @@ public:
 
   /// 
   /// Copy the node's attributes to this object
+  /// Important! TransformToParent and TransformFromParent members are not copied
+  /// because the derived classes usually store the specific transforms in variables
+  /// that have to be copied anyway, so it would result in duplicate copying (which
+  /// is an expensive operation for grid transforms).
   virtual void Copy(vtkMRMLNode *node);
 
   /// 
@@ -61,10 +65,12 @@ public:
 
   ///
   /// vtkGeneral transform of this node to parent
+  /// The returned pointer remains valid throughout the lifetime of the object.
   virtual vtkGeneralTransform* GetTransformToParent();
 
   ///
   /// vtkGeneral transform of this node from parent
+  /// The returned pointer remains valid throughout the lifetime of the object.
   virtual vtkGeneralTransform* GetTransformFromParent();
 
   /// 
@@ -204,16 +210,29 @@ protected:
   vtkMRMLTransformNode(const vtkMRMLTransformNode&);
   void operator=(const vtkMRMLTransformNode&);
 
+  ///
+  /// When TransformToParent or TransformFromParent is modified then the
+  /// inverse is not updated automatically because it may take a long time.
+  /// Instead, when a transform is requested, this method tells if the transform
+  /// has to be computed from its inverse.
   virtual bool NeedToComputeTransformToParentFromInverse();
   virtual bool NeedToComputeTransformFromParentFromInverse();
 
+  ///
+  /// These generic transforms always exist (they are created in the constructor and deleted
+  /// in the destructor), but not always up-to-date. The NeedToComputeTransform...FromInverse()
+  /// methods specify if it is already up-to-date or need to be computed from the inverse.
   vtkGeneralTransform* TransformToParent;
   vtkGeneralTransform* TransformFromParent;
 
-  /// If a transform is updated the inverse is not computed automatically
-  /// (because it may be computationally expensive).
-  /// If a transform is set then the corresponding ...MTime member has to set to 0 (to indicate that it is not a computed) transform.
-  /// The other (the computed) transform ...MTime member should reflect the time it was actually computed.
+  ///
+  /// These variables store the MTime of the TransformToParent or TransformFromParent that was used
+  /// to compute a particular transform.
+  /// These are used in NeedToComputeTransformToParentFromInverse to determine if a transform has to be
+  /// computed from its inverse (to avoid updating transform A from its inverse, if its inverse was
+  /// computed from transform A; because then it means that transform A is already up-to-date).
+  /// If the Transform...ParentComputedFromInverseMTime is 0 then it means that it is not computed
+  /// from an inverse but set explicitly.
   unsigned long TransformToParentComputedFromInverseMTime;
   unsigned long TransformFromParentComputedFromInverseMTime;
 

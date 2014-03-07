@@ -85,30 +85,67 @@ void vtkMRMLNonlinearTransformNode::Copy(vtkMRMLNode *anode)
     return;
     }
 
+  // Temporarily disable all Modified and TransformModified events to make sure that
+  // the operations are performed without interruption.
+  int oldTransformModify=this->StartTransformModify();
+  int oldModify=this->StartModify();
+
+  // Clone the specific transforms
   if (node->WarpTransformToParent)
     {
-    vtkWarpTransform* clone=vtkWarpTransform::SafeDownCast(node->WarpTransformToParent->New());
-    if (clone)
+    vtkWarpTransform* clone = vtkWarpTransform::SafeDownCast(node->WarpTransformToParent->New());
+    if (clone!=NULL)
       {
       clone->DeepCopy(node->WarpTransformToParent);
-      this->SetAndObserveWarpTransformToParent(clone);
-      clone->Delete();
       }
+    else
+      {
+      vtkErrorMacro("vtkMRMLNonlinearTransformNode::Copy failed: casting to WarpTransform failed");
+      }
+    vtkSetAndObserveMRMLObjectMacro(this->WarpTransformToParent, clone);
     }
-  else if (node->WarpTransformFromParent)
+  if (node->WarpTransformFromParent)
     {
-    vtkWarpTransform* clone=vtkWarpTransform::SafeDownCast(node->WarpTransformFromParent->New());
-    if (clone)
+    vtkWarpTransform* clone = vtkWarpTransform::SafeDownCast(node->WarpTransformFromParent->New());
+    if (clone!=NULL)
       {
       clone->DeepCopy(node->WarpTransformFromParent);
-      this->SetAndObserveWarpTransformFromParent(clone);
-      clone->Delete();
       }
+    else
+      {
+      vtkErrorMacro("vtkMRMLNonlinearTransformNode::Copy failed: casting to WarpTransform failed");
+      }
+    vtkSetAndObserveMRMLObjectMacro(this->WarpTransformFromParent, clone);
+    }
+
+  // Update the generic transforms
+  this->TransformToParent->Identity();
+  this->TransformFromParent->Identity();
+  // Update the same order as it is in the source node
+  if (this->TransformToParentComputedFromInverseMTime<this->TransformFromParentComputedFromInverseMTime)
+    {
+    this->TransformToParent->Concatenate(this->WarpTransformToParent);
+    this->TransformFromParent->Concatenate(this->WarpTransformFromParent);
     }
   else
     {
-    this->SetAndObserveWarpTransformToParent(NULL);
+    this->TransformFromParent->Concatenate(this->WarpTransformFromParent);
+    this->TransformToParent->Concatenate(this->WarpTransformToParent);
     }
+  // Update the modified timestamps to keep track of which transform was computed from which
+  if ( node->TransformFromParentComputedFromInverseMTime==node->TransformToParent->GetMTime() )
+    {
+    this->TransformFromParentComputedFromInverseMTime=this->TransformToParent->GetMTime();
+    }
+  if (node->TransformToParentComputedFromInverseMTime==node->TransformFromParent->GetMTime())
+    {
+    this->TransformToParentComputedFromInverseMTime=this->TransformFromParent->GetMTime();
+    }
+
+  this->TransformModified();
+
+  this->EndModify(oldModify);
+  this->EndTransformModify(oldTransformModify);
 }
 
 //----------------------------------------------------------------------------
@@ -132,6 +169,9 @@ void vtkMRMLNonlinearTransformNode::PrintSelf(ostream& os, vtkIndent indent)
 //----------------------------------------------------------------------------
 vtkGeneralTransform* vtkMRMLNonlinearTransformNode::GetTransformToParent()
 {
+  // When a warp transform is set, the corresponding generic transform is updated
+  // so we only need to update the requested transform if it has to be computed from
+  // its inverse.
   if (this->NeedToComputeTransformToParentFromInverse())
   {
     GetWarpTransformToParent(); // this updates this->TransformToParent
@@ -142,6 +182,9 @@ vtkGeneralTransform* vtkMRMLNonlinearTransformNode::GetTransformToParent()
 //----------------------------------------------------------------------------
 vtkGeneralTransform* vtkMRMLNonlinearTransformNode::GetTransformFromParent()
 {
+  // When a warp transform is set, the corresponding generic transform is updated
+  // so we only need to update the requested transform if it has to be computed from
+  // its inverse.
   if (NeedToComputeTransformFromParentFromInverse())
   {
     GetWarpTransformFromParent(); // this updates this->TransformFromParent
@@ -185,10 +228,12 @@ void vtkMRMLNonlinearTransformNode::SetAndObserveWarpTransformToParent(vtkWarpTr
     return;
     }
 
-  // Set the specific transform
+  // Temporarily disable all Modified and TransformModified events to make sure that
+  // the operations are performed without interruption.
   int oldTransformModify=this->StartTransformModify();
   int oldModify=this->StartModify();
 
+  // Set the specific transform
   vtkSetAndObserveMRMLObjectMacro(this->WarpTransformToParent, warp);
   if (warp==NULL)
     {
@@ -208,9 +253,9 @@ void vtkMRMLNonlinearTransformNode::SetAndObserveWarpTransformToParent(vtkWarpTr
   else
     {
     // Clear TransformFromParent and TransformToParent
-    vtkSetMRMLObjectMacro(this->TransformToParent, NULL);
+    this->TransformToParent->Identity();
     this->TransformToParentComputedFromInverseMTime=0;
-    vtkSetMRMLObjectMacro(this->TransformFromParent, NULL);
+    this->TransformFromParent->Identity();
     this->TransformFromParentComputedFromInverseMTime=0;
     }
 
@@ -229,6 +274,8 @@ void vtkMRMLNonlinearTransformNode::SetAndObserveWarpTransformFromParent(vtkWarp
     return;
     }
 
+  // Temporarily disable all Modified and TransformModified events to make sure that
+  // the operations are performed without interruption.
   int oldTransformModify=this->StartTransformModify();
   int oldModify=this->StartModify();
 
@@ -252,9 +299,9 @@ void vtkMRMLNonlinearTransformNode::SetAndObserveWarpTransformFromParent(vtkWarp
   else
     {
     // Clear TransformToParent and TransformFromParent
-    vtkSetMRMLObjectMacro(this->TransformFromParent, NULL);
+    this->TransformFromParent->Identity();
     this->TransformFromParentComputedFromInverseMTime=0;
-    vtkSetMRMLObjectMacro(this->TransformToParent, NULL);
+    this->TransformToParent->Identity();
     this->TransformToParentComputedFromInverseMTime=0;
     }
 

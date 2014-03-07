@@ -129,9 +129,6 @@ protected:
   vtkWarpTransform* WarpTransformToParent;
   vtkWarpTransform* WarpTransformFromParent;
 
-  int InSetAndObserveWarpTransformToParent;
-  int InSetAndObserveWarpTransformFromParent;
-
 };
 
 #endif

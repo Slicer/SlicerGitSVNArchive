@@ -55,11 +55,11 @@ class VTK_MRML_EXPORT vtkMRMLLinearTransformNode : public vtkMRMLTransformNode
   virtual int IsLinear() {return 1;};
 
   ///
-  /// Gets the transform from the matrix
+  /// Updates the generic transform from the specific transform (matrix) and returns it
   virtual vtkGeneralTransform* GetTransformToParent();
 
   ///
-  /// Gets the transform from the matrix
+  /// Updates the generic transform from the specific transform (matrix) and returns it
   virtual vtkGeneralTransform* GetTransformFromParent();
 
   ///

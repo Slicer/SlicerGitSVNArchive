@@ -240,6 +240,7 @@ vtkWarpTransform* vtkMRMLBSplineTransformNode::GetWarpTransformToParent()
 {
   bool computeFromInverse = this->WarpTransformFromParent && NeedToComputeTransformToParentFromInverse();
 
+  int oldTransformModify=this->StartTransformModify();
   int oldModify=this->StartModify();
 
   // Update the specific transform
@@ -265,6 +266,7 @@ vtkWarpTransform* vtkMRMLBSplineTransformNode::GetWarpTransformToParent()
     }
 
   this->EndModify(oldModify);
+  this->EndTransformModify(oldTransformModify);
 
   return this->WarpTransformToParent;
 }
@@ -274,6 +276,7 @@ vtkWarpTransform* vtkMRMLBSplineTransformNode::GetWarpTransformFromParent()
 {
   bool computeFromInverse = this->WarpTransformToParent && NeedToComputeTransformFromParentFromInverse();
 
+  int oldTransformModify=this->StartTransformModify();
   int oldModify=this->StartModify();
 
   // Update the specific transform
@@ -299,6 +302,7 @@ vtkWarpTransform* vtkMRMLBSplineTransformNode::GetWarpTransformFromParent()
     }
 
   this->EndModify(oldModify);
+  this->EndTransformModify(oldTransformModify);
 
   return this->WarpTransformFromParent;
 }
