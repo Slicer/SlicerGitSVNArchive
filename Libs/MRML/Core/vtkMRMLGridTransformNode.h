@@ -54,15 +54,6 @@ public:
   /// vtkWarpTransform of this node from paren node
   virtual vtkWarpTransform* GetWarpTransformFromParent();
 
-  ///
-  /// Deep copy input transform to this node transform to parent
-  virtual void DeepCopyTransformToParent(vtkWarpTransform *warp);
-
-  ///
-  /// Deep copy input transform to this node transform from parent
-  virtual void DeepCopyTransformFromParent(vtkWarpTransform *warp);
-
-
 protected:
   vtkMRMLGridTransformNode();
   ~vtkMRMLGridTransformNode();

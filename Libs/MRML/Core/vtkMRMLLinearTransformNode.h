@@ -55,11 +55,11 @@ class VTK_MRML_EXPORT vtkMRMLLinearTransformNode : public vtkMRMLTransformNode
   virtual int IsLinear() {return 1;};
 
   ///
-  /// vtkGeneral transform of this node to parent node
+  /// Gets the transform from the matrix
   virtual vtkGeneralTransform* GetTransformToParent();
 
   ///
-  /// vtkGeneral transform of this node from parent node
+  /// Gets the transform from the matrix
   virtual vtkGeneralTransform* GetTransformFromParent();
 
   ///
@@ -87,11 +87,11 @@ class VTK_MRML_EXPORT vtkMRMLLinearTransformNode : public vtkMRMLTransformNode
   void SetAndObserveMatrixTransformFromParent(vtkMatrix4x4 *matrix);
 
   /// 
-  /// Get concatinated transforms to the top
+  /// Get concatenated transforms to the top
   virtual int  GetMatrixTransformToWorld(vtkMatrix4x4* transformToWorld);
   
   /// 
-  /// Get concatinated transforms  bwetween nodes  
+  /// Get concatenated transforms  bwetween nodes
   virtual int  GetMatrixTransformToNode(vtkMRMLTransformNode* node, 
                                         vtkMatrix4x4* transformToNode);
 

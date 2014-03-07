@@ -22,9 +22,13 @@ Version:   $Revision: 1.14 $
 //----------------------------------------------------------------------------
 vtkMRMLTransformNode::vtkMRMLTransformNode()
 {
-  this->TransformToParent = 0;
-  this->TransformFromParent = 0;
+  this->TransformToParent = vtkGeneralTransform::New();
+  this->TransformFromParent = vtkGeneralTransform::New();
   this->ReadWriteAsTransformToParent = 1;
+  this->TransformToParentComputedFromInverseMTime=0;
+  this->TransformFromParentComputedFromInverseMTime=0;
+  this->DisableTransformModifiedEvent=0;
+  this->TransformModifiedEventPending=0;
 }
 
 //----------------------------------------------------------------------------
@@ -33,10 +37,12 @@ vtkMRMLTransformNode::~vtkMRMLTransformNode()
   if (this->TransformToParent) 
     {
     this->TransformToParent->Delete();
+    this->TransformToParent=NULL;
     }
   if (this->TransformFromParent)
     {
     this->TransformFromParent->Delete();
+    this->TransformFromParent=NULL;
     }
 }
 
@@ -89,6 +95,12 @@ void vtkMRMLTransformNode::Copy(vtkMRMLNode *anode)
 
   this->SetReadWriteAsTransformToParent(node->GetReadWriteAsTransformToParent());
 
+  // TransformToParent and TransformFromParent are only cached copies of the specific transforms, so they are not copied
+  this->TransformToParent->Identity();
+  this->TransformFromParent->Identity();
+  this->TransformToParentComputedFromInverseMTime=0;
+  this->TransformFromParentComputedFromInverseMTime=0;
+
   this->EndModify(disabledModify);
 
 }
@@ -98,38 +110,69 @@ void vtkMRMLTransformNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   Superclass::PrintSelf(os,indent);
   os << indent << "ReadWriteAsTransformToParent: " << this->ReadWriteAsTransformToParent << "\n";
+}
 
+//----------------------------------------------------------------------------
+bool vtkMRMLTransformNode::NeedToComputeTransformToParentFromInverse()
+{
+  if (this->TransformToParent->GetMTime()>this->TransformFromParent->GetMTime())
+    {
+    // the requested transform is newer than the inverse
+    return false;
+    }
+  if (this->TransformFromParentComputedFromInverseMTime==this->TransformToParent->GetMTime() )
+    {
+    // the inverse is computed from the requested transform
+    return false;
+    }
+  return true;
+}
+
+//----------------------------------------------------------------------------
+bool vtkMRMLTransformNode::NeedToComputeTransformFromParentFromInverse()
+{
+  if (this->TransformFromParent->GetMTime()>=this->TransformToParent->GetMTime())
+    {
+    // the requested transform is newer than the inverse
+    return false;
+    }
+  if (this->TransformToParentComputedFromInverseMTime==this->TransformFromParent->GetMTime())
+    {
+    // the inverse is computed from the requested transform
+    return false;
+    }
+  return true;
 }
 
 //----------------------------------------------------------------------------
 vtkGeneralTransform* vtkMRMLTransformNode::GetTransformToParent()
 {
-  if (this->TransformToParent == 0)
-    {
-    this->TransformToParent = vtkGeneralTransform::New();
-    this->TransformToParent->Identity();
-    if (this->TransformFromParent)
-      {
-      this->TransformToParent->DeepCopy(this->TransformFromParent);
-      this->TransformToParent->Inverse();
-      }
-    }
+  bool computeFromInverse=NeedToComputeTransformToParentFromInverse();
+
+  if (computeFromInverse)
+  {
+    this->TransformToParent->DeepCopy(this->TransformFromParent);
+    this->TransformToParent->Inverse();
+    this->TransformToParentComputedFromInverseMTime=this->TransformFromParent->GetMTime();
+    this->TransformFromParentComputedFromInverseMTime=0;
+  }
+
   return this->TransformToParent;
 }
 
 //----------------------------------------------------------------------------
 vtkGeneralTransform* vtkMRMLTransformNode::GetTransformFromParent()
 {
-  if (this->TransformFromParent == 0)
-    {
-    this->TransformFromParent = vtkGeneralTransform::New();
-    this->TransformFromParent->Identity();
-    if (this->TransformToParent)
-      {
-      this->TransformFromParent->DeepCopy(this->TransformToParent);
-      this->TransformFromParent->Inverse();
-      }
-    }
+  bool computeFromInverse=NeedToComputeTransformFromParentFromInverse();
+
+  if (computeFromInverse)
+  {
+    this->TransformFromParent->DeepCopy(this->TransformToParent);
+    this->TransformFromParent->Inverse();
+    this->TransformFromParentComputedFromInverseMTime=this->TransformToParent->GetMTime();
+    this->TransformToParentComputedFromInverseMTime=0;
+  }
+
   return this->TransformFromParent;
 }
 
@@ -198,7 +241,7 @@ int  vtkMRMLTransformNode::IsTransformToNodeLinear(vtkMRMLTransformNode* node)
     vtkMRMLTransformNode *parent = this->GetParentTransformNode();
     if (parent != NULL) 
       {
-      if (!strcmp(parent->GetID(), node->GetID()) ) 
+      if (!strcmp(parent->GetID(), node->GetID()) )
         {
         return this->IsLinear();
         }

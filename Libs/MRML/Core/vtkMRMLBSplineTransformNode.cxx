@@ -12,14 +12,11 @@ Version:   $Revision: 1.14 $
 
 =========================================================================auto=*/
 
-
+#include "vtkGeneralTransform.h"
+#include "vtkITKBSplineTransform.h"
+#include "vtkMRMLBSplineTransformNode.h"
 #include "vtkObjectFactory.h"
 #include "vtkSmartPointer.h"
-
-#include "vtkITKBSplineTransform.h"
-
-#include "vtkMRMLBSplineTransformNode.h"
-
 
 //------------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLBSplineTransformNode);
@@ -220,7 +217,7 @@ void vtkMRMLBSplineTransformNode::ReadXMLAttributes(const char** atts)
 
   if( spline.GetPointer() != 0 )
     {
-    this->SetAndObserveWarpTransformFromParent( spline, true );
+    this->SetAndObserveWarpTransformFromParent( spline );
     }
 }
 
@@ -230,18 +227,6 @@ void vtkMRMLBSplineTransformNode::ReadXMLAttributes(const char** atts)
 void vtkMRMLBSplineTransformNode::Copy(vtkMRMLNode *anode)
 {
   Superclass::Copy(anode);
-  vtkMRMLBSplineTransformNode *node = vtkMRMLBSplineTransformNode::SafeDownCast(anode);
-  if (node)
-    {
-    if (this->WarpTransformToParent)
-      {
-      this->SetAndObserveWarpTransformToParent(node->GetWarpTransformToParent(), false);
-      }
-    if (this->WarpTransformFromParent)
-      {
-      this->SetAndObserveWarpTransformFromParent(node->GetWarpTransformFromParent(), false);
-      }
-    }
 }
 
 //----------------------------------------------------------------------------
@@ -250,67 +235,72 @@ void vtkMRMLBSplineTransformNode::PrintSelf(ostream& os, vtkIndent indent)
   Superclass::PrintSelf(os,indent);
 }
 
-
-//----------------------------------------------------------------------------
-void vtkMRMLBSplineTransformNode::DeepCopyTransformToParent(vtkWarpTransform *warp)
-{
-  vtkITKBSplineTransform *warp1 = vtkITKBSplineTransform::SafeDownCast(warp);
-  vtkITKBSplineTransform *warp2 = vtkITKBSplineTransform::SafeDownCast(this->GetWarpTransformToParent());
-  if (warp1 && warp2)
-    {
-    warp2->DeepCopy(warp1);
-    }
-}
-
-//----------------------------------------------------------------------------
-void vtkMRMLBSplineTransformNode::DeepCopyTransformFromParent(vtkWarpTransform *warp)
-{
-  vtkITKBSplineTransform *warp1 = vtkITKBSplineTransform::SafeDownCast(warp);
-  vtkITKBSplineTransform *warp2 = vtkITKBSplineTransform::SafeDownCast(this->GetWarpTransformFromParent());
-  if (warp1 && warp2)
-    {
-    warp2->DeepCopy(warp1);
-    }
-}
-
-
 //----------------------------------------------------------------------------
 vtkWarpTransform* vtkMRMLBSplineTransformNode::GetWarpTransformToParent()
 {
+  bool computeFromInverse = this->WarpTransformFromParent && NeedToComputeTransformToParentFromInverse();
+
+  int oldModify=this->StartModify();
+
+  // Update the specific transform
   if (this->WarpTransformToParent == 0)
     {
-    vtkITKBSplineTransform *warp = vtkITKBSplineTransform::New();
-
-    if (this->WarpTransformFromParent)
-      {
-      warp->SetSplineOrder(3);
-      warp->DeepCopy(vtkITKBSplineTransform::SafeDownCast(this->WarpTransformFromParent));
-      warp->Inverse();
-      }
-    this->SetAndObserveWarpTransformToParent(warp, false);
-    warp->Delete();
+    vtkSmartPointer<vtkITKBSplineTransform> warp = vtkSmartPointer<vtkITKBSplineTransform>::New();
+    warp->SetSplineOrder(3);
+    this->SetAndObserveWarpTransformToParent(warp);
     }
+
+  if (computeFromInverse)
+    {
+    this->WarpTransformToParent->DeepCopy(this->WarpTransformFromParent);
+    this->WarpTransformToParent->Inverse();
+    }
+
+  // Update the generic transform
+  this->TransformToParent->Identity();
+  this->TransformToParent->Concatenate(this->WarpTransformToParent);
+  if (computeFromInverse)
+    {
+    this->TransformToParentComputedFromInverseMTime=this->TransformFromParent->GetMTime();
+    }
+
+  this->EndModify(oldModify);
+
   return this->WarpTransformToParent;
 }
 
 //----------------------------------------------------------------------------
 vtkWarpTransform* vtkMRMLBSplineTransformNode::GetWarpTransformFromParent()
 {
+  bool computeFromInverse = this->WarpTransformToParent && NeedToComputeTransformFromParentFromInverse();
+
+  int oldModify=this->StartModify();
+
+  // Update the specific transform
   if (this->WarpTransformFromParent == 0)
     {
-    vtkITKBSplineTransform *warp = vtkITKBSplineTransform::New();
-
-    if (this->WarpTransformToParent)
-      {
-      warp->SetSplineOrder(3);
-      warp->DeepCopy(vtkITKBSplineTransform::SafeDownCast(this->WarpTransformToParent));
-      warp->Inverse();
-      }
-    this->SetAndObserveWarpTransformFromParent(warp, false);
-    warp->Delete();
+    vtkSmartPointer<vtkITKBSplineTransform> warp = vtkSmartPointer<vtkITKBSplineTransform>::New();
+    warp->SetSplineOrder(3);
+    this->SetAndObserveWarpTransformFromParent(warp);
     }
+
+  if (computeFromInverse)
+    {
+    this->WarpTransformFromParent->DeepCopy(this->WarpTransformToParent);
+    this->WarpTransformFromParent->Inverse();
+    }
+
+  // Update the generic transform
+  this->TransformFromParent->Identity();
+  this->TransformFromParent->Concatenate(this->WarpTransformFromParent);
+  if (computeFromInverse)
+    {
+    this->TransformFromParentComputedFromInverseMTime=this->TransformToParent->GetMTime();
+    }
+
+  this->EndModify(oldModify);
+
   return this->WarpTransformFromParent;
 }
-
 
 // End

@@ -684,8 +684,17 @@ vtkITKBSplineTransformHelperImpl<O>
   BSpline->SetParameters( parameters );
 }
 
-void vtkITKBSplineTransform::DeepCopy(vtkITKBSplineTransform *xform)
+void vtkITKBSplineTransform::InternalDeepCopy(vtkAbstractTransform *abstractTransform)
 {
+  vtkITKBSplineTransform *xform = vtkITKBSplineTransform::SafeDownCast(abstractTransform);
+  if (xform==NULL)
+  {
+    vtkErrorMacro("vtkITKBSplineTransform::InternalDeepCopy failed: input transform type mismatch");
+    return;
+  }
+
+  Superclass::InternalDeepCopy(xform);
+
   if (xform->GetSplineOrder() == 0)
   {
     return;
@@ -714,11 +723,12 @@ void vtkITKBSplineTransform::DeepCopy(vtkITKBSplineTransform *xform)
   this->SetFixedParameters( xform->GetFixedParameters(),
                          xform->GetNumberOfFixedParameters() );
   this->SetParameters( xform->GetParameters() );
-  if (xform->GetInverseFlag())
+
+  if (this->InverseFlag != xform->InverseFlag)
     {
-    this->Inverse();
+    this->InverseFlag = xform->InverseFlag;
+    this->Modified();
     }
-  Superclass::DeepCopy(xform);
 }
 
 template< unsigned O >

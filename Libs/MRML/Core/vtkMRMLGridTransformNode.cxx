@@ -16,6 +16,7 @@ Version:   $Revision: 1.14 $
 #include "vtkMRMLGridTransformNode.h"
 
 // VTK includes
+#include <vtkGeneralTransform.h>
 #include <vtkGridTransform.h>
 #include <vtkImageData.h>
 #include <vtkNew.h>
@@ -216,7 +217,7 @@ void vtkMRMLGridTransformNode::ReadXMLAttributes(const char** atts)
       }
     }
   vtkgrid->SetDisplacementGrid(image.GetPointer());
-  this->SetAndObserveWarpTransformFromParent(vtkgrid.GetPointer(), true);
+  this->SetAndObserveWarpTransformFromParent(vtkgrid.GetPointer());
 }
 
 //----------------------------------------------------------------------------
@@ -225,18 +226,6 @@ void vtkMRMLGridTransformNode::ReadXMLAttributes(const char** atts)
 void vtkMRMLGridTransformNode::Copy(vtkMRMLNode *anode)
 {
   Superclass::Copy(anode);
-  vtkMRMLGridTransformNode *node = vtkMRMLGridTransformNode::SafeDownCast(anode);
-  if (node)
-    {
-    if (this->WarpTransformToParent)
-      {
-      this->SetAndObserveWarpTransformToParent(node->GetWarpTransformToParent(), false);
-      }
-    if (this->WarpTransformFromParent)
-      {
-      this->SetAndObserveWarpTransformFromParent(node->GetWarpTransformFromParent(), false);
-      }
-    }
 }
 
 //----------------------------------------------------------------------------
@@ -246,61 +235,68 @@ void vtkMRMLGridTransformNode::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLGridTransformNode::DeepCopyTransformToParent(vtkWarpTransform *warp)
-{
-  vtkGridTransform *warp1 = vtkGridTransform::SafeDownCast(warp);
-  vtkGridTransform *warp2 = vtkGridTransform::SafeDownCast(this->GetWarpTransformToParent());
-  if (warp1 && warp2)
-    {
-    warp2->DeepCopy(warp1);
-    }
-}
-
-//----------------------------------------------------------------------------
-void vtkMRMLGridTransformNode::DeepCopyTransformFromParent(vtkWarpTransform *warp)
-{
-  vtkGridTransform *warp1 = vtkGridTransform::SafeDownCast(warp);
-  vtkGridTransform *warp2 = vtkGridTransform::SafeDownCast(this->GetWarpTransformFromParent());
-  if (warp1 && warp2)
-    {
-    warp2->DeepCopy(warp1);
-    }
-}
-
-
-//----------------------------------------------------------------------------
 vtkWarpTransform* vtkMRMLGridTransformNode::GetWarpTransformToParent()
 {
+  bool computeFromInverse = this->WarpTransformFromParent && NeedToComputeTransformToParentFromInverse();
+
+  int oldModify=this->StartModify();
+
+  // Update the specific transform
   if (this->WarpTransformToParent == 0)
     {
-    vtkGridTransform *warp = vtkGridTransform::New();
-
-    if (this->WarpTransformFromParent)
-      {
-      warp->DeepCopy(this->WarpTransformFromParent);
-      warp->Inverse();
-      }
-    this->SetAndObserveWarpTransformToParent(warp, false);
-    warp->Delete();
+    vtkNew<vtkGridTransform> warp;
+    this->SetAndObserveWarpTransformToParent(warp.GetPointer());
     }
+
+  if (computeFromInverse)
+    {
+    this->WarpTransformToParent->DeepCopy(this->WarpTransformFromParent);
+    this->WarpTransformToParent->Inverse();
+    }
+
+  // Update the generic transform
+  this->TransformToParent->Identity();
+  this->TransformToParent->Concatenate(this->WarpTransformToParent);
+  if (computeFromInverse)
+    {
+    this->TransformToParentComputedFromInverseMTime=this->TransformFromParent->GetMTime();
+    }
+
+  this->EndModify(oldModify);
+
   return this->WarpTransformToParent;
 }
 
 //----------------------------------------------------------------------------
 vtkWarpTransform* vtkMRMLGridTransformNode::GetWarpTransformFromParent()
 {
+  bool computeFromInverse = this->WarpTransformToParent && NeedToComputeTransformFromParentFromInverse();
+
+  int oldModify=this->StartModify();
+
+  // Update the specific transform
   if (this->WarpTransformFromParent == 0)
     {
-    vtkGridTransform *warp = vtkGridTransform::New();
-
-    if (this->WarpTransformToParent)
-      {
-      warp->DeepCopy(this->WarpTransformToParent);
-      warp->Inverse();
-      }
-    this->SetAndObserveWarpTransformFromParent(warp, false);
-    warp->Delete();
+    vtkNew<vtkGridTransform> warp;
+    this->SetAndObserveWarpTransformFromParent(warp.GetPointer());
     }
+
+  if (computeFromInverse)
+    {
+    this->WarpTransformFromParent->DeepCopy(this->WarpTransformToParent);
+    this->WarpTransformFromParent->Inverse();
+    }
+
+  // Update the generic transform
+  this->TransformFromParent->Identity();
+  this->TransformFromParent->Concatenate(this->WarpTransformFromParent);
+  if (computeFromInverse)
+    {
+    this->TransformFromParentComputedFromInverseMTime=this->TransformToParent->GetMTime();
+    }
+
+  this->EndModify(oldModify);
+
   return this->WarpTransformFromParent;
 }
 

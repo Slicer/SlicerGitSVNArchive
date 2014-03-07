@@ -121,7 +121,7 @@ public:
   itk::Transform<double,3,3>::Pointer GetITKTransform() const;
 
   /// copy underlying ITK transform
-  void DeepCopy(vtkITKBSplineTransform *xform);
+  void InternalDeepCopy(vtkAbstractTransform *abstractTransform);
 
 protected:
   vtkITKBSplineTransform();
