@@ -104,6 +104,10 @@ void vtkMRMLNonlinearTransformNode::Copy(vtkMRMLNode *anode)
       }
     vtkSetAndObserveMRMLObjectMacro(this->WarpTransformToParent, clone);
     }
+  else
+    {
+    vtkSetAndObserveMRMLObjectMacro(this->WarpTransformToParent, NULL);
+    }
   if (node->WarpTransformFromParent)
     {
     vtkWarpTransform* clone = vtkWarpTransform::SafeDownCast(node->WarpTransformFromParent->New());
@@ -117,20 +121,37 @@ void vtkMRMLNonlinearTransformNode::Copy(vtkMRMLNode *anode)
       }
     vtkSetAndObserveMRMLObjectMacro(this->WarpTransformFromParent, clone);
     }
+  else
+    {
+    vtkSetAndObserveMRMLObjectMacro(this->WarpTransformFromParent, NULL);
+    }
 
-  // Update the generic transforms
-  this->TransformToParent->Identity();
-  this->TransformFromParent->Identity();
-  // Update the same order as it is in the source node
+  // Update the generic transforms in the same order as the MTime is in the source node
   if (this->TransformToParentComputedFromInverseMTime<this->TransformFromParentComputedFromInverseMTime)
     {
-    this->TransformToParent->Concatenate(this->WarpTransformToParent);
-    this->TransformFromParent->Concatenate(this->WarpTransformFromParent);
+    this->TransformToParent->Identity();
+    if (this->WarpTransformToParent)
+      {
+      this->TransformToParent->Concatenate(this->WarpTransformToParent);
+      }
+    this->TransformFromParent->Identity();
+    if (this->WarpTransformFromParent)
+      {
+      this->TransformFromParent->Concatenate(this->WarpTransformFromParent);
+      }
     }
   else
     {
-    this->TransformFromParent->Concatenate(this->WarpTransformFromParent);
-    this->TransformToParent->Concatenate(this->WarpTransformToParent);
+    this->TransformFromParent->Identity();
+    if (this->WarpTransformFromParent)
+      {
+      this->TransformFromParent->Concatenate(this->WarpTransformFromParent);
+      }
+    this->TransformToParent->Identity();
+    if (this->WarpTransformToParent)
+      {
+      this->TransformToParent->Concatenate(this->WarpTransformToParent);
+      }
     }
   // Update the modified timestamps to keep track of which transform was computed from which
   if ( node->TransformFromParentComputedFromInverseMTime==node->TransformToParent->GetMTime() )
@@ -142,6 +163,7 @@ void vtkMRMLNonlinearTransformNode::Copy(vtkMRMLNode *anode)
     this->TransformToParentComputedFromInverseMTime=this->TransformFromParent->GetMTime();
     }
 
+  this->Modified();
   this->TransformModified();
 
   this->EndModify(oldModify);
@@ -260,6 +282,8 @@ void vtkMRMLNonlinearTransformNode::SetAndObserveWarpTransformToParent(vtkWarpTr
     }
 
   this->StorableModifiedTime.Modified();
+
+  this->Modified();
   this->TransformModified();
 
   this->EndModify(oldModify);
@@ -306,6 +330,8 @@ void vtkMRMLNonlinearTransformNode::SetAndObserveWarpTransformFromParent(vtkWarp
     }
 
   this->StorableModifiedTime.Modified();
+
+  this->Modified();
   this->TransformModified();
 
   this->EndModify(oldModify);

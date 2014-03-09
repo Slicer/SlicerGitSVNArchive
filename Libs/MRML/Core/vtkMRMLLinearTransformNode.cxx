@@ -434,6 +434,8 @@ void vtkMRMLLinearTransformNode::SetAndObserveMatrixTransformToParent(vtkMatrix4
     }
 
   this->StorableModifiedTime.Modified();
+
+  this->Modified();
   this->TransformModified();
 
   this->EndModify(oldModify);
@@ -480,6 +482,7 @@ void vtkMRMLLinearTransformNode::SetAndObserveMatrixTransformFromParent(vtkMatri
     }
 
   this->StorableModifiedTime.Modified();
+  this->Modified();
   this->TransformModified();
 
   this->EndModify(oldModify);
