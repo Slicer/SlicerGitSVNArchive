@@ -242,7 +242,10 @@ void vtkMRMLBSplineTransformNode::ReadXMLAttributes(const char** atts)
     }
   else
     {
-    vtkErrorMacro("vtkMRMLBSplineTransformNode::ReadXML failed: could not create a vtkITKBSplineTransform");
+    if (this->GetStorageNodeID()==NULL)
+      {
+      vtkErrorMacro("vtkMRMLBSplineTransformNode::ReadXML failed: could not create a vtkITKBSplineTransform from the scene and no external transform storage file is specified");
+      }
     }
 }
 

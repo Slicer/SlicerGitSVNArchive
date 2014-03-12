@@ -164,10 +164,6 @@ vtkITKBSplineTransform
 ::MakeTransform()
 {
   vtkITKBSplineTransform* N = vtkITKBSplineTransform::New();
-  if( Helper )
-  {
-    N->DeepCopy(this);
-  }
   return N;
 }
 
@@ -175,6 +171,7 @@ vtkITKBSplineTransform
 ::vtkITKBSplineTransform() :
   Helper( 0 )
 {
+  SetSplineOrder(3);
 }
 
 vtkITKBSplineTransform
@@ -192,9 +189,13 @@ vtkITKBSplineTransform
     return;
   }
 
-  delete Helper;
+  delete this->Helper;
+  this->Helper=NULL;
   switch( order )
   {
+  case 0:
+    // just clear the helper
+    break;
   case 2:
     Helper = new vtkITKBSplineTransformHelperImpl< 2 >;
     break;

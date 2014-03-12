@@ -51,6 +51,7 @@ int vtkMRMLNonlinearTransformNodeTest1(int argc, char * argv[] )
 //---------------------------------------------------------------------------
 bool TestBSplineTransform(const char *filename)
 {
+  // Read a BSpline transform from a scene
   vtkMRMLScene *scene = vtkMRMLScene::New();
 
   scene->SetURL(filename);
@@ -65,6 +66,7 @@ bool TestBSplineTransform(const char *filename)
     return false;
     }
 
+  // Test if both the transform and its inverse are available
   vtkITKBSplineTransform *xfp = vtkITKBSplineTransform::SafeDownCast(
     bsplineTransformNode->GetTransformFromParentAs("vtkITKBSplineTransform"));
   vtkITKBSplineTransform *xtp = vtkITKBSplineTransform::SafeDownCast(
@@ -76,22 +78,56 @@ bool TestBSplineTransform(const char *filename)
     return false;
     }
 
-  double inp[] = {0,0,0};
-  double outp[3];
+  // Test if the transform actually changes point positions
+  double inp[3] = {0,0,0};
+  double outp[3] = {0,0,0};
   xfp->TransformPoint(inp, outp);
-  if (fabs(outp[0]) < 0.1 || fabs(outp[1]) < 0.1 || fabs(outp[2]) < 0.1)
+  if (fabs(outp[0]-inp[0]) < 0.1 || fabs(outp[1]-inp[1]) < 0.1 || fabs(outp[2]-inp[2]) < 0.1)
     {
     std::cout << __LINE__ << ": TestBSplineTransform failed" << std::endl;
     return false;
     }
 
-  xtp->TransformPoint(outp, inp);
-  if (fabs(inp[0]) > 0.1 || fabs(inp[1]) > 0.1 || fabs(inp[2]) > 0.1)
+  // Test if the inverse transform moves back the point to its original position
+  double outpInv[3] = {-100, -100, -100};
+  xtp->TransformPoint(outp, outpInv);
+  if (fabs(outpInv[0]-inp[0]) > 0.1 || fabs(outpInv[1]-inp[1]) > 0.1 || fabs(outpInv[2]-inp[2]) > 0.1)
     {
     std::cout << __LINE__ << ": TestBSplineTransform failed" << std::endl;
     return false;
     }
 
+  // Test if node copy creates an independent copy
+  vtkNew<vtkMRMLBSplineTransformNode> bsplineTransformNodeCopy;
+  bsplineTransformNodeCopy->Copy(bsplineTransformNode);
+  // Reset the original transform to make sure that it was not a shallow copy (transforms from the original transforms are not reused)
+  vtkITKBSplineTransform* emptyTransform=vtkITKBSplineTransform::New();
+  //bsplineTransformNode->SetAndObserveTransformToParent(emptyTransform);
+  emptyTransform->Delete();
+
+  vtkITKBSplineTransform *xfpCopy = vtkITKBSplineTransform::SafeDownCast(bsplineTransformNodeCopy->GetTransformFromParentAs("vtkITKBSplineTransform"));
+  vtkITKBSplineTransform *xtpCopy = vtkITKBSplineTransform::SafeDownCast(bsplineTransformNodeCopy->GetTransformToParentAs("vtkITKBSplineTransform"));
+
+  // Test if the copied transform gives the same results as the original
+  double outpCopy[3] = {0,0,0};
+  xfpCopy->TransformPoint(inp, outpCopy);
+  if (fabs(outpCopy[0]-outp[0]) > 0.1 || fabs(outpCopy[1]-outp[1]) > 0.1 || fabs(outpCopy[2]-outp[2]) > 0.1)
+    {
+    std::cout << __LINE__ << ": TestBSplineTransform failed" << std::endl;
+    return false;
+    }
+
+  // Test if the inverse transform moves back the point to its original position
+  double outpInvCopy[3] = {-100, -100, -100};
+  xtpCopy->TransformPoint(outpCopy, outpInvCopy);
+  if (fabs(outpInvCopy[0]-inp[0]) > 0.1 || fabs(outpInvCopy[1]-inp[1]) > 0.1 || fabs(outpInvCopy[2]-inp[2]) > 0.1)
+    {
+    std::cout << __LINE__ << ": TestBSplineTransform failed" << std::endl;
+    return false;
+    }
+
+
+  // Cleanup
   scene->Clear(1);
   scene->Delete();
   return true;

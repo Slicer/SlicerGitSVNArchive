@@ -66,15 +66,11 @@ public:
 
   ///
   /// vtkGeneral transform of this node to parent
-  /// The returned pointer remains valid throughout the lifetime of the object, therefore.
-  /// it is safe to modify transform parameters through the returned pointer.
-  virtual vtkGeneralTransform* GetTransformToParent();
+  virtual vtkAbstractTransform* GetTransformToParent();
 
   ///
   /// vtkGeneral transform of this node from parent
-  /// The returned pointer remains valid throughout the lifetime of the object, therefore.
-  /// it is safe to modify transform parameters through the returned pointer.
-  virtual vtkGeneralTransform* GetTransformFromParent();
+  virtual vtkAbstractTransform* GetTransformFromParent();
 
   /// 
   /// 1 if all the transforms to the top are linear, 0 otherwise
@@ -257,14 +253,27 @@ protected:
   /// TransformToParent and TransformFromParent do not emit
   /// modified event if a concatenated transform is modified, therefore we
   /// have to add observers to these transforms.
+  virtual void UpdateTransformObservers(vtkCollection* observedTransforms, vtkGeneralTransform* generalTransform);
   virtual void UpdateTransformToParentObservers();
   virtual void UpdateTransformFromParentObservers();
+
+  ///
+  /// Retrieves a simple transform from a generic transform
+  /// If the generic transform is composed of multiple transform or contains a different
+  /// transform type then it returns NULL.
+  virtual vtkAbstractTransform* GetAbstractTransformAs(vtkGeneralTransform* generalTransform, const char* transformClassName);
+
+  ///
+  /// Sets and observes a transform and deletes the inverse (so that the inverse will be computed automatically)
+  virtual void SetAndObserveTransform(vtkGeneralTransform** originalTransformPtr, vtkGeneralTransform** inverseTransformPtr, vtkAbstractTransform *transform);
 
   ///
   /// These generic transforms always exist (they are created in the constructor and deleted
   /// in the destructor), and they are set up so that one is always computed as the inverse of the
   /// other. We use the capability of generic transforms for concatenating and inverting the same
-  /// abstract transform in multiple generic transforms, therefore they are automaticall.
+  /// abstract transform in multiple generic transforms, therefore they are automatically updated.
+  /// We keep the two separate member variables because in the future we may allow setting of a
+  /// custom inverse transform (that is not computed automatically from the original).
   vtkGeneralTransform* TransformToParent;
   vtkGeneralTransform* TransformFromParent;
 

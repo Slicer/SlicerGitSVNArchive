@@ -825,7 +825,7 @@
   {                                                                  \
     EXERCISE_BASIC_STORABLE_MRML_METHODS( className, node );         \
     std::cout << "IsLinear = " << node->IsLinear()<< std:: endl;        \
-    vtkGeneralTransform* gtp = node->GetTransformToParent();                                   \
+    vtkAbstractTransform* gtp = node->GetTransformToParent();                                   \
     if (gtp == NULL)                                                     \
       {                                                                 \
       std::cout << "Warning: transform node has a null transform to parent" << std::endl; \

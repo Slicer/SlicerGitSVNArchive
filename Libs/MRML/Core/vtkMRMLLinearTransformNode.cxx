@@ -33,7 +33,6 @@ vtkMRMLLinearTransformNode::vtkMRMLLinearTransformNode()
 {
   this->ReadWriteAsTransformToParent = 1;
   vtkNew<vtkMatrix4x4> matrix;
-  matrix->Identity();
   this->SetMatrixTransformToParent(matrix.GetPointer());
 }
 
@@ -107,7 +106,6 @@ void vtkMRMLLinearTransformNode::ReadXMLAttributes(const char** atts)
     if (!strcmp(attName, "matrixTransformToParent")) 
       {
       vtkNew<vtkMatrix4x4> matrix;
-      matrix->Identity();
       std::stringstream ss;
       double val;
       ss << attValue;
@@ -124,7 +122,6 @@ void vtkMRMLLinearTransformNode::ReadXMLAttributes(const char** atts)
     if (!strcmp(attName, "matrixTransformFromParent"))
       {
       vtkNew<vtkMatrix4x4> matrix;
-      matrix->Identity();
       std::stringstream ss;
       double val;
       ss << attValue;
@@ -307,7 +304,6 @@ int  vtkMRMLLinearTransformNode::GetMatrixTransformToNode(vtkMRMLTransformNode* 
     {
     this->GetMatrixTransformToWorld(transformToNode);
     vtkNew<vtkMatrix4x4> transformToWorld2;
-    transformToWorld2->Identity();
     
     node->GetMatrixTransformToWorld(transformToWorld2.GetPointer());
     transformToWorld2->Invert();
@@ -355,10 +351,6 @@ void vtkMRMLLinearTransformNode::SetMatrixTransformToParent(vtkMatrix4x4 *matrix
       {
       newMatrix->DeepCopy(matrix);
       }
-    else
-      {
-      newMatrix->Identity();
-      }
     transform->SetInput(newMatrix.GetPointer());
     this->SetAndObserveTransformToParent(transform.GetPointer());
     }
@@ -403,10 +395,6 @@ void vtkMRMLLinearTransformNode::SetMatrixTransformFromParent(vtkMatrix4x4 *matr
     if (matrix!=NULL)
       {
       newMatrix->DeepCopy(matrix);
-      }
-    else
-      {
-      newMatrix->Identity();
       }
     transform->SetInput(newMatrix.GetPointer());
     this->SetAndObserveTransformFromParent(transform.GetPointer());
