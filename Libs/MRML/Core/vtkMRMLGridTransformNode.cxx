@@ -31,6 +31,9 @@ vtkMRMLNodeNewMacro(vtkMRMLGridTransformNode);
 //----------------------------------------------------------------------------
 vtkMRMLGridTransformNode::vtkMRMLGridTransformNode()
 {
+  this->ReadWriteAsTransformToParent = 0;
+  vtkNew<vtkGridTransform> warp;
+  this->SetAndObserveTransformFromParent(warp.GetPointer());
 }
 
 //----------------------------------------------------------------------------
@@ -43,16 +46,20 @@ void vtkMRMLGridTransformNode::WriteXML(ostream& of, int nIndent)
 {
   Superclass::WriteXML(of, nIndent);
 
-  if (this->WarpTransformToParent != NULL)
+  vtkGridTransform* grid=NULL;
+
+  if (this->ReadWriteAsTransformToParent)
+    {
+    grid=vtkGridTransform::SafeDownCast(GetTransformToParentAs("vtkGridTransform"));
+    }
+  else
+    {
+    grid=vtkGridTransform::SafeDownCast(GetTransformFromParentAs("vtkGridTransform"));
+    }
+
+  if (grid != NULL)
     {
     // this transform should be a grid transform
-    vtkGridTransform *grid = dynamic_cast<vtkGridTransform*>(this->WarpTransformToParent);
-    if( grid == NULL )
-      {
-      vtkErrorMacro("Transform is not a GridTransform");
-      return;
-      }
-
     of << " interpolationMode=\"" << grid->GetInterpolationMode() << "\" ";
     of << " displacementScale=\"" << grid->GetDisplacementScale() << "\" ";
     of << " displacementShift=\"" << grid->GetDisplacementShift() << "\" ";
@@ -65,12 +72,16 @@ void vtkMRMLGridTransformNode::WriteXML(ostream& of, int nIndent)
     double* origin = image->GetOrigin();
     of << " origin=\"" << origin[0] << " " << origin[1] << " " << origin[2] << "\" ";
     }
+  else
+    {
+    vtkErrorMacro("vtkMRMLGridTransformNode::WriteXML failed: the transform is not a vtkGridTransform");
+    }
+
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLGridTransformNode::ReadXMLAttributes(const char** atts)
 {
-
   Superclass::ReadXMLAttributes(atts);
 
   vtkNew<vtkGridTransform> vtkgrid;
@@ -216,8 +227,24 @@ void vtkMRMLGridTransformNode::ReadXMLAttributes(const char** atts)
         }
       }
     }
+
   vtkgrid->SetDisplacementGrid(image.GetPointer());
-  this->SetAndObserveWarpTransformFromParent(vtkgrid.GetPointer());
+
+  if( vtkgrid.GetPointer() != 0 )
+    {
+    if (this->ReadWriteAsTransformToParent)
+      {
+      this->SetAndObserveTransformToParent(vtkgrid.GetPointer());
+      }
+    else
+      {
+      this->SetAndObserveTransformFromParent(vtkgrid.GetPointer());
+      }
+    }
+  else
+    {
+    vtkErrorMacro("vtkMRMLGridTransformNode::ReadXML failed: could not create a vtkGridTransform");
+    }
 }
 
 //----------------------------------------------------------------------------
@@ -232,80 +259,6 @@ void vtkMRMLGridTransformNode::Copy(vtkMRMLNode *anode)
 void vtkMRMLGridTransformNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   Superclass::PrintSelf(os,indent);
-}
-
-//----------------------------------------------------------------------------
-vtkWarpTransform* vtkMRMLGridTransformNode::GetWarpTransformToParent()
-{
-  bool computeFromInverse = this->WarpTransformFromParent && NeedToComputeTransformToParentFromInverse();
-
-  // Temporarily disable all Modified and TransformModified events to make sure that
-  // the operations are performed without interruption.
-  int oldTransformModify=this->StartTransformModify();
-  int oldModify=this->StartModify();
-
-  // Update the specific transform
-  if (this->WarpTransformToParent == 0)
-    {
-    vtkNew<vtkGridTransform> warp;
-    this->SetAndObserveWarpTransformToParent(warp.GetPointer());
-    }
-
-  if (computeFromInverse)
-    {
-    this->WarpTransformToParent->DeepCopy(this->WarpTransformFromParent);
-    this->WarpTransformToParent->Inverse();
-    }
-
-  // Update the generic transform
-  this->TransformToParent->Identity();
-  this->TransformToParent->Concatenate(this->WarpTransformToParent);
-  if (computeFromInverse)
-    {
-    this->TransformToParentComputedFromInverseMTime=this->TransformFromParent->GetMTime();
-    }
-
-  this->EndModify(oldModify);
-  this->EndTransformModify(oldTransformModify);
-
-  return this->WarpTransformToParent;
-}
-
-//----------------------------------------------------------------------------
-vtkWarpTransform* vtkMRMLGridTransformNode::GetWarpTransformFromParent()
-{
-  bool computeFromInverse = this->WarpTransformToParent && NeedToComputeTransformFromParentFromInverse();
-
-  // Temporarily disable all Modified and TransformModified events to make sure that
-  // the operations are performed without interruption.
-  int oldTransformModify=this->StartTransformModify();
-  int oldModify=this->StartModify();
-
-  // Update the specific transform
-  if (this->WarpTransformFromParent == 0)
-    {
-    vtkNew<vtkGridTransform> warp;
-    this->SetAndObserveWarpTransformFromParent(warp.GetPointer());
-    }
-
-  if (computeFromInverse)
-    {
-    this->WarpTransformFromParent->DeepCopy(this->WarpTransformToParent);
-    this->WarpTransformFromParent->Inverse();
-    }
-
-  // Update the generic transform
-  this->TransformFromParent->Identity();
-  this->TransformFromParent->Concatenate(this->WarpTransformFromParent);
-  if (computeFromInverse)
-    {
-    this->TransformFromParentComputedFromInverseMTime=this->TransformToParent->GetMTime();
-    }
-
-  this->EndModify(oldModify);
-  this->EndTransformModify(oldTransformModify);
-
-  return this->WarpTransformFromParent;
 }
 
 // End

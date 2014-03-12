@@ -332,11 +332,11 @@ int vtkMRMLTransformStorageNode::ReadDataInternal(vtkMRMLNode *refNode)
         // transform to a Slicer modeling transform)
         //
         vtkmat->Invert();
-        ltn->SetAndObserveMatrixTransformToParent( vtkmat );
+        ltn->SetMatrixTransformToParent( vtkmat );
         }
       else
         {
-        ltn->SetAndObserveMatrixTransformFromParent( vtkmat );
+        ltn->SetMatrixTransformFromParent( vtkmat );
         }
 
       }
@@ -415,11 +415,11 @@ int vtkMRMLTransformStorageNode::ReadDataInternal(vtkMRMLNode *refNode)
           // Convert the sense of the transform (from an ITK resampling
           // transform to a Slicer modeling transform)
           vtkBSpline->Inverse();
-          btn->SetAndObserveWarpTransformToParent( vtkBSpline.GetPointer() );
+          btn->SetAndObserveTransformToParent( vtkBSpline.GetPointer() );
           }
         else
           {
-          btn->SetAndObserveWarpTransformFromParent( vtkBSpline.GetPointer() );
+          btn->SetAndObserveTransformFromParent( vtkBSpline.GetPointer() );
           }
         result = 1;
         }
@@ -569,11 +569,11 @@ int vtkMRMLTransformStorageNode::ReadDataInternal(vtkMRMLNode *refNode)
         // Convert the sense of the transform (from an ITK resampling
         // transform to a Slicer modeling transform)
         vtkgrid->Inverse();
-        gtn->SetAndObserveWarpTransformToParent( vtkgrid );
+        gtn->SetAndObserveTransformToParent( vtkgrid );
         }
       else
         {
-        gtn->SetAndObserveWarpTransformFromParent( vtkgrid );
+        gtn->SetAndObserveTransformFromParent( vtkgrid );
         }
 
       vtkgrid->Delete();
@@ -685,7 +685,7 @@ int vtkMRMLTransformStorageNode::WriteDataInternal(vtkMRMLNode *refNode)
     {
     // BSpline transform
 
-    vtkITKBSplineTransform* vtkTrans = vtkITKBSplineTransform::SafeDownCast(bs->GetWarpTransformFromParent());
+    vtkITKBSplineTransform* vtkTrans = vtkITKBSplineTransform::SafeDownCast(bs->GetTransformFromParentAs("vtkITKBSplineTransform"));
     
     if (bs->GetReadWriteAsTransformToParent())
       {
@@ -728,7 +728,7 @@ int vtkMRMLTransformStorageNode::WriteDataInternal(vtkMRMLNode *refNode)
   else if( gd )
     {
     // Grid Transform
-    vtkGridTransform* vtkTrans = vtkGridTransform::SafeDownCast(gd->GetWarpTransformFromParent());
+    vtkGridTransform* vtkTrans = vtkGridTransform::SafeDownCast(gd->GetTransformFromParentAs("vtkGridTransform"));
 
     if (gd->GetReadWriteAsTransformToParent())
       {

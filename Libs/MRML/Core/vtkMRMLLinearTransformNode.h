@@ -55,36 +55,26 @@ class VTK_MRML_EXPORT vtkMRMLLinearTransformNode : public vtkMRMLTransformNode
   virtual int IsLinear() {return 1;};
 
   ///
-  /// Updates the generic transform from the specific transform (matrix) and returns it
-  virtual vtkGeneralTransform* GetTransformToParent();
-
-  ///
-  /// Updates the generic transform from the specific transform (matrix) and returns it
-  virtual vtkGeneralTransform* GetTransformFromParent();
-
-  ///
   /// Return the vtkMatrix4x4 transform of this node to parent node
+  /// The output is a cached output of the transform and therefore should
+  /// not be changed (to change the transform call SetMatrixTransformToParent()).
   virtual vtkMatrix4x4* GetMatrixTransformToParent();
 
   ///
   /// Return the vtkMatrix4x4 transform of this node from parent node
+  /// The output is a cached output of the transform and therefore should
+  /// not be changed (to change the transform call SetMatrixTransformFromParent()).
   virtual vtkMatrix4x4* GetMatrixTransformFromParent();
 
   ///
-  /// Set and observe a new matrix transform of this node to parent node.
-  /// Each time the matrix is modified,
-  /// vtkMRMLTransformableNode::TransformModifiedEvent is fired.
-  /// ModifiedEvent() and TransformModifiedEvent() are fired after the matrix
-  /// is set.
-  void SetAndObserveMatrixTransformToParent(vtkMatrix4x4 *matrix);
+  /// Set a new matrix transform of this node to parent node.
+  /// Invokes a TransformModified event (does not invoke Modified).
+  void SetMatrixTransformToParent(vtkMatrix4x4 *matrix);
 
   ///
-  /// Set and observe a new matrix transform of this node from parent node.
-  /// Each time the matrix is modified,
-  /// vtkMRMLTransformableNode::TransformModifiedEvent is fired.
-  /// ModifiedEvent() and TransformModifiedEvent() are fired after the matrix
-  /// is set.
-  void SetAndObserveMatrixTransformFromParent(vtkMatrix4x4 *matrix);
+  /// Set a new matrix transform of this node from parent node.
+  /// Invokes a TransformModified event (does not invoke Modified).
+  void SetMatrixTransformFromParent(vtkMatrix4x4 *matrix);
 
   /// 
   /// Get concatenated transforms to the top
@@ -94,12 +84,6 @@ class VTK_MRML_EXPORT vtkMRMLLinearTransformNode : public vtkMRMLTransformNode
   /// Get concatenated transforms  bwetween nodes
   virtual int  GetMatrixTransformToNode(vtkMRMLTransformNode* node, 
                                         vtkMatrix4x4* transformToNode);
-
-  /// 
-  /// alternative method to propagate events generated in Transform nodes
-  virtual void ProcessMRMLEvents ( vtkObject * /*caller*/, 
-                                   unsigned long /*event*/, 
-                                   void * /*callData*/ );
 
   virtual bool CanApplyNonLinearTransforms()const;
   virtual void ApplyTransformMatrix(vtkMatrix4x4* transformMatrix);
@@ -116,10 +100,6 @@ protected:
   ~vtkMRMLLinearTransformNode();
   vtkMRMLLinearTransformNode(const vtkMRMLLinearTransformNode&);
   void operator=(const vtkMRMLLinearTransformNode&);
-
-  vtkMatrix4x4* MatrixTransformToParent;
-  vtkMatrix4x4* MatrixTransformFromParent;
 };
 
 #endif
-

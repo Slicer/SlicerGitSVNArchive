@@ -18,6 +18,7 @@ Version:   $Revision: 1.14 $
 // VTK includes
 #include <vtkCommand.h>
 #include <vtkGeneralTransform.h>
+#include <vtkMatrixToLinearTransform.h>
 #include <vtkNew.h>
 #include <vtkObjectFactory.h>
 
@@ -30,22 +31,15 @@ vtkMRMLNodeNewMacro(vtkMRMLLinearTransformNode);
 //----------------------------------------------------------------------------
 vtkMRMLLinearTransformNode::vtkMRMLLinearTransformNode()
 {
-  this->MatrixTransformToParent = NULL;
-  this->MatrixTransformFromParent = NULL;
   this->ReadWriteAsTransformToParent = 1;
+  vtkNew<vtkMatrix4x4> matrix;
+  matrix->Identity();
+  this->SetMatrixTransformToParent(matrix.GetPointer());
 }
 
 //----------------------------------------------------------------------------
 vtkMRMLLinearTransformNode::~vtkMRMLLinearTransformNode()
 {
-  if (this->MatrixTransformToParent) 
-    {
-    this->SetAndObserveMatrixTransformToParent(NULL);
-    }
-  if (this->MatrixTransformFromParent)
-    {
-    this->SetAndObserveMatrixTransformFromParent(NULL);
-    }
 }
 
 //----------------------------------------------------------------------------
@@ -55,14 +49,26 @@ void vtkMRMLLinearTransformNode::WriteXML(ostream& of, int nIndent)
 
   vtkIndent indent(nIndent);
 
-  if (this->GetMatrixTransformToParent() != NULL)
+
+  vtkMatrix4x4* matrix=NULL;
+
+  if (this->ReadWriteAsTransformToParent)
+    {
+    matrix=GetMatrixTransformToParent();
+    }
+  else
+    {
+    matrix=GetMatrixTransformFromParent();
+    }
+
+  if (matrix != NULL)
     {
     std::stringstream ss;
     for (int row=0; row<4; row++) 
       {
       for (int col=0; col<4; col++) 
         {
-        ss << this->GetMatrixTransformToParent()->GetElement(row, col);
+        ss << matrix->GetElement(row, col);
         if (!(row==3 && col==3)) 
           {
           ss << " ";
@@ -73,7 +79,14 @@ void vtkMRMLLinearTransformNode::WriteXML(ostream& of, int nIndent)
         ss << " ";
         }
       }
-    of << indent << " matrixTransformToParent=\"" << ss.str() << "\"";
+    if (this->ReadWriteAsTransformToParent)
+      {
+      of << indent << " matrixTransformToParent=\"" << ss.str() << "\"";
+      }
+    else
+      {
+      of << indent << " matrixTransformFromParent=\"" << ss.str() << "\"";
+      }
     }
 
 }
@@ -96,12 +109,25 @@ void vtkMRMLLinearTransformNode::ReadXMLAttributes(const char** atts)
     attValue = *(atts++);
     if (!strcmp(attName, "matrixTransformToParent")) 
       {
-      vtkMatrix4x4 *matrix  = vtkMatrix4x4::New();
+      vtkNew<vtkMatrix4x4> matrix;
       matrix->Identity();
-      if (this->MatrixTransformToParent != NULL) 
+      std::stringstream ss;
+      double val;
+      ss << attValue;
+      for (int row=0; row<4; row++)
         {
-        this->SetAndObserveMatrixTransformToParent(NULL);
+        for (int col=0; col<4; col++)
+          {
+          ss >> val;
+          matrix->SetElement(row, col, val);
+          }
         }
+      this->SetMatrixTransformToParent(matrix.GetPointer());
+      }
+    if (!strcmp(attName, "matrixTransformFromParent"))
+      {
+      vtkNew<vtkMatrix4x4> matrix;
+      matrix->Identity();
       std::stringstream ss;
       double val;
       ss << attValue;
@@ -113,8 +139,7 @@ void vtkMRMLLinearTransformNode::ReadXMLAttributes(const char** atts)
           matrix->SetElement(row, col, val);
           }
         }
-      this->SetAndObserveMatrixTransformToParent(matrix);
-      matrix->Delete();
+      this->SetMatrixTransformFromParent(matrix.GetPointer());
       }
     }  
   this->EndModify(disabledModify);
@@ -126,33 +151,7 @@ void vtkMRMLLinearTransformNode::ReadXMLAttributes(const char** atts)
 // Does NOT copy: ID, FilePrefix, Name, VolumeID
 void vtkMRMLLinearTransformNode::Copy(vtkMRMLNode *anode)
 {
-  // Temporarily disable all Modified and TransformModified events to make sure that
-  // the operations are performed without interruption.
-  int oldTransformModify=this->StartTransformModify();
-  int disabledModify = this->StartModify();
-
   Superclass::Copy(anode);
-  vtkMRMLLinearTransformNode *node = (vtkMRMLLinearTransformNode *) anode;
-
-  if (node->MatrixTransformToParent)
-    {
-    vtkNew<vtkMatrix4x4> matrix;
-    matrix->DeepCopy(node->MatrixTransformToParent);
-    this->SetAndObserveMatrixTransformToParent(matrix.GetPointer());
-    }
-  else if (node->MatrixTransformFromParent)
-    {
-    vtkNew<vtkMatrix4x4> matrix;
-    matrix->DeepCopy(node->MatrixTransformFromParent);
-    this->SetAndObserveMatrixTransformFromParent(matrix.GetPointer());
-    }
-  else
-    {
-    this->SetAndObserveMatrixTransformToParent(NULL);
-    }
-
-  this->EndModify(disabledModify);
-  this->EndTransformModify(oldTransformModify);
 }
 
 //----------------------------------------------------------------------------
@@ -181,131 +180,67 @@ void vtkMRMLLinearTransformNode::PrintSelf(ostream& os, vtkIndent indent)
     }
 }
 
-//----------------------------------------------------------------------------
-vtkGeneralTransform* vtkMRMLLinearTransformNode::GetTransformToParent()
-{
-  // When a transform is set, we do not compute the inverse transform immediately
-  // because for non-linear transforms it is an expensive operation.
-  // We do not compute it for linear transforms either to make the implementation
-  // consistent for all kind of transforms (and also because theoretically we may want
-  // to be able to manage projection transforms, which are not invertible).
-  if (NeedToComputeTransformToParentFromInverse())
-  {
-    GetMatrixTransformToParent(); // this updates this->TransformToParent
-  }
-  return this->TransformToParent;
-}
-
-//----------------------------------------------------------------------------
-vtkGeneralTransform* vtkMRMLLinearTransformNode::GetTransformFromParent()
-{
-  // When a transform is set, we do not compute the inverse transform immediately
-  // because for non-linear transforms it is an expensive operation.
-  // We do not compute it for linear transforms either to make the implementation
-  // consistent for all kind of transforms (and also because theoretically we may want
-  // to be able to manage projection transforms, which are not invertible)
-  {
-    GetMatrixTransformFromParent(); // this updates this->TransformToParent
-  }
-  return this->TransformFromParent;
-}
 
 //----------------------------------------------------------------------------
 vtkMatrix4x4* vtkMRMLLinearTransformNode::GetMatrixTransformToParent()
 {
-  bool computeFromInverse = this->MatrixTransformFromParent && NeedToComputeTransformToParentFromInverse();
-
-  // Temporarily disable all Modified and TransformModified events to make sure that
-  // the operations are performed without interruption.
-  int oldTransformModify=this->StartTransformModify();
-  int oldModify=this->StartModify();
-
-  // Update the specific transform
-  if (this->MatrixTransformToParent == 0)
-    {
-    vtkNew<vtkMatrix4x4> matrix;
-    this->SetAndObserveMatrixTransformToParent(matrix.GetPointer());
-    }
-
-  if (computeFromInverse)
-    {
-    vtkMatrix4x4::Invert(this->MatrixTransformFromParent, this->MatrixTransformToParent);
-    }
-
-  // Update the generic transform
-  this->TransformToParent->Identity();
-  this->TransformToParent->Concatenate(this->MatrixTransformToParent);
-  if (computeFromInverse)
-    {
-    this->TransformToParentComputedFromInverseMTime=this->TransformFromParent->GetMTime();
-    }
-
-  this->EndModify(oldModify);
-  this->EndTransformModify(oldTransformModify);
-
-  return this->MatrixTransformToParent;
+  vtkMatrixToLinearTransform* transform=vtkMatrixToLinearTransform::SafeDownCast(GetTransformToParentAs("vtkMatrixToLinearTransform"));
+  if (transform==NULL)
+  {
+    return NULL;
+  }
+  return transform->GetMatrix();
 }
 
 //----------------------------------------------------------------------------
 vtkMatrix4x4* vtkMRMLLinearTransformNode::GetMatrixTransformFromParent()
 {
-  bool computeFromInverse =  this->MatrixTransformToParent && NeedToComputeTransformFromParentFromInverse();
-
-  // Temporarily disable all Modified and TransformModified events to make sure that
-  // the operations are performed without interruption.
-  int oldTransformModify=this->StartTransformModify();
-  int oldModify=this->StartModify();
-
-  // Update the specific transform
-  if (this->MatrixTransformFromParent == 0)
-    {
-    vtkNew<vtkMatrix4x4> matrix;
-    this->SetAndObserveMatrixTransformFromParent(matrix.GetPointer());
-    }
-
-  if (computeFromInverse)
-    {
-    vtkMatrix4x4::Invert(this->MatrixTransformToParent, this->MatrixTransformFromParent);
-    }
-
-  // Update the generic transform
-  this->TransformFromParent->Identity();
-  this->TransformFromParent->Concatenate(this->MatrixTransformFromParent);
-  if (computeFromInverse)
-    {
-    this->TransformFromParentComputedFromInverseMTime=this->TransformToParent->GetMTime();
-    }
-
-  this->EndModify(oldModify);
-  this->EndTransformModify(oldTransformModify);
-
-  return this->MatrixTransformFromParent;
+  vtkMatrixToLinearTransform* transform=vtkMatrixToLinearTransform::SafeDownCast(GetTransformFromParentAs("vtkMatrixToLinearTransform"));
+  if (transform==NULL)
+  {
+    return NULL;
+  }
+  return transform->GetMatrix();
 }
 
 //----------------------------------------------------------------------------
 int  vtkMRMLLinearTransformNode::GetMatrixTransformToWorld(vtkMatrix4x4* transformToWorld)
 {
-  if (this->IsTransformToWorldLinear() != 1) 
+  if (this->IsTransformToWorldLinear() != 1)
     {
+    vtkWarningMacro("Failed to retrieve matrix to world from transform, the requested transform is not linear");
     transformToWorld->Identity();
     return 0;
     }
 
-  vtkMatrix4x4 *xform = vtkMatrix4x4::New();
-  xform->DeepCopy(transformToWorld);
-  vtkMatrix4x4::Multiply4x4(this->GetMatrixTransformToParent(), xform, transformToWorld);
-  xform->Delete();
+  // vtkMatrix4x4::Multiply4x4 computes the result in a separate buffer, so it is safe to use the input as output as well
+  vtkMatrix4x4* matrixTransformToParent=this->GetMatrixTransformToParent();
+  if (matrixTransformToParent!=NULL)
+    {
+    vtkMatrix4x4::Multiply4x4(matrixTransformToParent, transformToWorld, transformToWorld);
+    }
+  else
+    {
+    vtkErrorMacro("Failed to retrieve matrix from linear transform");
+    transformToWorld->Identity();
+    return 0;
+    }
 
   vtkMRMLTransformNode *parent = this->GetParentTransformNode();
   if (parent != NULL) 
     {
-    vtkMRMLLinearTransformNode *lparent = dynamic_cast < vtkMRMLLinearTransformNode* > (parent);
-    if (lparent) 
+    vtkMRMLLinearTransformNode *lparent = vtkMRMLLinearTransformNode::SafeDownCast(parent);
+    if (lparent)
       {
       return (lparent->GetMatrixTransformToWorld(transformToWorld));
       }
+    else
+      {
+      vtkErrorMacro("vtkMRMLLinearTransformNode::GetMatrixTransformToWorld failed: expected parent linear transform");
+      transformToWorld->Identity();
+      return 0;
+      }
     }
-  // TODO: what does this return code mean?
   return 1;
 }
 
@@ -315,8 +250,7 @@ int  vtkMRMLLinearTransformNode::GetMatrixTransformToNode(vtkMRMLTransformNode* 
 {
   if (node == NULL) 
     {
-    this->GetMatrixTransformToWorld(transformToNode);
-    return 1;
+    return this->GetMatrixTransformToWorld(transformToNode);
     }
   if (this->IsTransformToNodeLinear(node) != 1) 
     {
@@ -395,121 +329,101 @@ int  vtkMRMLLinearTransformNode::GetMatrixTransformToNode(vtkMRMLTransformNode* 
 
 
 //----------------------------------------------------------------------------
-void vtkMRMLLinearTransformNode::SetAndObserveMatrixTransformToParent(vtkMatrix4x4 *matrix)
+void vtkMRMLLinearTransformNode::SetMatrixTransformToParent(vtkMatrix4x4 *matrix)
 {
-  if (this->MatrixTransformToParent == matrix)
+  vtkMatrixToLinearTransform* transform=vtkMatrixToLinearTransform::SafeDownCast(GetTransformToParentAs("vtkMatrixToLinearTransform"));
+  vtkMatrix4x4* currentMatrix=NULL;
+  if (transform!=NULL)
+    {
+    currentMatrix=transform->GetInput();
+    }
+  if (currentMatrix==matrix)
     {
     return;
     }
-
   // Temporarily disable all Modified and TransformModified events to make sure that
   // the operations are performed without interruption.
   int oldTransformModify=this->StartTransformModify();
   int oldModify=this->StartModify();
 
-  // Set the specific transform
-  vtkSetAndObserveMRMLObjectMacro(this->MatrixTransformToParent, matrix);
-  if (matrix==NULL)
+  if (currentMatrix!=NULL)
     {
-    // the matrix is cleared, make sure the inverse is cleared, too to avoid
-    // computation of the current transform from the inverse
-    vtkSetAndObserveMRMLObjectMacro(this->MatrixTransformFromParent, NULL);
-    }
-
-  // Update the generic transform
-  if (matrix!=NULL)
-    {
-    // Update TransformToParent
-    this->TransformToParent->Identity();
-    this->TransformToParent->Concatenate(this->MatrixTransformToParent);
-    this->TransformToParentComputedFromInverseMTime=0;
+    if (matrix!=NULL)
+      {
+      currentMatrix->DeepCopy(matrix);
+      }
+    else
+      {
+      currentMatrix->Identity();
+      }
     }
   else
     {
-    // Clear TransformFromParent and TransformToParent
-    this->TransformToParent->Identity();
-    this->TransformToParentComputedFromInverseMTime=0;
-    this->TransformFromParent->Identity();
-    this->TransformFromParentComputedFromInverseMTime=0;
+    vtkNew<vtkMatrixToLinearTransform> transform;
+    vtkNew<vtkMatrix4x4> newMatrix;
+    if (matrix!=NULL)
+      {
+      newMatrix->DeepCopy(matrix);
+      }
+    else
+      {
+      newMatrix->Identity();
+      }
+    transform->SetInput(newMatrix.GetPointer());
+    this->SetAndObserveTransformToParent(transform.GetPointer());
     }
-
-  this->StorableModifiedTime.Modified();
-
-  this->Modified();
-  this->TransformModified();
-
+  this->TransformToParent->Modified();
   this->EndModify(oldModify);
   this->EndTransformModify(oldTransformModify);
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLLinearTransformNode::SetAndObserveMatrixTransformFromParent(vtkMatrix4x4 *matrix)
+void vtkMRMLLinearTransformNode::SetMatrixTransformFromParent(vtkMatrix4x4 *matrix)
 {
-  if (this->MatrixTransformFromParent == matrix)
+  vtkMatrixToLinearTransform* transform=vtkMatrixToLinearTransform::SafeDownCast(GetTransformFromParentAs("vtkMatrixToLinearTransform"));
+  vtkMatrix4x4* currentMatrix=NULL;
+  if (transform!=NULL)
+    {
+    currentMatrix=transform->GetInput();
+    }
+  if (currentMatrix==matrix)
     {
     return;
     }
-
   // Temporarily disable all Modified and TransformModified events to make sure that
   // the operations are performed without interruption.
   int oldTransformModify=this->StartTransformModify();
   int oldModify=this->StartModify();
 
-  // Set the specific transform
-  vtkSetAndObserveMRMLObjectMacro(this->MatrixTransformFromParent, matrix);
-  if (matrix==NULL)
+  if (currentMatrix!=NULL)
     {
-    // the matrix is cleared, make sure the inverse is cleared, too to avoid
-    // computation of the current transform from the inverse
-    vtkSetAndObserveMRMLObjectMacro(this->MatrixTransformToParent, NULL);
-    }
-
-  // Update the generic transform
-  if (matrix!=NULL)
-    {
-    // Update TransformFromParent
-    this->TransformFromParent->Identity();
-    this->TransformFromParent->Concatenate(this->MatrixTransformFromParent);
-    this->TransformFromParentComputedFromInverseMTime=0;
+    if (matrix!=NULL)
+      {
+      currentMatrix->DeepCopy(matrix);
+      }
+    else
+      {
+      currentMatrix->Identity();
+      }
     }
   else
     {
-    // Clear TransformToParent and TransformFromParent
-    this->TransformFromParent->Identity();
-    this->TransformFromParentComputedFromInverseMTime=0;
-    this->TransformToParent->Identity();
-    this->TransformToParentComputedFromInverseMTime=0;
+    vtkNew<vtkMatrixToLinearTransform> transform;
+    vtkNew<vtkMatrix4x4> newMatrix;
+    if (matrix!=NULL)
+      {
+      newMatrix->DeepCopy(matrix);
+      }
+    else
+      {
+      newMatrix->Identity();
+      }
+    transform->SetInput(newMatrix.GetPointer());
+    this->SetAndObserveTransformFromParent(transform.GetPointer());
     }
-
-  this->StorableModifiedTime.Modified();
-  this->Modified();
-  this->TransformModified();
-
+  this->TransformFromParent->Modified();
   this->EndModify(oldModify);
   this->EndTransformModify(oldTransformModify);
-}
-
-//---------------------------------------------------------------------------
-void vtkMRMLLinearTransformNode::ProcessMRMLEvents ( vtkObject *caller,
-                                                    unsigned long event, 
-                                                    void *callData )
-{
-  Superclass::ProcessMRMLEvents ( caller, event, callData );
-
-  if (this->MatrixTransformToParent != NULL &&
-      this->MatrixTransformToParent == vtkMatrix4x4::SafeDownCast(caller) &&
-      event ==  vtkCommand::ModifiedEvent)
-    {
-    this->StorableModifiedTime.Modified();
-    this->TransformModified();
-    }
-  else if (this->MatrixTransformFromParent != NULL &&
-      this->MatrixTransformFromParent == vtkMatrix4x4::SafeDownCast(caller) &&
-      event ==  vtkCommand::ModifiedEvent)
-    {
-    this->StorableModifiedTime.Modified();
-    this->TransformModified();
-    }
 }
 
 //----------------------------------------------------------------------------
@@ -521,11 +435,23 @@ bool vtkMRMLLinearTransformNode::CanApplyNonLinearTransforms()const
 //----------------------------------------------------------------------------
 void vtkMRMLLinearTransformNode::ApplyTransformMatrix(vtkMatrix4x4* transformMatrix)
 {
+  if (transformMatrix==NULL)
+    {
+    vtkErrorMacro("vtkMRMLLinearTransformNode::ApplyTransformMatrix failed: input transform is invalid");
+    return;
+    }
   // vtkMatrix4x4::Multiply4x4 computes the output in an internal buffer and then
   // copies the result to the output matrix, therefore it is safe to use
   // one of the input matrices as output
   vtkMatrix4x4* matrixToParent=this->GetMatrixTransformToParent();
-  vtkMatrix4x4::Multiply4x4(transformMatrix, matrixToParent, matrixToParent);
+  if (matrixToParent!=NULL)
+    {
+    vtkMatrix4x4::Multiply4x4(transformMatrix, matrixToParent, matrixToParent);
+    }
+  else
+    {
+    SetMatrixTransformToParent(transformMatrix);
+    }
 }
 
 // End

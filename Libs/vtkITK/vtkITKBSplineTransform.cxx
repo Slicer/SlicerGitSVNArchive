@@ -163,7 +163,7 @@ vtkAbstractTransform*
 vtkITKBSplineTransform
 ::MakeTransform()
 {
-  vtkITKBSplineTransform* N = new vtkITKBSplineTransform;
+  vtkITKBSplineTransform* N = vtkITKBSplineTransform::New();
   if( Helper )
   {
     N->DeepCopy(this);

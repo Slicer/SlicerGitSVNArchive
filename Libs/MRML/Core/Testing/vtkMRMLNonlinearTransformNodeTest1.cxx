@@ -18,7 +18,7 @@
 
 #include "vtkITKBSplineTransform.h"
 #include "vtkGridTransform.h"
-#include "vtkMRMLNonlinearTransformNode.h"
+#include "vtkMRMLTransformNode.h"
 #include "vtkMRMLBSplineTransformNode.h"
 #include "vtkMRMLGridTransformNode.h"
 #include "vtkMRMLScene.h"
@@ -35,12 +35,6 @@ int vtkMRMLNonlinearTransformNodeTest1(int argc, char * argv[] )
 #if ITK_VERSION_MAJOR > 3
   itk::itkFactoryRegistration();
 #endif
-
-  vtkSmartPointer< vtkMRMLNonlinearTransformNode > node1 = vtkSmartPointer< vtkMRMLNonlinearTransformNode >::New();
-
-  EXERCISE_BASIC_OBJECT_METHODS( node1 );
-
-  EXERCISE_BASIC_TRANSFORM_MRML_METHODS(vtkMRMLNonlinearTransformNode, node1);
 
   bool res = true;
   const char *filename = 0;
@@ -72,9 +66,9 @@ bool TestBSplineTransform(const char *filename)
     }
 
   vtkITKBSplineTransform *xfp = vtkITKBSplineTransform::SafeDownCast(
-    bsplineTransformNode->GetWarpTransformFromParent());
+    bsplineTransformNode->GetTransformFromParentAs("vtkITKBSplineTransform"));
   vtkITKBSplineTransform *xtp = vtkITKBSplineTransform::SafeDownCast(
-    bsplineTransformNode->GetWarpTransformToParent());
+    bsplineTransformNode->GetTransformToParentAs("vtkITKBSplineTransform"));
 
   if (xfp == 0 || xtp == 0)
     {
@@ -121,9 +115,9 @@ bool TestGridTransform(const char *filename)
     }
 
   vtkGridTransform *xfp = vtkGridTransform::SafeDownCast(
-    gridTransformNode->GetWarpTransformFromParent());
+    gridTransformNode->GetTransformFromParentAs("vtkGridTransform"));
   vtkGridTransform *xtp = vtkGridTransform::SafeDownCast(
-    gridTransformNode->GetWarpTransformToParent());
+    gridTransformNode->GetTransformToParentAs("vtkGridTransform"));
 
   if (xfp == 0 || xtp == 0)
     {

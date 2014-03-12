@@ -64,11 +64,18 @@ public:
  
 int vtkMRMLTransformNodeTest1(int , char * [] )
 {
-  vtkSmartPointer< vtkMRMLTransformNodeTestHelper1 > node1 = vtkSmartPointer< vtkMRMLTransformNodeTestHelper1 >::New();
 
-  EXERCISE_BASIC_OBJECT_METHODS( node1 );
+  {
+    vtkNew<vtkMRMLTransformNode> node1;
+    EXERCISE_BASIC_OBJECT_METHODS(node1.GetPointer());
+    EXERCISE_BASIC_TRANSFORM_MRML_METHODS(vtkMRMLTransformNode, node1.GetPointer());
+  }
 
-  EXERCISE_BASIC_TRANSFORM_MRML_METHODS(vtkMRMLTransformNodeTestHelper1, node1);
+  {
+    vtkSmartPointer< vtkMRMLTransformNodeTestHelper1 > node1 = vtkSmartPointer< vtkMRMLTransformNodeTestHelper1 >::New();
+    EXERCISE_BASIC_OBJECT_METHODS( node1 );
+    EXERCISE_BASIC_TRANSFORM_MRML_METHODS(vtkMRMLTransformNodeTestHelper1, node1);
+  }
 
   return EXIT_SUCCESS;
 }

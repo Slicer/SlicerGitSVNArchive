@@ -37,6 +37,7 @@
 #include "vtkMRMLLinearTransformNode.h"
 
 // VTK includes
+#include <vtkNew.h>
 #include <vtkSmartPointer.h>
 #include <vtkTransform.h>
 
@@ -224,7 +225,9 @@ void qSlicerTransformsModuleWidget::identity()
   d->TranslationSliders->resetUnactiveSliders();
   d->RotationSliders->resetUnactiveSliders();
 
-  d->MRMLTransformNode->GetMatrixTransformToParent()->Identity();
+  vtkNew<vtkMatrix4x4> matrix;
+  matrix->Identity();
+  d->MRMLTransformNode->SetMatrixTransformToParent(matrix.GetPointer());
 }
 
 //-----------------------------------------------------------------------------
@@ -236,7 +239,10 @@ void qSlicerTransformsModuleWidget::invert()
 
   d->RotationSliders->resetUnactiveSliders();
 
-  d->MRMLTransformNode->GetMatrixTransformToParent()->Invert();
+  vtkMatrix4x4* matrix=d->MRMLTransformNode->GetMatrixTransformToParent();
+  vtkNew<vtkMatrix4x4> inverse;
+  vtkMatrix4x4::Invert(matrix, inverse.GetPointer());
+  d->MRMLTransformNode->SetMatrixTransformToParent(inverse.GetPointer());
 }
 
 //-----------------------------------------------------------------------------
