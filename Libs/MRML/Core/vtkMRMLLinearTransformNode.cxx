@@ -50,43 +50,40 @@ void vtkMRMLLinearTransformNode::WriteXML(ostream& of, int nIndent)
   vtkIndent indent(nIndent);
 
 
-  vtkMatrix4x4* matrix=NULL;
+  vtkNew<vtkMatrix4x4> matrix;
 
   if (this->ReadWriteAsTransformToParent)
     {
-    matrix=GetMatrixTransformToParent();
+    GetMatrixTransformToParent(matrix.GetPointer());
     }
   else
     {
-    matrix=GetMatrixTransformFromParent();
+    GetMatrixTransformFromParent(matrix.GetPointer());
     }
 
-  if (matrix != NULL)
+  std::stringstream ss;
+  for (int row=0; row<4; row++)
     {
-    std::stringstream ss;
-    for (int row=0; row<4; row++) 
+    for (int col=0; col<4; col++)
       {
-      for (int col=0; col<4; col++) 
-        {
-        ss << matrix->GetElement(row, col);
-        if (!(row==3 && col==3)) 
-          {
-          ss << " ";
-          }
-        }
-      if ( row != 3 )
+      ss << matrix->GetElement(row, col);
+      if (!(row==3 && col==3))
         {
         ss << " ";
         }
       }
-    if (this->ReadWriteAsTransformToParent)
+    if ( row != 3 )
       {
-      of << indent << " matrixTransformToParent=\"" << ss.str() << "\"";
+      ss << " ";
       }
-    else
-      {
-      of << indent << " matrixTransformFromParent=\"" << ss.str() << "\"";
-      }
+    }
+  if (this->ReadWriteAsTransformToParent)
+    {
+    of << indent << " matrixTransformToParent=\"" << ss.str() << "\"";
+    }
+  else
+    {
+    of << indent << " matrixTransformFromParent=\"" << ss.str() << "\"";
     }
 
 }
@@ -159,48 +156,62 @@ void vtkMRMLLinearTransformNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   Superclass::PrintSelf(os,indent);
 
-  if (this->GetMatrixTransformToParent() != NULL)
+  vtkNew<vtkMatrix4x4> toParentMatrix;
+  this->GetMatrixTransformToParent(toParentMatrix.GetPointer());
+
+  os << indent << "MatrixTransformToParent: " << "\n";
+  for (int row=0; row<4; row++)
     {
-    os << indent << "MatrixTransformToParent: " << "\n";
-    for (int row=0; row<4; row++) 
+    for (int col=0; col<4; col++)
       {
-      for (int col=0; col<4; col++) 
+      os << toParentMatrix->GetElement(row, col);
+      if (!(row==3 && col==3))
         {
-        os << this->GetMatrixTransformToParent()->GetElement(row, col);
-        if (!(row==3 && col==3))
-          {
-          os << " ";
-          }
-        else 
-          {
-          os << "\n";
-          }
-        } // for (int col
-      } // for (int row
-    }
+        os << " ";
+        }
+      else
+        {
+        os << "\n";
+        }
+      } // for (int col
+    } // for (int row
 }
 
 
 //----------------------------------------------------------------------------
-vtkMatrix4x4* vtkMRMLLinearTransformNode::GetMatrixTransformToParent()
+int vtkMRMLLinearTransformNode::GetMatrixTransformToParent(vtkMatrix4x4* matrix)
 {
+  if (matrix==NULL)
+    {
+    vtkErrorMacro("vtkMRMLLinearTransformNode::GetMatrixTransformToParent failed: matrix is invalid");
+    return 0;
+    }
   vtkMatrixToLinearTransform* transform=vtkMatrixToLinearTransform::SafeDownCast(GetTransformToParentAs("vtkMatrixToLinearTransform"));
   if (transform==NULL)
-  {
-    return NULL;
-  }
-  return transform->GetMatrix();
+    {
+    matrix->Identity();
+    return 0;
+    }
+  transform->GetMatrix(matrix);
+  return 1;
 }
 
 //----------------------------------------------------------------------------
-vtkMatrix4x4* vtkMRMLLinearTransformNode::GetMatrixTransformFromParent()
+int vtkMRMLLinearTransformNode::GetMatrixTransformFromParent(vtkMatrix4x4* matrix)
 {
+  if (matrix==NULL)
+  {
+    vtkErrorMacro("vtkMRMLLinearTransformNode::GetMatrixTransformFromParent failed: matrix is invalid");
+    return 0;
+  }
   vtkMatrixToLinearTransform* transform=vtkMatrixToLinearTransform::SafeDownCast(GetTransformFromParentAs("vtkMatrixToLinearTransform"));
   if (transform==NULL)
-  {
-    return NULL;
-  }
-  return transform->GetMatrix();
+    {
+    matrix->Identity();
+    return 0;
+    }
+  transform->GetMatrix(matrix);
+  return 1;
 }
 
 //----------------------------------------------------------------------------
@@ -214,17 +225,14 @@ int  vtkMRMLLinearTransformNode::GetMatrixTransformToWorld(vtkMatrix4x4* transfo
     }
 
   // vtkMatrix4x4::Multiply4x4 computes the result in a separate buffer, so it is safe to use the input as output as well
-  vtkMatrix4x4* matrixTransformToParent=this->GetMatrixTransformToParent();
-  if (matrixTransformToParent!=NULL)
-    {
-    vtkMatrix4x4::Multiply4x4(matrixTransformToParent, transformToWorld, transformToWorld);
-    }
-  else
+  vtkNew<vtkMatrix4x4> matrixTransformToParent;
+  if (!this->GetMatrixTransformToParent(matrixTransformToParent.GetPointer()))
     {
     vtkErrorMacro("Failed to retrieve matrix from linear transform");
     transformToWorld->Identity();
     return 0;
     }
+  vtkMatrix4x4::Multiply4x4(matrixTransformToParent.GetPointer(), transformToWorld, transformToWorld);
 
   vtkMRMLTransformNode *parent = this->GetParentTransformNode();
   if (parent != NULL) 
@@ -258,72 +266,54 @@ int  vtkMRMLLinearTransformNode::GetMatrixTransformToNode(vtkMRMLTransformNode* 
     return 0;
     }
   
-  
   if (this->IsTransformNodeMyParent(node)) 
     {
     vtkMRMLTransformNode *parent = this->GetParentTransformNode();
+    vtkNew<vtkMatrix4x4> toParentMatrix;
+    this->GetMatrixTransformToParent(toParentMatrix.GetPointer());
     if (parent != NULL) 
       {
-
-      vtkMatrix4x4 *xform = vtkMatrix4x4::New();
-      xform->DeepCopy(transformToNode);
-      vtkMatrix4x4::Multiply4x4(this->GetMatrixTransformToParent(), xform, transformToNode);
-      xform->Delete();
-
+      vtkMatrix4x4::Multiply4x4(toParentMatrix.GetPointer(), transformToNode, transformToNode);
       if (strcmp(parent->GetID(), node->GetID()) ) 
         {
         this->GetMatrixTransformToNode(node, transformToNode);
         }
       }
-    else if (this->GetMatrixTransformToParent())
+    else
       {
-      vtkMatrix4x4 *xform = vtkMatrix4x4::New();
-      xform->DeepCopy(transformToNode);
-      vtkMatrix4x4::Multiply4x4(this->GetMatrixTransformToParent(), xform, transformToNode);
-      xform->Delete();
+      vtkMatrix4x4::Multiply4x4(toParentMatrix.GetPointer(), transformToNode, transformToNode);
       }
     }
   else if (this->IsTransformNodeMyChild(node)) 
     {
     vtkMRMLLinearTransformNode *lnode = dynamic_cast <vtkMRMLLinearTransformNode *> (node);
     vtkMRMLLinearTransformNode *parent = dynamic_cast <vtkMRMLLinearTransformNode *> (node->GetParentTransformNode());
+    vtkNew<vtkMatrix4x4> toParentMatrix;
+    lnode->GetMatrixTransformToParent(toParentMatrix.GetPointer());
     if (parent != NULL) 
       {
-
-      vtkMatrix4x4 *xform = vtkMatrix4x4::New();
-      xform->DeepCopy(transformToNode);
-      vtkMatrix4x4::Multiply4x4(lnode->GetMatrixTransformToParent(), xform, transformToNode);
-      xform->Delete();
-
+      vtkMatrix4x4::Multiply4x4(toParentMatrix.GetPointer(), transformToNode, transformToNode);
       if (strcmp(parent->GetID(), this->GetID()) ) 
         {
         this->GetMatrixTransformToNode(this, transformToNode);
         }
       }
-    else if (lnode->GetMatrixTransformToParent())
+    else
       {
-      vtkMatrix4x4 *xform = vtkMatrix4x4::New();
-      xform->DeepCopy(transformToNode);
-      vtkMatrix4x4::Multiply4x4(lnode->GetMatrixTransformToParent(), xform, transformToNode);
-      xform->Delete();
+      vtkMatrix4x4::Multiply4x4(toParentMatrix.GetPointer(), transformToNode, transformToNode);
       }
     }
   else 
     {
     this->GetMatrixTransformToWorld(transformToNode);
-    vtkMatrix4x4* transformToWorld2 = vtkMatrix4x4::New();
+    vtkNew<vtkMatrix4x4> transformToWorld2;
     transformToWorld2->Identity();
     
-    node->GetMatrixTransformToWorld(transformToWorld2);
+    node->GetMatrixTransformToWorld(transformToWorld2.GetPointer());
     transformToWorld2->Invert();
     
-    vtkMatrix4x4 *xform = vtkMatrix4x4::New();
-    xform->DeepCopy(transformToNode);
-    vtkMatrix4x4::Multiply4x4(transformToWorld2, xform, transformToNode);
-    xform->Delete();
-    transformToWorld2->Delete();
+    vtkMatrix4x4::Multiply4x4(transformToWorld2.GetPointer(), transformToNode, transformToNode);
     }
-  // TODO: what does this return code mean?
   return 1;
 }
 
@@ -443,15 +433,10 @@ void vtkMRMLLinearTransformNode::ApplyTransformMatrix(vtkMatrix4x4* transformMat
   // vtkMatrix4x4::Multiply4x4 computes the output in an internal buffer and then
   // copies the result to the output matrix, therefore it is safe to use
   // one of the input matrices as output
-  vtkMatrix4x4* matrixToParent=this->GetMatrixTransformToParent();
-  if (matrixToParent!=NULL)
-    {
-    vtkMatrix4x4::Multiply4x4(transformMatrix, matrixToParent, matrixToParent);
-    }
-  else
-    {
-    SetMatrixTransformToParent(transformMatrix);
-    }
+  vtkNew<vtkMatrix4x4> matrixToParent;
+  this->GetMatrixTransformToParent(matrixToParent.GetPointer());
+  vtkMatrix4x4::Multiply4x4(transformMatrix, matrixToParent.GetPointer(), matrixToParent.GetPointer());
+  SetMatrixTransformToParent(matrixToParent.GetPointer());
 }
 
 // End

@@ -31,10 +31,10 @@ int vtkMRMLLinearTransformNodeEventsTest(int , char * [] )
   vtkNew<vtkMatrix4x4> matrix;
   linearTransformNode->SetMatrixTransformToParent(matrix.GetPointer());
 
-  vtkMatrix4x4* matrixRetrieved=linearTransformNode->GetMatrixTransformToParent();
-  if ( matrixRetrieved == NULL)
+  vtkNew<vtkMatrix4x4> matrixRetrieved;
+  if (!linearTransformNode->GetMatrixTransformToParent(matrixRetrieved.GetPointer()))
     {
-    std::cerr << "GetMatrixTransformToParent() returned NULL" << std::endl;
+    std::cerr << "GetMatrixTransformToParent() failed" << std::endl;
     return EXIT_FAILURE;
     }
   if ( fabs(matrixRetrieved->Element[0][0]-matrix->Element[0][0])>0.001
@@ -101,10 +101,9 @@ int vtkMRMLLinearTransformNodeEventsTest(int , char * [] )
     }
   callback->ResetNumberOfEvents();
 
-  matrixRetrieved=linearTransformNode->GetMatrixTransformToParent();
-  if ( matrixRetrieved == NULL)
+  if (!linearTransformNode->GetMatrixTransformToParent(matrixRetrieved.GetPointer()))
     {
-    std::cerr << "GetMatrixTransformToParent() returned NULL" << std::endl;
+    std::cerr << "GetMatrixTransformToParent() failed" << std::endl;
     return EXIT_FAILURE;
     }
   if ( fabs(matrixRetrieved->Element[0][3]-originalElement03)>0.001 )

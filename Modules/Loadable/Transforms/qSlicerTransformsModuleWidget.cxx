@@ -239,10 +239,10 @@ void qSlicerTransformsModuleWidget::invert()
 
   d->RotationSliders->resetUnactiveSliders();
 
-  vtkMatrix4x4* matrix=d->MRMLTransformNode->GetMatrixTransformToParent();
-  vtkNew<vtkMatrix4x4> inverse;
-  vtkMatrix4x4::Invert(matrix, inverse.GetPointer());
-  d->MRMLTransformNode->SetMatrixTransformToParent(inverse.GetPointer());
+  vtkNew<vtkMatrix4x4> matrix;
+  d->MRMLTransformNode->GetMatrixTransformToParent(matrix.GetPointer());
+  matrix->Invert();
+  d->MRMLTransformNode->SetMatrixTransformToParent(matrix.GetPointer());
 }
 
 //-----------------------------------------------------------------------------

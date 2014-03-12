@@ -55,16 +55,14 @@ class VTK_MRML_EXPORT vtkMRMLLinearTransformNode : public vtkMRMLTransformNode
   virtual int IsLinear() {return 1;};
 
   ///
-  /// Return the vtkMatrix4x4 transform of this node to parent node
-  /// The output is a cached output of the transform and therefore should
-  /// not be changed (to change the transform call SetMatrixTransformToParent()).
-  virtual vtkMatrix4x4* GetMatrixTransformToParent();
+  /// Get the vtkMatrix4x4 transform of this node to parent node
+  /// Returns 0 if the transform is undefined or there is an error.
+  virtual int GetMatrixTransformToParent(vtkMatrix4x4* matrix);
 
   ///
-  /// Return the vtkMatrix4x4 transform of this node from parent node
-  /// The output is a cached output of the transform and therefore should
-  /// not be changed (to change the transform call SetMatrixTransformFromParent()).
-  virtual vtkMatrix4x4* GetMatrixTransformFromParent();
+  /// Get the vtkMatrix4x4 transform of this node from parent node
+  /// Returns 0 if the transform is undefined or there is an error.
+  virtual int GetMatrixTransformFromParent(vtkMatrix4x4* matrix);
 
   ///
   /// Set a new matrix transform of this node to parent node.

@@ -624,7 +624,8 @@ int vtkMRMLTransformStorageNode::WriteDataInternal(vtkMRMLNode *refNode)
     typedef itk::AffineTransform<double, VTKDimension> AffineTransformType;
     AffineTransformType::Pointer affine = AffineTransformType::New();
 
-    vtkMatrix4x4 *mat2parent = ln->GetMatrixTransformToParent();
+    vtkSmartPointer<vtkMatrix4x4> mat2parent=vtkSmartPointer<vtkMatrix4x4>::New();
+    ln->GetMatrixTransformToParent(mat2parent);
     
     // Convert from RAS (Slicer) to LPS (ITK)
     //
