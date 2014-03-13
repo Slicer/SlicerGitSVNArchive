@@ -696,12 +696,18 @@ void vtkITKBSplineTransform::InternalDeepCopy(vtkAbstractTransform *abstractTran
 
   Superclass::InternalDeepCopy(xform);
 
+  if (this->InverseFlag != xform->InverseFlag)
+    {
+    this->InverseFlag = xform->InverseFlag;
+    this->Modified();
+    }
+
+  this->SetSplineOrder( xform->GetSplineOrder() );
+
   if (xform->GetSplineOrder() == 0)
   {
     return;
   }
-
-  this->SetSplineOrder( xform->GetSplineOrder() );
 
   //double origin[3];
   //double spacing[3];
@@ -724,12 +730,6 @@ void vtkITKBSplineTransform::InternalDeepCopy(vtkAbstractTransform *abstractTran
   this->SetFixedParameters( xform->GetFixedParameters(),
                          xform->GetNumberOfFixedParameters() );
   this->SetParameters( xform->GetParameters() );
-
-  if (this->InverseFlag != xform->InverseFlag)
-    {
-    this->InverseFlag = xform->InverseFlag;
-    this->Modified();
-    }
 }
 
 template< unsigned O >

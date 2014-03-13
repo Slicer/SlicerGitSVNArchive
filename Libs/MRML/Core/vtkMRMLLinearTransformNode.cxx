@@ -427,4 +427,16 @@ void vtkMRMLLinearTransformNode::ApplyTransformMatrix(vtkMatrix4x4* transformMat
   SetMatrixTransformToParent(matrixToParent.GetPointer());
 }
 
-// End
+//----------------------------------------------------------------------------
+void vtkMRMLLinearTransformNode::SetAndObserveMatrixTransformToParent(vtkMatrix4x4 *matrix)
+{
+  vtkWarningMacro("vtkMRMLLinearTransformNode::SetAndObserveMatrixTransformToParent method is deprecated. Use vtkMRMLLinearTransformNode::SetMatrixTransformToParent instead");
+  SetMatrixTransformToParent(matrix);
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLLinearTransformNode::SetAndObserveMatrixTransformFromParent(vtkMatrix4x4 *matrix)
+{
+  vtkWarningMacro("vtkMRMLLinearTransformNode::SetAndObserveMatrixTransformFromParent method is deprecated. Use vtkMRMLLinearTransformNode::SetMatrixTransformFromParent instead");
+  SetMatrixTransformFromParent(matrix);
+}

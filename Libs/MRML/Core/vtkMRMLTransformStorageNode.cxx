@@ -567,7 +567,6 @@ int vtkMRMLTransformStorageNode::ReadDataInternal(vtkMRMLNode *refNode)
         {
         // Convert the sense of the transform (from an ITK resampling
         // transform to a Slicer modeling transform)
-        vtkgrid->Inverse();
         gtn->SetAndObserveTransformToParent( vtkgrid );
         }
       else

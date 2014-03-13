@@ -18,6 +18,7 @@
 #include "vtkMRMLStorableNode.h"
 
 class vtkCollection;
+class vtkAbstractTransform;
 class vtkGeneralTransform;
 class vtkMatrix4x4;
 
@@ -65,11 +66,11 @@ public:
   virtual int IsLinear() { return 0; }
 
   ///
-  /// vtkGeneral transform of this node to parent
+  /// Transform of this node to parent
   virtual vtkAbstractTransform* GetTransformToParent();
 
   ///
-  /// vtkGeneral transform of this node from parent
+  /// Transform of this node from parent
   virtual vtkAbstractTransform* GetTransformFromParent();
 
   /// 
@@ -243,6 +244,17 @@ public:
                                    unsigned long /*event*/,
                                    void * /*callData*/ );
 
+  ///
+  /// Creates a shallow copy of an input composite transform (that can contain a complex hierarchy of transforms)
+  /// into a flat list of transforms. This is useful for simplifying serialization for copying and writing to file.
+  static void FlattenGeneralTransform(vtkCollection* outputTransformList, vtkAbstractTransform* inputTransform);
+
+  ///
+  /// Some transforms have DeepCopy method that actually only creates a shallow copy
+  /// (such as vtkGeneralTransform and vtkGridTransform). This method creates a true deep copy of a transform.
+  /// Returns nonzero on success.
+  static int DeepCopyTransform(vtkAbstractTransform* dst, vtkAbstractTransform* src);
+
 protected:
   vtkMRMLTransformNode();
   ~vtkMRMLTransformNode();
@@ -250,40 +262,28 @@ protected:
   void operator=(const vtkMRMLTransformNode&);
 
   ///
-  /// TransformToParent and TransformFromParent do not emit
-  /// modified event if a concatenated transform is modified, therefore we
-  /// have to add observers to these transforms.
-  virtual void UpdateTransformObservers(vtkCollection* observedTransforms, vtkGeneralTransform* generalTransform);
-  virtual void UpdateTransformToParentObservers();
-  virtual void UpdateTransformFromParentObservers();
-
-  ///
   /// Retrieves a simple transform from a generic transform
   /// If the generic transform is composed of multiple transform or contains a different
   /// transform type then it returns NULL.
-  virtual vtkAbstractTransform* GetAbstractTransformAs(vtkGeneralTransform* generalTransform, const char* transformClassName);
+  virtual vtkAbstractTransform* GetAbstractTransformAs(vtkAbstractTransform* inputTransform, const char* transformClassName);
 
   ///
   /// Sets and observes a transform and deletes the inverse (so that the inverse will be computed automatically)
-  virtual void SetAndObserveTransform(vtkGeneralTransform** originalTransformPtr, vtkGeneralTransform** inverseTransformPtr, vtkAbstractTransform *transform);
+  virtual void SetAndObserveTransform(vtkAbstractTransform** originalTransformPtr, vtkAbstractTransform** inverseTransformPtr, vtkAbstractTransform *transform);
 
   ///
-  /// These generic transforms always exist (they are created in the constructor and deleted
-  /// in the destructor), and they are set up so that one is always computed as the inverse of the
-  /// other. We use the capability of generic transforms for concatenating and inverting the same
+  /// These transforms store the transforms that were set externally.
+  /// We use the capability of generic transforms for concatenating and inverting the same
   /// abstract transform in multiple generic transforms, therefore they are automatically updated.
   /// We keep the two separate member variables because in the future we may allow setting of a
   /// custom inverse transform (that is not computed automatically from the original).
-  vtkGeneralTransform* TransformToParent;
-  vtkGeneralTransform* TransformFromParent;
+  vtkAbstractTransform* TransformToParent;
+  vtkAbstractTransform* TransformFromParent;
 
   int ReadWriteAsTransformToParent;
 
   int DisableTransformModifiedEvent;
   int TransformModifiedEventPending;
-
-  vtkCollection* ObservedTransformToParentTransforms;
-  vtkCollection* ObservedTransformFromParentTransforms;
 };
 
 #endif

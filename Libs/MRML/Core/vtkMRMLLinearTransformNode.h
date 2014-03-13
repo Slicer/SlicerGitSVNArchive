@@ -74,6 +74,16 @@ class VTK_MRML_EXPORT vtkMRMLLinearTransformNode : public vtkMRMLTransformNode
   /// Invokes a TransformModified event (does not invoke Modified).
   void SetMatrixTransformFromParent(vtkMatrix4x4 *matrix);
 
+  ///
+  /// Set a new matrix transform of this node to parent node.
+  /// Deprecated! Use SetMatrixTransformToParent instead.
+  void SetAndObserveMatrixTransformToParent(vtkMatrix4x4 *matrix);
+
+  ///
+  /// Set a new matrix transform of this node from parent node.
+  /// Deprecated! Use SetMatrixTransformToParent instead.
+  void SetAndObserveMatrixTransformFromParent(vtkMatrix4x4 *matrix);
+
   /// 
   /// Get concatenated transforms to the top
   virtual int  GetMatrixTransformToWorld(vtkMatrix4x4* transformToWorld);

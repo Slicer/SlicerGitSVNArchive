@@ -29,6 +29,7 @@
 
 bool TestBSplineTransform(const char *filename);
 bool TestGridTransform(const char *filename);
+bool TestCompositeTransform(const char *filename);
 
 int vtkMRMLNonlinearTransformNodeTest1(int argc, char * argv[] )
 {
@@ -44,7 +45,12 @@ int vtkMRMLNonlinearTransformNodeTest1(int argc, char * argv[] )
     }
   res = TestBSplineTransform(filename) && res;
   res = TestGridTransform(filename) && res;
+  res = TestCompositeTransform(filename) && res;
 
+  if (res)
+    {
+    std::cout << "Success" << std::endl;
+    }
   return res ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
@@ -102,7 +108,7 @@ bool TestBSplineTransform(const char *filename)
   bsplineTransformNodeCopy->Copy(bsplineTransformNode);
   // Reset the original transform to make sure that it was not a shallow copy (transforms from the original transforms are not reused)
   vtkITKBSplineTransform* emptyTransform=vtkITKBSplineTransform::New();
-  //bsplineTransformNode->SetAndObserveTransformToParent(emptyTransform);
+  bsplineTransformNode->SetAndObserveTransformToParent(emptyTransform);
   emptyTransform->Delete();
 
   vtkITKBSplineTransform *xfpCopy = vtkITKBSplineTransform::SafeDownCast(bsplineTransformNodeCopy->GetTransformFromParentAs("vtkITKBSplineTransform"));
@@ -177,6 +183,90 @@ bool TestGridTransform(const char *filename)
     return false;
     }
 
+  scene->Clear(1);
+  scene->Delete();
+  return true;
+}
+
+//---------------------------------------------------------------------------
+bool TestCompositeTransform(const char *filename)
+{
+  // Read a BSpline transform from a scene
+  vtkMRMLScene *scene = vtkMRMLScene::New();
+
+  scene->SetURL(filename);
+  scene->Import();
+
+  // Create a composite transform from bspline and a grid transform
+
+  vtkMRMLBSplineTransformNode *bsplineTransformNode = vtkMRMLBSplineTransformNode::SafeDownCast(
+    scene->GetNodeByID("vtkMRMLBSplineTransformNode1"));
+
+  vtkMRMLGridTransformNode *gridTransformNode = vtkMRMLGridTransformNode::SafeDownCast(
+    scene->GetNodeByID("vtkMRMLGridTransformNode1"));
+
+  bsplineTransformNode->SetAndObserveTransformNodeID(gridTransformNode->GetID());
+
+  vtkNew<vtkGeneralTransform> transformToWorldBeforeHardening;
+  bsplineTransformNode->GetTransformToWorld(transformToWorldBeforeHardening.GetPointer());
+  vtkNew<vtkGeneralTransform> transformFromWorldBeforeHardening;
+  bsplineTransformNode->GetTransformFromWorld(transformFromWorldBeforeHardening.GetPointer());
+
+  // Test if the transform actually changes point positions
+  double inp[3] = {0,0,0};
+  double outp[3] = {0,0,0};
+  transformToWorldBeforeHardening->TransformPoint(inp, outp);
+  if (fabs(outp[0]-inp[0]) < 0.1 || fabs(outp[1]-inp[1]) < 0.1 || fabs(outp[2]-inp[2]) < 0.1)
+    {
+    std::cout << __LINE__ << ": TestCompositeTransform failed" << std::endl;
+    return false;
+    }
+
+  // Test if the inverse transform moves back the point to its original position
+  double outpInv[3] = {-100, -100, -100};
+  transformFromWorldBeforeHardening->TransformPoint(outp, outpInv);
+  if (fabs(outpInv[0]-inp[0]) > 0.1 || fabs(outpInv[1]-inp[1]) > 0.1 || fabs(outpInv[2]-inp[2]) > 0.1)
+    {
+    std::cout << __LINE__ << ": TestCompositeTransform failed" << std::endl;
+    return false;
+    }
+
+  // Test if transform to world is the same after hardening
+
+  // Harden transform
+  vtkNew<vtkGeneralTransform> hardeningTransform;
+  bsplineTransformNode->GetParentTransformNode()->GetTransformToWorld(hardeningTransform.GetPointer());
+  hardeningTransform->Update();
+
+  bsplineTransformNode->ApplyTransform(hardeningTransform.GetPointer());
+
+  bsplineTransformNode->SetAndObserveTransformNodeID(NULL);
+
+  // Get transforms from hardened transform
+  vtkNew<vtkGeneralTransform> transformToWorldAfterHardening;
+  bsplineTransformNode->GetTransformToWorld(transformToWorldAfterHardening.GetPointer());
+  vtkNew<vtkGeneralTransform> transformFromWorldAfterHardening;
+  bsplineTransformNode->GetTransformFromWorld(transformFromWorldAfterHardening.GetPointer());
+
+  // Test if the copied transform gives the same results as the original
+  double outpCopy[3] = {0,0,0};
+  transformToWorldAfterHardening->TransformPoint(inp, outpCopy);
+  if (fabs(outpCopy[0]-outp[0]) > 0.1 || fabs(outpCopy[1]-outp[1]) > 0.1 || fabs(outpCopy[2]-outp[2]) > 0.1)
+    {
+    std::cout << __LINE__ << ": TestCompositeTransform failed" << std::endl;
+    return false;
+    }
+
+  // Test if the inverse transform moves back the point to its original position
+  double outpInvCopy[3] = {-100, -100, -100};
+  transformFromWorldAfterHardening->TransformPoint(outpCopy, outpInvCopy);
+  if (fabs(outpInvCopy[0]-inp[0]) > 0.15 || fabs(outpInvCopy[1]-inp[1]) > 0.15 || fabs(outpInvCopy[2]-inp[2]) > 0.15)
+    {
+    std::cout << __LINE__ << ": TestCompositeTransform failed" << std::endl;
+    return false;
+    }
+
+  // Cleanup
   scene->Clear(1);
   scene->Delete();
   return true;
