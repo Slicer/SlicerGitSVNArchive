@@ -1,5 +1,5 @@
-#ifndef SFLSSegmentor3D_hpp_
-#define SFLSSegmentor3D_hpp_
+#ifndef SFLSSegmentor3D_hxx_
+#define SFLSSegmentor3D_hxx_
 
 #include "SFLSSegmentor3D.h"
 
@@ -11,6 +11,7 @@
 #include <fstream>
 
 #include "itkImageRegionIteratorWithIndex.h"
+
 
 template <typename TPixel>
 CSFLSSegmentor3D<TPixel>
@@ -46,6 +47,9 @@ CSFLSSegmentor3D<TPixel>
   m_maxRunningTime = 3600; // in sec
 
   m_keepZeroLayerHistory = false;
+
+  m_bUseRejectionMask = false;
+
 
   m_done = false;
 }
@@ -93,6 +97,11 @@ CSFLSSegmentor3D<TPixel>
     m_dx = spc[0];
     m_dy = spc[1];
     m_dz = spc[2];
+
+
+    std::cout<<"CLI Spacing = ("<<m_dx<<", "<<m_dy<<", "<<m_dz<<")\n";
+
+
     }
   else if( m_nx != (long)size[0] || m_ny != (long)size[1] || m_nz != (long)size[2] )
     {
@@ -432,8 +441,10 @@ CSFLSSegmentor3D<TPixel>
         m_lzIterVct[iiizzz++] = itz;
         }
       }
+
     //    for (CSFLSLayer::iterator itz = m_lz.begin(); itz != m_lz.end(); ++itf)
-    // #pragma omp parallel for
+
+      /// Using this will cause some racing conditions. But faster speed may be more important?
     for( long iiizzz = 0; iiizzz < nz; ++iiizzz )
       {
       long itf = iiizzz;
