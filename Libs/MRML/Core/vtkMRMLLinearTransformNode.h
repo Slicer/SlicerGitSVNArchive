@@ -15,6 +15,8 @@
 #ifndef __vtkMRMLLinearTransformNode_h
 #define __vtkMRMLLinearTransformNode_h
 
+#define TRANSFORM_NODE_MATRIX_COPY_REQUIRED
+
 #include "vtkMRMLTransformNode.h"
 
 class vtkMRMLStorageNode;
@@ -74,16 +76,6 @@ class VTK_MRML_EXPORT vtkMRMLLinearTransformNode : public vtkMRMLTransformNode
   /// Invokes a TransformModified event (does not invoke Modified).
   void SetMatrixTransformFromParent(vtkMatrix4x4 *matrix);
 
-  ///
-  /// Set a new matrix transform of this node to parent node.
-  /// Deprecated! Use SetMatrixTransformToParent instead.
-  void SetAndObserveMatrixTransformToParent(vtkMatrix4x4 *matrix);
-
-  ///
-  /// Set a new matrix transform of this node from parent node.
-  /// Deprecated! Use SetMatrixTransformToParent instead.
-  void SetAndObserveMatrixTransformFromParent(vtkMatrix4x4 *matrix);
-
   /// 
   /// Get concatenated transforms to the top
   virtual int  GetMatrixTransformToWorld(vtkMatrix4x4* transformToWorld);
@@ -103,11 +95,40 @@ class VTK_MRML_EXPORT vtkMRMLLinearTransformNode : public vtkMRMLTransformNode
     return Superclass::CreateDefaultStorageNode();
     };
 
+    ///
+  /// Set a new matrix transform of this node to parent node.
+  /// Deprecated! Use SetMatrixTransformToParent instead.
+  void SetAndObserveMatrixTransformToParent(vtkMatrix4x4 *matrix);
+
+  ///
+  /// Set a new matrix transform of this node from parent node.
+  /// Deprecated! Use SetMatrixTransformToParent instead.
+  void SetAndObserveMatrixTransformFromParent(vtkMatrix4x4 *matrix);
+
+  ///
+  /// Set a new matrix transform of this node to parent node.
+  /// Deprecated! Use GetMatrixTransformToParent(vtkMatrix4x4*) instead.
+  /// The method returns a cached copy of the transform, so modification
+  /// of the matrix does not alter the transform node.
+  vtkMatrix4x4* GetMatrixTransformToParent();
+
+  ///
+  /// Set a new matrix transform of this node from parent node.
+  /// Deprecated! Use GetMatrixTransformFromParent(vtkMatrix4x4*) instead.
+  /// The method returns a cached copy of the transform, so modification
+  /// of the matrix does not alter the transform node.
+  vtkMatrix4x4* GetMatrixTransformFromParent();
+
 protected:
   vtkMRMLLinearTransformNode();
   ~vtkMRMLLinearTransformNode();
   vtkMRMLLinearTransformNode(const vtkMRMLLinearTransformNode&);
   void operator=(const vtkMRMLLinearTransformNode&);
+
+  /// These variables are only for supporting the deprecated
+  /// GetMatrixTransformToParent and GetMatrixFromParent methods
+  vtkMatrix4x4* CachedMatrixTransformToParent;
+  vtkMatrix4x4* CachedMatrixTransformFromParent;
 };
 
 #endif

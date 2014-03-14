@@ -34,11 +34,18 @@ vtkMRMLLinearTransformNode::vtkMRMLLinearTransformNode()
   this->ReadWriteAsTransformToParent = 1;
   vtkNew<vtkMatrix4x4> matrix;
   this->SetMatrixTransformToParent(matrix.GetPointer());
+
+  this->CachedMatrixTransformToParent=vtkMatrix4x4::New();
+  this->CachedMatrixTransformFromParent=vtkMatrix4x4::New();
 }
 
 //----------------------------------------------------------------------------
 vtkMRMLLinearTransformNode::~vtkMRMLLinearTransformNode()
 {
+  this->CachedMatrixTransformToParent->Delete();
+  this->CachedMatrixTransformToParent=NULL;
+  this->CachedMatrixTransformFromParent->Delete();
+  this->CachedMatrixTransformFromParent=NULL;
 }
 
 //----------------------------------------------------------------------------
@@ -427,6 +434,8 @@ void vtkMRMLLinearTransformNode::ApplyTransformMatrix(vtkMatrix4x4* transformMat
   SetMatrixTransformToParent(matrixToParent.GetPointer());
 }
 
+// Deprecated methods, kept temporarily for compatibility with extensions that are not yet updated
+
 //----------------------------------------------------------------------------
 void vtkMRMLLinearTransformNode::SetAndObserveMatrixTransformToParent(vtkMatrix4x4 *matrix)
 {
@@ -439,4 +448,20 @@ void vtkMRMLLinearTransformNode::SetAndObserveMatrixTransformFromParent(vtkMatri
 {
   vtkWarningMacro("vtkMRMLLinearTransformNode::SetAndObserveMatrixTransformFromParent method is deprecated. Use vtkMRMLLinearTransformNode::SetMatrixTransformFromParent instead");
   SetMatrixTransformFromParent(matrix);
+}
+
+//----------------------------------------------------------------------------
+vtkMatrix4x4* vtkMRMLLinearTransformNode::GetMatrixTransformToParent()
+{
+  vtkWarningMacro("vtkMRMLLinearTransformNode::GetMatrixTransformToParent() method is deprecated. Use vtkMRMLLinearTransformNode::GetMatrixTransformToParent(vtkMatrix4x4*) instead");
+  GetMatrixTransformToParent(this->CachedMatrixTransformToParent);
+  return this->CachedMatrixTransformToParent;
+}
+
+//----------------------------------------------------------------------------
+vtkMatrix4x4* vtkMRMLLinearTransformNode::GetMatrixTransformFromParent()
+{
+  vtkWarningMacro("vtkMRMLLinearTransformNode::GetMatrixTransformFromParent() method is deprecated. Use vtkMRMLLinearTransformNode::GetMatrixTransformFromParent(vtkMatrix4x4*) instead");
+  GetMatrixTransformFromParent(this->CachedMatrixTransformFromParent);
+  return this->CachedMatrixTransformFromParent;
 }
