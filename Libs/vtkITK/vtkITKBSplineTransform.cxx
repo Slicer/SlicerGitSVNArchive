@@ -1200,7 +1200,7 @@ vtkITKBSplineTransformHelperImpl<O>
   if (bulk)
     {
     matrix = bulk->GetMatrix();
-    BulkTransformType::OutputVectorType vector = bulk->GetOffset();
+    vector = bulk->GetOffset();
     }
 
   for (unsigned i=0; i<3; ++i)

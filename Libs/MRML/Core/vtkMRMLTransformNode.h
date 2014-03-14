@@ -255,6 +255,11 @@ public:
   /// Returns nonzero on success.
   static int DeepCopyTransform(vtkAbstractTransform* dst, vtkAbstractTransform* src);
 
+  ///
+  /// Invert the transform
+  /// Replaces ToParent by FromParent.
+  void Inverse();
+
 protected:
   vtkMRMLTransformNode();
   ~vtkMRMLTransformNode();

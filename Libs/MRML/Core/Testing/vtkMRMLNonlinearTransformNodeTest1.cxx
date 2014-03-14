@@ -97,7 +97,7 @@ bool TestBSplineTransform(const char *filename)
   // Test if the inverse transform moves back the point to its original position
   double outpInv[3] = {-100, -100, -100};
   xtp->TransformPoint(outp, outpInv);
-  if (fabs(outpInv[0]-inp[0]) > 0.1 || fabs(outpInv[1]-inp[1]) > 0.1 || fabs(outpInv[2]-inp[2]) > 0.1)
+  if (fabs(outpInv[0]-inp[0]) > 0.5 || fabs(outpInv[1]-inp[1]) > 0.5 || fabs(outpInv[2]-inp[2]) > 0.5)
     {
     std::cout << __LINE__ << ": TestBSplineTransform failed" << std::endl;
     return false;
@@ -126,7 +126,7 @@ bool TestBSplineTransform(const char *filename)
   // Test if the inverse transform moves back the point to its original position
   double outpInvCopy[3] = {-100, -100, -100};
   xtpCopy->TransformPoint(outpCopy, outpInvCopy);
-  if (fabs(outpInvCopy[0]-inp[0]) > 0.1 || fabs(outpInvCopy[1]-inp[1]) > 0.1 || fabs(outpInvCopy[2]-inp[2]) > 0.1)
+  if (fabs(outpInvCopy[0]-outpInv[0]) > 0.1 || fabs(outpInvCopy[1]-outpInv[1]) > 0.1 || fabs(outpInvCopy[2]-outpInv[2]) > 0.1)
     {
     std::cout << __LINE__ << ": TestBSplineTransform failed" << std::endl;
     return false;
@@ -225,7 +225,7 @@ bool TestCompositeTransform(const char *filename)
   // Test if the inverse transform moves back the point to its original position
   double outpInv[3] = {-100, -100, -100};
   transformFromWorldBeforeHardening->TransformPoint(outp, outpInv);
-  if (fabs(outpInv[0]-inp[0]) > 0.1 || fabs(outpInv[1]-inp[1]) > 0.1 || fabs(outpInv[2]-inp[2]) > 0.1)
+  if (fabs(outpInv[0]-inp[0]) > 0.3 || fabs(outpInv[1]-inp[1]) > 0.3 || fabs(outpInv[2]-inp[2]) > 0.3)
     {
     std::cout << __LINE__ << ": TestCompositeTransform failed" << std::endl;
     return false;
@@ -260,7 +260,7 @@ bool TestCompositeTransform(const char *filename)
   // Test if the inverse transform moves back the point to its original position
   double outpInvCopy[3] = {-100, -100, -100};
   transformFromWorldAfterHardening->TransformPoint(outpCopy, outpInvCopy);
-  if (fabs(outpInvCopy[0]-inp[0]) > 0.15 || fabs(outpInvCopy[1]-inp[1]) > 0.15 || fabs(outpInvCopy[2]-inp[2]) > 0.15)
+  if (fabs(outpInvCopy[0]-outpInv[0]) > 0.1 || fabs(outpInvCopy[1]-outpInv[1]) > 0.1 || fabs(outpInvCopy[2]-outpInv[2]) > 0.1)
     {
     std::cout << __LINE__ << ": TestCompositeTransform failed" << std::endl;
     return false;

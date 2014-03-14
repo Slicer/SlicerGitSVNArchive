@@ -780,3 +780,21 @@ void vtkMRMLTransformNode::ProcessMRMLEvents ( vtkObject *caller,
       }
     }
 }
+
+//----------------------------------------------------------------------------
+void vtkMRMLTransformNode::Inverse()
+{
+  if (this->TransformToParent==this->TransformFromParent)
+    {
+    // this should only happen if they are both NULL
+    return;
+    }
+  vtkAbstractTransform* oldTransformToParent=this->TransformToParent;
+  vtkAbstractTransform* oldTransformFromParent=this->TransformFromParent;
+  this->TransformToParent=oldTransformFromParent;
+  this->TransformFromParent=oldTransformToParent;
+
+  this->StorableModifiedTime.Modified();
+  this->Modified();
+  this->TransformModified();
+}
