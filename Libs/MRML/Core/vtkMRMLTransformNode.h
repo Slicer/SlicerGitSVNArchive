@@ -128,6 +128,15 @@ public:
   virtual vtkMRMLStorageNode* CreateDefaultStorageNode();
 
   /// Get/Set for ReadWriteAsTransformToParent
+  /// Typically only a non-inverse transform can be written to file,
+  /// so this flag should be set to read/write the forward transform.
+  /// The flag is set automatically when a transform is set by SetAndObserveTransformToParent
+  /// or SetAndObserveTransformFromParent and also inverted if the transform is inverted,
+  /// so most of the cases it should be not necessary to manually change this flag.
+  /// In the future it could be useful to be able to read/write both the toParent
+  /// and fromParent transforms (if they are both specified).
+  /// Note: When a transform is opened using AddData, the stored transform is assumed
+  /// to be FromParent, as this is the ITK convention for transform storage in files.
   vtkGetMacro(ReadWriteAsTransformToParent, int);
   vtkSetMacro(ReadWriteAsTransformToParent, int);
   vtkBooleanMacro(ReadWriteAsTransformToParent, int);
@@ -217,13 +226,13 @@ public:
   /// Retrieves the transform as the specified transform class.
   /// Returns NULL if the transform is not a kind of transform that was requested.
   /// Example usage: vtkWarpTransform* warpTransform=vtkWarpTransform::SafeDownCast(GetTransformToParentAs("vtkWarpTransform"));
-  vtkAbstractTransform* GetTransformToParentAs(const char* transformType);
+  vtkAbstractTransform* GetTransformToParentAs(const char* transformType, bool logErrorIfFails=true);
 
   ///
   /// Retrieves the transform as the specified transform class.
   /// Returns NULL if the transform is not a kind of transform that was requested.
   /// Example usage: vtkWarpTransform* warpTransform=vtkWarpTransform::SafeDownCast(GetTransformFromParentAs("vtkWarpTransform"));
-  vtkAbstractTransform* GetTransformFromParentAs(const char* transformType);
+  vtkAbstractTransform* GetTransformFromParentAs(const char* transformType, bool logErrorIfFails=true);
 
   /// Set and observe a new transform of this node to parent node.
   /// Each time the transform is modified,
@@ -260,6 +269,11 @@ public:
   /// Replaces ToParent by FromParent.
   void Inverse();
 
+  ///
+  /// Sets the ReadWriteAsTransformToParent flag automatically
+  /// The flag is set so that the ReadWriteAsTransformToParent points to the forward transform
+  void SetReadWriteAsTransformToParentAuto();
+
 protected:
   vtkMRMLTransformNode();
   ~vtkMRMLTransformNode();
@@ -270,7 +284,7 @@ protected:
   /// Retrieves a simple transform from a generic transform
   /// If the generic transform is composed of multiple transform or contains a different
   /// transform type then it returns NULL.
-  virtual vtkAbstractTransform* GetAbstractTransformAs(vtkAbstractTransform* inputTransform, const char* transformClassName);
+  virtual vtkAbstractTransform* GetAbstractTransformAs(vtkAbstractTransform* inputTransform, const char* transformClassName, bool logErrorIfFails);
 
   ///
   /// Sets and observes a transform and deletes the inverse (so that the inverse will be computed automatically)
@@ -281,7 +295,8 @@ protected:
   /// We use the capability of generic transforms for concatenating and inverting the same
   /// abstract transform in multiple generic transforms, therefore they are automatically updated.
   /// We keep the two separate member variables because in the future we may allow setting of a
-  /// custom inverse transform (that is not computed automatically from the original).
+  /// custom inverse transform (that is NOT computed automatically from each other, for example
+  /// some Demons registration can provide both the forward and inverse transforms as output).
   vtkAbstractTransform* TransformToParent;
   vtkAbstractTransform* TransformFromParent;
 

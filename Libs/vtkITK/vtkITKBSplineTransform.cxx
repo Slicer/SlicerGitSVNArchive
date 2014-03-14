@@ -327,6 +327,29 @@ vtkITKBSplineTransform
     }
 }
 
+void
+vtkITKBSplineTransform
+::SetParameters( float const* param )
+{
+  if( Helper == NULL )
+    {
+    vtkErrorMacro( "need to call SetSplineOrder before SetParameters" );
+    return;
+    }
+  unsigned int N=Helper->GetNumberOfParameters();
+  if (N==0)
+    {
+    return;
+    }
+  double *paramDouble=new double[N];
+  for (int i=0; i<N; i++)
+  {
+    paramDouble[i]=param[i];
+  }
+  SetParameters(paramDouble);
+  delete[] paramDouble;
+}
+
 unsigned int
 vtkITKBSplineTransform
 ::GetNumberOfParameters() const
@@ -369,6 +392,23 @@ vtkITKBSplineTransform
     {
     vtkErrorMacro( "need to call SetSplineOrder before SetFixedParameters" );
     }
+}
+
+void
+vtkITKBSplineTransform
+::SetFixedParameters( float const* param, unsigned N )
+{
+  if (N==0)
+    {
+    return;
+    }
+  double *paramDouble=new double[N];
+  for (int i=0; i<N; i++)
+  {
+    paramDouble[i]=param[i];
+  }
+  SetFixedParameters(paramDouble, N);
+  delete[] paramDouble;
 }
 
 unsigned int
