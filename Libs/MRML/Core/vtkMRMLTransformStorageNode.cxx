@@ -386,7 +386,9 @@ int vtkMRMLTransformStorageNode::ReadBSplineTransform(vtkMRMLNode *refNode)
     }
   else
     {
-    vtkErrorMacro("Failed to retrieve BSpline transform from file: "<< fullName.c_str());
+    // Log only at debug level because trial-and-error method is used for finding out what node can be retrieved
+    // from a transform file
+    vtkDebugMacro("Failed to retrieve BSpline transform from file: "<< fullName.c_str());
     return 0;
     }
 }
