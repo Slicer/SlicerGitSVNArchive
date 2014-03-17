@@ -617,8 +617,8 @@ bool vtkMRMLVolumeNode::ComputeIJKToRASFromScanOrder(const char *order,
   vtkMatrix4x4::Multiply4x4(orientMat.GetPointer(), scaleMat.GetPointer(), IJKToRAS);
 
   const double pnt[] = {
-   static_cast<double>(-dims[0]/2), 
-   static_cast<double>(-dims[1]/2), 
+   static_cast<double>(-dims[0]/2),
+   static_cast<double>(-dims[1]/2),
    static_cast<double>(-dims[2]/2),
    static_cast<double>( 0.0 )};
 
