@@ -324,16 +324,17 @@ int  vtkMRMLLinearTransformNode::GetMatrixTransformToNode(vtkMRMLTransformNode* 
 //----------------------------------------------------------------------------
 void vtkMRMLLinearTransformNode::SetMatrixTransformToParent(vtkMatrix4x4 *matrix)
 {
-  vtkMatrixToLinearTransform* transform=vtkMatrixToLinearTransform::SafeDownCast(GetTransformToParentAs("vtkMatrixToLinearTransform"));
   vtkMatrix4x4* currentMatrix=NULL;
-  if (transform!=NULL)
+
+  if (this->TransformToParent!=NULL)
     {
-    currentMatrix=transform->GetInput();
+    vtkMatrixToLinearTransform* transform=vtkMatrixToLinearTransform::SafeDownCast(GetTransformToParentAs("vtkMatrixToLinearTransform"));
+    if (transform!=NULL)
+      {
+      currentMatrix=transform->GetInput();
+      }
     }
-  if (currentMatrix==matrix)
-    {
-    return;
-    }
+
   // Temporarily disable all Modified and TransformModified events to make sure that
   // the operations are performed without interruption.
   int oldTransformModify=this->StartTransformModify();
@@ -369,16 +370,17 @@ void vtkMRMLLinearTransformNode::SetMatrixTransformToParent(vtkMatrix4x4 *matrix
 //----------------------------------------------------------------------------
 void vtkMRMLLinearTransformNode::SetMatrixTransformFromParent(vtkMatrix4x4 *matrix)
 {
-  vtkMatrixToLinearTransform* transform=vtkMatrixToLinearTransform::SafeDownCast(GetTransformFromParentAs("vtkMatrixToLinearTransform"));
   vtkMatrix4x4* currentMatrix=NULL;
-  if (transform!=NULL)
+
+  if (this->TransformFromParent!=NULL)
     {
-    currentMatrix=transform->GetInput();
+    vtkMatrixToLinearTransform* transform=vtkMatrixToLinearTransform::SafeDownCast(GetTransformFromParentAs("vtkMatrixToLinearTransform"));
+    if (transform!=NULL)
+      {
+      currentMatrix=transform->GetInput();
+      }
     }
-  if (currentMatrix==matrix)
-    {
-    return;
-    }
+
   // Temporarily disable all Modified and TransformModified events to make sure that
   // the operations are performed without interruption.
   int oldTransformModify=this->StartTransformModify();
