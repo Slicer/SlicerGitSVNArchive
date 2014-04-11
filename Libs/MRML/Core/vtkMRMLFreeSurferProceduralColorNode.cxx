@@ -29,6 +29,10 @@ vtkMRMLNodeNewMacro(vtkMRMLFreeSurferProceduralColorNode);
 //----------------------------------------------------------------------------
 vtkMRMLFreeSurferProceduralColorNode::vtkMRMLFreeSurferProceduralColorNode()
 {
+  // We generate the color transfer function programmatically,
+  // so there is no need to save it with the scene
+  this->StoreColorTransferFunctionInScene = false;
+
   this->LookupTable = NULL;
   this->HideFromEditors = 1;
   this->LabelsFileName = NULL;

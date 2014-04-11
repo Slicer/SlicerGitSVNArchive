@@ -25,14 +25,9 @@ vtkMRMLNodeNewMacro(vtkMRMLdGEMRICProceduralColorNode);
 //----------------------------------------------------------------------------
 vtkMRMLdGEMRICProceduralColorNode::vtkMRMLdGEMRICProceduralColorNode()
 {
-
-  // all this is done in the superclass...
-  //this->Name = NULL;
-  //this->SetName("");
-  //this->FileName = NULL;
-
-  //this->ColorTransferFunction = NULL;
-  //this->ColorTransferFunction = vtkColorTransferFunction::New();
+  // We generate the color transfer function programmatically,
+  // so there is no need to save it with the scene
+  this->StoreColorTransferFunctionInScene = false;
 }
 
 //----------------------------------------------------------------------------

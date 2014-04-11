@@ -152,6 +152,7 @@ set(MRMLCore_SRCS
   vtkMRMLStorageNode.cxx
   vtkMRMLTransformNode.cxx
   vtkMRMLTransformStorageNode.cxx
+  vtkMRMLTransformDisplayNode.cxx
   vtkMRMLTransformableNode.cxx
   vtkMRMLUnitNode.cxx
   vtkMRMLUnstructuredGridDisplayNode.cxx
