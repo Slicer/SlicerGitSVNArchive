@@ -123,9 +123,9 @@ void vtkMRMLProceduralColorNode::ProcessMRMLEvents ( vtkObject *caller,
 {
   Superclass::ProcessMRMLEvents(caller, event, callData);
   if (caller!=NULL && caller==this->ColorTransferFunction && event==vtkCommand::ModifiedEvent)
-  {
+    {
     Modified();
-  }
+    }
   return;
 }
 
@@ -215,9 +215,9 @@ bool vtkMRMLProceduralColorNode::GetColor(int entry, double* color)
 void vtkMRMLProceduralColorNode::SetAndObserveColorTransferFunction(vtkColorTransferFunction *ctf)
 {
   if (ctf==this->ColorTransferFunction)
-  {
+    {
     return;
-  }
+    }
   if (this->ColorTransferFunction != NULL)
     {
     vtkEventBroker::GetInstance()->RemoveObservations(
@@ -239,20 +239,20 @@ void vtkMRMLProceduralColorNode::SetAndObserveColorTransferFunction(vtkColorTran
 std::string vtkMRMLProceduralColorNode::GetColorMapAsString()
 {
   if (this->ColorTransferFunction==NULL)
-  {
+    {
     return "";
-  }
+    }
   int arraySize=this->ColorTransferFunction->GetSize()*4;
   double* doubleArray=this->ColorTransferFunction->GetDataPointer();
   std::stringstream ss;
   for (int i=0; i<arraySize; i++)
-  {
-    if (i>0)
     {
+    if (i>0)
+      {
       ss << ' ';
-    }
+      }
     ss << doubleArray[i];
-  }
+    }
   return ss.str();
 }
 
@@ -260,34 +260,34 @@ std::string vtkMRMLProceduralColorNode::GetColorMapAsString()
 void vtkMRMLProceduralColorNode::SetColorMapFromString(const char* str)
 {
   if (this->ColorTransferFunction==NULL)
-  {
+    {
     vtkErrorMacro("Failed to set colormap from string: colormap is unavailable");
     return;
-  }
+    }
 
   std::vector<double> values;
   std::stringstream ss(str);
   std::string itemString;
   double itemDouble;
   while (std::getline(ss, itemString, ' '))
-  {
+    {
     std::stringstream itemStream;
     itemStream << itemString;
     itemStream >> itemDouble;
     values.push_back(itemDouble);
-  }
+    }
 
   if (values.size()%4!=0)
-  {
+    {
     vtkErrorMacro("vtkMRMLProceduralColorNode::SetColorTransferFunctionFromString failed: N*4 values are expected");
     return;
-  }
+    }
 
   if (values.size()==0)
-  {
+    {
     vtkErrorMacro("vtkMRMLProceduralColorNode::SetColorTransferFunctionFromString failed: no values are defined");
     return;
-  }
+    }
 
   this->ColorTransferFunction->FillFromDataPointer(values.size()/4,&(values[0]));
 }
@@ -296,47 +296,47 @@ void vtkMRMLProceduralColorNode::SetColorMapFromString(const char* str)
 bool vtkMRMLProceduralColorNode::IsColorMapEqual(vtkColorTransferFunction* tf1, vtkColorTransferFunction* tf2)
 {
   if (tf1==NULL && tf2==NULL)
-  {
+    {
     return true;
-  }
+    }
   if (tf1==NULL || tf2==NULL)
-  {
+    {
     return false;
-  }
+    }
   if (tf1->GetSize()!=tf2->GetSize())
-  {
+    {
     return false;
-  }
+    }
   int n=4*tf1->GetSize();
   if (n==0)
-  {
+    {
     return true;
-  }
+    }
   double* dp1=tf1->GetDataPointer();
   double* dp2=tf2->GetDataPointer();
   for (int i=0; i<n; i++)
-  {
-    if (dp1[i] != dp2[i])
     {
+    if (dp1[i] != dp2[i])
+      {
       return false;
+      }
     }
-  }
   return true;
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLProceduralColorNode::DeepCopyColorTransferFunction(vtkColorTransferFunction* newColorTransferFunction)
 {
-  int oldModified=StartModify();
+  int oldModified=this->StartModify();
   if (this->ColorTransferFunction==NULL)
-  {
+    {
     vtkColorTransferFunction* ctf=vtkColorTransferFunction::New();
     this->SetAndObserveColorTransferFunction(ctf);
     ctf->Delete();
-  }
+    }
   if (!vtkMRMLProceduralColorNode::IsColorMapEqual(newColorTransferFunction,this->ColorTransferFunction))
-  {
+    {
     this->ColorTransferFunction->DeepCopy(newColorTransferFunction);
-  }
-  EndModify(oldModified);
+    }
+  this->EndModify(oldModified);
 }

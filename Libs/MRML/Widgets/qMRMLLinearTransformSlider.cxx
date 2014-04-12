@@ -194,9 +194,9 @@ void qMRMLLinearTransformSlider::applyTransformation(double _sliderPosition)
   Q_D(qMRMLLinearTransformSlider);
 
   if (d->MRMLTransformNode == NULL)
-  {
+    {
     return;
-  }
+    }
 
   vtkNew<vtkTransform> transform;
   qMRMLUtils::getTransformInCoordinateSystem(d->MRMLTransformNode,

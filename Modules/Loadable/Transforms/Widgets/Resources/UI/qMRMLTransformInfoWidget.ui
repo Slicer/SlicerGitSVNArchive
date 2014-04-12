@@ -20,7 +20,7 @@
    <item>
     <widget class="QLabel" name="label">
      <property name="text">
-      <string>Transform to Parent:</string>
+      <string>Transform to parent:</string>
      </property>
     </widget>
    </item>
@@ -57,7 +57,7 @@
    <item>
     <widget class="QLabel" name="label_2">
      <property name="text">
-      <string>Transform from Parent:</string>
+      <string>Transform from parent:</string>
      </property>
     </widget>
    </item>

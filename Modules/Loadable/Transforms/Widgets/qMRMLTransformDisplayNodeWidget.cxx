@@ -272,32 +272,32 @@ void qMRMLTransformDisplayNodeWidget::updateGlyphSourceOptions(int glyphType)
   Q_D(qMRMLTransformDisplayNodeWidget);
 
   if (glyphType == vtkMRMLTransformDisplayNode::GLYPH_TYPE_ARROW)
-  {
+    {
     d->GlyphDiameterMmLabel->setVisible(true);
     d->GlyphDiameterMm->setVisible(true);
     d->GlyphShaftDiameterLabel->setVisible(true);
     d->GlyphShaftDiameterPercent->setVisible(true);
     d->GlyphTipLengthLabel->setVisible(true);
     d->GlyphTipLengthPercent->setVisible(true);
-  }
+    }
   else if (glyphType == vtkMRMLTransformDisplayNode::GLYPH_TYPE_CONE)
-  {
+    {
     d->GlyphDiameterMmLabel->setVisible(true);
     d->GlyphDiameterMm->setVisible(true);
     d->GlyphShaftDiameterLabel->setVisible(false);
     d->GlyphShaftDiameterPercent->setVisible(false);
     d->GlyphTipLengthLabel->setVisible(false);
     d->GlyphTipLengthPercent->setVisible(false);
-  }
+    }
   else if (glyphType == vtkMRMLTransformDisplayNode::GLYPH_TYPE_SPHERE)
-  {
+    {
     d->GlyphDiameterMmLabel->setVisible(false);
     d->GlyphDiameterMm->setVisible(false);
     d->GlyphShaftDiameterLabel->setVisible(false);
     d->GlyphShaftDiameterPercent->setVisible(false);
     d->GlyphTipLengthLabel->setVisible(false);
     d->GlyphTipLengthPercent->setVisible(false);
-  }
+    }
 }
 
 //-----------------------------------------------------------------------------
@@ -439,7 +439,7 @@ void qMRMLTransformDisplayNodeWidget::setGridResolutionMm(double resolutionMm)
 {
   Q_D(qMRMLTransformDisplayNodeWidget);
   if (!d->TransformDisplayNode)
-   {
+    {
     return;
     }
   d->TransformDisplayNode->SetGridResolutionMm(resolutionMm);
@@ -461,9 +461,9 @@ void qMRMLTransformDisplayNodeWidget::setContourLevelsMm(QString values_str)
 {
   Q_D(qMRMLTransformDisplayNodeWidget);
   if (!d->TransformDisplayNode)
-   {
+    {
     return;
-   }
+    }
   d->TransformDisplayNode->SetContourLevelsMmFromString(values_str.toLatin1());
 }
 
@@ -551,7 +551,7 @@ void qMRMLTransformDisplayNodeWidget::setVisible3d(bool visible)
 {
   Q_D(qMRMLTransformDisplayNodeWidget);
   if (!d->TransformDisplayNode)
-   {
+    {
     return;
     }
   d->TransformDisplayNode->SetVisibility(visible);
@@ -580,9 +580,9 @@ void qMRMLTransformDisplayNodeWidget::colorUpdateRange()
   // Rescale the chart so that all the points are visible
   vtkColorTransferFunction* colorMap=d->TransformDisplayNode->GetColorMap();
   if (colorMap==NULL)
-   {
+    {
     return;
-   }
+    }
   double range[2] = {0.0, 10.0};
   colorMap->GetRange(range);
   double chartBounds[8] = {0};
@@ -598,9 +598,9 @@ void qMRMLTransformDisplayNodeWidget::onColorInteractionEvent()
 {
   Q_D(qMRMLTransformDisplayNodeWidget);
   if (!d->TransformDisplayNode)
-   {
+    {
     return;
-   }
+    }
   colorUpdateRange();
 }
 
@@ -609,8 +609,8 @@ void qMRMLTransformDisplayNodeWidget::onColorModifiedEvent()
 {
   Q_D(qMRMLTransformDisplayNodeWidget);
   if (!d->TransformDisplayNode)
-   {
+    {
     return;
-   }
+    }
   d->TransformDisplayNode->SetColorMap(d->ColorTransferFunction);
 }

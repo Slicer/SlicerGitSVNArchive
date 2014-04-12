@@ -289,6 +289,9 @@ public:
   /// Get the latest modification time of the stored transform
   unsigned long GetTransformToWorldMTime();
 
+  /// Get a human-readable description of the transformation
+  /// The returned string is stored in a shared buffer therefore the text
+  /// has to be copied.
   const char* GetTransformInfo(vtkAbstractTransform* inputTransform);
 
 protected:

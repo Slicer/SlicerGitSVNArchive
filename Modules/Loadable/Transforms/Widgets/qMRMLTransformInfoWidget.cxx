@@ -100,15 +100,15 @@ void qMRMLTransformInfoWidget::updateWidgetFromMRML()
 {
   Q_D(qMRMLTransformInfoWidget);
   if (d->MRMLTransformNode)
-  {
+    {
     d->TransformToParentInfoTextBrowser->setText(d->MRMLTransformNode->GetTransformToParentInfo());
     d->TransformFromParentInfoTextBrowser->setText(d->MRMLTransformNode->GetTransformFromParentInfo());
-  }
+    }
   else
-  {
+    {
     d->TransformToParentInfoTextBrowser->setText("");
     d->TransformFromParentInfoTextBrowser->setText("");
-  }
+    }
 
   this->setEnabled(d->MRMLTransformNode != 0);
 }

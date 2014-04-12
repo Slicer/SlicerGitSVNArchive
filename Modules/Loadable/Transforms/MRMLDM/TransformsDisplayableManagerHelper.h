@@ -227,8 +227,6 @@ public:
     // The orientation of the volume cannot be set in the image
     // therefore the volume will not appear in the correct position
     // if the direction matrix is not identity.
-    //magnitudeImage->SetSpacing(spacing);
-    //magnitudeImage->SetOrigin(origin);
     magnitudeImage->SetScalarTypeToFloat();
     magnitudeImage->AllocateScalars();
 
@@ -363,7 +361,7 @@ public:
        }
       //Spheres
       case vtkMRMLTransformDisplayNode::GLYPH_TYPE_SPHERE:
-       {
+        {
         vtkNew<vtkSphereSource> sphereSource;
         sphereSource->SetRadius(0.5);
         sphereSource->SetThetaResolution(displayNode->GetGlyphResolution());
@@ -549,7 +547,7 @@ public:
     GetTransformedPointSamplesOnSlice(transformNode, gridPolyData.GetPointer(), sliceToRAS, fieldOfViewOrigin, fieldOfViewSize, pointSpacing, GetGridSubdivision(displayNode), numGridPoints);
 
     if (displayNode->GetGridShowNonWarped())
-     {
+      {
       // Show both the original (non-warped) and the warped grid
 
       // Create the grids

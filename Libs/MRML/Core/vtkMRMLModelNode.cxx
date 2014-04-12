@@ -533,7 +533,7 @@ void vtkMRMLModelNode::GetRASBounds(double bounds[6])
   double boundsLocal[6];
   this->PolyData->GetBounds(boundsLocal);
 
-  TransformBoundsToRAS(boundsLocal, bounds);
+  this->TransformBoundsToRAS(boundsLocal, bounds);
 
 }
 
@@ -555,7 +555,7 @@ void vtkMRMLModelNode::TransformBoundsToRAS(double inputBounds_Local[6], double 
   transformNode->GetTransformToWorld(transformLocalToRAS.GetPointer());
 
   double cornerPoints_Local[8][4] =
-  {
+    {
     {inputBounds_Local[0], inputBounds_Local[2], inputBounds_Local[4], 1},
     {inputBounds_Local[0], inputBounds_Local[3], inputBounds_Local[4], 1},
     {inputBounds_Local[0], inputBounds_Local[2], inputBounds_Local[5], 1},
@@ -564,7 +564,7 @@ void vtkMRMLModelNode::TransformBoundsToRAS(double inputBounds_Local[6], double 
     {inputBounds_Local[1], inputBounds_Local[3], inputBounds_Local[4], 1},
     {inputBounds_Local[1], inputBounds_Local[2], inputBounds_Local[5], 1},
     {inputBounds_Local[1], inputBounds_Local[3], inputBounds_Local[5], 1}
-  };
+    };
 
   // initialize bounds with point 0
   double* cornerPoint_RAS = transformLocalToRAS->TransformDoublePoint(cornerPoints_Local[0]);

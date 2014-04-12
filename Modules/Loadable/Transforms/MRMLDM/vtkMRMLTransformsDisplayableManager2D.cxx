@@ -135,7 +135,7 @@ bool vtkMRMLTransformsDisplayableManager2D::vtkInternal::UseDisplayNode(vtkMRMLD
    // allow annotations to appear only in designated viewers
   if (displayNode && !displayNode->IsDisplayableInView(this->SliceNode->GetID()))
     {
-    return 0;
+    return false;
     }
 
   // Check whether DisplayNode should be shown in this view
@@ -284,9 +284,9 @@ void vtkMRMLTransformsDisplayableManager2D::vtkInternal::UpdateDisplayNodePipeli
   bool visible = this->IsVisible(displayNode);
   pipeline->Actor->SetVisibility(visible);
   if (!visible)
-  {
+    {
     return;
-  }
+    }
 
   vtkMRMLTransformDisplayNode* transformDisplayNode = vtkMRMLTransformDisplayNode::SafeDownCast(displayNode);
 
@@ -429,7 +429,7 @@ void vtkMRMLTransformsDisplayableManager2D::AddDisplayableNode(vtkMRMLDisplayabl
   this->Internal->AddObservations(node);
 
   for (int i=0; i<nnodes; i++)
-  {
+    {
     vtkMRMLDisplayNode *dnode = node->GetNthDisplayNode(i);
     if ( this->Internal->UseDisplayNode(dnode) )
       {

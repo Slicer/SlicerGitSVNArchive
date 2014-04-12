@@ -585,15 +585,15 @@ vtkMRMLStorageNode* vtkMRMLTransformNode::CreateDefaultStorageNode()
 void vtkMRMLTransformNode::CreateDefaultDisplayNodes()
 {
   if (vtkMRMLTransformDisplayNode::SafeDownCast(this->GetDisplayNode())!=NULL)
-  {
+    {
     // display node already exists
     return;
-  }
+    }
   if (this->GetScene()==NULL)
-  {
+    {
     vtkErrorMacro("vtkMRMLTransformNode::CreateDefaultDisplayNodes failed: scene is invalid");
     return;
-  }
+    }
   vtkNew<vtkMRMLTransformDisplayNode> dispNode;
   this->GetScene()->AddNode(dispNode.GetPointer());
   this->SetAndObserveDisplayNodeID(dispNode->GetID());
@@ -916,17 +916,17 @@ unsigned long vtkMRMLTransformNode::GetTransformToWorldMTime()
 const char* vtkMRMLTransformNode::GetTransformToParentInfo()
 {
   if (this->TransformToParent==NULL)
-  {
+    {
     if (this->TransformFromParent==NULL)
-    {
+      {
       this->TransformInfo="Not specified";
-    }
+      }
     else
-    {
+      {
       this->TransformInfo="Computed by inverting transform from parent.";
-    }
+      }
     return this->TransformInfo.c_str();
-  }
+    }
   return GetTransformInfo(this->TransformToParent);
 }
 
@@ -934,18 +934,18 @@ const char* vtkMRMLTransformNode::GetTransformToParentInfo()
 const char* vtkMRMLTransformNode::GetTransformFromParentInfo()
 {
   if (this->TransformFromParent==NULL)
-  {
+    {
     if (this->TransformToParent==NULL)
-    {
+      {
       this->TransformInfo="Not specified";
-    }
+      }
     else
-    {
+      {
       this->TransformInfo="Computed by inverting transform to parent.";
-    }
+      }
     return this->TransformInfo.c_str();
-  }
-  return GetTransformInfo(this->TransformFromParent);
+    }
+  return this->GetTransformInfo(this->TransformFromParent);
 }
 
 
@@ -954,18 +954,18 @@ const char* vtkMRMLTransformNode::GetTransformInfo(vtkAbstractTransform* inputTr
 {
   this->TransformInfo="Not specified";
   if (inputTransform==NULL)
-  {
+    {
     // invalid
     return this->TransformInfo.c_str();
-  }
+    }
   vtkNew<vtkCollection> transformList;
-  FlattenGeneralTransform(transformList.GetPointer(), inputTransform);
+  this->FlattenGeneralTransform(transformList.GetPointer(), inputTransform);
 
   if (transformList->GetNumberOfItems()==0)
-  {
+    {
     // empty generic transform
     return this->TransformInfo.c_str();
-  }
+    }
 
   std::stringstream ss;
   vtkAbstractTransform* concatenatedTransform = NULL;
@@ -993,10 +993,29 @@ const char* vtkMRMLTransformNode::GetTransformInfo(vtkAbstractTransform* inputTr
       ss << " B-spline:";
       unsigned int gridSize[3]={0};
       bsplineTransform->GetGridSize(gridSize);
-      ss << std::endl << "  Grid size: " << gridSize[0] << "x" << gridSize[1] << "x" <<gridSize[2] <<".";
-      if (bsplineTransform->GetBulkTransform()!=0)
+      ss << std::endl << "  Grid size: " << gridSize[0] << " " << gridSize[1] << " " <<gridSize[2] <<".";
+      double gridOrigin[3]={0,0,0};
+      bsplineTransform->GetGridOrigin(gridOrigin);
+      ss << std::endl << "  Grid origin: " << gridOrigin[0] << " " << gridOrigin[1] << " " <<gridOrigin[2] <<".";
+      double gridSpacing[3]={1,1,1};
+      bsplineTransform->GetGridSpacing(gridSpacing);
+      ss << std::endl << "  Grid spacing: " << gridSpacing[0] << " " << gridSpacing[1] << " " <<gridSpacing[2] <<".";
+      const vtkITKBSplineTransform::BulkTransformType* bulkTransform=bsplineTransform->GetBulkTransform();
+      if (bulkTransform!=0)
         {
-        ss << std::endl << "  Bulk transform is used.";
+        ss << std::endl << "  Bulk transform:";
+        vtkITKBSplineTransform::BulkTransformType::ParametersType params = bulkTransform->GetParameters();
+        if (params.size()==12)
+          {
+          // affine transform
+          ss << std::endl <<"    "<<params.get(0)<<"  "<<params.get(1)<<"  "<<params.get(2)<<"  "<<params.get(9);
+          ss << std::endl <<"    "<<params.get(3)<<"  "<<params.get(4)<<"  "<<params.get(5)<<"  "<<params.get(10);
+          ss << std::endl <<"    "<<params.get(6)<<"  "<<params.get(7)<<"  "<<params.get(8)<<"  "<<params.get(11);
+          }
+        else
+          {
+          ss << " present";
+          }
         }
       if (bsplineTransform->GetInverseFlag())
         {
@@ -1010,7 +1029,11 @@ const char* vtkMRMLTransformNode::GetTransformInfo(vtkAbstractTransform* inputTr
       if (displacementField!=NULL)
         {
         int* extent=displacementField->GetExtent();
-        ss << std::endl << "  Grid size: " << extent[1]-extent[0] << "x" << extent[3]-extent[2] << "x" << extent[5]-extent[4]<<".";
+        ss << std::endl << "  Grid size: " << extent[1]-extent[0] << " " << extent[3]-extent[2] << " " << extent[5]-extent[4]<<".";
+        double* origin=displacementField->GetOrigin();
+        ss << std::endl << "  Grid origin: " << origin[0] << " " << origin[1] << " " << origin[2]<<".";
+        double* spacing=displacementField->GetSpacing();
+        ss << std::endl << "  Grid spacing: " << spacing[0] << " " << spacing[1] << " " << spacing[2]<<".";
         }
       else
         {

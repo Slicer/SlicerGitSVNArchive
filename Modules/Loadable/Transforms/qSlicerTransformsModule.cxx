@@ -124,6 +124,7 @@ QStringList qSlicerTransformsModule::contributors()const
   moduleContributors << QString("Jean-Christophe Fillion-Robin (Kitware)");
   moduleContributors << QString("Julien Finet (Kitware)");
   moduleContributors << QString("Andras Lasso (PerkLab, Queen's)");
+  moduleContributors << QString("Franklin King (PerkLab, Queen's)");
   return moduleContributors;
 }
 

@@ -738,7 +738,7 @@ vtkProp3D * vtkMRMLTransformsDisplayableManager3D::GetActorByID(const char *id)
 {
   if ( !id )
     {
-    return (0);
+    return 0;
     }
 
   std::map<std::string, vtkProp3D *>::iterator iter;
@@ -751,7 +751,7 @@ vtkProp3D * vtkMRMLTransformsDisplayableManager3D::GetActorByID(const char *id)
       return (iter->second);
       }
     }
-  return (0);
+  return 0;
 }
 
 //---------------------------------------------------------------------------
@@ -761,7 +761,7 @@ const char * vtkMRMLTransformsDisplayableManager3D::GetIDByActor(vtkProp3D *acto
 {
   if ( !actor )
     {
-    return (0);
+    return 0;
     }
 
   std::map<std::string, vtkProp3D *>::iterator iter;
@@ -774,5 +774,5 @@ const char * vtkMRMLTransformsDisplayableManager3D::GetIDByActor(vtkProp3D *acto
       return (iter->first.c_str());
       }
     }
-  return (0);
+  return 0;
 }

@@ -265,17 +265,17 @@ void vtkTransformVisualizerGlyph3D::PrintSelf(ostream& os, vtkIndent indent)
 //------------------------------------------------------------------------------
 void vtkTransformVisualizerGlyph3D::SetColorArray(const char* colorArrayName)
 {
-  SetInputArrayToProcess(ARRAY_INDEX_COLORS,0,0,vtkDataObject::FIELD_ASSOCIATION_POINTS,colorArrayName);
+  this->SetInputArrayToProcess(ARRAY_INDEX_COLORS,0,0,vtkDataObject::FIELD_ASSOCIATION_POINTS,colorArrayName);
 }
 
 //------------------------------------------------------------------------------
 void vtkTransformVisualizerGlyph3D::SetVectorArray(const char* vectorArrayName)
 {
-  SetInputArrayToProcess(ARRAY_INDEX_VECTORS,0,0,vtkDataObject::FIELD_ASSOCIATION_POINTS,vectorArrayName);
+  this->SetInputArrayToProcess(ARRAY_INDEX_VECTORS,0,0,vtkDataObject::FIELD_ASSOCIATION_POINTS,vectorArrayName);
 }
 
 //------------------------------------------------------------------------------
 void vtkTransformVisualizerGlyph3D::SetScalarArray(const char* scalarArrayName)
 {
-  SetInputArrayToProcess(ARRAY_INDEX_SCALARS,0,0,vtkDataObject::FIELD_ASSOCIATION_POINTS,scalarArrayName);
+  this->SetInputArrayToProcess(ARRAY_INDEX_SCALARS,0,0,vtkDataObject::FIELD_ASSOCIATION_POINTS,scalarArrayName);
 }
