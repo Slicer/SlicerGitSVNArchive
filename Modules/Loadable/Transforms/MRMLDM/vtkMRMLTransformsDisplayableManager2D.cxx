@@ -24,7 +24,7 @@
 // MRMLDisplayableManager includes
 #include "vtkMRMLTransformsDisplayableManager2D.h"
 
-#include "TransformsDisplayableManagerHelper.h"
+#include "vtkSlicerTransformLogic.h"
 
 // MRML includes
 #include <vtkMRMLProceduralColorNode.h>
@@ -38,6 +38,7 @@
 // VTK includes
 #include <vtkActor2D.h>
 #include <vtkCallbackCommand.h>
+#include <vtkColorTransferFunction.h>
 #include <vtkEventBroker.h>
 #include <vtkMatrix4x4.h>
 #include <vtkNew.h>
@@ -345,12 +346,8 @@ void vtkMRMLTransformsDisplayableManager2D::vtkInternal::UpdateDisplayNodePipeli
 
   vtkMRMLTransformDisplayNode* transformDisplayNode = vtkMRMLTransformDisplayNode::SafeDownCast(displayNode);
 
-  vtkMatrix4x4* sliceToRAS=this->SliceNode->GetSliceToRAS();
-  double* fieldOfViewSize=this->SliceNode->GetFieldOfView();
-  double* fieldOfViewOrigin=this->SliceNode->GetXYZOrigin();
-
   vtkSmartPointer<vtkPolyData> polyData = vtkSmartPointer<vtkPolyData>::New();
-  TransformsDisplayableManagerHelper::GetVisualization2d(transformDisplayNode, polyData, sliceToRAS, fieldOfViewOrigin, fieldOfViewSize);
+  vtkSlicerTransformLogic::GetVisualization2d(polyData, transformDisplayNode, this->SliceNode);
 
   pipeline->Transformer->SetInput(polyData);
 
@@ -384,7 +381,7 @@ void vtkMRMLTransformsDisplayableManager2D::vtkInternal::UpdateDisplayNodePipeli
       mapper->SetLookupTable(colorTransferFunctionCopy.GetPointer());
       mapper->SetScalarModeToUsePointData();
       mapper->SetColorModeToMapScalars();
-      mapper->ColorByArrayComponent(const_cast<char*>(TransformsDisplayableManagerHelper::GetDisplacementMagnitudeScalarName()),0);
+      mapper->ColorByArrayComponent(const_cast<char*>(vtkSlicerTransformLogic::GetVisualizationDisplacementMagnitudeScalarName()),0);
       mapper->UseLookupTableScalarRangeOff();
       mapper->SetScalarRange(displayNode->GetScalarRange());
       scalarVisibility = true;

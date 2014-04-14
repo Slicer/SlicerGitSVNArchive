@@ -23,13 +23,15 @@
 
 // MRMLDisplayableManager includes
 #include "vtkMRMLTransformsDisplayableManager3D.h"
-#include "TransformsDisplayableManagerHelper.h"
+
+#include "vtkSlicerTransformLogic.h"
 
 // MRML includes
 #include <vtkEventBroker.h>
 #include <vtkMRMLProceduralColorNode.h>
 #include <vtkMRMLScene.h>
 #include <vtkMRMLTransformDisplayNode.h>
+#include <vtkMRMLTransformNode.h>
 #include <vtkMRMLViewNode.h>
 
 // VTK includes
@@ -39,6 +41,7 @@
 #include <vtkMatrix4x4.h>
 #include <vtkNew.h>
 #include <vtkObjectFactory.h>
+#include <vtkPolyData.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
 #include <vtkRenderWindowInteractor.h>
@@ -311,58 +314,12 @@ void vtkMRMLTransformsDisplayableManager3D::vtkInternal::UpdateDisplayNodePipeli
     return;
     }
 
-  vtkNew<vtkMatrix4x4> ijkToRAS;
-  int regionSize_IJK[3]={0};
-  vtkMRMLSliceNode* sliceNode=vtkMRMLSliceNode::SafeDownCast(regionNode);
-  vtkMRMLDisplayableNode* displayableNode=vtkMRMLDisplayableNode::SafeDownCast(regionNode);
-  if (sliceNode!=NULL)
-   {
-    double pointSpacing=displayNode->GetGlyphSpacingMm();
-
-    vtkMatrix4x4* sliceToRAS=sliceNode->GetSliceToRAS();
-    double* fieldOfViewSize=sliceNode->GetFieldOfView();
-    double* fieldOfViewOrigin=sliceNode->GetXYZOrigin();
-
-    int numOfPointsX=floor(fieldOfViewSize[0]/pointSpacing+0.5);
-    int numOfPointsY=floor(fieldOfViewSize[1]/pointSpacing+0.5);
-    double xOfs = -fieldOfViewSize[0]/2+fieldOfViewOrigin[0];
-    double yOfs = -fieldOfViewSize[1]/2+fieldOfViewOrigin[1];
-
-    ijkToRAS->DeepCopy(sliceToRAS);
-    vtkNew<vtkMatrix4x4> ijkOffset;
-    ijkOffset->Element[0][3]=xOfs;
-    ijkOffset->Element[1][3]=yOfs;
-    vtkMatrix4x4::Multiply4x4(ijkToRAS.GetPointer(),ijkOffset.GetPointer(),ijkToRAS.GetPointer());
-    vtkNew<vtkMatrix4x4> voxelSpacing;
-    voxelSpacing->Element[0][0]=pointSpacing;
-    voxelSpacing->Element[1][1]=pointSpacing;
-    voxelSpacing->Element[2][2]=pointSpacing;
-    vtkMatrix4x4::Multiply4x4(ijkToRAS.GetPointer(),voxelSpacing.GetPointer(),ijkToRAS.GetPointer());
-
-    regionSize_IJK[0]=numOfPointsX;
-    regionSize_IJK[1]=numOfPointsY;
-    regionSize_IJK[2]=0;
-    }
-  else if (displayableNode!=NULL)
-    {
-    double bounds_RAS[6]={0};
-    displayableNode->GetRASBounds(bounds_RAS);
-    ijkToRAS->SetElement(0,3,bounds_RAS[0]);
-    ijkToRAS->SetElement(1,3,bounds_RAS[2]);
-    ijkToRAS->SetElement(2,3,bounds_RAS[4]);
-    regionSize_IJK[0]=floor(bounds_RAS[1]-bounds_RAS[0]);
-    regionSize_IJK[1]=floor(bounds_RAS[3]-bounds_RAS[2]);
-    regionSize_IJK[2]=floor(bounds_RAS[5]-bounds_RAS[4]);
-    }
-  else
-   {
+  if (!vtkSlicerTransformLogic::GetVisualization3d(pipeline->InputPolyData, displayNode, regionNode))
+  {
     vtkWarningWithObjectMacro(displayNode, "Failed to show transform in 3D: unsupported ROI type");
     pipeline->Actor->SetVisibility(false);
     return;
-    }
-  TransformsDisplayableManagerHelper::GetVisualization3d(displayNode, pipeline->InputPolyData, ijkToRAS.GetPointer(), regionSize_IJK);
-
-  //pipeline->Actor->Update();
+  }
 
   if (pipeline->InputPolyData->GetNumberOfPoints()==0)
     {
@@ -457,7 +414,7 @@ void vtkMRMLTransformsDisplayableManager3D::vtkInternal::SetTransformDisplayProp
       mapper->SetLookupTable(colorTransferFunctionCopy.GetPointer());
       mapper->SetScalarModeToUsePointData();
       mapper->SetColorModeToMapScalars();
-      mapper->SelectColorArray(TransformsDisplayableManagerHelper::GetDisplacementMagnitudeScalarName());
+      mapper->SelectColorArray(vtkSlicerTransformLogic::GetVisualizationDisplacementMagnitudeScalarName());
       mapper->UseLookupTableScalarRangeOff();
       mapper->SetScalarRange(displayNode->GetScalarRange());
       scalarVisibility = true;

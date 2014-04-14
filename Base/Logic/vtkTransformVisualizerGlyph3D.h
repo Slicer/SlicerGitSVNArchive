@@ -23,7 +23,7 @@
 #ifndef __vtkTransformVisualizerGlyph3D_h
 #define __vtkTransformVisualizerGlyph3D_h
 
-#include "vtkSlicerTransformsModuleMRMLDisplayableManagerExport.h"
+#include "vtkSlicerBaseLogic.h"
 
 #include "vtkGlyph3D.h"
 
@@ -42,7 +42,7 @@
 /// - Vector: only VTK_USE_VECTOR (oriented and scaled by active vector)
 /// - Indexing: not supported
 ///
-class VTK_SLICER_TRANSFORMS_MODULE_MRMLDISPLAYABLEMANAGER_EXPORT vtkTransformVisualizerGlyph3D : public vtkGlyph3D
+class VTK_SLICER_BASE_LOGIC_EXPORT vtkTransformVisualizerGlyph3D : public vtkGlyph3D
 {
 public:
   vtkTypeMacro(vtkTransformVisualizerGlyph3D,vtkGlyph3D);
