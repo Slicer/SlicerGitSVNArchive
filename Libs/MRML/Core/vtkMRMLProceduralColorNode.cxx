@@ -12,7 +12,9 @@ Version:   $Revision: 1.0 $
 
 =========================================================================auto=*/
 
+// MRML includes
 #include "vtkMRMLProceduralColorNode.h"
+#include "vtkMRMLProceduralColorStorageNode.h"
 
 // VTK includes
 #include <vtkColorTransferFunction.h>
@@ -33,7 +35,6 @@ vtkMRMLProceduralColorNode::vtkMRMLProceduralColorNode()
   this->Name = NULL;
   this->SetName("");
   this->FileName = NULL;
-  this->StoreColorTransferFunctionInScene = true;
 
   this->ColorTransferFunction = NULL;
   vtkColorTransferFunction* ctf=vtkColorTransferFunction::New();
@@ -51,14 +52,9 @@ vtkMRMLProceduralColorNode::~vtkMRMLProceduralColorNode()
 void vtkMRMLProceduralColorNode::WriteXML(ostream& of, int nIndent)
 {
   // Write all attributes not equal to their defaults
+
   Superclass::WriteXML(of, nIndent);
 
-  vtkIndent indent(nIndent);
-
-  if (this->GetStoreColorTransferFunctionInScene())
-    {
-    of << indent << " ColorMap=\""<< this->GetColorMapAsString() << "\"";
-    }
 }
 
 //----------------------------------------------------------------------------
@@ -66,35 +62,41 @@ void vtkMRMLProceduralColorNode::ReadXMLAttributes(const char** atts)
 {
   Superclass::ReadXMLAttributes(atts);
 
-  const char* attName;
-  const char* attValue;
-  while (*atts != NULL)
-    {
-    attName = *(atts++);
-    attValue = *(atts++);
-
-    if (!strcmp(attName,"ColorMap"))
-      {
-      if (this->GetStoreColorTransferFunctionInScene())
-        {
-        SetColorMapFromString(attValue);
-        }
-      continue;
-      }
-    }
-
 }
 
 
 //----------------------------------------------------------------------------
-// Copy the node's attributes to this object.
-// Does NOT copy: ID, FilePrefix, Name, ID
+// Copy the anode's attributes to this object.
 void vtkMRMLProceduralColorNode::Copy(vtkMRMLNode *anode)
 {
   Superclass::Copy(anode);
   vtkMRMLProceduralColorNode *node = (vtkMRMLProceduralColorNode *) anode;
+  if (!node)
+    {
+    vtkWarningMacro("Copy: Input node is not a procedural color node!");
+    return;
+    }
 
-  this->DeepCopyColorTransferFunction(node->GetColorTransferFunction());
+  int oldModified=this->StartModify();
+  if (node->GetColorTransferFunction()!=NULL)
+    {
+    if (this->ColorTransferFunction==NULL)
+      {
+      vtkColorTransferFunction* ctf=vtkColorTransferFunction::New();
+      this->SetAndObserveColorTransferFunction(ctf);
+      ctf->Delete();
+      }
+    if (!vtkMRMLProceduralColorNode::IsColorMapEqual(node->GetColorTransferFunction(),this->ColorTransferFunction))
+      {
+      this->ColorTransferFunction->DeepCopy(node->GetColorTransferFunction());
+      }
+    }
+  else
+    {
+    this->SetAndObserveColorTransferFunction(NULL);
+    }
+  this->EndModify(oldModified);
+
 }
 
 //----------------------------------------------------------------------------
@@ -138,6 +140,11 @@ vtkScalarsToColors* vtkMRMLProceduralColorNode::GetScalarsToColors()
 //---------------------------------------------------------------------------
 const char * vtkMRMLProceduralColorNode::GetTypeAsString()
 {
+  const char *type = Superclass::GetTypeAsString();
+  if (type && strcmp(type,"(unknown)") != 0)
+    {
+    return type;
+    }
   return this->GetName();
 }
 
@@ -181,6 +188,10 @@ int vtkMRMLProceduralColorNode::GetNumberOfColors()
     }
   return numPoints;
   */
+  if (this->ColorTransferFunction==NULL)
+    {
+    return 0;
+    }
   return this->ColorTransferFunction->GetSize();
 }
 
@@ -211,6 +222,12 @@ bool vtkMRMLProceduralColorNode::GetColor(int entry, double* color)
   return true;
 }
 
+//---------------------------------------------------------------------------
+vtkMRMLStorageNode * vtkMRMLProceduralColorNode::CreateDefaultStorageNode()
+{
+  return vtkMRMLProceduralColorStorageNode::New();
+}
+
 //----------------------------------------------------------------------------
 void vtkMRMLProceduralColorNode::SetAndObserveColorTransferFunction(vtkColorTransferFunction *ctf)
 {
@@ -236,66 +253,9 @@ void vtkMRMLProceduralColorNode::SetAndObserveColorTransferFunction(vtkColorTran
 }
 
 //----------------------------------------------------------------------------
-std::string vtkMRMLProceduralColorNode::GetColorMapAsString()
-{
-  if (this->ColorTransferFunction==NULL)
-    {
-    return "";
-    }
-  int arraySize=this->ColorTransferFunction->GetSize()*4;
-  double* doubleArray=this->ColorTransferFunction->GetDataPointer();
-  std::stringstream ss;
-  for (int i=0; i<arraySize; i++)
-    {
-    if (i>0)
-      {
-      ss << ' ';
-      }
-    ss << doubleArray[i];
-    }
-  return ss.str();
-}
-
-//----------------------------------------------------------------------------
-void vtkMRMLProceduralColorNode::SetColorMapFromString(const char* str)
-{
-  if (this->ColorTransferFunction==NULL)
-    {
-    vtkErrorMacro("Failed to set colormap from string: colormap is unavailable");
-    return;
-    }
-
-  std::vector<double> values;
-  std::stringstream ss(str);
-  std::string itemString;
-  double itemDouble;
-  while (std::getline(ss, itemString, ' '))
-    {
-    std::stringstream itemStream;
-    itemStream << itemString;
-    itemStream >> itemDouble;
-    values.push_back(itemDouble);
-    }
-
-  if (values.size()%4!=0)
-    {
-    vtkErrorMacro("vtkMRMLProceduralColorNode::SetColorTransferFunctionFromString failed: N*4 values are expected");
-    return;
-    }
-
-  if (values.size()==0)
-    {
-    vtkErrorMacro("vtkMRMLProceduralColorNode::SetColorTransferFunctionFromString failed: no values are defined");
-    return;
-    }
-
-  this->ColorTransferFunction->FillFromDataPointer(values.size()/4,&(values[0]));
-}
-
-//----------------------------------------------------------------------------
 bool vtkMRMLProceduralColorNode::IsColorMapEqual(vtkColorTransferFunction* tf1, vtkColorTransferFunction* tf2)
 {
-  if (tf1==NULL && tf2==NULL)
+  if (tf1==tf2)
     {
     return true;
     }
@@ -307,36 +267,23 @@ bool vtkMRMLProceduralColorNode::IsColorMapEqual(vtkColorTransferFunction* tf1, 
     {
     return false;
     }
-  int n=4*tf1->GetSize();
-  if (n==0)
+  const int NUMBER_OF_VALUES_PER_POINT=6; // x, red, green, blue, midpoint, sharpness
+  double values1[NUMBER_OF_VALUES_PER_POINT]={0};
+  double values2[NUMBER_OF_VALUES_PER_POINT]={0};
+  int numberOfPoints=tf1->GetSize();
+  for (int pointIndex = 0; pointIndex < numberOfPoints; ++pointIndex)
     {
-    return true;
-    }
-  double* dp1=tf1->GetDataPointer();
-  double* dp2=tf2->GetDataPointer();
-  for (int i=0; i<n; i++)
-    {
-    if (dp1[i] != dp2[i])
+    tf1->GetNodeValue(pointIndex, values1);
+    tf2->GetNodeValue(pointIndex, values2);
+    for (int valueIndex=0; valueIndex<NUMBER_OF_VALUES_PER_POINT; ++valueIndex)
       {
-      return false;
+      if (values1[valueIndex]!=values2[valueIndex])
+        {
+        // found a difference
+        return false;
+        }
       }
     }
+  // found no difference
   return true;
-}
-
-//----------------------------------------------------------------------------
-void vtkMRMLProceduralColorNode::DeepCopyColorTransferFunction(vtkColorTransferFunction* newColorTransferFunction)
-{
-  int oldModified=this->StartModify();
-  if (this->ColorTransferFunction==NULL)
-    {
-    vtkColorTransferFunction* ctf=vtkColorTransferFunction::New();
-    this->SetAndObserveColorTransferFunction(ctf);
-    ctf->Delete();
-    }
-  if (!vtkMRMLProceduralColorNode::IsColorMapEqual(newColorTransferFunction,this->ColorTransferFunction))
-    {
-    this->ColorTransferFunction->DeepCopy(newColorTransferFunction);
-    }
-  this->EndModify(oldModified);
 }

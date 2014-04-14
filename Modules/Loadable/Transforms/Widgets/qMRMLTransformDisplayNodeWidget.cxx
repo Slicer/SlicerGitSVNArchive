@@ -341,8 +341,10 @@ void qMRMLTransformDisplayNodeWidget::setGlyphDisplayRangeMm(double min, double 
     {
     return;
     }
+  int oldModify=d->TransformDisplayNode->StartModify();
   d->TransformDisplayNode->SetGlyphDisplayRangeMinMm(min);
   d->TransformDisplayNode->SetGlyphDisplayRangeMaxMm(max);
+  d->TransformDisplayNode->EndModify(oldModify);
 }
 
 //-----------------------------------------------------------------------------

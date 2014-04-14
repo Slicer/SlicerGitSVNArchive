@@ -482,6 +482,10 @@ void vtkMRMLTransformDisplayNode::SetDefaultColors()
   vtkNew<vtkMRMLProceduralColorNode> colorNode;
   colorNode->SetName(this->GetScene()->GenerateUniqueName(DEFAULT_COLOR_TABLE_NAME).c_str());
   colorNode->SetAttribute("Category", "Transform display");
+  // The color node is a procedural color node, which is saved using a storage node.
+  // Hidden nodes are not saved if they use a storage node, therefore
+  // the color node must be visible.
+  colorNode->SetHideFromEditors(false);
 
   vtkColorTransferFunction* colorMap=colorNode->GetColorTransferFunction();
   // Map: mm -> RGB
@@ -526,7 +530,15 @@ void vtkMRMLTransformDisplayNode::SetColorMap(vtkColorTransferFunction* newColor
     }
   if (colorNode!=NULL)
     {
-    colorNode->DeepCopyColorTransferFunction(newColorMap);
+    if (colorNode->GetColorTransferFunction()==NULL)
+      {
+      vtkNew<vtkColorTransferFunction> ctf;
+      colorNode->SetAndObserveColorTransferFunction(ctf.GetPointer());
+      }
+    if (!vtkMRMLProceduralColorNode::IsColorMapEqual(colorNode->GetColorTransferFunction(),newColorMap))
+      {
+      colorNode->GetColorTransferFunction()->DeepCopy(newColorMap);
+      }
     }
   else
     {

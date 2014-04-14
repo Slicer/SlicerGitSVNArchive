@@ -25,9 +25,6 @@ vtkMRMLNodeNewMacro(vtkMRMLdGEMRICProceduralColorNode);
 //----------------------------------------------------------------------------
 vtkMRMLdGEMRICProceduralColorNode::vtkMRMLdGEMRICProceduralColorNode()
 {
-  // We generate the color transfer function programmatically,
-  // so there is no need to save it with the scene
-  this->StoreColorTransferFunctionInScene = false;
 }
 
 //----------------------------------------------------------------------------

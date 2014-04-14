@@ -20,7 +20,6 @@
 
 ==============================================================================*/
 
-
 #ifndef __vtkMRMLTransformsDisplayableManager2D_h
 #define __vtkMRMLTransformsDisplayableManager2D_h
 
@@ -41,8 +40,7 @@ class VTK_SLICER_TRANSFORMS_MODULE_MRMLDISPLAYABLEMANAGER_EXPORT vtkMRMLTransfor
 
 public:
   static vtkMRMLTransformsDisplayableManager2D* New();
-  vtkTypeMacro(vtkMRMLTransformsDisplayableManager2D,
-                       vtkMRMLAbstractSliceViewDisplayableManager);
+  vtkTypeMacro(vtkMRMLTransformsDisplayableManager2D, vtkMRMLAbstractSliceViewDisplayableManager);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   // DisplayableNode handling customizations
@@ -59,15 +57,18 @@ protected:
   virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node);
   virtual void ProcessMRMLNodesEvents(vtkObject* caller, unsigned long event, void* callData);
 
+  /// Update Actors based on models in the scene
   virtual void UpdateFromMRML();
+
   virtual void OnMRMLSceneStartClose();
   virtual void OnMRMLSceneEndClose();
+
   virtual void OnMRMLSceneEndBatchProcess();
 
   /// Initialize the displayable manager based on its associated
   /// vtkMRMLSliceNode
   virtual void Create();
-  int AddingDisplayableNode;
+  bool AddingDisplayableNode;
 
 private:
 

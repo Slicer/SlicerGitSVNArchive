@@ -1,16 +1,24 @@
-/*=========================================================================
+/*==============================================================================
 
-  Copyright 2005 Brigham and Women's Hospital (BWH) All Rights Reserved.
+  Program: 3D Slicer
+
+  Portions (c) Copyright Brigham and Women's Hospital (BWH) All Rights Reserved.
 
   See COPYRIGHT.txt
   or http://www.slicer.org/copyright/copyright.txt for details.
 
-  Program:   SlicerViewerWidget
-  Module:    $HeadURL: http://svn.slicer.org/Slicer4/trunk/Base/GUI/vtkMRMLTransformsDisplayableManager3D.h $
-  Date:      $Date: 2010-05-12 08:34:19 -0400 (Wed, 12 May 2010) $
-  Version:   $Revision: 13332 $
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
 
-==========================================================================*/
+  This file was originally developed by Andras Lasso and Franklin King at
+  PerkLab, Queen's University and was supported through the Applied Cancer
+  Research Unit program of Cancer Care Ontario with funds provided by the
+  Ontario Ministry of Health and Long-Term Care.
+
+==============================================================================*/
 
 #ifndef __vtkMRMLTransformsDisplayableManager3D_h
 #define __vtkMRMLTransformsDisplayableManager3D_h
@@ -20,34 +28,15 @@
 
 #include "vtkSlicerTransformsModuleMRMLDisplayableManagerExport.h"
 
-// MRML includes
-class vtkMRMLDisplayNode;
-class vtkMRMLDisplayableNode;
-
-// VTK includes
-#include "vtkRenderWindow.h"
+class vtkMRMLTransformNode;
+class vtkMRMLTransformDisplayNode;
 class vtkActor;
-class vtkActorText;
-class vtkBoundingBox;
-class vtkCellArray;
-class vtkCellPicker;
-class vtkClipPolyData;
-class vtkFollower;
-class vtkImplicitBoolean;
-class vtkMatrix4x4;
-class vtkPMatrix4x4;
-class vtkPlane;
-class vtkPlane;
-class vtkPointPicker;
-class vtkPolyData;
-class vtkProp3D;
-class vtkPropPicker;
-class vtkWorldPointPicker;
 
 /// \brief Display transforms in 3D views
 ///
 /// Creates corresponding actor for each transform display node in the scene.
 /// Adapted from the model display node.
+///
 class VTK_SLICER_TRANSFORMS_MODULE_MRMLDISPLAYABLEMANAGER_EXPORT vtkMRMLTransformsDisplayableManager3D
   : public vtkMRMLAbstractThreeDViewDisplayableManager
 {
@@ -56,16 +45,9 @@ public:
   vtkTypeMacro(vtkMRMLTransformsDisplayableManager3D,vtkMRMLAbstractThreeDViewDisplayableManager);
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  /// Return the current model actor corresponding to a give MRML ID
-  vtkProp3D *GetActorByID(const char *id);
-
-  /// Return the current node ID corresponding to a given vtkProp3D
-  const char *GetIDByActor(vtkProp3D *actor);
-
-  /// Return true if the node can be represented as a model
-  bool IsTransformDisplayable(vtkMRMLDisplayableNode* node)const;
-  /// Return true if the display node is a model
-  bool IsTransformDisplayable(vtkMRMLDisplayNode* node)const;
+  // DisplayableNode handling customizations
+  void AddDisplayableNode(vtkMRMLTransformNode* displayableNode);
+  void RemoveDisplayableNode(vtkMRMLTransformNode* displayableNode);
 
 protected:
 
@@ -73,21 +55,31 @@ protected:
   virtual ~vtkMRMLTransformsDisplayableManager3D();
 
   virtual void UnobserveMRMLScene();
+  virtual void OnMRMLSceneNodeAdded(vtkMRMLNode* node);
+  virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node);
+  virtual void ProcessMRMLNodesEvents(vtkObject* caller, unsigned long event, void* callData);
+
+  /// Update Actors based on models in the scene
+  virtual void UpdateFromMRML();
 
   virtual void OnMRMLSceneStartClose();
   virtual void OnMRMLSceneEndClose();
-  virtual void UpdateFromMRMLScene();
-  virtual void OnMRMLSceneNodeAdded(vtkMRMLNode* node);
-  virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node);
 
-  virtual void ProcessMRMLNodesEvents(vtkObject *caller, unsigned long event, void *callData);
+  virtual void OnMRMLSceneEndBatchProcess();
+
+  virtual void SetModelDisplayProperty(vtkMRMLTransformDisplayNode *displayNode, vtkActor* actor);
+/*
+
+  virtual void UpdateFromMRMLScene();
+
+  /// Return true if the node can be represented as a model
+  bool IsTransformDisplayable(vtkMRMLDisplayableNode* node)const;
+  /// Return true if the display node is a model
+  bool IsTransformDisplayable(vtkMRMLDisplayNode* node)const;
 
   /// Returns true if something visible in transformNode has changed and would
   /// require a refresh.
   bool OnMRMLDisplayableNodeModifiedEvent(vtkMRMLDisplayableNode * transformNode);
-
-  /// Updates Actors based on models in the scene
-  void UpdateFromMRML();
 
   virtual void RemoveMRMLObservers();
 
@@ -103,10 +95,13 @@ protected:
   void UpdateModelPolyData(vtkMRMLDisplayableNode *model);
   void UpdateModifiedModel(vtkMRMLDisplayableNode *model);
 
-  void SetModelDisplayProperty(vtkMRMLDisplayableNode *model);
   int GetDisplayedModelsVisibility(vtkMRMLDisplayNode *model);
 
   void RemoveDispalyedID(std::string &id);
+
+*/
+
+  bool AddingDisplayableNode;
 
 private:
 
@@ -115,7 +110,7 @@ private:
 
   class vtkInternal;
   vtkInternal* Internal;
-
+  friend class vtkInternal;
 };
 
 #endif

@@ -780,7 +780,7 @@ public:
 
     displayNode->EndModify(oldModify);
   }
-
+/*
   /// Return the glyph polydata for the input slice image.
   /// This is the polydata to use in a 3D view.
   /// Reimplemented to by-pass the check on the input polydata.
@@ -866,7 +866,7 @@ public:
 
     return cachedPolyData;
   }
-
+*/
 };
 
 #endif

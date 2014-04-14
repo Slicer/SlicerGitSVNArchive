@@ -54,9 +54,6 @@
 #include <vtkWeakPointer.h>
 #include <vtkPointLocator.h>
 
-
-// VTK includes: customization
-
 // STD includes
 #include <algorithm>
 #include <cassert>
@@ -70,11 +67,13 @@ vtkStandardNewMacro(vtkMRMLTransformsDisplayableManager2D );
 class vtkMRMLTransformsDisplayableManager2D::vtkInternal
 {
 public:
+  vtkInternal( vtkMRMLTransformsDisplayableManager2D* external );
+  ~vtkInternal();
   struct Pipeline
     {
+    vtkSmartPointer<vtkProp> Actor;
     vtkSmartPointer<vtkTransform> TransformToSlice;
     vtkSmartPointer<vtkTransformPolyDataFilter> Transformer;
-    vtkSmartPointer<vtkProp> Actor;
     };
 
   typedef std::map < vtkMRMLDisplayNode*, const Pipeline* > PipelinesCacheType;
@@ -107,9 +106,6 @@ public:
   bool UseDisplayableNode(vtkMRMLDisplayableNode* displayNode);
   void ClearDisplayableNodes();
 
-  vtkInternal( vtkMRMLTransformsDisplayableManager2D* external );
-  ~vtkInternal();
-
 private:
   vtkSmartPointer<vtkMRMLSliceNode> SliceNode;
   vtkMRMLTransformsDisplayableManager2D* External;
@@ -117,9 +113,11 @@ private:
 
 //---------------------------------------------------------------------------
 // vtkInternal methods
+
+//---------------------------------------------------------------------------
 vtkMRMLTransformsDisplayableManager2D::vtkInternal::vtkInternal(vtkMRMLTransformsDisplayableManager2D* external)
+: External(external)
 {
-  this->External = external;
 }
 
 //---------------------------------------------------------------------------
@@ -394,19 +392,21 @@ bool vtkMRMLTransformsDisplayableManager2D::vtkInternal::UseDisplayableNode(vtkM
 vtkMRMLTransformsDisplayableManager2D::vtkMRMLTransformsDisplayableManager2D()
 {
   this->Internal = new vtkInternal(this);
-  this->AddingDisplayableNode = 0;
+  this->AddingDisplayableNode = false;
 }
 
 //---------------------------------------------------------------------------
 vtkMRMLTransformsDisplayableManager2D::~vtkMRMLTransformsDisplayableManager2D()
 {
   delete this->Internal;
+  this->Internal=NULL;
 }
 
 //---------------------------------------------------------------------------
 void vtkMRMLTransformsDisplayableManager2D::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
+  os << indent << "vtkMRMLTransformsDisplayableManager2D: " << this->GetClassName() << "\n";
 }
 
 //---------------------------------------------------------------------------
@@ -422,7 +422,7 @@ void vtkMRMLTransformsDisplayableManager2D::AddDisplayableNode(vtkMRMLDisplayabl
     return;
     }
 
-  this->AddingDisplayableNode = 1;
+  this->AddingDisplayableNode = true;
   // Add Display Nodes
   int nnodes = node->GetNumberOfDisplayNodes();
 
@@ -437,7 +437,7 @@ void vtkMRMLTransformsDisplayableManager2D::AddDisplayableNode(vtkMRMLDisplayabl
       this->Internal->AddDisplayNode( node, dnode );
       }
     }
-  this->AddingDisplayableNode = 0;
+  this->AddingDisplayableNode = false;
 }
 
 //---------------------------------------------------------------------------
@@ -568,10 +568,10 @@ void vtkMRMLTransformsDisplayableManager2D::UpdateFromMRML()
 
   vtkMRMLDisplayableNode* mNode = NULL;
   std::vector<vtkMRMLNode *> mNodes;
-  int nnodes = scene ? scene->GetNodesByClass("vtkMRMLDisplayableNode", mNodes) : 0;
+  int nnodes = scene ? scene->GetNodesByClass("vtkMRMLTransformNode", mNodes) : 0;
   for (int i=0; i<nnodes; i++)
     {
-    mNode  = vtkMRMLDisplayableNode::SafeDownCast(mNodes[i]);
+    mNode  = vtkMRMLTransformNode::SafeDownCast(mNodes[i]);
     if (mNode && this->Internal->UseDisplayableNode(mNode))
       {
       this->AddDisplayableNode(mNode);

@@ -84,11 +84,6 @@ public:
   virtual void SetAndObserveColorTransferFunction(vtkColorTransferFunction *ctf);
 
   ///
-  /// Set the color transfer function by copying the contents from the
-  /// provided transfer function
-  virtual void DeepCopyColorTransferFunction(vtkColorTransferFunction* colorTransferFunction);
-
-  ///
   /// Compare two color transfer functions
   /// Only compares the color map (x->RGB mapping)
   static bool IsColorMapEqual(vtkColorTransferFunction* tf1, vtkColorTransferFunction* tf2);
@@ -104,12 +99,8 @@ public:
   virtual int GetNumberOfColors();
   virtual bool GetColor(int entry, double* color);
 
-  ///
-  /// If this flag is true then the color transfer function is saved to the scene.
-  /// Set it to false if the transfer function is constructed programmatically
-  /// so there is no need to save it with the scene.
-  vtkGetMacro(StoreColorTransferFunctionInScene, bool);
-  vtkSetMacro(StoreColorTransferFunctionInScene, bool);
+  /// Create default storage node or NULL if does not have one
+  virtual vtkMRMLStorageNode* CreateDefaultStorageNode();
 
 protected:
   vtkMRMLProceduralColorNode();
@@ -117,14 +108,9 @@ protected:
   vtkMRMLProceduralColorNode(const vtkMRMLProceduralColorNode&);
   void operator=(const vtkMRMLProceduralColorNode&);
 
-  std::string GetColorMapAsString();
-  void SetColorMapFromString(const char* str);
-
   ///
   /// a color transfer function built up by calls to AddRGBPoint and Build
   vtkColorTransferFunction *ColorTransferFunction;
-
-  bool StoreColorTransferFunctionInScene;
 
 };
 
