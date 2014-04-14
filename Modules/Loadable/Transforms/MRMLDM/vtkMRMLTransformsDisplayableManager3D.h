@@ -28,26 +28,19 @@
 
 #include "vtkSlicerTransformsModuleMRMLDisplayableManagerExport.h"
 
-class vtkMRMLTransformNode;
-class vtkMRMLTransformDisplayNode;
-class vtkActor;
-
 /// \brief Display transforms in 3D views
 ///
-/// Creates corresponding actor for each transform display node in the scene.
-/// Adapted from the model display node.
+/// Displays transforms in 3D viewers as glyphs, deformed grid, or
+/// contour surfaces
 ///
 class VTK_SLICER_TRANSFORMS_MODULE_MRMLDISPLAYABLEMANAGER_EXPORT vtkMRMLTransformsDisplayableManager3D
   : public vtkMRMLAbstractThreeDViewDisplayableManager
 {
 public:
+
   static vtkMRMLTransformsDisplayableManager3D* New();
   vtkTypeMacro(vtkMRMLTransformsDisplayableManager3D,vtkMRMLAbstractThreeDViewDisplayableManager);
   void PrintSelf(ostream& os, vtkIndent indent);
-
-  // DisplayableNode handling customizations
-  void AddDisplayableNode(vtkMRMLTransformNode* displayableNode);
-  void RemoveDisplayableNode(vtkMRMLTransformNode* displayableNode);
 
 protected:
 
@@ -59,7 +52,7 @@ protected:
   virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node);
   virtual void ProcessMRMLNodesEvents(vtkObject* caller, unsigned long event, void* callData);
 
-  /// Update Actors based on models in the scene
+  /// Update Actors based on transforms in the scene
   virtual void UpdateFromMRML();
 
   virtual void OnMRMLSceneStartClose();
@@ -67,41 +60,8 @@ protected:
 
   virtual void OnMRMLSceneEndBatchProcess();
 
-  virtual void SetModelDisplayProperty(vtkMRMLTransformDisplayNode *displayNode, vtkActor* actor);
-/*
-
-  virtual void UpdateFromMRMLScene();
-
-  /// Return true if the node can be represented as a model
-  bool IsTransformDisplayable(vtkMRMLDisplayableNode* node)const;
-  /// Return true if the display node is a model
-  bool IsTransformDisplayable(vtkMRMLDisplayNode* node)const;
-
-  /// Returns true if something visible in transformNode has changed and would
-  /// require a refresh.
-  bool OnMRMLDisplayableNodeModifiedEvent(vtkMRMLDisplayableNode * transformNode);
-
-  virtual void RemoveMRMLObservers();
-
-  friend class vtkThreeDViewInteractorStyle; // Access to RequestRender();
-
-  void RemoveProps();
-  void RemoveDisplayableObservers(int clearCache);
-  void RemoveDisplayable(vtkMRMLDisplayableNode* model);
-  void RemoveDisplayableNodeObservers(vtkMRMLDisplayableNode *model);
-
-  void UpdateModelsFromMRML();
-  void UpdateModel(vtkMRMLDisplayableNode *model);
-  void UpdateModelPolyData(vtkMRMLDisplayableNode *model);
-  void UpdateModifiedModel(vtkMRMLDisplayableNode *model);
-
-  int GetDisplayedModelsVisibility(vtkMRMLDisplayNode *model);
-
-  void RemoveDispalyedID(std::string &id);
-
-*/
-
-  bool AddingDisplayableNode;
+  /// Initialize the displayable manager
+  virtual void Create();
 
 private:
 

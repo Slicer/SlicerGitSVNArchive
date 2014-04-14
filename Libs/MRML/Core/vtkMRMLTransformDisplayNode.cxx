@@ -502,11 +502,13 @@ void vtkMRMLTransformDisplayNode::SetDefaultColors()
 vtkColorTransferFunction* vtkMRMLTransformDisplayNode::GetColorMap()
 {
   vtkMRMLProceduralColorNode* colorNode=vtkMRMLProceduralColorNode::SafeDownCast(GetColorNode());
-  if (colorNode==NULL)
+  if (colorNode==NULL
+    || colorNode->GetColorTransferFunction()==NULL
+    || colorNode->GetColorTransferFunction()->GetSize()==0)
     {
     // We don't have a color node or it is not the right type
     this->SetDefaultColors();
-    colorNode=vtkMRMLProceduralColorNode::SafeDownCast(GetColorNode());
+    colorNode=vtkMRMLProceduralColorNode::SafeDownCast(this->GetColorNode());
     if (colorNode==NULL)
       {
       vtkErrorMacro("vtkMRMLTransformDisplayNode::GetColorMap failed: could not create default color node");
@@ -521,12 +523,12 @@ vtkColorTransferFunction* vtkMRMLTransformDisplayNode::GetColorMap()
 void vtkMRMLTransformDisplayNode::SetColorMap(vtkColorTransferFunction* newColorMap)
 {
   int oldModified=this->StartModify();
-  vtkMRMLProceduralColorNode* colorNode=vtkMRMLProceduralColorNode::SafeDownCast(GetColorNode());
+  vtkMRMLProceduralColorNode* colorNode=vtkMRMLProceduralColorNode::SafeDownCast(this->GetColorNode());
   if (colorNode==NULL)
     {
     // We don't have a color node or it is not the right type
     this->SetDefaultColors();
-    colorNode=vtkMRMLProceduralColorNode::SafeDownCast(GetColorNode());
+    colorNode=vtkMRMLProceduralColorNode::SafeDownCast(this->GetColorNode());
     }
   if (colorNode!=NULL)
     {

@@ -205,8 +205,6 @@ protected:
   double ContourOpacity;
   std::vector<double> ContourLevelsMm;
 
-  vtkMRMLProceduralColorNode* ColorMapNode;
-
  protected:
   vtkMRMLTransformDisplayNode ( );
   ~vtkMRMLTransformDisplayNode ( );

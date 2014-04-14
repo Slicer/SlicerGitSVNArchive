@@ -27,8 +27,6 @@
 #include "vtkMRMLAbstractSliceViewDisplayableManager.h"
 #include "vtkSlicerTransformsModuleMRMLDisplayableManagerExport.h"
 
-class vtkMRMLDisplayableNode;
-
 /// \brief Displayable manager for showing transforms in slice (2D) views.
 ///
 /// Displays transforms in slice viewers as glyphs, deformed grid, or
@@ -39,13 +37,10 @@ class VTK_SLICER_TRANSFORMS_MODULE_MRMLDISPLAYABLEMANAGER_EXPORT vtkMRMLTransfor
 {
 
 public:
+
   static vtkMRMLTransformsDisplayableManager2D* New();
   vtkTypeMacro(vtkMRMLTransformsDisplayableManager2D, vtkMRMLAbstractSliceViewDisplayableManager);
   void PrintSelf(ostream& os, vtkIndent indent);
-
-  // DisplayableNode handling customizations
-  void AddDisplayableNode(vtkMRMLDisplayableNode* displayableNode);
-  void RemoveDisplayableNode(vtkMRMLDisplayableNode* displayableNode);
 
 protected:
 
@@ -57,7 +52,7 @@ protected:
   virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node);
   virtual void ProcessMRMLNodesEvents(vtkObject* caller, unsigned long event, void* callData);
 
-  /// Update Actors based on models in the scene
+  /// Update Actors based on transforms in the scene
   virtual void UpdateFromMRML();
 
   virtual void OnMRMLSceneStartClose();
@@ -68,7 +63,6 @@ protected:
   /// Initialize the displayable manager based on its associated
   /// vtkMRMLSliceNode
   virtual void Create();
-  bool AddingDisplayableNode;
 
 private:
 
