@@ -12,14 +12,6 @@ vtkMRMLNodeNewMacro(vtkMRMLPETProceduralColorNode);
 //----------------------------------------------------------------------------
 vtkMRMLPETProceduralColorNode::vtkMRMLPETProceduralColorNode()
 {
-
-  // all this is done in the superclass...
-  //this->Name = NULL;
-  //this->SetName("");
-  //this->FileName = NULL;
-
-  //this->ColorTransferFunction = NULL;
-  //this->ColorTransferFunction = vtkColorTransferFunction::New();
 }
 
 //----------------------------------------------------------------------------
