@@ -32,6 +32,8 @@ class vtkMRMLSliceNode;
 class vtkMRMLTransformableNode;
 class vtkMRMLTransformDisplayNode;
 class vtkMRMLTransformNode;
+class vtkMRMLScalarVolumeNode;
+class vtkMRMLVolumeNode;
 
 // VTK includes
 class vtkImageData;
@@ -83,11 +85,18 @@ class VTK_SLICER_BASE_LOGIC_EXPORT vtkSlicerTransformLogic : public vtkMRMLAbstr
   /// in polydata returned by GetVisualization2d and GetVisualization3d.
   static const char* GetVisualizationDisplacementMagnitudeScalarName();
 
-  /// Take samples from the displacement field and stores the magnitude in an image volume
+  /// Create a volume node that contains the transform displacement in each voxel.
+  /// If magnitude is true then a scalar volume is created, each voxel containing the magnitude of the displacement.
+  /// If magnitude is false then a 3-component scalar volume is created, each voxel containing the displacement vector.
+  /// referenceVolumeNode specifies the volume origin, spacing, extent, and orientation
+  vtkMRMLScalarVolumeNode* CreateDisplacementVolumeFromTransform(vtkMRMLTransformNode* inputTransformNode, vtkMRMLVolumeNode* referenceVolumeNode, bool magnitude=true);
+
+  /// Take samples from the displacement field and store the magnitude in an image volume
   static void GetTransformedPointSamplesAsMagnitudeImage(vtkImageData* outputMagnitudeImage, vtkMRMLTransformNode* inputTransformNode, vtkMatrix4x4* ijkToRAS);
 
-  /// Take samples from the displacement field and stores the vector components in an image volume
+  /// Take samples from the displacement field and store the vector components in an image volume
   static void GetTransformedPointSamplesAsVectorImage(vtkImageData* outputVectorImage, vtkMRMLTransformNode* inputTransformNode, vtkMatrix4x4* ijkToRAS);
+
 
 protected:
   vtkSlicerTransformLogic();

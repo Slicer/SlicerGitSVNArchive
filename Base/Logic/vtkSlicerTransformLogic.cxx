@@ -17,10 +17,13 @@
 #include "vtkMRMLColorNode.h"
 #include "vtkMRMLGridTransformNode.h"
 #include "vtkMRMLLinearTransformNode.h"
+#include "vtkMRMLScalarVolumeDisplayNode.h"
+#include "vtkMRMLScalarVolumeNode.h"
 #include "vtkMRMLScene.h"
 #include "vtkMRMLSliceNode.h"
 #include "vtkMRMLTransformDisplayNode.h"
 #include "vtkMRMLTransformStorageNode.h"
+#include "vtkMRMLVectorVolumeDisplayNode.h"
 
 // ITKsys includes
 #include <itksys/SystemTools.hxx>
@@ -352,6 +355,7 @@ void vtkSlicerTransformLogic::GetTransformedPointSamplesAsMagnitudeImage(vtkImag
   // therefore the volume will not appear in the correct position
   // if the direction matrix is not identity.
   magnitudeImage->SetScalarTypeToFloat();
+  magnitudeImage->SetNumberOfScalarComponents(1);
   magnitudeImage->AllocateScalars();
 
   double point_RAS[4] = {0,0,0,1};
@@ -383,6 +387,65 @@ void vtkSlicerTransformLogic::GetTransformedPointSamplesAsMagnitudeImage(vtkImag
       }
     }
 }
+
+//----------------------------------------------------------------------------
+vtkMRMLScalarVolumeNode* vtkSlicerTransformLogic::CreateDisplacementVolumeFromTransform(vtkMRMLTransformNode* inputTransformNode, vtkMRMLVolumeNode* referenceVolumeNode, bool magnitude/*=true*/)
+{
+  if (inputTransformNode==NULL || referenceVolumeNode==NULL || referenceVolumeNode->GetImageData()==NULL)
+    {
+    vtkErrorMacro("vtkSlicerTransformLogic::CreateDisplacementMagnitudeVolumeFromTransform failed: inputs are invalid");
+    return NULL;
+    }
+  vtkMRMLScene* scene=this->GetMRMLScene();
+  if (scene==NULL)
+    {
+    vtkErrorMacro("vtkSlicerTransformLogic::CreateDisplacementMagnitudeVolumeFromTransform failed: scene invalid");
+    return NULL;
+    }
+
+  // Fill the volume
+  vtkNew<vtkImageData> outputVolume;
+  outputVolume->SetExtent(referenceVolumeNode->GetImageData()->GetExtent());
+  vtkNew<vtkMatrix4x4> ijkToRas;
+  referenceVolumeNode->GetIJKToRASMatrix(ijkToRas.GetPointer());
+  std::string nodeName=inputTransformNode->GetName();
+  if (magnitude)
+    {
+    vtkSlicerTransformLogic::GetTransformedPointSamplesAsMagnitudeImage(outputVolume.GetPointer(), inputTransformNode, ijkToRas.GetPointer());
+    nodeName+=" displacement magnitude";
+    }
+  else
+    {
+    vtkSlicerTransformLogic::GetTransformedPointSamplesAsVectorImage(outputVolume.GetPointer(), inputTransformNode, ijkToRas.GetPointer());
+    nodeName+=" displacement vectors";
+    }
+
+  // Create a volume node
+  vtkNew<vtkMRMLScalarVolumeNode> outputVolumeNode;
+  nodeName=scene->GenerateUniqueName(nodeName);
+  outputVolumeNode->SetName(nodeName.c_str());
+  outputVolumeNode->SetIJKToRASMatrix(ijkToRas.GetPointer());
+  outputVolumeNode->SetAndObserveImageData(outputVolume.GetPointer());
+  scene->AddNode(outputVolumeNode.GetPointer());
+
+  if (magnitude)
+    {
+    vtkNew<vtkMRMLScalarVolumeDisplayNode> displayNode;
+    scene->AddNode(displayNode.GetPointer());
+    displayNode->SetAndObserveColorNodeID("vtkMRMLColorTableNodeRainbow");
+    outputVolumeNode->SetAndObserveNthDisplayNodeID(0, displayNode->GetID());
+    }
+  else
+    {
+    vtkNew<vtkMRMLVectorVolumeDisplayNode> displayNode;
+    scene->AddNode(displayNode.GetPointer());
+    displayNode->SetAndObserveColorNodeID("vtkMRMLColorTableNodeRainbow");
+    outputVolumeNode->SetAndObserveNthDisplayNodeID(0, displayNode->GetID());
+    }
+
+  return outputVolumeNode.GetPointer();
+}
+
 
 //----------------------------------------------------------------------------
 void vtkSlicerTransformLogic::GetTransformedPointSamplesAsVectorImage(vtkImageData* vectorImage, vtkMRMLTransformNode* inputTransformNode, vtkMatrix4x4* ijkToRAS)
