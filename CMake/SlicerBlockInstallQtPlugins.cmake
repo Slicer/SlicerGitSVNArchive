@@ -18,9 +18,18 @@ if(NOT "${QT_PLUGINS_DIR}" STREQUAL "")
 
   foreach(plugins_subdirectory ${SlicerBlockInstallQtPlugins_subdirectories})
 
+    set(plugins_pattern)
+    string(REPLACE ":" ";" plugins_subdirectory ${plugins_subdirectory})
+    list(LENGTH plugins_subdirectory _len)
+    if(_len EQUAL 2)
+      list(GET plugins_subdirectory 1 plugins_pattern)
+      list(GET plugins_subdirectory 0 plugins_subdirectory)
+      set(plugins_pattern "*${plugins_pattern}")
+    endif()
+
     set(qt_plugins)
     set(qt_plugins_dir "${QT_PLUGINS_DIR}/${plugins_subdirectory}")
-    file(GLOB plugin_candidates "${qt_plugins_dir}/*${CMAKE_SHARED_LIBRARY_SUFFIX}")
+    file(GLOB plugin_candidates "${qt_plugins_dir}/${plugins_pattern}*${CMAKE_SHARED_LIBRARY_SUFFIX}")
     foreach(p ${plugin_candidates})
       if(NOT p MATCHES "(_debug|d[0-9])${CMAKE_SHARED_LIBRARY_SUFFIX}$")
         list(APPEND qt_plugins ${p})
@@ -30,6 +39,7 @@ if(NOT "${QT_PLUGINS_DIR}" STREQUAL "")
     foreach(qpi ${qt_plugins})
       install(PROGRAMS ${qpi}
         DESTINATION ${Slicer_INSTALL_QtPlugins_DIR}/${plugins_subdirectory}
+        COMPONENT RuntimePlugins
         )
     endforeach()
 

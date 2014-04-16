@@ -118,21 +118,6 @@ target_link_libraries(${KIT_LIBRARY_NAME}
   ${SlicerApp_LIBRARIES}
   )
 
-#----------------------------------------------------------------------------
-# ITKv3: Ensure ITKIOReview library is packaged on MacOSX
-#----------------------------------------------------------------------------
-if(Slicer_BUILD_EXTENSIONMANAGER_SUPPORT)
-  # Force linking against ITKIOReview library to ensure it will be packaged and
-  # fixed-up on MacOSX. That way extensions depending on the associated code
-  # will load properly.
-  # On unix-like platform, by using gcc the dependency should NOT be
-  # optimized out. Hence, it is not required to explicitly call a function.
-  # See http://slicer-devel.65872.n3.nabble.com/ITK-lib-missing-from-Mac-Slicer-package-needed-for-Plastimatch-tt4027274.html
-  if(APPLE AND ITK_VERSION_MAJOR EQUAL 3)
-    target_link_libraries(${KIT_LIBRARY_NAME} ITKIOReview)
-  endif()
-endif()
-
 # --------------------------------------------------------------------------
 # Configure Application Bundle Resources (Mac Only)
 # --------------------------------------------------------------------------
@@ -368,7 +353,11 @@ if(${PROJECT_NAME} STREQUAL ${Slicer_MAIN_PROJECT})
 
     if(NOT APPLE)
       if(Slicer_HAS_CONSOLE_IO_SUPPORT)
-        install(PROGRAMS "${Slicer_BINARY_DIR}/${SlicerApp_APPLICATION_NAME}${CMAKE_EXECUTABLE_SUFFIX}" DESTINATION ".")
+        install(
+          PROGRAMS "${Slicer_BINARY_DIR}/${SlicerApp_APPLICATION_NAME}${CMAKE_EXECUTABLE_SUFFIX}"
+          DESTINATION "."
+          COMPONENT Runtime
+          )
       else()
         # Create command to update launcher icon
         add_custom_command(
@@ -394,17 +383,20 @@ if(${PROJECT_NAME} STREQUAL ${Slicer_MAIN_PROJECT})
           PROGRAMS "${Slicer_BINARY_DIR}/CMakeFiles/${SlicerApp_APPLICATION_NAME}W${CMAKE_EXECUTABLE_SUFFIX}"
           DESTINATION "."
           RENAME "${SlicerApp_APPLICATION_NAME}${CMAKE_EXECUTABLE_SUFFIX}"
+          COMPONENT Runtime
           )
       endif()
 
       install(
         FILES ${splash_image_path}
         DESTINATION ${Slicer_INSTALL_BIN_DIR}
+        COMPONENT Runtime
         )
       install(
         FILES "${Slicer_BINARY_DIR}/${SlicerApp_APPLICATION_NAME}LauncherSettingsToInstall.ini"
         DESTINATION ${Slicer_INSTALL_BIN_DIR}
         RENAME ${SlicerApp_APPLICATION_NAME}LauncherSettings.ini
+        COMPONENT Runtime
         )
     endif()
 

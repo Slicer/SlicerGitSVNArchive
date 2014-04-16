@@ -47,7 +47,7 @@ if((NOT DEFINED PYTHON_INCLUDE_DIR
   endif()
 
   ExternalProject_Add(python-source
-    URL "http://www.python.org/ftp/python/2.7.3/Python-2.7.3.tgz"
+    URL "https://www.python.org/ftp/python/2.7.3/Python-2.7.3.tgz"
     URL_MD5 "2cf641732ac23b18d139be077bd906cd"
     DOWNLOAD_DIR ${CMAKE_CURRENT_BINARY_DIR}
     SOURCE_DIR ${python_SOURCE_DIR}
@@ -94,7 +94,7 @@ if((NOT DEFINED PYTHON_INCLUDE_DIR
   ExternalProject_Add(${proj}
     ${${proj}_EP_ARGS}
     GIT_REPOSITORY "${git_protocol}://github.com/davidsansome/python-cmake-buildsystem.git"
-    GIT_TAG "82e14946e3640be603601623d9bd282b992f2d7c"
+    GIT_TAG "3c5864f210a8d0ae1196be7c691252e16e459f59"
     SOURCE_DIR ${CMAKE_BINARY_DIR}/${proj}
     BINARY_DIR ${proj}-build
     CMAKE_CACHE_ARGS
@@ -126,13 +126,13 @@ if((NOT DEFINED PYTHON_INCLUDE_DIR
     set(slicer_PYTHON_SHARED_LIBRARY_DIR ${python_DIR}/lib)
     set(PYTHON_INCLUDE_DIR ${python_DIR}/include/python2.7)
     set(PYTHON_LIBRARY ${python_DIR}/lib/libpython2.7.${python_IMPORT_SUFFIX})
-    set(PYTHON_EXECUTABLE ${python_DIR}/bin/customPython)
+    set(PYTHON_EXECUTABLE ${python_DIR}/bin/SlicerPython)
     set(slicer_PYTHON_REAL_EXECUTABLE ${python_DIR}/bin/python)
   elseif(WIN32)
     set(slicer_PYTHON_SHARED_LIBRARY_DIR ${python_DIR}/bin)
     set(PYTHON_INCLUDE_DIR ${python_DIR}/include)
     set(PYTHON_LIBRARY ${python_DIR}/libs/python27.lib)
-    set(PYTHON_EXECUTABLE ${python_DIR}/bin/customPython.exe)
+    set(PYTHON_EXECUTABLE ${python_DIR}/bin/SlicerPython.exe)
     set(slicer_PYTHON_REAL_EXECUTABLE ${python_DIR}/bin/python.exe)
   else()
     message(FATAL_ERROR "Unknown system !")

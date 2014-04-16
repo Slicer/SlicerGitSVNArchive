@@ -19,45 +19,65 @@ if(NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM_NUMPY)
 
   ExternalProject_Message(${proj} "${proj} - Building without Fortran compiler - Non-optimized code will be built !")
 
-  set(numpy_URL http://svn.slicer.org/Slicer3-lib-mirrors/trunk/numpy-1.4.1.tar.gz)
-  set(numpy_MD5 5c7b5349dc3161763f7f366ceb96516b)
+  include(ExternalProjectForNonCMakeProject)
 
-  #------------------------------------------------------------------------------
-  set(NUMPY_DIR "${CMAKE_BINARY_DIR}/${proj}")
+  # environment
+  set(_env_script ${CMAKE_BINARY_DIR}/${proj}_Env.cmake)
+  ExternalProject_Write_SetBuildEnv_Commands(${_env_script})
+  ExternalProject_Write_SetPythonSetupEnv_Commands(${_env_script} APPEND)
+  file(APPEND ${_env_script}
+"#------------------------------------------------------------------------------
+# Added by '${CMAKE_CURRENT_LIST_FILE}'
 
-  configure_file(
-    SuperBuild/${proj}_environment.cmake.in
-    ${CMAKE_CURRENT_BINARY_DIR}/${proj}_environment.cmake @ONLY)
+set(ENV{F77} \"\")
+set(ENV{F90} \"\")
+set(ENV{FFLAGS} \"\")
 
-  configure_file(
-    SuperBuild/${proj}_configure_step.cmake.in
-    ${CMAKE_CURRENT_BINARY_DIR}/${proj}_configure_step.cmake @ONLY)
+# See http://docs.scipy.org/doc/numpy/user/install.html#disabling-atlas-and-other-accelerated-libraries
+# and http://massmail.spl.harvard.edu/public-archives/slicer-devel/2013/011098.html
+set(ENV{ATLAS} \"None\")
+set(ENV{BLAS} \"None\")
+set(ENV{LAPACK} \"None\")
+set(ENV{MKL} \"None\")
+")
 
-  configure_file(
-    SuperBuild/NUMPY_make_step.cmake.in
-    ${CMAKE_CURRENT_BINARY_DIR}/${proj}_make_step.cmake @ONLY)
+  # configure step
+  set(_configure_script ${CMAKE_BINARY_DIR}/${proj}_configure_step.cmake)
+  file(WRITE ${_configure_script}
+"include(\"${_env_script}\")
+set(${proj}_WORKING_DIR \"${CMAKE_BINARY_DIR}/${proj}\")
+file(WRITE \"${CMAKE_BINARY_DIR}/${proj}/site.cfg\" \"\")
+ExternalProject_Execute(${proj} \"configure\" \"${PYTHON_EXECUTABLE}\" setup.py config)
+")
 
-  configure_file(
-    SuperBuild/${proj}_install_step.cmake.in
-    ${CMAKE_CURRENT_BINARY_DIR}/${proj}_install_step.cmake @ONLY)
+  # build step
+  set(_build_script ${CMAKE_BINARY_DIR}/${proj}_build_step.cmake)
+  file(WRITE ${_build_script}
+"include(\"${_env_script}\")
+set(${proj}_WORKING_DIR \"${CMAKE_BINARY_DIR}/${proj}\")
+ExternalProject_Execute(${proj} \"build\" \"${PYTHON_EXECUTABLE}\" setup.py build --fcompiler=none)
+")
+
+  # install step
+  set(_install_script ${CMAKE_BINARY_DIR}/${proj}_install_step.cmake)
+  file(WRITE ${_install_script}
+"include(\"${_env_script}\")
+set(${proj}_WORKING_DIR \"${CMAKE_BINARY_DIR}/${proj}\")
+ExternalProject_Execute(${proj} \"install\" \"${PYTHON_EXECUTABLE}\" setup.py install)
+")
 
   #------------------------------------------------------------------------------
   ExternalProject_Add(${proj}
     ${${proj}_EP_ARGS}
-    URL ${numpy_URL}
-    URL_MD5 ${numpy_MD5}
-    DOWNLOAD_DIR ${CMAKE_CURRENT_BINARY_DIR}
-    SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/NUMPY
-    BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/NUMPY
-    CONFIGURE_COMMAND ${CMAKE_COMMAND}
-      -P ${CMAKE_CURRENT_BINARY_DIR}/${proj}_configure_step.cmake
-    BUILD_COMMAND ${CMAKE_COMMAND}
-      -P ${CMAKE_CURRENT_BINARY_DIR}/${proj}_make_step.cmake
-    INSTALL_COMMAND ${CMAKE_COMMAND}
-      -P ${CMAKE_CURRENT_BINARY_DIR}/${proj}_install_step.cmake
-    PATCH_COMMAND ${CMAKE_COMMAND}
-    -DNUMPY_SRC_DIR=${Slicer_BINARY_DIR}/NUMPY
+    URL "http://svn.slicer.org/Slicer3-lib-mirrors/trunk/numpy-1.4.1.tar.gz"
+    URL_MD5 "5c7b5349dc3161763f7f366ceb96516b"
+    SOURCE_DIR ${proj}
+    BUILD_IN_SOURCE 1
+    PATCH_COMMAND ${CMAKE_COMMAND} -DNUMPY_SRC_DIR=${CMAKE_BINARY_DIR}/${proj}
       -P ${CMAKE_CURRENT_LIST_DIR}/${proj}_patch.cmake
+    CONFIGURE_COMMAND ${CMAKE_COMMAND} -P ${_configure_script}
+    BUILD_COMMAND ${CMAKE_COMMAND} -P ${_build_script}
+    INSTALL_COMMAND ${CMAKE_COMMAND} -P ${_install_script}
     DEPENDS
       ${${proj}_DEPENDENCIES}
     )
