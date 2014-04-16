@@ -76,7 +76,7 @@ DiffusionTensor3DRead<TData>
               m_MeasurementFrame[i][j] = tagvalue.at( j ).at( i );
               }
             }
-          m_HasMeasurementFrame = 1 ;
+          m_HasMeasurementFrame = true ;
           }
         }
       // get the space orientation
