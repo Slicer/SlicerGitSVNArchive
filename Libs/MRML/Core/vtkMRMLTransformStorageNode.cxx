@@ -18,7 +18,8 @@ Version:   $Revision: 1.2 $
 #include "vtkMRMLLinearTransformNode.h"
 #include "vtkMRMLGridTransformNode.h"
 #include "vtkMRMLBSplineTransformNode.h"
-#include <vtkOrientedBSplineTransform.h>
+#include "vtkOrientedBSplineTransform.h"
+#include "vtkOrientedGridTransform.h"
 
 // VTK includes
 #include <vtkGeneralTransform.h>
@@ -50,6 +51,8 @@ typedef TransformReaderType::TransformListType TransformListType;
 typedef TransformReaderType::TransformType TransformType;
 
 typedef itk::TransformFileWriter TransformWriterType;
+
+typedef itk::VectorImage< double, 3 >   GridImageType;
 
 //----------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLTransformStorageNode);
@@ -634,84 +637,80 @@ int vtkMRMLTransformStorageNode::ReadBSplineTransform(vtkMRMLNode *refNode)
     }
 }
 
-
 //----------------------------------------------------------------------------
-int vtkMRMLTransformStorageNode::ReadGridTransform(vtkMRMLNode *refNode)
+void SetOrientedGridTransformFromITK(vtkOrientedGridTransform* grid_Ras, GridImageType::Pointer gridImage_Lps)
 {
-  // Grid transforms are not currently supported as ITK transforms but
-  // rather as vector images. This is subject to change whereby an ITK transform
-  // for displacement fields will provide a standard transform API
-  // but will reference a vector image to store the displacements.
+  vtkNew<vtkImageData> gridImage_Ras;
 
-  // As a grid transform is not a itk::Transform, we do not read it
-  // by using itk::TransformFileReader (as it is done for other transforms)
-  // It is instead transferred as an itk::VectorImage.
+  grid_Ras->SetInterpolationModeToCubic();
 
-  typedef itk::VectorImage< double, 3 >   GridImageType;
-  GridImageType::Pointer gridImage = 0;
-
-  typedef itk::ImageFileReader< GridImageType >  ReaderType;
-  std::string fullName =  this->GetFullNameFromFileName();
-  ReaderType::Pointer reader = ReaderType::New();
-  reader->SetFileName( fullName );
-  try
-    {
-    reader->Update();
-    gridImage = reader->GetOutput();
-
-    if( gridImage->GetVectorLength() != 3 )
-      {
-      vtkErrorMacro( "The deformable vector field must contain 3-D vectors;"
-                     " instead, it contains " << gridImage->GetVectorLength()
-                     << "-D vectors\n" );
-      return 0;
-      }
-    }
-  catch (itk::ExceptionObject &
-#ifndef NDEBUG
-         exc
-#endif
-        )
-    {
-    // File specified may not contain a grid image. Can we safely
-    // error out quitely?
-    vtkDebugMacro("ITK exception caught reading grid transform image file: "
-                  << fullName.c_str() << "\n" << exc);
-
-    return 0;
-    }
-  catch (...)
-    {
-    vtkErrorMacro("Unknown exception caught while reading grid transform image file: "
-                  << fullName.c_str());
-    return 0;
-    }
-
-  if (!gridImage)
-    {
-      vtkErrorMacro("Failed to read image as a grid transform from file: " << fullName.c_str());
-      return 0;
-    }
-
-  // Convert the grid image to the appropriate type of VTK
-  // transform
-
-  vtkMRMLGridTransformNode *gtn = vtkMRMLGridTransformNode::SafeDownCast(refNode);
-
-  vtkNew<vtkGridTransform> vtkgrid;
-  vtkNew<vtkImageData> vtkgridimage;
-
-  vtkgrid->SetInterpolationModeToCubic();
-
-  //GridImageType::IndexType index
-  //  = gridImage->GetBufferedRegion().GetIndex();
   GridImageType::SizeType size
-    = gridImage->GetBufferedRegion().GetSize();
+    = gridImage_Lps->GetBufferedRegion().GetSize();
 
   unsigned const int Ni = size[0];
   unsigned const int Nj = size[1];
   unsigned const int Nk = size[2];
-  unsigned const int Nc = gridImage->GetVectorLength();
+  unsigned const int Nc = gridImage_Lps->GetVectorLength();
+
+  gridImage_Ras->Initialize();
+
+  gridImage_Ras->SetOrigin( -gridImage_Lps->GetOrigin()[0], -gridImage_Lps->GetOrigin()[1], gridImage_Lps->GetOrigin()[2] );
+
+  GridImageType::SpacingType spacing = gridImage_Lps->GetSpacing();
+  gridImage_Ras->SetSpacing( spacing.GetDataPointer() );
+
+  vtkNew<vtkMatrix4x4> gridDirectionMatrix_LPS;
+  for (int row=0; row<VTKDimension; row++)
+    {
+    for (int column=0; column<VTKDimension; column++)
+      {
+      gridDirectionMatrix_LPS->SetElement(row,column,gridImage_Lps->GetDirection()(row,column));
+      }
+    }
+
+  vtkNew<vtkMatrix4x4> lpsToRas;
+  lpsToRas->SetElement(0,0,-1);
+  lpsToRas->SetElement(1,1,-1);
+  vtkNew<vtkMatrix4x4> gridDirectionMatrix_RAS;
+  vtkMatrix4x4::Multiply4x4(lpsToRas.GetPointer(), gridDirectionMatrix_LPS.GetPointer(), gridDirectionMatrix_RAS.GetPointer());
+
+  grid_Ras->SetGridDirectionMatrix(gridDirectionMatrix_RAS.GetPointer());
+
+  gridImage_Ras->SetDimensions( Ni, Nj, Nk );
+  gridImage_Ras->SetNumberOfScalarComponents( Nc );
+  gridImage_Ras->SetScalarTypeToDouble();
+  gridImage_Ras->AllocateScalars();
+
+  // convert each vector in the displacement field from LPS to RAS
+  double* displacementVectors_Ras = reinterpret_cast<double*>(gridImage_Ras->GetScalarPointer());
+  itk::ImageRegionConstIterator<GridImageType> inputIt(gridImage_Lps, gridImage_Lps->GetRequestedRegion());
+  inputIt.GoToBegin();
+  while( !inputIt.IsAtEnd() )
+    {
+    GridImageType::PixelType displacementVectorLps=inputIt.Get();
+    *(displacementVectors_Ras++) = displacementVectorLps[0];
+    *(displacementVectors_Ras++) = displacementVectorLps[1];
+    *(displacementVectors_Ras++) = displacementVectorLps[2];
+    ++inputIt;
+    }
+
+  grid_Ras->SetDisplacementGrid( gridImage_Ras.GetPointer() );
+}
+
+//----------------------------------------------------------------------------
+void SetGridTransformFromITK(vtkGridTransform* grid_Ras, GridImageType::Pointer gridImage_Lps)
+{
+  vtkNew<vtkImageData> vtkgridimage;
+
+  //GridImageType::IndexType index
+  //  = gridImage->GetBufferedRegion().GetIndex();
+  GridImageType::SizeType size
+    = gridImage_Lps->GetBufferedRegion().GetSize();
+
+  unsigned const int Ni = size[0];
+  unsigned const int Nj = size[1];
+  unsigned const int Nk = size[2];
+  unsigned const int Nc = gridImage_Lps->GetVectorLength();
 
   vtkgridimage->Initialize();
 
@@ -761,28 +760,11 @@ int vtkMRMLTransformStorageNode::ReadGridTransform(vtkMRMLNode *refNode)
   // Thus
   //     d2 = [ -d(1), -d(2), d(3) ]
 
-  GridImageType::SpacingType spacing = gridImage->GetSpacing();
-  vtkgridimage->SetOrigin( -gridImage->GetOrigin()[0] - spacing[0] * (Ni-1),
-                           -gridImage->GetOrigin()[1] - spacing[1] * (Nj-1),
-                            gridImage->GetOrigin()[2] );
+  GridImageType::SpacingType spacing = gridImage_Lps->GetSpacing();
+  vtkgridimage->SetOrigin( -gridImage_Lps->GetOrigin()[0] - spacing[0] * (Ni-1),
+                           -gridImage_Lps->GetOrigin()[1] - spacing[1] * (Nj-1),
+                            gridImage_Lps->GetOrigin()[2] );
   vtkgridimage->SetSpacing( spacing.GetDataPointer() );
-
-  if (! (gridImage->GetDirection()(0,0) == 1 &&
-         gridImage->GetDirection()(0,1) == 0 &&
-         gridImage->GetDirection()(0,2) == 0 &&
-         gridImage->GetDirection()(1,0) == 0 &&
-         gridImage->GetDirection()(1,1) == 1 &&
-         gridImage->GetDirection()(1,2) == 0 &&
-         gridImage->GetDirection()(2,0) == 0 &&
-         gridImage->GetDirection()(2,1) == 0 &&
-         gridImage->GetDirection()(2,2) == 1) )
-    {
-    vtkErrorMacro( "Grid transform with a non-identity orientation matrix is not yet implemented" );
-    // TODO: implement support for direction. Two options:
-    // Option A: create a new "vtkOrientedGridTransform" class that contains an additional linear component
-    // Option B: create a vtkGeneralTransform that contains a linear and a grid transform concatenated
-    return 0;
-    }
 
   vtkgridimage->SetDimensions( Ni, Nj, Nk );
 #if (VTK_MAJOR_VERSION <= 5)
@@ -805,7 +787,7 @@ int vtkMRMLTransformStorageNode::ReadGridTransform(vtkMRMLNode *refNode)
       for( int i = 0; i < (int)Ni; ++i, dataPtr += 3 )
         {
         ijk[0] = Ni -i - 1;
-        GridImageType::PixelType pixel = gridImage->GetPixel( ijk );
+        GridImageType::PixelType pixel = gridImage_Lps->GetPixel( ijk );
         // negate the first two components
         dataPtr[0] = -pixel[0];
         dataPtr[1] = -pixel[1];
@@ -814,24 +796,114 @@ int vtkMRMLTransformStorageNode::ReadGridTransform(vtkMRMLNode *refNode)
       }
     }
 
+  grid_Ras->SetInterpolationModeToCubic();
 #if (VTK_MAJOR_VERSION <= 5)
-  vtkgrid->SetDisplacementGrid( vtkgridimage.GetPointer() );
+  grid_Ras->SetDisplacementGrid( vtkgridimage.GetPointer() );
 #else
-  vtkgrid->SetDisplacementGridData( vtkgridimage.GetPointer() );
+  grid_Ras->SetDisplacementGridData( vtkgridimage.GetPointer() );
 #endif
+}
 
-  // Set the matrix on the node
-  if (gtn->GetReadWriteAsTransformToParent())
+//----------------------------------------------------------------------------
+int vtkMRMLTransformStorageNode::ReadGridTransform(vtkMRMLNode *refNode)
+{
+  vtkMRMLTransformNode *tn = vtkMRMLTransformNode::SafeDownCast(refNode);
+  if (tn==NULL)
     {
-    // Convert the sense of the transform (from an ITK resampling
-    // transform to a Slicer modeling transform)
-    gtn->SetAndObserveTransformToParent( vtkgrid.GetPointer() );
+    vtkErrorMacro("vtkMRMLTransformStorageNode::ReadGridTransform failed: expected a transform node as input");
+    return 0;
+    }
+
+  // Grid transforms are not currently supported as ITK transforms but
+  // rather as vector images. This is subject to change whereby an ITK transform
+  // for displacement fields will provide a standard transform API
+  // but will reference a vector image to store the displacements.
+
+  // As a grid transform is not a itk::Transform, we do not read it
+  // by using itk::TransformFileReader (as it is done for other transforms)
+  // It is instead transferred as an itk::VectorImage.
+
+  GridImageType::Pointer gridImage = 0;
+
+  typedef itk::ImageFileReader< GridImageType >  ReaderType;
+  std::string fullName =  this->GetFullNameFromFileName();
+  ReaderType::Pointer reader = ReaderType::New();
+  reader->SetFileName( fullName );
+  try
+    {
+    reader->Update();
+    gridImage = reader->GetOutput();
+
+    if( gridImage->GetVectorLength() != 3 )
+      {
+      vtkErrorMacro( "The deformable vector field must contain 3-D vectors;"
+                     " instead, it contains " << gridImage->GetVectorLength()
+                     << "-D vectors\n" );
+      return 0;
+      }
+    }
+  catch (itk::ExceptionObject &
+#ifndef NDEBUG
+         exc
+#endif
+        )
+    {
+    // File specified may not contain a grid image. Can we safely
+    // error out quitely?
+    vtkDebugMacro("ITK exception caught reading grid transform image file: "
+                  << fullName.c_str() << "\n" << exc);
+
+    return 0;
+    }
+  catch (...)
+    {
+    vtkErrorMacro("Unknown exception caught while reading grid transform image file: "
+                  << fullName.c_str());
+    return 0;
+    }
+
+  if (!gridImage)
+    {
+      vtkErrorMacro("Failed to read image as a grid transform from file: " << fullName.c_str());
+      return 0;
+    }
+
+  // Convert the grid image to the appropriate type of VTK
+  // transform
+
+  vtkSmartPointer<vtkAbstractTransform> gridTransform;
+  if ( gridImage->GetDirection()(0,0) == 1 &&
+       gridImage->GetDirection()(0,1) == 0 &&
+       gridImage->GetDirection()(0,2) == 0 &&
+       gridImage->GetDirection()(1,0) == 0 &&
+       gridImage->GetDirection()(1,1) == 1 &&
+       gridImage->GetDirection()(1,2) == 0 &&
+       gridImage->GetDirection()(2,0) == 0 &&
+       gridImage->GetDirection()(2,1) == 0 &&
+       gridImage->GetDirection()(2,2) == 1 )
+    {
+    // Axis-aligned grid transform -- slightly faster than the arbitrarily oriented version
+    vtkNew<vtkGridTransform> axisAlignedGridTransform;
+    SetGridTransformFromITK(axisAlignedGridTransform.GetPointer(), gridImage);
+    gridTransform = axisAlignedGridTransform.GetPointer();
     }
   else
     {
-    gtn->SetAndObserveTransformFromParent( vtkgrid.GetPointer() );
+    // Arbitrarily oriented grid transform
+    vtkNew<vtkOrientedGridTransform> orientedGridTransform;
+    SetOrientedGridTransformFromITK(orientedGridTransform.GetPointer(), gridImage);
+    gridTransform = orientedGridTransform.GetPointer();
     }
 
+  // Set the matrix on the node
+  if (tn->GetReadWriteAsTransformToParent())
+    {
+    tn->SetAndObserveTransformToParent( gridTransform );
+    }
+  else
+    {
+    tn->SetAndObserveTransformFromParent( gridTransform );
+    }
   return 1;
 }
 

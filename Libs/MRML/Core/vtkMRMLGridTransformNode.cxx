@@ -63,14 +63,6 @@ void vtkMRMLGridTransformNode::WriteXML(ostream& of, int nIndent)
     of << " interpolationMode=\"" << grid->GetInterpolationMode() << "\" ";
     of << " displacementScale=\"" << grid->GetDisplacementScale() << "\" ";
     of << " displacementShift=\"" << grid->GetDisplacementShift() << "\" ";
-
-    vtkImageData * image = grid->GetDisplacementGrid();
-    int* N = image->GetDimensions();
-    of << " dimension=\"" << N[0] << " " << N[1] << " " << N[2] << "\" ";
-    double* spacing = image->GetSpacing();
-    of << " spacing=\"" << spacing[0] << " " << spacing[1] << " " << spacing[2] << "\" ";
-    double* origin = image->GetOrigin();
-    of << " origin=\"" << origin[0] << " " << origin[1] << " " << origin[2] << "\" ";
     }
   else
     {
@@ -86,13 +78,6 @@ void vtkMRMLGridTransformNode::ReadXMLAttributes(const char** atts)
   Superclass::ReadXMLAttributes(atts);
 
   vtkNew<vtkGridTransform> vtkgrid;
-  vtkNew<vtkImageData> image;
-  image->Initialize();
-#if (VTK_MAJOR_VERSION <= 5)
-  image->SetScalarTypeToDouble();
-  image->SetNumberOfScalarComponents( 3 );
-#endif
-  int num_of_displacement = 0;
 
   const char* attName;
   const char* attValue;
@@ -145,114 +130,15 @@ void vtkMRMLGridTransformNode::ReadXMLAttributes(const char** atts)
         return;
         }
       }
-    else if (!strcmp(attName, "dimension"))
-      {
-      int val;
-      std::stringstream ss;
-      ss << attValue;
-      std::vector<int> vals;
-      while( ss >> val )
-        {
-        vals.push_back( val );
-        }
-      if( vals.size() != 3 )
-        {
-        vtkErrorMacro( "Incorrect number of dimension: expecting 3; got "
-                       << vals.size() );
-        return;
-        }
-      num_of_displacement = vals[0] * vals[1] * vals[2] * 3;
-      image->SetDimensions( vals[0], vals[1], vals[2] );
-#if (VTK_MAJOR_VERSION <= 5)
-      image->AllocateScalars();
-#else
-      image->AllocateScalars(VTK_DOUBLE, 3);
-#endif
-      }
-    else if (!strcmp(attName, "spacing"))
-      {
-      double val;
-      std::stringstream ss;
-      ss << attValue;
-      std::vector<double> vals;
-      while( ss >> val )
-        {
-        vals.push_back( val );
-        }
-      if( vals.size() != 3 )
-        {
-        vtkErrorMacro( "Incorrect number of spacing: expecting 3; got "
-                       << vals.size() );
-        return;
-        }
-      image->SetSpacing( vals[0], vals[1], vals[2] );
-      }
-    else if (!strcmp(attName, "origin"))
-      {
-      double val;
-      std::stringstream ss;
-      ss << attValue;
-      std::vector<double> vals;
-      while (ss >> val)
-        {
-        vals.push_back( val );
-        }
-      if (vals.size() != 3)
-        {
-        vtkErrorMacro( "Incorrect number of origin: expecting 3; got "
-                       << vals.size() );
-        return;
-        }
-      image->SetOrigin( vals[0], vals[1], vals[2] );
-      }
-    else if (!strcmp(attName, "displacement"))
-      {
-      if (num_of_displacement == 0)
-        {
-        vtkErrorMacro( "dimension attribute must be processed before displacement attributes" );
-        return;
-        }
-      double val;
-      std::stringstream ss;
-      ss << attValue;
-      std::vector<double> vals;
-      while( ss >> val )
-        {
-        vals.push_back( val );
-        }
-      if ((int)(vals.size()) !=  num_of_displacement)
-        {
-        vtkErrorMacro( "Incorrect number of origin: expecting " << num_of_displacement << "; got "
-                       << vals.size() );
-        return;
-        }
-      double* dataPtr = reinterpret_cast<double*>(image->GetScalarPointer());
-      std::vector<double>::const_iterator iter = vals.begin();
-      for (int i=0; i<num_of_displacement; ++i, iter++, ++dataPtr )
-        {
-        *dataPtr = *iter;
-        }
-      }
     }
-#if (VTK_MAJOR_VERSION <= 5)
-  vtkgrid->SetDisplacementGrid(image.GetPointer());
-#else
-  vtkgrid->SetDisplacementGridData(image.GetPointer());
-#endif
-  if( vtkgrid.GetPointer() != 0 )
+
+  if (this->ReadWriteAsTransformToParent)
     {
-    if (this->ReadWriteAsTransformToParent)
-      {
-      this->SetAndObserveTransformToParent(vtkgrid.GetPointer());
-      }
-    else
-      {
-      this->SetAndObserveTransformFromParent(vtkgrid.GetPointer());
-      }
+    this->SetAndObserveTransformToParent(vtkgrid.GetPointer());
     }
   else
     {
-    vtkErrorMacro("vtkMRMLGridTransformNode::ReadXML failed: could not create a vtkGridTransform");
+    this->SetAndObserveTransformFromParent(vtkgrid.GetPointer());
     }
 }
 
@@ -269,5 +155,3 @@ void vtkMRMLGridTransformNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   Superclass::PrintSelf(os,indent);
 }
-
-// End
