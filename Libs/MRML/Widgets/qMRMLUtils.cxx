@@ -156,7 +156,6 @@ bool qMRMLUtils::qImageToVtkImageData(const QImage& qImage, vtkImageData* vtkima
     {
     return false;
     }
-
   QImage img = qImage;
   vtkNew<vtkQImageToImageSource> converter;
   converter->SetQImage(&img);
