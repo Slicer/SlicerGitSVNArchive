@@ -23,7 +23,6 @@ Version:   $Revision: 1.2 $
 
 // VTK includes
 #include <vtkGeneralTransform.h>
-#include <vtkGridTransform.h>
 #include <vtkImageData.h>
 #include <vtkNew.h>
 #include <vtkObjectFactory.h>
@@ -52,7 +51,7 @@ typedef TransformReaderType::TransformType TransformType;
 
 typedef itk::TransformFileWriter TransformWriterType;
 
-typedef itk::VectorImage< double, 3 >   GridImageType;
+typedef itk::VectorImage< double, 3 > GridImageType;
 
 //----------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLTransformStorageNode);
@@ -638,27 +637,17 @@ int vtkMRMLTransformStorageNode::ReadBSplineTransform(vtkMRMLNode *refNode)
 }
 
 //----------------------------------------------------------------------------
-void SetOrientedGridTransformFromITK(vtkOrientedGridTransform* grid_Ras, GridImageType::Pointer gridImage_Lps)
+void SetVTKOrientedGridTransformFromITK(vtkObject* self, vtkOrientedGridTransform* grid_Ras, GridImageType::Pointer gridImage_Lps)
 {
   vtkNew<vtkImageData> gridImage_Ras;
 
-  grid_Ras->SetInterpolationModeToCubic();
-
-  GridImageType::SizeType size
-    = gridImage_Lps->GetBufferedRegion().GetSize();
-
-  unsigned const int Ni = size[0];
-  unsigned const int Nj = size[1];
-  unsigned const int Nk = size[2];
-  unsigned const int Nc = gridImage_Lps->GetVectorLength();
-
-  gridImage_Ras->Initialize();
-
+  // Origin
   gridImage_Ras->SetOrigin( -gridImage_Lps->GetOrigin()[0], -gridImage_Lps->GetOrigin()[1], gridImage_Lps->GetOrigin()[2] );
 
-  GridImageType::SpacingType spacing = gridImage_Lps->GetSpacing();
-  gridImage_Ras->SetSpacing( spacing.GetDataPointer() );
+  // Spacing
+  gridImage_Ras->SetSpacing( gridImage_Lps->GetSpacing()[0], gridImage_Lps->GetSpacing()[1], gridImage_Lps->GetSpacing()[2] );
 
+  // Direction
   vtkNew<vtkMatrix4x4> gridDirectionMatrix_LPS;
   for (int row=0; row<VTKDimension; row++)
     {
@@ -667,141 +656,118 @@ void SetOrientedGridTransformFromITK(vtkOrientedGridTransform* grid_Ras, GridIma
       gridDirectionMatrix_LPS->SetElement(row,column,gridImage_Lps->GetDirection()(row,column));
       }
     }
-
   vtkNew<vtkMatrix4x4> lpsToRas;
   lpsToRas->SetElement(0,0,-1);
   lpsToRas->SetElement(1,1,-1);
   vtkNew<vtkMatrix4x4> gridDirectionMatrix_RAS;
   vtkMatrix4x4::Multiply4x4(lpsToRas.GetPointer(), gridDirectionMatrix_LPS.GetPointer(), gridDirectionMatrix_RAS.GetPointer());
-
   grid_Ras->SetGridDirectionMatrix(gridDirectionMatrix_RAS.GetPointer());
 
-  gridImage_Ras->SetDimensions( Ni, Nj, Nk );
-  gridImage_Ras->SetNumberOfScalarComponents( Nc );
+  // Vectors
+  GridImageType::SizeType size = gridImage_Lps->GetBufferedRegion().GetSize();
+  gridImage_Ras->SetDimensions( size[0], size[1], size[2] );
+  unsigned int numberOfScalarComponents = gridImage_Lps->GetVectorLength();
+  if (numberOfScalarComponents!=VTKDimension)
+    {
+    vtkErrorWithObjectMacro(self, "Cannot load grid transform: the input displacement field expected to contain "
+      << VTKDimension << " components but it actually contains " << numberOfScalarComponents );
+    return;
+    }
+  gridImage_Ras->SetNumberOfScalarComponents( numberOfScalarComponents );
   gridImage_Ras->SetScalarTypeToDouble();
   gridImage_Ras->AllocateScalars();
-
-  // convert each vector in the displacement field from LPS to RAS
   double* displacementVectors_Ras = reinterpret_cast<double*>(gridImage_Ras->GetScalarPointer());
   itk::ImageRegionConstIterator<GridImageType> inputIt(gridImage_Lps, gridImage_Lps->GetRequestedRegion());
   inputIt.GoToBegin();
   while( !inputIt.IsAtEnd() )
     {
     GridImageType::PixelType displacementVectorLps=inputIt.Get();
-    *(displacementVectors_Ras++) = displacementVectorLps[0];
-    *(displacementVectors_Ras++) = displacementVectorLps[1];
-    *(displacementVectors_Ras++) = displacementVectorLps[2];
+    *(displacementVectors_Ras++) = -displacementVectorLps[0];
+    *(displacementVectors_Ras++) = -displacementVectorLps[1];
+    *(displacementVectors_Ras++) =  displacementVectorLps[2];
     ++inputIt;
     }
 
   grid_Ras->SetDisplacementGrid( gridImage_Ras.GetPointer() );
+  grid_Ras->SetInterpolationModeToCubic();
 }
 
 //----------------------------------------------------------------------------
-void SetGridTransformFromITK(vtkGridTransform* grid_Ras, GridImageType::Pointer gridImage_Lps)
+void SetITKOrientedGridTransformFromVTK(vtkObject* self, vtkOrientedGridTransform* grid_Ras, GridImageType::Pointer &gridImage_Lps)
 {
-  vtkNew<vtkImageData> vtkgridimage;
-
-  //GridImageType::IndexType index
-  //  = gridImage->GetBufferedRegion().GetIndex();
-  GridImageType::SizeType size
-    = gridImage_Lps->GetBufferedRegion().GetSize();
-
-  unsigned const int Ni = size[0];
-  unsigned const int Nj = size[1];
-  unsigned const int Nk = size[2];
-  unsigned const int Nc = gridImage_Lps->GetVectorLength();
-
-  vtkgridimage->Initialize();
-
-  // Convert from LPS (ITK) to RAS (Slicer)
-  //
-  // The conversion logic is as follows.
-  //
-  // The LPS to RAS (and back) conversion is the linear transform
-  // given by the matrix
-  //   C = [ -1 0 0; 0 -1 0; 0 0 1 ]
-  //
-  // Let o be the origin of the ITK grid transform, and s be the
-  // spacing of the ITK grid transform.  Then a pixel coordinate p
-  // on the ITK grid represents the physical point
-  //   x =  Diag(s) * p + o,
-  // where Diag(v) is the diagonal matrix with the vector v on the
-  // diagonal.  Since x is an ITK physical point, it is in the LPS
-  // coordinate system.  The corresponding point, y, in the RAS
-  // system is given by
-  //    y = C * x
-  // This gives
-  //    y = C * Diag(s) * p + C * o
-  //      = Diag(s) * C * p + C * o, since C is also a diagonal matrix
-  //      = Diag(s) * ( C * p + p0 ) + ( C * o - Diag(s) * p0 )
-  //        ( this converts RAS's pixel coordinate range from
-  //          [ -Ni + 1, -Nj + 1, 0] ~ [ 0, 0, Nk - 1 ] to
-  //          [ 0, 0, 0 ] ~ [ Ni - 1, Nj - 1, Nk - 1 ] )
-  //        ( p0 = [ Ni - 1, Nj - 1, 0 ]' )
-  //      = Diag(s2) * p2 + o2
-  // Therefore,
-  //    new spacing:
-  //        s2 = s
-  //    new pixel coordinate:
-  //        p2 = C * p + p0 = [ -p(1) + Ni - 1, -p(2) + Nj - 1, p(3) ]'
-  //    new origin:
-  //        o2 = [ -o(1) - s(1)*(Ni-1), -o(2) - s(2)*(Nj-1), o(3) ]'
-  //
-  // Also, the value at each grid point is a displacement in
-  // the LPS coordinate system, and needs to be converted too.
-  // E.g. a displacement d takes a physical point x1 to a physical
-  // point x2, so that
-  //      x2 = x1 + d
-  // We require the corresponding displacement d2 that takes
-  // y1 = C*x1 to y2 = C*x2, giving us
-  //      d2 = y2-y1 = C*(x2-x1) = C*d
-  //
-  // Thus
-  //     d2 = [ -d(1), -d(2), d(3) ]
-
-  GridImageType::SpacingType spacing = gridImage_Lps->GetSpacing();
-  vtkgridimage->SetOrigin( -gridImage_Lps->GetOrigin()[0] - spacing[0] * (Ni-1),
-                           -gridImage_Lps->GetOrigin()[1] - spacing[1] * (Nj-1),
-                            gridImage_Lps->GetOrigin()[2] );
-  vtkgridimage->SetSpacing( spacing.GetDataPointer() );
-
-  vtkgridimage->SetDimensions( Ni, Nj, Nk );
-#if (VTK_MAJOR_VERSION <= 5)
-  vtkgridimage->SetNumberOfScalarComponents( Nc );
-  vtkgridimage->SetScalarTypeToDouble();
-  vtkgridimage->AllocateScalars();
-#else
-  vtkgridimage->AllocateScalars(VTK_DOUBLE, Nc);
-#endif
-
-  // convert each vector in the displacement field from LPS to RAS
-  double* dataPtr = reinterpret_cast<double*>(vtkgridimage->GetScalarPointer());
-  GridImageType::IndexType ijk;
-  for( int k = 0; k < (int)Nk; ++k )
+  if (grid_Ras==NULL)
     {
-    ijk[2] = k;
-    for( int j = 0; j < (int)Nj; ++j )
-      {
-      ijk[1] = Nj -j - 1;
-      for( int i = 0; i < (int)Ni; ++i, dataPtr += 3 )
-        {
-        ijk[0] = Ni -i - 1;
-        GridImageType::PixelType pixel = gridImage_Lps->GetPixel( ijk );
-        // negate the first two components
-        dataPtr[0] = -pixel[0];
-        dataPtr[1] = -pixel[1];
-        dataPtr[2] = pixel[2];
-        }
-      }
+    vtkErrorWithObjectMacro(self, "Cannot save grid transform: the input vtkOrientedGridTransform is invalid");
+    return;
+    }
+  vtkImageData* gridImage_Ras = grid_Ras->GetDisplacementGrid();
+  if (gridImage_Ras==NULL)
+    {
+    vtkErrorWithObjectMacro(self, "Cannot save grid transform: the input vtkOrientedGridTransform does not contain a valid displacement grid");
+    return;
+    }
+  if (gridImage_Ras->GetNumberOfScalarComponents()!=VTKDimension)
+    {
+    vtkErrorWithObjectMacro(self, "Cannot save grid transform: the input vtkOrientedGridTransform expected to contain "
+      << VTKDimension << " components but it actually contains " << gridImage_Ras->GetNumberOfScalarComponents() );
+    return;
     }
 
-  grid_Ras->SetInterpolationModeToCubic();
-#if (VTK_MAJOR_VERSION <= 5)
-  grid_Ras->SetDisplacementGrid( vtkgridimage.GetPointer() );
-#else
-  grid_Ras->SetDisplacementGridData( vtkgridimage.GetPointer() );
-#endif
+  gridImage_Lps = GridImageType::New();
+
+  // Origin
+  double* origin_Ras = gridImage_Ras->GetOrigin();
+  double origin_Lps[3] = { -origin_Ras[0], -origin_Ras[1], origin_Ras[2] };
+  gridImage_Lps->SetOrigin( origin_Lps );
+
+  // Spacing
+  double* spacing = gridImage_Ras->GetSpacing();
+  //GridType::SpacingType spacing( spacing );
+  gridImage_Lps->SetSpacing( spacing );
+
+  // Direction
+  vtkMatrix4x4* gridDirectionMatrix_Ras=grid_Ras->GetGridDirectionMatrix();
+  vtkNew<vtkMatrix4x4> rasToLps;
+  rasToLps->SetElement(0,0,-1);
+  rasToLps->SetElement(1,1,-1);
+  vtkNew<vtkMatrix4x4> gridDirectionMatrix_Lps;
+  vtkMatrix4x4::Multiply4x4(rasToLps.GetPointer(), gridDirectionMatrix_Ras, gridDirectionMatrix_Lps.GetPointer());
+  GridImageType::DirectionType gridDirectionMatrixItk_Lps;
+  for (int row=0; row<VTKDimension; row++)
+    {
+    for (int column=0; column<VTKDimension; column++)
+      {
+      gridDirectionMatrixItk_Lps(row,column) = gridDirectionMatrix_Lps->GetElement(row,column);
+      }
+    }
+  gridImage_Lps->SetDirection(gridDirectionMatrixItk_Lps);
+
+  // Vectors
+  gridImage_Lps->SetVectorLength( VTKDimension );
+  GridImageType::IndexType start;
+  start[0] = start[1] = start[2] = 0;
+  int* Nijk = gridImage_Ras->GetDimensions();
+  GridImageType::SizeType size;
+  size[0] = Nijk[0]; size[1] = Nijk[1]; size[2] = Nijk[2];
+  GridImageType::RegionType region;
+  region.SetSize( size );
+  region.SetIndex( start );
+  gridImage_Lps->SetRegions( region );
+  gridImage_Lps->SetVectorLength( VTKDimension );
+  gridImage_Lps->Allocate();
+  double* displacementVectors_Ras = reinterpret_cast<double*>(gridImage_Ras->GetScalarPointer());
+  itk::ImageRegionIterator<GridImageType> gridImageIt_Lps(gridImage_Lps, region);
+  gridImageIt_Lps.GoToBegin();
+  GridImageType::PixelType displacementVectorLps;
+  displacementVectorLps.SetSize(VTKDimension);
+  while( !gridImageIt_Lps.IsAtEnd() )
+    {
+    displacementVectorLps[0] = -(*(displacementVectors_Ras++));
+    displacementVectorLps[1] = -(*(displacementVectors_Ras++));
+    displacementVectorLps[2] =   *(displacementVectors_Ras++);
+    gridImageIt_Lps.Set(displacementVectorLps);
+    ++gridImageIt_Lps;
+    }
 }
 
 //----------------------------------------------------------------------------
@@ -823,7 +789,7 @@ int vtkMRMLTransformStorageNode::ReadGridTransform(vtkMRMLNode *refNode)
   // by using itk::TransformFileReader (as it is done for other transforms)
   // It is instead transferred as an itk::VectorImage.
 
-  GridImageType::Pointer gridImage = 0;
+  GridImageType::Pointer gridImage_Lps = 0;
 
   typedef itk::ImageFileReader< GridImageType >  ReaderType;
   std::string fullName =  this->GetFullNameFromFileName();
@@ -832,12 +798,12 @@ int vtkMRMLTransformStorageNode::ReadGridTransform(vtkMRMLNode *refNode)
   try
     {
     reader->Update();
-    gridImage = reader->GetOutput();
+    gridImage_Lps = reader->GetOutput();
 
-    if( gridImage->GetVectorLength() != 3 )
+    if( gridImage_Lps->GetVectorLength() != 3 )
       {
       vtkErrorMacro( "The deformable vector field must contain 3-D vectors;"
-                     " instead, it contains " << gridImage->GetVectorLength()
+                     " instead, it contains " << gridImage_Lps->GetVectorLength()
                      << "-D vectors\n" );
       return 0;
       }
@@ -850,59 +816,31 @@ int vtkMRMLTransformStorageNode::ReadGridTransform(vtkMRMLNode *refNode)
     {
     // File specified may not contain a grid image. Can we safely
     // error out quitely?
-    vtkDebugMacro("ITK exception caught reading grid transform image file: "
-                  << fullName.c_str() << "\n" << exc);
-
+    vtkDebugMacro("ITK exception caught reading grid transform image file: " << fullName.c_str() << "\n" << exc);
     return 0;
     }
   catch (...)
     {
-    vtkErrorMacro("Unknown exception caught while reading grid transform image file: "
-                  << fullName.c_str());
+    vtkErrorMacro("Unknown exception caught while reading grid transform image file: " << fullName.c_str());
     return 0;
     }
 
-  if (!gridImage)
+  if (!gridImage_Lps)
     {
       vtkErrorMacro("Failed to read image as a grid transform from file: " << fullName.c_str());
       return 0;
     }
 
-  // Convert the grid image to the appropriate type of VTK
-  // transform
-
-  vtkSmartPointer<vtkAbstractTransform> gridTransform;
-  if ( gridImage->GetDirection()(0,0) == 1 &&
-       gridImage->GetDirection()(0,1) == 0 &&
-       gridImage->GetDirection()(0,2) == 0 &&
-       gridImage->GetDirection()(1,0) == 0 &&
-       gridImage->GetDirection()(1,1) == 1 &&
-       gridImage->GetDirection()(1,2) == 0 &&
-       gridImage->GetDirection()(2,0) == 0 &&
-       gridImage->GetDirection()(2,1) == 0 &&
-       gridImage->GetDirection()(2,2) == 1 )
-    {
-    // Axis-aligned grid transform -- slightly faster than the arbitrarily oriented version
-    vtkNew<vtkGridTransform> axisAlignedGridTransform;
-    SetGridTransformFromITK(axisAlignedGridTransform.GetPointer(), gridImage);
-    gridTransform = axisAlignedGridTransform.GetPointer();
-    }
-  else
-    {
-    // Arbitrarily oriented grid transform
-    vtkNew<vtkOrientedGridTransform> orientedGridTransform;
-    SetOrientedGridTransformFromITK(orientedGridTransform.GetPointer(), gridImage);
-    gridTransform = orientedGridTransform.GetPointer();
-    }
-
+  vtkNew<vtkOrientedGridTransform> gridTransform_Ras;
+  SetVTKOrientedGridTransformFromITK(this, gridTransform_Ras.GetPointer(), gridImage_Lps);
   // Set the matrix on the node
   if (tn->GetReadWriteAsTransformToParent())
     {
-    tn->SetAndObserveTransformToParent( gridTransform );
+    tn->SetAndObserveTransformToParent( gridTransform_Ras.GetPointer() );
     }
   else
     {
-    tn->SetAndObserveTransformFromParent( gridTransform );
+    tn->SetAndObserveTransformFromParent( gridTransform_Ras.GetPointer() );
     }
   return 1;
 }
@@ -1112,79 +1050,36 @@ int vtkMRMLTransformStorageNode::WriteBSplineTransform(vtkMRMLBSplineTransformNo
 //----------------------------------------------------------------------------
 int vtkMRMLTransformStorageNode::WriteGridTransform(vtkMRMLGridTransformNode *gd)
 {
-  vtkGridTransform* vtkTrans = NULL;
+  vtkOrientedGridTransform* gridTransform_Ras = NULL;
 
   if (gd->GetReadWriteAsTransformToParent())
     {
-    vtkTrans=vtkGridTransform::SafeDownCast(gd->GetTransformToParentAs("vtkGridTransform"));
+    gridTransform_Ras=vtkOrientedGridTransform::SafeDownCast(gd->GetTransformToParentAs("vtkOrientedGridTransform"));
     }
   else
     {
-    vtkTrans=vtkGridTransform::SafeDownCast(gd->GetTransformFromParentAs("vtkGridTransform"));
+    gridTransform_Ras=vtkOrientedGridTransform::SafeDownCast(gd->GetTransformFromParentAs("vtkOrientedGridTransform"));
     }
 
-  if (vtkTrans==NULL)
+  if (gridTransform_Ras==NULL)
     {
     vtkErrorMacro("Cannot retrieve grid transform from node");
     return 0;
     }
 
   // Update is needed bacause it refreshes the inverse flag (the flag may be out-of-date if the transform depends on its inverse)
-  vtkTrans->Update();
-  if (vtkTrans->GetInverseFlag())
+  gridTransform_Ras->Update();
+  if (gridTransform_Ras->GetInverseFlag())
     {
     vtkErrorMacro("Cannot write an inverse grid transform to file");
     return 0;
     }
 
-  vtkImageData* vtkgridimage = vtkTrans->GetDisplacementGrid();
+  GridImageType::Pointer gridImage_Lps;
+  SetITKOrientedGridTransformFromVTK(this, gridTransform_Ras, gridImage_Lps);
 
-  // initialize the vector image
-  typedef itk::VectorImage< double, VTKDimension > GridType;
-  GridType::Pointer gridImage = GridType::New();
-  gridImage->SetVectorLength( VTKDimension );
-  GridType::IndexType start;
-  start[0] = start[1] = start[2] = 0;
-  int* Nijk = vtkgridimage->GetDimensions();
-  GridType::SizeType size;
-  size[0] = Nijk[0]; size[1] = Nijk[1]; size[2] = Nijk[2];
-  GridType::RegionType region;
-  region.SetSize( size );
-  region.SetIndex( start );
-  gridImage->SetRegions( region );
-  gridImage->SetVectorLength( VTKDimension );
-
-  // convert the coordinate from RAS to LPS.
-  GridType::SpacingType spacing( vtkgridimage->GetSpacing() );
-  gridImage->SetSpacing( spacing );
-  double* origin = vtkgridimage->GetOrigin();
-  origin[0] = -origin[0] - spacing[0] * (Nijk[0]-1);
-  origin[1] = -origin[1] - spacing[1] * (Nijk[1]-1);
-  gridImage->SetOrigin( origin );
-  gridImage->Allocate();
-
-  double* dataPtr = reinterpret_cast<double*>(vtkgridimage->GetScalarPointer());
-  GridType::IndexType ijk;
-  GridType::PixelType pixel(3);
-  for( int k = 0; k < Nijk[2]; ++k )
-    {
-    ijk[2] = k;
-    for( int j = 0; j < Nijk[1]; ++j )
-      {
-      ijk[1] = -j + Nijk[1] - 1;
-      for( int i = 0; i < Nijk[0]; ++i, dataPtr += 3 )
-        {
-        ijk[0] = -i + Nijk[0] - 1;
-        // negate the first two components
-        pixel[0] = -dataPtr[0];
-        pixel[1] = -dataPtr[1];
-        pixel[2] = dataPtr[2];
-        gridImage->SetPixel( ijk, pixel );
-        }
-      }
-    }
-  itk::ImageFileWriter<GridType>::Pointer writer = itk::ImageFileWriter<GridType>::New();
-  writer->SetInput( gridImage );
+  itk::ImageFileWriter<GridImageType>::Pointer writer = itk::ImageFileWriter<GridImageType>::New();
+  writer->SetInput( gridImage_Lps );
   std::string fullName =  this->GetFullNameFromFileName();
   writer->SetFileName( fullName );
   try
@@ -1193,8 +1088,9 @@ int vtkMRMLTransformStorageNode::WriteGridTransform(vtkMRMLGridTransformNode *gd
     }
   catch (itk::ExceptionObject &exc)
     {
-    vtkErrorMacro("ITK exception caught writing transform file: "
-                  << fullName.c_str() << "\n" << exc);
+    vtkErrorMacro("Failed to save grid transform to file: " << fullName.c_str()
+      << ". Make sure a 'Displacement field' format is selected for saving."
+      << "ITK exception caught writing transform file: \n" << exc);
     return 0;
     }
   catch (...)
@@ -1244,7 +1140,12 @@ void vtkMRMLTransformStorageNode::InitializeSupportedWriteFileTypes()
   this->SupportedWriteFileTypes->InsertNextValue("Transform (.mat)");
   this->SupportedWriteFileTypes->InsertNextValue("Text (.txt)");
   this->SupportedWriteFileTypes->InsertNextValue("Transform (.*)");
-  this->SupportedWriteFileTypes->InsertNextValue("Deformation field (.nrrd)");
+  this->SupportedWriteFileTypes->InsertNextValue("Displacement field (.nrrd)");
+  this->SupportedWriteFileTypes->InsertNextValue("Displacement field (.nhdr)");
+  this->SupportedWriteFileTypes->InsertNextValue("Displacement field (.mha)");
+  this->SupportedWriteFileTypes->InsertNextValue("Displacement field (.mhd)");
+  this->SupportedWriteFileTypes->InsertNextValue("Displacement field (.nii)");
+  this->SupportedWriteFileTypes->InsertNextValue("Displacement field (.nii.gz)");
 }
 //----------------------------------------------------------------------------
 const char* vtkMRMLTransformStorageNode::GetDefaultWriteFileExtension()
