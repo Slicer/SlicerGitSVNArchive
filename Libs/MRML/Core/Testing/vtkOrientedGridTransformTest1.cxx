@@ -298,8 +298,9 @@ double getInverseErrorVtk(const double inputPoint[3], vtkOrientedGridTransform* 
 //----------------------------------------------------------------------------
 int vtkOrientedGridTransformTest1(int , char * [] )
 {
+  double averageSpacing=100;
   double origin[3] = {-100, -100, -100};
-  double spacing[3] = {100, 100, 100};
+  double spacing[3] = {averageSpacing, averageSpacing, averageSpacing};
   double direction[3][3] = {{0.92128500, -0.36017075, -0.146666625}, {0.31722386, 0.91417248, -0.25230478}, {0.22495105, 0.18591857, 0.95646814}};
   //double direction[3][3] = {{1,0,0}, {0,1,0}, {0,0,1}};
   double dims[3] = {7,8,7};
@@ -367,7 +368,7 @@ int vtkOrientedGridTransformTest1(int , char * [] )
         if ( differenceItkVtk > 1e-2 )
           {
           getTransformedPointDifferenceItkVtk(inputPoint, gridItk, gridVtk.GetPointer(), true);
-          std::cout << "ERROR: Point transfom result mismatch between ITK and VTK at grid point ("<<i<<","<<j<<","<<k<<")"<< std::endl;
+          std::cout << "ERROR: Point transfom result mismatch between ITK and VTK at grid point ("<<i<<","<<j<<","<<k<<") with linear interpolation"<< std::endl;
           numberOfItkVtkPointMismatches++;
           }
         }
@@ -386,6 +387,17 @@ int vtkOrientedGridTransformTest1(int , char * [] )
         inputPoint[0] = origin[0]+direction[0][0]*spacing[0]*i+direction[0][1]*spacing[1]*j+direction[0][2]*spacing[2]*k;
         inputPoint[1] = origin[1]+direction[1][0]*spacing[0]*i+direction[1][1]*spacing[1]*j+direction[1][2]*spacing[2]*k;
         inputPoint[2] = origin[2]+direction[2][0]*spacing[0]*i+direction[2][1]*spacing[1]*j+direction[2][2]*spacing[2]*k;
+        // Compare transformation results computed by ITK and VTK.
+        double differenceItkVtk = getTransformedPointDifferenceItkVtk(inputPoint, gridItk, gridVtk.GetPointer(), false);
+        // the larger the distance between the grid points, the larger difference is expected between ITK's linear and VTK's cubic
+        // interpolation, therefore make the threshold the 20% of the spacing
+        if ( differenceItkVtk > averageSpacing*0.20 )
+          {
+          getTransformedPointDifferenceItkVtk(inputPoint, gridItk, gridVtk.GetPointer(), true);
+          std::cout << "ERROR: Point transfom result mismatch between ITK and VTK at grid point ("<<i<<","<<j<<","<<k<<") with cubic interpolation"<< std::endl;
+          numberOfItkVtkPointMismatches++;
+          }
+        // Verify single/double-precision computation difference
         double differenceSingleDoubleVtk = getTransformedPointDifferenceSingleDoubleVtk(inputPoint, gridVtk.GetPointer(), false);
         if ( differenceSingleDoubleVtk > 1e-4 )
           {

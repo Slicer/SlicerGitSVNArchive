@@ -514,11 +514,12 @@ template <typename T> bool SetITKBSplineFromVTK(vtkObject* self,
   typename BSplineTransformType::ParametersType transformParamsItk(expectedNumberOfParameters);
   T* itkBSplineParams_LPS = static_cast<T*>(transformParamsItk.data_block());
   T* vtkBSplineParams_RAS=static_cast<T*>(bsplineCoefficients_RAS->GetScalarPointer());
+  double coefficientScale = bsplineVtk->GetDisplacementScale();
   for (unsigned int i=0; i<expectedNumberOfVectors; i++)
     {
-    *(itkBSplineParams_LPS                          ) = - (*(vtkBSplineParams_RAS++));
-    *(itkBSplineParams_LPS+expectedNumberOfVectors  ) = - (*(vtkBSplineParams_RAS++));
-    *(itkBSplineParams_LPS+expectedNumberOfVectors*2) =   (*(vtkBSplineParams_RAS++));
+    *(itkBSplineParams_LPS                          ) = -coefficientScale * (*(vtkBSplineParams_RAS++));
+    *(itkBSplineParams_LPS+expectedNumberOfVectors  ) = -coefficientScale * (*(vtkBSplineParams_RAS++));
+    *(itkBSplineParams_LPS+expectedNumberOfVectors*2) =  coefficientScale * (*(vtkBSplineParams_RAS++));
     itkBSplineParams_LPS++;
     }
 
@@ -771,11 +772,13 @@ void SetITKOrientedGridTransformFromVTK(vtkObject* self, vtkOrientedGridTransfor
   gridImageIt_Lps.GoToBegin();
   GridImageType::PixelType displacementVectorLps;
   displacementVectorLps.SetSize(VTKDimension);
+  double displacementScale = grid_Ras->GetDisplacementScale();
+  double displacementShift = grid_Ras->GetDisplacementShift();
   while( !gridImageIt_Lps.IsAtEnd() )
     {
-    displacementVectorLps[0] = -(*(displacementVectors_Ras++));
-    displacementVectorLps[1] = -(*(displacementVectors_Ras++));
-    displacementVectorLps[2] =   *(displacementVectors_Ras++);
+    displacementVectorLps[0] = -( displacementScale * (*(displacementVectors_Ras++)) + displacementShift );
+    displacementVectorLps[1] = -( displacementScale * (*(displacementVectors_Ras++)) + displacementShift );
+    displacementVectorLps[2] =  ( displacementScale * (*(displacementVectors_Ras++)) + displacementShift );
     gridImageIt_Lps.Set(displacementVectorLps);
     ++gridImageIt_Lps;
     }

@@ -18,15 +18,14 @@ Version:   $Revision: 1.14 $
 #include "vtkMRMLScene.h"
 #include "vtkMRMLTransformStorageNode.h"
 #include "vtkMRMLTransformDisplayNode.h"
-
 #include "vtkOrientedBSplineTransform.h"
+#include "vtkOrientedGridTransform.h"
 
 // VTK includes
 #include <vtkCommand.h>
 #include <vtkCollection.h>
 #include <vtkCollectionIterator.h>
 #include <vtkGeneralTransform.h>
-#include <vtkGridTransform.h>
 #include <vtkImageData.h>
 #include <vtkMatrixToLinearTransform.h>
 #include <vtkNew.h>
@@ -168,7 +167,28 @@ int vtkMRMLTransformNode::DeepCopyTransform(vtkAbstractTransform* dst, vtkAbstra
       concatenatedTransformCopy->Delete();
       }
     }
-  else if (src->IsA("vtkGridTransform"))
+  else if (src->IsA("vtkBSplineTransform")) // this handles vtkOrientedBSplineTransform as well
+    {
+    // Fix up the DeepCopy for vtkBSplineTransform (it performs only a ShallowCopy on the coefficient grid)
+    dst->DeepCopy(src);
+#if (VTK_MAJOR_VERSION <= 5)
+    vtkImageData* srcCoefficients=vtkBSplineTransform::SafeDownCast(src)->GetCoefficients();
+#else
+    vtkImageData* srcCoefficients=vtkBSplineTransform::SafeDownCast(src)->GetCoefficientData();
+#endif
+
+    if (srcCoefficients)
+      {
+      vtkNew<vtkImageData> dstCoefficients;
+      dstCoefficients->DeepCopy(srcCoefficients);
+#if (VTK_MAJOR_VERSION <= 5)
+      vtkBSplineTransform::SafeDownCast(dst)->SetCoefficients(dstCoefficients.GetPointer());
+#else
+      vtkBSplineTransform::SafeDownCast(dst)->SetCoefficientData(dstCoefficients.GetPointer());
+#endif
+      }
+    }
+  else if (src->IsA("vtkGridTransform")) // this handles vtkOrientedGridTransform as well
     {
     // Fix up the DeepCopy for vtkGridTransform (it performs only a ShallowCopy on the displacement grid)
     dst->DeepCopy(src);
@@ -985,7 +1005,7 @@ const char* vtkMRMLTransformNode::GetTransformInfo(vtkAbstractTransform* inputTr
     vtkObject* transform=transformList->GetItemAsObject(i);
 
     vtkMatrixToLinearTransform* linearTransform=vtkMatrixToLinearTransform::SafeDownCast(transform);
-    vtkOrientedBSplineTransform* bsplineTransform=vtkOrientedBSplineTransform::SafeDownCast(transform);
+    vtkBSplineTransform* bsplineTransform=vtkBSplineTransform::SafeDownCast(transform);
     vtkGridTransform* gridTransform=vtkGridTransform::SafeDownCast(transform);
     if (linearTransform!=NULL)
       {
@@ -1013,24 +1033,28 @@ const char* vtkMRMLTransformNode::GetTransformInfo(vtkAbstractTransform* inputTr
         ss << std::endl << "  Grid origin: " << gridOrigin[0] << " " << gridOrigin[1] << " " <<gridOrigin[2] <<".";
         double* gridSpacing = coefficients->GetSpacing();
         ss << std::endl << "  Grid spacing: " << gridSpacing[0] << " " << gridSpacing[1] << " " <<gridSpacing[2] <<".";
-        vtkMatrix4x4* gridOrientation = bsplineTransform->GetGridDirectionMatrix();
-        if (gridOrientation!=NULL)
+        vtkOrientedBSplineTransform* orientedBsplineTransform=vtkOrientedBSplineTransform::SafeDownCast(transform);
+        if (orientedBsplineTransform!=NULL)
           {
-          ss << std::endl << "  Grid orientation:";
-          for (int i=0; i<3; i++)
+          vtkMatrix4x4* gridOrientation = orientedBsplineTransform->GetGridDirectionMatrix();
+          if (gridOrientation!=NULL)
             {
-            ss << std::endl <<"    "<<gridOrientation->GetElement(i,0)<<"  "<<gridOrientation->GetElement(i,1)<<"  "<<gridOrientation->GetElement(i,2);
+            ss << std::endl << "  Grid orientation:";
+            for (int i=0; i<3; i++)
+              {
+              ss << std::endl <<"    "<<gridOrientation->GetElement(i,0)<<"  "<<gridOrientation->GetElement(i,1)<<"  "<<gridOrientation->GetElement(i,2);
+              }
             }
-          }
-        }
-      vtkMatrix4x4* bulkTransform = bsplineTransform->GetBulkTransformMatrix();
-      if (bulkTransform!=NULL)
-        {
-        ss << std::endl << "  Bulk transform:";
-        for (int i=0; i<4; i++)
-          {
-          ss << std::endl <<"    "<<bulkTransform->GetElement(i,0)
-            <<"  "<<bulkTransform->GetElement(i,1)<<"  "<<bulkTransform->GetElement(i,2)<<"  "<<bulkTransform->GetElement(i,3);
+          vtkMatrix4x4* bulkTransform = orientedBsplineTransform->GetBulkTransformMatrix();
+          if (bulkTransform!=NULL)
+            {
+            ss << std::endl << "  Bulk transform:";
+            for (int i=0; i<4; i++)
+              {
+              ss << std::endl <<"    "<<bulkTransform->GetElement(i,0)
+                <<"  "<<bulkTransform->GetElement(i,1)<<"  "<<bulkTransform->GetElement(i,2)<<"  "<<bulkTransform->GetElement(i,3);
+              }
+            }
           }
         }
       if (bsplineTransform->GetInverseFlag())
@@ -1050,6 +1074,19 @@ const char* vtkMRMLTransformNode::GetTransformInfo(vtkAbstractTransform* inputTr
         ss << std::endl << "  Grid origin: " << origin[0] << " " << origin[1] << " " << origin[2]<<".";
         double* spacing=displacementField->GetSpacing();
         ss << std::endl << "  Grid spacing: " << spacing[0] << " " << spacing[1] << " " << spacing[2]<<".";
+        vtkOrientedGridTransform* orientedGridTransform=vtkOrientedGridTransform::SafeDownCast(transform);
+        if (orientedGridTransform!=NULL)
+          {
+          vtkMatrix4x4* gridOrientation = orientedGridTransform->GetGridDirectionMatrix();
+          if (gridOrientation!=NULL)
+            {
+            ss << std::endl << "  Grid orientation:";
+            for (int i=0; i<3; i++)
+              {
+              ss << std::endl <<"    "<<gridOrientation->GetElement(i,0)<<"  "<<gridOrientation->GetElement(i,1)<<"  "<<gridOrientation->GetElement(i,2);
+              }
+            }
+          }
         }
       else
         {

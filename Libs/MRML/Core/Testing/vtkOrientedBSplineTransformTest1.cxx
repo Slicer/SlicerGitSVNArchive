@@ -24,6 +24,8 @@
 
 typedef itk::BSplineDeformableTransform<double,3,3> itkBSplineType;
 
+double DisplacementScale=0.63;
+
 //----------------------------------------------------------------------------
 void CreateBSplineVtk(vtkOrientedBSplineTransform* bsplineTransform,
   double origin[3], double spacing[3], double direction[3][3], double dims[3],
@@ -78,6 +80,7 @@ void CreateBSplineVtk(vtkOrientedBSplineTransform* bsplineTransform,
   bsplineTransform->SetBulkTransformMatrix(bulkTransform.GetPointer());
 
   bsplineTransform->SetBorderModeToZero();
+  bsplineTransform->SetDisplacementScale(DisplacementScale);
 }
 
 //----------------------------------------------------------------------------
@@ -166,9 +169,9 @@ void SetBSplineNodeItk(itkBSplineType::Pointer bspline,int nodeIndex[3], double 
   itkBSplineType::ParametersType parameters = bspline->GetParameters();
 
   const unsigned int numberOfNodes = dims[0] * dims[1] * dims[2];
-  parameters.SetElement( numberOfNodes*0 + nodeIndex[0] + nodeIndex[1]*dims[0] + nodeIndex[2]*dims[0]*dims[1], nodeValue[0] );
-  parameters.SetElement( numberOfNodes*1 + nodeIndex[0] + nodeIndex[1]*dims[0] + nodeIndex[2]*dims[0]*dims[1], nodeValue[1] );
-  parameters.SetElement( numberOfNodes*2 + nodeIndex[0] + nodeIndex[1]*dims[0] + nodeIndex[2]*dims[0]*dims[1], nodeValue[2] );
+  parameters.SetElement( numberOfNodes*0 + nodeIndex[0] + nodeIndex[1]*dims[0] + nodeIndex[2]*dims[0]*dims[1], DisplacementScale*nodeValue[0] );
+  parameters.SetElement( numberOfNodes*1 + nodeIndex[0] + nodeIndex[1]*dims[0] + nodeIndex[2]*dims[0]*dims[1], DisplacementScale*nodeValue[1] );
+  parameters.SetElement( numberOfNodes*2 + nodeIndex[0] + nodeIndex[1]*dims[0] + nodeIndex[2]*dims[0]*dims[1], DisplacementScale*nodeValue[2] );
 
   bspline->SetParameters( parameters );
 }
