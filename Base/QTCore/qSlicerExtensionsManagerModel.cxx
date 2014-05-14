@@ -76,7 +76,8 @@ protected:
 public:
   enum ColumnsIds
     {
-    NameColumn = 0,
+    IdColumn = 0,
+    NameColumn,
     ScmColumn,
     ScmUrlColumn,
     SlicerRevisionColumn,
@@ -97,7 +98,8 @@ public:
     };
 
   enum ItemDataRole{
-    NameRole = Qt::UserRole + 1,
+    IdRole = Qt::UserRole + 1,
+    NameRole,
     ScmRole,
     ScmUrlRole,
     DependsRole,
@@ -203,6 +205,7 @@ void qSlicerExtensionsManagerModelPrivate::init()
 
   this->NewExtensionEnabledByDefault = true;
 
+  this->initializeColumnIdToNameMap(Self::IdColumn, "extension_id");
   this->initializeColumnIdToNameMap(Self::NameColumn, "extensionname");
   this->initializeColumnIdToNameMap(Self::ScmColumn, "scm");
   this->initializeColumnIdToNameMap(Self::ScmUrlColumn, "scmurl");
@@ -1402,7 +1405,7 @@ QHash<QString, QString> qSlicerExtensionsManagerModel::serverToExtensionDescript
 QStringList qSlicerExtensionsManagerModel::serverKeysToIgnore()
 {
   return QStringList()
-      << "item_id" << "extension_id" << "bitstream_id"
+      << "item_id" << "bitstream_id"
       << "submissiontype" << "codebase" << "package"
       << "size" << "date_creation";
 }
@@ -1411,15 +1414,10 @@ QStringList qSlicerExtensionsManagerModel::serverKeysToIgnore()
 qSlicerExtensionsManagerModel::ExtensionMetadataType
 qSlicerExtensionsManagerModel::filterExtensionMetadata(const ExtensionMetadataType& extensionMetadata)
 {
-  QStringList keysToIgnore(Self::serverKeysToIgnore());
-  ExtensionMetadataType filteredExtensionMetadata;
-  foreach(const QString& key, extensionMetadata.keys())
+  ExtensionMetadataType filteredExtensionMetadata = extensionMetadata;
+  foreach(const QString& key, Self::serverKeysToIgnore())
     {
-    if (keysToIgnore.contains(key))
-      {
-      continue;
-      }
-    filteredExtensionMetadata.insert(key, extensionMetadata.value(key));
+    filteredExtensionMetadata.remove(key);
     }
   return filteredExtensionMetadata;
 }

@@ -79,8 +79,6 @@ void qSlicerSettingsStylesPanelPrivate::init()
 
   this->setupUi(q);
 
-  qSlicerCoreApplication* coreApp = qSlicerCoreApplication::application();
-
   // General appearance settings
   QObject::connect(this->FontButton, SIGNAL(currentFontChanged(QFont)),
                    q, SLOT(onFontChanged(QFont)));
@@ -108,8 +106,7 @@ void qSlicerSettingsStylesPanelPrivate::init()
                       this->AdditionalStylePathsView,
                       "directoryList", SIGNAL(directoryListChanged()),
                       "Additional style paths",
-                      ctkSettingsPanel::OptionRequireRestart,
-                      coreApp->revisionUserSettings());
+                      ctkSettingsPanel::OptionRequireRestart);
 
   // Style setting
   this->populateStyles();
@@ -118,9 +115,7 @@ void qSlicerSettingsStylesPanelPrivate::init()
                    q, SLOT(onStyleChanged(QString)));
   q->registerProperty("Styles/Style", q,
                       "currentStyle", SIGNAL(currentStyleChanged(QString)),
-                      "Current style",
-                      ctkSettingsPanel::OptionNone,
-                      coreApp->revisionUserSettings());
+                      "Current style");
 
   // Connect AdditionalStylePaths buttons
   QObject::connect(this->AddAdditionalStylePathButton, SIGNAL(clicked()),

@@ -19,20 +19,25 @@
 ==============================================================================*/
 
 // Qt includes
+#include <QAbstractTextDocumentLayout>
 #include <QDebug>
 #include <QLabel>
+#include <QListWidget>
+#include <QMouseEvent>
+#include <QPainter>
 #include <QPaintEvent>
 #include <QPushButton>
 #include <QSignalMapper>
+#include <QTextBlock>
+#include <QTextDocument>
 
 // Slicer includes
 #include "qSlicerExtensionsManagerModel.h"
 #include "qSlicerExtensionsManageWidget.h"
 #include "ui_qSlicerExtensionsButtonBox.h"
-#include "ui_qSlicerExtensionsManageWidget.h"
 
 //-----------------------------------------------------------------------------
-class qSlicerExtensionsManageWidgetPrivate: public Ui_qSlicerExtensionsManageWidget
+class qSlicerExtensionsManageWidgetPrivate
 {
   Q_DECLARE_PUBLIC(qSlicerExtensionsManageWidget);
 protected:
@@ -41,23 +46,21 @@ protected:
 public:
   typedef qSlicerExtensionsManageWidgetPrivate Self;
   typedef qSlicerExtensionsManagerModel::ExtensionMetadataType ExtensionMetadataType;
+
+
+  enum DataRoles
+    {
+    IconRole = Qt::DecorationRole,
+    NameRole = Qt::UserRole,
+    };
+
   qSlicerExtensionsManageWidgetPrivate(qSlicerExtensionsManageWidget& object);
   void init();
 
-  enum ColumnsIds
-    {
-    IconColumn = 0,
-    NameColumn,
-    TextColumn,
-    ButtonsColumn,
-    ColumnCount
-    };
-
-  QTreeWidgetItem * extensionItem(const QString &extensionName)const;
+  QListWidgetItem * extensionItem(const QString &extensionName) const;
 
   void addExtensionItem(const ExtensionMetadataType &metadata);
 
-  QSignalMapper LabelLinkMapper;
   QSignalMapper EnableButtonMapper;
   QSignalMapper DisableButtonMapper;
   QSignalMapper ScheduleUninstallButtonMapper;
@@ -101,16 +104,10 @@ void qSlicerExtensionsManageWidgetPrivate::init()
 {
   Q_Q(qSlicerExtensionsManageWidget);
 
-  this->setupUi(q);
-
-  this->ExtensionList->setColumnCount(Self::ColumnCount);
-  this->ExtensionList->setColumnHidden(Self::NameColumn, true);
-  this->ExtensionList->setRootIsDecorated(false);
-  this->ExtensionList->setIconSize(QSize(64, 64));
-  this->ExtensionList->header()->setResizeMode(Self::TextColumn, QHeaderView::Stretch);
-  this->ExtensionList->setAllColumnsShowFocus(true);
-  this->ExtensionList->setAlternatingRowColors(true);
-  this->ExtensionList->setSelectionMode(QAbstractItemView::NoSelection);
+  q->setAlternatingRowColors(true);
+  q->setSelectionMode(QAbstractItemView::NoSelection);
+  q->setIconSize(QSize(64, 64));
+  q->setSpacing(1);
 
   QObject::connect(&this->EnableButtonMapper, SIGNAL(mapped(QString)),
                    q, SLOT(setExtensionEnabled(QString)));
@@ -126,14 +123,19 @@ void qSlicerExtensionsManageWidgetPrivate::init()
 }
 
 // --------------------------------------------------------------------------
-QTreeWidgetItem * qSlicerExtensionsManageWidgetPrivate::extensionItem(const QString& extensionName)const
+QListWidgetItem * qSlicerExtensionsManageWidgetPrivate::extensionItem(const QString& extensionName) const
 {
-  QList<QTreeWidgetItem*> items =
-      this->ExtensionList->findItems(extensionName, Qt::MatchExactly, Self::NameColumn);
-  Q_ASSERT(items.count() < 2);
-  if (items.count() == 1)
+  Q_Q(const qSlicerExtensionsManageWidget);
+
+  QAbstractItemModel* model = q->model();
+  const QModelIndexList indices =
+    model->match(model->index(0, 0, QModelIndex()), Self::NameRole,
+                 extensionName, 2, Qt::MatchExactly);
+
+  Q_ASSERT(indices.count() < 2);
+  if (indices.count() == 1)
     {
-    return items.at(0);
+    return q->item(indices.first().row());
     }
   return 0;
 }
@@ -147,81 +149,211 @@ class qSlicerExtensionsDescriptionLabel : public QLabel
 public:
   typedef QLabel Superclass;
 
-  enum
-  {
-    NOWARNING = 0,
-    INCOMPATIBLE
-  };
-
   // --------------------------------------------------------------------------
   qSlicerExtensionsDescriptionLabel(const QString& extensionSlicerVersion, const QString& slicerRevision,
-                                    const QString& extensionName, const QString& extensionDescription,
-                                    int warningType = NOWARNING)
+                                    const QString& extensionId, const QString& extensionName,
+                                    const QString& extensionDescription, bool extensionEnabled,
+                                    bool extensionCompatible)
     : QLabel(), ExtensionSlicerVersion(extensionSlicerVersion), SlicerRevision(slicerRevision),
-      PreviousWidth(0), ExtensionName(extensionName), ExtensionDescription(extensionDescription),
-      WarningColor("#bd8530"), WarningType(warningType)
+      ExtensionIncompatible(!extensionCompatible), WarningColor("#bd8530"),
+      ExtensionDisabled(!extensionEnabled), ExtensionId(extensionId),
+      ExtensionName(extensionName), ExtensionDescription(extensionDescription),
+      LastWidth(0), LastElidedDescription(extensionDescription)
   {
+    QTextOption textOption = this->Text.defaultTextOption();
+    textOption.setWrapMode(QTextOption::NoWrap);
+    this->Text.setDefaultTextOption(textOption);
+
+    this->prepareText(extensionDescription); // Ensure reasonable initial height for size hint
     this->setToolTip(extensionDescription);
+
+    this->setMouseTracking(!extensionId.isEmpty());
+  }
+
+  // --------------------------------------------------------------------------
+  void setExtensionDisabled(bool state)
+  {
+    if (this->ExtensionDisabled != state)
+      {
+      this->ExtensionDisabled = state;
+      this->prepareText(this->LastElidedDescription);
+      this->update();
+      }
   }
 
   // --------------------------------------------------------------------------
   QString incompatibleExtensionText()
   {
-    int imgHeight = this->fontMetrics().size(Qt::TextSingleLine, "XXXX").height();
-    return QString("<small><img height=\"%1\" src=\":/Icons/ExtensionIncompatible.png\"/>"
-                   " <font color=\"%2\">Incompatible with Slicer r%3 [built for r%4]</font></small><br>").
-        arg(imgHeight).arg(this->WarningColor).
-        arg(this->SlicerRevision).arg(this->ExtensionSlicerVersion);
+    return QString("<p style=\"font-weight: bold; font-size: 80%; color: %2;\">"
+                   "<img style=\"float: left\" src=\":/Icons/ExtensionIncompatible.svg\"/> "
+                   "Incompatible with Slicer r%3 [built for r%4]</p>").
+        arg(this->WarningColor, this->SlicerRevision, this->ExtensionSlicerVersion);
   }
 
   // --------------------------------------------------------------------------
-  QString descriptionAsRichText(const QString& extensionDescription)
+  QString descriptionAsRichText(const QString& elidedDescription)
   {
-    //
-    QString warningMessage;
-    if (this->WarningType == INCOMPATIBLE)
+    static const QString format = "%1<h2>%2%3</h2><p>%4%5</p>";
+
+    QString linkText;
+    QString warningText;
+    QString enabledText = (this->ExtensionDisabled ? " (disabled)" : "");
+    if (this->ExtensionIncompatible)
       {
-      warningMessage = this->incompatibleExtensionText();
+      warningText = this->incompatibleExtensionText();
+      enabledText = " (disabled)";
       }
-    //  <a href=\"slicer:%1\">More</a>
-    return warningMessage + QString("<b>%1</b><br><br>%2").arg(this->ExtensionName).arg(extensionDescription);
+    if (!this->ExtensionId.isEmpty())
+      {
+      linkText = QString(" <a href=\"slicer:%1\">More</a>").arg(this->ExtensionId);
+      }
+    return format.arg(warningText, this->ExtensionName, enabledText, elidedDescription, linkText);
+  }
+
+  // --------------------------------------------------------------------------
+  void prepareText(const QString& elidedDescription)
+  {
+    this->LastElidedDescription = elidedDescription;
+    this->Text.setHtml(this->descriptionAsRichText(elidedDescription));
   }
 
   // --------------------------------------------------------------------------
   virtual QSize sizeHint() const
   {
-    int lineCount = 3; // Corresponds to the number of line within the default description text
-    if (this->WarningType != NOWARNING)
-      {
-      lineCount++;
-      }
     QSize hint = this->Superclass::sizeHint();
-    hint.setHeight(this->fontMetrics().size(Qt::TextSingleLine, "XXXX").height() * lineCount + this->margin() * 2 + 2);
+    hint.setHeight(qRound(this->Text.size().height() + 0.5) +
+                   this->margin() * 2);
     return hint;
   }
 
   // --------------------------------------------------------------------------
-  virtual void paintEvent(QPaintEvent * event)
+  virtual void paintEvent(QPaintEvent *)
   {
-    this->Superclass::paintEvent(event);
-    if (this->rect().width() != this->PreviousWidth)
+    QPainter painter(this);
+    const QRect cr = this->contentsRect();
+
+    if (this->LastWidth != cr.width())
       {
-      this->PreviousWidth = this->rect().width();
-      this->setText(this->descriptionAsRichText(
-                      this->fontMetrics().elidedText(this->ExtensionDescription, Qt::ElideRight,
-                                                     this->rect().width()
-                                                     - this->margin() * 2
-                                                     /* - this->fontMetrics().size(Qt::TextSingleLine, " More").width()*/)));
+      int margin = this->margin() * 2;
+      if (!this->ExtensionId.isEmpty())
+        {
+        margin += this->fontMetrics().width(" More");
+        }
+      this->prepareText(
+        this->fontMetrics().elidedText(this->ExtensionDescription,
+                                       Qt::ElideRight, cr.width() - margin));
+      this->Text.setTextWidth(this->LastWidth = cr.width());
+      }
+
+    QAbstractTextDocumentLayout::PaintContext context;
+    context.palette = this->palette();
+    if (this->ExtensionIncompatible || this->ExtensionDisabled)
+      {
+      context.palette.setCurrentColorGroup(QPalette::Disabled);
+      }
+
+    painter.translate(cr.topLeft());
+    this->Text.documentLayout()->draw(&painter, context);
+  }
+
+  // --------------------------------------------------------------------------
+  QString linkUnderCursor(const QPoint& pos)
+  {
+    const int caretPos =
+      this->Text.documentLayout()->hitTest(pos, Qt::FuzzyHit);
+    if (caretPos < 0)
+      {
+      return QString();
+      }
+
+    const QTextBlock& block = this->Text.findBlock(caretPos);
+    for (QTextBlock::iterator iter = block.begin(); !iter.atEnd(); ++iter)
+      {
+      const QTextFragment& fragment = iter.fragment();
+      const int fp = fragment.position();
+      if (fp <= caretPos && fp + fragment.length() > caretPos)
+        {
+        return fragment.charFormat().anchorHref();
+        }
+      }
+
+    return QString();
+  }
+
+  // --------------------------------------------------------------------------
+  virtual void mouseMoveEvent(QMouseEvent * e)
+  {
+    Superclass::mouseMoveEvent(e);
+
+    QString href = this->linkUnderCursor(e->pos());
+    if (href != this->LinkUnderCursor)
+      {
+      this->LinkUnderCursor = href;
+      if (href.isEmpty())
+        {
+        this->unsetCursor();
+        }
+      else
+        {
+        this->setCursor(Qt::PointingHandCursor);
+        emit this->linkHovered(href);
+        }
       }
   }
+
+  // --------------------------------------------------------------------------
+  virtual void mouseReleaseEvent(QMouseEvent * e)
+  {
+    Superclass::mouseReleaseEvent(e);
+
+    if (e->button() == Qt::LeftButton)
+      {
+      QString href = this->linkUnderCursor(e->pos());
+      if (!href.isEmpty())
+        {
+        emit this->linkActivated(href);
+        }
+      }
+  }
+
   QString ExtensionSlicerVersion;
   QString SlicerRevision;
-  int PreviousWidth;
+
   bool ExtensionIncompatible;
+  QString WarningColor;
+
+  bool ExtensionDisabled;
+
+  QString ExtensionId;
   QString ExtensionName;
   QString ExtensionDescription;
-  QString WarningColor;
-  int WarningType;
+
+  QTextDocument Text;
+
+  int LastWidth;
+  QString LastElidedDescription;
+
+  QString LinkUnderCursor;
+};
+
+// --------------------------------------------------------------------------
+class qSlicerExtensionsItemWidget : public QWidget
+{
+public:
+  qSlicerExtensionsItemWidget(qSlicerExtensionsDescriptionLabel * label, QWidget* parent = 0)
+    : QWidget(parent), Label(label)
+  {
+    QHBoxLayout * layout = new QHBoxLayout;
+    layout->addWidget(label, 1);
+    layout->addWidget(this->ButtonBox = new qSlicerExtensionsButtonBox);
+    layout->setContentsMargins(0, 0, 0, 0);
+    this->setLayout(layout);
+
+    label->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
+  }
+
+  qSlicerExtensionsDescriptionLabel * Label;
+  qSlicerExtensionsButtonBox * ButtonBox;
 };
 
 } // end of anonymous namespace
@@ -231,6 +363,7 @@ void qSlicerExtensionsManageWidgetPrivate::addExtensionItem(const ExtensionMetad
 {
   Q_Q(qSlicerExtensionsManageWidget);
 
+  QString extensionId = metadata.value("extension_id").toString();
   QString extensionName = metadata.value("extensionname").toString();
   if (extensionName.isEmpty())
     {
@@ -242,56 +375,48 @@ void qSlicerExtensionsManageWidgetPrivate::addExtensionItem(const ExtensionMetad
   QString extensionSlicerRevision = metadata.value("slicer_revision").toString();
   bool enabled = QVariant::fromValue(metadata.value("enabled")).toBool();
 
-  QTreeWidgetItem * item = new QTreeWidgetItem();
+  QListWidgetItem * item = new QListWidgetItem();
 
-  item->setIcon(qSlicerExtensionsManageWidgetPrivate::IconColumn,
-                extensionIcon(":/Icons/ExtensionDefaultIcon.png", enabled));
+  item->setIcon(extensionIcon(":/Icons/ExtensionDefaultIcon.png", enabled));
 
-  // See extensionItem(...) - Allow findItems() to work as expected
-  item->setText(qSlicerExtensionsManageWidgetPrivate::NameColumn, extensionName);
+  item->setData(Self::NameRole, extensionName); // See extensionItem(...)
 
-  this->ExtensionList->addTopLevelItem(item);
+  q->addItem(item);
 
   bool isExtensionCompatible =
       q->extensionsManagerModel()->isExtensionCompatible(extensionName).isEmpty();
 
-  int warningType = qSlicerExtensionsDescriptionLabel::NOWARNING;
-  if (!isExtensionCompatible)
-    {
-    warningType = qSlicerExtensionsDescriptionLabel::INCOMPATIBLE;
-    }
-
   qSlicerExtensionsDescriptionLabel * label = new qSlicerExtensionsDescriptionLabel(
-        extensionSlicerRevision,
-        q->extensionsManagerModel()->slicerRevision(),
-        extensionName, description, warningType);
-  label->setOpenExternalLinks(true);
-  label->setMargin(9);
-  this->ExtensionList->setItemWidget(item, qSlicerExtensionsManageWidgetPrivate::TextColumn, label);
-  this->LabelLinkMapper.setMapping(label, extensionName);
-  QObject::connect(label, SIGNAL(linkActivated(QString)), &this->LabelLinkMapper, SLOT(map()));
+        extensionSlicerRevision, q->extensionsManagerModel()->slicerRevision(),
+        extensionId, extensionName, description, enabled, isExtensionCompatible);
+  label->setMargin(6);
+  QObject::connect(label, SIGNAL(linkActivated(QString)), q, SLOT(onLinkActivated(QString)));
 
-  qSlicerExtensionsButtonBox * buttonBox = new qSlicerExtensionsButtonBox();
-  this->ExtensionList->setItemWidget(item, qSlicerExtensionsManageWidgetPrivate::ButtonsColumn, buttonBox);
+  QSize hint = label->sizeHint();
+  hint.setWidth(hint.width() + 64);
+  item->setSizeHint(hint);
 
-  this->EnableButtonMapper.setMapping(buttonBox->EnableButton, extensionName);
-  QObject::connect(buttonBox->EnableButton, SIGNAL(clicked()), &this->EnableButtonMapper, SLOT(map()));
-  buttonBox->EnableButton->setVisible(!enabled);
-  buttonBox->EnableButton->setEnabled(isExtensionCompatible);
+  qSlicerExtensionsItemWidget * widget = new qSlicerExtensionsItemWidget(label);
+  q->setItemWidget(item, widget);
 
-  this->DisableButtonMapper.setMapping(buttonBox->DisableButton, extensionName);
-  QObject::connect(buttonBox->DisableButton, SIGNAL(clicked()), &this->DisableButtonMapper, SLOT(map()));
-  buttonBox->DisableButton->setVisible(enabled);
+  this->EnableButtonMapper.setMapping(widget->ButtonBox->EnableButton, extensionName);
+  QObject::connect(widget->ButtonBox->EnableButton, SIGNAL(clicked()), &this->EnableButtonMapper, SLOT(map()));
+  widget->ButtonBox->EnableButton->setVisible(!enabled);
+  widget->ButtonBox->EnableButton->setEnabled(isExtensionCompatible);
+
+  this->DisableButtonMapper.setMapping(widget->ButtonBox->DisableButton, extensionName);
+  QObject::connect(widget->ButtonBox->DisableButton, SIGNAL(clicked()), &this->DisableButtonMapper, SLOT(map()));
+  widget->ButtonBox->DisableButton->setVisible(enabled);
 
   bool scheduledForUninstall = this->ExtensionsManagerModel->isExtensionScheduledForUninstall(extensionName);
 
-  this->ScheduleUninstallButtonMapper.setMapping(buttonBox->ScheduleForUninstallButton, extensionName);
-  QObject::connect(buttonBox->ScheduleForUninstallButton, SIGNAL(clicked()), &this->ScheduleUninstallButtonMapper, SLOT(map()));
-  buttonBox->ScheduleForUninstallButton->setVisible(!scheduledForUninstall);
+  this->ScheduleUninstallButtonMapper.setMapping(widget->ButtonBox->ScheduleForUninstallButton, extensionName);
+  QObject::connect(widget->ButtonBox->ScheduleForUninstallButton, SIGNAL(clicked()), &this->ScheduleUninstallButtonMapper, SLOT(map()));
+  widget->ButtonBox->ScheduleForUninstallButton->setVisible(!scheduledForUninstall);
 
-  this->CancelScheduledUninstallButtonMapper.setMapping(buttonBox->CancelScheduledForUninstallButton, extensionName);
-  QObject::connect(buttonBox->CancelScheduledForUninstallButton, SIGNAL(clicked()), &this->CancelScheduledUninstallButtonMapper, SLOT(map()));
-  buttonBox->CancelScheduledForUninstallButton->setVisible(scheduledForUninstall);
+  this->CancelScheduledUninstallButtonMapper.setMapping(widget->ButtonBox->CancelScheduledForUninstallButton, extensionName);
+  QObject::connect(widget->ButtonBox->CancelScheduledForUninstallButton, SIGNAL(clicked()), &this->CancelScheduledUninstallButtonMapper, SLOT(map()));
+  widget->ButtonBox->CancelScheduledForUninstallButton->setVisible(scheduledForUninstall);
 }
 
 // --------------------------------------------------------------------------
@@ -406,41 +531,41 @@ void qSlicerExtensionsManageWidget::onExtensionInstalled(const QString& extensio
 void qSlicerExtensionsManageWidget::onExtensionScheduledForUninstall(const QString& extensionName)
 {
   Q_D(qSlicerExtensionsManageWidget);
-  QTreeWidgetItem * item = d->extensionItem(extensionName);
+  QListWidgetItem * item = d->extensionItem(extensionName);
   Q_ASSERT(item);
-  qSlicerExtensionsButtonBox * buttonBox =
-      dynamic_cast<qSlicerExtensionsButtonBox*>(d->ExtensionList->itemWidget(item, qSlicerExtensionsManageWidgetPrivate::ButtonsColumn));
-  Q_ASSERT(buttonBox);
-  buttonBox->CancelScheduledForUninstallButton->setVisible(true);
-  buttonBox->ScheduleForUninstallButton->setVisible(false);
+  qSlicerExtensionsItemWidget * widget =
+      dynamic_cast<qSlicerExtensionsItemWidget*>(this->itemWidget(item));
+  Q_ASSERT(widget);
+  widget->ButtonBox->CancelScheduledForUninstallButton->setVisible(true);
+  widget->ButtonBox->ScheduleForUninstallButton->setVisible(false);
 }
 
 // -------------------------------------------------------------------------
 void qSlicerExtensionsManageWidget::onExtensionCancelledScheduleForUninstall(const QString& extensionName)
 {
   Q_D(qSlicerExtensionsManageWidget);
-  QTreeWidgetItem * item = d->extensionItem(extensionName);
+  QListWidgetItem * item = d->extensionItem(extensionName);
   Q_ASSERT(item);
-  qSlicerExtensionsButtonBox * buttonBox =
-      dynamic_cast<qSlicerExtensionsButtonBox*>(d->ExtensionList->itemWidget(item, qSlicerExtensionsManageWidgetPrivate::ButtonsColumn));
-  Q_ASSERT(buttonBox);
-  buttonBox->CancelScheduledForUninstallButton->setVisible(false);
-  buttonBox->ScheduleForUninstallButton->setVisible(true);
+  qSlicerExtensionsItemWidget * widget =
+      dynamic_cast<qSlicerExtensionsItemWidget*>(this->itemWidget(item));
+  Q_ASSERT(widget);
+  widget->ButtonBox->CancelScheduledForUninstallButton->setVisible(false);
+  widget->ButtonBox->ScheduleForUninstallButton->setVisible(true);
 }
 
 // --------------------------------------------------------------------------
 void qSlicerExtensionsManageWidget::onModelExtensionEnabledChanged(const QString &extensionName, bool enabled)
 {
   Q_D(qSlicerExtensionsManageWidget);
-  QTreeWidgetItem * item = d->extensionItem(extensionName);
+  QListWidgetItem * item = d->extensionItem(extensionName);
   Q_ASSERT(item);
-  qSlicerExtensionsButtonBox * buttonBox =
-      dynamic_cast<qSlicerExtensionsButtonBox*>(d->ExtensionList->itemWidget(item, qSlicerExtensionsManageWidgetPrivate::ButtonsColumn));
-  Q_ASSERT(buttonBox);
-  buttonBox->EnableButton->setVisible(!enabled);
-  buttonBox->DisableButton->setVisible(enabled);
-  item->setIcon(qSlicerExtensionsManageWidgetPrivate::IconColumn,
-                extensionIcon(":/Icons/ExtensionDefaultIcon.png", enabled));
+  qSlicerExtensionsItemWidget * widget =
+      dynamic_cast<qSlicerExtensionsItemWidget*>(this->itemWidget(item));
+  Q_ASSERT(widget);
+  widget->Label->setExtensionDisabled(!enabled);
+  widget->ButtonBox->EnableButton->setVisible(!enabled);
+  widget->ButtonBox->DisableButton->setVisible(enabled);
+  item->setIcon(extensionIcon(":/Icons/ExtensionDefaultIcon.png", enabled));
 
 }
 
@@ -448,9 +573,23 @@ void qSlicerExtensionsManageWidget::onModelExtensionEnabledChanged(const QString
 void qSlicerExtensionsManageWidget::onModelUpdated()
 {
   Q_D(qSlicerExtensionsManageWidget);
-  d->ExtensionList->clear();
+  this->clear();
   foreach(const QString& extensionName, d->ExtensionsManagerModel->installedExtensions())
     {
     d->addExtensionItem(d->ExtensionsManagerModel->extensionMetadata(extensionName));
     }
+}
+
+// --------------------------------------------------------------------------
+void qSlicerExtensionsManageWidget::onLinkActivated(const QString& link)
+{
+  Q_D(qSlicerExtensionsManageWidget);
+
+  QUrl url = d->ExtensionsManagerModel->serverUrl();
+  url.setPath(url.path() + "/slicerappstore/extension/view");
+  url.addQueryItem("extensionId", link.mid(7)); // remove leading "slicer:"
+  url.addQueryItem("breadcrumbs", "none");
+  url.addQueryItem("layout", "empty");
+
+  emit this->linkActivated(url);
 }

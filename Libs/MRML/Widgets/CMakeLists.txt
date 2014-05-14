@@ -173,6 +173,9 @@ set(MRMLWidgets_SRCS
   qMRMLVolumeThresholdWidget.h
   qMRMLVolumeWidget.cxx
   qMRMLVolumeWidget.h
+  qMRMLExpandingWebView.cxx
+  qMRMLExpandingWebView.h
+  qMRMLExpandingWebView_p.h
   qMRMLWidget.cxx
   qMRMLWidget.h
   qMRMLWindowLevelWidget.cxx
@@ -255,6 +258,8 @@ set(MRMLWidgets_MOC_SRCS
   qMRMLVolumeThresholdWidget.h
   qMRMLVolumeWidget.h
   qMRMLVolumeWidget_p.h
+  qMRMLExpandingWebView.h
+  qMRMLExpandingWebView_p.h
   qMRMLWidget.h
   qMRMLWindowLevelWidget.h
   )
@@ -369,6 +374,11 @@ set(MRMLWidgets_LIBRARIES
   MRMLLogic
   MRMLDisplayableManager
   )
+if(${VTK_VERSION_MAJOR} GREATER 5)
+  list(APPEND MRMLWidgets_LIBRARIES
+    vtkRenderingQt
+    )
+endif()
 
 target_link_libraries(${lib_name} ${MRMLWidgets_LIBRARIES})
 
