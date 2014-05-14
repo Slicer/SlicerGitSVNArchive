@@ -673,9 +673,14 @@ void SetVTKOrientedGridTransformFromITK(vtkObject* self, vtkOrientedGridTransfor
       << VTKDimension << " components but it actually contains " << numberOfScalarComponents );
     return;
     }
+#if (VTK_MAJOR_VERSION <= 5)
   gridImage_Ras->SetNumberOfScalarComponents( numberOfScalarComponents );
   gridImage_Ras->SetScalarTypeToDouble();
   gridImage_Ras->AllocateScalars();
+#else
+  gridImage_Ras->AllocateScalars(VTK_DOUBLE, 3);
+#endif
+
   double* displacementVectors_Ras = reinterpret_cast<double*>(gridImage_Ras->GetScalarPointer());
   itk::ImageRegionConstIterator<GridImageType> inputIt(gridImage_Lps, gridImage_Lps->GetRequestedRegion());
   inputIt.GoToBegin();
@@ -688,7 +693,13 @@ void SetVTKOrientedGridTransformFromITK(vtkObject* self, vtkOrientedGridTransfor
     ++inputIt;
     }
 
+#if (VTK_MAJOR_VERSION <= 5)
   grid_Ras->SetDisplacementGrid( gridImage_Ras.GetPointer() );
+#else
+  grid_Ras->SetDisplacementGridData( gridImage_Ras.GetPointer() );
+#endif
+
+  // Set the interpolation to cubic to have smooth derivatives
   grid_Ras->SetInterpolationModeToCubic();
 }
 

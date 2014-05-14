@@ -99,7 +99,11 @@ inline void vtkLinearTransformJacobian(double aMat[3][3], double bMat[4][4], dou
 void vtkOrientedGridTransform::ForwardTransformPoint(const double inPoint[3],
                                              double outPoint[3])
 {
+#if (VTK_MAJOR_VERSION <= 5)
   if (this->GridDirectionMatrix == NULL || this->DisplacementGrid == NULL)
+#else
+  if (this->GridDirectionMatrix == NULL || this->GridPointer == NULL)
+#endif
     {
     this->Superclass::ForwardTransformPoint(inPoint,outPoint);
     return;
@@ -136,7 +140,11 @@ void vtkOrientedGridTransform::ForwardTransformDerivative(const double inPoint[3
                                                   double outPoint[3],
                                                   double derivative[3][3])
 {
+#if (VTK_MAJOR_VERSION <= 5)
   if (this->GridDirectionMatrix == NULL || this->DisplacementGrid == NULL)
+#else
+  if (this->GridDirectionMatrix == NULL || this->GridPointer == NULL)
+#endif
     {
     this->Superclass::ForwardTransformDerivative(inPoint,outPoint,derivative);
     return;
@@ -181,7 +189,11 @@ void vtkOrientedGridTransform::InverseTransformDerivative(const double inPoint[3
                                                   double outPoint[3],
                                                   double derivative[3][3])
 {
+#if (VTK_MAJOR_VERSION <= 5)
   if (this->GridDirectionMatrix == NULL || this->DisplacementGrid == NULL)
+#else
+  if (this->GridDirectionMatrix == NULL || this->GridPointer == NULL)
+#endif
     {
     this->Superclass::InverseTransformDerivative(inPoint,outPoint,derivative);
     return;
@@ -260,7 +272,7 @@ void vtkOrientedGridTransform::InverseTransformDerivative(const double inPoint[3
     // if the function value is decreasing, do next Newton step
     // (the f < 1.0 is there because I found that convergence
     // is more stable if only a single reduction step is done)
-    if (functionValue < lastFunctionValue || f < 1.0)
+    if (i == 0 || functionValue < lastFunctionValue || f < 1.0)
       {
       // here is the critical step in Newton's method
       vtkMath::LinearSolve3x3(derivative,deltaP,deltaI);
