@@ -1027,12 +1027,12 @@ const char* vtkMRMLTransformNode::GetTransformInfo(vtkAbstractTransform* inputTr
       if (coefficients!=NULL)
         {
         int* extent = coefficients->GetExtent();
-        int gridSize[3]={extent[1]-extent[0]-1, extent[3]-extent[2]-1, extent[5]-extent[4]-1};
-        ss << std::endl << "  Grid size: " << gridSize[0] << " " << gridSize[1] << " " <<gridSize[2] <<".";
+        int gridSize[3]={extent[1]-extent[0]+1, extent[3]-extent[2]+1, extent[5]-extent[4]+1};
+        ss << std::endl << "  Grid size: " << gridSize[0] << " " << gridSize[1] << " " <<gridSize[2];
         double* gridOrigin = coefficients->GetOrigin();
-        ss << std::endl << "  Grid origin: " << gridOrigin[0] << " " << gridOrigin[1] << " " <<gridOrigin[2] <<".";
+        ss << std::endl << "  Grid origin: " << gridOrigin[0] << " " << gridOrigin[1] << " " <<gridOrigin[2];
         double* gridSpacing = coefficients->GetSpacing();
-        ss << std::endl << "  Grid spacing: " << gridSpacing[0] << " " << gridSpacing[1] << " " <<gridSpacing[2] <<".";
+        ss << std::endl << "  Grid spacing: " << gridSpacing[0] << " " << gridSpacing[1] << " " <<gridSpacing[2];
         vtkOrientedBSplineTransform* orientedBsplineTransform=vtkOrientedBSplineTransform::SafeDownCast(transform);
         if (orientedBsplineTransform!=NULL)
           {
@@ -1069,11 +1069,11 @@ const char* vtkMRMLTransformNode::GetTransformInfo(vtkAbstractTransform* inputTr
       if (displacementField!=NULL)
         {
         int* extent=displacementField->GetExtent();
-        ss << std::endl << "  Grid size: " << extent[1]-extent[0] << " " << extent[3]-extent[2] << " " << extent[5]-extent[4]<<".";
+        ss << std::endl << "  Grid size: " << (extent[1]-extent[0]+1) << " " << (extent[3]-extent[2]+1) << " " << (extent[5]-extent[4]+1);
         double* origin=displacementField->GetOrigin();
-        ss << std::endl << "  Grid origin: " << origin[0] << " " << origin[1] << " " << origin[2]<<".";
+        ss << std::endl << "  Grid origin: " << origin[0] << " " << origin[1] << " " << origin[2];
         double* spacing=displacementField->GetSpacing();
-        ss << std::endl << "  Grid spacing: " << spacing[0] << " " << spacing[1] << " " << spacing[2]<<".";
+        ss << std::endl << "  Grid spacing: " << spacing[0] << " " << spacing[1] << " " << spacing[2];
         vtkOrientedGridTransform* orientedGridTransform=vtkOrientedGridTransform::SafeDownCast(transform);
         if (orientedGridTransform!=NULL)
           {
