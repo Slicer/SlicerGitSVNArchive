@@ -16,8 +16,7 @@ Version:   $Revision: 1.14 $
 #include "vtkMRMLGridTransformNode.h"
 
 // VTK includes
-#include <vtkGeneralTransform.h>
-#include <vtkGridTransform.h>
+#include <vtkOrientedGridTransform.h>
 #include <vtkImageData.h>
 #include <vtkNew.h>
 #include <vtkObjectFactory.h>
@@ -32,7 +31,29 @@ vtkMRMLNodeNewMacro(vtkMRMLGridTransformNode);
 vtkMRMLGridTransformNode::vtkMRMLGridTransformNode()
 {
   this->ReadWriteAsTransformToParent = 0;
-  vtkNew<vtkGridTransform> warp;
+
+  // Set up the node with a dummy displacement field (that contains one single
+  // null-vector) to make sure the node is valid and can be saved
+  vtkNew<vtkImageData> emptyDisplacementField;
+  emptyDisplacementField->SetDimensions(1,1,1);
+#if (VTK_MAJOR_VERSION <= 5)
+  emptyDisplacementField->SetNumberOfScalarComponents(3);
+  emptyDisplacementField->SetScalarTypeToDouble();
+  emptyDisplacementField->AllocateScalars();
+#else
+  emptyDisplacementField->AllocateScalars(VTK_DOUBLE, 3);
+#endif
+  emptyDisplacementField->SetScalarComponentFromDouble(0,0,0, 0, 0.0);
+  emptyDisplacementField->SetScalarComponentFromDouble(0,0,0, 1, 0.0);
+  emptyDisplacementField->SetScalarComponentFromDouble(0,0,0, 2, 0.0);
+
+  vtkNew<vtkOrientedGridTransform> warp;
+#if (VTK_MAJOR_VERSION <= 5)
+  warp->SetDisplacementGrid( emptyDisplacementField.GetPointer() );
+#else
+  warp->SetDisplacementGridData( emptyDisplacementField.GetPointer() );
+#endif
+
   this->SetAndObserveTransformFromParent(warp.GetPointer());
 }
 

@@ -481,7 +481,11 @@ template <typename T> bool SetITKBSplineFromVTK(vtkObject* self,
   transformFixedParamsItk[7]=gridSpacing[1];
   transformFixedParamsItk[8]=gridSpacing[2];
 
-  vtkMatrix4x4* gridDirectionMatrix_RAS=bsplineVtk->GetGridDirectionMatrix();
+  vtkNew<vtkMatrix4x4> gridDirectionMatrix_RAS;
+  if (bsplineVtk->GetGridDirectionMatrix()!=NULL)
+    {
+    gridDirectionMatrix_RAS->DeepCopy(bsplineVtk->GetGridDirectionMatrix());
+    }
   vtkNew<vtkMatrix4x4> lpsToRas;
   lpsToRas->SetElement(0,0,-1);
   lpsToRas->SetElement(1,1,-1);
@@ -489,7 +493,7 @@ template <typename T> bool SetITKBSplineFromVTK(vtkObject* self,
   rasToLps->SetElement(0,0,-1);
   rasToLps->SetElement(1,1,-1);
   vtkNew<vtkMatrix4x4> gridDirectionMatrix_LPS;
-  vtkMatrix4x4::Multiply4x4(rasToLps.GetPointer(), gridDirectionMatrix_RAS, gridDirectionMatrix_LPS.GetPointer());
+  vtkMatrix4x4::Multiply4x4(rasToLps.GetPointer(), gridDirectionMatrix_RAS.GetPointer(), gridDirectionMatrix_LPS.GetPointer());
   int fpIndex=9;
   for (unsigned int row=0; row<VTKDimension; row++)
     {
@@ -738,12 +742,16 @@ void SetITKOrientedGridTransformFromVTK(vtkObject* self, vtkOrientedGridTransfor
   gridImage_Lps->SetSpacing( spacing );
 
   // Direction
-  vtkMatrix4x4* gridDirectionMatrix_Ras=grid_Ras->GetGridDirectionMatrix();
+  vtkNew<vtkMatrix4x4> gridDirectionMatrix_Ras;
+  if (grid_Ras->GetGridDirectionMatrix()!=NULL)
+    {
+    gridDirectionMatrix_Ras->DeepCopy(grid_Ras->GetGridDirectionMatrix());
+    }
   vtkNew<vtkMatrix4x4> rasToLps;
   rasToLps->SetElement(0,0,-1);
   rasToLps->SetElement(1,1,-1);
   vtkNew<vtkMatrix4x4> gridDirectionMatrix_Lps;
-  vtkMatrix4x4::Multiply4x4(rasToLps.GetPointer(), gridDirectionMatrix_Ras, gridDirectionMatrix_Lps.GetPointer());
+  vtkMatrix4x4::Multiply4x4(rasToLps.GetPointer(), gridDirectionMatrix_Ras.GetPointer(), gridDirectionMatrix_Lps.GetPointer());
   GridImageType::DirectionType gridDirectionMatrixItk_Lps;
   for (int row=0; row<VTKDimension; row++)
     {
