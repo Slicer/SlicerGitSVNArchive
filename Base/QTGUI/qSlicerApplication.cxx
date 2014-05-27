@@ -62,6 +62,7 @@
 #endif
 #include "qSlicerSettingsModulesPanel.h"
 #include "qSlicerSettingsStylesPanel.h"
+#include "qSlicerSettingsViewsPanel.h"
 
 // qMRMLWidget includes
 #include "qMRMLEventBrokerConnection.h"
@@ -187,6 +188,10 @@ void qSlicerApplicationPrivate::init()
   qSlicerSettingsStylesPanel* settingsStylesPanel =
     new qSlicerSettingsStylesPanel(generalPanel);
   this->SettingsDialog->addPanel("Appearance", settingsStylesPanel);
+
+  qSlicerSettingsViewsPanel* settingsViewsPanel =
+    new qSlicerSettingsViewsPanel(generalPanel);
+  this->SettingsDialog->addPanel("Views", settingsViewsPanel);
 
 #ifdef Slicer_BUILD_EXTENSIONMANAGER_SUPPORT
   qSlicerSettingsExtensionsPanel * settingsExtensionsPanel = new qSlicerSettingsExtensionsPanel;
