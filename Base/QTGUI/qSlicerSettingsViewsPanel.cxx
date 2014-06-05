@@ -60,19 +60,18 @@ void qSlicerSettingsViewsPanelPrivate::init()
 
   this->setupUi(q);
 
-  // Default values
-  this->FSAACheckBox->setChecked(false);
-
-  // Register settings
-  q->registerProperty("Views/FSAA",
-                      this->FSAACheckBox,
-                      "checked", SIGNAL(toggled(bool)),
+  // FSAA Setting
+  QStringList items;
+  items << "Off" << "Auto" << "2" << "4" << "8" << "16";
+  this->FSAAComboBox->addItems(items);
+  this->FSAAComboBox->setCurrentIndex(0);  // "Off"
+  // Actions to propagate to the application when settings are changed
+  QObject::connect(this->FSAAComboBox, SIGNAL(currentIndexChanged(QString)),
+                   q, SLOT(onFSAAChanged(QString)));
+  q->registerProperty("Views/FSAA", q,
+                      "currentFSAA", SIGNAL(currentFSAAChanged(QString)),
                       "Multisampling (FSAA)",
                       ctkSettingsPanel::OptionRequireRestart);
-
-  // Actions to propagate to the application when settings are changed
-  QObject::connect(this->FSAACheckBox, SIGNAL(toggled(bool)),
-                   q, SLOT(onFSAAToggled(bool)));
 }
 
 // --------------------------------------------------------------------------
@@ -93,7 +92,7 @@ qSlicerSettingsViewsPanel::~qSlicerSettingsViewsPanel()
 }
 
 // --------------------------------------------------------------------------
-void qSlicerSettingsViewsPanel::onFSAAToggled(bool useFSAA)
+void qSlicerSettingsViewsPanel::onFSAAChanged(const QString& text)
 {
   /// For "ctkVTKAbstractView"s (the main data views for the program),
   /// the multisampling properties should be set *before* creating any
@@ -106,5 +105,24 @@ void qSlicerSettingsViewsPanel::onFSAAToggled(bool useFSAA)
   /// main settings dialog, . If the saved value is true (the default is
   /// false), this triggers this method to be called, allowing it to be
   /// set prior to creation of the OpenGL contexts.
-  ctkVTKAbstractView::setUseMultiSamples(useFSAA);
+
+  /// Note that toInt() defaults to zero ("Off") on failed conversion
+  int val = (text == "Auto" || text == "true") ? -1 : text.toInt();
+  ctkVTKAbstractView::setNumMultiSamples(val);
+  emit this->currentFSAAChanged(text);
+}
+
+// --------------------------------------------------------------------------
+QString qSlicerSettingsViewsPanel::currentFSAA() const
+{
+  Q_D(const qSlicerSettingsViewsPanel);
+  return d->FSAAComboBox->currentText();
+}
+
+// --------------------------------------------------------------------------
+void qSlicerSettingsViewsPanel::setCurrentFSAA(const QString& text)
+{
+  Q_D(qSlicerSettingsViewsPanel);
+  int idx = d->FSAAComboBox->findText(text);
+  d->FSAAComboBox->setCurrentIndex(idx);
 }
