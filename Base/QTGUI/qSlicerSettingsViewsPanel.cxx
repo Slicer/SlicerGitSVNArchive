@@ -73,8 +73,10 @@ void qSlicerSettingsViewsPanelPrivate::init()
   this->MSAAComboBox->setCurrentIndex(this->MSAAComboBox->findText("Off"));
 
   // Actions to propagate to the application when settings are changed
-  QObject::connect(this->MSAAComboBox, SIGNAL(currentIndexChanged(int)),
-                   q, SLOT(onMSAAChanged(int)));
+  QObject::connect(this->MSAAComboBox, SIGNAL(currentIndexChanged(QString)),
+                   q, SLOT(onMSAAChanged(QString)));
+  QObject::connect(this->MSAAComboBox, SIGNAL(currentIndexChanged(QString)),
+                   q, SIGNAL(currentMSAAChanged(QString)));
   q->registerProperty("Views/MSAA", q,
                       "currentMSAA", SIGNAL(currentMSAAChanged(QString)),
                       "Multisampling (MSAA)",
@@ -99,7 +101,7 @@ qSlicerSettingsViewsPanel::~qSlicerSettingsViewsPanel()
 }
 
 // --------------------------------------------------------------------------
-void qSlicerSettingsViewsPanel::onMSAAChanged(const int index)
+void qSlicerSettingsViewsPanel::onMSAAChanged(const QString& text)
 {
   /// For "ctkVTKAbstractView"s (the main data views for the program),
   /// the multisampling properties should be set *before* creating any
@@ -113,10 +115,10 @@ void qSlicerSettingsViewsPanel::onMSAAChanged(const int index)
   /// false), this triggers this method to be called, allowing it to be
   /// set prior to creation of the OpenGL contexts.
 
-  /// Note that toInt() defaults to zero ("Off") on failed conversion
   Q_D(const qSlicerSettingsViewsPanel);
-  ctkVTKAbstractView::setMultiSamples(d->MSAAComboBox->itemData(index).toInt());
-  emit this->currentMSAAChanged(d->MSAAComboBox->itemText(index));
+  const int index = d->MSAAComboBox->findText(text);
+  const int nSamples = d->MSAAComboBox->itemData(index).toInt();
+  ctkVTKAbstractView::setMultiSamples(nSamples);
 }
 
 // --------------------------------------------------------------------------
@@ -130,7 +132,6 @@ QString qSlicerSettingsViewsPanel::currentMSAA() const
 void qSlicerSettingsViewsPanel::setCurrentMSAA(const QString& text)
 {
   Q_D(qSlicerSettingsViewsPanel);
-  int idx = d->MSAAComboBox->findText(text);
-  idx = (idx < 0) ? 0 : idx;  // default to "Off" if conv fails
-  d->MSAAComboBox->setCurrentIndex(idx);
+  // default to "Off" (0) if conversion fails
+  d->MSAAComboBox->setCurrentIndex(qMax(d->MSAAComboBox->findText(text), 0));
 }
