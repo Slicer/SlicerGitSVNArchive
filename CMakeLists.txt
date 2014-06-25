@@ -563,6 +563,7 @@ set(Slicer_ITK_COMPONENTS
   ITKVTK
   #    ITKVtkGlue
   ITKZLIB
+  ITKOptimizersv4
   ${ITK_IO_MODULES_USED}
   )
 
