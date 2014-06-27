@@ -32,7 +32,7 @@ namespace itk
  */
 
 template <class TData>
-class ITK_ABI_EXPORT DiffusionTensor3DRead : public Object
+class DiffusionTensor3DRead : public Object
 {
 public:
   typedef TData                                DataType;
