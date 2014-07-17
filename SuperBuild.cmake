@@ -191,7 +191,7 @@ list_conditional_append(Slicer_BUILD_MultiVolumeExplorer Slicer_REMOTE_DEPENDENC
 
 Slicer_Remote_Add(MultiVolumeImporter
   GIT_REPOSITORY ${git_protocol}://github.com/fedorov/MultiVolumeImporter.git
-  GIT_TAG c5a47aff62e11cd3d3ae7507b0c54c659fd17d62
+  GIT_TAG 671487d93ccab79a47d7a5a715cf576e9c264dda
   OPTION_NAME Slicer_BUILD_MultiVolumeImporter
   OPTION_DEPENDS "Slicer_BUILD_QTLOADABLEMODULES;Slicer_BUILD_MULTIVOLUME_SUPPORT;Slicer_USE_PYTHONQT"
   LABELS REMOTE_MODULE
