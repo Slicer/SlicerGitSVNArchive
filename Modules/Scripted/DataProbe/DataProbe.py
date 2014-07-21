@@ -2,6 +2,7 @@ import os
 import unittest
 import qt, vtk
 from __main__ import slicer
+import DataProbeLib
 
 #
 # DataProbe
@@ -80,6 +81,10 @@ class DataProbeInfoWidget(object):
 
     self.frame = qt.QFrame(parent)
     self.frame.setLayout(qt.QVBoxLayout())
+
+    modulePath = slicer.modules.dataprobe.path.replace("DataProbe.py","")
+    self.iconsDIR = modulePath + '/Resources/Icons'
+
     if type == 'small':
       self.createSmall()
 
@@ -261,6 +266,31 @@ class DataProbeInfoWidget(object):
   def createSmall(self):
     """Make the internals of the widget to display in the
     Data Probe frame (lower left of slicer main window by default)"""
+
+    # this method makes SliceView Annotation
+    self.sliceAnnotationsFrame = qt.QFrame(self.frame)
+    self.sliceAnnotationsFrame.setLayout(qt.QHBoxLayout())
+    self.frame.layout().addWidget(self.sliceAnnotationsFrame)
+
+    sliceAnnotationsLabel = qt.QLabel('Slice Annotations:')
+    self.sliceAnnotationsFrame.layout().addWidget(sliceAnnotationsLabel)
+    # Slice Annotations Settings Button
+    sliceAnnotationsSettings = qt.QPushButton()
+    settingsIcon = qt.QIcon("%s/SlicerAdvancedGear-Original.png" %self.iconsDIR)
+    sliceAnnotationsSettings.setIcon(settingsIcon)
+    self.sliceAnnotationsFrame.layout().addWidget(sliceAnnotationsSettings)
+
+    self.sliceAnnoations = DataProbeLib.SliceAnnotations()
+    sliceAnnotationsSettings.connect('clicked()', self.sliceAnnoations.openSettingsPopup)
+    self.sliceAnnotationsFrame.layout().addStretch(1)
+    # goto module button
+    self.goToModule = qt.QPushButton('->', self.frame)
+    self.goToModule.setToolTip('Go to the DataProbe module for more information and options')
+    self.frame.layout().addWidget(self.goToModule)
+    self.goToModule.connect("clicked()", self.onGoToModule)
+    # hide this for now - there's not much to see in the module itself
+    self.goToModule.hide()
+
     # top row - things about the viewer itself
     self.viewerFrame = qt.QFrame(self.frame)
     self.viewerFrame.setLayout(qt.QHBoxLayout())
