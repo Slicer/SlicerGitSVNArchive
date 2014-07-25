@@ -16,22 +16,45 @@ class SliceAnnotations(object):
     self.create()
     self.cornerTexts =[]
     # Bottom Left Corner Text
-    self.cornerTexts.append({'1-Label':'','2-Foreground':'','3-Background':''})
+    self.cornerTexts.append({
+      '1-Label':{'text':'','category':'A'},
+      '2-Foreground':{'text':'','category':'A'},
+      '3-Background':{'text':'','category':'A'}
+      })
     # Bottom Rihgt Corner Text
     # Not used - orientation figure will be draw there
-    self.cornerTexts.append({'1-TR':'','2-TE':''})
+    self.cornerTexts.append({
+      '1-TR':{'text':'','category':'A'},
+      '2-TE':{'text':'','category':'A'}
+      })
     # Top Left Corner Text
-    self.cornerTexts.append({'1-PatientName':'','2-PatientID':'','3-PatientInfo':'',
-      '4-Bg-StudyDate':'','5-Fg-StudyDate':'','6-Bg-StudyTime':'','7-Bg-StudyTime':'',
-      '8-Bg-SeriesDescription':'','9-Fg-SeriesDescription':''})
+    self.cornerTexts.append({
+      '1-PatientName':{'text':'','category':'B'},
+      '2-PatientID':{'text':'','category':'A'},
+      '3-PatientInfo':{'text':'','category':'B'},
+      '4-Bg-StudyDate':{'text':'','category':'B'},
+      '5-Fg-StudyDate':{'text':'','category':'B'},
+      '6-Bg-StudyTime':{'text':'','category':'C'},
+      '7-Bg-StudyTime':{'text':'','category':'C'},
+      '8-Bg-SeriesDescription':{'text':'','category':'C'},
+      '9-Fg-SeriesDescription':{'text':'','category':'C'}
+      })
     # Top Rihgt Corner Text
-    self.cornerTexts.append({'1-Institution-Name':'','2-Referring-Phisycian':'','3-Manufacturer':'',
-      '4-Model':'','5-Patient-Position':'','6-TR':'','7-TE':''})
+    self.cornerTexts.append({
+      '1-Institution-Name':{'text':'','category':'B'},
+      '2-Referring-Phisycian':{'text':'','category':'B'},
+      '3-Manufacturer':{'text':'','category':'C'},
+      '4-Model':{'text':'','category':'C'},
+      '5-Patient-Position':{'text':'','category':'A'},
+      '6-TR':{'text':'','category':'A'},
+      '7-TE':{'text':'','category':'A'}
+      })
+
+    self.annotationsDisplayAmount = 0
 
     self.topLeftAnnotationDisplay = True
     self.topRightAnnotationDisplay = True
     self.bottomLeftAnnotationDisplay = True
-    self.bottomRightAnnotationDisplay = True
 
     self.layoutManager = slicer.app.layoutManager()
     self.sliceCornerAnnotations = {}
@@ -47,7 +70,7 @@ class SliceAnnotations(object):
     # Parameters Area
     #
     parametersCollapsibleButton = ctk.ctkCollapsibleButton()
-    parametersCollapsibleButton.text = "Parameters"
+    parametersCollapsibleButton.text = "Annotation Text Parameters"
     self.layout.addWidget(parametersCollapsibleButton)
 
     # Layout within the dummy collapsible button
@@ -70,7 +93,7 @@ class SliceAnnotations(object):
 
     self.cornerActivationCheckbox = []
 
-    for i in xrange(4):
+    for i in xrange(3):
       self.cornerActivationCheckbox.append(qt.QCheckBox())
       self.cornerActivationCheckbox[i].checked = True
       cornerActionHBoxLayout.addWidget(self.cornerActivationCheckbox[i])
@@ -79,7 +102,28 @@ class SliceAnnotations(object):
     self.cornerActivationCheckbox[0].setText('Top Left')
     self.cornerActivationCheckbox[1].setText('Top Right')
     self.cornerActivationCheckbox[2].setText('Bottom Left')
-    self.cornerActivationCheckbox[3].setText('Bottom Right')
+
+    #
+    # Corner Annotations Font Properties
+    #
+    self.annotationsAmountGroupBox = ctk.ctkCollapsibleGroupBox()
+    self.annotationsAmountGroupBox.setTitle('Amount')
+    self.annotationsAmountGroupBox.enabled = False
+    parametersFormLayout.addRow(self.annotationsAmountGroupBox)
+    annotationsAmountHBoxLayout = qt.QHBoxLayout(self.annotationsAmountGroupBox)
+
+    amountLabel = qt.QLabel('Annotation Display Amount: ')
+    annotationsAmountHBoxLayout.addWidget(amountLabel)
+    self.level1RadioButton = qt.QRadioButton('level 1')
+    annotationsAmountHBoxLayout.addWidget(self.level1RadioButton)
+    self.level1RadioButton.connect('clicked()', self.updateSliceViewFromGUI)
+    self.level1RadioButton.checked = True
+    self.level2RadioButton = qt.QRadioButton('level 2')
+    annotationsAmountHBoxLayout.addWidget(self.level2RadioButton)
+    self.level2RadioButton.connect('clicked()', self.updateSliceViewFromGUI)
+    self.level3RadioButton = qt.QRadioButton('level 3')
+    annotationsAmountHBoxLayout.addWidget(self.level3RadioButton)
+    self.level3RadioButton.connect('clicked()', self.updateSliceViewFromGUI)
 
     #
     # Corner Annotations Font Properties
@@ -161,7 +205,7 @@ class SliceAnnotations(object):
     pass
   """
   def updateSliceViewFromGUI(self):
-    print 'updateSliceViewFromGUI'
+    #print 'updateSliceViewFromGUI'
     # Create corner annotations if have not created already
     if len(self.sliceCornerAnnotations.items()) == 0:
       self.createCornerAnnotations()
@@ -183,6 +227,15 @@ class SliceAnnotations(object):
       else:
         textProperty.SetFontFamilyToArial()
 
+    # Updating Annotations Amount
+    if self.level1RadioButton.checked:
+      self.annotationsDisplayAmount = 0
+    elif self.level2RadioButton.checked:
+      self.annotationsDisplayAmount = 1
+    elif self.level3RadioButton.checked:
+      self.annotationsDisplayAmount = 2
+
+
     if self.cornerActivationCheckbox[0].checked:
       self.topLeftAnnotationDisplay = True
     else:
@@ -198,14 +251,10 @@ class SliceAnnotations(object):
     else:
       self.bottomLeftAnnotationDisplay = False
 
-    if self.cornerActivationCheckbox[3].checked:
-      self.bottomRightAnnotationDisplay = True
-    else:
-      self.bottomRightAnnotationDisplay = False
-
     if self.sliceViewAnnotationsCheckBox.checked:
       self.cornerActivationsGroupBox.enabled = True
       self.fontPropertiesGroupBox.enabled = True
+      self.annotationsAmountGroupBox.enabled = True
       self.scalingBarCollapsibleButton.enabled = True
 
       for sliceViewName in self.sliceViewNames:
@@ -216,6 +265,7 @@ class SliceAnnotations(object):
     else:
       self.cornerActivationsGroupBox.enabled = False
       self.fontPropertiesGroupBox.enabled = False
+      self.annotationsAmountGroupBox.enabled = False
       self.scalingBarCollapsibleButton.enabled = False
       # Remove Observers
       for sliceViewName in self.sliceViewNames:
@@ -245,7 +295,7 @@ class SliceAnnotations(object):
     self.scalingBarTextActors = {}
 
   def createCornerAnnotations(self):
-    print 'createCornerAnnotations'
+    #print 'createCornerAnnotations'
     self.createGlobalVariables()
     sliceViewNames = self.layoutManager.sliceViewNames()
 
@@ -256,7 +306,7 @@ class SliceAnnotations(object):
       self.createActors(sliceViewName)
 
   def addObserver(self, sliceViewName):
-    print('addObserver(%s)'%sliceViewName)
+    #print('addObserver(%s)'%sliceViewName)
     sliceWidget = self.layoutManager.sliceWidget(sliceViewName)
     self.sliceWidgets[sliceViewName] = sliceWidget
     sliceView = sliceWidget.sliceView()
@@ -268,7 +318,7 @@ class SliceAnnotations(object):
                                              self.updateCornerAnnotations)
 
   def createActors(self, sliceViewName):
-    print('createActors(%s)'%sliceViewName)
+    #print('createActors(%s)'%sliceViewName)
     sliceWidget = self.layoutManager.sliceWidget(sliceViewName)
     self.sliceWidgets[sliceViewName] = sliceWidget
     sliceView = sliceWidget.sliceView()
@@ -282,7 +332,7 @@ class SliceAnnotations(object):
     self.createScaleBar(sliceViewName)
 
   def createScaleBar(self, sliceViewName):
-    print('createScaleBar(%s)'%sliceViewName)
+    #print('createScaleBar(%s)'%sliceViewName)
     renderer = self.renderers[sliceViewName]
     #actor = self.scalingBarTextActors[sliceViewName]
     #textActor = self.scalingBarTextActors[sliceViewName]
@@ -383,7 +433,7 @@ class SliceAnnotations(object):
       renderer.AddActor(textActor)
 
   def updateCornerAnnotations(self,caller,event):
-    print 'updateCornerAnnotations'
+    #print 'updateCornerAnnotations'
     sliceViewNames = self.layoutManager.sliceViewNames()
     for sliceViewName in sliceViewNames:
       if sliceViewName not in self.sliceViewNames:
@@ -397,8 +447,7 @@ class SliceAnnotations(object):
     self.updateLayersAnnotation(caller)
 
   def makeAnnotationText(self, sliceLogic):
-    #print('makeAnnotationText(%s)'%sliceLogic)
-    print 'makeAnnotationText'
+    #print 'makeAnnotationText'
     self.resetTexts()
     sliceCompositeNode = sliceLogic.GetSliceCompositeNode()
 
@@ -485,8 +534,8 @@ class SliceAnnotations(object):
         foregroundOpacity = sliceCompositeNode.GetForegroundOpacity()
         backgroundVolumeName = backgroundVolume.GetName()
         foregroundVolumeName = foregroundVolume.GetName()
-        self.cornerTexts[0]['3-Background'] = 'B: ' + backgroundVolumeName
-        self.cornerTexts[0]['2-Foreground'] = 'F: ' + foregroundVolumeName +  ' (' + str(
+        self.cornerTexts[0]['3-Background']['text'] = 'B: ' + backgroundVolumeName
+        self.cornerTexts[0]['2-Foreground']['text'] = 'F: ' + foregroundVolumeName +  ' (' + str(
                       "%.1f"%foregroundOpacity) + ')'
 
         bgUids = backgroundVolume.GetAttribute('DICOM.instanceUIDs')
@@ -497,13 +546,13 @@ class SliceAnnotations(object):
           self.makeDicomAnnotation(bgUid,fgUid)
         else:
           for key in self.cornerTexts[2]:
-            self.cornerTexts[2][key] = ''
+            self.cornerTexts[2][key]['text'] = ''
 
       # Only background
       elif (backgroundVolume != None):
         backgroundVolumeName = backgroundVolume.GetName()
         if self.bottomLeftAnnotationDisplay:
-          self.cornerTexts[0]['3-Background'] = 'B: ' + backgroundVolumeName
+          self.cornerTexts[0]['3-Background']['text'] = 'B: ' + backgroundVolumeName
 
         uids = backgroundVolume.GetAttribute('DICOM.instanceUIDs')
         if uids:
@@ -514,7 +563,7 @@ class SliceAnnotations(object):
       elif (foregroundVolume != None):
         if self.bottomLeftAnnotationDisplay:
           foregroundVolumeName = foregroundVolume.GetName()
-          self.cornerTexts[0]['2-Foreground'] = 'F: ' + foregroundVolumeName
+          self.cornerTexts[0]['2-Foreground']['text'] = 'F: ' + foregroundVolumeName
 
         uids = foregroundVolume.GetAttribute('DICOM.instanceUIDs')
         if uids:
@@ -525,7 +574,7 @@ class SliceAnnotations(object):
       if (labelVolume != None):
         labelOpacity = sliceCompositeNode.GetLabelOpacity()
         labelVolumeName = labelVolume.GetName()
-        self.cornerTexts[0]['1-Label'] = 'L: ' + labelVolumeName + ' (' + str(
+        self.cornerTexts[0]['1-Label']['text'] = 'L: ' + labelVolumeName + ' (' + str(
                       "%.1f"%labelOpacity) + ')'
 
       self.drawCornerAnnotations()
@@ -543,59 +592,54 @@ class SliceAnnotations(object):
             ] or backgroundDicomDic['Patient ID'] != foregroundDicomDic['Patient ID'
               ] or backgroundDicomDic['Patient Birth Date'] != foregroundDicomDic['Patient Birth Date']:
               for key in self.cornerTexts[2]:
-                self.cornerTexts[2][key] = ''
+                self.cornerTexts[2][key]['text'] = ''
         else:
-          self.cornerTexts[2]['1-PatientName'] = backgroundDicomDic['Patient Name'].replace('^',', ')
-          self.cornerTexts[2]['2-PatientID'] = 'ID: ' + backgroundDicomDic['Patient ID']
-          backgroundDicomDic['Patient Birth Date'] = self.formatDICOMDate(backgroundDicomDic['Patient Birth Date'])
-          self.cornerTexts[2]['3-PatientInfo'] = self.makePatientInfo(backgroundDicomDic)
+          self.cornerTexts[2]['1-PatientName']['text'] = backgroundDicomDic['Patient Name'].replace('^',', ')
+          self.cornerTexts[2]['2-PatientID']['text'] = 'ID: ' + backgroundDicomDic['Patient ID']
+          backgroundDicomDic['Patient Birth Date']['text'] = self.formatDICOMDate(backgroundDicomDic['Patient Birth Date'])
+          self.cornerTexts[2]['3-PatientInfo']['text'] = self.makePatientInfo(backgroundDicomDic)
 
           if (backgroundDicomDic['Study Date'] != foregroundDicomDic['Study Date']):
-            self.cornerTexts[2]['4-Bg-StudyDate'] = 'B: ' + self.formatDICOMDate(backgroundDicomDic['Study Date'])
-            self.cornerTexts[2]['5-Fg-StudyDate'] = 'F: ' + self.formatDICOMDate(foregroundDicomDic['Study Date'])
+            self.cornerTexts[2]['4-Bg-StudyDate']['text'] = 'B: ' + self.formatDICOMDate(backgroundDicomDic['Study Date'])
+            self.cornerTexts[2]['5-Fg-StudyDate']['text'] = 'F: ' + self.formatDICOMDate(foregroundDicomDic['Study Date'])
           else:
-            self.cornerTexts[2]['4-Bg-StudyDate'] =  self.formatDICOMDate(backgroundDicomDic['Study Date'])
+            self.cornerTexts[2]['4-Bg-StudyDate']['text'] =  self.formatDICOMDate(backgroundDicomDic['Study Date'])
 
           if (backgroundDicomDic['Study Time'] != foregroundDicomDic['Study Time']):
-            self.cornerTexts[2]['6-Bg-StudyTime'] = 'B: ' + self.formatDICOMTime(backgroundDicomDic['Study Time'])
-            self.cornerTexts[2]['7-Fg-StudyTime'] = 'F: ' + self.formatDICOMTime(foregroundDicomDic['Study Time'])
+            self.cornerTexts[2]['6-Bg-StudyTime']['text'] = 'B: ' + self.formatDICOMTime(backgroundDicomDic['Study Time'])
+            self.cornerTexts[2]['7-Fg-StudyTime']['text'] = 'F: ' + self.formatDICOMTime(foregroundDicomDic['Study Time'])
           else:
-            self.cornerTexts[2]['6-Bg-StudyTime'] = self.formatDICOMTime(backgroundDicomDic['Study Time'])
+            self.cornerTexts[2]['6-Bg-StudyTime']['text'] = self.formatDICOMTime(backgroundDicomDic['Study Time'])
 
           if (backgroundDicomDic['Series Description'] != foregroundDicomDic['Series Description']):
-            self.cornerTexts[2]['8-Bg-SeriesDescription'] = 'B: ' + backgroundDicomDic['Series Description']
-            self.cornerTexts[2]['9-Fg-SeriesDescription'] = 'F: ' + foregroundDicomDic['Series Description']
+            self.cornerTexts[2]['8-Bg-SeriesDescription']['text'] = 'B: ' + backgroundDicomDic['Series Description']
+            self.cornerTexts[2]['9-Fg-SeriesDescription']['text'] = 'F: ' + foregroundDicomDic['Series Description']
           else:
-            self.cornerTexts[2]['8-Bg-SeriesDescription'] = backgroundDicomDic['Series Description']
+            self.cornerTexts[2]['8-Bg-SeriesDescription']['text'] = backgroundDicomDic['Series Description']
 
     # Only Background or Only Foreground
     else:
       uid = bgUid
       dicomDic = self.extractDICOMValues(uid)
       if self.topLeftAnnotationDisplay:
-        self.cornerTexts[2]['1-PatientName'] = dicomDic['Patient Name'].replace('^',', ')
-        self.cornerTexts[2]['2-PatientID'] = 'ID: ' + dicomDic ['Patient ID']
+        self.cornerTexts[2]['1-PatientName']['text'] = dicomDic['Patient Name'].replace('^',', ')
+        self.cornerTexts[2]['2-PatientID']['text'] = 'ID: ' + dicomDic ['Patient ID']
         dicomDic['Patient Birth Date'] = self.formatDICOMDate(dicomDic['Patient Birth Date'])
-        self.cornerTexts[2]['3-PatientInfo'] = self.makePatientInfo(dicomDic)
-        self.cornerTexts[2]['4-Bg-StudyDate']  = self.formatDICOMDate(dicomDic['Study Date'])
-        self.cornerTexts[2]['6-Bg-StudyTime'] = self.formatDICOMTime(dicomDic['Study Time'])
-        self.cornerTexts[2]['8-Bg-SeriesDescription'] = dicomDic['Series Description']
+        self.cornerTexts[2]['3-PatientInfo']['text'] = self.makePatientInfo(dicomDic)
+        self.cornerTexts[2]['4-Bg-StudyDate']['text'] = self.formatDICOMDate(dicomDic['Study Date'])
+        self.cornerTexts[2]['6-Bg-StudyTime']['text'] = self.formatDICOMTime(dicomDic['Study Time'])
+        self.cornerTexts[2]['8-Bg-SeriesDescription']['text'] = dicomDic['Series Description']
 
       if (self.sliceWidgets[self.currentSliceViewName].width > 600 and self.topRightAnnotationDisplay):
-        self.cornerTexts[3]['1-Institution-Name'] = dicomDic['Institution Name']
-        self.cornerTexts[3]['2-Referring-Phisycian'] = dicomDic['Referring Physician Name'].replace('^',', ')
-        self.cornerTexts[3]['3-Manufacturer'] = dicomDic['Manufacturer']
-        self.cornerTexts[3]['4-Model'] = dicomDic['Model']
-        self.cornerTexts[3]['5-Patient-Position'] = dicomDic['Patient Position']
+        self.cornerTexts[3]['1-Institution-Name']['text'] = dicomDic['Institution Name']
+        self.cornerTexts[3]['2-Referring-Phisycian']['text'] = dicomDic['Referring Physician Name'].replace('^',', ')
+        self.cornerTexts[3]['3-Manufacturer']['text'] = dicomDic['Manufacturer']
+        self.cornerTexts[3]['4-Model']['text'] = dicomDic['Model']
+        self.cornerTexts[3]['5-Patient-Position']['text'] = dicomDic['Patient Position']
         modality = dicomDic['Modality']
         if modality == 'MR':
-         self.cornerTexts[3]['6-TR']  = 'TR ' + dicomDic['Repetition Time']
-         self.cornerTexts[3]['7-TE'] = 'TE ' + dicomDic['Echo Time']
-
-      # Bottom Right Corner Annotations:
-      # Modality Specific and Image Comments
-      #
-      #if self.bottomRightAnnotationDisplay:
+         self.cornerTexts[3]['6-TR']['text']  = 'TR ' + dicomDic['Repetition Time']
+         self.cornerTexts[3]['7-TE']['text'] = 'TE ' + dicomDic['Echo Time']
 
   def makePatientInfo(self,dicomDic):
     # This will give an string of patient's birth date,
@@ -626,8 +670,18 @@ class SliceAnnotations(object):
       keys = sorted(cornerText.keys())
       cornerAnnotation = ''
       for key in keys:
-        if ( cornerText[key] != ''):
-          cornerAnnotation = cornerAnnotation+ cornerText[key] + '\n'
+        if ( cornerText[key]['text'] != ''):
+          # level 1: All categories will be displayed
+          if self.annotationsDisplayAmount == 0:
+            cornerAnnotation = cornerAnnotation+ cornerText[key]['text'] + '\n'
+          # level 2: Category A and B will be displayed
+          elif self.annotationsDisplayAmount == 1:
+            if (cornerText[key]['category'] != 'C'):
+              cornerAnnotation = cornerAnnotation+ cornerText[key]['text'] + '\n'
+          # level 3 only Category A will be displayed
+          elif self.annotationsDisplayAmount == 2:
+            if (cornerText[key]['category'] == 'A'):
+              cornerAnnotation = cornerAnnotation+ cornerText[key]['text'] + '\n'
       sliceCornerAnnotation = self.sliceCornerAnnotations[self.currentSliceViewName]
       sliceCornerAnnotation.SetText(i, cornerAnnotation)
       # get shadow
@@ -638,7 +692,9 @@ class SliceAnnotations(object):
     self.sliceViews[self.currentSliceViewName].scheduleRender()
   def resetTexts(self):
     for i, cornerText in enumerate(self.cornerTexts):
-      self.cornerTexts[i] =  dict((k,'') for k,v in cornerText.iteritems())
+      #self.cornerTexts[i] =  dict((k,'') for k,v in cornerText.iteritems())
+      for key in cornerText.keys():
+        self.cornerTexts[i][key]['text'] = ''
 
   def extractDICOMValues(self,uid):
     p ={}
@@ -667,14 +723,13 @@ class SliceAnnotations(object):
     }
 
     p = self.extractTagValue(p, tags)
-    if self.bottomRightAnnotationDisplay:
-      if p['Modality'] == 'MR':
-        mrTags = {
-        "0018,0080": "Repetition Time",
-        "0018,0081": "Echo Time"
-        }
-        p = self.extractTagValue(p, mrTags)
-      '''
+    if p['Modality'] == 'MR':
+      mrTags = {
+      "0018,0080": "Repetition Time",
+      "0018,0081": "Echo Time"
+      }
+      p = self.extractTagValue(p, mrTags)
+    '''
       These tags are not available in dicom tag cache now
       if p['Modality'] == 'CT':
         ctTags = {
