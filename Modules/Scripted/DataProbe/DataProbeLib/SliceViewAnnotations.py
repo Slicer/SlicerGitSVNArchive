@@ -18,6 +18,7 @@ class SliceAnnotations(object):
     # Bottom Left Corner Text
     self.cornerTexts.append({'1-Label':'','2-Foreground':'','3-Background':''})
     # Bottom Rihgt Corner Text
+    # Not used - orientation figure will be draw there
     self.cornerTexts.append({'1-TR':'','2-TE':''})
     # Top Left Corner Text
     self.cornerTexts.append({'1-PatientName':'','2-PatientID':'','3-PatientInfo':'',
@@ -25,7 +26,7 @@ class SliceAnnotations(object):
       '8-Bg-SeriesDescription':'','9-Fg-SeriesDescription':''})
     # Top Rihgt Corner Text
     self.cornerTexts.append({'1-Institution-Name':'','2-Referring-Phisycian':'','3-Manufacturer':'',
-      '4-Model':'','5-Patient-Position':''})
+      '4-Model':'','5-Patient-Position':'','6-TR':'','7-TE':''})
 
     self.topLeftAnnotationDisplay = True
     self.topRightAnnotationDisplay = True
@@ -586,15 +587,15 @@ class SliceAnnotations(object):
         self.cornerTexts[3]['3-Manufacturer'] = dicomDic['Manufacturer']
         self.cornerTexts[3]['4-Model'] = dicomDic['Model']
         self.cornerTexts[3]['5-Patient-Position'] = dicomDic['Patient Position']
+        modality = dicomDic['Modality']
+        if modality == 'MR':
+         self.cornerTexts[3]['6-TR']  = 'TR ' + dicomDic['Repetition Time']
+         self.cornerTexts[3]['7-TE'] = 'TE ' + dicomDic['Echo Time']
 
       # Bottom Right Corner Annotations:
       # Modality Specific and Image Comments
       #
-      if self.bottomRightAnnotationDisplay:
-        modality = dicomDic['Modality']
-        if modality == 'MR':
-         self.cornerTexts[1]['1-TR']  = 'TR ' + dicomDic['Repetition Time']
-         self.cornerTexts[1]['2-TE'] = 'TE ' + dicomDic['Echo Time']
+      #if self.bottomRightAnnotationDisplay:
 
   def makePatientInfo(self,dicomDic):
     # This will give an string of patient's birth date,
