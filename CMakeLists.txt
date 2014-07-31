@@ -258,14 +258,21 @@ option(Slicer_USE_QtTesting    "Integrate QtTesting framework into Slicer." ON)
 mark_as_advanced(Slicer_USE_QtTesting)
 mark_as_superbuild(Slicer_USE_QtTesting)
 
-option(Slicer_USE_SimpleITK "Build Slicer with SimpleITK support" OFF)
+option(Slicer_USE_SimpleITK "Build Slicer with SimpleITK support" ON)
 mark_as_superbuild(Slicer_USE_SimpleITK)
 
-# XXX Waiting issue #3741 is solved, on MacOSX, force VTK version to 5.10
-#     See http://na-mic.org/Mantis/view.php?id=3741
 set(default_vtk_version_major 6)
+set(VTK_ENABLE_KITS OFF)
 if(APPLE)
-  set(default_vtk_version_major 5)
+  if(${DARWIN_MAJOR_VERSION}.${DARWIN_MINOR_VERSION} VERSION_LESS "12.0")
+    if(CMAKE_VERSION VERSION_LESS "3.0.0")
+      # For details, see issue #3741
+      # If for some reason, you still want to build using using the VTK5 (that will be removed
+      # without notice), you could configure passing the option -DVTK_VERSION_MAJOR:STRING=5
+      message(FATAL_ERROR "On MacOSX 10.{6|7}, building Slicer with VTK6 support requires CMake >= 3.0.0")
+    endif()
+    set(VTK_ENABLE_KITS ON)
+  endif()
 endif()
 
 set(VTK_VERSION_MAJOR ${default_vtk_version_major} CACHE STRING "Choose the expected VTK major version to build Slicer (5 or 6).")
@@ -690,7 +697,7 @@ endif()
 # VTK
 #-----------------------------------------------------------------------------
 if(${VTK_VERSION_MAJOR} STREQUAL "6")
-  find_package(VTK 6.1 COMPONENTS ${Slicer_VTK_COMPONENTS} REQUIRED NO_MODULE)
+  find_package(VTK 6.2 COMPONENTS ${Slicer_VTK_COMPONENTS} REQUIRED NO_MODULE)
   if(NOT TARGET vtkGUISupportQt)
     message(FATAL_ERROR "error: VTK was not configured to use QT, you probably need "
                       "to recompile it with VTK_USE_GUISUPPORT ON, VTK_Group_Qt ON, "
@@ -1061,4 +1068,3 @@ endif()
 # the end of the whole configuration process, as a "last step".
 # This directory is typically the last add_subdirectory in the main CMakeLists.txt.
 add_subdirectory(CMake/LastConfigureStep)
-

@@ -2,7 +2,8 @@
 
   Program: 3D Slicer
 
-  Copyright (c) Kitware Inc.
+  Copyright (c) Laboratory for Percutaneous Surgery (PerkLab)
+  Queen's University, Kingston, ON, Canada. All Rights Reserved.
 
   See COPYRIGHT.txt
   or http://www.slicer.org/copyright/copyright.txt for details.
@@ -220,7 +221,7 @@ void vtkMRMLSubjectHierarchyNode::SetOwnerPluginName(const char* pluginName)
     this->OwnerPluginName = NULL;
     }
   this->InvokeEvent(vtkMRMLSubjectHierarchyNode::OwnerPluginChangedEvent, oldPluginName);
-  if (oldPluginName)   { delete [] oldPluginName;   }
+  if (oldPluginName) { delete [] oldPluginName; }
   this->Modified();
 }
 
@@ -692,7 +693,7 @@ vtkMRMLSubjectHierarchyNode* vtkMRMLSubjectHierarchyNode::GetChildWithName(vtkMR
 
 //---------------------------------------------------------------------------
 vtkMRMLSubjectHierarchyNode* vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(
-  vtkMRMLScene* scene, vtkMRMLSubjectHierarchyNode* parentNode, const char* level, const char* nodeName, vtkMRMLNode* associatedNode/*=NULL*/)
+  vtkMRMLScene* scene, vtkMRMLSubjectHierarchyNode* parent, const char* level, const char* nodeName, vtkMRMLNode* associatedNode/*=NULL*/)
 {
   // Create subject hierarchy node
   vtkSmartPointer<vtkMRMLSubjectHierarchyNode> childSubjectHierarchyNode =
@@ -702,9 +703,9 @@ vtkMRMLSubjectHierarchyNode* vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchy
   std::string shNodeName = nodeName + vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_NODE_NAME_POSTFIX;
   childSubjectHierarchyNode->SetName(shNodeName.c_str());
   scene->AddNode(childSubjectHierarchyNode);
-  if (parentNode)
+  if (parent)
     {
-    childSubjectHierarchyNode->SetParentNodeID(parentNode->GetID());
+    childSubjectHierarchyNode->SetParentNodeID(parent->GetID());
     }
   if (associatedNode)
     {

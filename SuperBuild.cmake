@@ -112,14 +112,14 @@ if(Slicer_BUILD_DICOM_SUPPORT)
 endif()
 
 if(Slicer_BUILD_DICOM_SUPPORT AND Slicer_USE_PYTHONQT_WITH_OPENSSL)
-  list(APPEND Slicer_DEPENDENCIES pydicom)
+  list(APPEND Slicer_DEPENDENCIES python-pydicom)
 endif()
 
-if(Slicer_USE_PYTHONQT AND Slicer_BUILD_EXTENSIONMANAGER_SUPPORT AND NOT WIN32)
-  list(APPEND Slicer_DEPENDENCIES GitPython python-chardet)
+if(Slicer_USE_PYTHONQT AND Slicer_BUILD_EXTENSIONMANAGER_SUPPORT)
+  list(APPEND Slicer_DEPENDENCIES python-GitPython python-chardet)
   if(Slicer_USE_PYTHONQT_WITH_OPENSSL OR Slicer_USE_SYSTEM_python)
-    # PyGithub requires SSL support in Python
-    list(APPEND Slicer_DEPENDENCIES PyGithub)
+    # python-PyGithub requires SSL support in Python
+    list(APPEND Slicer_DEPENDENCIES python-PyGithub)
   else()
     message(WARNING "Python was built without SSL support; "
                     "github integration will not be available")
@@ -182,7 +182,7 @@ mark_as_advanced(Slicer_BUILD_MULTIVOLUME_SUPPORT)
 
 Slicer_Remote_Add(MultiVolumeExplorer
   GIT_REPOSITORY ${git_protocol}://github.com/fedorov/MultiVolumeExplorer.git
-  GIT_TAG d68663f6853212a81f3766d3feca0dac7bb8cbb7
+  GIT_TAG f9222a25a6155f2fa8ff4d2a8d9316446e68d771
   OPTION_NAME Slicer_BUILD_MultiVolumeExplorer
   OPTION_DEPENDS "Slicer_BUILD_QTLOADABLEMODULES;Slicer_BUILD_MULTIVOLUME_SUPPORT;Slicer_USE_PYTHONQT"
   LABELS REMOTE_MODULE
@@ -191,7 +191,7 @@ list_conditional_append(Slicer_BUILD_MultiVolumeExplorer Slicer_REMOTE_DEPENDENC
 
 Slicer_Remote_Add(MultiVolumeImporter
   GIT_REPOSITORY ${git_protocol}://github.com/fedorov/MultiVolumeImporter.git
-  GIT_TAG c5a47aff62e11cd3d3ae7507b0c54c659fd17d62
+  GIT_TAG 93027f4fabfdbf86a1e198b9600477283a9e9995
   OPTION_NAME Slicer_BUILD_MultiVolumeImporter
   OPTION_DEPENDS "Slicer_BUILD_QTLOADABLEMODULES;Slicer_BUILD_MULTIVOLUME_SUPPORT;Slicer_USE_PYTHONQT"
   LABELS REMOTE_MODULE
@@ -221,6 +221,7 @@ set(BRAINSTools_options
   USE_BRAINSDemonWarp:BOOL=ON
   # BRAINSTools comes with some extra tool that should not be compiled by default
   USE_AutoWorkup:BOOL=OFF
+  USE_ReferenceAtlas:BOOL=OFF
   USE_ANTS:BOOL=OFF
   USE_GTRACT:BOOL=OFF
   USE_BRAINSABC:BOOL=OFF
@@ -247,7 +248,7 @@ set(BRAINSTools_options
   )
 Slicer_Remote_Add(BRAINSTools
   GIT_REPOSITORY "${git_protocol}://github.com/Slicer/BRAINSTools.git"
-  GIT_TAG "94d53a640b398c6b4e50335082bfa34eb8adf35b" # Version f82a01b with Slicer patches
+  GIT_TAG "e46c99795cedd4c6aeec98e881af9c2b28dc5cf5" # Version e5c9c8c including fixes for EMSegment backported from BRAINS master
   OPTION_NAME Slicer_BUILD_BRAINSTOOLS
   OPTION_DEPENDS "Slicer_BUILD_CLI_SUPPORT;Slicer_BUILD_CLI"
   LABELS REMOTE_MODULE
@@ -257,7 +258,7 @@ list_conditional_append(Slicer_BUILD_BRAINSTOOLS Slicer_REMOTE_DEPENDENCIES BRAI
 
 Slicer_Remote_Add(EMSegment
   SVN_REPOSITORY "http://svn.slicer.org/Slicer3/branches/Slicer4-EMSegment"
-  SVN_REVISION -r "17069"
+  SVN_REVISION -r "17074"
   OPTION_NAME Slicer_BUILD_EMSegment
   OPTION_DEPENDS "Slicer_BUILD_BRAINSTOOLS;Slicer_BUILD_QTLOADABLEMODULES;Slicer_USE_PYTHONQT_WITH_TCL"
   LABELS REMOTE_MODULE
@@ -360,61 +361,6 @@ ExternalProject_Add_Step(${proj} forcebuild
   DEPENDEES build
   ALWAYS 1
   )
-
-#-----------------------------------------------------------------------------
-# Project that can NOT be built in parallel should set the
-# variable _EP_<projectName>_<lockname>_LOCK to 1.
-#
-# For example, to address issue #3757 and ensure that project
-# building a python module are not updating the file 'easy-install.pth'
-# concurrently, a "lock" variable can be set in the associated
-# "External_<proj>.cmake" file:
-#
-#    set(_EP_${proj}_SETUPTOOLS_LOCK 1)
-#
-# Then, by calling the function "_ep_setup_lock", we ensure
-# that the "locked" target won't be built in parallel.
-#
-# Internally, the function _ep_setup_lock recusively go through
-# all dependencies and add explicit dependencies between all targets
-# that (1) should be locked  and (2) belong to the same "level".
-#
-function(_ep_get_lock_list lockname depends output_var)
-  set(lock_list)
-  foreach(dep IN LISTS depends)
-    if(_EP_${dep}_${lockname}_LOCK)
-      list(APPEND lock_list ${dep})
-    endif()
-  endforeach()
-  set(${output_var} ${lock_list} PARENT_SCOPE)
-endfunction()
-
-function(_ep_add_lock_dependencies proj lock_list)
-  set(prev )
-  #message("_ep_add_lock_dependencies - ${proj} [lock_list:${lock_list}]")
-  foreach(dep IN LISTS lock_list)
-    if(NOT ${prev} STREQUAL "")
-      #message("${prev} -> ${dep}")
-      add_dependencies(${prev} ${dep})
-    endif()
-    set(prev ${dep})
-  endforeach()
-endfunction()
-
-function(_ep_setup_lock lockname proj)
-  get_property(${proj}_depends TARGET ${proj} PROPERTY _EP_DEPENDS)
-  if(${proj}_depends)
-    _ep_get_lock_list(${lockname} "${${proj}_depends}" ${proj}_lock_list)
-    if(${proj}_lock_list)
-      _ep_add_lock_dependencies(${proj} "${${proj}_lock_list}")
-    endif()
-  endif()
-  foreach(${proj}_dep ${${proj}_depends})
-    _ep_setup_lock(${lockname} ${${proj}_dep})
-  endforeach()
-endfunction()
-
-_ep_setup_lock("SETUPTOOLS" ${proj})
 
 #-----------------------------------------------------------------------------
 # Slicer extensions

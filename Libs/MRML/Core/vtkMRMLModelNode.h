@@ -23,6 +23,7 @@ class vtkMRMLStorageNode;
 // VTK includes
 class vtkAlgorithmOutput;
 class vtkAssignAttributes;
+class vtkEventForwarderCommand;
 class vtkDataArray;
 class vtkPolyData;
 class vtkMRMLDisplayNode;
@@ -64,9 +65,10 @@ public:
   vtkMRMLModelDisplayNode* GetModelDisplayNode();
 
   /// Set and observe poly data for this model.
-  /// \obsolete
+  /// \deprecated
   /// \sa GetPolyData()
   virtual void SetAndObservePolyData(vtkPolyData *PolyData);
+
   /// Return the input poly data
   /// \sa SetAndObservePolyData()
 #if (VTK_MAJOR_VERSION <= 5)
@@ -224,6 +226,7 @@ protected:
   vtkPolyData *PolyData;
 #else
   vtkAlgorithmOutput* PolyDataConnection;
+  vtkEventForwarderCommand* DataEventForwarder;
 #endif
 };
 

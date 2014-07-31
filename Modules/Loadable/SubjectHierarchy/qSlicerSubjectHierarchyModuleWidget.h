@@ -2,7 +2,8 @@
 
   Program: 3D Slicer
 
-  Portions (c) Copyright Brigham and Women's Hospital (BWH) All Rights Reserved.
+  Copyright (c) Laboratory for Percutaneous Surgery (PerkLab)
+  Queen's University, Kingston, ON, Canada. All Rights Reserved.
 
   See COPYRIGHT.txt
   or http://www.slicer.org/copyright/copyright.txt for details.
@@ -30,7 +31,6 @@
 class vtkMRMLSubjectHierarchyNode;
 class qSlicerSubjectHierarchyModuleWidgetPrivate;
 class qMRMLSceneSubjectHierarchyModel;
-class qMRMLScenePotentialSubjectHierarchyModel;
 class qSlicerSubjectHierarchyAbstractPlugin;
 
 /// \ingroup Slicer_QtModules_SubjectHierarchy
@@ -59,12 +59,12 @@ protected slots:
   /// Show or hide transforms
   void setTransformsVisible(bool visible);
 
+  /// Show or hide potential nodes in the tree
+  void setPotentialNodesVisible(bool visible);
+
 public:
   /// Assessor function for subject hierarchy scene model (for python)
   Q_INVOKABLE qMRMLSceneSubjectHierarchyModel* subjectHierarchySceneModel()const;
-
-  /// Assessor function for potential subject hierarchy scene model (for python)
-  Q_INVOKABLE qMRMLScenePotentialSubjectHierarchyModel* potentialSubjectHierarchySceneModel()const;
 
   /// Assessor function for getting subject hierarchy plugin by name (for python)
   Q_INVOKABLE qSlicerSubjectHierarchyAbstractPlugin* subjectHierarchyPluginByName(QString name)const;

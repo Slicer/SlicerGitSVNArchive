@@ -197,6 +197,12 @@ public:
   /// \sa GetMRMLScene()
   vtkMRMLScalarVolumeNode *CloneVolume(vtkMRMLVolumeNode *volumeNode, const char *name);
 
+  /// Create a empty copy of a \a volumeNode without imageData and add it to the current scene
+  /// \sa GetMRMLScene()
+  static vtkMRMLScalarVolumeNode *CloneVolumeWithoutImageData(vtkMRMLScene *scene,
+                                                              vtkMRMLVolumeNode *volumeNode,
+                                                              const char *name);
+
   /// Create a deep copy of a \a volumeNode and add it to the \a scene
   static vtkMRMLScalarVolumeNode *CloneVolume(vtkMRMLScene *scene,
                                               vtkMRMLVolumeNode *volumeNode,
@@ -220,6 +226,10 @@ public:
   /// Compute the origin of the volume in order for the volume to be centered.
   /// \sa CenterVolume()
   void GetVolumeCenteredOrigin(vtkMRMLVolumeNode *volumeNode, double* origin);
+
+  ///  Convenience method to resample input volume using reference volume info
+  vtkMRMLScalarVolumeNode* ResampleVolumeToReferenceVolume(vtkMRMLVolumeNode *inputVolumeNode,
+                                                           vtkMRMLVolumeNode *referenceVolumeNode);
 
 protected:
   vtkSlicerVolumesLogic();

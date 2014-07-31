@@ -2,7 +2,8 @@
 
   Program: 3D Slicer
 
-  Copyright (c) Kitware Inc.
+  Copyright (c) Laboratory for Percutaneous Surgery (PerkLab)
+  Queen's University, Kingston, ON, Canada. All Rights Reserved.
 
   See COPYRIGHT.txt
   or http://www.slicer.org/copyright/copyright.txt for details.
@@ -120,7 +121,7 @@ public:
   /// Pops up a simple dialog asking to choose one plugin from a list.
   /// Note: This should happen very rarely. If happens frequently, then confidence numbers returned by plugins need review.
   /// \param textToDisplay Text assembled by the caller displaying the reason and basis (nodes) of the choice
-  /// \candidatePlugins List of plugins to choose from
+  /// \param candidatePlugins List of plugins to choose from
   /// \return Plugin chosen by the user
   qSlicerSubjectHierarchyAbstractPlugin* selectPluginFromDialog(QString textToDisplay, QList<qSlicerSubjectHierarchyAbstractPlugin*> candidatePlugins);
 

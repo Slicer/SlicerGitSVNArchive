@@ -2,7 +2,8 @@
 
   Program: 3D Slicer
 
-  Copyright (c) Kitware Inc.
+  Copyright (c) Laboratory for Percutaneous Surgery (PerkLab)
+  Queen's University, Kingston, ON, Canada. All Rights Reserved.
 
   See COPYRIGHT.txt
   or http://www.slicer.org/copyright/copyright.txt for details.
@@ -64,6 +65,7 @@ public:
   virtual void init2();
 
   QList<QAction*> SelectPluginActions;
+  QMenu* SelectPluginSubMenu;
   QActionGroup* SelectPluginActionGroup;
   QAction* RemoveFromSubjectHierarchyAction;
   QAction* ExpandToDepthAction;
@@ -76,6 +78,7 @@ qMRMLSubjectHierarchyTreeViewPrivate::qMRMLSubjectHierarchyTreeViewPrivate(qMRML
 {
   this->RemoveFromSubjectHierarchyAction = NULL;
   this->ExpandToDepthAction = NULL;
+  this->SelectPluginSubMenu = NULL;
 }
 
 //------------------------------------------------------------------------------
@@ -169,7 +172,7 @@ void qMRMLSubjectHierarchyTreeViewPrivate::init2()
     }
 
   // Create a plugin selection action for each plugin in a sub-menu
-  QMenu* selectPluginSubMenu = this->NodeMenu->addMenu("Select role");
+  this->SelectPluginSubMenu = this->NodeMenu->addMenu("Select role");
   this->SelectPluginActionGroup = new QActionGroup(q);
   foreach (qSlicerSubjectHierarchyAbstractPlugin* plugin, qSlicerSubjectHierarchyPluginHandler::instance()->allPlugins())
     {
@@ -177,13 +180,13 @@ void qMRMLSubjectHierarchyTreeViewPrivate::init2()
     selectPluginAction->setCheckable(true);
     selectPluginAction->setActionGroup(this->SelectPluginActionGroup);
     selectPluginAction->setData(QVariant(plugin->name()));
-    selectPluginSubMenu->addAction(selectPluginAction);
+    this->SelectPluginSubMenu->addAction(selectPluginAction);
     QObject::connect(selectPluginAction, SIGNAL(triggered()), q, SLOT(selectPluginForCurrentNode()));
     this->SelectPluginActions << selectPluginAction;
     }
 
   // Update actions in owner plugin sub-menu when opened
-  QObject::connect( selectPluginSubMenu, SIGNAL(aboutToShow()), q, SLOT(updateSelectPluginActions()) );
+  QObject::connect( this->SelectPluginSubMenu, SIGNAL(aboutToShow()), q, SLOT(updateSelectPluginActions()) );
 }
 
 //------------------------------------------------------------------------------
@@ -262,8 +265,22 @@ void qMRMLSubjectHierarchyTreeView::mousePressEvent(QMouseEvent* e)
 //--------------------------------------------------------------------------
 void qMRMLSubjectHierarchyTreeView::populateContextMenuForCurrentNode()
 {
+  Q_D(qMRMLSubjectHierarchyTreeView);
+
   // Get current node
   vtkMRMLSubjectHierarchyNode* currentNode = qSlicerSubjectHierarchyPluginHandler::instance()->currentNode();
+  if (!currentNode)
+    {
+    // Don't show certain actions for potential nodes
+    d->EditAction->setVisible(false);
+    d->SelectPluginSubMenu->menuAction()->setVisible(false);
+    }
+  else
+    {
+    // Show basic actions for all subject hierarchy nodes
+    d->EditAction->setVisible(true);
+    d->SelectPluginSubMenu->menuAction()->setVisible(true);
+    }
 
   // Have all plugins show context menu items for current node
   foreach (qSlicerSubjectHierarchyAbstractPlugin* plugin, qSlicerSubjectHierarchyPluginHandler::instance()->allPlugins())

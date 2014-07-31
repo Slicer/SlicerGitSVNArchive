@@ -126,7 +126,7 @@ public:
   /// \sa GetColorNameWithoutSpaces
   std::string GetColorNameAsFileName(int colorIndex, const char *subst = "_");
 
-  /// \obsolete GetColorNameWithoutSpaces
+  /// \deprecated GetColorNameWithoutSpaces
   /// Get the 0th based nth name of this colour, replacing the spaces with
   /// subst
   /// \sa GetColorNameAsFileName
@@ -147,7 +147,7 @@ public:
   /// Retrieve the color associated to the index
   /// Must be reimplemented in the derived classes
   /// Return 1 if the color exists, 0 otherwise
-  virtual bool GetColor(int ind, double* color);
+  virtual bool GetColor(int ind, double color[4]);
 
   ///
   /// Name of the file name from which to read color information
