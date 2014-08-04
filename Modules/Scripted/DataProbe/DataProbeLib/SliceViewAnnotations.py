@@ -73,12 +73,29 @@ class SliceAnnotations(object):
     else:
       self.showSliceViewAnnotations = 1
     self.showCornerTextAnnotations = 1
-    self.showScalingRuler = 1
-    self.showColorScalarBar = 1
 
-    self.fontFamily = 'Times'
-    self.fontSize = 14
-    self.maximumTextLength= 20
+    if settings.contains('DataProbe/sliceViewAnnotations.showScalingRuler'):
+      self.showScalingRuler= int(settings.value(
+          'DataProbe/sliceViewAnnotations.showScalingRuler'))
+    else:
+      self.showScalingRuler = 1
+
+    if settings.contains('DataProbe/sliceViewAnnotations.showColorScalarBar'):
+      self.showColorScalarBar= int(settings.value(
+          'DataProbe/sliceViewAnnotations.showColorScalarBar'))
+    else:
+      self.showColorScalarBar = 1
+
+    if settings.contains('DataProbe/sliceViewAnnotations.showColorScalarBar'):
+      self.fontFamily = settings.value('DataProbe/sliceViewAnnotations.fontFamily')
+    else:
+      self.fontFamily = 'Times'
+
+    if settings.contains('DataProbe/sliceViewAnnotations.showColorScalarBar'):
+      self.fontSize = int(settings.value('DataProbe/sliceViewAnnotations.fontSize'))
+    else:
+      self.fontSize = 14
+    self.maximumTextLength= 35
 
     self.parameter = 'showSliceViewAnnotations'
     self.parameterNode = self.dataProbeUtil.getParameterNode()
@@ -86,6 +103,7 @@ class SliceAnnotations(object):
         vtk.vtkCommand.ModifiedEvent, self.updateGUIFromMRML)
     #outputColor = int(parameterNode.GetParameter("ChangeLabelEffect,outputColor"))
 
+    self.colorbarSelectedLayer = 'background'
     self.create()
     self.updateSliceViewFromGUI()
 
@@ -241,6 +259,32 @@ class SliceAnnotations(object):
     colorScalarBarFormLayout.addRow(self.showColorScalarBarCheckBox)
     self.showColorScalarBarCheckBox.checked = self.showColorScalarBar
 
+    #
+    # ColorBar Layer selection group box (background/foreground)
+    #
+    self.colorBarLayerSelectionGroupBox = ctk.ctkCollapsibleGroupBox()
+    self.colorBarLayerSelectionGroupBox.setTitle('Colorbar Layer Selection')
+    self.colorBarLayerSelectionGroupBox.enabled = False
+    '''
+    This is not used here as there is only no method in vtkMRMLSliceLogic
+    to get Foreground window level and range.
+    '''
+    #colorScalarBarFormLayout.addRow(self.colorBarLayerSelectionGroupBox )
+    layerSelectionHBoxLayout = qt.QHBoxLayout(self.colorBarLayerSelectionGroupBox)
+
+    layerLabel = qt.QLabel('Layer: ')
+    layerSelectionHBoxLayout.addWidget(fontFamilyLabel)
+    self.backgroundRadioButton = qt.QRadioButton('Background')
+    layerSelectionHBoxLayout.addWidget(self.backgroundRadioButton)
+    self.backgroundRadioButton.connect('clicked()',
+        self.onLayerSelectionRadioButton)
+    self.backgroundRadioButton.checked = True
+
+    self.foregroundRadioButton = qt.QRadioButton('Foreground')
+    layerSelectionHBoxLayout.addWidget(self.foregroundRadioButton)
+    self.foregroundRadioButton.connect('clicked()',
+        self.onLayerSelectionRadioButton)
+
     colorScalarBarSettingsGroupBox = ctk.ctkCollapsibleGroupBox()
     colorScalarBarSettingsGroupBox.setTitle('Color Scalar Bar Settings')
     colorScalarBarFormLayout.addRow(colorScalarBarSettingsGroupBox)
@@ -356,6 +400,16 @@ class SliceAnnotations(object):
       self.showScalingRuler = 1
     else:
       self.showScalingRuler = 0
+    settings = qt.QSettings()
+    settings.setValue('DataProbe/sliceViewAnnotations.showScalingRuler',
+        self.showScalingRuler)
+    self.updateSliceViewFromGUI()
+
+  def onLayerSelectionRadioButton(self):
+    if self.backgroundRadioButton.checked:
+      self.colorbarSelectedLayer = 'background'
+    else:
+      self.colorbarSelectedLayer = 'foreground'
     self.updateSliceViewFromGUI()
 
   def onShowColorScalarBarCheckbox(self):
@@ -363,6 +417,9 @@ class SliceAnnotations(object):
       self.showColorScalarBar = 1
     else:
       self.showColorScalarBar = 0
+    settings = qt.QSettings()
+    settings.setValue('DataProbe/sliceViewAnnotations.showColorScalarBar',
+        self.showColorScalarBar)
     self.updateSliceViewFromGUI()
 
   def onFontFamilyRadioButton(self):
@@ -372,9 +429,16 @@ class SliceAnnotations(object):
     else:
       self.fontFamily = 'Arial'
     self.updateSliceViewFromGUI()
+    settings = qt.QSettings()
+    settings.setValue('DataProbe/sliceViewAnnotations.fontFamily',
+        self.fontFamily)
+    self.updateSliceViewFromGUI()
 
   def onFontSizeSpinBox(self):
     self.fontSize = self.fontSizeSpinBox.value
+    settings = qt.QSettings()
+    settings.setValue('DataProbe/sliceViewAnnotations.fontSize',
+        self.fontSize)
     self.updateSliceViewFromGUI()
 
   def onTextLengthSpinBox(self):
@@ -440,8 +504,8 @@ class SliceAnnotations(object):
       cornerAnnotation.SetMaximumFontSize(self.fontSize)
       cornerAnnotation.SetMinimumFontSize(self.fontSize)
       textProperty = cornerAnnotation.GetTextProperty()
-      bgScalarBar = self.bgColorScalarBars[sliceViewName]
-      scalarBarTextProperty = bgScalarBar.GetLabelTextProperty()
+      scalarBar = self.colorScalarBars[sliceViewName]
+      scalarBarTextProperty = scalarBar.GetLabelTextProperty()
       scalarBarTextProperty.ItalicOff()
       scalarBarTextProperty.BoldOff()
       if self.fontFamily == 'Times':
@@ -458,7 +522,6 @@ class SliceAnnotations(object):
       self.annotationsDisplayAmount = 1
     elif self.level3RadioButton.checked:
       self.annotationsDisplayAmount = 2
-
 
     if self.cornerActivationCheckbox[0].checked:
       self.topLeftAnnotationDisplay = True
@@ -479,6 +542,7 @@ class SliceAnnotations(object):
       self.cornerTextParametersCollapsibleButton.enabled = True
       self.cornerActivationsGroupBox.enabled = True
       self.fontPropertiesGroupBox.enabled = True
+      self.colorBarLayerSelectionGroupBox.enabled = True
       self.annotationsAmountGroupBox.enabled = True
       self.scalingRulerCollapsibleButton.enabled = True
       self.colorScalarBarCollapsibleButton.enabled = True
@@ -493,6 +557,7 @@ class SliceAnnotations(object):
     else:
       self.cornerTextParametersCollapsibleButton.enabled = False
       self.cornerActivationsGroupBox.enabled = False
+      self.colorBarLayerSelectionGroupBox.enabled = False
       self.fontPropertiesGroupBox.enabled = False
       self.annotationsAmountGroupBox.enabled = False
       self.scalingRulerCollapsibleButton.enabled = False
@@ -528,7 +593,7 @@ class SliceAnnotations(object):
     self.scalingRulerActors = {}
     self.points = {}
     self.scalingRulerTextActors = {}
-    self.bgColorScalarBars = {}
+    self.colorScalarBars = {}
     #self.fgColorScalarBars = {}
 
   def createCornerAnnotations(self):
@@ -566,11 +631,14 @@ class SliceAnnotations(object):
     sliceView = sliceWidget.sliceView()
 
     self.scalingRulerTextActors[sliceViewName] = vtk.vtkTextActor()
+    textActor = self.scalingRulerTextActors[sliceViewName]
+    textProperty = textActor.GetTextProperty()
+    textProperty.ShadowOn()
     self.scalingRulerActors[sliceViewName] = vtk.vtkActor2D()
     # Create Scaling Ruler
     self.createScalingRuler(sliceViewName)
     # Create Color Scalar Bar
-    self.bgColorScalarBars[sliceViewName] = self.createColorScalarBar(sliceViewName)
+    self.colorScalarBars[sliceViewName] = self.createColorScalarBar(sliceViewName)
     #self.fgColorScalarBars[sliceViewName] = self.createColorScalarBar(sliceViewName)
 
   def createScalingRuler(self, sliceViewName):
@@ -802,34 +870,35 @@ class SliceAnnotations(object):
 
     if self.sliceViews[sliceViewName]:
 
-      bgScalarBar = self.bgColorScalarBars[sliceViewName]
-      #fgScalarBar = self.fgColorScalarBars[sliceViewName]
-      #bgScalarBar.SetPosition2(self.colorScalarBarHeightSlider.value,
-      #    self.colorScalarBarWidthSlider.value)
-      bgScalarBar.SetTextPositionToPrecedeScalarBar()
-      bgScalarBar.SetPosition(self.colorScalarBarXPostionSlider.value,
+      scalarBar = self.colorScalarBars[sliceViewName]
+      scalarBar.SetTextPositionToPrecedeScalarBar()
+      scalarBar.SetPosition(self.colorScalarBarXPostionSlider.value,
           self.colorScalarBarYPostionSlider.value)
-      bgScalarBar.SetWidth(self.colorScalarBarWidthSlider.value)
-      bgScalarBar.SetHeight(self.colorScalarBarHeightSlider.value)
-      #bgScalarBar.SetWidth(0.2)
-      #bgScalarBar.SetHeight(0.5)
-      bgScalarBar.SetLabelFormat("%4.0f")
-      bgScalarBar.SetMaximumWidthInPixels(int(self.colorScalarBarMaxWidthSlider.value))
-      bgScalarBar.SetMaximumHeightInPixels(int(self.colorScalarBarMaxHeightSlider.value))
+      scalarBar.SetWidth(self.colorScalarBarWidthSlider.value)
+      scalarBar.SetHeight(self.colorScalarBarHeightSlider.value)
+      scalarBar.SetLabelFormat("%4.0f")
+      scalarBar.SetMaximumWidthInPixels(int(self.colorScalarBarMaxWidthSlider.value))
+      scalarBar.SetMaximumHeightInPixels(int(self.colorScalarBarMaxHeightSlider.value))
       #numberOfLables = int((viewHeight*0.5)/30)
-      #bgScalarBar.SetNumberOfLabels(numberOfLables)
+      #scalarBar.SetNumberOfLabels(numberOfLables)
       #fgScalarBar.SetPosition(0.8,0.4)
       #fgScalarBar.SetPosition2(0.1,0.2)
 
       if self.showColorScalarBar:
         if (backgroundVolume != None and foregroundVolume == None):
-          self.updateScalarBarRange(sliceLogic, backgroundVolume, bgScalarBar)
-          renderer.AddActor2D(bgScalarBar)
+        #if (backgroundVolume != None and self.colorbarSelectedLayer == 'background'):
+          self.updateScalarBarRange(sliceLogic, backgroundVolume, scalarBar)
+          renderer.AddActor2D(scalarBar)
+          '''
+        elif (foregroundVolume != None and self.colorbarSelectedLayer == 'foreground'):
+          self.updateScalarBarRange(sliceLogic, foregroundVolume, scalarBar)
+          renderer.AddActor2D(scalarBar)
+          '''
         else:
-          renderer.RemoveActor2D(bgScalarBar)
+          renderer.RemoveActor2D(scalarBar)
           #renderer.RemoveActor2D(fgScalarBar)
       else:
-          renderer.RemoveActor2D(bgScalarBar)
+          renderer.RemoveActor2D(scalarBar)
           #renderer.RemoveActor2D(fgScalarBar)
 
   def makeAnnotationText(self, sliceLogic):
