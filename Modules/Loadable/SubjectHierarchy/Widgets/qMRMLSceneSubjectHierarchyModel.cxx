@@ -249,6 +249,13 @@ QFlags<Qt::ItemFlag> qMRMLSceneSubjectHierarchyModel::nodeFlags(vtkMRMLNode* nod
 }
 
 //------------------------------------------------------------------------------
+void qMRMLSceneSubjectHierarchyModel::onMRMLSceneImported(vtkMRMLScene* scene)
+{
+  Q_UNUSED(scene);
+  this->updateScene();
+}
+
+//------------------------------------------------------------------------------
 void qMRMLSceneSubjectHierarchyModel::updateItemDataFromNode(QStandardItem* item, vtkMRMLNode* node, int column)
 {
   Q_D(qMRMLSceneSubjectHierarchyModel);
@@ -560,6 +567,10 @@ bool qMRMLSceneSubjectHierarchyModel::reparent(vtkMRMLNode* node, vtkMRMLNode* n
       vtkWarningWithObjectMacro(this->mrmlScene(), "qMRMLSceneSubjectHierarchyModel::reparent: Failed to add node "
         << node->GetName() << " through plugin '" << selectedPlugin->name().toLatin1().constData() << "'");
       }
+
+    // Trigger updating item of reparented data node. Without this, the potential data node does not disappear
+    // from the tree when doing the reparenting programatically (however it does when doing drag&drop from UI)
+    emit invalidateFilter();
     }
 
   return true;
