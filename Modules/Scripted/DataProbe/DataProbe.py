@@ -276,7 +276,7 @@ class DataProbeInfoWidget(object):
     self.sliceAnnotationsFrame.layout().addWidget(sliceAnnotationsLabel)
     # Slice Annotations Settings Button
     sliceAnnotationsSettings = qt.QPushButton()
-    settingsIcon = qt.QIcon("%s/SlicerAdvancedGear-Original.png" %self.iconsDIR)
+    settingsIcon = qt.QIcon("%s/SlicerAdvancedGear-Small.png" %self.iconsDIR)
     sliceAnnotationsSettings.setIcon(settingsIcon)
     self.sliceAnnotationsFrame.layout().addWidget(sliceAnnotationsSettings)
 
