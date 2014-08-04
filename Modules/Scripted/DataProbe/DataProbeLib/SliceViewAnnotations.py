@@ -1006,21 +1006,22 @@ class SliceAnnotations(object):
     studyS = time[4:6]
     return studyH + ':' + studyM  + ':' + studyS +clockTime
 
+  def fitText(self,text,textSize):
+    if len(text) > textSize:
+      preSize = textSize/ 2
+      postSize = preSize - 3
+      text = text[:preSize] + "..." + text[-postSize:]
+    return text
+
   def drawCornerAnnotations(self):
     cornerAnnotation = ''
     for i, cornerText in enumerate(self.cornerTexts):
       keys = sorted(cornerText.keys())
       cornerAnnotation = ''
       for key in keys:
-        fullText = cornerText[key]['text']
-        if fullText[:2] == 'F:' or fullText[:2] == 'L:':
-          # TODO refactor later.
-          n = len(text)
-          text = fullText[:n-5][:self.maximumTextLength] + fullText[-5:]
-        else:
-          text = fullText[:self.maximumTextLength]
-        text[:self.maximumTextLength]
+        text = cornerText[key]['text']
         if ( text != ''):
+          text = self.fitText(text, self.maximumTextLength)
           # level 1: All categories will be displayed
           if self.annotationsDisplayAmount == 0:
             cornerAnnotation = cornerAnnotation+ text + '\n'
