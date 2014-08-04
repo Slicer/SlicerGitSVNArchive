@@ -5,15 +5,17 @@ from __main__ import ctk
 from __main__ import slicer
 
 import DataProbeLib
+import DataProbeUtil
 
 class SliceAnnotations(object):
   """Implement the Qt window showing settings for Slice View Annotations
   """
   def __init__(self):
 
+    self.dataProbeUtil = DataProbeUtil.DataProbeUtil()
+
     self.sliceViewNames = []
     self.popupGeometry = qt.QRect()
-    self.create()
     self.cornerTexts =[]
     # Bottom Left Corner Text
     self.cornerTexts.append({
@@ -50,14 +52,42 @@ class SliceAnnotations(object):
       '7-TE':{'text':'','category':'A'}
       })
 
-    self.annotationsDisplayAmount = 0
-
-    self.topLeftAnnotationDisplay = True
-    self.topRightAnnotationDisplay = True
-    self.bottomLeftAnnotationDisplay = True
-
     self.layoutManager = slicer.app.layoutManager()
     self.sliceCornerAnnotations = {}
+
+    # Check for user settings
+    # Load user settings
+
+    # If there is no user settings load defualts
+
+    self.annotationsDisplayAmount = 0
+
+    self.topLeftAnnotationDisplay = 1
+    self.topRightAnnotationDisplay = 1
+    self.bottomLeftAnnotationDisplay = 1
+
+    settings = qt.QSettings()
+    if settings.contains('DataProbe/sliceViewAnnotations.show'):
+      self.showSliceViewAnnotations= int(settings.value(
+          'DataProbe/sliceViewAnnotations.show'))
+    else:
+      self.showSliceViewAnnotations = 1
+    self.showCornerTextAnnotations = 1
+    self.showScalingRuler = 1
+    self.showColorScalarBar = 1
+
+    self.fontFamily = 'Times'
+    self.fontSize = 14
+    self.maximumTextLength= 20
+
+    self.parameter = 'showSliceViewAnnotations'
+    self.parameterNode = self.dataProbeUtil.getParameterNode()
+    self.parameterNodeTag = self.parameterNode.AddObserver(
+        vtk.vtkCommand.ModifiedEvent, self.updateGUIFromMRML)
+    #outputColor = int(parameterNode.GetParameter("ChangeLabelEffect,outputColor"))
+
+    self.create()
+    self.updateSliceViewFromGUI()
 
   def create(self):
     # Instantiate and connect widgets ...
@@ -66,21 +96,30 @@ class SliceAnnotations(object):
     self.window.setWindowTitle('Slice View Annotations Settings')
     self.layout = qt.QVBoxLayout(self.window)
 
-   #
-    # Parameters Area
     #
-    parametersCollapsibleButton = ctk.ctkCollapsibleButton()
-    parametersCollapsibleButton.text = "Annotation Text Parameters"
-    self.layout.addWidget(parametersCollapsibleButton)
-
-    # Layout within the dummy collapsible button
-    parametersFormLayout = qt.QFormLayout(parametersCollapsibleButton)
-
-    #
-    # DICOM Annotations Checkbox
+    # Show Annotations Checkbox
     #
     self.sliceViewAnnotationsCheckBox = qt.QCheckBox('Slice View Annotations')
-    parametersFormLayout.addRow(self.sliceViewAnnotationsCheckBox)
+    self.layout.addWidget(self.sliceViewAnnotationsCheckBox)
+    self.sliceViewAnnotationsCheckBox.checked = self.showSliceViewAnnotations
+
+    #
+    # Corner Text Parameters Area
+    #
+    #
+    self.cornerTextParametersCollapsibleButton = ctk.ctkCollapsibleButton()
+    self.cornerTextParametersCollapsibleButton.enabled = False
+    self.cornerTextParametersCollapsibleButton.text = "Corner Text Annotation"
+    self.layout.addWidget(self.cornerTextParametersCollapsibleButton)
+
+    # Layout within the dummy collapsible button
+    parametersFormLayout = qt.QFormLayout(self.cornerTextParametersCollapsibleButton)
+
+    # Show Corner Text Annotations Checkbox
+    #
+    self.cornerTextAnnotationsCheckBox = qt.QCheckBox('Enable')
+    #parametersFormLayout.addRow(self.cornerTextAnnotationsCheckBox)
+    self.cornerTextAnnotationsCheckBox.checked = self.showCornerTextAnnotations
 
     #
     # Corner Annotations Activation Checkboxes
@@ -138,44 +177,230 @@ class SliceAnnotations(object):
     fontPropertiesHBoxLayout.addWidget(fontFamilyLabel)
     self.timesFontRadioButton = qt.QRadioButton('Times')
     fontPropertiesHBoxLayout.addWidget(self.timesFontRadioButton)
-    self.timesFontRadioButton.connect('clicked()', self.updateSliceViewFromGUI)
-    self.timesFontRadioButton.checked = True
+    self.timesFontRadioButton.connect('clicked()', self.onFontFamilyRadioButton)
+
     self.arialFontRadioButton = qt.QRadioButton('Arial')
-    self.arialFontRadioButton.connect('clicked()', self.updateSliceViewFromGUI)
+    self.arialFontRadioButton.connect('clicked()', self.onFontFamilyRadioButton)
     fontPropertiesHBoxLayout.addWidget(self.arialFontRadioButton)
+
+    if self.fontFamily == 'Times':
+      self.timesFontRadioButton.checked = True
+    else:
+      self.arialFontRadioButton.checked = True
 
     fontSizeLabel = qt.QLabel('Font Size: ')
     fontPropertiesHBoxLayout.addWidget(fontSizeLabel)
     self.fontSizeSpinBox = qt.QSpinBox()
     self.fontSizeSpinBox.setMinimum(10)
     self.fontSizeSpinBox.setMaximum(20)
-    self.fontSizeSpinBox.value = 14
+    self.fontSizeSpinBox.value = self.fontSize
     fontPropertiesHBoxLayout.addWidget(self.fontSizeSpinBox)
-    self.fontSizeSpinBox.connect('valueChanged(int)', self.updateSliceViewFromGUI)
+    self.fontSizeSpinBox.connect('valueChanged(int)', self.onFontSizeSpinBox)
+
+    maximumTextLengthLabel = qt.QLabel('Maximum Text Length: ')
+    self.textLengthSpinBox = qt.QSpinBox()
+    self.textLengthSpinBox.setMinimum(1)
+    self.textLengthSpinBox.setMaximum(100)
+    self.textLengthSpinBox.value = self.maximumTextLength
+    parametersFormLayout.addRow('Maximum Text Length: ', self.textLengthSpinBox)
+    self.textLengthSpinBox.connect('valueChanged(int)', self.onTextLengthSpinBox)
 
     #
-    # Scaling Bar Area
+    # Scaling Ruler Area
     #
-    self.scalingBarCollapsibleButton = ctk.ctkCollapsibleButton()
-    self.scalingBarCollapsibleButton.enabled = False
-    self.scalingBarCollapsibleButton.text = "Scaling Bar"
-    self.layout.addWidget(self.scalingBarCollapsibleButton)
+    self.scalingRulerCollapsibleButton = ctk.ctkCollapsibleButton()
+    self.scalingRulerCollapsibleButton.enabled = False
+    self.scalingRulerCollapsibleButton.text = "Scaling Ruler"
+    self.layout.addWidget(self.scalingRulerCollapsibleButton)
 
     # Layout within the dummy collapsible button
-    scalingBarFormLayout = qt.QFormLayout(self.scalingBarCollapsibleButton)
+    scalingRulerFormLayout = qt.QFormLayout(self.scalingRulerCollapsibleButton)
 
     #
-    # Scaling Bar Activation Checkbox
+    # Scaling Ruler Activation Checkbox
     #
-    self.showScalingBarCheckBox = qt.QCheckBox('Show Scaling Bar')
-    scalingBarFormLayout.addRow(self.showScalingBarCheckBox)
+    self.showScalingRulerCheckBox = qt.QCheckBox('Enable')
+    scalingRulerFormLayout.addRow(self.showScalingRulerCheckBox)
+    self.showScalingRulerCheckBox.checked = self.showScalingRuler
+
+    #
+    # Color Scalar Bar Area
+    #
+    self.colorScalarBarCollapsibleButton = ctk.ctkCollapsibleButton()
+    self.colorScalarBarCollapsibleButton.enabled = False
+    self.colorScalarBarCollapsibleButton.text = "Color Bar"
+    self.layout.addWidget(self.colorScalarBarCollapsibleButton)
+
+    # Layout within the dummy collapsible button
+    colorScalarBarFormLayout = qt.QFormLayout(self.colorScalarBarCollapsibleButton)
+
+    #
+    # Color Scalar Bar Activation Checkbox
+    #
+    self.showColorScalarBarCheckBox = qt.QCheckBox('Enable')
+    colorScalarBarFormLayout.addRow(self.showColorScalarBarCheckBox)
+    self.showColorScalarBarCheckBox.checked = self.showColorScalarBar
+
+    colorScalarBarSettingsGroupBox = ctk.ctkCollapsibleGroupBox()
+    colorScalarBarSettingsGroupBox.setTitle('Color Scalar Bar Settings')
+    colorScalarBarFormLayout.addRow(colorScalarBarSettingsGroupBox)
+    colorScalarBarSettingsLayout = qt.QFormLayout(colorScalarBarSettingsGroupBox)
+
+    # X Position Slider
+    self.colorScalarBarXPostionSlider = ctk.ctkSliderWidget()
+    #self.colorScalarBarWidthSlider.value = 100
+    self.colorScalarBarXPostionSlider.minimum = 0
+    self.colorScalarBarXPostionSlider.pageStep= 0.01
+    self.colorScalarBarXPostionSlider.value = 0.8
+    self.colorScalarBarXPostionSlider.singleStep= 0.01
+    self.colorScalarBarXPostionSlider.maximum = 1
+    colorScalarBarSettingsLayout.addRow('x position:',self.colorScalarBarXPostionSlider )
+
+    # Y Position Slider
+    self.colorScalarBarYPostionSlider = ctk.ctkSliderWidget()
+    self.colorScalarBarYPostionSlider.minimum = 0
+    self.colorScalarBarYPostionSlider.value = 0.2
+    self.colorScalarBarYPostionSlider.pageStep= 0.01
+    self.colorScalarBarYPostionSlider.singleStep = 0.01
+    self.colorScalarBarYPostionSlider.maximum = 1
+    colorScalarBarSettingsLayout.addRow('y position:',self.colorScalarBarYPostionSlider)
+
+    # Width Slider
+    self.colorScalarBarWidthSlider = ctk.ctkSliderWidget()
+    #self.colorScalarBarWidthSlider.value = 100
+    self.colorScalarBarWidthSlider.minimum = 0
+    self.colorScalarBarWidthSlider.pageStep= 0.01
+    self.colorScalarBarWidthSlider.value = 0.2
+    self.colorScalarBarWidthSlider.singleStep= 0.01
+    self.colorScalarBarWidthSlider.maximum = 1
+    colorScalarBarSettingsLayout.addRow('width:',self.colorScalarBarWidthSlider)
+
+    # Height Slider
+    self.colorScalarBarHeightSlider = ctk.ctkSliderWidget()
+    #self.colorScalarBarHeightSlider.value = 100
+    self.colorScalarBarHeightSlider.minimum = 0
+    self.colorScalarBarHeightSlider.value = 0.5
+    self.colorScalarBarHeightSlider.pageStep= 0.01
+    self.colorScalarBarHeightSlider.singleStep = 0.01
+    self.colorScalarBarHeightSlider.maximum = 1
+    colorScalarBarSettingsLayout.addRow('height:',self.colorScalarBarHeightSlider)
+
+    # Maximum Width Slider
+    self.colorScalarBarMaxWidthSlider = ctk.ctkSliderWidget()
+    #self.colorScalarBarWidthSlider.value = 100
+    self.colorScalarBarMaxWidthSlider.minimum = 10
+    self.colorScalarBarMaxWidthSlider.pageStep= 10
+    self.colorScalarBarMaxWidthSlider.value = 50
+    self.colorScalarBarMaxWidthSlider.singleStep= 1
+    self.colorScalarBarMaxWidthSlider.maximum = 500
+    colorScalarBarSettingsLayout.addRow('Max width in pixels:',self.colorScalarBarMaxWidthSlider)
+
+    # Height Slider
+    self.colorScalarBarMaxHeightSlider = ctk.ctkSliderWidget()
+    self.colorScalarBarMaxHeightSlider.minimum = 10
+    self.colorScalarBarMaxHeightSlider.value = 200
+    self.colorScalarBarMaxHeightSlider.pageStep= 10
+    self.colorScalarBarMaxHeightSlider.singleStep = 1
+    self.colorScalarBarMaxHeightSlider.maximum = 500
+    colorScalarBarSettingsLayout.addRow('Max height in pixels:',self.colorScalarBarMaxHeightSlider)
+
+    # Defualts Button
+    restorDefaultsButton = qt.QPushButton('Defualt Values')
+    colorScalarBarSettingsLayout.addRow('Restore: ',restorDefaultsButton)
 
     # connections
 
     # Add vertical spacer
     self.layout.addStretch(1)
-    self.sliceViewAnnotationsCheckBox.connect('clicked()', self.updateSliceViewFromGUI)
-    self.showScalingBarCheckBox.connect('clicked()', self.updateSliceViewFromGUI)
+    self.sliceViewAnnotationsCheckBox.connect('clicked()', self.onSliceViewAnnotationsCheckbox)
+    self.cornerTextAnnotationsCheckBox.connect('clicked()', self.onCornerTextAnnotationsCheckbox)
+    self.showScalingRulerCheckBox.connect('clicked()', self.onShowScalingRulerCheckbox)
+    self.showColorScalarBarCheckBox.connect('clicked()', self.onShowColorScalarBarCheckbox)
+    self.colorScalarBarXPostionSlider.connect('valueChanged(double)', self.updateSliceViewFromGUI)
+    self.colorScalarBarYPostionSlider.connect('valueChanged(double)', self.updateSliceViewFromGUI)
+    self.colorScalarBarWidthSlider.connect('valueChanged(double)', self.updateSliceViewFromGUI)
+    self.colorScalarBarHeightSlider.connect('valueChanged(double)', self.updateSliceViewFromGUI)
+    self.colorScalarBarMaxWidthSlider.connect('valueChanged(double)', self.updateSliceViewFromGUI)
+    self.colorScalarBarMaxHeightSlider.connect('valueChanged(double)', self.updateSliceViewFromGUI)
+    restorDefaultsButton.connect('clicked()', self.restoreDefaultValues)
+
+  def onSliceViewAnnotationsCheckbox(self):
+    if self.sliceViewAnnotationsCheckBox.checked:
+      self.showSliceViewAnnotations = 1
+      self.showScalingRuler = 1
+      self.showColorScalarBar = 1
+    else:
+      self.showSliceViewAnnotations = 0
+      self.showScalingRuler = 0
+      self.showColorScalarBar = 0
+    settings = qt.QSettings()
+    settings.setValue('DataProbe/sliceViewAnnotations.show',self.showSliceViewAnnotations)
+    self.updateSliceViewFromGUI()
+
+  def onCornerTextAnnotationsCheckbox(self):
+    #print 'onCornerTextAnnotationsCheckbox'
+    if self.cornerTextAnnotationsCheckBox.checked:
+      self.showCornerTextAnnotations = 1
+      self.topLeftAnnotationDisplay = 1
+      self.topRightAnnotationDisplay = 1
+      self.bottomLeftAnnotationDisplay = 1
+    else:
+      self.showCornerTextAnnotations = 0
+      self.topLeftAnnotationDisplay = 0
+      self.topRightAnnotationDisplay = 0
+      self.bottomLeftAnnotationDisplay = 0
+    self.updateSliceViewFromGUI()
+
+  def onShowScalingRulerCheckbox(self):
+    if self.showScalingRulerCheckBox.checked:
+      self.showScalingRuler = 1
+    else:
+      self.showScalingRuler = 0
+    self.updateSliceViewFromGUI()
+
+  def onShowColorScalarBarCheckbox(self):
+    if self.showColorScalarBarCheckBox.checked:
+      self.showColorScalarBar = 1
+    else:
+      self.showColorScalarBar = 0
+    self.updateSliceViewFromGUI()
+
+  def onFontFamilyRadioButton(self):
+    # Updating font size and family
+    if self.timesFontRadioButton.checked:
+      self.fontFamily = 'Times'
+    else:
+      self.fontFamily = 'Arial'
+    self.updateSliceViewFromGUI()
+
+  def onFontSizeSpinBox(self):
+    self.fontSize = self.fontSizeSpinBox.value
+    self.updateSliceViewFromGUI()
+
+  def onTextLengthSpinBox(self):
+    self.maximumTextLength = self.textLengthSpinBox.value
+    self.updateSliceViewFromGUI()
+
+  def restoreDefaultValues(self):
+    self.colorScalarBarXPostionSlider.value = 0.8
+    self.colorScalarBarYPostionSlider.value = 0.2
+    self.colorScalarBarWidthSlider.value = 0.2
+    self.colorScalarBarHeightSlider.value = 0.5
+    self.colorScalarBarMaxWidthSlider.value = 50
+    self.colorScalarBarMaxHeightSlider.value = 200
+
+  def updateMRMLFromGUI(self):
+    self.parameterNode.SetParameter(self.parameter, str(showSliceViewAnnotations))
+
+  def updateGUIFromMRML(self,caller,event):
+    if self.parameterNode.GetParameter(self.parameter) == '':
+      # parameter does not exist - probably intializing
+      return
+    showStatus = int(self.parameterNode.GetParameter(self.parameter))
+    self.showSliceViewAnnotations = showStatus
+    self.showScalingRuler = showStatus
+    self.showColorScalarBar = showStatus
+    self.updateSliceViewFromGUI()
 
   def openSettingsPopup(self):
 
@@ -210,22 +435,21 @@ class SliceAnnotations(object):
     if len(self.sliceCornerAnnotations.items()) == 0:
       self.createCornerAnnotations()
 
-    # Updating font size and family
-    if self.timesFontRadioButton.checked:
-      fontFamily = 'Times'
-    else:
-      fontFamily = 'Arial'
-    fontSize = self.fontSizeSpinBox.value
-
     for sliceViewName in self.sliceViewNames:
       cornerAnnotation = self.sliceCornerAnnotations[sliceViewName]
-      cornerAnnotation.SetMaximumFontSize(fontSize)
-      cornerAnnotation.SetMinimumFontSize(fontSize)
+      cornerAnnotation.SetMaximumFontSize(self.fontSize)
+      cornerAnnotation.SetMinimumFontSize(self.fontSize)
       textProperty = cornerAnnotation.GetTextProperty()
-      if fontFamily == 'Times':
+      bgScalarBar = self.bgColorScalarBars[sliceViewName]
+      scalarBarTextProperty = bgScalarBar.GetLabelTextProperty()
+      scalarBarTextProperty.ItalicOff()
+      scalarBarTextProperty.BoldOff()
+      if self.fontFamily == 'Times':
         textProperty.SetFontFamilyToTimes()
+        scalarBarTextProperty.SetFontFamilyToTimes()
       else:
         textProperty.SetFontFamilyToArial()
+        scalarBarTextProperty.SetFontFamilyToArial()
 
     # Updating Annotations Amount
     if self.level1RadioButton.checked:
@@ -251,27 +475,35 @@ class SliceAnnotations(object):
     else:
       self.bottomLeftAnnotationDisplay = False
 
-    if self.sliceViewAnnotationsCheckBox.checked:
+    if self.showSliceViewAnnotations:
+      self.cornerTextParametersCollapsibleButton.enabled = True
       self.cornerActivationsGroupBox.enabled = True
       self.fontPropertiesGroupBox.enabled = True
       self.annotationsAmountGroupBox.enabled = True
-      self.scalingBarCollapsibleButton.enabled = True
+      self.scalingRulerCollapsibleButton.enabled = True
+      self.colorScalarBarCollapsibleButton.enabled = True
 
       for sliceViewName in self.sliceViewNames:
         sliceWidget = self.layoutManager.sliceWidget(sliceViewName)
         sl = sliceWidget.sliceLogic()
         #bl =sl.GetBackgroundLayer()
         self.makeAnnotationText(sl)
+        self.makeScalingRuler(sl)
+        self.makeColorScalarBar(sl)
     else:
+      self.cornerTextParametersCollapsibleButton.enabled = False
       self.cornerActivationsGroupBox.enabled = False
       self.fontPropertiesGroupBox.enabled = False
       self.annotationsAmountGroupBox.enabled = False
-      self.scalingBarCollapsibleButton.enabled = False
+      self.scalingRulerCollapsibleButton.enabled = False
+      self.colorScalarBarCollapsibleButton.enabled = False
       # Remove Observers
       for sliceViewName in self.sliceViewNames:
         sliceWidget = self.layoutManager.sliceWidget(sliceViewName)
         sl = sliceWidget.sliceLogic()
-        sl.RemoveAllObservers()
+        #sl.RemoveAllObservers()
+        self.makeScalingRuler(sl)
+        self.makeColorScalarBar(sl)
 
       # Clear Annotations
       for sliceViewName in self.sliceViewNames:
@@ -280,6 +512,9 @@ class SliceAnnotations(object):
         self.sliceCornerAnnotations[sliceViewName].SetText(2, "")
         self.sliceCornerAnnotations[sliceViewName].SetText(3, "")
         self.sliceViews[sliceViewName].scheduleRender()
+
+      # reset golobal variables
+      self.sliceCornerAnnotations = {}
 
   def createGlobalVariables(self):
     self.sliceViewNames = []
@@ -290,9 +525,11 @@ class SliceAnnotations(object):
     self.sliceLogicObserverTag = {}
     self.sliceCornerAnnotations = {}
     self.renderers = {}
-    self.scalingBarActors = {}
+    self.scalingRulerActors = {}
     self.points = {}
-    self.scalingBarTextActors = {}
+    self.scalingRulerTextActors = {}
+    self.bgColorScalarBars = {}
+    #self.fgColorScalarBars = {}
 
   def createCornerAnnotations(self):
     #print 'createCornerAnnotations'
@@ -311,6 +548,11 @@ class SliceAnnotations(object):
     self.sliceWidgets[sliceViewName] = sliceWidget
     sliceView = sliceWidget.sliceView()
 
+    renderWindow = sliceView.renderWindow()
+    renderWindow.GetRenderers()
+    renderer = renderWindow.GetRenderers().GetItemAsObject(0)
+    self.renderers[sliceViewName] = renderer
+
     self.sliceViews[sliceViewName] = sliceView
     self.sliceCornerAnnotations[sliceViewName] = sliceView.cornerAnnotation()
     sliceLogic = sliceWidget.sliceLogic()
@@ -323,82 +565,76 @@ class SliceAnnotations(object):
     self.sliceWidgets[sliceViewName] = sliceWidget
     sliceView = sliceWidget.sliceView()
 
-    renderWindow = sliceView.renderWindow()
-    renderer = renderWindow.GetRenderers().GetItemAsObject(0)
-    self.renderers[sliceViewName] = renderer
-    self.scalingBarTextActors[sliceViewName] = vtk.vtkTextActor()
-    self.scalingBarActors[sliceViewName] = vtk.vtkActor2D()
-    # Create Scale Bar
-    self.createScaleBar(sliceViewName)
+    self.scalingRulerTextActors[sliceViewName] = vtk.vtkTextActor()
+    self.scalingRulerActors[sliceViewName] = vtk.vtkActor2D()
+    # Create Scaling Ruler
+    self.createScalingRuler(sliceViewName)
+    # Create Color Scalar Bar
+    self.bgColorScalarBars[sliceViewName] = self.createColorScalarBar(sliceViewName)
+    #self.fgColorScalarBars[sliceViewName] = self.createColorScalarBar(sliceViewName)
 
-  def createScaleBar(self, sliceViewName):
-    #print('createScaleBar(%s)'%sliceViewName)
-    renderer = self.renderers[sliceViewName]
-    #actor = self.scalingBarTextActors[sliceViewName]
-    #textActor = self.scalingBarTextActors[sliceViewName]
-    #self.createActors(sliceViewName)
+  def createScalingRuler(self, sliceViewName):
+    #print('createScalingRuler(%s)'%sliceViewName)
+    #renderer = self.renderers[sliceViewName]
     #
-    # Create the Scaling Bar
+    # Create the Scaling Ruler
     #
     self.points[sliceViewName] = vtk.vtkPoints()
-    self.points[sliceViewName].SetNumberOfPoints(10)
+    self.points[sliceViewName].SetNumberOfPoints(22)
 
-    # Create line#0
-    line0 = vtk.vtkLine()
-    line0.GetPointIds().SetId(0,0)
-    line0.GetPointIds().SetId(1,1)
+    lines = []
+    for i in xrange(0,21):
+      line = vtk.vtkLine()
+      lines.append(line)
 
-    # Create line#1
-    line1 = vtk.vtkLine()
-    line1.GetPointIds().SetId(0,0)
-    line1.GetPointIds().SetId(1,2)
-
-    # Create line#2
-    line2 = vtk.vtkLine()
-    line2.GetPointIds().SetId(0,2)
-    line2.GetPointIds().SetId(1,3)
-
-    # Create line#3
-    line3 = vtk.vtkLine()
-    line3.GetPointIds().SetId(0,2)
-    line3.GetPointIds().SetId(1,4)
-
-    # Create line#4
-    line4 = vtk.vtkLine()
-    line4.GetPointIds().SetId(0,4)
-    line4.GetPointIds().SetId(1,5)
-
-    # Create line#5
-    line5 = vtk.vtkLine()
-    line5.GetPointIds().SetId(0,4)
-    line5.GetPointIds().SetId(1,6)
-
-    # Create line#6
-    line6 = vtk.vtkLine()
-    line6.GetPointIds().SetId(0,6)
-    line6.GetPointIds().SetId(1,7)
-
-    # Create line#7
-    line7 = vtk.vtkLine()
-    line7.GetPointIds().SetId(0,6)
-    line7.GetPointIds().SetId(1,8)
-
-    # Create line#8
-    line8 = vtk.vtkLine()
-    line8.GetPointIds().SetId(0,8)
-    line8.GetPointIds().SetId(1,9)
+    # setting the points to lines
+    lines[0].GetPointIds().SetId(0,0)
+    lines[0].GetPointIds().SetId(1,1)
+    lines[1].GetPointIds().SetId(0,0)
+    lines[1].GetPointIds().SetId(1,2)
+    lines[2].GetPointIds().SetId(0,2)
+    lines[2].GetPointIds().SetId(1,3)
+    lines[3].GetPointIds().SetId(0,2)
+    lines[3].GetPointIds().SetId(1,4)
+    lines[4].GetPointIds().SetId(0,4)
+    lines[4].GetPointIds().SetId(1,5)
+    lines[5].GetPointIds().SetId(0,4)
+    lines[5].GetPointIds().SetId(1,6)
+    lines[6].GetPointIds().SetId(0,6)
+    lines[6].GetPointIds().SetId(1,7)
+    lines[7].GetPointIds().SetId(0,6)
+    lines[7].GetPointIds().SetId(1,8)
+    lines[8].GetPointIds().SetId(0,8)
+    lines[8].GetPointIds().SetId(1,9)
+    lines[9].GetPointIds().SetId(0,8)
+    lines[9].GetPointIds().SetId(1,10)
+    lines[10].GetPointIds().SetId(0,10)
+    lines[10].GetPointIds().SetId(1,11)
+    lines[11].GetPointIds().SetId(0,10)
+    lines[11].GetPointIds().SetId(1,12)
+    lines[12].GetPointIds().SetId(0,12)
+    lines[12].GetPointIds().SetId(1,13)
+    lines[13].GetPointIds().SetId(0,12)
+    lines[13].GetPointIds().SetId(1,14)
+    lines[14].GetPointIds().SetId(0,14)
+    lines[14].GetPointIds().SetId(1,15)
+    lines[15].GetPointIds().SetId(0,14)
+    lines[15].GetPointIds().SetId(1,16)
+    lines[16].GetPointIds().SetId(0,16)
+    lines[16].GetPointIds().SetId(1,17)
+    lines[17].GetPointIds().SetId(0,16)
+    lines[17].GetPointIds().SetId(1,18)
+    lines[18].GetPointIds().SetId(0,18)
+    lines[18].GetPointIds().SetId(1,19)
+    lines[19].GetPointIds().SetId(0,18)
+    lines[19].GetPointIds().SetId(1,20)
+    lines[20].GetPointIds().SetId(0,20)
+    lines[20].GetPointIds().SetId(1,21)
 
     # Create a cell array to store the lines in and add the lines to it
-    lines = vtk.vtkCellArray()
-    lines.InsertNextCell(line0)
-    lines.InsertNextCell(line1)
-    lines.InsertNextCell(line2)
-    lines.InsertNextCell(line3)
-    lines.InsertNextCell(line4)
-    lines.InsertNextCell(line5)
-    lines.InsertNextCell(line6)
-    lines.InsertNextCell(line7)
-    lines.InsertNextCell(line8)
+    linesArray = vtk.vtkCellArray()
+    for i in xrange(0,21):
+      linesArray.InsertNextCell(lines[i])
 
     # Create a polydata to store everything in
     linesPolyData = vtk.vtkPolyData()
@@ -407,9 +643,7 @@ class SliceAnnotations(object):
     linesPolyData.SetPoints(self.points[sliceViewName])
 
     # Add the lines to the dataset
-    linesPolyData.SetLines(lines)
-
-    #self.scalingBarTextActors[sliceViewName] = vtk.vtkTextActor()
+    linesPolyData.SetLines(linesArray)
 
     # mapper
     mapper = vtk.vtkPolyDataMapper2D()
@@ -418,19 +652,24 @@ class SliceAnnotations(object):
     else:
       mapper.SetInputData(linesPolyData)
     # actor
-    #self.scalingBarActors[sliceViewName] = vtk.vtkActor2D()
-    actor = self.scalingBarActors[sliceViewName]
+    #self.scalingRulerActors[sliceViewName] = vtk.vtkActor2D()
+    actor = self.scalingRulerActors[sliceViewName]
     actor.SetMapper(mapper)
     # color actor
     actor.GetProperty().SetColor(1,1,1)
     actor.GetProperty().SetLineWidth(1)
-    textActor = self.scalingBarTextActors[sliceViewName]
+    textActor = self.scalingRulerTextActors[sliceViewName]
     textProperty = textActor.GetTextProperty()
     # Turn off shadow
     textProperty.ShadowOff()
-    if self.showScalingBarCheckBox.checked:
-      renderer.AddActor(actor)
-      renderer.AddActor(textActor)
+
+  def createColorScalarBar(self, sliceViewName):
+    scalarBar = vtk.vtkScalarBarActor()
+    # adjust text property
+    lookupTable = vtk.vtkLookupTable()
+    scalarBar.SetLookupTable(lookupTable)
+    #renderer.AddActor2D(scalarBar)
+    return scalarBar
 
   def updateCornerAnnotations(self,caller,event):
     #print 'updateCornerAnnotations'
@@ -442,35 +681,41 @@ class SliceAnnotations(object):
         self.createActors(sliceViewName)
         #self.updateSliceViewFromGUI()
     self.makeAnnotationText(caller)
+    self.makeScalingRuler(caller)
+    self.makeColorScalarBar(caller)
 
   def sliceLogicModifiedEvent(self, caller,event):
     self.updateLayersAnnotation(caller)
 
-  def makeAnnotationText(self, sliceLogic):
-    #print 'makeAnnotationText'
-    self.resetTexts()
+  def makeScalingRuler(self, sliceLogic):
     sliceCompositeNode = sliceLogic.GetSliceCompositeNode()
 
+    # Get the layers
     backgroundLayer = sliceLogic.GetBackgroundLayer()
     foregroundLayer = sliceLogic.GetForegroundLayer()
     labelLayer = sliceLogic.GetLabelLayer()
 
+    # Get the volumes
     backgroundVolume = backgroundLayer.GetVolumeNode()
     foregroundVolume = foregroundLayer.GetVolumeNode()
     labelVolume = labelLayer.GetVolumeNode()
 
+    # Get slice view name
     sliceNode = backgroundLayer.GetSliceNode()
     sliceViewName = sliceNode.GetLayoutName()
-    self.currentSliceViewName = sliceNode.GetLayoutName()
+    self.currentSliceViewName = sliceViewName
 
-    if self.sliceViews[self.currentSliceViewName]:
+    renderer = self.renderers[sliceViewName]
 
+    if self.sliceViews[sliceViewName]:
+
+      #
+      # update scaling ruler
+      #
       self.minimumWidthForScalingRuler = 300
+      viewWidth = self.sliceViews[sliceViewName].width
+      viewHeight = self.sliceViews[sliceViewName].height
 
-      viewWidth = self.sliceViews[self.currentSliceViewName].width
-      viewHeight = self.sliceViews[self.currentSliceViewName].height
-
-      #self.createScaleBar(sliceViewName)
       rasToXY = vtk.vtkMatrix4x4()
       m = sliceNode.GetXYToRAS()
       rasToXY.DeepCopy(m)
@@ -480,14 +725,13 @@ class SliceAnnotations(object):
 
       #print rasToXY
       # TODO: Fix the bug
-      scalingFactor = 1
       import math
       scalingFactor = math.sqrt( rasToXY.GetElement(0,0)**2 +
           rasToXY.GetElement(0,1)**2 +rasToXY.GetElement(0,2) **2 )
 
-      rulerArea = viewWidth/scalingFactor/7
+      rulerArea = viewWidth/scalingFactor/2
 
-      if self.showScalingBarCheckBox.checked and \
+      if self.showScalingRuler and \
           viewWidth > self.minimumWidthForScalingRuler and\
          rulerArea>0.5 and rulerArea<500 :
         import numpy as np
@@ -502,34 +746,119 @@ class SliceAnnotations(object):
         RASRulerSize = rulerSizesArray[index]
 
         pts = self.points[sliceViewName]
-        pts.SetPoint(0,[(viewWidth-RASRulerSize*scalingFactor)/2,10, 0])
-        pts.SetPoint(1,[(viewWidth-RASRulerSize*scalingFactor)/2,20, 0])
-        pts.SetPoint(2,[(viewWidth-RASRulerSize*scalingFactor/2)/2,10, 0])
-        pts.SetPoint(3,[(viewWidth-RASRulerSize*scalingFactor/2)/2,17, 0])
-        pts.SetPoint(4,[viewWidth/2,10, 0])
-        pts.SetPoint(5,[viewWidth/2,20, 0])
-        pts.SetPoint(6,[(viewWidth+RASRulerSize*scalingFactor/2)/2,10, 0])
-        pts.SetPoint(7,[(viewWidth+RASRulerSize*scalingFactor/2)/2,17, 0])
-        pts.SetPoint(8,[(viewWidth+RASRulerSize*scalingFactor)/2,10, 0])
-        pts.SetPoint(9,[(viewWidth+RASRulerSize*scalingFactor)/2,20, 0])
-        textActor = self.scalingBarTextActors[self.currentSliceViewName]
+        pts.SetPoint(0,[(viewWidth/2-RASRulerSize*scalingFactor/10*5),5, 0])
+        pts.SetPoint(1,[(viewWidth/2-RASRulerSize*scalingFactor/10*5),15, 0])
+        pts.SetPoint(2,[(viewWidth/2-RASRulerSize*scalingFactor/10*4),5, 0])
+        pts.SetPoint(3,[(viewWidth/2-RASRulerSize*scalingFactor/10*4),10, 0])
+        pts.SetPoint(4,[(viewWidth/2-RASRulerSize*scalingFactor/10*3),5, 0])
+        pts.SetPoint(5,[(viewWidth/2-RASRulerSize*scalingFactor/10*3),15, 0])
+        pts.SetPoint(6,[(viewWidth/2-RASRulerSize*scalingFactor/10*2),5, 0])
+        pts.SetPoint(7,[(viewWidth/2-RASRulerSize*scalingFactor/10*2),10, 0])
+        pts.SetPoint(8,[(viewWidth/2-RASRulerSize*scalingFactor/10),5, 0])
+        pts.SetPoint(9,[(viewWidth/2-RASRulerSize*scalingFactor/10),15, 0])
+        pts.SetPoint(10,[viewWidth/2,5, 0])
+        pts.SetPoint(11,[viewWidth/2,10, 0])
+        pts.SetPoint(12,[(viewWidth/2+RASRulerSize*scalingFactor/10),5, 0])
+        pts.SetPoint(13,[(viewWidth/2+RASRulerSize*scalingFactor/10),15, 0])
+        pts.SetPoint(14,[(viewWidth/2+RASRulerSize*scalingFactor/10*2),5, 0])
+        pts.SetPoint(15,[(viewWidth/2+RASRulerSize*scalingFactor/10*2),10, 0])
+        pts.SetPoint(16,[(viewWidth/2+RASRulerSize*scalingFactor/10*3),5, 0])
+        pts.SetPoint(17,[(viewWidth/2+RASRulerSize*scalingFactor/10*3),15, 0])
+        pts.SetPoint(18,[(viewWidth/2+RASRulerSize*scalingFactor/10*4),5, 0])
+        pts.SetPoint(19,[(viewWidth/2+RASRulerSize*scalingFactor/10*4),10, 0])
+        pts.SetPoint(20,[(viewWidth/2+RASRulerSize*scalingFactor/10*5),5, 0])
+        pts.SetPoint(21,[(viewWidth/2+RASRulerSize*scalingFactor/10*5),15, 0])
 
+        textActor = self.scalingRulerTextActors[sliceViewName]
         textActor.SetInput(scalingFactorString)
+        textActor.SetDisplayPosition(int((viewWidth+RASRulerSize*scalingFactor)/2)+10,5)
 
-        textActor.SetDisplayPosition(int((viewWidth+RASRulerSize*scalingFactor)/2)+10,7)
+        renderer.AddActor2D(self.scalingRulerActors[sliceViewName])
+        renderer.AddActor2D(textActor)
 
-        self.renderers[self.currentSliceViewName].AddActor(
-            self.scalingBarActors[self.currentSliceViewName])
-        self.renderers[self.currentSliceViewName].AddActor(textActor)
       else:
-        self.renderers[self.currentSliceViewName].RemoveActor(
-            self.scalingBarActors[self.currentSliceViewName])
-        self.renderers[self.currentSliceViewName].RemoveActor(
-            self.scalingBarTextActors[self.currentSliceViewName])
+        renderer.RemoveActor2D(self.scalingRulerActors[sliceViewName])
+        renderer.RemoveActor2D(self.scalingRulerTextActors[sliceViewName])
 
-      rw = self.sliceViews[sliceViewName].renderWindow()
+  def makeColorScalarBar(self, sliceLogic):
+    sliceCompositeNode = sliceLogic.GetSliceCompositeNode()
 
-      # Both background and foregraound
+    # Get the layers
+    backgroundLayer = sliceLogic.GetBackgroundLayer()
+    foregroundLayer = sliceLogic.GetForegroundLayer()
+    labelLayer = sliceLogic.GetLabelLayer()
+
+    # Get the volumes
+    backgroundVolume = backgroundLayer.GetVolumeNode()
+    foregroundVolume = foregroundLayer.GetVolumeNode()
+    labelVolume = labelLayer.GetVolumeNode()
+
+    # Get slice view name
+    sliceNode = backgroundLayer.GetSliceNode()
+    sliceViewName = sliceNode.GetLayoutName()
+    self.currentSliceViewName = sliceViewName
+
+    renderer = self.renderers[sliceViewName]
+
+    if self.sliceViews[sliceViewName]:
+
+      bgScalarBar = self.bgColorScalarBars[sliceViewName]
+      #fgScalarBar = self.fgColorScalarBars[sliceViewName]
+      #bgScalarBar.SetPosition2(self.colorScalarBarHeightSlider.value,
+      #    self.colorScalarBarWidthSlider.value)
+      bgScalarBar.SetTextPositionToPrecedeScalarBar()
+      bgScalarBar.SetPosition(self.colorScalarBarXPostionSlider.value,
+          self.colorScalarBarYPostionSlider.value)
+      bgScalarBar.SetWidth(self.colorScalarBarWidthSlider.value)
+      bgScalarBar.SetHeight(self.colorScalarBarHeightSlider.value)
+      #bgScalarBar.SetWidth(0.2)
+      #bgScalarBar.SetHeight(0.5)
+      bgScalarBar.SetLabelFormat("%4.0f")
+      bgScalarBar.SetMaximumWidthInPixels(int(self.colorScalarBarMaxWidthSlider.value))
+      bgScalarBar.SetMaximumHeightInPixels(int(self.colorScalarBarMaxHeightSlider.value))
+      #numberOfLables = int((viewHeight*0.5)/30)
+      #bgScalarBar.SetNumberOfLabels(numberOfLables)
+      #fgScalarBar.SetPosition(0.8,0.4)
+      #fgScalarBar.SetPosition2(0.1,0.2)
+
+      if self.showColorScalarBar:
+        if (backgroundVolume != None and foregroundVolume == None):
+          self.updateScalarBarRange(sliceLogic, backgroundVolume, bgScalarBar)
+          renderer.AddActor2D(bgScalarBar)
+        else:
+          renderer.RemoveActor2D(bgScalarBar)
+          #renderer.RemoveActor2D(fgScalarBar)
+      else:
+          renderer.RemoveActor2D(bgScalarBar)
+          #renderer.RemoveActor2D(fgScalarBar)
+
+  def makeAnnotationText(self, sliceLogic):
+    #print 'makeAnnotationText'
+    self.resetTexts()
+    sliceCompositeNode = sliceLogic.GetSliceCompositeNode()
+
+    # Get the layers
+    backgroundLayer = sliceLogic.GetBackgroundLayer()
+    foregroundLayer = sliceLogic.GetForegroundLayer()
+    labelLayer = sliceLogic.GetLabelLayer()
+
+    # Get the volumes
+    backgroundVolume = backgroundLayer.GetVolumeNode()
+    foregroundVolume = foregroundLayer.GetVolumeNode()
+    labelVolume = labelLayer.GetVolumeNode()
+
+    # Get slice view name
+    sliceNode = backgroundLayer.GetSliceNode()
+    sliceViewName = sliceNode.GetLayoutName()
+    self.currentSliceViewName = sliceViewName
+
+    renderer = self.renderers[sliceViewName]
+
+    if self.sliceViews[sliceViewName]:
+      #
+      # Update slice corner annotations
+      #
+      # Case I: Both background and foregraound
       if ( backgroundVolume != None and foregroundVolume != None):
         foregroundOpacity = sliceCompositeNode.GetForegroundOpacity()
         backgroundVolumeName = backgroundVolume.GetName()
@@ -548,7 +877,7 @@ class SliceAnnotations(object):
           for key in self.cornerTexts[2]:
             self.cornerTexts[2][key]['text'] = ''
 
-      # Only background
+      # Case II: Only background
       elif (backgroundVolume != None):
         backgroundVolumeName = backgroundVolume.GetName()
         if self.bottomLeftAnnotationDisplay:
@@ -559,7 +888,7 @@ class SliceAnnotations(object):
           uid = uids.partition(' ')[0]
           self.makeDicomAnnotation(uid,None)
 
-      # Only foreground
+      # Case III: Only foreground
       elif (foregroundVolume != None):
         if self.bottomLeftAnnotationDisplay:
           foregroundVolumeName = foregroundVolume.GetName()
@@ -578,7 +907,20 @@ class SliceAnnotations(object):
                       "%.1f"%labelOpacity) + ')'
 
       self.drawCornerAnnotations()
-      #labelOpacity = sliceCompositeNode.GetLabelOpacity()
+
+  def updateScalarBarRange(self, sliceLogic, volumeNode, scalarBar):
+    vdn = volumeNode.GetDisplayNode()
+    vcn = vdn.GetColorNode()
+    lut = vcn.GetLookupTable()
+    lut2 = vtk.vtkLookupTable()
+    lut2.DeepCopy(lut)
+    width = vtk.mutable(0)
+    level = vtk.mutable(0)
+    rangeLow = vtk.mutable(0)
+    rangeHigh = vtk.mutable(0)
+    sliceLogic.GetBackgroundWindowLevelAndRange(width,level,rangeLow,rangeHigh)
+    lut2.SetRange(int(level-width/2),int(level+width/2))
+    scalarBar.SetLookupTable(lut2)
 
   def makeDicomAnnotation(self,bgUid,fgUid):
     if fgUid != None and bgUid != None:
@@ -596,7 +938,7 @@ class SliceAnnotations(object):
         else:
           self.cornerTexts[2]['1-PatientName']['text'] = backgroundDicomDic['Patient Name'].replace('^',', ')
           self.cornerTexts[2]['2-PatientID']['text'] = 'ID: ' + backgroundDicomDic['Patient ID']
-          backgroundDicomDic['Patient Birth Date']['text'] = self.formatDICOMDate(backgroundDicomDic['Patient Birth Date'])
+          backgroundDicomDic['Patient Birth Date'] = self.formatDICOMDate(backgroundDicomDic['Patient Birth Date'])
           self.cornerTexts[2]['3-PatientInfo']['text'] = self.makePatientInfo(backgroundDicomDic)
 
           if (backgroundDicomDic['Study Date'] != foregroundDicomDic['Study Date']):
@@ -670,18 +1012,26 @@ class SliceAnnotations(object):
       keys = sorted(cornerText.keys())
       cornerAnnotation = ''
       for key in keys:
-        if ( cornerText[key]['text'] != ''):
+        fullText = cornerText[key]['text']
+        if fullText[:2] == 'F:' or fullText[:2] == 'L:':
+          # TODO refactor later.
+          n = len(text)
+          text = fullText[:n-5][:self.maximumTextLength] + fullText[-5:]
+        else:
+          text = fullText[:self.maximumTextLength]
+        text[:self.maximumTextLength]
+        if ( text != ''):
           # level 1: All categories will be displayed
           if self.annotationsDisplayAmount == 0:
-            cornerAnnotation = cornerAnnotation+ cornerText[key]['text'] + '\n'
+            cornerAnnotation = cornerAnnotation+ text + '\n'
           # level 2: Category A and B will be displayed
           elif self.annotationsDisplayAmount == 1:
             if (cornerText[key]['category'] != 'C'):
-              cornerAnnotation = cornerAnnotation+ cornerText[key]['text'] + '\n'
+              cornerAnnotation = cornerAnnotation+ text + '\n'
           # level 3 only Category A will be displayed
           elif self.annotationsDisplayAmount == 2:
             if (cornerText[key]['category'] == 'A'):
-              cornerAnnotation = cornerAnnotation+ cornerText[key]['text'] + '\n'
+              cornerAnnotation = cornerAnnotation+ text + '\n'
       sliceCornerAnnotation = self.sliceCornerAnnotations[self.currentSliceViewName]
       sliceCornerAnnotation.SetText(i, cornerAnnotation)
       # get shadow
