@@ -10,9 +10,7 @@ set(MODULE_PYTHON_SCRIPTS
   )
 
 set(MODULE_PYTHON_RESOURCES
-  Resources/Icons/SlicerAdvancedGear-Original.png
-  Resources/Icons/SlicerInvisible-Small.png
-  Resources/Icons/SlicerVisible-Small.png
+  Resources/Icons/SlicerAdvancedGear-Small.png
   )
 
 #-----------------------------------------------------------------------------
