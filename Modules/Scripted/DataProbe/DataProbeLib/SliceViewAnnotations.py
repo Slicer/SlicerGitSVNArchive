@@ -86,12 +86,12 @@ class SliceAnnotations(object):
     else:
       self.showColorScalarBar = 1
 
-    if settings.contains('DataProbe/sliceViewAnnotations.showColorScalarBar'):
+    if settings.contains('DataProbe/sliceViewAnnotations.fontFamily'):
       self.fontFamily = settings.value('DataProbe/sliceViewAnnotations.fontFamily')
     else:
       self.fontFamily = 'Times'
 
-    if settings.contains('DataProbe/sliceViewAnnotations.showColorScalarBar'):
+    if settings.contains('DataProbe/sliceViewAnnotations.fontSize'):
       self.fontSize = int(settings.value('DataProbe/sliceViewAnnotations.fontSize'))
     else:
       self.fontSize = 14
@@ -105,7 +105,9 @@ class SliceAnnotations(object):
 
     self.colorbarSelectedLayer = 'background'
     self.create()
-    self.updateSliceViewFromGUI()
+
+    if self.showSliceViewAnnotations:
+      self.updateSliceViewFromGUI()
 
   def create(self):
     # Instantiate and connect widgets ...
@@ -269,11 +271,11 @@ class SliceAnnotations(object):
     This is not used here as there is only no method in vtkMRMLSliceLogic
     to get Foreground window level and range.
     '''
-    #colorScalarBarFormLayout.addRow(self.colorBarLayerSelectionGroupBox )
+    colorScalarBarFormLayout.addRow(self.colorBarLayerSelectionGroupBox )
     layerSelectionHBoxLayout = qt.QHBoxLayout(self.colorBarLayerSelectionGroupBox)
 
     layerLabel = qt.QLabel('Layer: ')
-    layerSelectionHBoxLayout.addWidget(fontFamilyLabel)
+    layerSelectionHBoxLayout.addWidget(layerLabel)
     self.backgroundRadioButton = qt.QRadioButton('Background')
     layerSelectionHBoxLayout.addWidget(self.backgroundRadioButton)
     self.backgroundRadioButton.connect('clicked()',
@@ -370,15 +372,24 @@ class SliceAnnotations(object):
 
   def onSliceViewAnnotationsCheckbox(self):
     if self.sliceViewAnnotationsCheckBox.checked:
+      self.showColorScalarBarCheckBox.checked = True
+      self.showScalingRulerCheckBox.checked = True
       self.showSliceViewAnnotations = 1
       self.showScalingRuler = 1
       self.showColorScalarBar = 1
     else:
+      self.showColorScalarBarCheckBox.checked = False
+      self.showScalingRulerCheckBox.checked = False
       self.showSliceViewAnnotations = 0
       self.showScalingRuler = 0
       self.showColorScalarBar = 0
     settings = qt.QSettings()
-    settings.setValue('DataProbe/sliceViewAnnotations.show',self.showSliceViewAnnotations)
+    settings.setValue('DataProbe/sliceViewAnnotations.show',
+        self.showSliceViewAnnotations)
+    settings.setValue('DataProbe/sliceViewAnnotations.showScalingRuler',
+        self.showScalingRuler)
+    settings.setValue('DataProbe/sliceViewAnnotations.showColorScalarBar',
+        self.showColorScalarBar)
     self.updateSliceViewFromGUI()
 
   def onCornerTextAnnotationsCheckbox(self):
@@ -633,7 +644,7 @@ class SliceAnnotations(object):
     self.scalingRulerTextActors[sliceViewName] = vtk.vtkTextActor()
     textActor = self.scalingRulerTextActors[sliceViewName]
     textProperty = textActor.GetTextProperty()
-    textProperty.ShadowOn()
+    textProperty.SetShadow(1)
     self.scalingRulerActors[sliceViewName] = vtk.vtkActor2D()
     # Create Scaling Ruler
     self.createScalingRuler(sliceViewName)
@@ -728,8 +739,6 @@ class SliceAnnotations(object):
     actor.GetProperty().SetLineWidth(1)
     textActor = self.scalingRulerTextActors[sliceViewName]
     textProperty = textActor.GetTextProperty()
-    # Turn off shadow
-    textProperty.ShadowOff()
 
   def createColorScalarBar(self, sliceViewName):
     scalarBar = vtk.vtkScalarBarActor()
@@ -1104,11 +1113,8 @@ class SliceAnnotations(object):
               cornerAnnotation = cornerAnnotation+ text + '\n'
       sliceCornerAnnotation = self.sliceCornerAnnotations[self.currentSliceViewName]
       sliceCornerAnnotation.SetText(i, cornerAnnotation)
-      # get shadow
-      #textProperty = sliceCornerAnnotation.GetTextProperty()
-      #print 'shadow', textProperty.GetShadow()
-      #textProperty.ShadowOn()
-      #print 'shadow', textProperty.GetShadow()
+      textProperty = sliceCornerAnnotation.GetTextProperty()
+      textProperty.SetShadow(1)
     self.sliceViews[self.currentSliceViewName].scheduleRender()
   def resetTexts(self):
     for i, cornerText in enumerate(self.cornerTexts):
