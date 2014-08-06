@@ -1,4 +1,5 @@
 import os, glob, sys
+import numpy as np
 from __main__ import qt
 from __main__ import vtk
 from __main__ import ctk
@@ -811,7 +812,6 @@ class SliceAnnotations(object):
       if self.showScalingRuler and \
           viewWidth > self.minimumWidthForScalingRuler and\
          rulerArea>0.5 and rulerArea<500 :
-        import numpy as np
         rulerSizesArray = np.array([1,5,10,50,100])
         index = np.argmin(np.abs(rulerSizesArray- rulerArea))
 
@@ -885,7 +885,6 @@ class SliceAnnotations(object):
           self.colorScalarBarYPostionSlider.value)
       scalarBar.SetWidth(self.colorScalarBarWidthSlider.value)
       scalarBar.SetHeight(self.colorScalarBarHeightSlider.value)
-      scalarBar.SetLabelFormat("%4.0f")
       scalarBar.SetMaximumWidthInPixels(int(self.colorScalarBarMaxWidthSlider.value))
       scalarBar.SetMaximumHeightInPixels(int(self.colorScalarBarMaxHeightSlider.value))
       #numberOfLables = int((viewHeight*0.5)/30)
@@ -1000,6 +999,10 @@ class SliceAnnotations(object):
       sliceLogic.GetForegroundWindowLevelAndRange(width,level,rangeLow,rangeHigh)
     lut2.SetRange(int(level-width/2),int(level+width/2))
     scalarBar.SetLookupTable(lut2)
+    if width < 5 and np.abs(level)<10 :
+      scalarBar.SetLabelFormat("%4.2f")
+    else:
+      scalarBar.SetLabelFormat("%4.0f")
 
   def makeDicomAnnotation(self,bgUid,fgUid):
     if fgUid != None and bgUid != None:
