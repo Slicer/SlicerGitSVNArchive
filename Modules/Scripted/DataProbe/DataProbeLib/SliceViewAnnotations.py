@@ -894,15 +894,13 @@ class SliceAnnotations(object):
       #fgScalarBar.SetPosition2(0.1,0.2)
 
       if self.showColorScalarBar:
-        if (backgroundVolume != None and foregroundVolume == None):
-        #if (backgroundVolume != None and self.colorbarSelectedLayer == 'background'):
-          self.updateScalarBarRange(sliceLogic, backgroundVolume, scalarBar)
+        #if (backgroundVolume != None and foregroundVolume == None):
+        if (backgroundVolume != None and self.colorbarSelectedLayer == 'background'):
+          self.updateScalarBarRange(sliceLogic, backgroundVolume, scalarBar, self.colorbarSelectedLayer)
           renderer.AddActor2D(scalarBar)
-          '''
         elif (foregroundVolume != None and self.colorbarSelectedLayer == 'foreground'):
-          self.updateScalarBarRange(sliceLogic, foregroundVolume, scalarBar)
+          self.updateScalarBarRange(sliceLogic, foregroundVolume, scalarBar, self.colorbarSelectedLayer)
           renderer.AddActor2D(scalarBar)
-          '''
         else:
           renderer.RemoveActor2D(scalarBar)
           #renderer.RemoveActor2D(fgScalarBar)
@@ -986,7 +984,7 @@ class SliceAnnotations(object):
 
       self.drawCornerAnnotations()
 
-  def updateScalarBarRange(self, sliceLogic, volumeNode, scalarBar):
+  def updateScalarBarRange(self, sliceLogic, volumeNode, scalarBar, selectedLayer):
     vdn = volumeNode.GetDisplayNode()
     vcn = vdn.GetColorNode()
     lut = vcn.GetLookupTable()
@@ -996,7 +994,10 @@ class SliceAnnotations(object):
     level = vtk.mutable(0)
     rangeLow = vtk.mutable(0)
     rangeHigh = vtk.mutable(0)
-    sliceLogic.GetBackgroundWindowLevelAndRange(width,level,rangeLow,rangeHigh)
+    if selectedLayer == 'background':
+      sliceLogic.GetBackgroundWindowLevelAndRange(width,level,rangeLow,rangeHigh)
+    else:
+      sliceLogic.GetForegroundWindowLevelAndRange(width,level,rangeLow,rangeHigh)
     lut2.SetRange(int(level-width/2),int(level+width/2))
     scalarBar.SetLookupTable(lut2)
 
