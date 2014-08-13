@@ -223,7 +223,7 @@ class SliceAnnotations(object):
     self.textLengthSpinBox.setMinimum(1)
     self.textLengthSpinBox.setMaximum(100)
     self.textLengthSpinBox.value = self.maximumTextLength
-    parametersFormLayout.addRow('Maximum Text Length: ', self.textLengthSpinBox)
+    #parametersFormLayout.addRow('Maximum Text Length: ', self.textLengthSpinBox)
     self.textLengthSpinBox.connect('valueChanged(int)', self.onTextLengthSpinBox)
 
     #
@@ -326,7 +326,7 @@ class SliceAnnotations(object):
     self.colorScalarBarHeightSlider = ctk.ctkSliderWidget()
     #self.colorScalarBarHeightSlider.value = 100
     self.colorScalarBarHeightSlider.minimum = 0
-    self.colorScalarBarHeightSlider.value = 0.5
+    self.colorScalarBarHeightSlider.value = 0.35
     self.colorScalarBarHeightSlider.pageStep= 0.01
     self.colorScalarBarHeightSlider.singleStep = 0.01
     self.colorScalarBarHeightSlider.maximum = 1
@@ -349,7 +349,7 @@ class SliceAnnotations(object):
     self.colorScalarBarMaxHeightSlider.pageStep= 10
     self.colorScalarBarMaxHeightSlider.singleStep = 1
     self.colorScalarBarMaxHeightSlider.maximum = 500
-    colorScalarBarSettingsLayout.addRow('Max height in pixels:',self.colorScalarBarMaxHeightSlider)
+    #colorScalarBarSettingsLayout.addRow('Max height in pixels:',self.colorScalarBarMaxHeightSlider)
 
     # Defualts Button
     restorDefaultsButton = qt.QPushButton('Defualt Values')
@@ -461,9 +461,9 @@ class SliceAnnotations(object):
     self.colorScalarBarXPostionSlider.value = 0.8
     self.colorScalarBarYPostionSlider.value = 0.2
     self.colorScalarBarWidthSlider.value = 0.2
-    self.colorScalarBarHeightSlider.value = 0.5
+    self.colorScalarBarHeightSlider.value = 0.35
     self.colorScalarBarMaxWidthSlider.value = 50
-    self.colorScalarBarMaxHeightSlider.value = 200
+    #self.colorScalarBarMaxHeightSlider.value = 200
 
   def updateMRMLFromGUI(self):
     self.parameterNode.SetParameter(self.parameter, str(showSliceViewAnnotations))
@@ -515,6 +515,7 @@ class SliceAnnotations(object):
       cornerAnnotation = self.sliceCornerAnnotations[sliceViewName]
       cornerAnnotation.SetMaximumFontSize(self.fontSize)
       cornerAnnotation.SetMinimumFontSize(self.fontSize)
+      cornerAnnotation.SetNonlinearFontScaleFactor(1)
       textProperty = cornerAnnotation.GetTextProperty()
       scalarBar = self.colorScalarBars[sliceViewName]
       scalarBarTextProperty = scalarBar.GetLabelTextProperty()
@@ -651,7 +652,6 @@ class SliceAnnotations(object):
     self.createScalingRuler(sliceViewName)
     # Create Color Scalar Bar
     self.colorScalarBars[sliceViewName] = self.createColorScalarBar(sliceViewName)
-    #self.fgColorScalarBars[sliceViewName] = self.createColorScalarBar(sliceViewName)
 
   def createScalingRuler(self, sliceViewName):
     #print('createScalingRuler(%s)'%sliceViewName)
@@ -751,6 +751,7 @@ class SliceAnnotations(object):
 
   def updateCornerAnnotations(self,caller,event):
     #print 'updateCornerAnnotations'
+
     sliceViewNames = self.layoutManager.sliceViewNames()
     for sliceViewName in sliceViewNames:
       if sliceViewName not in self.sliceViewNames:
@@ -790,7 +791,7 @@ class SliceAnnotations(object):
       #
       # update scaling ruler
       #
-      self.minimumWidthForScalingRuler = 300
+      self.minimumWidthForScalingRuler = 200
       viewWidth = self.sliceViews[sliceViewName].width
       viewHeight = self.sliceViews[sliceViewName].height
 
@@ -807,7 +808,7 @@ class SliceAnnotations(object):
       scalingFactor = math.sqrt( rasToXY.GetElement(0,0)**2 +
           rasToXY.GetElement(0,1)**2 +rasToXY.GetElement(0,2) **2 )
 
-      rulerArea = viewWidth/scalingFactor/2
+      rulerArea = viewWidth/scalingFactor/4
 
       if self.showScalingRuler and \
           viewWidth > self.minimumWidthForScalingRuler and\
@@ -886,11 +887,13 @@ class SliceAnnotations(object):
       scalarBar.SetWidth(self.colorScalarBarWidthSlider.value)
       scalarBar.SetHeight(self.colorScalarBarHeightSlider.value)
       scalarBar.SetMaximumWidthInPixels(int(self.colorScalarBarMaxWidthSlider.value))
-      scalarBar.SetMaximumHeightInPixels(int(self.colorScalarBarMaxHeightSlider.value))
-      #numberOfLables = int((viewHeight*0.5)/30)
-      #scalarBar.SetNumberOfLabels(numberOfLables)
-      #fgScalarBar.SetPosition(0.8,0.4)
-      #fgScalarBar.SetPosition2(0.1,0.2)
+      #scalarBar.SetMaximumHeightInPixels(int(self.colorScalarBarMaxHeightSlider.value))
+
+      # Auto-Adjust
+      # Adjusting the maximum height of the scalar color bar based on view height
+      viewHeight = self.sliceViews[sliceViewName].height
+      if viewHeight > 200:
+        scalarBar.SetMaximumHeightInPixels(int(viewHeight/2 - 30))
 
       if self.showColorScalarBar:
         #if (backgroundVolume != None and foregroundVolume == None):
@@ -1005,13 +1008,14 @@ class SliceAnnotations(object):
       scalarBar.SetLabelFormat("%4.0f")
 
   def makeDicomAnnotation(self,bgUid,fgUid):
+    viewHeight = self.sliceViews[self.currentSliceViewName].height
     if fgUid != None and bgUid != None:
       backgroundDicomDic = self.extractDICOMValues(bgUid)
       foregroundDicomDic = self.extractDICOMValues(fgUid)
       # check if background and foreground are from different patients
       # and remove the annotations
 
-      if self.topLeftAnnotationDisplay:
+      if self.topLeftAnnotationDisplay and viewHeight > 150:
         if backgroundDicomDic['Patient Name'] != foregroundDicomDic['Patient Name'
             ] or backgroundDicomDic['Patient ID'] != foregroundDicomDic['Patient ID'
               ] or backgroundDicomDic['Patient Birth Date'] != foregroundDicomDic['Patient Birth Date']:
@@ -1045,7 +1049,8 @@ class SliceAnnotations(object):
     else:
       uid = bgUid
       dicomDic = self.extractDICOMValues(uid)
-      if self.topLeftAnnotationDisplay:
+      if self.topLeftAnnotationDisplay and viewHeight > 150:
+      #if self.topLeftAnnotationDisplay:
         self.cornerTexts[2]['1-PatientName']['text'] = dicomDic['Patient Name'].replace('^',', ')
         self.cornerTexts[2]['2-PatientID']['text'] = 'ID: ' + dicomDic ['Patient ID']
         dicomDic['Patient Birth Date'] = self.formatDICOMDate(dicomDic['Patient Birth Date'])
@@ -1054,7 +1059,9 @@ class SliceAnnotations(object):
         self.cornerTexts[2]['6-Bg-StudyTime']['text'] = self.formatDICOMTime(dicomDic['Study Time'])
         self.cornerTexts[2]['8-Bg-SeriesDescription']['text'] = dicomDic['Series Description']
 
-      if (self.sliceWidgets[self.currentSliceViewName].width > 600 and self.topRightAnnotationDisplay):
+      # top right corner annotation would be hidden if colorscalarbar is on and
+      # view height is less than 260 pixels
+      if (self.topRightAnnotationDisplay and ((not self.showColorScalarBar) or viewHeight > 260)):
         self.cornerTexts[3]['1-Institution-Name']['text'] = dicomDic['Institution Name']
         self.cornerTexts[3]['2-Referring-Phisycian']['text'] = dicomDic['Referring Physician Name'].replace('^',', ')
         self.cornerTexts[3]['3-Manufacturer']['text'] = dicomDic['Manufacturer']
@@ -1096,7 +1103,12 @@ class SliceAnnotations(object):
     return text
 
   def drawCornerAnnotations(self):
+    # Auto-Adjust
+    # adjust maximum text length based on fontsize and view width
+    viewWidth = self.sliceViews[self.currentSliceViewName].width
+    self.maximumTextLength = (viewWidth - 40) / self.fontSize
     cornerAnnotation = ''
+
     for i, cornerText in enumerate(self.cornerTexts):
       keys = sorted(cornerText.keys())
       cornerAnnotation = ''
@@ -1120,6 +1132,7 @@ class SliceAnnotations(object):
       textProperty = sliceCornerAnnotation.GetTextProperty()
       textProperty.SetShadow(1)
     self.sliceViews[self.currentSliceViewName].scheduleRender()
+
   def resetTexts(self):
     for i, cornerText in enumerate(self.cornerTexts):
       #self.cornerTexts[i] =  dict((k,'') for k,v in cornerText.iteritems())
