@@ -56,17 +56,12 @@ class SliceAnnotations(object):
     self.layoutManager = slicer.app.layoutManager()
     self.sliceCornerAnnotations = {}
 
-    # Check for user settings
-    # Load user settings
-
-    # If there is no user settings load defaults
-
     self.annotationsDisplayAmount = 0
-
     self.topLeftAnnotationDisplay = 1
     self.topRightAnnotationDisplay = 1
     self.bottomLeftAnnotationDisplay = 1
 
+    # If there is no user settings load defaults
     settings = qt.QSettings()
     if settings.contains('DataProbe/sliceViewAnnotations.show'):
       self.showSliceViewAnnotations= int(settings.value(
@@ -102,7 +97,6 @@ class SliceAnnotations(object):
     self.parameterNode = self.dataProbeUtil.getParameterNode()
     self.parameterNodeTag = self.parameterNode.AddObserver(
         vtk.vtkCommand.ModifiedEvent, self.updateGUIFromMRML)
-    #outputColor = int(parameterNode.GetParameter("ChangeLabelEffect,outputColor"))
 
     self.colorbarSelectedLayer = 'background'
     self.create()
@@ -141,7 +135,6 @@ class SliceAnnotations(object):
     # Show Corner Text Annotations Checkbox
     #
     self.cornerTextAnnotationsCheckBox = qt.QCheckBox('Enable')
-    #parametersFormLayout.addRow(self.cornerTextAnnotationsCheckBox)
     self.cornerTextAnnotationsCheckBox.checked = self.showCornerTextAnnotations
 
     #
@@ -225,7 +218,6 @@ class SliceAnnotations(object):
     self.textLengthSpinBox.setMinimum(1)
     self.textLengthSpinBox.setMaximum(100)
     self.textLengthSpinBox.value = self.maximumTextLength
-    #parametersFormLayout.addRow('Maximum Text Length: ', self.textLengthSpinBox)
     self.textLengthSpinBox.connect('valueChanged(int)', self.onTextLengthSpinBox)
 
     #
@@ -299,7 +291,6 @@ class SliceAnnotations(object):
 
     # X Position Slider
     self.colorScalarBarXPostionSlider = ctk.ctkSliderWidget()
-    #self.colorScalarBarWidthSlider.value = 100
     self.colorScalarBarXPostionSlider.minimum = 0
     self.colorScalarBarXPostionSlider.pageStep= 0.01
     self.colorScalarBarXPostionSlider.value = 0.8
@@ -318,7 +309,6 @@ class SliceAnnotations(object):
 
     # Width Slider
     self.colorScalarBarWidthSlider = ctk.ctkSliderWidget()
-    #self.colorScalarBarWidthSlider.value = 100
     self.colorScalarBarWidthSlider.minimum = 0
     self.colorScalarBarWidthSlider.pageStep= 0.01
     self.colorScalarBarWidthSlider.value = 0.2
@@ -328,7 +318,6 @@ class SliceAnnotations(object):
 
     # Height Slider
     self.colorScalarBarHeightSlider = ctk.ctkSliderWidget()
-    #self.colorScalarBarHeightSlider.value = 100
     self.colorScalarBarHeightSlider.minimum = 0
     self.colorScalarBarHeightSlider.value = 0.35
     self.colorScalarBarHeightSlider.pageStep= 0.01
@@ -338,7 +327,6 @@ class SliceAnnotations(object):
 
     # Maximum Width Slider
     self.colorScalarBarMaxWidthSlider = ctk.ctkSliderWidget()
-    #self.colorScalarBarWidthSlider.value = 100
     self.colorScalarBarMaxWidthSlider.minimum = 10
     self.colorScalarBarMaxWidthSlider.pageStep= 10
     self.colorScalarBarMaxWidthSlider.value = 50
@@ -353,7 +341,6 @@ class SliceAnnotations(object):
     self.colorScalarBarMaxHeightSlider.pageStep= 10
     self.colorScalarBarMaxHeightSlider.singleStep = 1
     self.colorScalarBarMaxHeightSlider.maximum = 500
-    #colorScalarBarSettingsLayout.addRow('Max height in pixels:',self.colorScalarBarMaxHeightSlider)
 
     # Default Button
     restorDefaultsButton = qt.QPushButton('Default Values')
@@ -398,7 +385,6 @@ class SliceAnnotations(object):
     self.updateSliceViewFromGUI()
 
   def onCornerTextAnnotationsCheckbox(self):
-    #print 'onCornerTextAnnotationsCheckbox'
     if self.cornerTextAnnotationsCheckBox.checked:
       self.showCornerTextAnnotations = 1
       self.topLeftAnnotationDisplay = 1
@@ -467,7 +453,6 @@ class SliceAnnotations(object):
     self.colorScalarBarWidthSlider.value = 0.2
     self.colorScalarBarHeightSlider.value = 0.35
     self.colorScalarBarMaxWidthSlider.value = 50
-    #self.colorScalarBarMaxHeightSlider.value = 200
 
   def updateMRMLFromGUI(self):
     self.parameterNode.SetParameter(self.parameter, str(showSliceViewAnnotations))
@@ -505,12 +490,7 @@ class SliceAnnotations(object):
   def close(self):
     self.window.hide()
 
-  """
-  def cleanup(self):
-    pass
-  """
   def updateSliceViewFromGUI(self):
-    #print 'updateSliceViewFromGUI'
     # Create corner annotations if have not created already
     if len(self.sliceCornerAnnotations.items()) == 0:
       self.createCornerAnnotations()
@@ -567,7 +547,6 @@ class SliceAnnotations(object):
       for sliceViewName in self.sliceViewNames:
         sliceWidget = self.layoutManager.sliceWidget(sliceViewName)
         sl = sliceWidget.sliceLogic()
-        #bl =sl.GetBackgroundLayer()
         self.makeAnnotationText(sl)
         self.makeScalingRuler(sl)
         self.makeColorScalarBar(sl)
@@ -583,7 +562,6 @@ class SliceAnnotations(object):
       for sliceViewName in self.sliceViewNames:
         sliceWidget = self.layoutManager.sliceWidget(sliceViewName)
         sl = sliceWidget.sliceLogic()
-        #sl.RemoveAllObservers()
         self.makeScalingRuler(sl)
         self.makeColorScalarBar(sl)
 
@@ -611,10 +589,8 @@ class SliceAnnotations(object):
     self.points = {}
     self.scalingRulerTextActors = {}
     self.colorScalarBars = {}
-    #self.fgColorScalarBars = {}
 
   def createCornerAnnotations(self):
-    #print 'createCornerAnnotations'
     self.createGlobalVariables()
     sliceViewNames = self.layoutManager.sliceViewNames()
 
@@ -625,7 +601,6 @@ class SliceAnnotations(object):
       self.createActors(sliceViewName)
 
   def addObserver(self, sliceViewName):
-    #print('addObserver(%s)'%sliceViewName)
     sliceWidget = self.layoutManager.sliceWidget(sliceViewName)
     self.sliceWidgets[sliceViewName] = sliceWidget
     sliceView = sliceWidget.sliceView()
@@ -658,8 +633,6 @@ class SliceAnnotations(object):
     self.colorScalarBars[sliceViewName] = self.createColorScalarBar(sliceViewName)
 
   def createScalingRuler(self, sliceViewName):
-    #print('createScalingRuler(%s)'%sliceViewName)
-    #renderer = self.renderers[sliceViewName]
     #
     # Create the Scaling Ruler
     #
@@ -736,7 +709,6 @@ class SliceAnnotations(object):
     else:
       mapper.SetInputData(linesPolyData)
     # actor
-    #self.scalingRulerActors[sliceViewName] = vtk.vtkActor2D()
     actor = self.scalingRulerActors[sliceViewName]
     actor.SetMapper(mapper)
     # color actor
@@ -750,11 +722,9 @@ class SliceAnnotations(object):
     # adjust text property
     lookupTable = vtk.vtkLookupTable()
     scalarBar.SetLookupTable(lookupTable)
-    #renderer.AddActor2D(scalarBar)
     return scalarBar
 
   def updateCornerAnnotations(self,caller,event):
-    #print 'updateCornerAnnotations'
 
     sliceViewNames = self.layoutManager.sliceViewNames()
     for sliceViewName in sliceViewNames:
@@ -762,7 +732,6 @@ class SliceAnnotations(object):
         self.sliceViewNames.append(sliceViewName)
         self.addObserver(sliceViewName)
         self.createActors(sliceViewName)
-        #self.updateSliceViewFromGUI()
     self.makeAnnotationText(caller)
     self.makeScalingRuler(caller)
     self.makeColorScalarBar(caller)
@@ -803,10 +772,8 @@ class SliceAnnotations(object):
       m = sliceNode.GetXYToRAS()
       rasToXY.DeepCopy(m)
       rasToXY.Invert()
-      #print rasToXY
       scalingFactorString = " mm"
 
-      #print rasToXY
       # TODO: Fix the bug
       import math
       scalingFactor = math.sqrt( rasToXY.GetElement(0,0)**2 +
@@ -891,7 +858,6 @@ class SliceAnnotations(object):
       scalarBar.SetWidth(self.colorScalarBarWidthSlider.value)
       scalarBar.SetHeight(self.colorScalarBarHeightSlider.value)
       scalarBar.SetMaximumWidthInPixels(int(self.colorScalarBarMaxWidthSlider.value))
-      #scalarBar.SetMaximumHeightInPixels(int(self.colorScalarBarMaxHeightSlider.value))
 
       # Auto-Adjust
       # Adjusting the maximum height of the scalar color bar based on view height
@@ -909,13 +875,10 @@ class SliceAnnotations(object):
           renderer.AddActor2D(scalarBar)
         else:
           renderer.RemoveActor2D(scalarBar)
-          #renderer.RemoveActor2D(fgScalarBar)
       else:
           renderer.RemoveActor2D(scalarBar)
-          #renderer.RemoveActor2D(fgScalarBar)
 
   def makeAnnotationText(self, sliceLogic):
-    #print 'makeAnnotationText'
     self.resetTexts()
     sliceCompositeNode = sliceLogic.GetSliceCompositeNode()
 
@@ -1054,7 +1017,6 @@ class SliceAnnotations(object):
       uid = bgUid
       dicomDic = self.extractDICOMValues(uid)
       if self.topLeftAnnotationDisplay and viewHeight > 150:
-      #if self.topLeftAnnotationDisplay:
         self.cornerTexts[2]['1-PatientName']['text'] = dicomDic['Patient Name'].replace('^',', ')
         self.cornerTexts[2]['2-PatientID']['text'] = 'ID: ' + dicomDic ['Patient ID']
         dicomDic['Patient Birth Date'] = self.formatDICOMDate(dicomDic['Patient Birth Date'])
@@ -1139,7 +1101,6 @@ class SliceAnnotations(object):
 
   def resetTexts(self):
     for i, cornerText in enumerate(self.cornerTexts):
-      #self.cornerTexts[i] =  dict((k,'') for k,v in cornerText.iteritems())
       for key in cornerText.keys():
         self.cornerTexts[i][key]['text'] = ''
 
@@ -1153,7 +1114,6 @@ class SliceAnnotations(object):
     "0008,0070": "Manufacturer",
     "0008,0080": "Institution Name",
     "0008,0090": "Referring Physician Name",
-    # "0008,1030": "Study Description",
     "0008,103e": "Series Description",
     "0008,1090": "Model",
     "0010,0010": "Patient Name",
@@ -1161,12 +1121,7 @@ class SliceAnnotations(object):
     "0010,0030": "Patient Birth Date",
     "0010,0040": "Patient Sex",
     "0010,1010": "Patient Age",
-    # "0010,4000": "Patient Comments",
-    # "0018,1030": "Protocol Name",
     "0018,5100": "Patient Position",
-    # "0020,0010": "Study ID",
-    # "0020,0011": "Series Number",
-    #"0020,4000": "Image Comments"
     }
 
     p = self.extractTagValue(p, tags)
@@ -1176,15 +1131,6 @@ class SliceAnnotations(object):
       "0018,0081": "Echo Time"
       }
       p = self.extractTagValue(p, mrTags)
-    '''
-      These tags are not available in dicom tag cache now
-      if p['Modality'] == 'CT':
-        ctTags = {
-        "0018,0060": "KVP",
-        "0018,1152": "Exposure"
-        }
-        p = self.extractTagValue(p, ctTags)
-      '''
     return p
 
   def extractTagValue(self,p,tags):
