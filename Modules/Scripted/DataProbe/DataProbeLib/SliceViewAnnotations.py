@@ -57,18 +57,32 @@ class SliceAnnotations(object):
     self.sliceCornerAnnotations = {}
 
     self.annotationsDisplayAmount = 0
-    self.topLeftAnnotationDisplay = 1
-    self.topRightAnnotationDisplay = 1
-    self.bottomLeftAnnotationDisplay = 1
 
     # If there is no user settings load defaults
     settings = qt.QSettings()
+    if settings.contains('DataProbe/sliceViewAnnotations.topLeft'):
+      self.topLeftAnnotationDisplay = int(settings.value(
+          'DataProbe/sliceViewAnnotations.topLeft'))
+    else:
+      self.topLeftAnnotationDisplay = 1
+
+    if settings.contains('DataProbe/sliceViewAnnotations.topRight'):
+      self.topRightAnnotationDisplay = int(settings.value(
+          'DataProbe/sliceViewAnnotations.topRight'))
+    else:
+      self.topRightAnnotationDisplay = 1
+
+    if settings.contains('DataProbe/sliceViewAnnotations.bottomLeft'):
+      self.bottomLeftAnnotationDisplay = int(settings.value(
+          'DataProbe/sliceViewAnnotations.bottomLeft'))
+    else:
+      self.bottomLeftAnnotationDisplay = 1
+
     if settings.contains('DataProbe/sliceViewAnnotations.show'):
       self.showSliceViewAnnotations= int(settings.value(
           'DataProbe/sliceViewAnnotations.show'))
     else:
       self.showSliceViewAnnotations = 1
-    self.showCornerTextAnnotations = 1
 
     if settings.contains('DataProbe/sliceViewAnnotations.showScalingRuler'):
       self.showScalingRuler= int(settings.value(
@@ -93,6 +107,12 @@ class SliceAnnotations(object):
       self.fontSize = 14
     self.maximumTextLength= 35
 
+    if settings.contains('DataProbe/sliceViewAnnotations.bgDicomAnnotationsPersistence'):
+      self.backgroundDicomAnnotationsPersistence = int(settings.value(
+          'DataProbe/sliceViewAnnotations.bgDicomAnnotationsPersistence'))
+    else:
+      self.backgroundDicomAnnotationsPersistence = 0
+
     self.parameter = 'showSliceViewAnnotations'
     self.parameterNode = self.dataProbeUtil.getParameterNode()
     self.parameterNodeTag = self.parameterNode.AddObserver(
@@ -107,259 +127,106 @@ class SliceAnnotations(object):
   def create(self):
     # Instantiate and connect widgets ...
 
-    self.window = qt.QWidget()
-    self.window.setWindowTitle('Slice View Annotations Settings')
-    self.layout = qt.QVBoxLayout(self.window)
+    loader = qt.QUiLoader()
+    path = os.path.join(os.path.dirname(__file__), 'Resources', 'UI','settings.ui')
+    qfile = qt.QFile(path)
+    qfile.open(qt.QFile.ReadOnly)
+    self.window = loader.load(qfile)
 
-    #
-    # Show Annotations Checkbox
-    #
-    self.sliceViewAnnotationsCheckBox = qt.QCheckBox('Slice View Annotations')
-    self.layout.addWidget(self.sliceViewAnnotationsCheckBox)
+    self.cornerTextParametersCollapsibleButton = slicer.util.findChildren(self.window,
+       'cornerTextParametersCollapsibleButton')[0]
+    self.sliceViewAnnotationsCheckBox = slicer.util.findChildren(self.window,
+       'sliceViewAnnotationsCheckBox')[0]
     self.sliceViewAnnotationsCheckBox.checked = self.showSliceViewAnnotations
 
-    #
-    # Corner Text Parameters Area
-    #
-    self.cornerTextParametersCollapsibleButton = ctk.ctkCollapsibleButton()
-    self.cornerTextParametersCollapsibleButton.enabled = False
-    self.cornerTextParametersCollapsibleButton.text = "Corner Text Annotation"
-    self.layout.addWidget(self.cornerTextParametersCollapsibleButton)
+    self.activateCornersGroupBox = slicer.util.findChildren(self.window,
+       'activateCornersGroupBox')[0]
+    self.topLeftActivationCheckbox = slicer.util.findChildren(self.window,
+       'topLeftActivationCheckbox')[0]
+    self.topLeftActivationCheckbox.checked = self.topLeftAnnotationDisplay
+    self.topRightActivationCheckbox = slicer.util.findChildren(self.window,
+       'topRightActivationCheckbox')[0]
+    self.topRightActivationCheckbox.checked = self.topRightAnnotationDisplay
+    self.bottomLeftActivationCheckbox = slicer.util.findChildren(self.window,
+       'bottomLeftActivationCheckbox')[0]
+    self.bottomLeftActivationCheckbox.checked = self.bottomLeftAnnotationDisplay
 
-    #
-    # Layout within the dummy collapsible button
-    #
-    parametersFormLayout = qt.QFormLayout(self.cornerTextParametersCollapsibleButton)
+    self.level1RadioButton = slicer.util.findChildren(self.window,
+       'level1RadioButton')[0]
+    self.level2RadioButton = slicer.util.findChildren(self.window,
+       'level2RadioButton')[0]
+    self.level3RadioButton = slicer.util.findChildren(self.window,
+       'level3RadioButton')[0]
 
-    #
-    # Show Corner Text Annotations Checkbox
-    #
-    self.cornerTextAnnotationsCheckBox = qt.QCheckBox('Enable')
-    self.cornerTextAnnotationsCheckBox.checked = self.showCornerTextAnnotations
-
-    #
-    # Corner Annotations Activation Checkboxes
-    #
-    self.cornerActivationsGroupBox = ctk.ctkCollapsibleGroupBox()
-    self.cornerActivationsGroupBox.setTitle('Active Corners')
-    self.cornerActivationsGroupBox.enabled = False
-    parametersFormLayout.addRow(self.cornerActivationsGroupBox)
-    cornerActionHBoxLayout = qt.QHBoxLayout(self.cornerActivationsGroupBox)
-
-    self.cornerActivationCheckbox = []
-
-    for i in xrange(3):
-      self.cornerActivationCheckbox.append(qt.QCheckBox())
-      self.cornerActivationCheckbox[i].checked = True
-      cornerActionHBoxLayout.addWidget(self.cornerActivationCheckbox[i])
-      self.cornerActivationCheckbox[i].connect('clicked()', self.updateSliceViewFromGUI)
-
-    self.cornerActivationCheckbox[0].setText('Top Left')
-    self.cornerActivationCheckbox[1].setText('Top Right')
-    self.cornerActivationCheckbox[2].setText('Bottom Left')
-
-    #
-    # Corner Annotations Font Properties
-    #
-    self.annotationsAmountGroupBox = ctk.ctkCollapsibleGroupBox()
-    self.annotationsAmountGroupBox.setTitle('Amount')
-    self.annotationsAmountGroupBox.enabled = False
-    parametersFormLayout.addRow(self.annotationsAmountGroupBox)
-    annotationsAmountHBoxLayout = qt.QHBoxLayout(self.annotationsAmountGroupBox)
-
-    amountLabel = qt.QLabel('Annotation Display Amount: ')
-    annotationsAmountHBoxLayout.addWidget(amountLabel)
-    self.level1RadioButton = qt.QRadioButton('level 1')
-    annotationsAmountHBoxLayout.addWidget(self.level1RadioButton)
-    self.level1RadioButton.connect('clicked()', self.updateSliceViewFromGUI)
-    self.level1RadioButton.checked = True
-    self.level2RadioButton = qt.QRadioButton('level 2')
-    annotationsAmountHBoxLayout.addWidget(self.level2RadioButton)
-    self.level2RadioButton.connect('clicked()', self.updateSliceViewFromGUI)
-    self.level3RadioButton = qt.QRadioButton('level 3')
-    annotationsAmountHBoxLayout.addWidget(self.level3RadioButton)
-    self.level3RadioButton.connect('clicked()', self.updateSliceViewFromGUI)
-
-    #
-    # Corner Annotations Font Properties
-    #
-    self.fontPropertiesGroupBox = ctk.ctkCollapsibleGroupBox()
-    self.fontPropertiesGroupBox.setTitle('Font Properties')
-    self.fontPropertiesGroupBox.enabled = False
-    parametersFormLayout.addRow(self.fontPropertiesGroupBox)
-    fontPropertiesHBoxLayout = qt.QHBoxLayout(self.fontPropertiesGroupBox)
-
-    fontFamilyLabel = qt.QLabel('Font Family: ')
-    fontPropertiesHBoxLayout.addWidget(fontFamilyLabel)
-    self.timesFontRadioButton = qt.QRadioButton('Times')
-    fontPropertiesHBoxLayout.addWidget(self.timesFontRadioButton)
-    self.timesFontRadioButton.connect('clicked()', self.onFontFamilyRadioButton)
-
-    self.arialFontRadioButton = qt.QRadioButton('Arial')
-    self.arialFontRadioButton.connect('clicked()', self.onFontFamilyRadioButton)
-    fontPropertiesHBoxLayout.addWidget(self.arialFontRadioButton)
-
+    self.fontPropertiesGroupBox = slicer.util.findChildren(self.window,
+       'fontPropertiesGroupBox')[0]
+    self.timesFontRadioButton = slicer.util.findChildren(self.window,
+       'timesFontRadioButton')[0]
+    self.arialFontRadioButton = slicer.util.findChildren(self.window,
+       'arialFontRadioButton')[0]
     if self.fontFamily == 'Times':
       self.timesFontRadioButton.checked = True
     else:
       self.arialFontRadioButton.checked = True
 
-    fontSizeLabel = qt.QLabel('Font Size: ')
-    fontPropertiesHBoxLayout.addWidget(fontSizeLabel)
-    self.fontSizeSpinBox = qt.QSpinBox()
-    self.fontSizeSpinBox.setMinimum(10)
-    self.fontSizeSpinBox.setMaximum(20)
+    self.fontSizeSpinBox = slicer.util.findChildren(self.window,
+       'fontSizeSpinBox')[0]
     self.fontSizeSpinBox.value = self.fontSize
-    fontPropertiesHBoxLayout.addWidget(self.fontSizeSpinBox)
-    self.fontSizeSpinBox.connect('valueChanged(int)', self.onFontSizeSpinBox)
 
-    maximumTextLengthLabel = qt.QLabel('Maximum Text Length: ')
-    self.textLengthSpinBox = qt.QSpinBox()
-    self.textLengthSpinBox.setMinimum(1)
-    self.textLengthSpinBox.setMaximum(100)
-    self.textLengthSpinBox.value = self.maximumTextLength
-    self.textLengthSpinBox.connect('valueChanged(int)', self.onTextLengthSpinBox)
+    self.backgroundLayerPersistenceCheckbox = slicer.util.findChildren(self.window,
+       'backgroundLayerPersistenceCheckbox')[0]
+    self.backgroundLayerPersistenceCheckbox.checked = self.backgroundDicomAnnotationsPersistence
 
-    #
-    # Scaling Ruler Area
-    #
-    self.scalingRulerCollapsibleButton = ctk.ctkCollapsibleButton()
-    self.scalingRulerCollapsibleButton.enabled = False
-    self.scalingRulerCollapsibleButton.text = "Scaling Ruler"
-    self.layout.addWidget(self.scalingRulerCollapsibleButton)
-
-    #
-    # Layout within the dummy collapsible button
-    #
-    scalingRulerFormLayout = qt.QFormLayout(self.scalingRulerCollapsibleButton)
-
-    #
-    # Scaling Ruler Activation Checkbox
-    #
-    self.showScalingRulerCheckBox = qt.QCheckBox('Enable')
-    scalingRulerFormLayout.addRow(self.showScalingRulerCheckBox)
+    self.annotationsAmountGroupBox = slicer.util.findChildren(self.window,
+       'annotationsAmountGroupBox')[0]
+    self.scalingRulerCollapsibleButton = slicer.util.findChildren(self.window,
+       'scalingRulerCollapsibleButton')[0]
+    self.showScalingRulerCheckBox = slicer.util.findChildren(self.window,
+       'showScalingRulerCheckBox')[0]
     self.showScalingRulerCheckBox.checked = self.showScalingRuler
 
-    #
-    # Color Scalar Bar Area
-    #
-    self.colorScalarBarCollapsibleButton = ctk.ctkCollapsibleButton()
-    self.colorScalarBarCollapsibleButton.enabled = False
-    self.colorScalarBarCollapsibleButton.text = "Color Bar"
-    self.layout.addWidget(self.colorScalarBarCollapsibleButton)
-
-    # Layout within the dummy collapsible button
-    colorScalarBarFormLayout = qt.QFormLayout(self.colorScalarBarCollapsibleButton)
-
-    #
-    # Color Scalar Bar Activation Checkbox
-    #
-    self.showColorScalarBarCheckBox = qt.QCheckBox('Enable')
-    colorScalarBarFormLayout.addRow(self.showColorScalarBarCheckBox)
+    self.colorScalarBarCollapsibleButton = slicer.util.findChildren(self.window,
+       'colorScalarBarCollapsibleButton')[0]
+    self.showColorScalarBarCheckBox = slicer.util.findChildren(self.window,
+        'showColorScalarBarCheckBox')[0]
     self.showColorScalarBarCheckBox.checked = self.showColorScalarBar
+    self.colorBarLayerSelectionGroupBox = slicer.util.findChildren(self.window,
+       'colorBarLayerSelectionGroupBox')[0]
 
-    #
-    # ColorBar Layer selection group box (background/foreground)
-    #
-    self.colorBarLayerSelectionGroupBox = ctk.ctkCollapsibleGroupBox()
-    self.colorBarLayerSelectionGroupBox.setTitle('Colorbar Layer Selection')
-    self.colorBarLayerSelectionGroupBox.enabled = False
-    '''
-    This is not used here as there is only no method in vtkMRMLSliceLogic
-    to get Foreground window level and range.
-    '''
-    colorScalarBarFormLayout.addRow(self.colorBarLayerSelectionGroupBox )
-    layerSelectionHBoxLayout = qt.QHBoxLayout(self.colorBarLayerSelectionGroupBox)
-
-    layerLabel = qt.QLabel('Layer: ')
-    layerSelectionHBoxLayout.addWidget(layerLabel)
-    self.backgroundRadioButton = qt.QRadioButton('Background')
-    layerSelectionHBoxLayout.addWidget(self.backgroundRadioButton)
-    self.backgroundRadioButton.connect('clicked()',
-        self.onLayerSelectionRadioButton)
+    self.backgroundRadioButton = slicer.util.findChildren(self.window,
+       'backgroundRadioButton')[0]
     self.backgroundRadioButton.checked = True
+    self.foregroundRadioButton = slicer.util.findChildren(self.window,
+       'foregroundRadioButton')[0]
 
-    self.foregroundRadioButton = qt.QRadioButton('Foreground')
-    layerSelectionHBoxLayout.addWidget(self.foregroundRadioButton)
-    self.foregroundRadioButton.connect('clicked()',
-        self.onLayerSelectionRadioButton)
+    self.colorScalarBarMaxWidthSlider = slicer.util.findChildren(self.window,
+       'colorScalarBarMaxWidthSlider')[0]
 
-    colorScalarBarSettingsGroupBox = ctk.ctkCollapsibleGroupBox()
-    colorScalarBarSettingsGroupBox.setTitle('Color Scalar Bar Settings')
-    colorScalarBarFormLayout.addRow(colorScalarBarSettingsGroupBox)
-    colorScalarBarSettingsLayout = qt.QFormLayout(colorScalarBarSettingsGroupBox)
-
-    # X Position Slider
-    self.colorScalarBarXPostionSlider = ctk.ctkSliderWidget()
-    self.colorScalarBarXPostionSlider.minimum = 0
-    self.colorScalarBarXPostionSlider.pageStep= 0.01
-    self.colorScalarBarXPostionSlider.value = 0.8
-    self.colorScalarBarXPostionSlider.singleStep= 0.01
-    self.colorScalarBarXPostionSlider.maximum = 1
-    colorScalarBarSettingsLayout.addRow('x position:',self.colorScalarBarXPostionSlider )
-
-    # Y Position Slider
-    self.colorScalarBarYPostionSlider = ctk.ctkSliderWidget()
-    self.colorScalarBarYPostionSlider.minimum = 0
-    self.colorScalarBarYPostionSlider.value = 0.2
-    self.colorScalarBarYPostionSlider.pageStep= 0.01
-    self.colorScalarBarYPostionSlider.singleStep = 0.01
-    self.colorScalarBarYPostionSlider.maximum = 1
-    colorScalarBarSettingsLayout.addRow('y position:',self.colorScalarBarYPostionSlider)
-
-    # Width Slider
-    self.colorScalarBarWidthSlider = ctk.ctkSliderWidget()
-    self.colorScalarBarWidthSlider.minimum = 0
-    self.colorScalarBarWidthSlider.pageStep= 0.01
-    self.colorScalarBarWidthSlider.value = 0.2
-    self.colorScalarBarWidthSlider.singleStep= 0.01
-    self.colorScalarBarWidthSlider.maximum = 1
-    colorScalarBarSettingsLayout.addRow('width:',self.colorScalarBarWidthSlider)
-
-    # Height Slider
-    self.colorScalarBarHeightSlider = ctk.ctkSliderWidget()
-    self.colorScalarBarHeightSlider.minimum = 0
-    self.colorScalarBarHeightSlider.value = 0.35
-    self.colorScalarBarHeightSlider.pageStep= 0.01
-    self.colorScalarBarHeightSlider.singleStep = 0.01
-    self.colorScalarBarHeightSlider.maximum = 1
-    colorScalarBarSettingsLayout.addRow('height:',self.colorScalarBarHeightSlider)
-
-    # Maximum Width Slider
-    self.colorScalarBarMaxWidthSlider = ctk.ctkSliderWidget()
-    self.colorScalarBarMaxWidthSlider.minimum = 10
-    self.colorScalarBarMaxWidthSlider.pageStep= 10
-    self.colorScalarBarMaxWidthSlider.value = 50
-    self.colorScalarBarMaxWidthSlider.singleStep= 1
-    self.colorScalarBarMaxWidthSlider.maximum = 500
-    colorScalarBarSettingsLayout.addRow('Max width in pixels:',self.colorScalarBarMaxWidthSlider)
-
-    # Height Slider
-    self.colorScalarBarMaxHeightSlider = ctk.ctkSliderWidget()
-    self.colorScalarBarMaxHeightSlider.minimum = 10
-    self.colorScalarBarMaxHeightSlider.value = 200
-    self.colorScalarBarMaxHeightSlider.pageStep= 10
-    self.colorScalarBarMaxHeightSlider.singleStep = 1
-    self.colorScalarBarMaxHeightSlider.maximum = 500
-
-    # Default Button
-    restorDefaultsButton = qt.QPushButton('Default Values')
-    colorScalarBarSettingsLayout.addRow('Restore: ',restorDefaultsButton)
+    restorDefaultsButton = slicer.util.findChildren(self.window,
+        'restoreDefaultsButton')[0]
 
     # connections
-
-    # Add vertical spacer
-    self.layout.addStretch(1)
     self.sliceViewAnnotationsCheckBox.connect('clicked()', self.onSliceViewAnnotationsCheckbox)
-    self.cornerTextAnnotationsCheckBox.connect('clicked()', self.onCornerTextAnnotationsCheckbox)
+    self.topLeftActivationCheckbox.connect('clicked()', self.onCornerTextsActivationCheckbox)
+    self.topRightActivationCheckbox.connect('clicked()', self.onCornerTextsActivationCheckbox)
+    self.bottomLeftActivationCheckbox.connect('clicked()', self.onCornerTextsActivationCheckbox)
+    self.timesFontRadioButton.connect('clicked()', self.onFontFamilyRadioButton)
+    self.arialFontRadioButton.connect('clicked()', self.onFontFamilyRadioButton)
+    self.fontSizeSpinBox.connect('valueChanged(int)', self.onFontSizeSpinBox)
+
+    self.level1RadioButton.connect('clicked()', self.updateSliceViewFromGUI)
+    self.level2RadioButton.connect('clicked()', self.updateSliceViewFromGUI)
+    self.level3RadioButton.connect('clicked()', self.updateSliceViewFromGUI)
+
+    self.backgroundLayerPersistenceCheckbox.connect('clicked()', self.onBackgroundLayerPersistenceCheckbox)
+
     self.showScalingRulerCheckBox.connect('clicked()', self.onShowScalingRulerCheckbox)
+
     self.showColorScalarBarCheckBox.connect('clicked()', self.onShowColorScalarBarCheckbox)
-    self.colorScalarBarXPostionSlider.connect('valueChanged(double)', self.updateSliceViewFromGUI)
-    self.colorScalarBarYPostionSlider.connect('valueChanged(double)', self.updateSliceViewFromGUI)
-    self.colorScalarBarWidthSlider.connect('valueChanged(double)', self.updateSliceViewFromGUI)
-    self.colorScalarBarHeightSlider.connect('valueChanged(double)', self.updateSliceViewFromGUI)
+    self.backgroundRadioButton.connect('clicked()',self.onLayerSelectionRadioButton)
+    self.foregroundRadioButton.connect('clicked()',self.onLayerSelectionRadioButton)
     self.colorScalarBarMaxWidthSlider.connect('valueChanged(double)', self.updateSliceViewFromGUI)
-    self.colorScalarBarMaxHeightSlider.connect('valueChanged(double)', self.updateSliceViewFromGUI)
+
     restorDefaultsButton.connect('clicked()', self.restoreDefaultValues)
 
   def onSliceViewAnnotationsCheckbox(self):
@@ -384,17 +251,14 @@ class SliceAnnotations(object):
         self.showColorScalarBar)
     self.updateSliceViewFromGUI()
 
-  def onCornerTextAnnotationsCheckbox(self):
-    if self.cornerTextAnnotationsCheckBox.checked:
-      self.showCornerTextAnnotations = 1
-      self.topLeftAnnotationDisplay = 1
-      self.topRightAnnotationDisplay = 1
-      self.bottomLeftAnnotationDisplay = 1
+  def onBackgroundLayerPersistenceCheckbox(self):
+    if self.backgroundLayerPersistenceCheckbox.checked:
+      self.backgroundDicomAnnotationsPersistence = 1
     else:
-      self.showCornerTextAnnotations = 0
-      self.topLeftAnnotationDisplay = 0
-      self.topRightAnnotationDisplay = 0
-      self.bottomLeftAnnotationDisplay = 0
+      self.backgroundDicomAnnotationsPersistence = 0
+    settings = qt.QSettings()
+    settings.setValue('DataProbe/sliceViewAnnotations.bgDicomAnnotationsPersistence',
+        self.backgroundDicomAnnotationsPersistence)
     self.updateSliceViewFromGUI()
 
   def onShowScalingRulerCheckbox(self):
@@ -424,6 +288,30 @@ class SliceAnnotations(object):
         self.showColorScalarBar)
     self.updateSliceViewFromGUI()
 
+  def onCornerTextsActivationCheckbox(self):
+    if self.topLeftActivationCheckbox.checked:
+      self.topLeftAnnotationDisplay = 1
+    else:
+      self.topLeftAnnotationDisplay = 0
+
+    if self.topRightActivationCheckbox.checked:
+      self.topRightAnnotationDisplay = 1
+    else:
+      self.topRightAnnotationDisplay = 0
+
+    if self.bottomLeftActivationCheckbox.checked:
+      self.bottomLeftAnnotationDisplay = 1
+    else:
+      self.bottomLeftAnnotationDisplay = 0
+    self.updateSliceViewFromGUI()
+    settings = qt.QSettings()
+    settings.setValue('DataProbe/sliceViewAnnotations.topLeft',
+        self.topLeftAnnotationDisplay)
+    settings.setValue('DataProbe/sliceViewAnnotations.topRight',
+        self.topRightAnnotationDisplay)
+    settings.setValue('DataProbe/sliceViewAnnotations.bottomLeft',
+        self.bottomLeftAnnotationDisplay)
+
   def onFontFamilyRadioButton(self):
     # Updating font size and family
     if self.timesFontRadioButton.checked:
@@ -448,11 +336,43 @@ class SliceAnnotations(object):
     self.updateSliceViewFromGUI()
 
   def restoreDefaultValues(self):
-    self.colorScalarBarXPostionSlider.value = 0.8
-    self.colorScalarBarYPostionSlider.value = 0.2
-    self.colorScalarBarWidthSlider.value = 0.2
-    self.colorScalarBarHeightSlider.value = 0.35
+    self.topLeftActivationCheckbox.checked = True
+    self.topLeftAnnotationDisplay = 1
+    self.topRightActivationCheckbox.checked = True
+    self.topRightAnnotationDisplay = 1
+    self.bottomLeftActivationCheckbox.checked = True
+    self.bottomLeftAnnotationDisplay = 1
+    self.fontSizeSpinBox.value = 14
+    self.timesFontRadioButton.checked = True
+    self.fontFamily = 'Times'
+    self.backgroundDicomAnnotationsPersistence = 0
+    self.backgroundLayerPersistenceCheckbox.checked = False
+    self.showScalingRulerCheckBox.checked = True
+    self.showScalingRuler = 1
+    self.showColorScalarBarCheckBox.checked = True
+    self.showColorScalarBar = 1
     self.colorScalarBarMaxWidthSlider.value = 50
+
+    settings = qt.QSettings()
+    settings.setValue('DataProbe/sliceViewAnnotations.show',
+        self.showSliceViewAnnotations)
+    settings.setValue('DataProbe/sliceViewAnnotations.topLeft',
+        self.topLeftAnnotationDisplay)
+    settings.setValue('DataProbe/sliceViewAnnotations.topRight',
+        self.topRightAnnotationDisplay)
+    settings.setValue('DataProbe/sliceViewAnnotations.bottomLeft',
+        self.bottomLeftAnnotationDisplay)
+    settings.setValue('DataProbe/sliceViewAnnotations.fontFamily',
+        self.fontFamily)
+    settings.setValue('DataProbe/sliceViewAnnotations.fontSize',
+        self.fontSize)
+    settings.setValue('DataProbe/sliceViewAnnotations.bgDicomAnnotationsPersistence',
+        self.backgroundDicomAnnotationsPersistence)
+    settings.setValue('DataProbe/sliceViewAnnotations.showScalingRuler',
+        self.showScalingRuler)
+    settings.setValue('DataProbe/sliceViewAnnotations.showColorScalarBar',
+        self.showColorScalarBar)
+    self.updateSliceViewFromGUI()
 
   def updateMRMLFromGUI(self):
     self.parameterNode.SetParameter(self.parameter, str(showSliceViewAnnotations))
@@ -468,24 +388,9 @@ class SliceAnnotations(object):
     self.updateSliceViewFromGUI()
 
   def openSettingsPopup(self):
-
     if not self.window.isVisible():
       self.window.show()
-    """
-      if self.popupGeometry.isValid():
-        self.window.setGeometry(self.popupGeometry)
-        self.popupPositioned = True
-
-    if not self.popupPositioned:
-      mainWindow = slicer.util.mainWindow()
-      screenMainPos = mainWindow.pos
-      x = screenMainPos.x() + 100
-      y = screenMainPos.y() + 100
-      self.window.move(qt.QPoint(x,y))
-      self.popupPositioned = True
-    """
     self.window.raise_()
-
 
   def close(self):
     self.window.hide()
@@ -520,24 +425,9 @@ class SliceAnnotations(object):
     elif self.level3RadioButton.checked:
       self.annotationsDisplayAmount = 2
 
-    if self.cornerActivationCheckbox[0].checked:
-      self.topLeftAnnotationDisplay = True
-    else:
-      self.topLeftAnnotationDisplay = False
-
-    if self.cornerActivationCheckbox[1].checked:
-      self.topRightAnnotationDisplay = True
-    else:
-      self.topRightAnnotationDisplay = False
-
-    if self.cornerActivationCheckbox[2].checked:
-      self.bottomLeftAnnotationDisplay = True
-    else:
-      self.bottomLeftAnnotationDisplay = False
-
     if self.showSliceViewAnnotations:
       self.cornerTextParametersCollapsibleButton.enabled = True
-      self.cornerActivationsGroupBox.enabled = True
+      self.activateCornersGroupBox.enabled = True
       self.fontPropertiesGroupBox.enabled = True
       self.colorBarLayerSelectionGroupBox.enabled = True
       self.annotationsAmountGroupBox.enabled = True
@@ -552,7 +442,7 @@ class SliceAnnotations(object):
         self.makeColorScalarBar(sl)
     else:
       self.cornerTextParametersCollapsibleButton.enabled = False
-      self.cornerActivationsGroupBox.enabled = False
+      self.activateCornersGroupBox.enabled = False
       self.colorBarLayerSelectionGroupBox.enabled = False
       self.fontPropertiesGroupBox.enabled = False
       self.annotationsAmountGroupBox.enabled = False
@@ -589,6 +479,7 @@ class SliceAnnotations(object):
     self.points = {}
     self.scalingRulerTextActors = {}
     self.colorScalarBars = {}
+    self.colorScalarBarWidgets = {}
 
   def createCornerAnnotations(self):
     self.createGlobalVariables()
@@ -719,9 +610,13 @@ class SliceAnnotations(object):
 
   def createColorScalarBar(self, sliceViewName):
     scalarBar = vtk.vtkScalarBarActor()
+    scalarBar.SetTitle("")
     # adjust text property
     lookupTable = vtk.vtkLookupTable()
     scalarBar.SetLookupTable(lookupTable)
+    scalarBarWidget = vtk.vtkScalarBarWidget()
+    scalarBarWidget.SetScalarBarActor(scalarBar)
+    self.colorScalarBarWidgets[sliceViewName] = scalarBarWidget
     return scalarBar
 
   def updateCornerAnnotations(self,caller,event):
@@ -774,7 +669,8 @@ class SliceAnnotations(object):
       rasToXY.Invert()
       scalingFactorString = " mm"
 
-      # TODO: Fix the bug
+      # TODO: The current logic only supports rulers from 1mm to 10cm
+      # add support for other ranges.
       import math
       scalingFactor = math.sqrt( rasToXY.GetElement(0,0)**2 +
           rasToXY.GetElement(0,1)**2 +rasToXY.GetElement(0,2) **2 )
@@ -835,12 +731,10 @@ class SliceAnnotations(object):
     # Get the layers
     backgroundLayer = sliceLogic.GetBackgroundLayer()
     foregroundLayer = sliceLogic.GetForegroundLayer()
-    labelLayer = sliceLogic.GetLabelLayer()
 
     # Get the volumes
     backgroundVolume = backgroundLayer.GetVolumeNode()
     foregroundVolume = foregroundLayer.GetVolumeNode()
-    labelVolume = labelLayer.GetVolumeNode()
 
     # Get slice view name
     sliceNode = backgroundLayer.GetSliceNode()
@@ -853,30 +747,39 @@ class SliceAnnotations(object):
 
       scalarBar = self.colorScalarBars[sliceViewName]
       scalarBar.SetTextPositionToPrecedeScalarBar()
-      scalarBar.SetPosition(self.colorScalarBarXPostionSlider.value,
-          self.colorScalarBarYPostionSlider.value)
-      scalarBar.SetWidth(self.colorScalarBarWidthSlider.value)
-      scalarBar.SetHeight(self.colorScalarBarHeightSlider.value)
+
       scalarBar.SetMaximumWidthInPixels(int(self.colorScalarBarMaxWidthSlider.value))
 
+      renderWindow = renderer.GetRenderWindow()
+      interactor = renderWindow.GetInteractor()
+
+      # create the scalarBarWidget
+      scalarBarWidget = self.colorScalarBarWidgets[sliceViewName]
+      scalarBarWidget.SetInteractor(interactor)
+
       # Auto-Adjust
-      # Adjusting the maximum height of the scalar color bar based on view height
+      ## Adjusting the maximum height of the scalar color bar based on view height
       viewHeight = self.sliceViews[sliceViewName].height
       if viewHeight > 200:
-        scalarBar.SetMaximumHeightInPixels(int(viewHeight/2 - 30))
+        if self.topRightAnnotationDisplay:
+          scalarBar.SetMaximumHeightInPixels(int(viewHeight/2 - 30))
+        else:
+          scalarBar.SetMaximumHeightInPixels(int(viewHeight-30))
+      else:
+        scalarBar.SetMaximumHeightInPixels(int(viewHeight-30))
 
       if self.showColorScalarBar:
         #if (backgroundVolume != None and foregroundVolume == None):
         if (backgroundVolume != None and self.colorbarSelectedLayer == 'background'):
           self.updateScalarBarRange(sliceLogic, backgroundVolume, scalarBar, self.colorbarSelectedLayer)
-          renderer.AddActor2D(scalarBar)
+          scalarBarWidget.On()
         elif (foregroundVolume != None and self.colorbarSelectedLayer == 'foreground'):
           self.updateScalarBarRange(sliceLogic, foregroundVolume, scalarBar, self.colorbarSelectedLayer)
-          renderer.AddActor2D(scalarBar)
+          scalarBarWidget.On()
         else:
-          renderer.RemoveActor2D(scalarBar)
+          scalarBarWidget.Off()
       else:
-          renderer.RemoveActor2D(scalarBar)
+          scalarBarWidget.Off()
 
   def makeAnnotationText(self, sliceLogic):
     self.resetTexts()
@@ -918,6 +821,9 @@ class SliceAnnotations(object):
           bgUid = bgUids.partition(' ')[0]
           fgUid = fgUids.partition(' ')[0]
           self.makeDicomAnnotation(bgUid,fgUid)
+        elif (bgUids and self.backgroundDicomAnnotationsPersistence):
+          uid = bgUids.partition(' ')[0]
+          self.makeDicomAnnotation(uid,None)
         else:
           for key in self.cornerTexts[2]:
             self.cornerTexts[2][key]['text'] = ''
