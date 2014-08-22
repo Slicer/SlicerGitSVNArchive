@@ -94,7 +94,7 @@ class SliceAnnotations(object):
       self.showColorScalarBar= int(settings.value(
           'DataProbe/sliceViewAnnotations.showColorScalarBar'))
     else:
-      self.showColorScalarBar = 1
+      self.showColorScalarBar = 0
 
     if settings.contains('DataProbe/sliceViewAnnotations.fontFamily'):
       self.fontFamily = settings.value('DataProbe/sliceViewAnnotations.fontFamily')
@@ -349,8 +349,8 @@ class SliceAnnotations(object):
     self.backgroundLayerPersistenceCheckbox.checked = False
     self.showScalingRulerCheckBox.checked = True
     self.showScalingRuler = 1
-    self.showColorScalarBarCheckBox.checked = True
-    self.showColorScalarBar = 1
+    self.showColorScalarBarCheckBox.checked = False
+    self.showColorScalarBar = 0
     self.colorScalarBarMaxWidthSlider.value = 50
 
     settings = qt.QSettings()
@@ -508,7 +508,6 @@ class SliceAnnotations(object):
                                              self.updateCornerAnnotations)
 
   def createActors(self, sliceViewName):
-    #print('createActors(%s)'%sliceViewName)
     sliceWidget = self.layoutManager.sliceWidget(sliceViewName)
     self.sliceWidgets[sliceViewName] = sliceWidget
     sliceView = sliceWidget.sliceView()
@@ -536,48 +535,13 @@ class SliceAnnotations(object):
       lines.append(line)
 
     # setting the points to lines
-    lines[0].GetPointIds().SetId(0,0)
-    lines[0].GetPointIds().SetId(1,1)
-    lines[1].GetPointIds().SetId(0,0)
-    lines[1].GetPointIds().SetId(1,2)
-    lines[2].GetPointIds().SetId(0,2)
-    lines[2].GetPointIds().SetId(1,3)
-    lines[3].GetPointIds().SetId(0,2)
-    lines[3].GetPointIds().SetId(1,4)
-    lines[4].GetPointIds().SetId(0,4)
-    lines[4].GetPointIds().SetId(1,5)
-    lines[5].GetPointIds().SetId(0,4)
-    lines[5].GetPointIds().SetId(1,6)
-    lines[6].GetPointIds().SetId(0,6)
-    lines[6].GetPointIds().SetId(1,7)
-    lines[7].GetPointIds().SetId(0,6)
-    lines[7].GetPointIds().SetId(1,8)
-    lines[8].GetPointIds().SetId(0,8)
-    lines[8].GetPointIds().SetId(1,9)
-    lines[9].GetPointIds().SetId(0,8)
-    lines[9].GetPointIds().SetId(1,10)
-    lines[10].GetPointIds().SetId(0,10)
-    lines[10].GetPointIds().SetId(1,11)
-    lines[11].GetPointIds().SetId(0,10)
-    lines[11].GetPointIds().SetId(1,12)
-    lines[12].GetPointIds().SetId(0,12)
-    lines[12].GetPointIds().SetId(1,13)
-    lines[13].GetPointIds().SetId(0,12)
-    lines[13].GetPointIds().SetId(1,14)
-    lines[14].GetPointIds().SetId(0,14)
-    lines[14].GetPointIds().SetId(1,15)
-    lines[15].GetPointIds().SetId(0,14)
-    lines[15].GetPointIds().SetId(1,16)
-    lines[16].GetPointIds().SetId(0,16)
-    lines[16].GetPointIds().SetId(1,17)
-    lines[17].GetPointIds().SetId(0,16)
-    lines[17].GetPointIds().SetId(1,18)
-    lines[18].GetPointIds().SetId(0,18)
-    lines[18].GetPointIds().SetId(1,19)
-    lines[19].GetPointIds().SetId(0,18)
-    lines[19].GetPointIds().SetId(1,20)
-    lines[20].GetPointIds().SetId(0,20)
-    lines[20].GetPointIds().SetId(1,21)
+    for i in xrange(0,21):
+      if (i%2 == 0):
+        lines[i].GetPointIds().SetId(0,i)
+        lines[i].GetPointIds().SetId(1,i+1)
+      else:
+        lines[i].GetPointIds().SetId(0,i-1)
+        lines[i].GetPointIds().SetId(1,i+1)
 
     # Create a cell array to store the lines in and add the lines to it
     linesArray = vtk.vtkCellArray()
@@ -620,7 +584,6 @@ class SliceAnnotations(object):
     return scalarBar
 
   def updateCornerAnnotations(self,caller,event):
-
     sliceViewNames = self.layoutManager.sliceViewNames()
     for sliceViewName in sliceViewNames:
       if sliceViewName not in self.sliceViewNames:
@@ -691,6 +654,7 @@ class SliceAnnotations(object):
         RASRulerSize = rulerSizesArray[index]
 
         pts = self.points[sliceViewName]
+
         pts.SetPoint(0,[(viewWidth/2-RASRulerSize*scalingFactor/10*5),5, 0])
         pts.SetPoint(1,[(viewWidth/2-RASRulerSize*scalingFactor/10*5),15, 0])
         pts.SetPoint(2,[(viewWidth/2-RASRulerSize*scalingFactor/10*4),5, 0])
@@ -861,24 +825,25 @@ class SliceAnnotations(object):
 
   def updateScalarBarRange(self, sliceLogic, volumeNode, scalarBar, selectedLayer):
     vdn = volumeNode.GetDisplayNode()
-    vcn = vdn.GetColorNode()
-    lut = vcn.GetLookupTable()
-    lut2 = vtk.vtkLookupTable()
-    lut2.DeepCopy(lut)
-    width = vtk.mutable(0)
-    level = vtk.mutable(0)
-    rangeLow = vtk.mutable(0)
-    rangeHigh = vtk.mutable(0)
-    if selectedLayer == 'background':
-      sliceLogic.GetBackgroundWindowLevelAndRange(width,level,rangeLow,rangeHigh)
-    else:
-      sliceLogic.GetForegroundWindowLevelAndRange(width,level,rangeLow,rangeHigh)
-    lut2.SetRange(int(level-width/2),int(level+width/2))
-    scalarBar.SetLookupTable(lut2)
-    if width < 5 and np.abs(level)<10 :
-      scalarBar.SetLabelFormat("%4.2f")
-    else:
-      scalarBar.SetLabelFormat("%4.0f")
+    if vdn:
+      vcn = vdn.GetColorNode()
+      lut = vcn.GetLookupTable()
+      lut2 = vtk.vtkLookupTable()
+      lut2.DeepCopy(lut)
+      width = vtk.mutable(0)
+      level = vtk.mutable(0)
+      rangeLow = vtk.mutable(0)
+      rangeHigh = vtk.mutable(0)
+      if selectedLayer == 'background':
+        sliceLogic.GetBackgroundWindowLevelAndRange(width,level,rangeLow,rangeHigh)
+      else:
+        sliceLogic.GetForegroundWindowLevelAndRange(width,level,rangeLow,rangeHigh)
+      lut2.SetRange(int(level-width/2),int(level+width/2))
+      scalarBar.SetLookupTable(lut2)
+      if width < 5 and np.abs(level)<10 :
+        scalarBar.SetLabelFormat("%4.2f")
+      else:
+        scalarBar.SetLabelFormat("%4.0f")
 
   def makeDicomAnnotation(self,bgUid,fgUid):
     viewHeight = self.sliceViews[self.currentSliceViewName].height
@@ -922,6 +887,7 @@ class SliceAnnotations(object):
     else:
       uid = bgUid
       dicomDic = self.extractDICOMValues(uid)
+
       if self.topLeftAnnotationDisplay and viewHeight > 150:
         self.cornerTexts[2]['1-PatientName']['text'] = dicomDic['Patient Name'].replace('^',', ')
         self.cornerTexts[2]['2-PatientID']['text'] = 'ID: ' + dicomDic ['Patient ID']
@@ -953,7 +919,13 @@ class SliceAnnotations(object):
     return patientInfo
 
   def formatDICOMDate(self, date):
-      return date[4:6] + '/' + date[6:]+ '/' + date[:4]
+    standardDate = ''
+    if date != '':
+      date = date.rstrip()
+      # convert to ISO 8601 Date format
+      standardDate = date[:4] + '-' + date[4:6]+ '-' + date[6:]
+    return standardDate
+
 
   def formatDICOMTime(self, time):
     studyH = time[:2]
@@ -1012,7 +984,6 @@ class SliceAnnotations(object):
 
   def extractDICOMValues(self,uid):
     p ={}
-    slicer.dicomDatabase.loadInstanceHeader(uid)
     tags = {
     "0008,0020": "Study Date",
     "0008,0030": "Study Time",
@@ -1028,23 +999,10 @@ class SliceAnnotations(object):
     "0010,0040": "Patient Sex",
     "0010,1010": "Patient Age",
     "0018,5100": "Patient Position",
+    "0018,0080": "Repetition Time",
+    "0018,0081": "Echo Time"
     }
-
-    p = self.extractTagValue(p, tags)
-    if p['Modality'] == 'MR':
-      mrTags = {
-      "0018,0080": "Repetition Time",
-      "0018,0081": "Echo Time"
-      }
-      p = self.extractTagValue(p, mrTags)
-    return p
-
-  def extractTagValue(self,p,tags):
     for tag in tags.keys():
-        dump = slicer.dicomDatabase.headerValue(tag)
-        try:
-          value = dump[dump.index('[')+1:dump.index(']')]
-        except ValueError:
-          value = "Unknown"
-        p[tags[tag]] = value
+      value = slicer.dicomDatabase.instanceValue(uid,tag)
+      p[tags[tag]] = value
     return p
