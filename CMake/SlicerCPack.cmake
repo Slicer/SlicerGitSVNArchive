@@ -44,6 +44,7 @@ if(NOT APPLE)
   if(NOT Slicer_USE_SYSTEM_LibArchive)
     include(${Slicer_CMAKE_DIR}/SlicerBlockInstallLibArchive.cmake)
   endif()
+  set(CMAKE_INSTALL_OPENMP_LIBRARIES ON)
   include(InstallRequiredSystemLibraries)
   include(${Slicer_CMAKE_DIR}/SlicerBlockInstallCMakeProjects.cmake)
 
