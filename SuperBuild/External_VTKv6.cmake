@@ -93,7 +93,7 @@ if((NOT DEFINED VTK_DIR OR NOT DEFINED VTK_SOURCE_DIR) AND NOT ${CMAKE_PROJECT_N
     set(VTK_ENABLE_KITS 1)
   endif()
 
-  set(${CMAKE_PROJECT_NAME}_${proj}_GIT_REPOSITORY "github.com/Slicer/pieper.git" CACHE STRING "Repository from which to get VTK" FORCE)
+  set(${CMAKE_PROJECT_NAME}_${proj}_GIT_REPOSITORY "github.com/pieper/VTK.git" CACHE STRING "Repository from which to get VTK" FORCE)
   set(${CMAKE_PROJECT_NAME}_${proj}_GIT_TAG "3808-fiducial-picking" CACHE STRING "VTK git tag to use" FORCE)
 
   mark_as_advanced(${CMAKE_PROJECT_NAME}_${proj}_GIT_REPOSITORY ${CMAKE_PROJECT_NAME}_${proj}_GIT_TAG)

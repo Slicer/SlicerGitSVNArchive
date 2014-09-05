@@ -148,7 +148,7 @@ public:
       vtkSeedRepresentation * representation = vtkSeedRepresentation::SafeDownCast(this->Widget->GetRepresentation());
       if (!representation)
         {
-        vtkErrorMacro("Representation is null.");
+        vtkErrorWithObjectMacro(this->Widget, "Representation is null.");
         return;
         }
 
