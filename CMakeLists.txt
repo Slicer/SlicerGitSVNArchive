@@ -746,6 +746,13 @@ endif()
 # will be removed.
 
 #-----------------------------------------------------------------------------
+# ITK
+#-----------------------------------------------------------------------------
+find_package(ITK REQUIRED)
+set( ITK_NO_IO_FACTORY_REGISTER_MANAGER 1 ) # See Libs/ITKFactoryRegistration/CMakeLists.txt
+include(${ITK_USE_FILE})
+
+#-----------------------------------------------------------------------------
 # VTK
 #-----------------------------------------------------------------------------
 find_package(VTK 6.1 COMPONENTS ${Slicer_VTK_COMPONENTS} REQUIRED NO_MODULE)
