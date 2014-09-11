@@ -35,6 +35,7 @@
 #include <vtkMRMLNode.h>
 #include <vtkMRMLScene.h>
 #include <vtkMRMLStorableNode.h>
+#include <vtkMRMLStorageNode.h>
 
 // VTK includes
 #include <vtkCollection.h>
@@ -131,6 +132,8 @@ QList<qSlicerFileWriter*> qSlicerCoreIOManagerPrivate::writers(
 
   vtkObject * object = this->currentScene()->GetNodeByID(nodeID.toLatin1());
   QFileInfo file(fileName);
+
+  qSlicerCoreIOManager::createAndAddDefaultStorageNode(vtkMRMLStorableNode::SafeDownCast(object));
 
   QList<qSlicerFileWriter*> matchingWriters;
   // Some writers ("Slicer Data Bundle (*)" can support any file,
@@ -456,6 +459,28 @@ vtkMRMLNode* qSlicerCoreIOManager::loadNodesAndGetFirst(
   Q_ASSERT(node);
 
   return node;
+}
+
+//-----------------------------------------------------------------------------
+vtkMRMLStorageNode* qSlicerCoreIOManager::createAndAddDefaultStorageNode(
+    vtkMRMLStorableNode* node)
+{
+  if (!node)
+    {
+    return 0;
+    }
+  vtkMRMLStorageNode* snode = node ? node->GetStorageNode() : 0;
+  if (snode == 0 && node != 0)
+    {
+    snode = node->CreateDefaultStorageNode();
+    if (snode != 0)
+      {
+      node->GetScene()->AddNode(snode);
+      snode->Delete();
+      node->SetAndObserveStorageNodeID(snode->GetID());
+      }
+    }
+  return snode;
 }
 
 //-----------------------------------------------------------------------------
