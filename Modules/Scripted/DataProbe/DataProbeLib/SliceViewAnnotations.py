@@ -685,6 +685,7 @@ class SliceAnnotations(object):
         textActor.SetDisplayPosition(int((viewWidth+RASRulerSize*scalingFactor)/2)+10,5)
 
         renderer.AddActor2D(self.scalingRulerActors[sliceViewName])
+        renderer.RemoveActor2D(textActor)
         renderer.AddActor2D(textActor)
 
       else:
@@ -989,6 +990,9 @@ class SliceAnnotations(object):
       sliceCornerAnnotation.SetText(i, cornerAnnotation)
       textProperty = sliceCornerAnnotation.GetTextProperty()
       textProperty.SetShadow(1)
+
+    self.renderers[self.currentSliceViewName].RemoveActor(sliceCornerAnnotation)
+    self.renderers[self.currentSliceViewName].AddActor(sliceCornerAnnotation)
     self.sliceViews[self.currentSliceViewName].scheduleRender()
 
   def resetTexts(self):
