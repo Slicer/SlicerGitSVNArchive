@@ -26,6 +26,9 @@
 #include "qSlicerNodeWriter.h"
 #include "qSlicerNodeWriterOptionsWidget.h"
 
+// QTCore includes
+#include "qSlicerCoreIOManager.h"
+
 // MRML includes
 #include <vtkMRMLScene.h>
 #include <vtkMRMLStorableNode.h>
@@ -131,17 +134,7 @@ bool qSlicerNodeWriter::write(const qSlicerIO::IOProperties& properties)
     {
     return false;
     }
-  vtkMRMLStorageNode* snode = node ? node->GetStorageNode() : 0;
-  if (snode == 0 && node != 0)
-    {
-    snode = node->CreateDefaultStorageNode();
-    if (snode != 0)
-      {
-      node->GetScene()->AddNode(snode);
-      snode->Delete();
-      node->SetAndObserveStorageNodeID(snode->GetID());
-      }
-    }
+  vtkMRMLStorageNode* snode = qSlicerCoreIOManager::createAndAddDefaultStorageNode(node);
   if (snode == 0)
     {
     qDebug() << "No storage node for node" << properties["nodeID"].toString();
