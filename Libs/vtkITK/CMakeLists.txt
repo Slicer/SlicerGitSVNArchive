@@ -58,6 +58,11 @@ set(${PROJECT_NAME}_ITK_COMPONENTS
   ITKThresholding
   ITKVTK
   )
+if(Slicer_ITKV3_COMPATIBILITY)
+  list(APPEND ${PROJECT_NAME}_ITK_COMPONENTS
+    ITKDeprecated
+    )
+endif()
 find_package(ITK 4.6 COMPONENTS ${${PROJECT_NAME}_ITK_COMPONENTS} REQUIRED)
 set(ITK_NO_IO_FACTORY_REGISTER_MANAGER 1) # See Libs/ITKFactoryRegistration/CMakeLists.txt
 list(APPEND ITK_LIBRARIES ITKFactoryRegistration)
