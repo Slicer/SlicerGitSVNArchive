@@ -122,8 +122,7 @@ class SliceAnnotations(object):
     self.colorbarSelectedLayer = 'background'
     self.create()
 
-    if self.showSliceViewAnnotations:
-      self.updateSliceViewFromGUI()
+    self.updateSliceViewFromGUI()
 
   def create(self):
     # Instantiate and connect widgets ...
@@ -203,7 +202,7 @@ class SliceAnnotations(object):
     self.colorScalarBarMaxWidthSlider = slicer.util.findChildren(self.window,
        'colorScalarBarMaxWidthSlider')[0]
 
-    restorDefaultsButton = slicer.util.findChildren(self.window,
+    self.restorDefaultsButton = slicer.util.findChildren(self.window,
         'restoreDefaultsButton')[0]
 
     # connections
@@ -228,29 +227,16 @@ class SliceAnnotations(object):
     self.foregroundRadioButton.connect('clicked()',self.onLayerSelectionRadioButton)
     self.colorScalarBarMaxWidthSlider.connect('valueChanged(double)', self.updateSliceViewFromGUI)
 
-    restorDefaultsButton.connect('clicked()', self.restoreDefaultValues)
+    self.restorDefaultsButton.connect('clicked()', self.restoreDefaultValues)
 
   def onSliceViewAnnotationsCheckbox(self):
     if self.sliceViewAnnotationsCheckBox.checked:
-      self.showColorScalarBarCheckBox.checked = True
-      self.showScalingRulerCheckBox.checked = True
       self.showSliceViewAnnotations = 1
-      self.showScalingRuler = 1
-      self.showColorScalarBar = 1
     else:
-      self.showColorScalarBarCheckBox.checked = False
-      self.showScalingRulerCheckBox.checked = False
       self.showSliceViewAnnotations = 0
-      self.showScalingRuler = 0
-      self.showColorScalarBar = 0
     settings = qt.QSettings()
     settings.setValue('DataProbe/sliceViewAnnotations.show',
         self.showSliceViewAnnotations)
-    settings.setValue('DataProbe/sliceViewAnnotations.showScalingRuler',
-        self.showScalingRuler)
-    settings.setValue('DataProbe/sliceViewAnnotations.showColorScalarBar',
-        self.showColorScalarBar)
-    self.updateSliceViewFromGUI()
 
   def onBackgroundLayerPersistenceCheckbox(self):
     if self.backgroundLayerPersistenceCheckbox.checked:
@@ -384,8 +370,6 @@ class SliceAnnotations(object):
       return
     showStatus = int(self.parameterNode.GetParameter(self.parameter))
     self.showSliceViewAnnotations = showStatus
-    self.showScalingRuler = showStatus
-    self.showColorScalarBar = showStatus
     self.updateSliceViewFromGUI()
 
   def openSettingsPopup(self):
@@ -434,6 +418,7 @@ class SliceAnnotations(object):
       self.annotationsAmountGroupBox.enabled = True
       self.scalingRulerCollapsibleButton.enabled = True
       self.colorScalarBarCollapsibleButton.enabled = True
+      self.restorDefaultsButton.enabled = True
 
       for sliceViewName in self.sliceViewNames:
         sliceWidget = self.layoutManager.sliceWidget(sliceViewName)
@@ -449,6 +434,7 @@ class SliceAnnotations(object):
       self.annotationsAmountGroupBox.enabled = False
       self.scalingRulerCollapsibleButton.enabled = False
       self.colorScalarBarCollapsibleButton.enabled = False
+      self.restorDefaultsButton.enabled = False
       # Remove Observers
       for sliceViewName in self.sliceViewNames:
         sliceWidget = self.layoutManager.sliceWidget(sliceViewName)
@@ -642,7 +628,7 @@ class SliceAnnotations(object):
 
       rulerArea = viewWidth/scalingFactor/4
 
-      if self.showScalingRuler and \
+      if self.showScalingRuler and self.showSliceViewAnnotations and \
           viewWidth > self.minimumWidthForScalingRuler and\
          rulerArea>0.5 and rulerArea<500 :
         rulerSizesArray = np.array([1,5,10,50,100])
@@ -733,7 +719,7 @@ class SliceAnnotations(object):
       else:
         scalarBar.SetMaximumHeightInPixels(int(viewHeight))
 
-      if self.showColorScalarBar:
+      if self.showColorScalarBar and self.showSliceViewAnnotations:
         if (backgroundVolume != None and self.colorbarSelectedLayer == 'background'):
           self.updateScalarBarRange(sliceLogic, backgroundVolume, scalarBar, self.colorbarSelectedLayer)
           scalarBarWidget.On()
@@ -911,7 +897,7 @@ class SliceAnnotations(object):
 
       # top right corner annotation would be hidden if colorscalarbar is on and
       # view height is less than 260 pixels
-      if (self.topRightAnnotationDisplay and ((not self.showColorScalarBar) or viewHeight > 260)):
+      if (self.topRightAnnotationDisplay and ((not self.showColorScalarBar) or (not self.showSliceViewAnnotations) or viewHeight > 260)):
         self.cornerTexts[3]['1-Institution-Name']['text'] = dicomDic['Institution Name']
         self.cornerTexts[3]['2-Referring-Phisycian']['text'] = dicomDic['Referring Physician Name'].replace('^',', ')
         self.cornerTexts[3]['3-Manufacturer']['text'] = dicomDic['Manufacturer']
