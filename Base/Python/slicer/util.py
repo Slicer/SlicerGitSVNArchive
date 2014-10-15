@@ -310,13 +310,19 @@ def saveScene(filename, properties={}):
 # Module
 #
 
+def moduleSelector():
+  w = mainWindow()
+  if w:
+    return w.moduleSelector()
+
 def selectModule(module):
   moduleName = module
   if not isinstance(module, basestring):
     moduleName = module.name
-  w = mainWindow()
-  if not w: return
-  w.moduleSelector().selectModule(moduleName)
+  moduleSelector().selectModule(moduleName)
+
+def selectedModule():
+  return moduleSelector().selectedModule
 
 def moduleNames():
   from slicer import app
