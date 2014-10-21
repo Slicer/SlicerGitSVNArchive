@@ -237,6 +237,7 @@ class SliceAnnotations(object):
     settings = qt.QSettings()
     settings.setValue('DataProbe/sliceViewAnnotations.show',
         self.showSliceViewAnnotations)
+    self.updateSliceViewFromGUI()
 
   def onBackgroundLayerPersistenceCheckbox(self):
     if self.backgroundLayerPersistenceCheckbox.checked:
