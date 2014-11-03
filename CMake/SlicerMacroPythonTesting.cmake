@@ -21,17 +21,20 @@
 
 macro(SLICER_ADD_PYTHON_TEST)
   set(options)
-  set(oneValueArgs TESTNAME_PREFIX SCRIPT)
+  set(oneValueArgs TESTNAME_PREFIX SCRIPT SCRIPT_DIR)
   set(multiValueArgs SLICER_ARGS SCRIPT_ARGS)
   cmake_parse_arguments(MY "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
   get_filename_component(test_name ${MY_SCRIPT} NAME_WE)
+  if (NOT MY_SCRIPT_DIR)
+    set(MY_SCRIPT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+  endif()
   ExternalData_add_test(${Slicer_ExternalData_DATA_MANAGEMENT_TARGET}
     NAME py_${MY_TESTNAME_PREFIX}${test_name}
     COMMAND ${Slicer_LAUNCHER_EXECUTABLE}
     --no-splash
     --testing
     --ignore-slicerrc ${Slicer_ADDITIONAL_LAUNCHER_SETTINGS} ${MY_SLICER_ARGS}
-    --python-script ${CMAKE_CURRENT_SOURCE_DIR}/${MY_SCRIPT} ${MY_SCRIPT_ARGS}
+    --python-script ${MY_SCRIPT_DIR}/${MY_SCRIPT} ${MY_SCRIPT_ARGS}
     )
   set_property(TEST py_${MY_TESTNAME_PREFIX}${test_name} PROPERTY RUN_SERIAL TRUE)
 endmacro()
