@@ -22,7 +22,6 @@
 #include <vtkMRMLColorNode.h>
 #include <vtkMRMLDisplayNode.h>
 #include <vtkMRMLDisplayableNode.h>
-#include <vtkMRMLLinearTransformNode.h>
 #include <vtkMRMLModelDisplayNode.h>
 #include <vtkMRMLModelNode.h>
 #include <vtkMRMLScene.h>

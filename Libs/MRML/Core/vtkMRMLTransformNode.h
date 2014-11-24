@@ -62,12 +62,42 @@ public:
     };
 
   ///
-  /// 1 if transfrom is linear, 0 otherwise
-  virtual int IsLinear() { return 0; }
+  /// Returns 1 if transform is a non-composite linear tansform, 0 otherwise
+  virtual int IsLinear();
+
+  ///
+  /// Returns 1 if the transform is a composite transform (a transform that may contain multiple simple transforms)
+  virtual int IsComposite();
 
   ///
   /// Transform of this node to parent
   virtual vtkAbstractTransform* GetTransformToParent();
+
+  ///
+  /// Get the vtkMatrix4x4 transform of this node to parent node.
+  /// It is recommended to check with IsLinear() if the transform is linear (can be described with a matrix).
+  /// Returns 0 if the transform is not linear or there is an error.
+  virtual int GetMatrixTransformToParent(vtkMatrix4x4* matrix);
+
+  ///
+  /// Get the vtkMatrix4x4 transform of this node from parent node
+  /// It is recommended to check with IsLinear() if the transform is linear (can be described with a matrix).
+  /// Returns 0 if the transform is not linear or there is an error.
+  virtual int GetMatrixTransformFromParent(vtkMatrix4x4* matrix);
+
+  ///
+  /// Set a new matrix transform of this node to parent node.
+  /// Deprecated! Use GetMatrixTransformToParent(vtkMatrix4x4*) instead.
+  /// The method returns a cached copy of the transform, so modification
+  /// of the matrix does not alter the transform node.
+  virtual vtkMatrix4x4* GetMatrixTransformToParent();
+
+  ///
+  /// Set a new matrix transform of this node from parent node.
+  /// Deprecated! Use GetMatrixTransformFromParent(vtkMatrix4x4*) instead.
+  /// The method returns a cached copy of the transform, so modification
+  /// of the matrix does not alter the transform node.
+  virtual vtkMatrix4x4* GetMatrixTransformFromParent();
 
   ///
   /// Get a human-readable description of the transform
@@ -103,24 +133,51 @@ public:
                           vtkGeneralTransform* transformToNode);
 
   ///
-  /// Get concatenated transforms to the top.
-  /// This method and probably needs to be moved down a level in the
-  /// hierarchy because this node cannot satisfy the call.
-  /// Must be overridden in linear transform node classses.
+  /// Get concatenated transforms to the top parent.
+  /// It is recommended to check with IsTransformToWorldLinear() if the transform is linear (can be described with a matrix).
   /// Returns 0 if the transform is not linear (cannot be described by a matrix).
   virtual int GetMatrixTransformToWorld(vtkMatrix4x4* transformToWorld);
 
   ///
   /// Get concatenated transforms between nodes
-  /// This method and probably needs to be moved down a level in the
-  /// hierarchy because this node cannot satisfy the call.
-  /// Must be overridden in linear transform node classses.
   /// Returns 0 if the transform is not linear (cannot be described by a matrix).
   virtual int GetMatrixTransformToNode(vtkMRMLTransformNode* node,
                                        vtkMatrix4x4* transformToNode);
   ///
   /// Returns 1 if this node is one of the node's descendents
   int IsTransformNodeMyParent(vtkMRMLTransformNode* node);
+
+  ///
+  /// Set a new matrix transform of this node to parent node.
+  /// Invokes a TransformModified event (does not invoke Modified).
+  /// It is recommended to check with IsLinear() if the transform is linear (can be described with a matrix).
+  /// Returns 0 if the current transform is not linear.
+  virtual int SetMatrixTransformToParent(vtkMatrix4x4 *matrix);
+
+  ///
+  /// Set a new matrix transform of this node from parent node.
+  /// Invokes a TransformModified event (does not invoke Modified).
+  /// It is recommended to check with IsLinear() if the transform is linear (can be described with a matrix).
+  /// Returns 0 if the current transform is not linear.
+  virtual int SetMatrixTransformFromParent(vtkMatrix4x4 *matrix);
+
+  ///
+  /// Applies a transformation matrix by multiplying it with the current
+  /// matrix. The resulting transform will be a simple (non-composite)
+  /// linear transform.
+  virtual void ApplyTransformMatrix(vtkMatrix4x4* transformMatrix);
+
+  ///
+  /// Set a new matrix transform of this node to parent node.
+  /// Returns 0 if the current transform is not linear.
+  /// Deprecated! Use SetMatrixTransformToParent instead.
+  virtual int SetAndObserveMatrixTransformToParent(vtkMatrix4x4 *matrix);
+
+  ///
+  /// Set a new matrix transform of this node from parent node.
+  /// Returns 0 if the current transform is not linear.
+  /// Deprecated! Use SetMatrixTransformToParent instead.
+  virtual int SetAndObserveMatrixTransformFromParent(vtkMatrix4x4 *matrix);
 
   ///
   /// Returns 1 if the node is one of the this node's descendents
@@ -130,6 +187,11 @@ public:
   virtual bool CanApplyNonLinearTransforms()const;
   /// Reimplemented from vtkMRMLTransformableNode
   virtual void ApplyTransform(vtkAbstractTransform* transform);
+
+  /// Split a composite transform to its components. The components are inserted to the scene between this transform and its parent.
+  /// A composite transform can be created by hardening different types of transforms on each other.
+  /// Return non-zero on success.
+  virtual int Split();
 
   ///
   /// Create default storage node or NULL if does not have one
@@ -321,6 +383,11 @@ protected:
 
   // Temporary buffers used for returning transform info as char*
   std::string TransformInfo;
+
+  /// These variables are only for supporting the deprecated
+  /// GetMatrixTransformToParent and GetMatrixFromParent methods
+  vtkMatrix4x4* CachedMatrixTransformToParent;
+  vtkMatrix4x4* CachedMatrixTransformFromParent;
 };
 
 #endif
