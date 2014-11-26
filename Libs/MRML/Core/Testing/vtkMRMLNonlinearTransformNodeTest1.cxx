@@ -229,7 +229,6 @@ bool TestCompositeTransform(const char *filename)
   hardeningTransform->Update();
 
   bsplineTransformNode->ApplyTransform(hardeningTransform.GetPointer());
-
   bsplineTransformNode->SetAndObserveTransformNodeID(NULL);
 
   // Get transforms from hardened transform
@@ -238,12 +237,12 @@ bool TestCompositeTransform(const char *filename)
   vtkNew<vtkGeneralTransform> transformFromWorldAfterHardening;
   bsplineTransformNode->GetTransformFromWorld(transformFromWorldAfterHardening.GetPointer());
 
-  // Test if the copied transform gives the same results as the original
+  // Test if the hardened transform gives the same results as the original
   double outpCopy[3] = {0,0,0};
   transformToWorldAfterHardening->TransformPoint(inp, outpCopy);
   if (fabs(outpCopy[0]-outp[0]) > 0.1 || fabs(outpCopy[1]-outp[1]) > 0.1 || fabs(outpCopy[2]-outp[2]) > 0.1)
     {
-    std::cout << __LINE__ << ": TestCompositeTransform failed" << std::endl;
+    std::cout << __LINE__ << ": TestCompositeTransform harden failed" << std::endl;
     return false;
     }
 
@@ -252,9 +251,39 @@ bool TestCompositeTransform(const char *filename)
   transformFromWorldAfterHardening->TransformPoint(outpCopy, outpInvCopy);
   if (fabs(outpInvCopy[0]-outpInv[0]) > 0.1 || fabs(outpInvCopy[1]-outpInv[1]) > 0.1 || fabs(outpInvCopy[2]-outpInv[2]) > 0.1)
     {
-    std::cout << __LINE__ << ": TestCompositeTransform failed" << std::endl;
+    std::cout << __LINE__ << ": TestCompositeTransform harden failed" << std::endl;
     return false;
     }
+
+
+  // Test if transform to world is the same after splitting
+
+  bsplineTransformNode->Split();
+
+  // Get transforms from split transform
+  vtkNew<vtkGeneralTransform> transformToWorldAfterSplitting;
+  bsplineTransformNode->GetTransformToWorld(transformToWorldAfterSplitting.GetPointer());
+  vtkNew<vtkGeneralTransform> transformFromWorldAfterSplitting;
+  bsplineTransformNode->GetTransformFromWorld(transformFromWorldAfterSplitting.GetPointer());
+
+  // Test if the split transform gives the same results as the original
+  double outpSplit[3] = {0,0,0};
+  transformToWorldAfterSplitting->TransformPoint(inp, outpSplit);
+  if (fabs(outpSplit[0]-outp[0]) > 0.1 || fabs(outpSplit[1]-outp[1]) > 0.1 || fabs(outpSplit[2]-outp[2]) > 0.1)
+    {
+    std::cout << __LINE__ << ": TestCompositeTransform split failed" << std::endl;
+    return false;
+    }
+
+  // Test if the inverse transform moves back the point to its original position
+  double outpInvSplit[3] = {-100, -100, -100};
+  transformFromWorldAfterSplitting->TransformPoint(outpSplit, outpInvSplit);
+  if (fabs(outpInvSplit[0]-outpInv[0]) > 0.1 || fabs(outpInvSplit[1]-outpInv[1]) > 0.1 || fabs(outpInvSplit[2]-outpInv[2]) > 0.1)
+    {
+    std::cout << __LINE__ << ": TestCompositeTransform split failed" << std::endl;
+    return false;
+    }
+
 
   // Cleanup
   scene->Clear(1);
