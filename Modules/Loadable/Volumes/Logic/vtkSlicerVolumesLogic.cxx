@@ -53,8 +53,8 @@
 #include <vtkImageReslice.h>
 #include <vtkTransform.h>
 
-
-
+/// CTK includes
+#include <ctkUtils.h>
 
 //----------------------------------------------------------------------------
 namespace
@@ -350,6 +350,9 @@ vtkSlicerVolumesLogic::vtkSlicerVolumesLogic()
   this->RegisterArchetypeVolumeNodeSetFactory( ArchetypeVectorVolumeNodeSetFactory );
   this->RegisterArchetypeVolumeNodeSetFactory( LabelMapVolumeNodeSetFactory );
   this->RegisterArchetypeVolumeNodeSetFactory( ScalarVolumeNodeSetFactory );
+
+  this->SetCompareVolumeGeometryEpsilon(0.000001);
+
 }
 
 //----------------------------------------------------------------------------
@@ -907,12 +910,36 @@ vtkSlicerVolumesLogic::CheckForLabelVolumeValidity(vtkMRMLScalarVolumeNode *volu
 }
 
 //----------------------------------------------------------------------------
+void vtkSlicerVolumesLogic::SetCompareVolumeGeometryEpsilon(double epsilon)
+{
+  vtkDebugMacro("vtkSlicerVolumesLogic setting "
+                << " CompareVolumeGeometryEpsilon to " << epsilon);
+
+  double positiveEpsilon = epsilon;
+  // check for negative values
+  if (positiveEpsilon < 0.0)
+    {
+    positiveEpsilon = fabs(epsilon);
+    }
+
+  if (this->CompareVolumeGeometryEpsilon != positiveEpsilon)
+    {
+    this->CompareVolumeGeometryEpsilon = positiveEpsilon;
+
+    // now set the precision
+    this->CompareVolumeGeometryPrecision = ctk::significantDecimals(this->CompareVolumeGeometryEpsilon);
+
+    this->Modified();
+    }
+}
+
+//----------------------------------------------------------------------------
 std::string
 vtkSlicerVolumesLogic::CompareVolumeGeometry(vtkMRMLScalarVolumeNode *volumeNode1,
                                              vtkMRMLScalarVolumeNode *volumeNode2)
 {
   std::stringstream warnings;
-  warnings << "";
+
   if (!volumeNode1 || !volumeNode2)
     {
     if (!volumeNode1)
@@ -943,6 +970,37 @@ vtkSlicerVolumesLogic::CompareVolumeGeometry(vtkMRMLScalarVolumeNode *volumeNode
       {
       int row, column;
       double volumeValue1, volumeValue2;
+      // set the floating point precision to match the precision of the espilon
+      // used for the fuzzy compare
+      warnings << std::setprecision(this->GetCompareVolumeGeometryPrecision());
+      // sanity check versus the volume spacings
+      double spacing1[3], spacing2[3];
+      volumeNode1->GetSpacing(spacing1);
+      volumeNode2->GetSpacing(spacing2);
+      double minSpacing = spacing1[0];
+      for (int i = 1; i < 3; ++i)
+        {
+        if (spacing1[i] < minSpacing)
+          {
+          minSpacing = spacing1[i];
+          }
+        }
+      for (int i = 0; i < 3; ++i)
+        {
+        if (spacing2[i] < minSpacing)
+          {
+          minSpacing = spacing2[i];
+          }
+        }
+      // in general the defaults assume that an epsilon of 1e-6 works with a min
+      // spacing of 1mm, check that the epsilon is scaled appropriately for the
+      // minimum spacing for these two volumes
+      double logDiff = ctk::orderOfMagnitude(minSpacing) - ctk::orderOfMagnitude(this->CompareVolumeGeometryEpsilon);
+      vtkDebugMacro("diff in order of mag between min spacing and epsilon = " << logDiff);
+      if (logDiff < 3.0 || logDiff > 10.0)
+        {
+        warnings << "(Minimum spacing for volumes of " << minSpacing << " mismatched with epsilon " << this->CompareVolumeGeometryEpsilon << ",\ngeometry comparison may not be useful.\nTry resetting the Volumes module logic compare volume geometry epsilon variable.)\n";
+        }
       for (row = 0; row < 3; row++)
         {
         volumeValue1 = volumeImage1->GetDimensions()[row];
@@ -978,9 +1036,12 @@ vtkSlicerVolumesLogic::CompareVolumeGeometry(vtkMRMLScalarVolumeNode *volumeNode
           {
           volumeValue1 = volumeIJKToRAS1->GetElement(row,column);
           volumeValue2 = volumeIJKToRAS2->GetElement(row,column);
-          if (!vtkMathUtilities::FuzzyCompare<double>(volumeValue1, volumeValue2))
+          if (!vtkMathUtilities::FuzzyCompare<double>(volumeValue1,
+                                                      volumeValue2,
+                                                      this->CompareVolumeGeometryEpsilon))
             {
-            warnings << "IJKToRAS mismatch at [" << row << ", " << column << "] (" << volumeValue1 << " != " << volumeValue2 << ")\n";
+            warnings << "IJKToRAS mismatch at [" << row << ", " << column << "] ("
+                     << volumeValue1 << " != " << volumeValue2 << ")\n";
             }
           }
         }
@@ -1174,6 +1235,10 @@ void vtkSlicerVolumesLogic::PrintSelf(ostream& os, vtkIndent indent)
 
   os << indent << "ActiveVolumeNode: " <<
     (this->ActiveVolumeNode ? this->ActiveVolumeNode->GetName() : "(none)") << "\n";
+  os << indent << "CompareVolumeGeometryEpsilon: "
+     << this->CompareVolumeGeometryEpsilon << "\n";
+  os << indent << "CompareVolumeGeometryPrecision: "
+     << this->CompareVolumeGeometryPrecision << "\n";
 }
 
 //----------------------------------------------------------------------------
