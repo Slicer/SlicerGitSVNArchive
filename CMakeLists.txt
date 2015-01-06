@@ -18,7 +18,7 @@ if(APPLE)
   #       we ensure that the bitness will be properly detected.
   include(SlicerBlockSetCMakeOSXVariables)
   mark_as_superbuild(
-    VARS CMAKE_OSX_ARCHITECTURES:STRING CMAKE_OSX_SYSROOT:PATH CMAKE_OSX_DEPLOYMENT_TARGET:STRING
+    VARS CMAKE_OSX_ARCHITECTURES:STRING CMAKE_OSX_SYSROOT:PATH CMAKE_OSX_DEPLOYMENT_TARGET:STRING CMAKE_OSX_SDK_MINOR_VERSION:STRING
     ALL_PROJECTS
     )
 endif()
@@ -143,7 +143,11 @@ mark_as_superbuild(GIT_EXECUTABLE)
 # Qt requirements
 #-----------------------------------------------------------------------------
 if(NOT DEFINED Slicer_REQUIRED_QT_VERSION)
-  set(Slicer_REQUIRED_QT_VERSION "4.7.4" CACHE STRING "Minimum required Qt version" FORCE)
+    if(APPLE AND ( ${CMAKE_OSX_SDK_MINOR_VERSION} GREATER 8 ) )
+      set(Slicer_REQUIRED_QT_VERSION "4.8.4" CACHE STRING "Minimum required Qt version" FORCE)
+    else()
+      set(Slicer_REQUIRED_QT_VERSION "4.7.4" CACHE STRING "Minimum required Qt version" FORCE)
+    endif()
 endif()
 mark_as_superbuild(Slicer_REQUIRED_QT_VERSION)
 
