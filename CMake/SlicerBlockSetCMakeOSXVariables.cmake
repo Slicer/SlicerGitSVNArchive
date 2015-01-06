@@ -47,12 +47,14 @@ if(APPLE)
   #  11.x == Mac OSX 10.7 (Lion)
   #  12.x == Mac OSX 10.8 (Mountain Lion)
   #  13.x == Mac OSX 10.9 (Mavericks)
+  #  14.x == Mac OSX 10.10 (Yosemite)
   set(OSX_SDK_104_NAME "Tiger")
   set(OSX_SDK_105_NAME "Leopard")
   set(OSX_SDK_106_NAME "Snow Leopard")
   set(OSX_SDK_107_NAME "Lion")
   set(OSX_SDK_108_NAME "Mountain Lion")
   set(OSX_SDK_109_NAME "Mavericks")
+  set(OSX_SDK_1010_NAME "Yosemite")
 
   set(OSX_SDK_ROOTS
     /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs
@@ -63,11 +65,13 @@ if(APPLE)
   #     and (3) Qt binaries are (as expected) build against 'libstdc++', we
   #     are removing 10.9 from the list of version to check.
   #     [1] http://stackoverflow.com/questions/19637164/c-linking-error-after-upgrading-to-mac-os-x-10-9-xcode-5-0-1/19637199#19637199
+  set(OSX_SYSROOT_SEARCHED "")
   set(SDK_VERSIONS_TO_CHECK 10.8 10.7 10.6 10.5)
   foreach(SDK_VERSION ${SDK_VERSIONS_TO_CHECK})
     if(NOT CMAKE_OSX_DEPLOYMENT_TARGET OR "${CMAKE_OSX_DEPLOYMENT_TARGET}" STREQUAL "")
       foreach(SDK_ROOT ${OSX_SDK_ROOTS})
         set(TEST_OSX_SYSROOT "${SDK_ROOT}/MacOSX${SDK_VERSION}.sdk")
+        list(APPEND OSX_SYSROOT_SEARCHED ${TEST_OSX_SYSROOT})
         if(EXISTS "${TEST_OSX_SYSROOT}")
           # Retrieve OSX target name
           string(REPLACE "." "" sdk_version_no_dot ${SDK_VERSION})
@@ -83,7 +87,9 @@ if(APPLE)
     endif()
   endforeach()
 
-  if(NOT "${CMAKE_OSX_SYSROOT}" STREQUAL "")
+  if("${CMAKE_OSX_SYSROOT}" STREQUAL "")
+    message(FATAL_ERROR "error: Required CMAKE_OSX_SYSROOT not found.  Searched in:\n${OSX_SYSROOT_SEARCHED}")
+  else()
     if(NOT EXISTS "${CMAKE_OSX_SYSROOT}")
       message(FATAL_ERROR "error: CMAKE_OSX_SYSROOT='${CMAKE_OSX_SYSROOT}' does not exist")
     endif()
