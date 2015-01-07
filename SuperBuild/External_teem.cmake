@@ -44,16 +44,19 @@ if(NOT DEFINED Teem_DIR AND NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
       )
   endif()
 
-  set(teem_URL http://slicer.kitware.com/midas3/download/item/159431/teem-1.10.0-src.tar.gz)
-  set(teem_MD5 efe219575adc89f6470994154d86c05b)
+  if(NOT DEFINED git_protocol)
+      set(git_protocol "git")
+  endif()
+
+  set(teem_REPOSITORY ${git_protocol}://github.com/BRAINSia/teem.git)
+  set(teem_GIT_TAG 20150107_Slicer ) #Private version of teem on BRAINSia
 
   ExternalProject_Add(${proj}
     ${${proj}_EP_ARGS}
-    URL ${teem_URL}
-    URL_MD5 ${teem_MD5}
-    DOWNLOAD_DIR ${CMAKE_CURRENT_BINARY_DIR}
-    SOURCE_DIR teem
-    BINARY_DIR teem-build
+    GIT_REPOSITORY ${teem_REPOSITORY}
+    GIT_TAG ${teem_GIT_TAG}
+    SOURCE_DIR ${proj}
+    BINARY_DIR ${proj}-build
     CMAKE_CACHE_ARGS
       -DCMAKE_CXX_COMPILER:FILEPATH=${CMAKE_CXX_COMPILER}
       # Not needed -DCMAKE_CXX_FLAGS:STRING=${ep_common_cxx_flags}
