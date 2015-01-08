@@ -201,7 +201,7 @@ option(Slicer_BUILD_QTLOADABLEMODULES "Build Slicer QT Loadable Modules" ON)
 mark_as_advanced(Slicer_BUILD_QTLOADABLEMODULES)
 mark_as_superbuild(Slicer_BUILD_QTLOADABLEMODULES)
 
-option(Slicer_USE_PYTHONQT "Integrate a python-QT interpreter into Slicer." ON)
+option(Slicer_USE_PYTHONQT "Integrate a python-QT interpreter into Slicer." OFF)
 mark_as_superbuild(Slicer_USE_PYTHONQT)
 
 CMAKE_DEPENDENT_OPTION(
