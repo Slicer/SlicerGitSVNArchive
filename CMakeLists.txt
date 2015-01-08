@@ -237,7 +237,7 @@ mark_as_advanced(Slicer_FORCED_WC_REVISION)
 # External projects related options
 #-----------------------------------------------------------------------------
 CMAKE_DEPENDENT_OPTION(
-  Slicer_USE_PYTHONQT_WITH_OPENSSL "Enable PythonQt SSL support" OFF
+  Slicer_USE_PYTHONQT_WITH_OPENSSL "Enable PythonQt SSL support" ON
   "Slicer_USE_PYTHONQT" OFF)
 mark_as_superbuild(Slicer_USE_PYTHONQT_WITH_OPENSSL)
 
