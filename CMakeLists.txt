@@ -6,6 +6,10 @@ endif()
 if(POLICY CMP0017)
   cmake_policy(SET CMP0017 OLD)
 endif()
+if(POLICY CMP0054)
+  #Only interpret if() arguments as variables or keywords when unquoted.
+  cmake_policy(SET CMP0054 NEW)
+endif()
 
 #-----------------------------------------------------------------------------
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake" ${CMAKE_MODULE_PATH})
