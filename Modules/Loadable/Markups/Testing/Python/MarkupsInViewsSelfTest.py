@@ -332,6 +332,8 @@ class MarkupsInViewsSelfTestLogic:
 
     # jump to the last fiducial
     slicer.modules.markups.logic().JumpSlicesToNthPointInMarkup(fidNode.GetID(), index, 1)
+    # refocus the 3D cameras as well
+    slicer.modules.markups.logic().FocusCamerasOnNthPointInMarkup(fidNode.GetID(), index)
 
     # show only in red
     displayNode.AddViewNodeID('vtkMRMLSliceNodeRed')

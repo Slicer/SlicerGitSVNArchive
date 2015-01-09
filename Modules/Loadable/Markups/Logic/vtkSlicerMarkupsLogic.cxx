@@ -31,6 +31,7 @@
 #include "vtkMRMLAnnotationTextDisplayNode.h"
 
 // MRML includes
+#include "vtkMRMLCameraNode.h"
 #include "vtkMRMLHierarchyNode.h"
 #include "vtkMRMLInteractionNode.h"
 #include "vtkMRMLScene.h"
@@ -561,7 +562,7 @@ void vtkSlicerMarkupsLogic::JumpSlicesToNthPointInMarkup(const char *id, int n, 
     }
   if (!this->GetMRMLScene())
     {
-    vtkErrorMacro("JumpSlicesToLocation: No scene defined");
+    vtkErrorMacro("JumpSlicesToNthPointInMarkup: No scene defined");
     return;
     }
   // get the markups node
@@ -578,6 +579,76 @@ void vtkSlicerMarkupsLogic::JumpSlicesToNthPointInMarkup(const char *id, int n, 
     markup->GetMarkupPointWorld(n, 0, point);
     this->JumpSlicesToLocation(point[0], point[1], point[2], centered);
     }
+}
+
+//---------------------------------------------------------------------------
+void vtkSlicerMarkupsLogic::FocusCamerasOnNthPointInMarkup(const char *id, int n)
+{
+
+  if (!this->GetMRMLScene())
+    {
+    vtkErrorMacro("FocusCamerasOnNthPointInMarkup: No scene defined");
+    return;
+    }
+
+  std::vector<vtkMRMLNode *> cameraNodes;
+  this->GetMRMLScene()->GetNodesByClass("vtkMRMLCameraNode", cameraNodes);
+  vtkMRMLNode *node;
+  for (unsigned int i = 0; i < cameraNodes.size(); ++i)
+    {
+    node = cameraNodes[i];
+    if (node)
+      {
+      this->FocusCameraOnNthPointInMarkup(node->GetID(), id, n);
+      }
+    }
+}
+//---------------------------------------------------------------------------
+void vtkSlicerMarkupsLogic::FocusCameraOnNthPointInMarkup(const char *cameraNodeID, const char *markupNodeID, int n)
+{
+  if (!cameraNodeID || !markupNodeID)
+    {
+    return;
+    }
+  if (!this->GetMRMLScene())
+    {
+    return;
+    }
+
+  // get the camera node
+  vtkMRMLNode *mrmlNode1 = this->GetMRMLScene()->GetNodeByID(cameraNodeID);
+  if (mrmlNode1 == NULL)
+    {
+    vtkErrorMacro("FocusCameraOnNthPointInMarkup: unable to find node with id " << markupNodeID);
+    return;
+    }
+  vtkMRMLCameraNode *cameraNode = vtkMRMLCameraNode::SafeDownCast(mrmlNode1);
+  if (!cameraNode)
+    {
+    vtkErrorMacro("FocusCameraOnNthPointInMarkup: unable to find camera with id " << markupNodeID);
+    return;
+    }
+
+  // get the markups node
+  vtkMRMLNode *mrmlNode2 = this->GetMRMLScene()->GetNodeByID(markupNodeID);
+  if (mrmlNode2 == NULL)
+    {
+    vtkErrorMacro("FocusCameraOnNthPointInMarkup: unable to find node with id " << markupNodeID);
+    return;
+    }
+  vtkMRMLMarkupsNode *markup = vtkMRMLMarkupsNode::SafeDownCast(mrmlNode2);
+  if (!markup)
+    {
+    vtkErrorMacro("FocusCameraOnNthPointInMarkup: unable to find markup with id " << markupNodeID);
+    return;
+    }
+
+    double point[4];
+    // get the first point for now
+    markup->GetMarkupPointWorld(n, 0, point);
+
+    // and focus the camera there
+    cameraNode->SetFocalPoint(point[0], point[1], point[2]);
 }
 
 //---------------------------------------------------------------------------
