@@ -295,9 +295,10 @@ class DICOMScalarVolumePluginClass(DICOMPlugin):
     name = name.encode('latin1', 'ignore')
     fileList = vtk.vtkStringArray()
     for f in files:
-      fileList.InsertNextValue(f)
+      # VTK expects latin1 encoded strings
+      fileList.InsertNextValue(f.encode('latin1', 'ignore'))
     volumesLogic = slicer.modules.volumes.logic()
-    return(volumesLogic.AddArchetypeScalarVolume(files[0],name,0,fileList))
+    return(volumesLogic.AddArchetypeScalarVolume(files[0].encode('latin1', 'ignore'),name,0,fileList))
 
   def load(self,loadable):
     """Load the select as a scalar volume

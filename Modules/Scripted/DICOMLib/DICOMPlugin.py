@@ -85,7 +85,8 @@ class DICOMPlugin(object):
       return None
     m = hashlib.md5()
     for f in files:
-      m.update(f)
+      # Unicode-objects must be encoded before hashing
+      m.update(f.encode('UTF-8', 'ignore'))
     return(m.digest())
 
   def getCachedLoadables(self,files):
@@ -201,7 +202,10 @@ class DICOMPlugin(object):
       if patientNode != None:
         # Add attributes for DICOM tags
         patientName = slicer.dicomDatabase.fileValue(firstFile,tags['patientName'])
-        if patientName == '':
+        if patientName:
+          # VTK set funcions all expect latin1 encoded strings
+          patientName = patientName.encode('latin1', 'ignore')
+        else:
           patientName = 'No name'
         patientNode.SetAttribute(slicer.vtkMRMLSubjectHierarchyConstants.GetDICOMPatientNameAttributeName(),patientName)
         patientNode.SetAttribute(slicer.vtkMRMLSubjectHierarchyConstants.GetDICOMPatientIDAttributeName(),slicer.dicomDatabase.fileValue(firstFile, tags['patientID']))
@@ -209,7 +213,6 @@ class DICOMPlugin(object):
         patientNode.SetAttribute(slicer.vtkMRMLSubjectHierarchyConstants.GetDICOMPatientBirthDateAttributeName(),slicer.dicomDatabase.fileValue(firstFile, tags['patientBirthDate']))
         patientNode.SetAttribute(slicer.vtkMRMLSubjectHierarchyConstants.GetDICOMPatientCommentsAttributeName(),slicer.dicomDatabase.fileValue(firstFile, tags['patientComments']))
         # Set node name
-        patientName = patientName.encode('UTF-8', 'ignore')
         patientNode.SetName(patientName + slicer.vtkMRMLSubjectHierarchyConstants.GetSubjectHierarchyNodeNamePostfix())
 
     if studyNode == None:
