@@ -241,9 +241,10 @@ CMAKE_DEPENDENT_OPTION(
   "Slicer_USE_PYTHONQT" OFF)
 mark_as_superbuild(Slicer_USE_PYTHONQT_WITH_OPENSSL)
 
+
 CMAKE_DEPENDENT_OPTION(
   Slicer_USE_PYTHONQT_WITH_TCL "Enable PythonQt Tcl adapter layer" ON
-  "Slicer_USE_PYTHONQT" OFF)
+  "Slicer_USE_PYTHONQT;NOT APPLE" OFF) # turn off by default on APPLE due to PythonTCL issue
 mark_as_superbuild(Slicer_USE_PYTHONQT_WITH_TCL)
 
 CMAKE_DEPENDENT_OPTION(
