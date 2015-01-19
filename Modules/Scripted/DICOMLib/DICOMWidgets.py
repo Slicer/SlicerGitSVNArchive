@@ -580,8 +580,6 @@ class DICOMDetailsPopup(object):
       self.referencesDialog.close()
       self.referencesDialog = None
 
-    print(str(self.loadablesByPlugin))
-
     loadableCount = 0
     for plugin in self.loadablesByPlugin:
       for loadable in self.loadablesByPlugin[plugin]:
