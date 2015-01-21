@@ -122,7 +122,8 @@ if(Slicer_USE_PYTHONQT AND Slicer_BUILD_EXTENSIONMANAGER_SUPPORT)
     list(APPEND Slicer_DEPENDENCIES python-PyGithub)
   else()
     message(WARNING "Python was built without SSL support; "
-                    "github integration will not be available")
+                    "github integration will not be available"
+                    "Set Slicer_USE_PYTHONQT_WITH_OPENSSL=ON to enable this feature")
   endif()
 endif()
 

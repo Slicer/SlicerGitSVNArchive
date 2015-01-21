@@ -6,6 +6,10 @@ endif()
 if(POLICY CMP0017)
   cmake_policy(SET CMP0017 OLD)
 endif()
+if(POLICY CMP0054)
+  #Only interpret if() arguments as variables or keywords when unquoted.
+  cmake_policy(SET CMP0054 NEW)
+endif()
 
 #-----------------------------------------------------------------------------
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake" ${CMAKE_MODULE_PATH})
@@ -197,7 +201,7 @@ option(Slicer_BUILD_QTLOADABLEMODULES "Build Slicer QT Loadable Modules" ON)
 mark_as_advanced(Slicer_BUILD_QTLOADABLEMODULES)
 mark_as_superbuild(Slicer_BUILD_QTLOADABLEMODULES)
 
-option(Slicer_USE_PYTHONQT "Integrate a python-QT interpreter into Slicer." ON)
+option(Slicer_USE_PYTHONQT "Integrate a python-QT interpreter into Slicer." OFF)
 mark_as_superbuild(Slicer_USE_PYTHONQT)
 
 CMAKE_DEPENDENT_OPTION(
@@ -233,13 +237,14 @@ mark_as_advanced(Slicer_FORCED_WC_REVISION)
 # External projects related options
 #-----------------------------------------------------------------------------
 CMAKE_DEPENDENT_OPTION(
-  Slicer_USE_PYTHONQT_WITH_OPENSSL "Enable PythonQt SSL support" OFF
+  Slicer_USE_PYTHONQT_WITH_OPENSSL "Enable PythonQt SSL support" ON
   "Slicer_USE_PYTHONQT" OFF)
 mark_as_superbuild(Slicer_USE_PYTHONQT_WITH_OPENSSL)
 
+
 CMAKE_DEPENDENT_OPTION(
   Slicer_USE_PYTHONQT_WITH_TCL "Enable PythonQt Tcl adapter layer" ON
-  "Slicer_USE_PYTHONQT" OFF)
+  "Slicer_USE_PYTHONQT;NOT APPLE" OFF) # turn off by default on APPLE due to PythonTCL issue
 mark_as_superbuild(Slicer_USE_PYTHONQT_WITH_TCL)
 
 CMAKE_DEPENDENT_OPTION(
