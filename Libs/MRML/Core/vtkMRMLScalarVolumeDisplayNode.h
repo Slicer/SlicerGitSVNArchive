@@ -24,10 +24,10 @@ class vtkImageAccumulate;
 class vtkImageAppendComponents;
 class vtkImageBimodalAnalysis;
 class vtkImageCast;
-class vtkImageData;
 class vtkImageLogic;
 class vtkImageMapToColors;
 class vtkImageMapToWindowLevelColors;
+class vtkImageStencil;
 class vtkImageThreshold;
 class vtkImageExtractComponents;
 class vtkImageMathematics;
@@ -158,13 +158,13 @@ class VTK_MRML_EXPORT vtkMRMLScalarVolumeDisplayNode : public vtkMRMLVolumeDispl
 #endif
 
   ///
-  /// Sets ImageData for background mask
+  /// Get/set background mask stencil
 #if (VTK_MAJOR_VERSION <= 5)
-  virtual void SetBackgroundImageData(vtkImageData *imageData);
-  virtual vtkImageData* GetBackgroundImageData();
+  virtual void SetBackgroundImageStencilData(vtkImageStencilData *imageData);
+  virtual vtkImageStencilData* GetBackgroundImageStencilData();
 #else
-  virtual void SetBackgroundImageDataConnection(vtkAlgorithmOutput *imageDataConnection);
-  virtual vtkAlgorithmOutput* GetBackgroundImageDataConnection();
+  virtual void SetBackgroundImageStencilDataConnection(vtkAlgorithmOutput *imageDataConnection);
+  virtual vtkAlgorithmOutput* GetBackgroundImageStencilDataConnection();
 #endif
 
   ///
@@ -246,7 +246,6 @@ protected:
   int ApplyThreshold;
   int AutoThreshold;
 
-  vtkImageCast *ResliceAlphaCast;
   vtkImageLogic *AlphaLogic;
   vtkImageMapToColors *MapToColors;
   vtkImageThreshold *Threshold;
@@ -254,7 +253,7 @@ protected:
   vtkImageMapToWindowLevelColors *MapToWindowLevelColors;
   vtkImageExtractComponents *ExtractRGB;
   vtkImageExtractComponents *ExtractAlpha;
-  vtkImageMathematics *MultiplyAlpha;
+  vtkImageStencil *MultiplyAlpha;
 
   ///
   /// window level presets
