@@ -1,6 +1,6 @@
 import os
 import unittest
-import qt, vtk
+import qt, vtk, ctk
 from __main__ import slicer
 import DataProbeLib
 
@@ -271,19 +271,21 @@ class DataProbeInfoWidget(object):
     # this method makes SliceView Annotation
     self.sliceAnnotationsFrame = qt.QFrame(self.frame)
     self.sliceAnnotationsFrame.setLayout(qt.QHBoxLayout())
-    self.frame.layout().addWidget(self.sliceAnnotationsFrame)
+    #self.frame.layout().addWidget(self.sliceAnnotationsFrame)
 
-    sliceAnnotationsLabel = qt.QLabel('Slice Annotations:')
+    sliceAnnotationsLabel = qt.QLabel('Slice View Annotations:')
     self.sliceAnnotationsFrame.layout().addWidget(sliceAnnotationsLabel)
     # Slice Annotations Settings Button
     sliceAnnotationsSettings = qt.QPushButton()
     settingsIcon = qt.QIcon("%s/SlicerAdvancedGear-Small.png" %self.iconsDIR)
     sliceAnnotationsSettings.setIcon(settingsIcon)
+    sliceAnnotationsSettings.setMaximumWidth(sliceAnnotationsSettings.height)
     self.sliceAnnotationsFrame.layout().addWidget(sliceAnnotationsSettings)
 
     self.sliceAnnotations = DataProbeLib.SliceAnnotations()
     sliceAnnotationsSettings.connect('clicked()', self.sliceAnnotations.openSettingsPopup)
     self.sliceAnnotationsFrame.layout().addStretch(1)
+
     # goto module button
     self.goToModule = qt.QPushButton('->', self.frame)
     self.goToModule.setToolTip('Go to the DataProbe module for more information and options')
@@ -360,7 +362,6 @@ class DataProbeWidget:
 
   def __init__(self, parent=None):
     self.observerTags = []
-
     if not parent:
       self.parent = slicer.qMRMLWidget()
       self.parent.setLayout(qt.QVBoxLayout())
@@ -389,7 +390,7 @@ class DataProbeWidget:
     self.reloadButton = qt.QPushButton("Reload")
     self.reloadButton.toolTip = "Reload this module."
     self.reloadButton.name = "DataProbe Reload"
-    self.layout.addWidget(self.reloadButton)
+    #self.layout.addWidget(self.reloadButton)
     self.reloadButton.connect('clicked()', self.onReload)
 
     # reload and test button
@@ -397,8 +398,16 @@ class DataProbeWidget:
     #  your module to users)
     self.reloadAndTestButton = qt.QPushButton("Reload and Test")
     self.reloadAndTestButton.toolTip = "Reload this module and then run the self tests."
-    self.layout.addWidget(self.reloadAndTestButton)
+    #self.layout.addWidget(self.reloadAndTestButton)
     self.reloadAndTestButton.connect('clicked()', self.onReloadAndTest)
+
+    settingsCollapsibleButton = ctk.ctkCollapsibleButton()
+    settingsCollapsibleButton.text = "Settings"
+    self.layout.addWidget(settingsCollapsibleButton)
+    settingsVBoxLayout = qt.QVBoxLayout(settingsCollapsibleButton)
+    dataProbeInstance = slicer.modules.DataProbeInstance
+    sliceAnnotationsFrame = dataProbeInstance.infoWidget.sliceAnnotationsFrame
+    settingsVBoxLayout.addWidget(sliceAnnotationsFrame)
 
     self.parent.layout().addStretch(1)
 
