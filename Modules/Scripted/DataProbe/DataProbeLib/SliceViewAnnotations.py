@@ -36,10 +36,10 @@ class SliceAnnotations(object):
       '1-PatientName':{'text':'','category':'B'},
       '2-PatientID':{'text':'','category':'A'},
       '3-PatientInfo':{'text':'','category':'B'},
-      '4-Bg-StudyDate':{'text':'','category':'B'},
-      '5-Fg-StudyDate':{'text':'','category':'B'},
-      '6-Bg-StudyTime':{'text':'','category':'C'},
-      '7-Bg-StudyTime':{'text':'','category':'C'},
+      '4-Bg-SeriesDate':{'text':'','category':'B'},
+      '5-Fg-SeriesDate':{'text':'','category':'B'},
+      '6-Bg-SeriesTime':{'text':'','category':'C'},
+      '7-Bg-SeriesTime':{'text':'','category':'C'},
       '8-Bg-SeriesDescription':{'text':'','category':'C'},
       '9-Fg-SeriesDescription':{'text':'','category':'C'}
       })
@@ -113,6 +113,12 @@ class SliceAnnotations(object):
           'DataProbe/sliceViewAnnotations.bgDicomAnnotationsPersistence'))
     else:
       self.backgroundDicomAnnotationsPersistence = 0
+
+    if settings.contains('DataProbe/sliceViewAnnotations.rangeLabelFormat'):
+      self.rangeLabelFormat= str(settings.value(
+          'DataProbe/sliceViewAnnotations.rangeLabelFormat'))
+    else:
+      self.rangeLabelFormat = '%G'
 
     self.parameter = 'showSliceViewAnnotations'
     self.parameterNode = self.dataProbeUtil.getParameterNode()
@@ -199,9 +205,9 @@ class SliceAnnotations(object):
     self.backgroundRadioButton.checked = True
     self.foregroundRadioButton = slicer.util.findChildren(self.window,
        'foregroundRadioButton')[0]
-
-    self.colorScalarBarMaxWidthSlider = slicer.util.findChildren(self.window,
-       'colorScalarBarMaxWidthSlider')[0]
+    self.rangeLabelFormatLineEdit = slicer.util.findChildren(self.window,
+       'rangeLabelFormatLineEdit')[0]
+    self.rangeLabelFormatLineEdit.text = self.rangeLabelFormat
 
     restorDefaultsButton = slicer.util.findChildren(self.window,
         'restoreDefaultsButton')[0]
@@ -226,7 +232,8 @@ class SliceAnnotations(object):
     self.showColorScalarBarCheckBox.connect('clicked()', self.onShowColorScalarBarCheckbox)
     self.backgroundRadioButton.connect('clicked()',self.onLayerSelectionRadioButton)
     self.foregroundRadioButton.connect('clicked()',self.onLayerSelectionRadioButton)
-    self.colorScalarBarMaxWidthSlider.connect('valueChanged(double)', self.updateSliceViewFromGUI)
+    self.rangeLabelFormatLineEdit.connect('editingFinished()',self.onRangeLabelFormatLineEdit)
+    self.rangeLabelFormatLineEdit.connect('returnPressed()',self.onRangeLabelFormatLineEdit)
 
     restorDefaultsButton.connect('clicked()', self.restoreDefaultValues)
 
@@ -319,7 +326,6 @@ class SliceAnnotations(object):
       self.fontFamily = 'Times'
     else:
       self.fontFamily = 'Arial'
-    self.updateSliceViewFromGUI()
     settings = qt.QSettings()
     settings.setValue('DataProbe/sliceViewAnnotations.fontFamily',
         self.fontFamily)
@@ -334,6 +340,14 @@ class SliceAnnotations(object):
 
   def onTextLengthSpinBox(self):
     self.maximumTextLength = self.textLengthSpinBox.value
+    self.updateSliceViewFromGUI()
+
+  def onRangeLabelFormatLineEdit(self):
+    # Updating font size and family
+    self.rangeLabelFormat =  self.rangeLabelFormatLineEdit.text
+    settings = qt.QSettings()
+    settings.setValue('DataProbe/sliceViewAnnotations.rangeLabelFormat',
+        self.rangeLabelFormat)
     self.updateSliceViewFromGUI()
 
   def restoreDefaultValues(self):
@@ -352,7 +366,8 @@ class SliceAnnotations(object):
     self.showScalingRuler = 1
     self.showColorScalarBarCheckBox.checked = False
     self.showColorScalarBar = 0
-    self.colorScalarBarMaxWidthSlider.value = 50
+    self.rangeLabelFormat = '%G'
+    self.rangeLabelFormatLineEdit.text = '%G'
 
     settings = qt.QSettings()
     settings.setValue('DataProbe/sliceViewAnnotations.show',
@@ -373,6 +388,8 @@ class SliceAnnotations(object):
         self.showScalingRuler)
     settings.setValue('DataProbe/sliceViewAnnotations.showColorScalarBar',
         self.showColorScalarBar)
+    settings.setValue('DataProbe/sliceViewAnnotations.rangeLabelFormat',
+        self.rangeLabelFormat)
     self.updateSliceViewFromGUI()
 
   def updateMRMLFromGUI(self):
@@ -568,7 +585,6 @@ class SliceAnnotations(object):
     actor = self.scalingRulerActors[sliceViewName]
     actor.SetMapper(mapper)
     # color actor
-    actor.GetProperty().SetColor(1,1,1)
     actor.GetProperty().SetLineWidth(1)
     textActor = self.scalingRulerTextActors[sliceViewName]
     textProperty = textActor.GetTextProperty()
@@ -577,7 +593,7 @@ class SliceAnnotations(object):
     scalarBar = slicer.vtkPVScalarBarActor()
     scalarBar.SetTitle(" ")
     # adjust text property
-    scalarBar.SetRangeLabelFormat('%.0f')
+    scalarBar.SetRangeLabelFormat(self.rangeLabelFormat)
     lookupTable = vtk.vtkLookupTable()
     scalarBar.SetLookupTable(lookupTable)
     scalarBarWidget = vtk.vtkScalarBarWidget()
@@ -686,9 +702,19 @@ class SliceAnnotations(object):
 
         textActor = self.scalingRulerTextActors[sliceViewName]
         textActor.SetInput(scalingFactorString)
+        textProperty = textActor.GetTextProperty()
+        # set font size
+        textProperty.SetFontSize(self.fontSize)
+        # set font family
+        if self.fontFamily == 'Times':
+          textProperty.SetFontFamilyToTimes()
+        else:
+          textProperty.SetFontFamilyToArial()
+        # set ruler text actor position
         textActor.SetDisplayPosition(int((viewWidth+RASRulerSize*scalingFactor)/2)+10,5)
 
         renderer.AddActor2D(self.scalingRulerActors[sliceViewName])
+        renderer.RemoveActor2D(textActor)
         renderer.AddActor2D(textActor)
 
       else:
@@ -717,6 +743,7 @@ class SliceAnnotations(object):
 
       scalarBar = self.colorScalarBars[sliceViewName]
       scalarBar.SetTextPositionToPrecedeScalarBar()
+      scalarBar.SetRangeLabelFormat(self.rangeLabelFormat)
       scalarBar.SetAddRangeAnnotations(0)
 
       renderWindow = renderer.GetRenderWindow()
@@ -854,10 +881,6 @@ class SliceAnnotations(object):
         sliceLogic.GetForegroundWindowLevelAndRange(width,level,rangeLow,rangeHigh)
       lut2.SetRange(level-width/2,level+width/2)
       scalarBar.SetLookupTable(lut2)
-      if width < 1:
-        scalarBar.AddRangeLabelsOff()
-      else:
-        scalarBar.AddRangeLabelsOn()
 
   def makeDicomAnnotation(self,bgUid,fgUid):
     viewHeight = self.sliceViews[self.currentSliceViewName].height
@@ -882,23 +905,23 @@ class SliceAnnotations(object):
           if self.cornerTexts[2].has_key('3-PatientInfo'):
             self.cornerTexts[2]['3-PatientInfo']['text'] = self.makePatientInfo(backgroundDicomDic)
 
-          if (backgroundDicomDic['Study Date'] != foregroundDicomDic['Study Date']):
-            if self.cornerTexts[2].has_key('4-Bg-StudyDate'):
-              self.cornerTexts[2]['4-Bg-StudyDate']['text'] = 'B: ' + self.formatDICOMDate(backgroundDicomDic['Study Date'])
-            if self.cornerTexts[2].has_key('5-Fg-StudyDate'):
-              self.cornerTexts[2]['5-Fg-StudyDate']['text'] = 'F: ' + self.formatDICOMDate(foregroundDicomDic['Study Date'])
+          if (backgroundDicomDic['Series Date'] != foregroundDicomDic['Series Date']):
+            if self.cornerTexts[2].has_key('4-Bg-SeriesDate'):
+              self.cornerTexts[2]['4-Bg-SeriesDate']['text'] = 'B: ' + self.formatDICOMDate(backgroundDicomDic['Series Date'])
+            if self.cornerTexts[2].has_key('5-Fg-SeriesDate'):
+              self.cornerTexts[2]['5-Fg-SeriesDate']['text'] = 'F: ' + self.formatDICOMDate(foregroundDicomDic['Series Date'])
           else:
-            if self.cornerTexts[2].has_key('4-Bg-StudyDate'):
-              self.cornerTexts[2]['4-Bg-StudyDate']['text'] =  self.formatDICOMDate(backgroundDicomDic['Study Date'])
+            if self.cornerTexts[2].has_key('4-Bg-SeriesDate'):
+              self.cornerTexts[2]['4-Bg-SeriesDate']['text'] =  self.formatDICOMDate(backgroundDicomDic['Series Date'])
 
-          if (backgroundDicomDic['Study Time'] != foregroundDicomDic['Study Time']):
-            if self.cornerTexts[2].has_key('6-Bg-StudyTime'):
-              self.cornerTexts[2]['6-Bg-StudyTime']['text'] = 'B: ' + self.formatDICOMTime(backgroundDicomDic['Study Time'])
-            if self.cornerTexts[2].has_key('7-Fg-StudyTime'):
-              self.cornerTexts[2]['7-Fg-StudyTime']['text'] = 'F: ' + self.formatDICOMTime(foregroundDicomDic['Study Time'])
+          if (backgroundDicomDic['Series Time'] != foregroundDicomDic['Series Time']):
+            if self.cornerTexts[2].has_key('6-Bg-SeriesTime'):
+              self.cornerTexts[2]['6-Bg-SeriesTime']['text'] = 'B: ' + self.formatDICOMTime(backgroundDicomDic['Series Time'])
+            if self.cornerTexts[2].has_key('7-Fg-SeriesTime'):
+              self.cornerTexts[2]['7-Fg-SeriesTime']['text'] = 'F: ' + self.formatDICOMTime(foregroundDicomDic['Series Time'])
           else:
-            if self.cornerTexts[2].has_key('6-Bg-StudyTime'):
-              self.cornerTexts[2]['6-Bg-StudyTime']['text'] = self.formatDICOMTime(backgroundDicomDic['Study Time'])
+            if self.cornerTexts[2].has_key('6-Bg-SeriesTime'):
+              self.cornerTexts[2]['6-Bg-SeriesTime']['text'] = self.formatDICOMTime(backgroundDicomDic['Series Time'])
 
           if (backgroundDicomDic['Series Description'] != foregroundDicomDic['Series Description']):
             if self.cornerTexts[2].has_key('8-Bg-SeriesDescription'):
@@ -919,8 +942,8 @@ class SliceAnnotations(object):
         self.cornerTexts[2]['2-PatientID']['text'] = 'ID: ' + dicomDic ['Patient ID']
         dicomDic['Patient Birth Date'] = self.formatDICOMDate(dicomDic['Patient Birth Date'])
         self.cornerTexts[2]['3-PatientInfo']['text'] = self.makePatientInfo(dicomDic)
-        self.cornerTexts[2]['4-Bg-StudyDate']['text'] = self.formatDICOMDate(dicomDic['Study Date'])
-        self.cornerTexts[2]['6-Bg-StudyTime']['text'] = self.formatDICOMTime(dicomDic['Study Time'])
+        self.cornerTexts[2]['4-Bg-SeriesDate']['text'] = self.formatDICOMDate(dicomDic['Series Date'])
+        self.cornerTexts[2]['6-Bg-SeriesTime']['text'] = self.formatDICOMTime(dicomDic['Series Time'])
         self.cornerTexts[2]['8-Bg-SeriesDescription']['text'] = dicomDic['Series Description']
 
       # top right corner annotation would be hidden if colorscalarbar is on and
@@ -1003,11 +1026,13 @@ class SliceAnnotations(object):
             if (cornerText[key]['category'] == 'A'):
               cornerAnnotation = cornerAnnotation+ text + '\n'
       sliceCornerAnnotation = self.sliceCornerAnnotations[self.currentSliceViewName]
-      # encode to avoid 'unicode conversion error' for patient names containing international characters
       cornerAnnotation = slicer.util.toVTKString(cornerAnnotation)
       sliceCornerAnnotation.SetText(i, cornerAnnotation)
       textProperty = sliceCornerAnnotation.GetTextProperty()
       textProperty.SetShadow(1)
+      self.renderers[self.currentSliceViewName].RemoveActor(sliceCornerAnnotation)
+      self.renderers[self.currentSliceViewName].AddActor(sliceCornerAnnotation)
+
     self.sliceViews[self.currentSliceViewName].scheduleRender()
 
   def resetTexts(self):
@@ -1018,8 +1043,8 @@ class SliceAnnotations(object):
   def extractDICOMValues(self,uid):
     p ={}
     tags = {
-    "0008,0020": "Study Date",
-    "0008,0030": "Study Time",
+    "0008,0021": "Series Date",
+    "0008,0031": "Series Time",
     "0008,0060": "Modality",
     "0008,0070": "Manufacturer",
     "0008,0080": "Institution Name",
