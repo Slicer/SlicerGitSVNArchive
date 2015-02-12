@@ -2,7 +2,8 @@
 
   Program: 3D Slicer
 
-  Copyright (c) Kitware Inc.
+  Copyright (c) Laboratory for Percutaneous Surgery (PerkLab)
+  Queen's University, Kingston, ON, Canada. All Rights Reserved.
 
   See COPYRIGHT.txt
   or http://www.slicer.org/copyright/copyright.txt for details.
@@ -22,7 +23,10 @@
 #include "qMRMLSortFilterSubjectHierarchyProxyModel.h"
 
 // Subject Hierarchy MRML includes
-#include <vtkMRMLSubjectHierarchyNode.h>
+#include "vtkMRMLSubjectHierarchyNode.h"
+#include "vtkMRMLSubjectHierarchyConstants.h"
+#include "qSlicerSubjectHierarchyPluginHandler.h"
+#include "qSlicerSubjectHierarchyAbstractPlugin.h"
 
 // MRML Widgets includes
 #include "qMRMLSceneModel.h"
@@ -73,11 +77,18 @@ qMRMLSortFilterProxyModel::AcceptType qMRMLSortFilterSubjectHierarchyProxyModel
     return res;
     }
 
-  vtkMRMLSubjectHierarchyNode* hNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(node);
-  if (hNode)
+  Q_D(const qMRMLSortFilterSubjectHierarchyProxyModel);
+
+  // Show subject hierarchy nodes
+  vtkMRMLSubjectHierarchyNode* subjectHierarchyNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(node);
+  if (subjectHierarchyNode)
     {
-    // Observe node in the model so that the item is updated on node changes
-    this->sceneModel()->observeNode(node);
+    // Hide if explicitly excluded from tree
+    vtkMRMLNode* associatedNode = subjectHierarchyNode->GetAssociatedNode();
+    if ( associatedNode && associatedNode->GetAttribute(vtkMRMLSubjectHierarchyConstants::GetSubjectHierarchyExcludeFromTreeAttributeName().c_str()) )
+      {
+      return Reject;
+      }
 
     return Accept;
     }

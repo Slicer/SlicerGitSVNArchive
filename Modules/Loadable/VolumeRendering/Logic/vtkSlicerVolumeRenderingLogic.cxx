@@ -12,16 +12,14 @@
 
 =========================================================================auto=*/
 
+#include "vtkSlicerConfigure.h" // Slicer_VTK_RENDERING_USE_{OpenGL|OpenGL2}_BACKEND
+
 // Volume Rendering includes
-#include "vtkMRMLNCIRayCastVolumeRenderingDisplayNode.h"
 #include "vtkMRMLSliceLogic.h"
 #include "vtkMRMLVolumeRenderingDisplayNode.h"
 #include "vtkMRMLVolumeRenderingScenarioNode.h"
 #include "vtkSlicerVolumeRenderingLogic.h"
 #include "vtkMRMLCPURayCastVolumeRenderingDisplayNode.h"
-#include "vtkMRMLNCIRayCastVolumeRenderingDisplayNode.h"
-#include "vtkMRMLNCIMultiVolumeRayCastVolumeRenderingDisplayNode.h"
-#include "vtkMRMLGPUTextureMappingVolumeRenderingDisplayNode.h"
 #include "vtkMRMLGPURayCastVolumeRenderingDisplayNode.h"
 
 // Annotations includes
@@ -43,7 +41,6 @@
 
 // VTK includes
 #include <vtkColorTransferFunction.h>
-#include <vtkgl.h>
 #include <vtkImageData.h>
 #include <vtkLookupTable.h>
 #include <vtkNew.h>
@@ -51,6 +48,10 @@
 #include <vtkPiecewiseFunction.h>
 #include <vtkPointData.h>
 #include <vtkVolumeProperty.h>
+
+#if defined(Slicer_VTK_RENDERING_USE_OpenGL_BACKEND)
+#include <vtkgl.h>
+#endif
 
 // STD includes
 #include <algorithm>
@@ -70,12 +71,6 @@ vtkSlicerVolumeRenderingLogic::vtkSlicerVolumeRenderingLogic()
                                 "vtkMRMLCPURayCastVolumeRenderingDisplayNode");
   this->RegisterRenderingMethod("VTK GPU Ray Casting",
                                 "vtkMRMLGPURayCastVolumeRenderingDisplayNode");
-  //this->RegisterRenderingMethod("VTK OpenGL 3D Texture Mapping",
-  //                              "vtkMRMLGPUTextureMappingVolumeRenderingDisplayNode");
-  //this->RegisterRenderingMethod("NCI GPU Ray Casting",
-  //                              "vtkMRMLNCIRayCastVolumeRenderingDisplayNode");
-  //this->RegisterRenderingMethod("NCI GPU MultiVolume Ray Casting",
-  //                              "vtkMRMLNCIMultiVolumeRayCastVolumeRenderingDisplayNode");
 }
 
 //----------------------------------------------------------------------------
@@ -101,6 +96,7 @@ void vtkSlicerVolumeRenderingLogic::PrintSelf(ostream& os, vtkIndent indent)
     {
     os << indent << this->DisplayNodes[i]->GetID() << std::endl;
     }
+#if defined(Slicer_VTK_RENDERING_USE_OpenGL_BACKEND)
   const char *gl_vendor=reinterpret_cast<const char *>(glGetString(GL_VENDOR));
   os << indent << "Vendor: " << gl_vendor << std::endl;
   const char *gl_version=reinterpret_cast<const char *>(glGetString(GL_VERSION));
@@ -108,6 +104,7 @@ void vtkSlicerVolumeRenderingLogic::PrintSelf(ostream& os, vtkIndent indent)
   const char *glsl_version=
     reinterpret_cast<const char *>(glGetString(vtkgl::SHADING_LANGUAGE_VERSION));
   os << indent << "Shading Language Version: " << glsl_version << std::endl;
+#endif
 }
 
 //----------------------------------------------------------------------------
@@ -132,15 +129,6 @@ void vtkSlicerVolumeRenderingLogic::RegisterNodes()
   this->GetMRMLScene()->RegisterNodeClass( cpuVRNode.GetPointer(),
                                            "VolumeRenderingParameters");
 #endif
-
-  vtkNew<vtkMRMLNCIRayCastVolumeRenderingDisplayNode> nciNode;
-  this->GetMRMLScene()->RegisterNodeClass( nciNode.GetPointer() );
-
-  vtkNew<vtkMRMLNCIMultiVolumeRayCastVolumeRenderingDisplayNode> nciMVNode;
-  this->GetMRMLScene()->RegisterNodeClass( nciMVNode.GetPointer() );
-
-  vtkNew<vtkMRMLGPUTextureMappingVolumeRenderingDisplayNode> tmNode;
-  this->GetMRMLScene()->RegisterNodeClass( tmNode.GetPointer() );
 
   vtkNew<vtkMRMLGPURayCastVolumeRenderingDisplayNode> gpuNode;
   this->GetMRMLScene()->RegisterNodeClass( gpuNode.GetPointer() );
@@ -657,13 +645,7 @@ void vtkSlicerVolumeRenderingLogic
   this->SetThresholdToVolumeProp(
     scalarRange, threshold, prop,
     this->UseLinearRamp, ignoreVolumeDisplayNodeThreshold);
-  if (vtkMRMLNCIRayCastVolumeRenderingDisplayNode::SafeDownCast(vspNode))
-    {
-    // NCI raycast mapper applies a second threshold in addition to the opacity
-    // transfer function
-    vtkMRMLNCIRayCastVolumeRenderingDisplayNode::SafeDownCast(vspNode)
-      ->SetDepthPeelingThreshold(scalarRange[0]);
-    }
+
   this->SetWindowLevelToVolumeProp(
     scalarRange, windowLevel, lut, prop);
   this->SetGradientOpacityToVolumeProp(scalarRange, prop);
@@ -1067,6 +1049,25 @@ vtkMRMLScene* vtkSlicerVolumeRenderingLogic::GetPresetsScene()
     this->LoadPresets(this->PresetsScene);
     }
   return this->PresetsScene;
+}
+
+//---------------------------------------------------------------------------
+vtkMRMLVolumePropertyNode* vtkSlicerVolumeRenderingLogic::GetPresetByName(
+    const char* presetName)
+{
+  vtkMRMLScene * presetsScene = this->GetPresetsScene();
+  if (!presetsScene || !presetName)
+    {
+    return 0;
+    }
+  vtkSmartPointer<vtkCollection> presets;
+  presets.TakeReference(presetsScene->GetNodesByClassByName(
+        "vtkMRMLVolumePropertyNode", presetName));
+  if (presets->GetNumberOfItems() == 0)
+    {
+    return 0;
+    }
+  return vtkMRMLVolumePropertyNode::SafeDownCast(presets->GetItemAsObject(0));
 }
 
 //---------------------------------------------------------------------------

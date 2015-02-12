@@ -10,59 +10,40 @@
 
 =========================================================================auto=*/
 
-// return a concrete storage node, vtkMRMLStorageNode::New returns null
+// MRML includes
+#include "vtkMRMLCoreTestingMacros.h"
 #include "vtkMRMLVolumeArchetypeStorageNode.h"
 #include "vtkMRMLVolumeNode.h"
 
-#include <vtkPolyData.h>
+// VTK includes
 #include <vtkImageData.h>
+#include <vtkObjectFactory.h>
+#include <vtkPolyData.h>
 
-#include "vtkMRMLCoreTestingMacros.h"
-
-
+//----------------------------------------------------------------------------
 class vtkMRMLVolumeNodeTestHelper1 : public vtkMRMLVolumeNode
 {
 public:
   // Provide a concrete New.
-  static vtkMRMLVolumeNodeTestHelper1 *New(){return new vtkMRMLVolumeNodeTestHelper1;};
+  static vtkMRMLVolumeNodeTestHelper1 *New();
 
-  vtkTypeMacro( vtkMRMLVolumeNodeTestHelper1,vtkMRMLVolumeNode);
+  vtkTypeMacro(vtkMRMLVolumeNodeTestHelper1,vtkMRMLVolumeNode);
 
   virtual vtkMRMLNode* CreateNodeInstance()
     {
-    return new vtkMRMLVolumeNodeTestHelper1;
+    return vtkMRMLVolumeNodeTestHelper1::New();
     }
   virtual const char* GetNodeTagName()
     {
     return "vtkMRMLVolumeNodeTestHelper1";
     }
 
-  double *GetIToRASDirection()
-    {
-    double dir[3];
-    vtkMRMLVolumeNode::GetIToRASDirection(dir);
-    double *retdir = dir;
-    return retdir;
-    }
-  double *GetJToRASDirection()
-    {
-    double dir[3];
-    vtkMRMLVolumeNode::GetJToRASDirection(dir);
-    double *retdir = dir;
-    return retdir;
-    }
-  double *GetKToRASDirection()
-    {
-    double dir[3];
-    vtkMRMLVolumeNode::GetKToRASDirection(dir);
-    double *retdir = dir;
-    return retdir;
-    }
-
   virtual vtkMRMLStorageNode* CreateDefaultStorageNode() { return vtkMRMLVolumeArchetypeStorageNode::New(); }
 };
+vtkStandardNewMacro(vtkMRMLVolumeNodeTestHelper1);
 
-int vtkMRMLVolumeNodeTest1(int , char * [] )
+//----------------------------------------------------------------------------
+int vtkMRMLVolumeNodeTest1(int , char * [])
 {
   vtkNew<vtkMRMLVolumeNodeTestHelper1> node1;
 

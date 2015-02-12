@@ -507,20 +507,20 @@ void vtkMRMLHierarchyNode::RemoveHierarchyChildrenNodes()
   for (unsigned int i=0; i<children.size(); i++)
     {
     vtkMRMLHierarchyNode *child = children[i];
-    std::vector< vtkMRMLHierarchyNode *> childChildern = child->GetChildrenNodes();
-    for (unsigned int j=0; i<childChildern.size(); j++)
+    std::vector< vtkMRMLHierarchyNode *> childChildren = child->GetChildrenNodes();
+    for (unsigned int j=0; i<childChildren.size(); j++)
       {
-      childChildern[j]->SetParentNodeID(parentID);
-      if (parentNode)
-        {
-        parentNode->InvokeEvent(vtkMRMLHierarchyNode::ChildNodeRemovedEvent);
-        }
+      childChildren[j]->SetParentNodeID(parentID);
+      }
+    if (parentNode)
+      {
+      parentNode->InvokeEvent(vtkMRMLHierarchyNode::ChildNodeRemovedEvent, child);
       }
     this->GetScene()->RemoveNode(child);
     }
 }
-//----------------------------------------------------------------------------
 
+//----------------------------------------------------------------------------
 void vtkMRMLHierarchyNode::RemoveAllHierarchyChildrenNodes()
 {
   if (this->GetScene() == NULL)
@@ -532,11 +532,12 @@ void vtkMRMLHierarchyNode::RemoveAllHierarchyChildrenNodes()
   for (unsigned int i=0; i<children.size(); i++)
     {
     vtkMRMLHierarchyNode *child = children[i];
-    std::vector< vtkMRMLHierarchyNode *> childChildern = child->GetChildrenNodes();
-    for (unsigned int j=0; i<childChildern.size(); j++)
+    std::vector< vtkMRMLHierarchyNode *> childChildren = child->GetChildrenNodes();
+    for (unsigned int j=0; i<childChildren.size(); j++)
       {
-      childChildern[j]->RemoveAllHierarchyChildrenNodes();
+      childChildren[j]->RemoveAllHierarchyChildrenNodes();
       }
+    this->InvokeEvent(vtkMRMLHierarchyNode::ChildNodeRemovedEvent, child);
     this->GetScene()->RemoveNode(child);
     }
 }

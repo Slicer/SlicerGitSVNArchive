@@ -25,11 +25,12 @@
 #include "qMRMLLinearTransformSlider.h"
 
 // MRML includes
-#include "vtkMRMLLinearTransformNode.h"
+#include "vtkMRMLTransformNode.h"
 
 // VTK includes
 #include <vtkNew.h>
 #include <vtkTransform.h>
+#include <vtkWeakPointer.h>
 
 //-----------------------------------------------------------------------------
 class qMRMLLinearTransformSliderPrivate
@@ -38,7 +39,7 @@ public:
   qMRMLLinearTransformSliderPrivate();
   qMRMLLinearTransformSlider::TransformType            TypeOfTransform;
   qMRMLLinearTransformSlider::CoordinateReferenceType  CoordinateReference;
-  vtkMRMLLinearTransformNode*                          MRMLTransformNode;
+  vtkWeakPointer<vtkMRMLTransformNode>                 MRMLTransformNode;
   double                                               OldPosition;
 };
 
@@ -119,7 +120,7 @@ qMRMLLinearTransformSlider::CoordinateReferenceType qMRMLLinearTransformSlider::
 }
 
 // --------------------------------------------------------------------------
-void qMRMLLinearTransformSlider::setMRMLTransformNode(vtkMRMLLinearTransformNode* transformNode)
+void qMRMLLinearTransformSlider::setMRMLTransformNode(vtkMRMLTransformNode* transformNode)
 {
   Q_D(qMRMLLinearTransformSlider);
 
@@ -133,11 +134,11 @@ void qMRMLLinearTransformSlider::setMRMLTransformNode(vtkMRMLLinearTransformNode
   this->onMRMLTransformNodeModified(transformNode);
   // If the node is NULL, any action on the widget is meaningless, this is why
   // the widget is disabled
-  this->setEnabled(transformNode != 0);
+  this->setEnabled(transformNode != 0 && transformNode->IsLinear());
 }
 
 // --------------------------------------------------------------------------
-vtkMRMLLinearTransformNode* qMRMLLinearTransformSlider::mrmlTransformNode()const
+vtkMRMLTransformNode* qMRMLLinearTransformSlider::mrmlTransformNode()const
 {
   Q_D(const qMRMLLinearTransformSlider);
   return d->MRMLTransformNode;
@@ -148,16 +149,26 @@ void qMRMLLinearTransformSlider::onMRMLTransformNodeModified(vtkObject* caller)
 {
   Q_D(qMRMLLinearTransformSlider);
 
-  vtkMRMLLinearTransformNode* transformNode = vtkMRMLLinearTransformNode::SafeDownCast(caller);
+  vtkMRMLTransformNode* transformNode = vtkMRMLTransformNode::SafeDownCast(caller);
   if (!transformNode)
     {
     return;
     }
   Q_ASSERT(d->MRMLTransformNode == transformNode);
 
+  bool isLinear = transformNode->IsLinear();
+  this->setEnabled(isLinear);
+  if (!isLinear)
+    {
+    return;
+    }
+
   vtkNew<vtkTransform> transform;
-  qMRMLUtils::getTransformInCoordinateSystem(d->MRMLTransformNode,
-    d->CoordinateReference == qMRMLLinearTransformSlider::GLOBAL, transform.GetPointer());
+  if (d->MRMLTransformNode.GetPointer() != NULL)
+    {
+    qMRMLUtils::getTransformInCoordinateSystem(d->MRMLTransformNode,
+      d->CoordinateReference == qMRMLLinearTransformSlider::GLOBAL, transform.GetPointer());
+    }
 
   vtkMatrix4x4 * matrix = transform->GetMatrix();
   Q_ASSERT(matrix);
@@ -202,7 +213,7 @@ void qMRMLLinearTransformSlider::applyTransformation(double _sliderPosition)
 {
   Q_D(qMRMLLinearTransformSlider);
 
-  if (d->MRMLTransformNode == NULL)
+  if (d->MRMLTransformNode.GetPointer() == NULL || !d->MRMLTransformNode->IsLinear())
     {
     return;
     }
@@ -215,20 +226,36 @@ void qMRMLLinearTransformSlider::applyTransformation(double _sliderPosition)
   Q_ASSERT(matrix);
   if (!matrix) { return; }
 
+  bool transformChanged = false;
+  const double rotationChangeTolerance = 0.00001;
+  const double translationChangeTolerance = 0.00001;
+
   if (this->typeOfTransform() == ROTATION_LR)
     {
     double angle = _sliderPosition - d->OldPosition;
     transform->RotateX(angle);
+    if (fabs(angle)>rotationChangeTolerance)
+      {
+      transformChanged = true;
+      }
     }
   else if (this->typeOfTransform() == ROTATION_PA)
     {
     double angle = _sliderPosition - d->OldPosition;
     transform->RotateY(angle);
+    if (fabs(angle)>rotationChangeTolerance)
+      {
+      transformChanged = true;
+      }
     }
   else if (this->typeOfTransform() == ROTATION_IS)
     {
     double angle = _sliderPosition - d->OldPosition;
     transform->RotateZ(angle);
+    if (fabs(angle)>rotationChangeTolerance)
+      {
+      transformChanged = true;
+      }
     }
   else if (this->typeOfTransform() == TRANSLATION_LR)
     {
@@ -243,6 +270,10 @@ void qMRMLLinearTransformSlider::applyTransformation(double _sliderPosition)
       vector[0] = _sliderPosition - d->OldPosition;
       }
     transform->Translate(vector);
+    if (fabs(vector[0])>translationChangeTolerance)
+      {
+      transformChanged = true;
+      }
     }
   else if (this->typeOfTransform() == TRANSLATION_PA)
     {
@@ -257,6 +288,10 @@ void qMRMLLinearTransformSlider::applyTransformation(double _sliderPosition)
       vector[1] = _sliderPosition - d->OldPosition;
       }
     transform->Translate(vector);
+    if (fabs(vector[1])>translationChangeTolerance)
+      {
+      transformChanged = true;
+      }
     }
   else if (this->typeOfTransform() == TRANSLATION_IS)
     {
@@ -271,8 +306,15 @@ void qMRMLLinearTransformSlider::applyTransformation(double _sliderPosition)
       vector[2] = _sliderPosition - d->OldPosition;
       }
     transform->Translate(vector);
+    if (fabs(vector[2])>translationChangeTolerance)
+      {
+      transformChanged = true;
+      }
     }
   d->OldPosition = _sliderPosition;
 
+  if (transformChanged)
+    {
   d->MRMLTransformNode->SetMatrixTransformToParent(transform->GetMatrix());
+    }
 }

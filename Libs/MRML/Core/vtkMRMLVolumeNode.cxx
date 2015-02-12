@@ -22,17 +22,20 @@ Version:   $Revision: 1.14 $
 #include <vtkAlgorithmOutput.h>
 #include <vtkAppendPolyData.h>
 #include <vtkCallbackCommand.h>
+#include <vtkEventForwarderCommand.h>
 #include <vtkGeneralTransform.h>
 #include <vtkHomogeneousTransform.h>
 #include <vtkImageData.h>
 #include <vtkImageDataGeometryFilter.h>
-#include <vtkImageResliceMask.h>
+#include <vtkImageReslice.h>
 #include <vtkMathUtilities.h>
 #include <vtkMatrix4x4.h>
 #include <vtkNew.h>
 #include <vtkSmartPointer.h>
+#include <vtkTransform.h>
 #include <vtkTrivialProducer.h>
 
+#include <algorithm> // For std::min
 #include <cassert>
 
 //----------------------------------------------------------------------------
@@ -67,6 +70,7 @@ vtkMRMLVolumeNode::vtkMRMLVolumeNode()
   this->ImageData = NULL;
 #else
   this->ImageDataConnection = NULL;
+  this->DataEventForwarder = NULL;
 #endif
 }
 
@@ -74,6 +78,12 @@ vtkMRMLVolumeNode::vtkMRMLVolumeNode()
 vtkMRMLVolumeNode::~vtkMRMLVolumeNode()
 {
   this->SetAndObserveImageData(NULL);
+#if (VTK_MAJOR_VERSION > 5)
+  if (this->DataEventForwarder)
+    {
+    this->DataEventForwarder->Delete();
+    }
+#endif
 }
 
 //----------------------------------------------------------------------------
@@ -740,8 +750,27 @@ void vtkMRMLVolumeNode::SetAndObserveImageData(vtkImageData *imageData)
     }
   else
     {
+    vtkTrivialProducer* oldProducer = vtkTrivialProducer::SafeDownCast(
+      this->GetImageDataConnection() ? this->GetImageDataConnection()->GetProducer() : 0);
+    if (oldProducer && oldProducer->GetOutputDataObject(0) == imageData)
+      {
+      return;
+      }
+    else if (oldProducer && oldProducer->GetOutputDataObject(0))
+      {
+      oldProducer->GetOutputDataObject(0)->RemoveObservers(
+        vtkCommand::ModifiedEvent, this->DataEventForwarder);
+      }
     vtkNew<vtkTrivialProducer> tp;
     tp->SetOutput(imageData);
+    // Propagate ModifiedEvent onto the trivial producer to make sure
+    // PolyDataModifiedEvent is triggered.
+    if (!this->DataEventForwarder)
+      {
+      this->DataEventForwarder = vtkEventForwarderCommand::New();
+      }
+    this->DataEventForwarder->SetTarget(tp.GetPointer());
+    imageData->AddObserver(vtkCommand::ModifiedEvent, this->DataEventForwarder);
     this->SetImageDataConnection(tp->GetOutputPort());
     }
 }
@@ -1107,7 +1136,8 @@ void vtkMRMLVolumeNode::ApplyNonLinearTransform(vtkAbstractTransform* transform)
 
   ****/
 
-  vtkNew<vtkImageResliceMask> reslice;
+  vtkNew<vtkImageReslice> reslice;
+  reslice->GenerateStencilOutputOn();
 
   vtkNew<vtkGeneralTransform> resampleXform;
   resampleXform->Identity();
@@ -1124,9 +1154,17 @@ void vtkMRMLVolumeNode::ApplyNonLinearTransform(vtkAbstractTransform* transform)
   resampleXform->Concatenate(transform);
   resampleXform->Concatenate(rasToIJK.GetPointer());
 
-  //resampleXform->Inverse();
-
-  reslice->SetResliceTransform(resampleXform.GetPointer());
+  // vtkImageReslice works faster if the input is a linear transform, so try to convert it
+  // to a linear transform
+  vtkNew<vtkTransform> linearResampleXform;
+  if (vtkMRMLTransformNode::IsGeneralTransformLinear(resampleXform.GetPointer(), linearResampleXform.GetPointer()))
+    {
+    reslice->SetResliceTransform(linearResampleXform.GetPointer());
+    }
+  else
+    {
+    reslice->SetResliceTransform(resampleXform.GetPointer());
+    }
 
 #if (VTK_MAJOR_VERSION <= 5)
   reslice->SetInput(this->ImageData);
@@ -1164,10 +1202,13 @@ void vtkMRMLVolumeNode::ApplyNonLinearTransform(vtkAbstractTransform* transform)
 
   reslice->SetOutputExtent( extent);
 
-#if (VTK_MAJOR_VERSION <= 5)
-  reslice->GetBackgroundMask()->SetUpdateExtentToWholeExtent();
-#endif
   reslice->Update();
+#if (VTK_MAJOR_VERSION <= 5)
+  if (reslice->GetOutput(1))
+    {
+    reslice->GetOutput(1)->SetUpdateExtentToWholeExtent();
+    }
+#endif
 
   vtkNew<vtkImageData> resampleImage;
   resampleImage->DeepCopy(reslice->GetOutput());

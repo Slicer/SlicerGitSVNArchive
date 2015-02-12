@@ -112,9 +112,6 @@ set(KIT_SRCS
 
 set_source_files_properties(
   vtkMRMLDisplayableManagerGroup.cxx
-  vtkMRMLDisplayableManagerFactory.cxx
-  vtkMRMLThreeDViewDisplayableManagerFactory.cxx
-  vtkMRMLSliceViewDisplayableManagerFactory.cxx
   WRAP_EXCLUDE
   )
 
@@ -168,7 +165,7 @@ set(libs
 if(MRMLDisplayableManager_USE_PYTHON)
   if(${VTK_VERSION_MAJOR} GREATER 5)
     set(VTK_COMMON_PYTHON_LIBRARY
-      vtkCommonCorePythonD # For vtkPythonUtils
+      vtkWrappingPythonCore # For vtkPythonUtil
       )
   else()
     set(VTK_COMMON_PYTHON_LIBRARY
@@ -186,6 +183,16 @@ target_link_libraries(${lib_name} ${libs})
 # Apply user-defined properties to the library target.
 if(Slicer_LIBRARY_PROPERTIES)
   set_target_properties(${lib_name} PROPERTIES ${Slicer_LIBRARY_PROPERTIES})
+endif()
+
+# --------------------------------------------------------------------------
+# Folder
+# --------------------------------------------------------------------------
+if(NOT DEFINED ${PROJECT_NAME}_FOLDER)
+  set(${PROJECT_NAME}_FOLDER ${PROJECT_NAME})
+endif()
+if(NOT "${${PROJECT_NAME}_FOLDER}" STREQUAL "")
+  set_target_properties(${lib_name} PROPERTIES FOLDER ${${PROJECT_NAME}_FOLDER})
 endif()
 
 # --------------------------------------------------------------------------
@@ -227,6 +234,11 @@ if(MRMLDisplayableManager_USE_PYTHON)
     )
   # Export target
   export(TARGETS ${lib_name}Python ${lib_name}PythonD APPEND FILE ${${PROJECT_NAME}_EXPORT_FILE})
+  # Folder
+  if(NOT "${${PROJECT_NAME}_FOLDER}" STREQUAL "")
+    set_target_properties(${lib_name}Python PROPERTIES FOLDER ${${PROJECT_NAME}_FOLDER})
+    set_target_properties(${lib_name}PythonD PROPERTIES FOLDER ${${PROJECT_NAME}_FOLDER})
+  endif()
 
   add_subdirectory(Python)
 endif()

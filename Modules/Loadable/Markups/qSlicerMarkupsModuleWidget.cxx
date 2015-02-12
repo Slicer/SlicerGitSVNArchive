@@ -51,6 +51,7 @@
 #include "vtkSlicerMarkupsLogic.h"
 
 // VTK includes
+#include <vtkMath.h>
 #include <vtkNew.h>
 
 #include <math.h>
@@ -546,12 +547,14 @@ void qSlicerMarkupsModuleWidget::checkForAnnotationFiducialConversion()
     // don't show again check box conflicts with informative text, so use
     // a long text
     convertMsgBox.setText(labelText);
-    convertMsgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
-    convertMsgBox.setDefaultButton(QMessageBox::Yes);
+    QPushButton *convertButton =
+      convertMsgBox.addButton(tr("Convert"), QMessageBox::AcceptRole);
+    convertMsgBox.addButton(QMessageBox::Cancel);
+    convertMsgBox.setDefaultButton(convertButton);
     convertMsgBox.setDontShowAgainVisible(true);
     convertMsgBox.setDontShowAgainSettingsKey("Markups/AlwaysConvertAnnotationFiducials");
-    int ret = convertMsgBox.exec();
-    if (ret == QMessageBox::Yes)
+    convertMsgBox.exec();
+    if (convertMsgBox.clickedButton() == convertButton)
       {
       this->convertAnnotationFiducialsToMarkups();
       }
@@ -622,6 +625,12 @@ void qSlicerMarkupsModuleWidget::updateWidgetFromMRML()
   Q_D(qSlicerMarkupsModuleWidget);
 
   // std::cout << "updateWidgetFromMRML" << std::endl;
+
+  if (!this->mrmlScene())
+    {
+    this->clearGUI();
+    return;
+    }
 
   // get the active markup
   vtkMRMLNode *markupsNodeMRML = NULL;
@@ -1063,10 +1072,15 @@ void qSlicerMarkupsModuleWidget::updateRow(int m)
      }
 
    // point
-   double point[3];
+   double point[3] = {0.0, 0.0, 0.0};
    if (d->transformedCoordinatesCheckBox->isChecked())
      {
-     markupsNode->GetMarkupPointWorld(m, 0, point);
+     double worldPoint[4] = {0.0, 0.0, 0.0, 1.0};
+     markupsNode->GetMarkupPointWorld(m, 0, worldPoint);
+     for (int p = 0; p < 3; ++p)
+       {
+       point[p] = worldPoint[p];
+       }
      }
    else
      {
@@ -1833,27 +1847,28 @@ void qSlicerMarkupsModuleWidget::onActiveMarkupMRMLNodeChanged(vtkMRMLNode *mark
 
   //qDebug() << "onActiveMarkupMRMLNodeChanged, markupsNode is " << (markupsNode ? markupsNode->GetID() : "null");
 
-  // get the current node from the combo box
-  QString activeMarkupsNodeID = d->activeMarkupMRMLNodeComboBox->currentNodeID();
-  const char *activeID = NULL;
-  if (markupsNode)
-    {
-    activeID = markupsNode->GetID();
-    }
-
-  //qDebug() << "setActiveMarkupsNode: combo box says: " << qPrintable(activeMarkupsNodeID) << ", input node says " << (activeID ? activeID : "null");
   // update the selection node
-  std::string selectionNodeID = (this->markupsLogic() ? this->markupsLogic()->GetSelectionNodeID() : std::string(""));
-  vtkMRMLNode *node = this->mrmlScene()->GetNodeByID(selectionNodeID.c_str());
   vtkMRMLSelectionNode *selectionNode = NULL;
-  if (node)
+  if (this->mrmlScene() && this->markupsLogic())
     {
-    selectionNode = vtkMRMLSelectionNode::SafeDownCast(node);
+    selectionNode = vtkMRMLSelectionNode::SafeDownCast(
+          this->mrmlScene()->GetNodeByID(this->markupsLogic()->GetSelectionNodeID().c_str()));
     }
   if (selectionNode)
     {
     // check if changed
     const char *selectionNodeActivePlaceNodeID = selectionNode->GetActivePlaceNodeID();
+
+    const char *activeID = NULL;
+    if (markupsNode)
+      {
+      activeID = markupsNode->GetID();
+      }
+
+    // get the current node from the combo box
+    //QString activeMarkupsNodeID = d->activeMarkupMRMLNodeComboBox->currentNodeID();
+    //qDebug() << "setActiveMarkupsNode: combo box says: " << qPrintable(activeMarkupsNodeID) << ", input node says " << (activeID ? activeID : "null");
+
     // don't update the selection node if the active ID is null (can happen
     // when entering the module)
     if (activeID != NULL)
@@ -1872,10 +1887,6 @@ void qSlicerMarkupsModuleWidget::onActiveMarkupMRMLNodeChanged(vtkMRMLNode *mark
         d->activeMarkupMRMLNodeComboBox->setCurrentNodeID(selectionNodeActivePlaceNodeID);
         }
       }
-    }
-  else
-    {
-    qDebug() << "On Active MRML node changed: Failed to change active markups node id on selection node '" << selectionNodeID.c_str() << "'";
     }
 
   // update the GUI
@@ -2162,10 +2173,15 @@ void qSlicerMarkupsModuleWidget::onActiveMarkupTableCellChanged(int row, int col
     newPoint[2] = d->activeMarkupTableWidget->item(row, d->columnIndex("S"))->text().toDouble();
 
     // get the old value
-    double point[3];
+    double point[3] = {0.0, 0.0, 0.0};
     if (d->transformedCoordinatesCheckBox->isChecked())
       {
-      listNode->GetMarkupPointWorld(n, 0, point);
+      double worldPoint[4] = {0.0, 0.0, 0.0, 1.0};
+      listNode->GetMarkupPointWorld(n, 0, worldPoint);
+      for (int p = 0; p < 3; ++p)
+       {
+       point[p] = worldPoint[p];
+       }
       }
     else
       {
@@ -2291,6 +2307,13 @@ void qSlicerMarkupsModuleWidget::onRightClickActiveMarkupTableWidget(QPoint pos)
   QObject::connect(jumpSlicesAction, SIGNAL(triggered()),
                    this, SLOT(onJumpSlicesActionTriggered()));
 
+  // Refocus 3D cameras
+  QAction *refocusCamerasAction =
+    new QAction(QString("Refocus all cameras"), &menu);
+  menu.addAction(refocusCamerasAction);
+  QObject::connect(refocusCamerasAction, SIGNAL(triggered()),
+                   this, SLOT(onRefocusCamerasActionTriggered()));
+
   // If there's another list in the scene
   if (this->mrmlScene()->GetNumberOfNodesByClass("vtkMRMLMarkupsNode") > 1)
     {
@@ -2339,14 +2362,24 @@ void qSlicerMarkupsModuleWidget::addSelectedCoordinatesToMenu(QMenu *menu)
 
   // get the list of selected rows to sort them in index order
   QList<int> rows;
-  for (int i = 0; i < selectedItems.size(); i += d->numberOfColumns())
+  // The selected items list contains an item for each column in each row that
+  // has been selected. Don't make any assumptions about the order of the
+  // selected items, iterate through all of them and collect unique rows
+  for (int i = 0; i < selectedItems.size(); ++i)
     {
     // get the row
     int row = selectedItems.at(i)->row();
-    rows << row;
+    if (!rows.contains(row))
+      {
+      rows << row;
+      }
     }
   // sort the list
   qSort(rows);
+
+  // keep track of point to point distance
+  double distance = 0.0;
+  double lastPoint[3] = {0.0, 0.0, 0.0};
 
   // loop over the selected rows
   for (int i = 0; i < rows.size() ; i++)
@@ -2362,10 +2395,15 @@ void qSlicerMarkupsModuleWidget::addSelectedCoordinatesToMenu(QMenu *menu)
       }
     for (int p = 0; p < numPoints; ++p)
       {
-      double point[3];
+      double point[3] = {0.0, 0.0, 0.0};
       if (d->transformedCoordinatesCheckBox->isChecked())
         {
-        markupsNode->GetMarkupPointWorld(row, p, point);
+        double worldPoint[4] = {0.0, 0.0, 0.0, 1.0};
+        markupsNode->GetMarkupPointWorld(row, p, worldPoint);
+        for (int p = 0; p < 3; ++p)
+          {
+          point[p] = worldPoint[p];
+          }
         }
       else
         {
@@ -2377,9 +2415,29 @@ void qSlicerMarkupsModuleWidget::addSelectedCoordinatesToMenu(QMenu *menu)
         QString::number(point[1]) + QString(",") +
         QString::number(point[2]);
       menu->addAction(coordinate);
+
+      // calculate the point to point accumulated distance for fiducials
+      if (numPoints == 1 && rows.size() > 1)
+        {
+        if (i > 0)
+          {
+          double distanceToLastPoint = vtkMath::Distance2BetweenPoints(lastPoint, point);
+          if (distanceToLastPoint != 0.0)
+            {
+            distanceToLastPoint = sqrt(distanceToLastPoint);
+            }
+          distance += distanceToLastPoint;
+          }
+        lastPoint[0] = point[0];
+        lastPoint[1] = point[1];
+        lastPoint[2] = point[2];
+        }
       }
     }
-
+  if (distance != 0.0)
+    {
+    menu->addAction(QString("Summed linear distance: %1").arg(distance));
+    }
   menu->addSeparator();
 }
 
@@ -2416,6 +2474,35 @@ void qSlicerMarkupsModuleWidget::onJumpSlicesActionTriggered()
     {
     // use the first selected
     this->markupsLogic()->JumpSlicesToNthPointInMarkup(mrmlNode->GetID(), selectedItems.at(0)->row(), jumpCentered);
+    }
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerMarkupsModuleWidget::onRefocusCamerasActionTriggered()
+{
+ Q_D(qSlicerMarkupsModuleWidget);
+
+  // get the selected rows
+  QList<QTableWidgetItem *> selectedItems = d->activeMarkupTableWidget->selectedItems();
+
+  // first, check if nothing is selected
+  if (selectedItems.isEmpty())
+    {
+    return;
+    }
+
+  // get the active node
+  vtkMRMLNode *mrmlNode = d->activeMarkupMRMLNodeComboBox->currentNode();
+  if (!mrmlNode)
+    {
+    return;
+    }
+
+  // refocus on this point
+  if (this->markupsLogic())
+    {
+    // use the first selected
+    this->markupsLogic()->FocusCamerasOnNthPointInMarkup(mrmlNode->GetID(), selectedItems.at(0)->row());
     }
 }
 

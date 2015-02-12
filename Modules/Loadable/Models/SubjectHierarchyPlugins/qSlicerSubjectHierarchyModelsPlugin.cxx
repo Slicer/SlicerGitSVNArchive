@@ -2,7 +2,8 @@
 
   Program: 3D Slicer
 
-  Copyright (c) Kitware Inc.
+  Copyright (c) Laboratory for Percutaneous Surgery (PerkLab)
+  Queen's University, Kingston, ON, Canada. All Rights Reserved.
 
   See COPYRIGHT.txt
   or http://www.slicer.org/copyright/copyright.txt for details.
@@ -31,10 +32,13 @@
 // MRML includes
 #include <vtkMRMLNode.h>
 #include <vtkMRMLScene.h>
+#include <vtkMRMLModelNode.h>
+#include <vtkMRMLModelDisplayNode.h>
 
 // VTK includes
 #include <vtkObjectFactory.h>
 #include <vtkSmartPointer.h>
+#include <vtkPolyData.h>
 
 // Qt includes
 #include <QDebug>
@@ -139,31 +143,30 @@ const QString qSlicerSubjectHierarchyModelsPlugin::roleForPlugin()const
 }
 
 //---------------------------------------------------------------------------
-bool qSlicerSubjectHierarchyModelsPlugin::setIcon(vtkMRMLSubjectHierarchyNode* node, QStandardItem* item)
+QIcon qSlicerSubjectHierarchyModelsPlugin::icon(vtkMRMLSubjectHierarchyNode* node)
 {
-  if (!node || !item)
+  if (!node)
     {
-    qCritical() << "qSlicerSubjectHierarchyModelsPlugin::setIcon: NULL node or item given!";
-    return false;
+    qCritical() << "qSlicerSubjectHierarchyModelsPlugin::icon: NULL node given!";
+    return QIcon();
     }
 
   Q_D(qSlicerSubjectHierarchyModelsPlugin);
 
   if (this->canOwnSubjectHierarchyNode(node))
     {
-    item->setIcon(d->ModelIcon);
-    return true;
+    return d->ModelIcon;
     }
 
   // Node unknown by plugin
-  return false;
+  return QIcon();
 }
 
 //---------------------------------------------------------------------------
-void qSlicerSubjectHierarchyModelsPlugin::setVisibilityIcon(vtkMRMLSubjectHierarchyNode* node, QStandardItem* item)
+QIcon qSlicerSubjectHierarchyModelsPlugin::visibilityIcon(int visible)
 {
   // Have the default plugin (which is not registered) take care of this
-  qSlicerSubjectHierarchyPluginHandler::instance()->defaultPlugin()->setVisibilityIcon(node, item);
+  return qSlicerSubjectHierarchyPluginHandler::instance()->defaultPlugin()->visibilityIcon(visible);
 }
 
 //---------------------------------------------------------------------------
@@ -182,3 +185,45 @@ void qSlicerSubjectHierarchyModelsPlugin::editProperties(vtkMRMLSubjectHierarchy
       }
     }
 }
+
+//-----------------------------------------------------------------------------
+QString qSlicerSubjectHierarchyModelsPlugin::tooltip(vtkMRMLSubjectHierarchyNode* node)const
+{
+  if (!node)
+    {
+    qCritical() << "qSlicerSubjectHierarchyModelsPlugin::tooltip: Subject hierarchy node is NULL!";
+    return QString("Invalid!");
+    }
+
+  // Get basic tooltip from abstract plugin
+  QString tooltipString = Superclass::tooltip(node);
+
+  vtkMRMLModelNode* modelNode =
+    vtkMRMLModelNode::SafeDownCast(node->GetAssociatedNode());
+  vtkPolyData* polyData = modelNode->GetPolyData();
+  if (modelNode && modelNode->GetDisplayNode() && polyData)
+    {
+    vtkMRMLModelDisplayNode* displayNode =
+      vtkMRMLModelDisplayNode::SafeDownCast(modelNode->GetDisplayNode());
+    bool visible = (displayNode->GetVisibility() > 0);
+    tooltipString.append( QString(" (Points: %1  Cells: %2  Visible: %3")
+      .arg(polyData->GetNumberOfPoints()).arg(polyData->GetNumberOfCells())
+      .arg(visible ? "YES" : "NO") );
+    if (visible)
+      {
+        double color[3] = {0.0,0.0,0.0};
+        displayNode->GetColor(color);
+      tooltipString.append( QString("  Color: %4,%5,%6  Opacity: %7%")
+        .arg(int(color[0]*255.0)).arg(int(color[1]*255.0)).arg(int(color[2]*255.0))
+        .arg(int(displayNode->GetOpacity()*100.0)) );
+      }
+    tooltipString.append(QString(")"));
+    }
+  else
+    {
+    tooltipString.append(" !Invalid model!");
+    }
+
+  return tooltipString;
+}
+

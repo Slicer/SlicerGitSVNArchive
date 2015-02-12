@@ -31,6 +31,7 @@
 #include "vtkMRMLAnnotationTextDisplayNode.h"
 
 // MRML includes
+#include "vtkMRMLCameraNode.h"
 #include "vtkMRMLHierarchyNode.h"
 #include "vtkMRMLInteractionNode.h"
 #include "vtkMRMLScene.h"
@@ -89,10 +90,9 @@ vtkSlicerMarkupsLogic::vtkSlicerMarkupsLogic()
   // link an observation of the modified event on the display node to trigger
   // a modified event on the logic so any settings panel can get updated
   // first, create the callback
-  vtkSlicerMarkupsLogicCallback *myCallback = vtkSlicerMarkupsLogicCallback::New();
+  vtkNew<vtkSlicerMarkupsLogicCallback> myCallback;
   myCallback->SetLogic(this);
-  this->DefaultMarkupsDisplayNode->AddObserver(vtkCommand::ModifiedEvent, myCallback);
-  myCallback->Delete();
+  this->DefaultMarkupsDisplayNode->AddObserver(vtkCommand::ModifiedEvent, myCallback.GetPointer());
 }
 
 //----------------------------------------------------------------------------
@@ -173,28 +173,18 @@ void vtkSlicerMarkupsLogic::RegisterNodes()
 {
   assert(this->GetMRMLScene() != 0);
 
-  // Nodes
-  vtkMRMLMarkupsNode* markupsNode = vtkMRMLMarkupsNode::New();
-  this->GetMRMLScene()->RegisterNodeClass(markupsNode);
-  markupsNode->Delete();
+  vtkMRMLScene *scene = this->GetMRMLScene();
 
-  vtkMRMLMarkupsFiducialNode* fidNode = vtkMRMLMarkupsFiducialNode::New();
-  this->GetMRMLScene()->RegisterNodeClass(fidNode);
-  fidNode->Delete();
+  // Nodes
+  scene->RegisterNodeClass(vtkSmartPointer<vtkMRMLMarkupsNode>::New());
+  scene->RegisterNodeClass(vtkSmartPointer<vtkMRMLMarkupsFiducialNode>::New());
 
   // Display nodes
-  vtkMRMLMarkupsDisplayNode* markupsDisplayNode = vtkMRMLMarkupsDisplayNode::New();
-  this->GetMRMLScene()->RegisterNodeClass(markupsDisplayNode);
-  markupsDisplayNode->Delete();
+  scene->RegisterNodeClass(vtkSmartPointer<vtkMRMLMarkupsDisplayNode>::New());
 
   // Storage Nodes
-  vtkMRMLMarkupsStorageNode* markupsStorageNode = vtkMRMLMarkupsStorageNode::New();
-  this->GetMRMLScene()->RegisterNodeClass(markupsStorageNode);
-  markupsStorageNode->Delete();
-
-  vtkMRMLMarkupsFiducialStorageNode* markupsFiducialStorageNode = vtkMRMLMarkupsFiducialStorageNode::New();
-  this->GetMRMLScene()->RegisterNodeClass(markupsFiducialStorageNode);
-  markupsFiducialStorageNode->Delete();
+  scene->RegisterNodeClass(vtkSmartPointer<vtkMRMLMarkupsStorageNode>::New());
+  scene->RegisterNodeClass(vtkSmartPointer<vtkMRMLMarkupsFiducialStorageNode>::New());
 }
 
 //---------------------------------------------------------------------------
@@ -572,7 +562,7 @@ void vtkSlicerMarkupsLogic::JumpSlicesToNthPointInMarkup(const char *id, int n, 
     }
   if (!this->GetMRMLScene())
     {
-    vtkErrorMacro("JumpSlicesToLocation: No scene defined");
+    vtkErrorMacro("JumpSlicesToNthPointInMarkup: No scene defined");
     return;
     }
   // get the markups node
@@ -589,6 +579,78 @@ void vtkSlicerMarkupsLogic::JumpSlicesToNthPointInMarkup(const char *id, int n, 
     markup->GetMarkupPointWorld(n, 0, point);
     this->JumpSlicesToLocation(point[0], point[1], point[2], centered);
     }
+}
+
+//---------------------------------------------------------------------------
+void vtkSlicerMarkupsLogic::FocusCamerasOnNthPointInMarkup(const char *id, int n)
+{
+
+  if (!this->GetMRMLScene())
+    {
+    vtkErrorMacro("FocusCamerasOnNthPointInMarkup: No scene defined");
+    return;
+    }
+
+  std::vector<vtkMRMLNode *> cameraNodes;
+  this->GetMRMLScene()->GetNodesByClass("vtkMRMLCameraNode", cameraNodes);
+  vtkMRMLNode *node;
+  for (unsigned int i = 0; i < cameraNodes.size(); ++i)
+    {
+    node = cameraNodes[i];
+    if (node)
+      {
+      this->FocusCameraOnNthPointInMarkup(node->GetID(), id, n);
+      }
+    }
+}
+//---------------------------------------------------------------------------
+void vtkSlicerMarkupsLogic::FocusCameraOnNthPointInMarkup(
+    const char *cameraNodeID, const char *markupNodeID, int n)
+{
+  if (!cameraNodeID || !markupNodeID)
+    {
+    return;
+    }
+  if (!this->GetMRMLScene())
+    {
+    vtkErrorMacro("FocusCameraOnNthPointInMarkup: No scene defined");
+    return;
+    }
+
+  // get the camera node
+  vtkMRMLNode *mrmlNode1 = this->GetMRMLScene()->GetNodeByID(cameraNodeID);
+  if (mrmlNode1 == NULL)
+    {
+    vtkErrorMacro("FocusCameraOnNthPointInMarkup: unable to find node with id " << cameraNodeID);
+    return;
+    }
+  vtkMRMLCameraNode *cameraNode = vtkMRMLCameraNode::SafeDownCast(mrmlNode1);
+  if (!cameraNode)
+    {
+    vtkErrorMacro("FocusCameraOnNthPointInMarkup: unable to find camera with id " << cameraNodeID);
+    return;
+    }
+
+  // get the markups node
+  vtkMRMLNode *mrmlNode2 = this->GetMRMLScene()->GetNodeByID(markupNodeID);
+  if (mrmlNode2 == NULL)
+    {
+    vtkErrorMacro("FocusCameraOnNthPointInMarkup: unable to find node with id " << markupNodeID);
+    return;
+    }
+  vtkMRMLMarkupsNode *markup = vtkMRMLMarkupsNode::SafeDownCast(mrmlNode2);
+  if (!markup)
+    {
+    vtkErrorMacro("FocusCameraOnNthPointInMarkup: unable to find markup with id " << markupNodeID);
+    return;
+    }
+
+    double point[4];
+    // get the first point for now
+    markup->GetMarkupPointWorld(n, 0, point);
+
+    // and focus the camera there
+    cameraNode->SetFocalPoint(point[0], point[1], point[2]);
 }
 
 //---------------------------------------------------------------------------

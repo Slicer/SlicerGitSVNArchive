@@ -2,7 +2,8 @@
 
   Program: 3D Slicer
 
-  Copyright (c) Kitware Inc.
+  Copyright (c) Laboratory for Percutaneous Surgery (PerkLab)
+  Queen's University, Kingston, ON, Canada. All Rights Reserved.
 
   See COPYRIGHT.txt
   or http://www.slicer.org/copyright/copyright.txt for details.
@@ -58,14 +59,8 @@ public:
     LastRole
   };
 
-  /// Function returning the supported MIME types
-  virtual QStringList mimeTypes()const;
-
-  /// Function encoding the dragged item to MIME data
-  virtual QMimeData* mimeData(const QModelIndexList &indexes)const;
-
-  /// Handles dropping of items
-  virtual bool dropMimeData(const QMimeData* data, Qt::DropAction action, int row, int column, const QModelIndex &parent);
+  /// Define drop actions
+  virtual Qt::DropActions supportedDropActions()const;
 
   /// Get parent node
   virtual vtkMRMLNode* parentNode(vtkMRMLNode* node)const;
@@ -95,13 +90,10 @@ public slots:
   /// Harden transform on branch of current node
   void onHardenTransformOnBranchOfCurrentNode();
 
-  /// Force update of the scene in the model
-  void forceUpdateScene();
-
 signals:
   void saveTreeExpandState();
   void loadTreeExpandState();
-  void invalidateModels();
+  void invalidateFilter();
 
 protected:
   /// Get the largest column ID
@@ -115,6 +107,9 @@ protected:
 
   /// Overridden function to handle node update from tree view item
   virtual void updateNodeFromItemData(vtkMRMLNode* node, QStandardItem* item);
+
+protected slots:
+  virtual void onMRMLSceneImported(vtkMRMLScene* scene);
 
 private:
   Q_DECLARE_PRIVATE(qMRMLSceneSubjectHierarchyModel);

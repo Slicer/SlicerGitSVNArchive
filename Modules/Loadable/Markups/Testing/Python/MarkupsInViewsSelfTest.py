@@ -175,7 +175,7 @@ class MarkupsInViewsSelfTestLogic:
       sliceView.getDisplayableManagers(ms)
       for i in range(ms.GetNumberOfItems()):
         m = ms.GetItemAsObject(i)
-        if m.GetClassName() == 'vtkMRMLMarkupsFiducialDisplayableManager2D' and m.GetSliceNode().GetID() == sliceNodeID:
+        if m.GetClassName() == 'vtkMRMLMarkupsFiducialDisplayableManager2D' and m.GetMRMLSliceNode().GetID() == sliceNodeID:
           h = m.GetHelper()
           seedWidget = h.GetWidget(fidNode)
           return seedWidget.GetEnabled()
@@ -332,6 +332,8 @@ class MarkupsInViewsSelfTestLogic:
 
     # jump to the last fiducial
     slicer.modules.markups.logic().JumpSlicesToNthPointInMarkup(fidNode.GetID(), index, 1)
+    # refocus the 3D cameras as well
+    slicer.modules.markups.logic().FocusCamerasOnNthPointInMarkup(fidNode.GetID(), index)
 
     # show only in red
     displayNode.AddViewNodeID('vtkMRMLSliceNodeRed')

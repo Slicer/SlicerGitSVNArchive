@@ -55,6 +55,7 @@
 #include "qSlicerActionsDialog.h"
 #include "qSlicerApplication.h"
 #include "qSlicerAppAboutDialog.h"
+#include "qSlicerAppErrorReportDialog.h"
 #include "qSlicerAbstractModule.h"
 #if defined Slicer_USE_QtTesting && defined Slicer_BUILD_CLI_SUPPORT
 #include "qSlicerCLIModuleWidgetEventPlayer.h"
@@ -508,7 +509,10 @@ void qSlicerAppMainWindowPrivate::setupRecentlyLoadedMenu(const QList<qSlicerIO:
     {
     qSlicerIO::IOProperties filePropertie = iterator.previous();
     QString fileName = filePropertie.value("fileName").toString();
-    Q_ASSERT(!fileName.isEmpty());
+    if (fileName.isEmpty())
+      {
+      continue;
+      }
     QAction * action = this->RecentlyLoadedMenu->addAction(
       fileName, q, SLOT(onFileRecentLoadedActionTriggered()));
     action->setProperty("fileParameters", filePropertie);
@@ -964,7 +968,8 @@ void qSlicerAppMainWindow::on_HelpAboutSlicerAppAction_triggered()
 //---------------------------------------------------------------------------
 void qSlicerAppMainWindow::on_HelpReportBugOrFeatureRequestAction_triggered()
 {
-  QDesktopServices::openUrl(QUrl("http://www.na-mic.org/Bug/index.php"));
+  qSlicerAppErrorReportDialog errorReport(this);
+  errorReport.exec();
 }
 
 //---------------------------------------------------------------------------

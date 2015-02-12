@@ -12,10 +12,10 @@
 #     'glxinfo | grep OpenGL' to obtain GPU details.
 ####################################################################################
 
-cmake_minimum_required(VERSION 2.8.4)
+cmake_minimum_required(VERSION 2.8.9)
 
 #
-# For additional information, see http://www.slicer.org/slicerWiki/index.php/Documentation/4.3/Developers/Tutorials/DashboardSetup
+# For additional information, see http://www.slicer.org/slicerWiki/index.php/Documentation/Nightly/Developers/Tutorials/DashboardSetup
 #
 
 #-----------------------------------------------------------------------------
@@ -68,8 +68,6 @@ set(WITH_COVERAGE FALSE)
 set(WITH_DOCUMENTATION FALSE)
 #set(DOCUMENTATION_ARCHIVES_OUTPUT_DIRECTORY ) # for example: $ENV{HOME}/Projects/Doxygen
 set(WITH_PACKAGES FALSE)
-set(WITH_TESTING_EXTENSIONS FALSE) # Indicates if Slicer testing extensions should be
-                                   # built, tested, packaged and uploaded.
 set(CTEST_BUILD_CONFIGURATION "Release")
 set(CTEST_TEST_TIMEOUT 500)
 set(CTEST_BUILD_FLAGS "") # Use multiple CPU cores to build. For example "-j -l4" on unix
@@ -79,8 +77,6 @@ set(CTEST_PARALLEL_LEVEL 8) # Number of tests running in parallel
 # Additional CMakeCache options
 #-----------------------------------------------------------------------------
 set(ADDITIONAL_CMAKECACHE_OPTION "
-  ADDITIONAL_C_FLAGS:STRING=
-  ADDITIONAL_CXX_FLAGS:STRING=
   Slicer_USE_PYTHONQT:BOOL=ON
   Slicer_USE_PYTHONQT_WITH_TCL:BOOL=ON
   Slicer_BUILD_CLI:BOOL=OFF

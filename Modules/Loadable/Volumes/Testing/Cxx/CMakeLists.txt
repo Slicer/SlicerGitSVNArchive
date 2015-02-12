@@ -8,7 +8,7 @@ set(KIT qSlicer${MODULE_NAME}Module)
 set(${KIT}Testing_ITK_COMPONENTS
   ITKCommon
   )
-find_package(ITK 4.5 COMPONENTS ${${KIT}Testing_ITK_COMPONENTS} REQUIRED)
+find_package(ITK 4.6 COMPONENTS ${${KIT}Testing_ITK_COMPONENTS} REQUIRED)
 set(ITK_NO_IO_FACTORY_REGISTER_MANAGER 1) # See Libs/ITKFactoryRegistration/CMakeLists.txt
 list(APPEND ITK_LIBRARIES ITKFactoryRegistration)
 list(APPEND ITK_INCLUDE_DIRS
@@ -43,6 +43,7 @@ simple_test(vtkSlicerVolumesLogicTest1 ${INPUT}/fixed.nrrd)
 #-----------------------------------------------------------------------------
 add_executable(vtkSlicer${MODULE_NAME}LogicTest2 vtkSlicer${MODULE_NAME}LogicTest2.cxx)
 target_link_libraries(vtkSlicer${MODULE_NAME}LogicTest2 ${KIT})
+set_target_properties(vtkSlicer${MODULE_NAME}LogicTest2 PROPERTIES FOLDER "Module-${MODULE_NAME}")
 
 add_test(NAME vtkSlicer${MODULE_NAME}LogicTest2
   COMMAND ${Slicer_LAUNCH_COMMAND} $<TARGET_FILE:vtkSlicer${MODULE_NAME}LogicTest2>

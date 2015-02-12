@@ -2,7 +2,8 @@
 
   Program: 3D Slicer
 
-  Copyright (c) Kitware Inc.
+  Copyright (c) Laboratory for Percutaneous Surgery (PerkLab)
+  Queen's University, Kingston, ON, Canada. All Rights Reserved.
 
   See COPYRIGHT.txt
   or http://www.slicer.org/copyright/copyright.txt for details.
@@ -26,7 +27,6 @@
 // SubjectHierarchy Plugins includes
 #include "qSlicerSubjectHierarchyPluginHandler.h"
 #include "qSlicerSubjectHierarchyCloneNodePlugin.h"
-#include "qSlicerSubjectHierarchyDefaultPlugin.h"
 
 // Slicer includes
 #include "qSlicerCoreApplication.h"
@@ -54,7 +54,7 @@
 const std::string qSlicerSubjectHierarchyCloneNodePlugin::CLONE_NODE_NAME_POSTFIX = std::string(" Copy");
 
 //-----------------------------------------------------------------------------
-/// \ingroup Slicer_QtModules_SubjectHierarchy_Plugins
+/// \ingroup Slicer_QtModules_SubjectHierarchy_Widgets
 class qSlicerSubjectHierarchyCloneNodePluginPrivate: public QObject
 {
   Q_DECLARE_PUBLIC(qSlicerSubjectHierarchyCloneNodePlugin);
@@ -215,13 +215,13 @@ void qSlicerSubjectHierarchyCloneNodePlugin::cloneCurrentNode()
 
     // Trigger update
     clonedSubjectHierarchyNode->Modified();
-    emit requestInvalidateModels();
+    emit requestInvalidateFilter();
     }
   else // No associated node
     {
     std::string clonedSubjectHierarchyNodeName = currentNode->GetName();
     vtksys::SystemTools::ReplaceString(clonedSubjectHierarchyNodeName,
-      vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_NODE_NAME_POSTFIX.c_str(), "");
+      vtkMRMLSubjectHierarchyConstants::GetSubjectHierarchyNodeNamePostfix().c_str(), "");
     clonedSubjectHierarchyNodeName.append(CLONE_NODE_NAME_POSTFIX);
 
     vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(scene,

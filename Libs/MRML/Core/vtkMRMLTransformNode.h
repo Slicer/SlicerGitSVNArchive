@@ -21,6 +21,7 @@ class vtkCollection;
 class vtkAbstractTransform;
 class vtkGeneralTransform;
 class vtkMatrix4x4;
+class vtkTransform;
 
 /// \brief MRML node for representing a transformation
 /// between this node space and a parent node space.
@@ -62,12 +63,40 @@ public:
     };
 
   ///
-  /// 1 if transfrom is linear, 0 otherwise
-  virtual int IsLinear() { return 0; }
+  /// Returns 1 if transform is a non-composite linear tansform, 0 otherwise (if composite transform or non-linear transform)
+  virtual int IsLinear();
+
+  ///
+  /// Returns 1 if the transform is a composite transform (a transform that may contain multiple simple transforms)
+  virtual int IsComposite();
 
   ///
   /// Transform of this node to parent
   virtual vtkAbstractTransform* GetTransformToParent();
+
+  ///
+  /// Get the vtkMatrix4x4 transform of this node to parent node
+  /// Returns 0 if the transform is not linear or there is an error.
+  virtual int GetMatrixTransformToParent(vtkMatrix4x4* matrix);
+
+  ///
+  /// Get the vtkMatrix4x4 transform of this node from parent node
+  /// Returns 0 if the transform is not linear or there is an error.
+  virtual int GetMatrixTransformFromParent(vtkMatrix4x4* matrix);
+
+  ///
+  /// Set a new matrix transform of this node to parent node.
+  /// Deprecated! Use GetMatrixTransformToParent(vtkMatrix4x4*) instead.
+  /// The method returns a cached copy of the transform, so modification
+  /// of the matrix does not alter the transform node.
+  virtual vtkMatrix4x4* GetMatrixTransformToParent();
+
+  ///
+  /// Set a new matrix transform of this node from parent node.
+  /// Deprecated! Use GetMatrixTransformFromParent(vtkMatrix4x4*) instead.
+  /// The method returns a cached copy of the transform, so modification
+  /// of the matrix does not alter the transform node.
+  virtual vtkMatrix4x4* GetMatrixTransformFromParent();
 
   ///
   /// Get a human-readable description of the transform
@@ -103,24 +132,48 @@ public:
                           vtkGeneralTransform* transformToNode);
 
   ///
-  /// Get concatenated transforms to the top.
-  /// This method and probably needs to be moved down a level in the
-  /// hierarchy because this node cannot satisfy the call.
-  /// Must be overridden in linear transform node classses.
+  /// Get concatenated transforms to the top parent.
   /// Returns 0 if the transform is not linear (cannot be described by a matrix).
   virtual int GetMatrixTransformToWorld(vtkMatrix4x4* transformToWorld);
 
   ///
   /// Get concatenated transforms between nodes
-  /// This method and probably needs to be moved down a level in the
-  /// hierarchy because this node cannot satisfy the call.
-  /// Must be overridden in linear transform node classses.
   /// Returns 0 if the transform is not linear (cannot be described by a matrix).
   virtual int GetMatrixTransformToNode(vtkMRMLTransformNode* node,
                                        vtkMatrix4x4* transformToNode);
   ///
   /// Returns 1 if this node is one of the node's descendents
   int IsTransformNodeMyParent(vtkMRMLTransformNode* node);
+
+  ///
+  /// Set a new matrix transform of this node to parent node.
+  /// Invokes a TransformModified event (does not invoke Modified).
+  /// Returns 0 if the current transform is not linear.
+  virtual int SetMatrixTransformToParent(vtkMatrix4x4 *matrix);
+
+  ///
+  /// Set a new matrix transform of this node from parent node.
+  /// Invokes a TransformModified event (does not invoke Modified).
+  /// Returns 0 if the current transform is not linear.
+  virtual int SetMatrixTransformFromParent(vtkMatrix4x4 *matrix);
+
+  ///
+  /// Applies a transformation matrix by multiplying it with the current
+  /// matrix. The resulting transform will be a simple (non-composite)
+  /// linear transform.
+  virtual void ApplyTransformMatrix(vtkMatrix4x4* transformMatrix);
+
+  ///
+  /// Set a new matrix transform of this node to parent node.
+  /// Returns 0 if the current transform is not linear.
+  /// Deprecated! Use SetMatrixTransformToParent instead.
+  virtual int SetAndObserveMatrixTransformToParent(vtkMatrix4x4 *matrix);
+
+  ///
+  /// Set a new matrix transform of this node from parent node.
+  /// Returns 0 if the current transform is not linear.
+  /// Deprecated! Use SetMatrixTransformToParent instead.
+  virtual int SetAndObserveMatrixTransformFromParent(vtkMatrix4x4 *matrix);
 
   ///
   /// Returns 1 if the node is one of the this node's descendents
@@ -131,6 +184,11 @@ public:
   /// Reimplemented from vtkMRMLTransformableNode
   virtual void ApplyTransform(vtkAbstractTransform* transform);
 
+  /// Split a composite transform to its components. The components are inserted to the scene between this transform and its parent.
+  /// A composite transform can be created by hardening different types of transforms on each other.
+  /// Return non-zero on success.
+  virtual int Split();
+
   ///
   /// Create default storage node or NULL if does not have one
   virtual vtkMRMLStorageNode* CreateDefaultStorageNode();
@@ -139,19 +197,16 @@ public:
   /// Create and observe default display node
   virtual void CreateDefaultDisplayNodes();
 
-  /// Get/Set for ReadWriteAsTransformToParent
-  /// Typically only a non-inverse transform can be written to file,
-  /// so this flag should be set to read/write the forward transform.
-  /// The flag is set automatically when a transform is set by SetAndObserveTransformToParent
-  /// or SetAndObserveTransformFromParent and also inverted if the transform is inverted,
-  /// so most of the cases it should be not necessary to manually change this flag.
-  /// In the future it could be useful to be able to read/write both the toParent
-  /// and fromParent transforms (if they are both specified).
-  /// Note: When a transform is opened using AddData, the stored transform is assumed
-  /// to be FromParent, as this is the ITK convention for transform storage in files.
-  vtkGetMacro(ReadWriteAsTransformToParent, int);
-  vtkSetMacro(ReadWriteAsTransformToParent, int);
-  vtkBooleanMacro(ReadWriteAsTransformToParent, int);
+  /// Get/Set for ReadAsTransformToParent
+  /// Indicates that the transform in the storage node has to be interpreted as
+  /// a transformToParent (as opposed to the default ITK-style transformFromParent).
+  /// Since writing of ITK inverse transform is implemented, this option is not needed anymore
+  /// and kept only for backward compatibility: when a transform is read from an old scene file
+  /// that has ReadWriteAsTransformToParent="1" then the transform is interpreted as such.
+  /// Transforms are now always written as transformFromParent.
+  vtkGetMacro(ReadAsTransformToParent, int);
+  vtkSetMacro(ReadAsTransformToParent, int);
+  vtkBooleanMacro(ReadAsTransformToParent, int);
 
   ///
   /// Start modifying the transform in the node.
@@ -271,6 +326,13 @@ public:
   static void FlattenGeneralTransform(vtkCollection* outputTransformList, vtkAbstractTransform* inputTransform);
 
   ///
+  /// Utility function that determines if a transform is linear. It looks into composite transforms and only returns
+  /// with true if all the transform components are linear.
+  /// If concatenatedLinearTransform is specified and the transform is linear then it returns the concatenated linear
+  /// transformation matrix.
+  static bool IsGeneralTransformLinear(vtkAbstractTransform* inputTransform, vtkTransform* concatenatedLinearTransform=NULL);
+
+  ///
   /// Some transforms have DeepCopy method that actually only creates a shallow copy
   /// (such as vtkGeneralTransform and vtkGridTransform). This method creates a true deep copy of a transform.
   /// Returns nonzero on success.
@@ -281,17 +343,14 @@ public:
   /// Internally it does not perform any actual computation just switches ToParent and FromParent.
   void Inverse();
 
-  ///
-  /// Sets the ReadWriteAsTransformToParent flag automatically
-  /// The flag is set so that the ReadWriteAsTransformToParent points to the forward transform
-  void SetReadWriteAsTransformToParentAuto();
-
   /// Get the latest modification time of the stored transform
   unsigned long GetTransformToWorldMTime();
 
   /// Get a human-readable description of the transformation
-  /// The returned string is stored in a shared buffer therefore the text
-  /// has to be copied.
+  /// The returned string is stored in a shared buffer therefore the text has to be copied. This is a
+  /// static-style function (the contents of the owner transform node is not used), but the returned
+  /// string buffer needs to be owned by an object.
+  /// \param inputTransform The transform for which information is obtained
   const char* GetTransformInfo(vtkAbstractTransform* inputTransform);
 
 protected:
@@ -320,13 +379,18 @@ protected:
   vtkAbstractTransform* TransformToParent;
   vtkAbstractTransform* TransformFromParent;
 
-  int ReadWriteAsTransformToParent;
+  int ReadAsTransformToParent;
 
   int DisableTransformModifiedEvent;
   int TransformModifiedEventPending;
 
   // Temporary buffers used for returning transform info as char*
   std::string TransformInfo;
+
+  /// These variables are only for supporting the deprecated
+  /// GetMatrixTransformToParent and GetMatrixFromParent methods
+  vtkMatrix4x4* CachedMatrixTransformToParent;
+  vtkMatrix4x4* CachedMatrixTransformFromParent;
 };
 
 #endif

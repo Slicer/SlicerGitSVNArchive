@@ -18,19 +18,21 @@
 #include <vtkDebugLeaks.h>
 #include <vtkGraphicsFactory.h>
 #include <vtkObjectFactory.h>
+#include <vtkVersion.h>
 
 // if using some sort of opengl, then include these files
 #if defined(VTK_USE_OGLR) || defined(_WIN32) || defined(VTK_USE_COCOA) || defined(VTK_USE_CARBON)
-#include <vtkOpenGLVolumeTextureMapper2D.h>
-#include "vtkSlicerGPURayCastMultiVolumeMapper.h"
-#include "vtkSlicerGPURayCastVolumeMapper.h"
 #include "vtkSlicerOpenGLRayCastImageDisplayHelper.h"
-#include "vtkSlicerOpenGLVolumeTextureMapper3D.h"
 #endif
 
+#if VTK_MAJOR_VERSION <= 5
+// Mangled Mesa has been removed from VTK6. See the
+// following commits:
+//   kitware/VTK@3977699
+//   kitware/VTK@0659c80
 #if defined(VTK_USE_MANGLED_MESA)
 #include "vtkMesaRayCastImageDisplayHelper.h"
-#include "vtkMesaVolumeTextureMapper2D.h"
+#endif
 #endif
 
 vtkStandardNewMacro(vtkSlicerVolumeRenderingFactory);
@@ -55,65 +57,16 @@ vtkObject* vtkSlicerVolumeRenderingFactory::CreateInstance(const char* vtkclassn
   const char *rl = vtkGraphicsFactory::GetRenderLibrary();
   if (!strcmp("OpenGL",rl) || !strcmp("Win32OpenGL",rl) || !strcmp("CarbonOpenGL",rl) || !strcmp("CocoaOpenGL",rl))
     {
-    // 2D Volume Texture Mapper
-    if(strcmp(vtkclassname, "vtkVolumeTextureMapper2D") == 0)
-      {
-#if defined(VTK_USE_MANGLED_MESA)
-      if ( vtkGraphicsFactory::GetUseMesaClasses() )
-        {
-        return vtkMesaVolumeTextureMapper2D::New();
-        }
-#endif
-      return vtkOpenGLVolumeTextureMapper2D::New();
-      }
-
-    // 3D Volume Texture Mapper
-    if(strcmp(vtkclassname, "vtkSlicerVolumeTextureMapper3D") == 0)
-      {
-#if defined(VTK_USE_MANGLED_MESA)
-      if ( vtkGraphicsFactory::GetUseMesaClasses() )
-        {
-        vtkGenericWarningMacro("No support for mesa in vtkVolumeTextureMapper3D");
-        return 0;
-        }
-#endif
-      return vtkSlicerOpenGLVolumeTextureMapper3D::New();
-      }
-
-        // 3D Volume GPU RayCast Mapper
-    if(strcmp(vtkclassname, "vtkSlicerGPURayCastVolumeMapper") == 0)
-      {
-#if defined(VTK_USE_MANGLED_MESA)
-      if ( vtkGraphicsFactory::GetUseMesaClasses() )
-        {
-        vtkGenericWarningMacro("No support for mesa in vtkSlicerGPURayCastVolumeMapper");
-        return 0;
-        }
-#endif
-        return vtkSlicerGPURayCastVolumeMapper::New();
-      }
-
-      // 3D Multi Volume GPU RayCast Mapper
-    if(strcmp(vtkclassname, "vtkSlicerGPURayCastMultiVolumeMapper") == 0)
-      {
-#if defined(VTK_USE_MANGLED_MESA)
-      if ( vtkGraphicsFactory::GetUseMesaClasses() )
-        {
-        vtkGenericWarningMacro("No support for mesa in vtkSlicerGPURayCastMultiVolumeMapper");
-        return 0;
-        }
-#endif
-        return vtkSlicerGPURayCastMultiVolumeMapper::New();
-      }
-
     // Ray Cast Image Display Helper
     if(strcmp(vtkclassname, "vtkSlicerRayCastImageDisplayHelper") == 0)
       {
+#if VTK_MAJOR_VERSION <= 5
 #if defined(VTK_USE_MANGLED_MESA)
       if ( vtkGraphicsFactory::GetUseMesaClasses() )
         {
         return vtkMesaRayCastImageDisplayHelper::New();
         }
+#endif
 #endif
       return vtkSlicerOpenGLRayCastImageDisplayHelper::New();
       }

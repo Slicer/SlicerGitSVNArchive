@@ -45,7 +45,7 @@ if((NOT DEFINED CURL_INCLUDE_DIR
   endif()
 
   set(${proj}_CMAKE_C_FLAGS ${ep_common_c_flags})
-  if(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
+  if(CMAKE_SIZEOF_VOID_P EQUAL 8) # 64-bit
     set(${proj}_CMAKE_C_FLAGS "${ep_common_c_flags} -fPIC")
   endif()
 
@@ -55,7 +55,7 @@ if((NOT DEFINED CURL_INCLUDE_DIR
   ExternalProject_Add(${proj}
     ${${proj}_EP_ARGS}
     GIT_REPOSITORY "${git_protocol}://github.com/Slicer/curl.git"
-    GIT_TAG "c2bc1187192ea9565f16db6382abc574114af193"
+    GIT_TAG "0722f23d53927ebe71b6f6126f6cc2014c147c1f"
     SOURCE_DIR curl
     BINARY_DIR ${EP_BUILD_DIR}
     CMAKE_CACHE_ARGS

@@ -45,6 +45,7 @@
 #include <vtkMRMLModelHierarchyLogic.h>
 #include <vtkMRMLModelHierarchyNode.h>
 #include <vtkMRMLModelNode.h>
+#include <vtkMRMLSelectionNode.h>
 #include <vtkMRMLScene.h>
 
 // VTK includes
@@ -167,9 +168,10 @@ void qMRMLTreeViewPrivate::setSortFilterProxyModel(qMRMLSortFilterProxyModel* ne
   q->QTreeView::setModel(this->SortFilterModel
     ? static_cast<QAbstractItemModel*>(this->SortFilterModel)
     : static_cast<QAbstractItemModel*>(this->SceneModel));
-  // Setting a new model to the view resets the selection model
-  QObject::connect(q->selectionModel(), SIGNAL(currentRowChanged(QModelIndex,QModelIndex)),
-                   q, SLOT(onCurrentRowChanged(QModelIndex)));
+  // Setting a new model to the view resets the selection model. Reobserve
+  // the selectionChanged signal. Observing currentRowChanged() is discouraged.
+  QObject::connect(q->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
+                   q, SLOT(onSelectionChanged(QItemSelection,QItemSelection)));
   if (!this->SortFilterModel)
     {
     return;
@@ -424,12 +426,17 @@ void qMRMLTreeView::setCurrentNode(vtkMRMLNode* node)
 }
 
 //------------------------------------------------------------------------------
-void qMRMLTreeView::onCurrentRowChanged(const QModelIndex& index)
+void qMRMLTreeView::onSelectionChanged(const QItemSelection & selected,
+                                       const QItemSelection & deselected)
 {
+  Q_UNUSED(deselected);
   Q_D(qMRMLTreeView);
-  Q_ASSERT(d->SortFilterModel);
-  Q_ASSERT(this->currentNode() == d->SortFilterModel->mrmlNodeFromIndex(index));
-  emit currentNodeChanged(d->SortFilterModel->mrmlNodeFromIndex(index));
+  vtkMRMLNode* newCurrentNode = 0;
+  if (selected.indexes().count() > 0)
+    {
+    newCurrentNode = d->SortFilterModel->mrmlNodeFromIndex(selected.indexes()[0]);
+    }
+  emit currentNodeChanged(newCurrentNode);
 }
 
 //------------------------------------------------------------------------------
@@ -852,7 +859,17 @@ void qMRMLTreeView::toggleVisibility(const QModelIndex& index)
     vtkMRMLDisplayableNode::SafeDownCast(node);
   vtkMRMLDisplayableHierarchyNode* displayableHierarchyNode =
       vtkMRMLDisplayableHierarchyNode::SafeDownCast(node);
-  if (displayableHierarchyNode)
+
+  std::vector<vtkMRMLNode *> selectionNodes;
+  this->mrmlScene()->GetNodesByClass("vtkMRMLSelectionNode", selectionNodes);
+
+  vtkMRMLSelectionNode* selectionNode = 0;
+  if (selectionNodes.size() > 0)
+    {
+    selectionNode = vtkMRMLSelectionNode::SafeDownCast(selectionNodes[0]);
+    }
+
+  if (selectionNode && displayableHierarchyNode)
     {
     vtkMRMLDisplayNode *hierDisplayNode = displayableHierarchyNode->GetDisplayNode();
     int visibility = 1;
@@ -860,15 +877,36 @@ void qMRMLTreeView::toggleVisibility(const QModelIndex& index)
       {
       visibility = (hierDisplayNode->GetVisibility() ? 0 : 1);
       }
-    vtkMRMLModelHierarchyLogic::SetChildrenVisibility(displayableHierarchyNode,visibility);
+    std::map<std::string, std::string> nodeTypes =  selectionNode->GetModelHierarchyDisplayNodeClassNames();
+    if (nodeTypes.empty())
+      {
+      vtkMRMLModelHierarchyLogic::SetChildrenVisibility(displayableHierarchyNode,
+                                                        0, 0, visibility);
+      }
+    for (std::map<std::string, std::string>::iterator it = nodeTypes.begin();
+         it != nodeTypes.end(); it++)
+      {
+      std::string displayableType = it->first;
+      std::string displayType = it->second;
+      vtkMRMLModelHierarchyLogic::SetChildrenVisibility(displayableHierarchyNode,
+                                              displayableType.c_str(), displayType.c_str(), visibility);
+      }
     }
-  else if (displayNode)
+  else if (selectionNode && displayNode)
     {
     displayNode->SetVisibility(displayNode->GetVisibility() ? 0 : 1);
     }
-  else if (displayableNode)
+  else if (selectionNode && displayableNode)
     {
-    displayableNode->SetDisplayVisibility(displayableNode->GetDisplayVisibility() ? 0 : 1);
+    char *displayableType = (char *)node->GetClassName();
+    char *displayType = 0;
+    std::string ds = selectionNode->GetModelHierarchyDisplayNodeClassName(displayableType);
+    if (!ds.empty())
+      {
+      displayType = (char *)ds.c_str();
+      }
+    displayableNode->SetDisplayClassVisibility(displayType,
+            displayableNode->GetDisplayClassVisibility(displayType) ? 0 : 1);
     }
 }
 
@@ -1007,7 +1045,6 @@ QModelIndexList qMRMLTreeView::removeChildren(const QModelIndexList& indexes)
     }
   return noAncestorIndexList;
 }
-
 
 //-----------------------------------------------------------------------------
 void qMRMLTreeView::scrollTo(const QString& name)

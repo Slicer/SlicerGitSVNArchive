@@ -22,16 +22,17 @@
 #include <vtkMRMLColorNode.h>
 #include <vtkMRMLDisplayNode.h>
 #include <vtkMRMLDisplayableNode.h>
-#include <vtkMRMLLinearTransformNode.h>
 #include <vtkMRMLModelDisplayNode.h>
 #include <vtkMRMLModelNode.h>
 #include <vtkMRMLScene.h>
 #include <vtkMRMLSliceCompositeNode.h>
+#include <vtkMRMLSliceLogic.h>
 #include <vtkMRMLSliceNode.h>
 #include <vtkMRMLTransformNode.h>
 
 // VTK includes
 #include <vtkActor2D.h>
+#include <vtkAlgorithmOutput.h>
 #include <vtkCallbackCommand.h>
 #include <vtkEventBroker.h>
 #include <vtkMatrix4x4.h>
@@ -68,9 +69,9 @@ public:
   struct Pipeline
     {
     vtkSmartPointer<vtkGeneralTransform> NodeToWorld;
-    vtkSmartPointer<vtkGeneralTransform> NodeFromWorld;
-    vtkSmartPointer<vtkGeneralTransform> TransformToSlice;
+    vtkSmartPointer<vtkTransform> TransformToSlice;
     vtkSmartPointer<vtkTransformPolyDataFilter> Transformer;
+    vtkSmartPointer<vtkTransformPolyDataFilter> ModelWarper;
     vtkSmartPointer<vtkPlane> Plane;
     vtkSmartPointer<vtkCutter> Cutter;
     vtkSmartPointer<vtkProp> Actor;
@@ -84,13 +85,11 @@ public:
 
   // Transforms
   void UpdateDisplayableTransforms(vtkMRMLDisplayableNode *node);
-  void GetNodeTransformToWorld(vtkMRMLTransformableNode* node,
-                              vtkGeneralTransform* transformToWorld,
-                              vtkGeneralTransform* transformFromWorld);
+  void GetNodeTransformToWorld(vtkMRMLTransformableNode* node, vtkGeneralTransform* transformToWorld);
   // Slice Node
   void SetSliceNode(vtkMRMLSliceNode* sliceNode);
   void UpdateSliceNode();
-  void SetSlicePlaneFromMatrix(vtkGeneralTransform* matrix, vtkPlane* plane);
+  void SetSlicePlaneFromMatrix(vtkMatrix4x4* matrix, vtkPlane* plane);
 
   // Display Nodes
   void AddDisplayNode(vtkMRMLDisplayableNode*, vtkMRMLDisplayNode*);
@@ -156,14 +155,21 @@ bool vtkMRMLModelSliceDisplayableManager::vtkInternal
     return 0;
     }
   bool visibleOnNode = true;
-  vtkMRMLSliceNode *sliceNode = this->SliceNode;
-  if (sliceNode)
+  // for volume slice model display nodes, don't want to only show the slice
+  // intersection if the slice is visible in 3d, but do want to do the check for
+  // other types of models
+  bool isSliceModel = vtkMRMLSliceLogic::IsSliceModelDisplayNode(displayNode);
+  if (!isSliceModel)
     {
-    visibleOnNode = displayNode->GetVisibility(sliceNode->GetID());
-    }
-  else
-    {
-    visibleOnNode = (displayNode->GetVisibility() == 1 ? true : false);
+    vtkMRMLSliceNode *sliceNode = this->SliceNode;
+    if (sliceNode)
+      {
+      visibleOnNode = displayNode->GetVisibility(sliceNode->GetID());
+      }
+    else
+      {
+      visibleOnNode = (displayNode->GetVisibility() == 1 ? true : false);
+      }
     }
   return visibleOnNode && (displayNode->GetSliceIntersectionVisibility() != 0);
 }
@@ -197,26 +203,17 @@ void vtkMRMLModelSliceDisplayableManager::vtkInternal
 
 //---------------------------------------------------------------------------
 void vtkMRMLModelSliceDisplayableManager::vtkInternal
-::SetSlicePlaneFromMatrix(vtkGeneralTransform *sliceMatrix, vtkPlane* plane)
+::SetSlicePlaneFromMatrix(vtkMatrix4x4* sliceMatrix, vtkPlane* plane)
 {
   double normal[3];
   double origin[3];
-  double *val;
-  val = sliceMatrix->TransformDoublePoint(0,0,0);
-  for (int i=0; i<3; i++)
+
+  // +/-1: orientation of the normal
+  const int planeOrientation = 1;
+  for (int i = 0; i < 3; i++)
     {
-    origin[i] = val[i];
-    }
-
-  normal[0]=0;
-  normal[1]=0;
-  normal[2]=1;
-
-  val = sliceMatrix->TransformDoubleNormalAtPoint(origin, normal);
-
-  for (int i=0; i<3; i++)
-    {
-    normal[i] = val[i];
+    normal[i] = planeOrientation * sliceMatrix->GetElement(i,2);
+    origin[i] = sliceMatrix->GetElement(i,3);
     }
 
   plane->SetNormal(normal);
@@ -225,11 +222,9 @@ void vtkMRMLModelSliceDisplayableManager::vtkInternal
 
 //---------------------------------------------------------------------------
 void vtkMRMLModelSliceDisplayableManager::vtkInternal
-::GetNodeTransformToWorld(vtkMRMLTransformableNode* node,
-                          vtkGeneralTransform* transformToWorld,
-                          vtkGeneralTransform* transformFromWorld)
+::GetNodeTransformToWorld(vtkMRMLTransformableNode* node, vtkGeneralTransform* transformToWorld)
 {
-  if (!node || !transformToWorld || !transformFromWorld)
+  if (!node || !transformToWorld)
     {
     return;
     }
@@ -238,10 +233,8 @@ void vtkMRMLModelSliceDisplayableManager::vtkInternal
     node->GetParentTransformNode();
 
   transformToWorld->Identity();
-  transformFromWorld->Identity();
   if (tnode)
     {
-    tnode->GetTransformFromWorld(transformFromWorld);
     tnode->GetTransformToWorld(transformToWorld);
     }
 }
@@ -259,9 +252,7 @@ void vtkMRMLModelSliceDisplayableManager::vtkInternal
     {
     if ( ((pipelinesIter = this->DisplayPipelines.find(*dnodesIter)) != this->DisplayPipelines.end()) )
       {
-      this->GetNodeTransformToWorld( mNode,
-                                    pipelinesIter->second->NodeToWorld,
-                                    pipelinesIter->second->NodeFromWorld);
+      this->GetNodeTransformToWorld( mNode, pipelinesIter->second->NodeToWorld);
       this->UpdateDisplayNodePipeline(pipelinesIter->first, pipelinesIter->second);
       }
     }
@@ -312,10 +303,10 @@ void vtkMRMLModelSliceDisplayableManager::vtkInternal
   Pipeline* pipeline = new Pipeline();
   pipeline->Actor = actor.GetPointer();
   pipeline->Cutter = vtkSmartPointer<vtkCutter>::New();
-  pipeline->TransformToSlice = vtkSmartPointer<vtkGeneralTransform>::New();
+  pipeline->TransformToSlice = vtkSmartPointer<vtkTransform>::New();
   pipeline->NodeToWorld = vtkSmartPointer<vtkGeneralTransform>::New();
-  pipeline->NodeFromWorld = vtkSmartPointer<vtkGeneralTransform>::New();
   pipeline->Transformer = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+  pipeline->ModelWarper = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
   pipeline->Plane = vtkSmartPointer<vtkPlane>::New();
 
   // Set up pipeline
@@ -323,6 +314,7 @@ void vtkMRMLModelSliceDisplayableManager::vtkInternal
   pipeline->Transformer->SetInputConnection(pipeline->Cutter->GetOutputPort());
   pipeline->Cutter->SetCutFunction(pipeline->Plane);
   pipeline->Cutter->SetGenerateCutScalars(0);
+  pipeline->Cutter->SetInputConnection(pipeline->ModelWarper->GetOutputPort());
   pipeline->Actor->SetVisibility(0);
 
   // Add actor to Renderer and local cache
@@ -382,32 +374,25 @@ void vtkMRMLModelSliceDisplayableManager::vtkInternal
       return;
       }
 #if (VTK_MAJOR_VERSION <= 5)
-    pipeline->Cutter->SetInput(polyData);
-#else
-    pipeline->Cutter->SetInputData(polyData);
-#endif
-
+    pipeline->ModelWarper->SetInput(polyData);
     // need this to update bounds of the locator, to avoid crash in the cutter
     polyData->Modified();
+#else
+    pipeline->ModelWarper->SetInputData(polyData);
+    // need this to update bounds of the locator, to avoid crash in the cutter
+    modelDisplayNode->GetOutputPolyDataConnection()->GetProducer()->Update();
+#endif
+
+    pipeline->ModelWarper->SetTransform(pipeline->NodeToWorld);
 
     //  Set Plane Transform
-    vtkNew<vtkGeneralTransform> xform;
-    xform->Identity();
-    xform->Concatenate(pipeline->NodeFromWorld);
-    xform->Concatenate(this->SliceXYToRAS);
-
-    this->SetSlicePlaneFromMatrix(xform.GetPointer(), pipeline->Plane);
+    this->SetSlicePlaneFromMatrix(this->SliceXYToRAS, pipeline->Plane);
+    pipeline->Plane->Modified();
 
     //  Set PolyData Transform
-    vtkNew<vtkMatrix4x4> tempMat1;
-    tempMat1->DeepCopy(this->SliceXYToRAS);
-    tempMat1->Invert();
-
-    pipeline->TransformToSlice->Identity();
-    pipeline->TransformToSlice->Concatenate(tempMat1.GetPointer());
-    pipeline->TransformToSlice->Concatenate(pipeline->NodeToWorld);
-
-    pipeline->Plane->Modified();
+    vtkNew<vtkMatrix4x4> rasToSliceXY;
+    vtkMatrix4x4::Invert(this->SliceXYToRAS, rasToSliceXY.GetPointer());
+    pipeline->TransformToSlice->SetMatrix(rasToSliceXY.GetPointer());
 
     // optimization for slice to slice intersections which are 1 quad polydatas
     // no need for 50^3 default locator divisons

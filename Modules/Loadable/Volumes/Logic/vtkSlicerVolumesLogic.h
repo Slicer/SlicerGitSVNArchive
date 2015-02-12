@@ -180,22 +180,38 @@ public:
                                                        vtkMRMLScalarVolumeNode *labelNode,
                                                        vtkMRMLVolumeNode *templateNode);
 
-  /// Generate a string listing any warnings about the spatial validity of
+  /// Return a string listing any warnings about the spatial validity of
   /// the labelmap with respect to the volume.  An empty string indicates
-  /// that the two volumes are identical samplings of the same spatial region.
+  /// that the two volumes are identical samplings of the same spatial
+  /// region and that the second volume input is a label map.
+  /// \sa CompareVolumeGeometry
+  std::string CheckForLabelVolumeValidity(vtkMRMLScalarVolumeNode *volumeNode,
+                                          vtkMRMLScalarVolumeNode *labelNode);
+
+  /// Generate a string listing any warnings about the spatial validity of
+  /// the second volume with respect to the first volume.  An empty string
+  /// indicates that the two volumes are identical samplings of the same
+  /// spatial region.
   /// Checks include:
   ///  Valid image data.
   ///  Same dimensions.
   ///  Same spacing.
   ///  Same origin.
   ///  Same IJKtoRAS.
-  std::string CheckForLabelVolumeValidity(vtkMRMLScalarVolumeNode *volumeNode,
-                                          vtkMRMLScalarVolumeNode *labelNode);
+  /// \sa CheckForLabelVolumeValidity, ResampleVolumeToReferenceVolume
+  std::string CompareVolumeGeometry(vtkMRMLScalarVolumeNode *volumeNode1,
+                                    vtkMRMLScalarVolumeNode *volumeNode2);
 
 
   /// Create a deep copy of a \a volumeNode and add it to the current scene
   /// \sa GetMRMLScene()
   vtkMRMLScalarVolumeNode *CloneVolume(vtkMRMLVolumeNode *volumeNode, const char *name);
+
+  /// Create a empty copy of a \a volumeNode without imageData and add it to the current scene
+  /// \sa GetMRMLScene()
+  static vtkMRMLScalarVolumeNode *CloneVolumeWithoutImageData(vtkMRMLScene *scene,
+                                                              vtkMRMLVolumeNode *volumeNode,
+                                                              const char *name);
 
   /// Create a deep copy of a \a volumeNode and add it to the \a scene
   static vtkMRMLScalarVolumeNode *CloneVolume(vtkMRMLScene *scene,
@@ -220,6 +236,25 @@ public:
   /// Compute the origin of the volume in order for the volume to be centered.
   /// \sa CenterVolume()
   void GetVolumeCenteredOrigin(vtkMRMLVolumeNode *volumeNode, double* origin);
+
+  ///  Convenience method to resample input volume using reference volume info
+  /// \sa CompareVolumeGeometry
+  static vtkMRMLScalarVolumeNode* ResampleVolumeToReferenceVolume(vtkMRMLVolumeNode *inputVolumeNode,
+                                                           vtkMRMLVolumeNode *referenceVolumeNode);
+
+  /// Getting the epsilon value to use when determining if the
+  /// elements of the IJK to RAS matrices of two volumes match.
+  /// Defaults to 10 to the minus 6.
+  vtkGetMacro(CompareVolumeGeometryEpsilon, double);
+  /// Setting the epsilon value and associated precision to use when determining
+  /// if the elements of the IJK to RAS matrices of two volumes match and how to
+  /// print out the mismatched elements.
+  void SetCompareVolumeGeometryEpsilon(double epsilon);
+
+  /// Get the precision with which to print out volume geometry mismatches,
+  /// value is set when setting the compare volume geometry epsilon.
+  /// \sa SetCompareVolumeGeometryEpsilon
+  vtkGetMacro(CompareVolumeGeometryPrecision, int);
 
 protected:
   vtkSlicerVolumesLogic();
@@ -252,6 +287,13 @@ protected:
   vtkSmartPointer<vtkMRMLColorLogic> ColorLogic;
 
   NodeSetFactoryRegistry VolumeRegistry;
+
+  /// Allowable difference in comparing volume geometry double values.
+  /// Defaults to 1 to the power of 10 to the minus 6
+  double CompareVolumeGeometryEpsilon;
+  /// Error print out precision, paried with CompareVolumeGeometryEpsilon.
+  /// defaults to 6
+  int CompareVolumeGeometryPrecision;
 };
 
 #endif

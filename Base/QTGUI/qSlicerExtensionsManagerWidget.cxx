@@ -187,6 +187,10 @@ void qSlicerExtensionsManagerWidgetPrivate::init()
   // Search field and configure button
   this->toolsWidget = new qSlicerExtensionsToolsWidget;
 
+  QSettings settings;
+  this->toolsWidget->AutoUpdateAction->setChecked(
+    settings.value("Extensions/AutoUpdate", false).toBool());
+
   this->tabWidget->setCornerWidget(this->toolsWidget, Qt::TopRightCorner);
 
   QObject::connect(this->tabWidget, SIGNAL(currentChanged(int)),
@@ -212,6 +216,10 @@ void qSlicerExtensionsManagerWidgetPrivate::init()
   QObject::connect(this->tabWidget, SIGNAL(currentChanged(int)),
                    q, SLOT(onCurrentTabChanged(int)));
 
+  QObject::connect(this->toolsWidget->CheckForUpdatesAction,
+                   SIGNAL(triggered(bool)),
+                   q, SLOT(onCheckForUpdatesTriggered()));
+
   QObject::connect(this->toolsWidget->InstallFromFileAction,
                    SIGNAL(triggered(bool)),
                    q, SLOT(onInstallFromFileTriggered()));
@@ -232,6 +240,11 @@ qSlicerExtensionsManagerWidget::qSlicerExtensionsManagerWidget(QWidget* _parent)
 // --------------------------------------------------------------------------
 qSlicerExtensionsManagerWidget::~qSlicerExtensionsManagerWidget()
 {
+  Q_D(qSlicerExtensionsManagerWidget);
+
+  QSettings settings;
+  settings.setValue("Extensions/AutoUpdate",
+                    d->toolsWidget->AutoUpdateAction->isChecked());
 }
 
 // --------------------------------------------------------------------------
@@ -296,6 +309,15 @@ void qSlicerExtensionsManagerWidget::onModelUpdated()
     {
     d->tabWidget->setTabEnabled(manageExtensionsTabIndex, true);
     }
+}
+
+// --------------------------------------------------------------------------
+void qSlicerExtensionsManagerWidget::onCheckForUpdatesTriggered()
+{
+  Q_D(qSlicerExtensionsManagerWidget);
+
+  const bool autoUpdate = d->toolsWidget->AutoUpdateAction->isChecked();
+  this->extensionsManagerModel()->checkForUpdates(autoUpdate);
 }
 
 // --------------------------------------------------------------------------

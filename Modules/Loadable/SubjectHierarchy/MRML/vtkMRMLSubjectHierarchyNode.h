@@ -2,7 +2,8 @@
 
   Program: 3D Slicer
 
-  Copyright (c) Kitware Inc.
+  Copyright (c) Laboratory for Percutaneous Surgery (PerkLab)
+  Queen's University, Kingston, ON, Canada. All Rights Reserved.
 
   See COPYRIGHT.txt
   or http://www.slicer.org/copyright/copyright.txt for details.
@@ -49,6 +50,10 @@ public:
   static const std::string SUBJECTHIERARCHY_UID_NAME_VALUE_SEPARATOR;
 
 public:
+  /// IMPORTANT! New method should not be used to create subject hierarchy nodes.
+  ///   The nodes are created automatically for supported data types when adding
+  ///   the data nodes. To set up the node (name, level, parent, associated data)
+  ///   call \sa CreateSubjectHierarchyNode method.
   static vtkMRMLSubjectHierarchyNode *New();
   vtkTypeMacro(vtkMRMLSubjectHierarchyNode,vtkMRMLHierarchyNode);
   void PrintSelf(ostream& os, vtkIndent indent);
@@ -68,8 +73,14 @@ public:
   virtual const char* GetNodeTagName();
 
 public:
-  /// Find subject hierarchy node according to a UID
+  /// Find subject hierarchy node according to a UID (by exact match)
+  /// \param uidValue UID string that needs to _exactly match_ the UID string of the subject hierarchy node
   static vtkMRMLSubjectHierarchyNode* GetSubjectHierarchyNodeByUID(vtkMRMLScene* scene, const char* uidName, const char* uidValue);
+
+  /// Find subject hierarchy node according to a UID (by containing). For example find UID in instance UID list
+  /// \param uidValue UID string that needs to be _contained_ in the UID string of the subject hierarchy node
+  /// \return First match
+  static vtkMRMLSubjectHierarchyNode* GetSubjectHierarchyNodeByUIDList(vtkMRMLScene* scene, const char* uidName, const char* uidValue);
 
   /// Get associated subject hierarchy node for a MRML node
   /// Note: This must be used instead of vtkMRMLHierarchyNode::GetAssociatedHierarchyNode, because nested associations have been introduced to avoid conflicts.
@@ -88,24 +99,31 @@ public:
   /// \return Child node whose name without postfix is the same as the given attribute
   static vtkMRMLSubjectHierarchyNode* GetChildWithName(vtkMRMLSubjectHierarchyNode* parent, const char* name, vtkMRMLScene* scene=NULL);
 
-  /// Create subject hierarchy node in the scene under a specified parent
-  /// \scene MRML scene
-  /// \parent Parent node under which the created node is put. If NULL, then the child will be a top-level node
-  /// \level Level string of the created node
-  /// \nodeName Name of the node (subject hierarchy postfix is added to it)
-  /// \associatedNode Data node to associate with the created subject hierarchy node. If NULL, then no node will be associated
-  static vtkMRMLSubjectHierarchyNode* CreateSubjectHierarchyNode(vtkMRMLScene* scene, vtkMRMLSubjectHierarchyNode* parentNode, const char* level, const char* nodeName, vtkMRMLNode* associatedNode=NULL);
+  /// Create subject hierarchy node in the scene under a specified parent. If the node existed (most of the cases,
+  /// as subject hierarchy nodes are automatically added for supported data types when adding the data nodes),
+  /// then use that and set it up with the supplied parameters.
+  /// \param scene MRML scene
+  /// \param parent Parent node under which the created node is put. If NULL, then the child will be a top-level node
+  /// \param level Level string of the created node
+  /// \param nodeName Name of the node (subject hierarchy postfix is added to it)
+  /// \param associatedNode Data node to associate with the created subject hierarchy node. If NULL, then no node will be associated
+  static vtkMRMLSubjectHierarchyNode* CreateSubjectHierarchyNode(vtkMRMLScene* scene,
+                                                                 vtkMRMLSubjectHierarchyNode* parent,
+                                                                 const char* level,
+                                                                 const char* nodeName,
+                                                                 vtkMRMLNode* associatedNode=NULL);
 
 public:
   /// Get node associated with this hierarchy node.
   /// Note: Override of vtkMRMLHierarchyNode::GetAssociatedNode to handle nested associations to avoid conflicts.
   /// E.g. a data node is associated to both a ModelHierarchy and a SubjectHierarchy node. In that case the first associated hierarchy
   /// node is returned by the utility function, which is a non-deterministic behavior. To avoid this we use nested associations. In the
-  /// example case the associations are as follows: SubjectHierarchy -> ModelHierarchy -> DataNode
+  /// example case the associations are as follows: <pre>SubjectHierarchy -> ModelHierarchy -> DataNode</pre>
   virtual vtkMRMLNode* GetAssociatedNode();
 
   /// Find all associated children nodes of a specified class in the hierarchy.
   /// Re-implemented to handle nested associations \sa GetAssociatedNode
+  /// \param children Collection updated with the list of children nodes.
   /// \param childClass Name of the class we are looking for. NULL returns all associated children nodes.
   virtual void GetAssociatedChildrenNodes(vtkCollection *children, const char* childClass=NULL);
 
@@ -122,13 +140,15 @@ public:
   bool IsLevel(const char* level);
 
   /// Get attribute value for a node from an upper level in the subject hierarchy
-  /// \attributeName Name of the requested attribute
-  /// \level Level of the ancestor node we look for the attribute in (e.g. SubjectHierarchy_LEVEL_STUDY). If NULL, then look all the way up to the subject
+  /// \param attributeName Name of the requested attribute
+  /// \param level Level of the ancestor node we look for the attribute in
+  ///   (e.g. value of vtkMRMLSubjectHierarchyConstants::GetSubjectHierarchyLevelStudy()).
+  ///   If NULL, then look all the way up to the subject
   /// \return Attribute value from the lowest level ancestor where the attribute can be found
   const char* GetAttributeFromAncestor(const char* attributeName, const char* level=NULL);
 
   /// Get ancestor subject hierarchy node at a certain level
-  /// \param sourceNode Node where we start searching. Can be subject hierarchy or associated node
+  /// \param level Level of the ancestor node we start searching.
   vtkMRMLSubjectHierarchyNode* GetAncestorAtLevel(const char* level);
 
   /// Get node name without the subject hierarchy postfix
@@ -147,6 +167,12 @@ public:
 
   /// Harden transform on itself and on all children, recursively
   void HardenTransformOnBranch();
+
+  /// Get subject hierarchy nodes that are referenced from this node by DICOM.
+  /// Finds the series nodes that contain the SOP instance UIDs that are listed in
+  /// the MRML attribute of this node containing the referenced SOP instance UIDs
+  /// \sa vtkMRMLSubjectHierarchyConstants::GetDICOMReferencedInstanceUIDsAttributeName()
+  std::vector<vtkMRMLSubjectHierarchyNode*> GetSubjectHierarchyNodesReferencedByDICOM();
 
 public:
   /// Set level

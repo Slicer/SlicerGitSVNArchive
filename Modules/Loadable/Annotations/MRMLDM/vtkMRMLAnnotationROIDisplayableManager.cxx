@@ -17,7 +17,6 @@
 
 // MRML includes
 #include <vtkMRMLInteractionNode.h>
-#include <vtkMRMLLinearTransformNode.h>
 #include <vtkMRMLScene.h>
 #include <vtkMRMLSliceNode.h>
 #include <vtkMRMLTransformNode.h>
@@ -362,10 +361,9 @@ void vtkMRMLAnnotationROIDisplayableManager::PropagateMRMLToWidget(vtkMRMLAnnota
   transformToWorld->Identity();
 
   vtkMRMLTransformNode* tnode = roiNode->GetParentTransformNode();
-  if (tnode != NULL && tnode->IsLinear())
+  if (tnode != NULL && tnode->IsTransformToWorldLinear())
     {
-    vtkMRMLLinearTransformNode *lnode = vtkMRMLLinearTransformNode::SafeDownCast(tnode);
-    lnode->GetMatrixTransformToWorld(transformToWorld.GetPointer());
+    tnode->GetMatrixTransformToWorld(transformToWorld.GetPointer());
     }
   transformToWorld->Invert();
 
@@ -497,10 +495,9 @@ void vtkMRMLAnnotationROIDisplayableManager::PropagateMRMLToWidget2D(vtkMRMLAnno
   transformToWorld->Identity();
 
   vtkMRMLTransformNode* tnode = roiNode->GetParentTransformNode();
-  if (tnode != NULL && tnode->IsLinear())
+  if (tnode != NULL && tnode->IsTransformToWorldLinear())
     {
-    vtkMRMLLinearTransformNode *lnode = vtkMRMLLinearTransformNode::SafeDownCast(tnode);
-    lnode->GetMatrixTransformToWorld(transformToWorld.GetPointer());
+    tnode->GetMatrixTransformToWorld(transformToWorld.GetPointer());
     }
 
   // update the transform from world to screen space
@@ -555,18 +552,10 @@ void vtkMRMLAnnotationROIDisplayableManager::PropagateMRMLToWidget2D(vtkMRMLAnno
   plane->SetNormal(normal);
   plane->SetOrigin(origin);
 
+  rep->SetSliceIntersectionVisibility(roiNode->GetDisplayVisibility() ? 1:0);
   rep->SetHandlesVisibility(roiNode->GetLocked()==0 && roiNode->GetDisplayVisibility() ? 1:0);
 
   rep->PlaceWidget(b);
-
-  // update actor's visbility from mrml
-
-  vtkNew<vtkPropCollection> actors;
-  rep->GetActors2D(actors.GetPointer());
-  for (int i=0; i<actors->GetNumberOfItems(); i++)
-    {
-    vtkProp::SafeDownCast(actors->GetItemAsObject(i))->SetVisibility(roiNode->GetDisplayVisibility());
-    }
 
   // re-render the widget
   rep->NeedToRenderOn();
@@ -755,10 +744,9 @@ void vtkMRMLAnnotationROIDisplayableManager::SetParentTransformToWidget(vtkMRMLA
 
   // get the nodes's transform node
   vtkMRMLTransformNode* tnode = node->GetParentTransformNode();
-  if (rep != NULL && tnode != NULL && tnode->IsLinear())
+  if (rep != NULL && tnode != NULL && tnode->IsTransformToWorldLinear())
     {
-    vtkMRMLLinearTransformNode *lnode = vtkMRMLLinearTransformNode::SafeDownCast(tnode);
-    lnode->GetMatrixTransformToWorld(transformToWorld.GetPointer());
+    tnode->GetMatrixTransformToWorld(transformToWorld.GetPointer());
     }
 
   vtkNew<vtkPropCollection> actors;

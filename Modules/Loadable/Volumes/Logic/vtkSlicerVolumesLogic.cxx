@@ -35,11 +35,14 @@
 #include "vtkMRMLVectorVolumeDisplayNode.h"
 #include "vtkMRMLVectorVolumeNode.h"
 #include "vtkMRMLVolumeArchetypeStorageNode.h"
+#include "vtkMRMLTransformNode.h"
 
 // VTK includes
 #include <vtkCallbackCommand.h>
+#include <vtkGeneralTransform.h>
 #include <vtkImageData.h>
 #include <vtkImageThreshold.h>
+#include <vtkMathUtilities.h>
 #include <vtkMatrix4x4.h>
 #include <vtkNew.h>
 #include <vtkObjectFactory.h>
@@ -48,10 +51,132 @@
 #include <vtksys/SystemTools.hxx>
 #include <vtkVersion.h>
 #include <vtkWeakPointer.h>
+#include <vtkImageReslice.h>
+#include <vtkTransform.h>
+
+/// CTK includes
+/// to avoid CTK includes which pull in a dependency on Qt, rehome some CTK
+/// core utility methods here in the anonymous namespace until they get ported
+/// to VTK
 
 //----------------------------------------------------------------------------
 namespace
 {
+
+/// Return a "smart" number of decimals needed to display (in a gui) a floating
+/// number. 16 is the max that can be returned, -1 for NaN numbers. When the
+/// number of decimals is not obvious, it defaults to defaultDecimals if it is
+/// different from -1, 16 otherwise.
+int significantDecimals(double value, int defaultDecimals = -1)
+{
+  if (value == 0.
+      || fabs(value) == std::numeric_limits<double>::infinity())
+    {
+    return 0;
+    }
+  if (value != value) // is NaN
+    {
+    return -1;
+    }
+  std::string number;
+  std::stringstream numberStream;
+  numberStream << std::setprecision(16);
+  numberStream << std::fixed << value;
+  number = numberStream.str();
+  size_t decimalPos = number.find_last_of('.');
+  std::string fractional = number.substr(decimalPos + 1);
+  if (fractional.length() != 16)
+    {
+    return -1;
+    }
+  char previous = ' ';
+  int previousRepeat=0;
+  bool only0s = true;
+  bool isUnit = value > -1. && value < 1.;
+  for (size_t i = 0; i < fractional.length(); ++i)
+    {
+    char digit = fractional.at(i);
+    if (digit != '0')
+      {
+      only0s = false;
+      }
+    // Has the digit been repeated too many times ?
+    if (digit == previous && previousRepeat == 2 &&
+        !only0s)
+      {
+      if (digit == '0' || digit == '9')
+        {
+        return i - previousRepeat;
+        }
+      return i;
+      }
+    // Last digit
+    if (i == fractional.length() - 1)
+      {
+      // If we are here, that means that the right number of significant
+      // decimals for the number has not been figured out yet.
+      if (previousRepeat > 2 && !(only0s && isUnit) )
+        {
+        return i - previousRepeat;
+        }
+      // If defaultDecimals has been provided, just use it.
+      if (defaultDecimals >= 0)
+        {
+        return defaultDecimals;
+        }
+      return fractional.length();
+      }
+    // get ready for next
+    if (previous != digit)
+      {
+      previous = digit;
+      previousRepeat = 1;
+      }
+    else
+      {
+      ++previousRepeat;
+      }
+    }
+  return -1;
+//  return fractional.length();
+};
+
+/// Return the order of magnitude of a number or numeric_limits<int>::min() if
+/// the order of magnitude can't be computed (e.g. 0, inf, Nan, denorm)...
+int orderOfMagnitude(double value)
+{
+  value = fabs(value);
+  if (value == 0.
+      || value == std::numeric_limits<double>::infinity()
+      || value != value // is NaN
+      || value < std::numeric_limits<double>::epsilon() // is tool small to compute
+  )
+    {
+    return std::numeric_limits<int>::min();
+    }
+  double magnitude = 1.00000000000000001;
+  int magnitudeOrder = 0;
+
+  int magnitudeStep = 1;
+  double magnitudeFactor = 10;
+
+  if (value < 1.)
+    {
+    magnitudeOrder = -1;
+    magnitudeStep = -1;
+    magnitudeFactor = 0.1;
+    }
+
+  double epsilon = std::numeric_limits<double>::epsilon();
+  while ( (magnitudeStep > 0 && value >= magnitude) ||
+          (magnitudeStep < 0 && value < magnitude - epsilon))
+    {
+    magnitude *= magnitudeFactor;
+    magnitudeOrder += magnitudeStep;
+    }
+  // we went 1 order too far, so decrement it
+  return magnitudeOrder - magnitudeStep;
+};
 
 //----------------------------------------------------------------------------
 class vtkSlicerErrorSink : public vtkCallbackCommand
@@ -343,6 +468,8 @@ vtkSlicerVolumesLogic::vtkSlicerVolumesLogic()
   this->RegisterArchetypeVolumeNodeSetFactory( ArchetypeVectorVolumeNodeSetFactory );
   this->RegisterArchetypeVolumeNodeSetFactory( LabelMapVolumeNodeSetFactory );
   this->RegisterArchetypeVolumeNodeSetFactory( ScalarVolumeNodeSetFactory );
+
+  this->SetCompareVolumeGeometryEpsilon(0.000001);
 }
 
 //----------------------------------------------------------------------------
@@ -496,6 +623,11 @@ vtkMRMLVolumeNode* vtkSlicerVolumesLogic::AddArchetypeVolume (
     const char* filename, const char* volname, int loadingOptions,
     vtkStringArray *fileList)
 {
+  if (this->GetMRMLScene() == 0)
+    {
+    vtkErrorMacro("AddArchetypeVolume: Failed to add volume - MRMLScene is null");
+    return 0;
+    }
   this->GetMRMLScene()->StartState(vtkMRMLScene::BatchProcessState);
 
   bool labelMap = false;
@@ -865,13 +997,20 @@ vtkSlicerVolumesLogic::FillLabelVolumeFromTemplate(vtkMRMLScene *scene,
 //----------------------------------------------------------------------------
 std::string
 vtkSlicerVolumesLogic::CheckForLabelVolumeValidity(vtkMRMLScalarVolumeNode *volumeNode,
-                                          vtkMRMLScalarVolumeNode *labelNode)
+                                                   vtkMRMLScalarVolumeNode *labelNode)
 {
   std::stringstream warnings;
   warnings << "";
   if (!volumeNode || !labelNode)
     {
-    warnings << "Null volume node pointer\n";
+    if (!volumeNode)
+      {
+      warnings << "Null volume node pointer\n";
+      }
+    if (!labelNode)
+      {
+      warnings << "Null label volume node pointer\n";
+      }
     }
   else
     {
@@ -881,60 +1020,149 @@ vtkSlicerVolumesLogic::CheckForLabelVolumeValidity(vtkMRMLScalarVolumeNode *volu
       }
     else
       {
-      vtkImageData *volumeImage = volumeNode->GetImageData();
-      vtkImageData *labelImage  = labelNode->GetImageData();
-      if (!volumeImage || !labelImage)
+      warnings << this->CompareVolumeGeometry(volumeNode, labelNode);
+      }
+    }
+  return (warnings.str());
+}
+
+//----------------------------------------------------------------------------
+void vtkSlicerVolumesLogic::SetCompareVolumeGeometryEpsilon(double epsilon)
+{
+  vtkDebugMacro("vtkSlicerVolumesLogic setting "
+                << " CompareVolumeGeometryEpsilon to " << epsilon);
+
+  double positiveEpsilon = epsilon;
+  // check for negative values
+  if (positiveEpsilon < 0.0)
+    {
+    positiveEpsilon = fabs(epsilon);
+    }
+
+  if (this->CompareVolumeGeometryEpsilon != positiveEpsilon)
+    {
+    this->CompareVolumeGeometryEpsilon = positiveEpsilon;
+
+    // now set the precision
+    this->CompareVolumeGeometryPrecision = significantDecimals(this->CompareVolumeGeometryEpsilon);
+
+    this->Modified();
+    }
+}
+
+//----------------------------------------------------------------------------
+std::string
+vtkSlicerVolumesLogic::CompareVolumeGeometry(vtkMRMLScalarVolumeNode *volumeNode1,
+                                             vtkMRMLScalarVolumeNode *volumeNode2)
+{
+  std::stringstream warnings;
+  if (!volumeNode1 || !volumeNode2)
+    {
+    if (!volumeNode1)
+      {
+      warnings << "Null first volume node pointer\n";
+      }
+    else
+      {
+      warnings << "Null second volume node pointer\n";
+      }
+    }
+  else
+    {
+    vtkImageData *volumeImage1 = volumeNode1->GetImageData();
+    vtkImageData *volumeImage2  = volumeNode2->GetImageData();
+    if (!volumeImage1 || !volumeImage2)
+      {
+      if (!volumeImage1)
         {
-        warnings << "Null image data pointer\n";
+        warnings << "Null first image data pointer\n";
         }
-      else
+      if (!volumeImage2)
         {
-        int row, column;
-        double volumeValue, labelValue;
-        for (row = 0; row < 3; row++)
-          {
-          volumeValue = volumeImage->GetDimensions()[row];
-          labelValue = labelImage->GetDimensions()[row];
-
-          if (volumeValue != labelValue)
-            {
-            warnings << "Dimension mismatch at row [" << row << "] (" << volumeValue << " != " << labelValue << ")\n";
-            }
-
-          volumeValue = volumeImage->GetSpacing()[row];
-          labelValue = labelImage->GetSpacing()[row];
-          if (volumeValue != labelValue)
-            {
-            warnings << "Spacing mismatch at row [" << row << "] (" << volumeValue << " != " << labelValue << ")\n";
-            }
-
-          volumeValue = volumeImage->GetOrigin()[row];
-          labelValue = labelImage->GetOrigin()[row];
-          if (volumeValue != labelValue)
-            {
-            warnings << "Origin mismatch at row [" << row << "] (" << volumeValue << " != " << labelValue << ")\n";
-            }
-
-          }
-        vtkMatrix4x4 *volumeIJKToRAS = vtkMatrix4x4::New();
-        vtkMatrix4x4 *labelIJKToRAS = vtkMatrix4x4::New();
-        volumeNode->GetIJKToRASMatrix(volumeIJKToRAS);
-        labelNode->GetIJKToRASMatrix(labelIJKToRAS);
-        for (row = 0; row < 4; row++)
-          {
-          for (column = 0; column < 4; column++)
-            {
-            volumeValue = volumeIJKToRAS->GetElement(row,column);
-            labelValue = labelIJKToRAS->GetElement(row,column);
-            if (volumeValue != labelValue)
-              {
-              warnings << "IJKToRAS mismatch at [" << row << ", " << column << "] (" << volumeValue << " != " << labelValue << ")\n";
-              }
-            }
-          }
-        volumeIJKToRAS->Delete();
-        labelIJKToRAS->Delete();
+        warnings << "Null second image data pointer\n";
         }
+      }
+    else
+      {
+      int row, column;
+      double volumeValue1, volumeValue2;
+      // set the floating point precision to match the precision of the espilon
+      // used for the fuzzy compare
+      warnings << std::setprecision(this->GetCompareVolumeGeometryPrecision());
+      // sanity check versus the volume spacings
+      double spacing1[3], spacing2[3];
+      volumeNode1->GetSpacing(spacing1);
+      volumeNode2->GetSpacing(spacing2);
+      double minSpacing = spacing1[0];
+      for (int i = 1; i < 3; ++i)
+        {
+        if (spacing1[i] < minSpacing)
+          {
+          minSpacing = spacing1[i];
+          }
+        }
+      for (int i = 0; i < 3; ++i)
+        {
+        if (spacing2[i] < minSpacing)
+          {
+          minSpacing = spacing2[i];
+          }
+        }
+      // in general the defaults assume that an epsilon of 1e-6 works with a min
+      // spacing of 1mm, check that the epsilon is scaled appropriately for the
+      // minimum spacing for these two volumes
+      double logDiff = orderOfMagnitude(minSpacing) - orderOfMagnitude(this->CompareVolumeGeometryEpsilon);
+      vtkDebugMacro("diff in order of mag between min spacing and epsilon = " << logDiff);
+      if (logDiff < 3.0 || logDiff > 10.0)
+        {
+        warnings << "(Minimum spacing for volumes of " << minSpacing << " mismatched with epsilon " << this->CompareVolumeGeometryEpsilon << ",\ngeometry comparison may not be useful.\nTry resetting the Volumes module logic compare volume geometry epsilon variable.)\n";
+        }
+      for (row = 0; row < 3; row++)
+        {
+        volumeValue1 = volumeImage1->GetDimensions()[row];
+        volumeValue2 = volumeImage2->GetDimensions()[row];
+
+        if (volumeValue1 != volumeValue2)
+          {
+          warnings << "Dimension mismatch at row [" << row << "] (" << volumeValue1 << " != " << volumeValue2 << ")\n";
+          }
+
+        volumeValue1 = volumeImage1->GetSpacing()[row];
+        volumeValue2 = volumeImage2->GetSpacing()[row];
+        if (volumeValue1 != volumeValue2)
+          {
+          warnings << "Spacing mismatch at row [" << row << "] (" << volumeValue1 << " != " << volumeValue2 << ")\n";
+          }
+
+        volumeValue1 = volumeImage1->GetOrigin()[row];
+        volumeValue2 = volumeImage2->GetOrigin()[row];
+        if (volumeValue1 != volumeValue2)
+          {
+          warnings << "Origin mismatch at row [" << row << "] (" << volumeValue1 << " != " << volumeValue2 << ")\n";
+          }
+        }
+
+      vtkMatrix4x4 *volumeIJKToRAS1 = vtkMatrix4x4::New();
+      vtkMatrix4x4 *volumeIJKToRAS2 = vtkMatrix4x4::New();
+      volumeNode1->GetIJKToRASMatrix(volumeIJKToRAS1);
+      volumeNode2->GetIJKToRASMatrix(volumeIJKToRAS2);
+      for (row = 0; row < 4; row++)
+        {
+        for (column = 0; column < 4; column++)
+          {
+          volumeValue1 = volumeIJKToRAS1->GetElement(row,column);
+          volumeValue2 = volumeIJKToRAS2->GetElement(row,column);
+          if (!vtkMathUtilities::FuzzyCompare<double>(volumeValue1,
+                                                      volumeValue2,
+                                                      this->CompareVolumeGeometryEpsilon))
+            {
+            warnings << "IJKToRAS mismatch at [" << row << ", " << column << "] ("
+                     << volumeValue1 << " != " << volumeValue2 << ")\n";
+            }
+          }
+        }
+      volumeIJKToRAS1->Delete();
+      volumeIJKToRAS2->Delete();
       }
     }
   return (warnings.str());
@@ -957,30 +1185,101 @@ CloneVolume (vtkMRMLScene *scene, vtkMRMLVolumeNode *volumeNode, const char *nam
     return NULL;
     }
 
-  // clone the display node
+  // TODO: this code should be made run-time polymorphic so in order
+  // to avoid explicit instantiation here.  Probably the solution is
+  // to provide static New methods for each concrete subclass of
+  // vtkMRMLNode, but that has not been tested.
+  // At this point, we check all the current subclasses
+  // http://slicer.org/doc/html/classvtkMRMLVolumeNode.html
+  // http://slicer.org/doc/html/classvtkMRMLVolumeDisplayNode.html
+
+  // clone the display node if possible
   vtkSmartPointer<vtkMRMLDisplayNode> clonedDisplayNode;
-  vtkMRMLLabelMapVolumeDisplayNode *labelDisplayNode = vtkMRMLLabelMapVolumeDisplayNode::SafeDownCast(volumeNode->GetDisplayNode());
-  if ( labelDisplayNode )
+  if ( volumeNode->GetDisplayNode() )
     {
-    clonedDisplayNode = vtkSmartPointer<vtkMRMLLabelMapVolumeDisplayNode>::New();
+    vtkMRMLLabelMapVolumeDisplayNode          *labelDisplayNode = vtkMRMLLabelMapVolumeDisplayNode::SafeDownCast(volumeNode->GetDisplayNode());
+    vtkMRMLDiffusionWeightedVolumeDisplayNode *dwvDisplayNode   = vtkMRMLDiffusionWeightedVolumeDisplayNode::SafeDownCast(volumeNode->GetDisplayNode());
+    vtkMRMLDiffusionTensorVolumeDisplayNode   *dtvDisplayNode   = vtkMRMLDiffusionTensorVolumeDisplayNode::SafeDownCast(volumeNode->GetDisplayNode());
+    vtkMRMLVectorVolumeDisplayNode            *vvDisplayNode    = vtkMRMLVectorVolumeDisplayNode::SafeDownCast(volumeNode->GetDisplayNode());
+    vtkMRMLScalarVolumeDisplayNode            *svDisplayNode    = vtkMRMLScalarVolumeDisplayNode::SafeDownCast(volumeNode->GetDisplayNode());
+
+    if ( labelDisplayNode )
+      {
+      clonedDisplayNode = vtkSmartPointer<vtkMRMLLabelMapVolumeDisplayNode>::New();
+      }
+    else if ( dwvDisplayNode )
+      {
+      clonedDisplayNode = vtkSmartPointer<vtkMRMLDiffusionWeightedVolumeDisplayNode>::New();
+      }
+    else if ( dwvDisplayNode )
+      {
+      clonedDisplayNode = vtkSmartPointer<vtkMRMLDiffusionWeightedVolumeDisplayNode>::New();
+      }
+    else if ( dtvDisplayNode )
+      {
+      clonedDisplayNode = vtkSmartPointer<vtkMRMLDiffusionTensorVolumeDisplayNode>::New();
+      }
+    else if ( vvDisplayNode )
+      {
+      clonedDisplayNode = vtkSmartPointer<vtkMRMLVectorVolumeDisplayNode>::New();
+      }
+    else if ( svDisplayNode )
+      {
+      clonedDisplayNode = vtkSmartPointer<vtkMRMLScalarVolumeDisplayNode>::New();
+      }
+
+    if (clonedDisplayNode)
+      {
+      clonedDisplayNode->CopyWithScene(volumeNode->GetDisplayNode());
+      scene->AddNode(clonedDisplayNode);
+      }
     }
-  else
-    {
-    clonedDisplayNode = vtkSmartPointer<vtkMRMLScalarVolumeDisplayNode>::New();
-    }
-  clonedDisplayNode->CopyWithScene(volumeNode->GetDisplayNode());
-  scene->AddNode(clonedDisplayNode);
 
   // clone the volume node
-  vtkNew<vtkMRMLScalarVolumeNode> clonedVolumeNode;
+  vtkSmartPointer<vtkMRMLScalarVolumeNode> clonedVolumeNode;
+  vtkMRMLDiffusionWeightedVolumeNode *dwvNode   = vtkMRMLDiffusionWeightedVolumeNode::SafeDownCast(volumeNode);
+  vtkMRMLDiffusionTensorVolumeNode   *dtvNode   = vtkMRMLDiffusionTensorVolumeNode::SafeDownCast(volumeNode);
+  vtkMRMLVectorVolumeNode            *vvNode    = vtkMRMLVectorVolumeNode::SafeDownCast(volumeNode);
+  vtkMRMLScalarVolumeNode            *svNode    = vtkMRMLScalarVolumeNode::SafeDownCast(volumeNode);
+
+    if ( dwvNode )
+      {
+      clonedVolumeNode = vtkSmartPointer<vtkMRMLDiffusionWeightedVolumeNode>::New();
+      }
+    else if ( dwvNode )
+      {
+      clonedVolumeNode = vtkSmartPointer<vtkMRMLDiffusionWeightedVolumeNode>::New();
+      }
+    else if ( dtvNode )
+      {
+      clonedVolumeNode = vtkSmartPointer<vtkMRMLDiffusionTensorVolumeNode>::New();
+      }
+    else if ( vvNode )
+      {
+      clonedVolumeNode = vtkSmartPointer<vtkMRMLVectorVolumeNode>::New();
+      }
+    else if ( svNode )
+      {
+      clonedVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
+      }
+
+  if ( !clonedVolumeNode )
+    {
+    vtkErrorWithObjectMacro(volumeNode, "Could not clone volume!");
+    return NULL;
+    }
+
   clonedVolumeNode->CopyWithScene(volumeNode);
   clonedVolumeNode->SetAndObserveStorageNodeID(NULL);
   std::string uname = scene->GetUniqueNameByString(name);
   clonedVolumeNode->SetName(uname.c_str());
-  clonedVolumeNode->SetAndObserveDisplayNodeID(clonedDisplayNode->GetID());
+  if ( clonedDisplayNode )
+    {
+    clonedVolumeNode->SetAndObserveDisplayNodeID(clonedDisplayNode->GetID());
+    }
 
   // copy over the volume's data
- // Kilian: VTK crashes when volumeNode->GetImageData() = NULL
+  // Kilian: VTK crashes when volumeNode->GetImageData() = NULL
   if (volumeNode->GetImageData())
     {
     vtkNew<vtkImageData> clonedVolumeData;
@@ -1000,6 +1299,50 @@ CloneVolume (vtkMRMLScene *scene, vtkMRMLVolumeNode *volumeNode, const char *nam
 }
 
 //----------------------------------------------------------------------------
+vtkMRMLScalarVolumeNode*
+vtkSlicerVolumesLogic::
+CloneVolumeWithoutImageData(vtkMRMLScene *scene, vtkMRMLVolumeNode *volumeNode, const char *name)
+{
+  if ( scene == NULL || volumeNode == NULL )
+    {
+    return NULL;
+    }
+
+  // clone the display node
+  vtkSmartPointer<vtkMRMLDisplayNode> clonedDisplayNode;
+  vtkMRMLLabelMapVolumeDisplayNode *labelDisplayNode = vtkMRMLLabelMapVolumeDisplayNode::SafeDownCast(volumeNode->GetDisplayNode());
+  if ( labelDisplayNode )
+    {
+    clonedDisplayNode = vtkSmartPointer<vtkMRMLLabelMapVolumeDisplayNode>::New();
+    }
+  else
+    {
+    clonedDisplayNode = vtkSmartPointer<vtkMRMLScalarVolumeDisplayNode>::New();
+    }
+  if ( volumeNode->GetDisplayNode() )
+    {
+    clonedDisplayNode->CopyWithScene(volumeNode->GetDisplayNode());
+    scene->AddNode(clonedDisplayNode);
+    }
+
+  // clone the volume node
+  vtkNew<vtkMRMLScalarVolumeNode> clonedVolumeNode;
+  clonedVolumeNode->CopyWithScene(volumeNode);
+  clonedVolumeNode->SetAndObserveStorageNodeID(NULL);
+  std::string uname = scene->GetUniqueNameByString(name);
+  clonedVolumeNode->SetName(uname.c_str());
+  if ( volumeNode->GetDisplayNode() )
+    {
+    clonedVolumeNode->SetAndObserveDisplayNodeID(clonedDisplayNode->GetID());
+    }
+
+  // add the cloned volume to the scene
+  scene->AddNode(clonedVolumeNode.GetPointer());
+
+  return clonedVolumeNode.GetPointer();
+}
+
+//----------------------------------------------------------------------------
 void vtkSlicerVolumesLogic::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->vtkObject::PrintSelf(os, indent);
@@ -1008,6 +1351,10 @@ void vtkSlicerVolumesLogic::PrintSelf(ostream& os, vtkIndent indent)
 
   os << indent << "ActiveVolumeNode: " <<
     (this->ActiveVolumeNode ? this->ActiveVolumeNode->GetName() : "(none)") << "\n";
+  os << indent << "CompareVolumeGeometryEpsilon: "
+     << this->CompareVolumeGeometryEpsilon << "\n";
+  os << indent << "CompareVolumeGeometryPrecision: "
+     << this->CompareVolumeGeometryPrecision << "\n";
 }
 
 //----------------------------------------------------------------------------
@@ -1233,4 +1580,96 @@ vtkSlicerVolumesLogic
     this->VolumeRegistry.erase(rit);
     this->VolumeRegistry.push_front(factory);
     }
+}
+
+//----------------------------------------------------------------------------
+vtkMRMLScalarVolumeNode*
+vtkSlicerVolumesLogic
+::ResampleVolumeToReferenceVolume(vtkMRMLVolumeNode* inputVolumeNode,
+                                  vtkMRMLVolumeNode* referenceVolumeNode)
+{
+  int dimensions[3] = {0, 0, 0};
+
+  vtkMRMLScene* scene = inputVolumeNode->GetScene();
+
+  // Make sure inputs are initialized
+  if (!inputVolumeNode || !referenceVolumeNode || !scene)
+    {
+    return NULL;
+    }
+
+  // Clone the input volume without setting the imageData
+  vtkMRMLScalarVolumeNode* outputVolumeNode = Self::CloneVolumeWithoutImageData(scene,
+                                                                                inputVolumeNode,
+                                                                                inputVolumeNode->GetName());
+
+  vtkSmartPointer<vtkGeneralTransform> outputVolumeResliceTransform = vtkSmartPointer<vtkGeneralTransform>::New();
+  outputVolumeResliceTransform->Identity();
+  outputVolumeResliceTransform->PostMultiply();
+
+  vtkSmartPointer<vtkMatrix4x4> inputVolumeIJK2RASMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  inputVolumeNode->GetIJKToRASMatrix(inputVolumeIJK2RASMatrix);
+  outputVolumeResliceTransform->Concatenate(inputVolumeIJK2RASMatrix);
+
+  vtkSmartPointer<vtkMRMLTransformNode> inputVolumeNodeTransformNode = vtkMRMLTransformNode::SafeDownCast(
+    scene->GetNodeByID(inputVolumeNode->GetTransformNodeID()));
+  if (inputVolumeNodeTransformNode!=NULL)
+    {
+    vtkSmartPointer<vtkGeneralTransform> inputVolumeRAS2RAS = vtkSmartPointer<vtkGeneralTransform>::New();
+    inputVolumeNodeTransformNode->GetTransformToWorld(inputVolumeRAS2RAS);
+    outputVolumeResliceTransform->Concatenate(inputVolumeRAS2RAS);
+    }
+
+  vtkSmartPointer<vtkMRMLTransformNode> referenceVolumeNodeTransformNode = vtkMRMLTransformNode::SafeDownCast(
+    scene->GetNodeByID(referenceVolumeNode->GetTransformNodeID()));
+  if (referenceVolumeNodeTransformNode!=NULL)
+    {
+    vtkSmartPointer<vtkGeneralTransform> ras2referenceVolumeRAS = vtkSmartPointer<vtkGeneralTransform>::New();
+    inputVolumeNodeTransformNode->GetTransformFromWorld(ras2referenceVolumeRAS);
+    outputVolumeResliceTransform->Concatenate(ras2referenceVolumeRAS);
+    }
+
+  vtkSmartPointer<vtkMatrix4x4> referenceVolumeRAS2IJKMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  referenceVolumeNode->GetRASToIJKMatrix(referenceVolumeRAS2IJKMatrix);
+  outputVolumeResliceTransform->Concatenate(referenceVolumeRAS2IJKMatrix);
+  outputVolumeResliceTransform->Inverse();
+
+  vtkSmartPointer<vtkImageReslice> resliceFilter = vtkSmartPointer<vtkImageReslice>::New();
+#if (VTK_MAJOR_VERSION <= 5)
+  resliceFilter->SetInput(inputVolumeNode->GetImageData());
+#else
+  resliceFilter->SetInputData(inputVolumeNode->GetImageData());
+#endif
+  resliceFilter->SetOutputOrigin(0, 0, 0);
+  resliceFilter->SetOutputSpacing(1, 1, 1);
+  referenceVolumeNode->GetImageData()->GetDimensions(dimensions);
+  resliceFilter->SetOutputExtent(0, dimensions[0]-1, 0, dimensions[1]-1, 0, dimensions[2]-1);
+
+  // vtkImageReslice works faster if the input is a linear transform, so try to convert it
+  // to a linear transform
+  vtkSmartPointer<vtkTransform> linearResliceTransform = vtkSmartPointer<vtkTransform>::New();
+  if (vtkMRMLTransformNode::IsGeneralTransformLinear(outputVolumeResliceTransform, linearResliceTransform))
+    {
+    resliceFilter->SetResliceTransform(linearResliceTransform);
+    }
+  else
+    {
+    resliceFilter->SetResliceTransform(outputVolumeResliceTransform);
+    }
+  // check for a label map and adjust interpolation mode
+  if (inputVolumeNode->IsA("vtkMRMLScalarVolumeNode") &&
+      vtkMRMLScalarVolumeNode::SafeDownCast(inputVolumeNode)->GetLabelMap())
+    {
+    resliceFilter->SetInterpolationModeToNearestNeighbor();
+    }
+  else
+    {
+    resliceFilter->SetInterpolationModeToLinear();
+    }
+  resliceFilter->Update();
+
+  outputVolumeNode->CopyOrientation(referenceVolumeNode);
+  outputVolumeNode->SetAndObserveImageData(resliceFilter->GetOutput());
+
+  return outputVolumeNode;
 }

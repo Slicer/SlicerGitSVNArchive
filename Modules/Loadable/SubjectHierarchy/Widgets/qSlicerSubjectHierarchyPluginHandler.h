@@ -2,7 +2,8 @@
 
   Program: 3D Slicer
 
-  Copyright (c) Kitware Inc.
+  Copyright (c) Laboratory for Percutaneous Surgery (PerkLab)
+  Queen's University, Kingston, ON, Canada. All Rights Reserved.
 
   See COPYRIGHT.txt
   or http://www.slicer.org/copyright/copyright.txt for details.
@@ -50,7 +51,7 @@ class Q_SLICER_MODULE_SUBJECTHIERARCHY_WIDGETS_EXPORT qSlicerSubjectHierarchyPlu
 public:
   /// Instance getter for the singleton class
   /// \return Instance object
-  static qSlicerSubjectHierarchyPluginHandler* instance();
+  Q_INVOKABLE static qSlicerSubjectHierarchyPluginHandler* instance();
 
   /// Allows cleanup of the singleton at application exit
   static void setInstance(qSlicerSubjectHierarchyPluginHandler* instance);
@@ -65,25 +66,25 @@ public:
   void setCurrentNode(vtkMRMLSubjectHierarchyNode* node);
 
   /// Get current subject hierarchy node
-  vtkMRMLSubjectHierarchyNode* currentNode();
+  Q_INVOKABLE vtkMRMLSubjectHierarchyNode* currentNode();
 
 public:
   /// Register a plugin
   /// \return True if plugin registered successfully, false otherwise
-  bool registerPlugin(qSlicerSubjectHierarchyAbstractPlugin* plugin);
+  Q_INVOKABLE bool registerPlugin(qSlicerSubjectHierarchyAbstractPlugin* plugin);
 
   /// Get list of registered plugins
-  QList<qSlicerSubjectHierarchyAbstractPlugin*> registeredPlugins() { return m_RegisteredPlugins; };
+  Q_INVOKABLE QList<qSlicerSubjectHierarchyAbstractPlugin*> registeredPlugins() { return m_RegisteredPlugins; };
 
   /// Get default plugin instance
-  qSlicerSubjectHierarchyDefaultPlugin* defaultPlugin();
+  Q_INVOKABLE qSlicerSubjectHierarchyDefaultPlugin* defaultPlugin();
 
   /// Returns all plugins (registered plugins and default plugin)
-  QList<qSlicerSubjectHierarchyAbstractPlugin*> allPlugins();
+  Q_INVOKABLE QList<qSlicerSubjectHierarchyAbstractPlugin*> allPlugins();
 
   /// Get a plugin by name
   /// \return The plugin instance if exists, NULL otherwise
-  qSlicerSubjectHierarchyAbstractPlugin* pluginByName(QString name);
+  Q_INVOKABLE qSlicerSubjectHierarchyAbstractPlugin* pluginByName(QString name);
 
   /// Returns the plugin that can handle a node the best for adding it from outside to inside the subject hierarchy
   /// The best plugins are found based on the confidence numbers they return for the inputs.
@@ -120,7 +121,7 @@ public:
   /// Pops up a simple dialog asking to choose one plugin from a list.
   /// Note: This should happen very rarely. If happens frequently, then confidence numbers returned by plugins need review.
   /// \param textToDisplay Text assembled by the caller displaying the reason and basis (nodes) of the choice
-  /// \candidatePlugins List of plugins to choose from
+  /// \param candidatePlugins List of plugins to choose from
   /// \return Plugin chosen by the user
   qSlicerSubjectHierarchyAbstractPlugin* selectPluginFromDialog(QString textToDisplay, QList<qSlicerSubjectHierarchyAbstractPlugin*> candidatePlugins);
 
@@ -148,11 +149,12 @@ protected:
   /// MRML scene
   vtkMRMLScene* m_Scene;
 
-private:
-  /// Private constructor
-  qSlicerSubjectHierarchyPluginHandler();
+public:
+  /// Private constructor made public to enable python wrapping
+  /// IMPORTANT: Should not be used for creating plugin handler! Use instance() instead.
+  qSlicerSubjectHierarchyPluginHandler(QObject* parent=NULL);
 
-  /// Private destructor
+  /// Private destructor made public to enable python wrapping
   virtual ~qSlicerSubjectHierarchyPluginHandler();
 
 private:

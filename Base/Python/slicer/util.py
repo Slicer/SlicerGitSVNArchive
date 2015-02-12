@@ -310,13 +310,32 @@ def saveScene(filename, properties={}):
 # Module
 #
 
+def moduleSelector():
+  w = mainWindow()
+  if not w:
+    import sys
+    print("Could not find main window", file=sys.stderr)
+    return None
+  return w.moduleSelector()
+
 def selectModule(module):
   moduleName = module
   if not isinstance(module, basestring):
     moduleName = module.name
-  w = mainWindow()
-  if not w: return
-  w.moduleSelector().selectModule(moduleName)
+  selector = moduleSelector()
+  if not selector:
+    import sys
+    print("Could not find moduleSelector in the main window", file=sys.stderr)
+    return None
+  moduleSelector().selectModule(moduleName)
+
+def selectedModule():
+  selector = moduleSelector()
+  if not selector:
+    import sys
+    print("Could not find moduleSelector in the main window", file=sys.stderr)
+    return None
+  return selector.selectedModule
 
 def moduleNames():
   from slicer import app
@@ -417,13 +436,14 @@ def resetSliceViews():
 # MRML
 #
 
-def getNodes(pattern = ""):
+def getNodes(pattern = "", scene=None):
     """Return a dictionary of nodes where the name or id matches the 'pattern'.
     Providing an empty 'pattern' string will return all nodes.
     """
     import slicer, fnmatch
     nodes = {}
-    scene = slicer.mrmlScene
+    if scene is None:
+      scene = slicer.mrmlScene
     count = scene.GetNumberOfNodes()
     for idx in range(count):
       node = scene.GetNthNode(idx)
@@ -433,24 +453,37 @@ def getNodes(pattern = ""):
         nodes[node.GetName()] = node
     return nodes
 
-def getNode(pattern = "", index = 0):
+def getNode(pattern = "", index = 0, scene=None):
     """Return the indexth node where name or id matches 'pattern'.
     Providing an empty 'pattern' string will return all nodes.
     """
-    nodes = getNodes(pattern)
+    nodes = getNodes(pattern, scene)
     try:
       if nodes.keys():
         return nodes.values()[index]
     except IndexError:
       return None
 
-def getFirstNodeByClassByName(className, name):
+def getFirstNodeByClassByName(className, name, scene=None):
   import slicer
-  nodes = slicer.mrmlScene.GetNodesByClassByName(className, name)
+  if scene is None:
+      scene = slicer.mrmlScene
+  nodes = scene.GetNodesByClassByName(className, name)
   nodes.UnRegister(nodes)
   if nodes.GetNumberOfItems() > 0:
     return nodes.GetItemAsObject(0)
   return None
+
+class NodeModify:
+  """Context manager to conveniently compress mrml node modified event.
+  """
+  def __init__(self, node):
+    self.node = node
+  def __enter__(self):
+    self.wasModifying = self.node.StartModify()
+    return self.node
+  def __exit__(self, type, value, traceback):
+    self.node.EndModify(self.wasModifying)
 
 #
 # MRML-numpy
@@ -499,9 +532,9 @@ class VTKObservationMixin(object):
     super(VTKObservationMixin, self).__init__()
     self.Observations = []
 
-  def removeObservers(self, method):
+  def removeObservers(self, method=None):
     for o, e, m, g, t in self.Observations:
-      if method == m:
+      if method == m or method is None:
         o.RemoveObserver(t)
         self.Observations.remove([o, e, m, g, t])
 
@@ -511,6 +544,12 @@ class VTKObservationMixin(object):
       return
     tag = object.AddObserver(event, method)
     self.Observations.append([object, event, method, group, tag])
+
+  def removeObserver(self, object, event, method):
+    for o, e, m, g, t in self.Observations:
+      if o == object and e == event and m == method:
+        o.RemoveObserver(t)
+        self.Observations.remove([o, e, m, g, t])
 
   def hasObserver(self, object, event, method):
     for o, e, m, g, t in self.Observations:
@@ -523,3 +562,58 @@ class VTKObservationMixin(object):
       if e == event and m == method:
         return o
     return None
+
+def toVTKString(str):
+  """Convert unicode string into 8-bit encoded ascii string.
+  Unicode characters without ascii equivalent will be stripped out.
+  """
+  return str.encode('latin1', 'ignore')
+
+#
+# Misc. Utility methods
+#
+def unicodeify(s):
+  """
+  Avoid UnicodeEncodeErrors using the technique described here:
+  http://stackoverflow.com/questions/9942594/unicodeencodeerror-ascii-codec-cant-encode-character-u-xa0-in-position-20
+  """
+  return u' '.join(s).encode('utf-8').strip()
+
+def delayDisplay(message,autoCloseMsec=1000):
+  """Display an information message in a popup window for a short time.
+  If autoCloseMsec>0 then the window is closed after waiting for autoCloseMsec milliseconds
+  If autoCloseMsec=0 then the window is not closed until the user clicks on it.
+  """
+  from __main__ import qt, slicer
+  import logging
+  logging.info(message)
+  messagePopup = qt.QDialog()
+  layout = qt.QVBoxLayout()
+  messagePopup.setLayout(layout)
+  label = qt.QLabel(message,messagePopup)
+  layout.addWidget(label)
+  if autoCloseMsec>0:
+    qt.QTimer.singleShot(autoCloseMsec, messagePopup.close)
+  else:
+    okButton = qt.QPushButton("OK")
+    layout.addWidget(okButton)
+    okButton.connect('clicked()', messagePopup.close)
+  messagePopup.exec_()
+
+def warningDisplay(message,autoCloseMsec=1000,windowTitle="Slicer warning"):
+  """Display popup with a warning message.
+  """
+  from __main__ import qt, slicer
+  import logging
+  logging.warning(message)
+  if mainWindow(verbose=False):
+    qt.QMessageBox.warning(slicer.util.mainWindow(), windowTitle, message)
+
+def errorDisplay(message,autoCloseMsec=1000,windowTitle="Slicer error"):
+  """Display an error popup.
+  """
+  from __main__ import qt, slicer
+  import logging
+  logging.error(message)
+  if mainWindow(verbose=False):
+    qt.QMessageBox.critical(slicer.util.mainWindow(), windowTitle, message)

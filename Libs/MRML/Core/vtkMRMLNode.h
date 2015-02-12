@@ -174,7 +174,7 @@ public:
   ///
   /// Write this node's information to a MRML file in XML format.
   /// NOTE: Subclasses should implement this method
-  /// NOTE: Call this method in the subclass impementation
+  /// NOTE: Call this method in the subclass implementation
   virtual void WriteXML(ostream& of, int indent);
 
   ///
@@ -184,7 +184,7 @@ public:
   ///
   /// Copy parameters (not including ID and Scene) from another node of the same type.
   /// NOTE: Subclasses should implement this method
-  /// NOTE: Call this method in the subclass impementation
+  /// NOTE: Call this method in the subclass implementation
   virtual void Copy(vtkMRMLNode *node);
 
   /// Copy the references of the node into this.
@@ -200,7 +200,7 @@ public:
   void CopyWithScene(vtkMRMLNode *node);
 
   ///
-  /// Reset node attributes to the initilal state as defined in the constructor.
+  /// Reset node attributes to the initial state as defined in the constructor.
   /// NOTE:   it preserves values several dynamic attributes that may be set by an application:
   /// SaveWithScene, HideFromEditors, Selectable, SingletonTag
   /// NOTE: other attributes that needs to be preserved should be handled in the subclass
@@ -221,7 +221,7 @@ public:
   /// End modifying the node. Enable Modify events if the
   /// previous state of DisableModifiedEvent flag is 0.
   /// Return the number of pending events (even if
-  /// InvokePendingModifiedEvent is not called.
+  /// InvokePendingModifiedEvent is not called).
   virtual int EndModify(int previousDisableModifiedEventState)
     {
     this->SetDisableModifiedEvent(previousDisableModifiedEventState);
@@ -489,7 +489,7 @@ public:
   /// scan the scene if the node was not yet cached.
   /// \sa SetAndObserveNodeReferenceID(const char*),
   /// AddAndObserveNodeReferenceID(const char *), RemoveNthNodeReferenceID(int)
-  vtkMRMLNode* SetAndObserveNthNodeReferenceID(const char* referenceRole, int n, const char *nodeReferenceID, vtkIntArray *events=0);
+  vtkMRMLNode* SetAndObserveNthNodeReferenceID(const char* referenceRole, int n, const char *referencedNodeID, vtkIntArray *events=0);
 
   ///
   /// Convenience method that removes the Nth node ID from the list
@@ -503,7 +503,7 @@ public:
 
   ///
   /// Return true if NodeReferenceID is in the node ID list for a specific reference role.
-  bool HasNodeReferenceID(const char* referenceRole, const char* NodeReferenceID);
+  bool HasNodeReferenceID(const char* referenceRole, const char* referencedNodeID);
 
   ///
   /// Return the number of node IDs for a specific reference role(and nodes as they always
@@ -550,7 +550,7 @@ public:
   /// for valid IDs may not yet be in the scene.
   /// \sa GetNodeReferences(), GetNodeReferenceID()
   void GetNodeReferenceIDs(const char* referenceRole,
-                           std::vector<const char*> &nodeIDs);
+                           std::vector<const char*> &referencedNodeIDs);
 
 
   /// HierarchyModifiedEvent is generated when the hierarchy node with which
@@ -566,7 +566,7 @@ public:
     };
 protected:
   ///
-  /// class to hold information about a referenced node used by refering node
+  /// class to hold information about a referenced node used by referring node
   class VTK_MRML_EXPORT vtkMRMLNodeReference : public vtkObject
   {
   public:

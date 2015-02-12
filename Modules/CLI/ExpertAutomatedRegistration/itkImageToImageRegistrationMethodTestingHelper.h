@@ -18,13 +18,12 @@
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
 #include "itkResampleImageFilter.h"
-#include "itkDifferenceImageFilter.h"
+#include "itkTestingComparisonImageFilter.h"
 
 namespace itk
 {
 
-/** \class ImageToImageRegistrationMethodTestingHelper auxiliary class for
- * factorizing testing tasks.
+/** \class ImageToImageRegistrationMethodTestingHelper
  *
  *  This class provides common tasks required to test all registration methods.
  *
@@ -46,8 +45,8 @@ class ImageToImageRegistrationMethodTestingHelper
   typedef ResampleImageFilter<ImageType, ImageType> ResampleFilterType;
   typedef typename ResampleFilterType::Pointer      ResampleFilterPointer;
 
-  typedef DifferenceImageFilter<ImageType, ImageType> DifferenceFilterType;
-  typedef typename DifferenceFilterType::Pointer      DifferenceFilterPointer;
+  typedef itk::Testing::ComparisonImageFilter<ImageType, ImageType> DifferenceFilterType;
+  typedef typename DifferenceFilterType::Pointer                    DifferenceFilterPointer;
 public:
 
   /** Constructor */

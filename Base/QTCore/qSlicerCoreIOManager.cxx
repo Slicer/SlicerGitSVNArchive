@@ -35,6 +35,7 @@
 #include <vtkMRMLNode.h>
 #include <vtkMRMLScene.h>
 #include <vtkMRMLStorableNode.h>
+#include <vtkMRMLStorageNode.h>
 
 // VTK includes
 #include <vtkCollection.h>
@@ -385,8 +386,8 @@ bool qSlicerCoreIOManager::loadNodes(const qSlicerIO::IOFileType& fileType,
     }
   Q_ASSERT(!parameters["fileName"].toString().isEmpty());
 
-  qSlicerIO::IOProperties parametersWithFileType = parameters;
-  parametersWithFileType.insert("fileType", fileType);
+  qSlicerIO::IOProperties loadedFileParameters = parameters;
+  loadedFileParameters.insert("fileType", fileType);
 
   const QList<qSlicerFileReader*>& readers = this->readers(fileType);
 
@@ -412,7 +413,9 @@ bool qSlicerCoreIOManager::loadNodes(const qSlicerIO::IOFileType& fileType,
     break;
     }
 
-  emit newFileLoaded(parametersWithFileType);
+  loadedFileParameters.insert("nodeIDs", nodes);
+
+  emit newFileLoaded(loadedFileParameters);
 
   if (loadedNodes)
     {
@@ -459,6 +462,24 @@ vtkMRMLNode* qSlicerCoreIOManager::loadNodesAndGetFirst(
 }
 
 //-----------------------------------------------------------------------------
+vtkMRMLStorageNode* qSlicerCoreIOManager::createAndAddDefaultStorageNode(
+    vtkMRMLStorableNode* node)
+{
+  vtkMRMLStorageNode* snode = node ? node->GetStorageNode() : 0;
+  if (snode == 0 && node != 0)
+    {
+    snode = node->CreateDefaultStorageNode();
+    if (snode != 0)
+      {
+      node->GetScene()->AddNode(snode);
+      snode->Delete();
+      node->SetAndObserveStorageNodeID(snode->GetID());
+      }
+    }
+  return snode;
+}
+
+//-----------------------------------------------------------------------------
 bool qSlicerCoreIOManager::saveNodes(qSlicerIO::IOFileType fileType,
                                      const qSlicerIO::IOProperties& parameters)
 {
@@ -469,6 +490,12 @@ bool qSlicerCoreIOManager::saveNodes(qSlicerIO::IOFileType fileType,
   // HACK - See http://www.na-mic.org/Bug/view.php?id=3322
   //        Sort writers to ensure generic ones are last.
   const QList<qSlicerFileWriter*> writers = d->writers(fileType, parameters);
+  if (writers.isEmpty())
+    {
+    qWarning() << "No writer found to write file" << parameters.value("fileName")
+               << "of type" << fileType;
+    return false;
+    }
 
   QStringList nodes;
   bool writeSuccess=false;

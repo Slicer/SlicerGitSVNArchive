@@ -6,6 +6,13 @@ endif()
 if(POLICY CMP0017)
   cmake_policy(SET CMP0017 OLD)
 endif()
+foreach(p
+  CMP0054 # CMake 3.1
+  )
+  if(POLICY ${p})
+    cmake_policy(SET ${p} NEW)
+  endif()
+endforeach()
 
 #-----------------------------------------------------------------------------
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake" ${CMAKE_MODULE_PATH})
@@ -15,7 +22,7 @@ include(ExternalProjectDependency)
 #-----------------------------------------------------------------------------
 if(APPLE)
   # Note: By setting CMAKE_OSX_* variables before any enable_language() or project() calls,
-  #       we ensure that the bitness will be properly detected.
+  #       we ensure that the bitness, and C++ standard library will be properly detected.
   include(SlicerBlockSetCMakeOSXVariables)
   mark_as_superbuild(
     VARS CMAKE_OSX_ARCHITECTURES:STRING CMAKE_OSX_SYSROOT:PATH CMAKE_OSX_DEPLOYMENT_TARGET:STRING
@@ -229,6 +236,10 @@ mark_as_superbuild(Slicer_UPDATE_TRANSLATION)
 set(Slicer_FORCED_WC_REVISION "" CACHE STRING "Overwrite value of auto-discovered Slicer_WC_REVISION")
 mark_as_advanced(Slicer_FORCED_WC_REVISION)
 
+option(Slicer_USE_FOLDERS "Organize build targets into folders" ON)
+mark_as_superbuild(Slicer_USE_FOLDERS)
+mark_as_advanced(Slicer_USE_FOLDERS)
+
 #-----------------------------------------------------------------------------
 # External projects related options
 #-----------------------------------------------------------------------------
@@ -258,15 +269,14 @@ option(Slicer_USE_QtTesting    "Integrate QtTesting framework into Slicer." ON)
 mark_as_advanced(Slicer_USE_QtTesting)
 mark_as_superbuild(Slicer_USE_QtTesting)
 
-option(Slicer_USE_SimpleITK "Build Slicer with SimpleITK support" OFF)
+option(Slicer_ITKV3_COMPATIBILITY "Enable ITKV3 compatibility later" OFF)
+mark_as_advanced(Slicer_ITKV3_COMPATIBILITY)
+mark_as_superbuild(Slicer_ITKV3_COMPATIBILITY)
+
+option(Slicer_USE_SimpleITK "Build Slicer with SimpleITK support" ON)
 mark_as_superbuild(Slicer_USE_SimpleITK)
 
-# XXX Waiting issue #3741 is solved, on MacOSX, force VTK version to 5.10
-#     See http://na-mic.org/Mantis/view.php?id=3741
 set(default_vtk_version_major 6)
-if(APPLE)
-  set(default_vtk_version_major 5)
-endif()
 
 set(VTK_VERSION_MAJOR ${default_vtk_version_major} CACHE STRING "Choose the expected VTK major version to build Slicer (5 or 6).")
 # Set the possible values of VTK major version for cmake-gui
@@ -335,12 +345,10 @@ endif()
 #-----------------------------------------------------------------------------
 # CTestCustom
 #-----------------------------------------------------------------------------
-if(BUILD_TESTING)
-  configure_file(
-    CMake/CTestCustom.cmake.in
-    ${CMAKE_CURRENT_BINARY_DIR}/CTestCustom.cmake
-    @ONLY)
-endif()
+configure_file(
+  CMake/CTestCustom.cmake.in
+  ${CMAKE_CURRENT_BINARY_DIR}/CTestCustom.cmake
+  @ONLY)
 
 #-----------------------------------------------------------------------------
 # Additional CXX/C Flags
@@ -405,8 +413,8 @@ set(Slicer_MAIN_PROJECT_APPLICATION_NAME ${${Slicer_MAIN_PROJECT}_APPLICATION_NA
 # Slicer version number.
 #-----------------------------------------------------------------------------
 set(Slicer_VERSION_MAJOR "4")
-set(Slicer_VERSION_MINOR "3")
-set(Slicer_VERSION_PATCH "1")
+set(Slicer_VERSION_MINOR "4")
+set(Slicer_VERSION_PATCH "0")
 # Releases define a tweak level
 #set(Slicer_VERSION_TWEAK 0)
 #set(Slicer_VERSION_RC 0)
@@ -432,8 +440,8 @@ endif()
 if(Slicer_VERSION_TWEAK GREATER 0)
   set(Slicer_VERSION_FULL "${Slicer_VERSION_FULL}-${Slicer_VERSION_TWEAK}")
 endif()
-message(STATUS "Configuring ${SlicerApp_APPLICATION_NAME} version [${Slicer_VERSION_FULL}]")
-message(STATUS "Configuring ${SlicerApp_APPLICATION_NAME} revision [${Slicer_WC_REVISION}]")
+message(STATUS "Configuring ${Slicer_MAIN_PROJECT_APPLICATION_NAME} version [${Slicer_VERSION_FULL}]")
+message(STATUS "Configuring ${Slicer_MAIN_PROJECT_APPLICATION_NAME} revision [${Slicer_WC_REVISION}]")
 
 #-----------------------------------------------------------------------------
 # Slicer sub-directories
@@ -488,6 +496,11 @@ endif()
 # VTKv6 - Slicer_VTK_COMPONENTS
 #-----------------------------------------------------------------------------
 if(${VTK_VERSION_MAJOR} GREATER 5)
+  set(Slicer_VTK_RENDERING_BACKEND "OpenGL" CACHE STRING "Choose the rendering backend.")
+  set_property(CACHE Slicer_VTK_RENDERING_BACKEND PROPERTY STRINGS "OpenGL" "OpenGL2")
+  mark_as_superbuild(Slicer_VTK_RENDERING_BACKEND)
+  set(Slicer_VTK_RENDERING_USE_${Slicer_VTK_RENDERING_BACKEND}_BACKEND 1)
+
   set(Slicer_VTK_COMPONENTS
     vtkFiltersExtraction
     vtkFiltersFlowPaths
@@ -501,9 +514,9 @@ if(${VTK_VERSION_MAJOR} GREATER 5)
     vtkImagingStatistics
     vtkImagingStencil
     vtkInteractionImage
-    vtkRenderingFreeTypeOpenGL
+    vtkRenderingContext${Slicer_VTK_RENDERING_BACKEND}
     vtkRenderingQt
-    vtkRenderingVolumeOpenGL
+    vtkRenderingVolume${Slicer_VTK_RENDERING_BACKEND}
     vtkTestingRendering
     vtkzlib
     )
@@ -513,9 +526,13 @@ if(${VTK_VERSION_MAJOR} GREATER 5)
       )
   endif()
   if(UNIX AND NOT APPLE)
-    list(APPEND Slicer_VTK_COMPONENTS
-      vtkRenderingFreeTypeFontConfig
-      )
+    find_package(FontConfig QUIET)
+    if(FONTCONFIG_FOUND)
+      list(APPEND Slicer_VTK_COMPONENTS
+        vtkRenderingFreeTypeFontConfig
+        vtkRenderingFreeType${Slicer_VTK_RENDERING_BACKEND}
+        )
+    endif()
   endif()
 endif()
 
@@ -565,21 +582,19 @@ mark_as_superbuild(VARS QT_QMAKE_EXECUTABLE LABELS "FIND_PACKAGE")
 #-----------------------------------------------------------------------------
 # Testing
 #-----------------------------------------------------------------------------
-if(BUILD_TESTING)
-  # NOTE: For CTEST_USE_LAUNCHER to work, it's required to include CTest at the superbuild level.
-  #       See http://www.kitware.com/blog/home/post/11
+# NOTE: For CTEST_USE_LAUNCHER to work, it's required to include CTest at the superbuild level.
+#       See http://www.kitware.com/blog/home/post/11
 
-  set_property(GLOBAL PROPERTY CTEST_TARGETS_ADDED 1) # Do not add CTest default targets
-  include(CTest)
+set_property(GLOBAL PROPERTY CTEST_TARGETS_ADDED 1) # Do not add CTest default targets
+include(CTest)
 
-  # Add Experimental target - Adapted from CTestTargets.cmake
-  set(__conf_types "")
-  if(CMAKE_CONFIGURATION_TYPES)
-    # We need to pass the configuration type on the test command line.
-    set(__conf_types -C "${CMAKE_CFG_INTDIR}")
-  endif()
-  add_custom_target(Experimental ${CMAKE_CTEST_COMMAND} ${__conf_types} -D Experimental)
+# Add Experimental target - Adapted from CTestTargets.cmake
+set(__conf_types "")
+if(CMAKE_CONFIGURATION_TYPES)
+  # We need to pass the configuration type on the test command line.
+  set(__conf_types -C "${CMAKE_CFG_INTDIR}")
 endif()
+add_custom_target(Experimental ${CMAKE_CTEST_COMMAND} ${__conf_types} -D Experimental)
 
 #-----------------------------------------------------------------------------
 # Superbuild script
@@ -594,6 +609,11 @@ foreach(dep QT ${Slicer_DEPENDENCIES})
     message(STATUS "Using system ${dep}")
   endif()
 endforeach()
+
+#-----------------------------------------------------------------------------
+# Folders
+#-----------------------------------------------------------------------------
+set_property(GLOBAL PROPERTY USE_FOLDERS ${Slicer_USE_FOLDERS})
 
 #-----------------------------------------------------------------------------
 # Clear SlicerTargets.cmake
@@ -635,7 +655,7 @@ set(Slicer_ModuleWidgets_INCLUDE_DIRS CACHE INTERNAL "Slicer Module Widgets incl
 # Get operating system, architecture and bitness
 #-----------------------------------------------------------------------------
 SlicerMacroGetOperatingSystemArchitectureBitness(VAR_PREFIX Slicer)
-message(STATUS "Configuring ${SlicerApp_APPLICATION_NAME} for [${Slicer_OS}-${Slicer_ARCHITECTURE}]")
+message(STATUS "Configuring ${Slicer_MAIN_PROJECT_APPLICATION_NAME} for [${Slicer_OS}-${Slicer_ARCHITECTURE}]")
 
 #-----------------------------------------------------------------------------
 # ExternalData configuration for test data
@@ -653,19 +673,22 @@ set(Slicer_ExternalData_URL_TEMPLATES ${ExternalData_URL_TEMPLATES})
 set(Slicer_LAUNCHER_EXECUTABLE ${Slicer_BINARY_DIR}/${Slicer_MAIN_PROJECT_APPLICATION_NAME}${CMAKE_EXECUTABLE_SUFFIX})
 set(Slicer_LAUNCH_COMMAND ${Slicer_LAUNCHER_EXECUTABLE} --launcher-no-splash --launch)
 
-if(BUILD_TESTING)
-  include(SlicerMacroConfigureModuleCxxTestDriver)
-  include(SlicerMacroSimpleTest)
-  include(SlicerMacroPythonTesting)
-  include(SlicerMacroConfigureGenericCxxModuleTests)
-  include(SlicerMacroConfigureGenericPythonModuleTests)
+include(SlicerMacroConfigureModuleCxxTestDriver)
+include(SlicerMacroSimpleTest)
+include(SlicerMacroPythonTesting)
+include(SlicerMacroConfigureGenericCxxModuleTests)
+include(SlicerMacroConfigureGenericPythonModuleTests)
 
+if(BUILD_TESTING)
   include(MIDAS)
   set(MIDAS_REST_URL "http://midas.kitware.com/api/rest" CACHE STRING "The MIDAS server where testing data resides")
   set(MIDAS_KEY_DIR "${Slicer_SOURCE_DIR}/Testing/Data")
   set(MIDAS_DATA_DIR "${Slicer_BINARY_DIR}/MIDAS_Data")
 
-  set(CXX_TEST_PATH ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+  # The variable CXX_TEST_PATH should *NOT* be used when adding tests.
+  # Instead the the $<TARGET_FILE:...> generator expression should be
+  # considered. See r16586 for more details.
+  set(CXX_TEST_PATH ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}) # XXX
 
   configure_file(
     ${Slicer_SOURCE_DIR}/CTestConfig.cmake
@@ -673,6 +696,13 @@ if(BUILD_TESTING)
     COPYONLY)
 
   add_subdirectory(CMake/Testing)
+
+  if(Slicer_BUILD_CLI_SUPPORT)
+    set(SEM_LAUNCH_COMMAND ${Slicer_LAUNCH_COMMAND})
+    if(USE_VALGRIND)
+      set(SEM_LAUNCH_COMMAND "${Slicer_BINARY_DIR}/Scripts/runValgrindForOneModule.sh")
+    endif()
+  endif()
 endif()
 
 #-----------------------------------------------------------------------------
@@ -707,21 +737,15 @@ else()
   endif()
 endif()
 include(${VTK_USE_FILE})
+if(NOT DEFINED VTK_RENDERING_BACKEND)
+  set(VTK_RENDERING_BACKEND "OpenGL")
+endif()
 
 #-----------------------------------------------------------------------------
 # CTK
 #-----------------------------------------------------------------------------
 find_package(CTK REQUIRED)
 include(${CTK_USE_FILE})
-
-#-----------------------------------------------------------------------------
-# QtTesting
-#-----------------------------------------------------------------------------
-if(Slicer_USE_QtTesting)
-  set(QtTesting_INSTALL_DIR ${CTK_QtTesting_INSTALL_DIR})
-  set(QtTesting_DIR ${CTK_QtTesting_DIR})
-  find_package(QtTesting REQUIRED)
-endif()
 
 #-----------------------------------------------------------------------------
 # Update CMake module path
@@ -749,7 +773,7 @@ if(Slicer_USE_PYTHONQT)
     OUTPUT_VARIABLE Slicer_PYTHON_VERSION_DOT
     OUTPUT_STRIP_TRAILING_WHITESPACE)
   string(REGEX REPLACE "[.]" "" Slicer_PYTHON_VERSION ${Slicer_PYTHON_VERSION_DOT})
-  message(STATUS "Configuring ${SlicerApp_APPLICATION_NAME} with python ${Slicer_PYTHON_VERSION_DOT}")
+  message(STATUS "Configuring ${Slicer_MAIN_PROJECT_APPLICATION_NAME} with python ${Slicer_PYTHON_VERSION_DOT}")
 
   set(CTK_COMPILE_PYTHON_SCRIPTS_GLOBAL_TARGET_NAME "Slicer")
 endif()
@@ -758,7 +782,6 @@ endif()
 # PythonQt
 #-----------------------------------------------------------------------------
 if(Slicer_USE_PYTHONQT)
-  set(PYTHONQT_INSTALL_DIR ${CTK_PYTHONQT_INSTALL_DIR})
   # Find PythonQt package so that PYTHONQT_USE_RELEASE_PYTHON_FALLBACK is defined
   # See https://github.com/commontk/PythonQt/issues/7
   # and https://github.com/commontk/PythonQt/issues/8
@@ -1061,4 +1084,3 @@ endif()
 # the end of the whole configuration process, as a "last step".
 # This directory is typically the last add_subdirectory in the main CMakeLists.txt.
 add_subdirectory(CMake/LastConfigureStep)
-

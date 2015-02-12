@@ -2,7 +2,8 @@
 
   Program: 3D Slicer
 
-  Copyright (c) Kitware Inc.
+  Copyright (c) Laboratory for Percutaneous Surgery (PerkLab)
+  Queen's University, Kingston, ON, Canada. All Rights Reserved.
 
   See COPYRIGHT.txt
   or http://www.slicer.org/copyright/copyright.txt for details.
@@ -39,7 +40,7 @@
 qSlicerSubjectHierarchyPluginHandler *qSlicerSubjectHierarchyPluginHandler::m_Instance = NULL;
 
 //----------------------------------------------------------------------------
-/// \ingroup Slicer_QtModules_SubjectHierarchy_Plugins
+/// \ingroup Slicer_QtModules_SubjectHierarchy_Widgets
 class qSlicerSubjectHierarchyPluginHandlerCleanup
 {
 public:
@@ -91,12 +92,12 @@ void qSlicerSubjectHierarchyPluginHandler::setInstance(qSlicerSubjectHierarchyPl
 }
 
 //-----------------------------------------------------------------------------
-qSlicerSubjectHierarchyPluginHandler::qSlicerSubjectHierarchyPluginHandler()
-  : m_CurrentNode(NULL)
+qSlicerSubjectHierarchyPluginHandler::qSlicerSubjectHierarchyPluginHandler(QObject* parent)
+  : QObject(parent)
+  , m_CurrentNode(NULL)
   , m_Scene(NULL)
 {
   this->m_RegisteredPlugins.clear();
-
   this->m_DefaultPlugin = new qSlicerSubjectHierarchyDefaultPlugin();
 }
 

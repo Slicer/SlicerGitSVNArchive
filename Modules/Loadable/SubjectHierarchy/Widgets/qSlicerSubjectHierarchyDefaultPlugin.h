@@ -2,7 +2,8 @@
 
   Program: 3D Slicer
 
-  Copyright (c) Kitware Inc.
+  Copyright (c) Laboratory for Percutaneous Surgery (PerkLab)
+  Queen's University, Kingston, ON, Canada. All Rights Reserved.
 
   See COPYRIGHT.txt
   or http://www.slicer.org/copyright/copyright.txt for details.
@@ -64,29 +65,15 @@ public:
   /// Get help text for plugin to be added in subject hierarchy module widget help box
   virtual const QString helpText()const;
 
-  /// Set icon of a owned subject hierarchy node
-  /// \return Flag indicating whether setting an icon was successful
-  virtual bool setIcon(vtkMRMLSubjectHierarchyNode* node, QStandardItem* item);
+  /// Get icon of an owned subject hierarchy node
+  /// \return Icon to set, NULL if nothing to set
+  virtual QIcon icon(vtkMRMLSubjectHierarchyNode* node);
 
-  /// Set visibility icon of a owned subject hierarchy node
-  virtual void setVisibilityIcon(vtkMRMLSubjectHierarchyNode* node, QStandardItem* item);
+  /// Get visibility icon for a visibility state
+  virtual QIcon visibilityIcon(int visible);
 
   /// Open module belonging to node and set inputs in opened module
   virtual void editProperties(vtkMRMLSubjectHierarchyNode* node);
-
-  /// Get node context menu item actions to add to tree view
-  /// Separate method is needed for the scene, as its actions are set to the
-  /// tree by a different method \sa sceneContextMenuActions
-  Q_INVOKABLE virtual QList<QAction*> nodeContextMenuActions()const;
-
-  /// Get scene context menu item actions to add to tree view
-  /// Separate method is needed for the scene, as its actions are set to the
-  /// tree by a different method \sa nodeContextMenuActions
-  virtual QList<QAction*> sceneContextMenuActions()const;
-
-  /// Show context menu actions valid for  given subject hierarchy node.
-  /// \param node Subject Hierarchy node to show the context menu items for. If NULL, then shows menu items for the scene
-  virtual void showContextMenuActionsForNode(vtkMRMLSubjectHierarchyNode* node);
 
 public:
   /// Set default visibility icons owned by the scene model so that the default plugin can set them

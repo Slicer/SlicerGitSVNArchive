@@ -2,7 +2,8 @@
 
   Program: 3D Slicer
 
-  Copyright (c) Kitware Inc.
+  Copyright (c) Laboratory for Percutaneous Surgery (PerkLab)
+  Queen's University, Kingston, ON, Canada. All Rights Reserved.
 
   See COPYRIGHT.txt
   or http://www.slicer.org/copyright/copyright.txt for details.
@@ -220,7 +221,7 @@ void vtkMRMLSubjectHierarchyNode::SetOwnerPluginName(const char* pluginName)
     this->OwnerPluginName = NULL;
     }
   this->InvokeEvent(vtkMRMLSubjectHierarchyNode::OwnerPluginChangedEvent, oldPluginName);
-  if (oldPluginName)   { delete [] oldPluginName;   }
+  if (oldPluginName) { delete [] oldPluginName; }
   this->Modified();
 }
 
@@ -292,6 +293,33 @@ vtkMRMLSubjectHierarchyNode* vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNod
       std::string nodeUidValueStr = node->GetUID(uidName);
       const char* nodeUidValue = nodeUidValueStr.c_str();
       if (nodeUidValue && !strcmp(uidValue, nodeUidValue))
+        {
+        return node;
+        }
+      }
+    }
+
+  return NULL;
+}
+
+//---------------------------------------------------------------------------
+vtkMRMLSubjectHierarchyNode* vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNodeByUIDList(vtkMRMLScene* scene, const char* uidName, const char* uidValue)
+{
+  if (!scene || !uidName || !uidValue)
+    {
+    std::cerr << "vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNodeByUID: Invalid scene or searched UID!" << std::endl;
+    return NULL;
+    }
+
+  std::vector<vtkMRMLNode*> subjectHierarchyNodes;
+  unsigned int numberOfNodes = scene->GetNodesByClass("vtkMRMLSubjectHierarchyNode", subjectHierarchyNodes);
+  for (unsigned int shNodeIndex=0; shNodeIndex<numberOfNodes; shNodeIndex++)
+    {
+    vtkMRMLSubjectHierarchyNode* node = vtkMRMLSubjectHierarchyNode::SafeDownCast(subjectHierarchyNodes[shNodeIndex]);
+    if (node)
+      {
+      std::string nodeUidValueStr = node->GetUID(uidName);
+      if (nodeUidValueStr.find(uidValue) != std::string::npos)
         {
         return node;
         }
@@ -422,9 +450,18 @@ void vtkMRMLSubjectHierarchyNode::SetDisplayVisibilityForBranch(int visible)
         vtkMRMLDisplayableNode::SafeDownCast(childDisplayableNodes->GetItemAsObject(childNodeIndex));
     if (displayableNode)
       {
+      // Create default display node is there is no display node associated
+      vtkMRMLDisplayNode* displayNode = displayableNode->GetDisplayNode();
+      if (!displayNode)
+        {
+        displayableNode->CreateDefaultDisplayNodes();
+        }
+
+      // Set display visibility
       displayableNode->SetDisplayVisibility(visible);
 
-      vtkMRMLDisplayNode* displayNode = displayableNode->GetDisplayNode();
+      // Set slice intersection visibility through display node
+      displayNode = displayableNode->GetDisplayNode();
       if (displayNode)
         {
         displayNode->SetSliceIntersectionVisibility(visible);
@@ -454,10 +491,20 @@ void vtkMRMLSubjectHierarchyNode::SetDisplayVisibilityForBranch(int visible)
 int vtkMRMLSubjectHierarchyNode::GetDisplayVisibilityForBranch()
 {
   int visible = -1;
+
+  // Get all child displayable nodes for branch
   vtkSmartPointer<vtkCollection> childDisplayableNodes = vtkSmartPointer<vtkCollection>::New();
   this->GetAssociatedChildrenNodes(childDisplayableNodes, "vtkMRMLDisplayableNode");
-  childDisplayableNodes->InitTraversal();
 
+  // Add associated displayable node for this node too
+  vtkMRMLDisplayableNode* associatedDisplayableNode = vtkMRMLDisplayableNode::SafeDownCast(this->GetAssociatedNode());
+  if (associatedDisplayableNode)
+    {
+    childDisplayableNodes->AddItem(associatedDisplayableNode);
+    }
+
+  // Determine visibility state based on all displayable nodes involved
+  childDisplayableNodes->InitTraversal();
   for (int childNodeIndex=0; childNodeIndex<childDisplayableNodes->GetNumberOfItems(); ++childNodeIndex)
     {
     vtkMRMLDisplayableNode* displayableNode = vtkMRMLDisplayableNode::SafeDownCast(
@@ -509,7 +556,6 @@ vtkMRMLSubjectHierarchyNode* vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHi
 {
   if (!associatedNode)
     {
-    std::cerr << "vtkSlicerSubjectHierarchyModuleLogic::GetAssociatedSubjectHierarchyNode: associated node is null" << std::endl;
     return NULL;
     }
   if (!scene)
@@ -624,7 +670,7 @@ vtkMRMLSubjectHierarchyNode* vtkMRMLSubjectHierarchyNode::GetAncestorAtLevel(con
 std::string vtkMRMLSubjectHierarchyNode::GetNameWithoutPostfix()const
 {
   std::string nameStr(this->Name);
-  size_t postfixStart = nameStr.find(vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_NODE_NAME_POSTFIX);
+  size_t postfixStart = nameStr.find(vtkMRMLSubjectHierarchyConstants::GetSubjectHierarchyNodeNamePostfix());
   std::string strippedNameStr = nameStr.substr(0, postfixStart);
   return strippedNameStr;
 }
@@ -692,23 +738,38 @@ vtkMRMLSubjectHierarchyNode* vtkMRMLSubjectHierarchyNode::GetChildWithName(vtkMR
 
 //---------------------------------------------------------------------------
 vtkMRMLSubjectHierarchyNode* vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(
-  vtkMRMLScene* scene, vtkMRMLSubjectHierarchyNode* parentNode, const char* level, const char* nodeName, vtkMRMLNode* associatedNode/*=NULL*/)
+  vtkMRMLScene* scene, vtkMRMLSubjectHierarchyNode* parent, const char* level, const char* nodeName, vtkMRMLNode* associatedNode/*=NULL*/)
 {
-  // Create subject hierarchy node
-  vtkSmartPointer<vtkMRMLSubjectHierarchyNode> childSubjectHierarchyNode =
-    vtkSmartPointer<vtkMRMLSubjectHierarchyNode>::New();
-  childSubjectHierarchyNode->SetLevel(level);
-  //TODO: UID?
-  std::string shNodeName = nodeName + vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_NODE_NAME_POSTFIX;
-  childSubjectHierarchyNode->SetName(shNodeName.c_str());
-  scene->AddNode(childSubjectHierarchyNode);
-  if (parentNode)
+  // Use existing subject hierarchy node if found
+  bool nodeCreated = false;
+  vtkMRMLSubjectHierarchyNode* childSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(associatedNode);
+  if (!childSubjectHierarchyNode)
     {
-    childSubjectHierarchyNode->SetParentNodeID(parentNode->GetID());
+    // Create subject hierarchy node
+    childSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::New();
+    nodeCreated = true;
     }
+
+  if (level)
+    {
+    childSubjectHierarchyNode->SetLevel(level);
+    }
+
+  std::string shNodeName = nodeName + vtkMRMLSubjectHierarchyConstants::GetSubjectHierarchyNodeNamePostfix();
+  childSubjectHierarchyNode->SetName(shNodeName.c_str());
+
+  if (nodeCreated)
+    {
+    scene->AddNode(childSubjectHierarchyNode);
+    childSubjectHierarchyNode->Delete(); // Return ownership to the scene only
   if (associatedNode)
     {
     childSubjectHierarchyNode->SetAssociatedNodeID(associatedNode->GetID());
+    }
+    }
+  if (parent)
+    {
+    childSubjectHierarchyNode->SetParentNodeID(parent->GetID());
     }
 
   return childSubjectHierarchyNode;
@@ -755,15 +816,18 @@ void vtkMRMLSubjectHierarchyNode::TransformBranch(vtkMRMLTransformNode* transfor
   this->GetAssociatedChildrenNodes(childTransformableNodes.GetPointer(), "vtkMRMLTransformableNode");
 
   childTransformableNodes->InitTraversal();
-  for (int childNodeIndex = 0;
-       childNodeIndex < childTransformableNodes->GetNumberOfItems();
-       ++childNodeIndex)
+  for (int childNodeIndex = 0; childNodeIndex < childTransformableNodes->GetNumberOfItems(); ++childNodeIndex)
     {
     vtkMRMLTransformableNode* transformableNode = vtkMRMLTransformableNode::SafeDownCast(
       childTransformableNodes->GetItemAsObject(childNodeIndex) );
     if (!transformableNode)
       {
       vtkWarningMacro("TransformBranch: Non-transformable node found in a collection of transformable nodes!");
+      continue;
+      }
+    if (transformableNode == transformNode)
+      {
+      // Transform node cannot be transformed by itself
       continue;
       }
 
@@ -823,4 +887,88 @@ void vtkMRMLSubjectHierarchyNode::HardenTransformOnBranch()
       }
     subjectHierarchyNode->Modified();
     }
+}
+
+//---------------------------------------------------------------------------
+std::vector<vtkMRMLSubjectHierarchyNode*> vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNodesReferencedByDICOM()
+{
+  std::vector<vtkMRMLSubjectHierarchyNode*> referencedNodes;
+
+  vtkMRMLScene* scene = this->GetScene();
+  if (!scene)
+    {
+    vtkErrorMacro("GetSubjectHierarchyNodesReferencedByDICOM: Invalid MRML scene!");
+    return referencedNodes;
+    }
+
+  // Get referenced SOP instance UIDs
+  const char* referencedInstanceUIDsAttributeChars = this->GetAttribute(
+    vtkMRMLSubjectHierarchyConstants::GetDICOMReferencedInstanceUIDsAttributeName().c_str() );
+  if (!referencedInstanceUIDsAttributeChars)
+    {
+    return referencedNodes;
+    }
+
+  // De-serialize SOP instance UID list
+  std::string referencedSopInstanceUidsAttribute(referencedInstanceUIDsAttributeChars);
+  std::vector<std::string> referencedSopInstanceUids;
+  char separatorCharacter = ' ';
+  size_t separatorPosition = referencedSopInstanceUidsAttribute.find( separatorCharacter );
+  while (separatorPosition != std::string::npos)
+    {
+    std::string uid = referencedSopInstanceUidsAttribute.substr(0, separatorPosition);
+    referencedSopInstanceUids.push_back(uid);
+    referencedSopInstanceUidsAttribute = referencedSopInstanceUidsAttribute.substr( separatorPosition+1 );
+    separatorPosition = referencedSopInstanceUidsAttribute.find( separatorCharacter );
+    }
+  // Add last UID in case there was no space at the end (which is default behavior)
+  if (!referencedSopInstanceUidsAttribute.empty() && referencedSopInstanceUidsAttribute.find(separatorCharacter) == std::string::npos)
+    {
+    referencedSopInstanceUids.push_back(referencedSopInstanceUidsAttribute);
+    }
+
+  // Find subject hierarchy nodes by SOP instance UIDs
+  std::vector<std::string>::iterator uidIt;
+  for (uidIt = referencedSopInstanceUids.begin(); uidIt != referencedSopInstanceUids.end(); ++uidIt)
+    {
+    // Find first referenced node in whole scene
+    if (referencedNodes.empty())
+      {
+      vtkMRMLSubjectHierarchyNode* node = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNodeByUIDList(
+        scene, vtkMRMLSubjectHierarchyConstants::GetDICOMInstanceUIDName(), (*uidIt).c_str() );
+      if (node)
+        {
+        referencedNodes.push_back(node);
+        }
+      }
+    else
+      {
+      // If we found a referenced node, check the other instances in those nodes first to save time
+      bool foundUidInFoundReferencedNodes = false;
+      std::vector<vtkMRMLSubjectHierarchyNode*>::iterator nodeIt;
+      for (nodeIt = referencedNodes.begin(); nodeIt != referencedNodes.end(); ++nodeIt)
+        {
+        // Get instance UIDs of the referenced node
+        std::string uids = (*nodeIt)->GetUID( vtkMRMLSubjectHierarchyConstants::GetDICOMInstanceUIDName() );
+        if (uids.find(*uidIt) != std::string::npos)
+          {
+          // If we found the UID in the already found referenced nodes, then we don't need to do anything
+          foundUidInFoundReferencedNodes = true;
+          break;
+          }
+        }
+      // If the referenced SOP instance UID is not contained in the already found referenced nodes, then we look in the scene
+      if (!foundUidInFoundReferencedNodes)
+        {
+        vtkMRMLSubjectHierarchyNode* node = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNodeByUIDList(
+          scene, vtkMRMLSubjectHierarchyConstants::GetDICOMInstanceUIDName(), (*uidIt).c_str() );
+        if (node)
+          {
+          referencedNodes.push_back(node);
+          }
+        }
+      }
+    }
+
+  return referencedNodes;
 }

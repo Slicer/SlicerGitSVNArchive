@@ -64,6 +64,11 @@ public:
   qMRMLSceneTractographyDisplayModel(QObject *parent=0);
   virtual ~qMRMLSceneTractographyDisplayModel();
 
+  virtual bool         canBeAChild(vtkMRMLNode* node)const
+  {
+    Q_UNUSED(node);
+    return false;
+  }
 
   int colorColumn()const;
   void setColorColumn(int column);

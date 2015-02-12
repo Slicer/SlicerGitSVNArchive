@@ -2,7 +2,8 @@
 
   Program: 3D Slicer
 
-  Copyright (c) Kitware Inc.
+  Copyright (c) Laboratory for Percutaneous Surgery (PerkLab)
+  Queen's University, Kingston, ON, Canada. All Rights Reserved.
 
   See COPYRIGHT.txt
   or http://www.slicer.org/copyright/copyright.txt for details.
@@ -29,24 +30,14 @@
 
 // Qt includes
 #include <QDebug>
-#include <QAction>
 #include <QIcon>
-#include <QStandardItem>
-
-// MRMLWidgets includes
-#include <qMRMLSceneModel.h>
-
-// MRML includes
-#include <vtkMRMLScene.h>
-#include <vtkMRMLNode.h>
 
 // VTK includes
 #include <vtkObjectFactory.h>
 #include <vtkSmartPointer.h>
-#include <vtkCollection.h>
 
 //----------------------------------------------------------------------------
-/// \ingroup Slicer_QtModules_SubjectHierarchy_Plugins
+/// \ingroup Slicer_QtModules_SubjectHierarchy_Widgets
 class qSlicerSubjectHierarchyDefaultPluginPrivate: public QObject
 {
   Q_DECLARE_PUBLIC(qSlicerSubjectHierarchyDefaultPlugin);
@@ -55,17 +46,12 @@ protected:
 public:
   qSlicerSubjectHierarchyDefaultPluginPrivate(qSlicerSubjectHierarchyDefaultPlugin& object);
   ~qSlicerSubjectHierarchyDefaultPluginPrivate();
-  void init();
 public:
-  QIcon StudyIcon;
-  QIcon SubjectIcon;
+  QIcon UnknownIcon;
 
   QIcon VisibleIcon;
   QIcon HiddenIcon;
   QIcon PartiallyVisibleIcon;
-
-  QAction* CreateSubjectAction;
-  QAction* CreateStudyAction;
 };
 
 //-----------------------------------------------------------------------------
@@ -75,23 +61,7 @@ public:
 qSlicerSubjectHierarchyDefaultPluginPrivate::qSlicerSubjectHierarchyDefaultPluginPrivate(qSlicerSubjectHierarchyDefaultPlugin& object)
 : q_ptr(&object)
 {
-  this->StudyIcon = QIcon(":Icons/Study.png");
-  this->SubjectIcon = QIcon(":Icons/Subject.png");
-
-  this->CreateSubjectAction = NULL;
-  this->CreateStudyAction = NULL;
-}
-
-//------------------------------------------------------------------------------
-void qSlicerSubjectHierarchyDefaultPluginPrivate::init()
-{
-  Q_Q(qSlicerSubjectHierarchyDefaultPlugin);
-
-  this->CreateSubjectAction = new QAction("Create new subject",q);
-  QObject::connect(this->CreateSubjectAction, SIGNAL(triggered()), q, SLOT(createChildForCurrentNode()));
-
-  this->CreateStudyAction = new QAction("Create new study",q);
-  QObject::connect(this->CreateStudyAction, SIGNAL(triggered()), q, SLOT(createChildForCurrentNode()));
+  this->UnknownIcon = QIcon(":Icons/Unknown.png");
 }
 
 //-----------------------------------------------------------------------------
@@ -105,16 +75,6 @@ qSlicerSubjectHierarchyDefaultPlugin::qSlicerSubjectHierarchyDefaultPlugin(QObje
  , d_ptr( new qSlicerSubjectHierarchyDefaultPluginPrivate(*this) )
 {
   this->m_Name = QString("Default");
-
-  // Scene -> Subject
-  this->m_ChildLevelMap.insert( QString(),
-    vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_SUBJECT );
-  // Subject -> Study
-  this->m_ChildLevelMap.insert( vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_SUBJECT,
-    vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_STUDY );
-
-  Q_D(qSlicerSubjectHierarchyDefaultPlugin);
-  d->init();
 }
 
 //-----------------------------------------------------------------------------
@@ -144,23 +104,13 @@ double qSlicerSubjectHierarchyDefaultPlugin::canOwnSubjectHierarchyNode(vtkMRMLS
 //---------------------------------------------------------------------------
 const QString qSlicerSubjectHierarchyDefaultPlugin::roleForPlugin()const
 {
-  return "Generic";
+  return "Unknown";
 }
 
 //---------------------------------------------------------------------------
 const QString qSlicerSubjectHierarchyDefaultPlugin::helpText()const
 {
   return QString(
-    "<p style=\" margin-top:4px; margin-bottom:1px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">"
-    "<span style=\" font-family:'sans-serif'; font-size:9pt; font-weight:600; color:#000000;\">"
-    "Create new Subject from scratch"
-    "</span>"
-    "</p>"
-    "<p style=\" margin-top:0px; margin-bottom:11px; margin-left:26px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">"
-    "<span style=\" font-family:'sans-serif'; font-size:9pt; color:#000000;\">"
-    "Right-click on the top-level item 'Scene' and select 'Create new subject'"
-    "</span>"
-    "</p>"
     "<p style=\" margin-top:4px; margin-bottom:1px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">"
     "<span style=\" font-family:'sans-serif'; font-size:9pt; font-weight:600; color:#000000;\">"
     "Rename Subject hierarchy node"
@@ -185,99 +135,39 @@ const QString qSlicerSubjectHierarchyDefaultPlugin::helpText()const
 }
 
 //---------------------------------------------------------------------------
-bool qSlicerSubjectHierarchyDefaultPlugin::setIcon(vtkMRMLSubjectHierarchyNode* node, QStandardItem* item)
+QIcon qSlicerSubjectHierarchyDefaultPlugin::icon(vtkMRMLSubjectHierarchyNode* node)
 {
-  if (!node || !item)
-    {
-    qCritical() << "qSlicerSubjectHierarchyDefaultPlugin::setIcon: NULL node or item given!";
-    return false;
-    }
-
-  Q_D(qSlicerSubjectHierarchyDefaultPlugin);
-
-  // Subject and Study icons
-  if (node->IsLevel(vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_SUBJECT))
-    {
-    item->setIcon(d->SubjectIcon);
-    return true;
-    }
-  else if (node->IsLevel(vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_STUDY))
-    {
-    item->setIcon(d->StudyIcon);
-    return true;
-    }
-
-  // Node unknown by plugin
-  return false;
-}
-
-//---------------------------------------------------------------------------
-void qSlicerSubjectHierarchyDefaultPlugin::setVisibilityIcon(vtkMRMLSubjectHierarchyNode* node, QStandardItem* item)
-{
-  Q_D(qSlicerSubjectHierarchyDefaultPlugin);
-
-  // Default is the eye icon that shows the visibility of the whole branch
-  int visible = this->getDisplayVisibility(node);
-
-  // It should be fine to set the icon even if it is the same, but due
-  // to a bug in Qt (http://bugreports.qt.nokia.com/browse/QTBUG-20248),
-  // it would fire a superflous itemChanged() signal.
-  if (item->data(qMRMLSceneModel::VisibilityRole).isNull()
-    || item->data(qMRMLSceneModel::VisibilityRole).toInt() != visible)
-    {
-    item->setData(visible, qMRMLSceneModel::VisibilityRole);
-    switch (visible)
-      {
-    case 0:
-      item->setIcon(d->HiddenIcon);
-      break;
-    case 1:
-      item->setIcon(d->VisibleIcon);
-      break;
-    case 2:
-      item->setIcon(d->PartiallyVisibleIcon);
-      break;
-    default:
-      break;
-      }
-    }
-}
-
-//---------------------------------------------------------------------------
-QList<QAction*> qSlicerSubjectHierarchyDefaultPlugin::nodeContextMenuActions()const
-{
-  Q_D(const qSlicerSubjectHierarchyDefaultPlugin);
-
-  QList<QAction*> actions;
-  actions << d->CreateStudyAction;
-  return actions;
-}
-
-//-----------------------------------------------------------------------------
-QList<QAction*> qSlicerSubjectHierarchyDefaultPlugin::sceneContextMenuActions()const
-{
-  Q_D(const qSlicerSubjectHierarchyDefaultPlugin);
-
-  QList<QAction*> actions;
-  actions << d->CreateSubjectAction;
-  return actions;
-}
-
-//---------------------------------------------------------------------------
-void qSlicerSubjectHierarchyDefaultPlugin::showContextMenuActionsForNode(vtkMRMLSubjectHierarchyNode* node)
-{
-  Q_D(qSlicerSubjectHierarchyDefaultPlugin);
-  this->hideAllContextMenuActions();
-
-  // Scene
   if (!node)
     {
-    d->CreateSubjectAction->setVisible(true);
+    qCritical() << "qSlicerSubjectHierarchyDefaultPlugin::icon: NULL node given!";
+    return QIcon();
     }
-  // Subject
-  else if (node->IsLevel(vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_SUBJECT))
+
+  Q_D(qSlicerSubjectHierarchyDefaultPlugin);
+
+  // Unknown icon
+  // This role is only used when there is no plugin to claim a node, which is an erroneous
+  // scenario, as only those nodes can be added to subject hierarchy for which there is at
+  // least one plugin that can claim them.
+  return d->UnknownIcon;
+}
+
+//---------------------------------------------------------------------------
+QIcon qSlicerSubjectHierarchyDefaultPlugin::visibilityIcon(int visible)
+{
+  Q_D(qSlicerSubjectHierarchyDefaultPlugin);
+
+  // Default icon is the eye icon that shows the visibility of the whole branch
+  switch (visible)
     {
-    d->CreateStudyAction->setVisible(true);
+  case 0:
+    return d->HiddenIcon;
+  case 1:
+    return d->VisibleIcon;
+  case 2:
+    return d->PartiallyVisibleIcon;
+  default:
+    return QIcon();
     }
 }
 

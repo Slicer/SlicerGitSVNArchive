@@ -315,7 +315,7 @@ class ExtensionWizardWidget:
         # Add module(s) to permanent search paths, if requested
         if dlg.addToSearchPaths:
           settings = slicer.app.revisionUserSettings()
-          rawSearchPaths = _settingsList(settings, "Modules/AdditionalPaths")
+          rawSearchPaths = list(_settingsList(settings, "Modules/AdditionalPaths"))
           searchPaths = [qt.QDir(path) for path in rawSearchPaths]
           modified = False
 
@@ -329,6 +329,10 @@ class ExtensionWizardWidget:
 
           if modified:
             settings.setValue("Modules/AdditionalPaths", rawSearchPaths)
+
+        # Enable developer mode (shows Reload&Test section, etc.), if requested
+        if dlg.enableDeveloperMode:
+          qt.QSettings().setValue('Developer/DeveloperMode', 'true')
 
         # Register requested module(s)
         failed = []

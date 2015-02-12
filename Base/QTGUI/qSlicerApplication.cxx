@@ -21,6 +21,7 @@
 // Qt includes
 #include <QAction>
 #include <QDebug>
+#include <QFile>
 #include <QMainWindow>
 
 #include "vtkSlicerConfigure.h" // For Slicer_USE_*, Slicer_BUILD_*_SUPPORT
@@ -62,12 +63,10 @@
 #ifdef Slicer_BUILD_I18N_SUPPORT
 # include "qSlicerSettingsInternationalizationPanel.h"
 #endif
-#ifdef Slicer_USE_QtTesting
-# include "qSlicerSettingsQtTestingPanel.h"
-#endif
 #include "qSlicerSettingsModulesPanel.h"
 #include "qSlicerSettingsStylesPanel.h"
 #include "qSlicerSettingsViewsPanel.h"
+#include "qSlicerSettingsDeveloperPanel.h"
 
 // qMRMLWidget includes
 #include "qMRMLEventBrokerConnection.h"
@@ -199,6 +198,8 @@ void qSlicerApplicationPrivate::init()
   this->ErrorLogModel->registerMsgHandler(new ctkVTKErrorLogMessageHandler);
   this->ErrorLogModel->setAllMsgHandlerEnabled(true);
 
+  q->setupFileLogging();
+
   //----------------------------------------------------------------------------
   // Settings Dialog
   //----------------------------------------------------------------------------
@@ -233,10 +234,8 @@ void qSlicerApplicationPrivate::init()
   this->SettingsDialog->addPanel("Internationalization", qtInternationalizationPanel);
 #endif
 
-#ifdef Slicer_USE_QtTesting
-  qSlicerSettingsQtTestingPanel* qtTestingPanel = new qSlicerSettingsQtTestingPanel;
-  this->SettingsDialog->addPanel("QtTesting", qtTestingPanel);
-#endif
+  qSlicerSettingsDeveloperPanel* developerPanel = new qSlicerSettingsDeveloperPanel;
+  this->SettingsDialog->addPanel("Developer", developerPanel);
 
   QObject::connect(this->SettingsDialog, SIGNAL(restartRequested()),
                    q, SLOT(restart()));
@@ -596,3 +595,109 @@ void qSlicerApplication::openExtensionsManagerDialog()
     }
 }
 #endif
+
+// --------------------------------------------------------------------------
+int qSlicerApplication::numberOfRecentLogFilesToKeep()
+{
+  Q_D(qSlicerApplication);
+
+  QSettings* revisionUserSettings = this->revisionUserSettings();
+
+  // Read number of log files to store value. If this value is missing,
+  // then the group considered non-existent
+  bool groupExists = false;
+  int numberOfFilesToKeep = revisionUserSettings->value(
+    "LogFiles/NumberOfFilesToKeep").toInt(&groupExists);
+  if (!groupExists)
+    {
+    // Get default value from the ErrorLogModel if value is not set in settings
+    numberOfFilesToKeep = d->ErrorLogModel->numberOfFilesToKeep();
+    }
+  else
+    {
+    d->ErrorLogModel->setNumberOfFilesToKeep(numberOfFilesToKeep);
+    }
+
+  return numberOfFilesToKeep;
+}
+
+// --------------------------------------------------------------------------
+QStringList qSlicerApplication::recentLogFiles()
+{
+  QSettings* revisionUserSettings = this->revisionUserSettings();
+  QStringList logFilePaths;
+  revisionUserSettings->beginGroup("LogFiles");
+  int numberOfFilesToKeep = numberOfRecentLogFilesToKeep();
+  for (int fileNumber = 0; fileNumber < numberOfFilesToKeep; ++fileNumber)
+    {
+    QString paddedFileNumber = QString("%1").arg(fileNumber, 3, 10, QChar('0')).toUpper();
+    QString filePath = revisionUserSettings->value(paddedFileNumber, "").toString();
+    if (!filePath.isEmpty())
+      {
+      logFilePaths.append(filePath);
+      }
+    }
+  revisionUserSettings->endGroup();
+  return logFilePaths;
+}
+
+// --------------------------------------------------------------------------
+void qSlicerApplication::setupFileLogging()
+{
+  Q_D(qSlicerApplication);
+
+  d->ErrorLogModel->setFileLoggingEnabled(true);
+
+  int numberOfFilesToKeep = numberOfRecentLogFilesToKeep();
+
+  // Read saved log file paths into a list so that it can be shifted and
+  // written out along with the new log file name.
+  QStringList logFilePaths = recentLogFiles();
+
+  // Add new log file path for the current session
+  QString tempDir = this->temporaryPath();
+  QString currentLogFilePath = tempDir + QString("/Slicer_") +
+    this->repositoryRevision() + QString("_") +
+    QDateTime::currentDateTime().toString("yyyyMMdd_hhmmss") +
+    QString(".log");
+  logFilePaths.prepend(currentLogFilePath);
+
+  // Save settings
+  int fileNumber = 0;
+  QSettings* revisionUserSettings = this->revisionUserSettings();
+  revisionUserSettings->beginGroup("LogFiles");
+  revisionUserSettings->setValue("NumberOfFilesToKeep", numberOfFilesToKeep);
+  foreach (QString filePath, logFilePaths)
+    {
+    // If the file is to keep then save it in the settings
+    if (fileNumber < numberOfFilesToKeep)
+      {
+      QString paddedFileNumber = QString("%1").arg(fileNumber, 3, 10, QChar('0')).toUpper();
+      revisionUserSettings->setValue(paddedFileNumber, filePath);
+      }
+    // Otherwise delete file
+    else
+      {
+      QFile::remove(filePath);
+      }
+    ++fileNumber;
+    }
+  revisionUserSettings->endGroup();
+
+  // Set current log file path
+  d->ErrorLogModel->setFilePath(currentLogFilePath);
+
+  // Log essential information (platform, revision, date, etc.)
+  QFile f(currentLogFilePath);
+  if (f.open(QFile::Append))
+    {
+    QTextStream s(&f);
+    s << QString("Platform: %1").arg(this->platform()) << "\n";
+    s << QString("OS: %1").arg(this->os()) << "\n";
+    s << QString("Version: %1.%2").arg(this->majorVersion()).arg(this->minorVersion()) << "\n";
+    s << QString("Revision: %1").arg(this->repositoryRevision()) << "\n";
+    s << QString("DateTime: %1").arg(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss")) << "\n";
+    s << "Installed: " << (this->isInstalled() ? "Yes" : "No") << "\n";
+    f.close();
+    }
+}

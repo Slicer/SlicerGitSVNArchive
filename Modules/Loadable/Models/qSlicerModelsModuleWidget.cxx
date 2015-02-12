@@ -24,6 +24,8 @@
 #include <QMessageBox>
 #include <QModelIndex>
 
+#include <vtkCallbackCommand.h>
+
 // qMRMLWidgets
 #include "qMRMLSceneModelHierarchyModel.h"
 
@@ -37,7 +39,11 @@
 // MRML includes
 #include "vtkMRMLModelHierarchyNode.h"
 #include "vtkMRMLModelDisplayNode.h"
+#include "vtkMRMLSelectionNode.h"
 #include "vtkMRMLScene.h"
+
+// VTK includes
+#include <vtkNew.h>
 
 #include <vtkMRMLDisplayableHierarchyLogic.h>
 
@@ -51,6 +57,9 @@ public:
   QAction *DeleteMultipleNodesAction;
   QAction *RenameMultipleNodesAction;
   QStringList HideChildNodeTypes;
+  QString FiberDisplayClass;
+  vtkMRMLSelectionNode* SelectionNode;
+  vtkSmartPointer<vtkCallbackCommand> CallBack;
 };
 
 //-----------------------------------------------------------------------------
@@ -63,6 +72,9 @@ qSlicerModelsModuleWidgetPrivate::qSlicerModelsModuleWidgetPrivate()
   this->DeleteMultipleNodesAction = 0;
   this->RenameMultipleNodesAction = 0;
   this->HideChildNodeTypes = (QStringList() << "vtkMRMLFiberBundleNode" << "vtkMRMLAnnotationNode");
+  this->FiberDisplayClass = "vtkMRMLFiberBundleLineDisplayNode";
+  this->CallBack = vtkSmartPointer<vtkCallbackCommand>::New();
+  this->SelectionNode = 0;
 }
 
 //-----------------------------------------------------------------------------
@@ -78,7 +90,14 @@ qSlicerModelsModuleWidget::qSlicerModelsModuleWidget(QWidget* _parent)
 //-----------------------------------------------------------------------------
 qSlicerModelsModuleWidget::~qSlicerModelsModuleWidget()
 {
+  Q_D(qSlicerModelsModuleWidget);
+
   // set the mrml scene to null so that stop observing it for events
+  if (this->mrmlScene())
+    {
+    this->mrmlScene()->RemoveObserver(d->CallBack);
+    }
+
   this->setMRMLScene(0);
 }
 
@@ -91,7 +110,7 @@ void qSlicerModelsModuleWidget::setup()
 
   d->ClipModelsNodeComboBox->setVisible(false);
 
-  this->updateTreeViewModel();
+  d->DisplayClassTabWidget->setVisible(false);
 
   // turn of setting of size to visible indexes to allow drag scrolling
   d->ModelHierarchyTreeView->setFitSizeToVisibleIndexes(false);
@@ -123,6 +142,11 @@ void qSlicerModelsModuleWidget::setup()
   connect(d->IncludeFiberBundleCheckBox, SIGNAL(toggled(bool)),
           this, SLOT(includeFiberBundles(bool)));
 
+  connect( d->DisplayClassTabWidget, SIGNAL(currentChanged(int)),
+           this, SLOT(onDisplayClassChanged(int)) );
+
+  this->updateTreeViewModel();
+
   this->Superclass::setup();
 }
 
@@ -148,8 +172,9 @@ void qSlicerModelsModuleWidget::updateTreeViewModel()
 
   d->ModelHierarchyTreeView->sortFilterProxyModel()->setHideChildNodeTypes(d->HideChildNodeTypes);
 
+  d->ModelHierarchyTreeView->sortFilterProxyModel()->invalidate();
 
-  // use lazy update instead of responding to scene import end event
+    // use lazy update instead of responding to scene import end event
   sceneModel->setLazyUpdate(true);
 
   // qDebug() << "qSlicerModelsModuleWidget::updateTreeViewModel done";
@@ -160,18 +185,15 @@ void qSlicerModelsModuleWidget::insertHierarchyNode()
 {
   Q_D(qSlicerModelsModuleWidget);
 
-  vtkMRMLModelHierarchyNode *modelHierarchyNode = vtkMRMLModelHierarchyNode::New();
+  vtkNew<vtkMRMLModelHierarchyNode> modelHierarchyNode;
   modelHierarchyNode->SetName(this->mrmlScene()->GetUniqueNameByString("Model Hierarchy"));
 
   // also add a display node to the hierarchy node for use when the hierarchy is collapsed
-  vtkMRMLModelDisplayNode *modelDisplayNode = vtkMRMLModelDisplayNode::New();
-  if (modelDisplayNode)
-    {
-    this->mrmlScene()->AddNode(modelDisplayNode);
-    // qDebug() << "insertHierarchyNode: added a display node for hierarchy node, with id = " << modelDisplayNode->GetID();
-    }
+  vtkNew<vtkMRMLModelDisplayNode> modelDisplayNode;
+  this->mrmlScene()->AddNode(modelDisplayNode.GetPointer());
+  // qDebug() << "insertHierarchyNode: added a display node for hierarchy node, with id = " << modelDisplayNode->GetID();
 
-  this->mrmlScene()->AddNode(modelHierarchyNode);
+  this->mrmlScene()->AddNode(modelHierarchyNode.GetPointer());
 
   vtkMRMLNode* parent = vtkMRMLNode::SafeDownCast(d->ModelHierarchyTreeView->currentNode());
   if (parent)
@@ -189,16 +211,13 @@ void qSlicerModelsModuleWidget::insertHierarchyNode()
   // Expand the newly added hierarchy node
   QModelIndex modelHierarchyIndex = d->ModelHierarchyTreeView->
                                     sortFilterProxyModel()->
-                                    indexFromMRMLNode(modelHierarchyNode);
+                                    indexFromMRMLNode(modelHierarchyNode.GetPointer());
   d->ModelHierarchyTreeView->expand(modelHierarchyIndex);
 
-  if (modelDisplayNode)
+  if (modelDisplayNode.GetPointer())
     {
     modelHierarchyNode->SetAndObserveDisplayNodeID(modelDisplayNode->GetID());
-    modelDisplayNode->Delete();
     }
-
-  modelHierarchyNode->Delete();
 }
 
 //-----------------------------------------------------------------------------
@@ -262,14 +281,13 @@ void qSlicerModelsModuleWidget::deleteMultipleModels()
         case QMessageBox::Ok :
           {
           // delete
-          vtkMRMLDisplayableHierarchyLogic *hierarchyLogic = vtkMRMLDisplayableHierarchyLogic::New();
+          vtkNew<vtkMRMLDisplayableHierarchyLogic> hierarchyLogic;
           hierarchyLogic->SetMRMLScene(this->mrmlScene());
           bool retval = hierarchyLogic->DeleteHierarchyNodeAndChildren(vtkMRMLDisplayableHierarchyNode::SafeDownCast(mrmlNode));
           if (!retval)
             {
             qWarning() << "Failed to delete hierarchy and children!";
             }
-          hierarchyLogic->Delete();
           break;
           }
         default:
@@ -341,13 +359,45 @@ void qSlicerModelsModuleWidget::onCurrentNodeChanged(vtkMRMLNode* newCurrentNode
 //-----------------------------------------------------------------------------
 void qSlicerModelsModuleWidget::setMRMLScene(vtkMRMLScene* scene)
 {
-  //Q_D(qSlicerModelsModuleWidget);
+  Q_D(qSlicerModelsModuleWidget);
+  //Q_Q(qSlicerModelsModuleWidget);
 
   if (scene == this->mrmlScene())
     {
     return;
     }
   this->Superclass::setMRMLScene(scene);
+
+  if (scene)
+    {
+    scene->RemoveObserver(d->CallBack);
+    }
+  if (scene)
+    {
+    d->CallBack->SetClientData(this);
+
+    d->CallBack->SetCallback(qSlicerModelsModuleWidget::onMRMLSceneEvent);
+
+    scene->AddObserver(vtkMRMLScene::EndImportEvent, d->CallBack);
+    this->onMRMLSceneEvent(scene, vtkMRMLScene::EndImportEvent, this, 0);
+    }
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerModelsModuleWidget::onMRMLSceneEvent(vtkObject* vtk_obj, unsigned long event,
+                                                void* client_data, void* call_data)
+{
+  vtkMRMLScene* scene = reinterpret_cast<vtkMRMLScene*>(vtk_obj);
+  qSlicerModelsModuleWidget* widget = reinterpret_cast<qSlicerModelsModuleWidget*>(client_data);
+  vtkMRMLNode* node = reinterpret_cast<vtkMRMLNode*>(call_data);
+  Q_UNUSED(node);
+  Q_ASSERT(scene);
+  Q_UNUSED(scene);
+  Q_ASSERT(widget);
+  if (event == vtkMRMLScene::EndImportEvent)
+    {
+    widget->updateWidgetFromSelectionNode();
+    }
 }
 
 //-----------------------------------------------------------------------------
@@ -382,14 +432,125 @@ void qSlicerModelsModuleWidget::includeFiberBundles(bool include)
 {
   Q_D(qSlicerModelsModuleWidget);
 
+  // update selection node
+  vtkMRMLSelectionNode* selectionNode = this->getSelectionNode();
+  if (selectionNode)
+    {
+    selectionNode->ClearModelHierarchyDisplayNodeClassNames();
+    if (include)
+      {
+      selectionNode->AddModelHierarchyDisplayNodeClassName("vtkMRMLFiberBundleNode",
+                                                          d->FiberDisplayClass.toStdString());
+      }
+    }
+
+  this->updateWidgetFromSelectionNode();
+}
+
+void qSlicerModelsModuleWidget::onDisplayClassChanged(int index)
+{
+  Q_D(qSlicerModelsModuleWidget);
+
+  std::string name;
+  if (index == 0)
+    {
+    name = std::string("vtkMRMLFiberBundleLineDisplayNode");
+    }
+  else if (index == 1)
+    {
+    name = std::string("vtkMRMLFiberBundleTubeDisplayNode");
+    }
+  else if (index == 2)
+    {
+    name = std::string("vtkMRMLFiberBundleGlyphDisplayNode");
+    }
+
+  d->FiberDisplayClass.fromStdString(name);
+
+  vtkMRMLSelectionNode* selectionNode = this->getSelectionNode();
+  if (selectionNode)
+    {
+    selectionNode->ClearModelHierarchyDisplayNodeClassNames();
+    selectionNode->AddModelHierarchyDisplayNodeClassName("vtkMRMLFiberBundleNode",
+                                                         name);
+    }
+  this->updateWidgetFromSelectionNode();
+}
+
+vtkMRMLSelectionNode* qSlicerModelsModuleWidget::getSelectionNode()
+{
+  Q_D(qSlicerModelsModuleWidget);
+
+  if (d->SelectionNode == 0)
+    {
+    std::vector<vtkMRMLNode *> selectionNodes;
+    if (this->mrmlScene())
+      {
+      this->mrmlScene()->GetNodesByClass("vtkMRMLSelectionNode", selectionNodes);
+      }
+
+    if (selectionNodes.size() > 0)
+      {
+      d->SelectionNode = vtkMRMLSelectionNode::SafeDownCast(selectionNodes[0]);
+      }
+    }
+  return d->SelectionNode;
+}
+
+void qSlicerModelsModuleWidget::updateWidgetFromSelectionNode()
+{
+  Q_D(qSlicerModelsModuleWidget);
+
+  vtkMRMLSelectionNode* selectionNode = this->getSelectionNode();
+
+  bool include = false;
+  std::string displayNodeClass;
+  if (selectionNode)
+    {
+    displayNodeClass = selectionNode->GetModelHierarchyDisplayNodeClassName("vtkMRMLFiberBundleNode");
+    include = !displayNodeClass.empty();
+    }
+
   if (include)
     {
     d->HideChildNodeTypes = (QStringList() << "vtkMRMLAnnotationNode");
+    d->DisplayClassTabWidget->setVisible(true);
     }
   else
     {
     d->HideChildNodeTypes = (QStringList() << "vtkMRMLFiberBundleNode" << "vtkMRMLAnnotationNode");
+    d->DisplayClassTabWidget->setVisible(false);
     }
 
-  this->updateTreeViewModel();
+  if (include)
+    {
+    d->FiberDisplayClass.fromStdString(displayNodeClass);
+    int index = 0;
+    if (displayNodeClass == std::string("vtkMRMLFiberBundleTubeDisplayNode"))
+      {
+      index = 1;
+      }
+    else if (displayNodeClass == std::string("vtkMRMLFiberBundleGlyphDisplayNode"))
+      {
+      index = 2;
+      }
+      d->DisplayClassTabWidget->setCurrentIndex(index);
+    }
+
+  d->ModelHierarchyTreeView->sortFilterProxyModel()->setHideChildNodeTypes(d->HideChildNodeTypes);
+
+  d->ModelHierarchyTreeView->sortFilterProxyModel()->invalidate();
+
+  if (include)
+    {
+    // force update mrml widgets
+    std::vector<vtkMRMLNode *> nodes;
+    vtkMRMLScene *scene = this->mrmlScene();
+    scene->GetNodesByClass(displayNodeClass.c_str(), nodes);
+    for (unsigned int i = 0; i < nodes.size(); i++)
+      {
+      nodes[i]->InvokeEvent(vtkCommand::ModifiedEvent);
+      }
+    }
+  d->ModelDisplayWidget->setMRMLModelOrHierarchyNode(d->ModelDisplayWidget->mrmlDisplayableNode());
 }

@@ -18,6 +18,8 @@
 
 ==============================================================================*/
 
+#include "vtkSlicerConfigure.h" // Slicer_VTK_RENDERING_USE_{OpenGL|OpenGL2}_BACKEND
+
 // QT includes
 #include <QApplication>
 #include <QTimer>
@@ -30,6 +32,21 @@
 
 // VTK includes
 #include <vtkSmartPointer.h>
+
+// this test only works on VTKv6 and later
+#if VTK_MAJOR_VERSION <= 5
+int qMRMLVolumePropertyNodeWidgetTest1(int argc, char * argv [] )
+{
+  return -1;
+}
+#else
+
+#include <vtkAutoInit.h>
+#if defined(Slicer_VTK_RENDERING_USE_OpenGL2_BACKEND)
+VTK_MODULE_INIT(vtkRenderingContextOpenGL2);
+#else
+VTK_MODULE_INIT(vtkRenderingContextOpenGL);
+#endif
 
 // STD includes
 
@@ -52,3 +69,4 @@ int qMRMLVolumePropertyNodeWidgetTest1(int argc, char * argv [] )
   return app.exec();
 }
 
+#endif

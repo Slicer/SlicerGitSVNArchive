@@ -435,7 +435,7 @@ void vtkMRMLSliceLogic::SetupCrosshairNode()
   bool foundDefault = false;
   vtkMRMLNode* node;
   vtkCollectionSimpleIterator it;
-  vtkSmartPointer<vtkCollection> crosshairs = this->GetMRMLScene()->GetNodesByClass("vtkMRMLCrosshairNode");
+  vtkSmartPointer<vtkCollection> crosshairs = vtkSmartPointer<vtkCollection>::Take(this->GetMRMLScene()->GetNodesByClass("vtkMRMLCrosshairNode"));
   for (crosshairs->InitTraversal(it);
        (node = (vtkMRMLNode*)crosshairs->GetNextItemAsObject(it)) ;)
     {
@@ -448,7 +448,6 @@ void vtkMRMLSliceLogic::SetupCrosshairNode()
       break;
       }
     }
-  crosshairs->Delete();
 
   if (!foundDefault)
     {
@@ -528,8 +527,6 @@ void vtkMRMLSliceLogic::ProcessMRMLLogicsEvents()
       && this->GetMRMLScene()->GetNodeByID( this->SliceModelNode->GetID() ) != 0
       && this->SliceModelNode->GetPolyData() != 0 )
     {
-    vtkPoints *points = this->SliceModelNode->GetPolyData()->GetPoints();
-
     int *dims1=0;
     int dims[3];
     vtkMatrix4x4 *textureToRAS = 0;
@@ -547,7 +544,6 @@ void vtkMRMLSliceLogic::ProcessMRMLLogicsEvents()
       dims[0] = dims1[0];
       dims[1] = dims1[1];
       }
-
     // set the plane corner point for use in a model
     double inPt[4]={0,0,0,1};
     double outPt[4];
@@ -556,26 +552,53 @@ void vtkMRMLSliceLogic::ProcessMRMLLogicsEvents()
     // set the z position to be the active slice (from the lightbox)
     inPt[2] = this->SliceNode->GetActiveSlice();
 
-    textureToRAS->MultiplyPoint(inPt, outPt);
-    points->SetPoint(0, outPt3);
+#if (VTK_MAJOR_VERSION <= 5)
+    vtkPoints *points = this->SliceModelNode->GetPolyData()->GetPoints();
+#else
+    vtkPlaneSource* plane = vtkPlaneSource::SafeDownCast(
+      this->SliceModelNode->GetPolyDataConnection()->GetProducer());
+#endif
 
+    textureToRAS->MultiplyPoint(inPt, outPt);
+#if (VTK_MAJOR_VERSION <= 5)
+    points->SetPoint(0, outPt3);
+#else
+    plane->SetOrigin(outPt3);
+#endif
     inPt[0] = dims[0];
     textureToRAS->MultiplyPoint(inPt, outPt);
+#if (VTK_MAJOR_VERSION <= 5)
     points->SetPoint(1, outPt3);
+#else
+    plane->SetPoint1(outPt3);
+#endif
 
     inPt[0] = 0;
     inPt[1] = dims[1];
     textureToRAS->MultiplyPoint(inPt, outPt);
+#if (VTK_MAJOR_VERSION <= 5)
     points->SetPoint(2, outPt3);
+#else
+    plane->SetPoint2(outPt3);
+#endif
 
+#if (VTK_MAJOR_VERSION <= 5)
     inPt[0] = dims[0];
     inPt[1] = dims[1];
     textureToRAS->MultiplyPoint(inPt, outPt);
     points->SetPoint(3, outPt3);
+#endif
 
     this->UpdatePipeline();
+#if (VTK_MAJOR_VERSION <= 5)
     points->Modified();
     this->SliceModelNode->GetPolyData()->Modified();
+#else
+    /// \tbd Ideally it should not be fired if the output polydata is not
+    /// modified.
+    plane->Modified();
+#endif
+
     vtkMRMLModelDisplayNode *modelDisplayNode = this->SliceModelNode->GetModelDisplayNode();
     if ( modelDisplayNode )
       {
@@ -747,6 +770,32 @@ void vtkMRMLSliceLogic
 {
   vtkMRMLScalarVolumeNode* volumeNode =
     vtkMRMLScalarVolumeNode::SafeDownCast( this->GetLayerVolumeNode (0) );
+    // 0 is background layer, definied in this::GetLayerVolumeNode
+  vtkMRMLScalarVolumeDisplayNode* volumeDisplayNode = NULL;
+  if (volumeNode)
+    {
+     volumeDisplayNode =
+      vtkMRMLScalarVolumeDisplayNode::SafeDownCast( volumeNode->GetVolumeDisplayNode() );
+    }
+  vtkImageData* imageData;
+  if (volumeDisplayNode && (imageData = volumeNode->GetImageData()) )
+    {
+    window = volumeDisplayNode->GetWindow();
+    level = volumeDisplayNode->GetLevel();
+    double range[2];
+    imageData->GetScalarRange(range);
+    rangeLow = range[0];
+    rangeHigh = range[1];
+    }
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLSliceLogic
+::GetForegroundWindowLevelAndRange(double& window, double& level,
+                                         double& rangeLow, double& rangeHigh)
+{
+  vtkMRMLScalarVolumeNode* volumeNode =
+    vtkMRMLScalarVolumeNode::SafeDownCast( this->GetLayerVolumeNode (1) );
     // 0 is background layer, definied in this::GetLayerVolumeNode
   vtkMRMLScalarVolumeDisplayNode* volumeDisplayNode = NULL;
   if (volumeNode)
@@ -1163,15 +1212,12 @@ void vtkMRMLSliceLogic::UpdatePipeline()
       vtkDataObject::SetPointDataActiveScalarInfo(tempMathUVWOutInfo, VTK_SHORT,
         vtkImageData::GetNumberOfScalarComponents(tempMathUVWOutInfo));
 
-      vtkImageCast *tempCastUVW = vtkImageCast::New();
+      vtkNew<vtkImageCast> tempCastUVW;
       tempCastUVW->SetInputConnection( tempMathUVW->GetOutputPort() );
       tempCastUVW->SetOutputScalarTypeToUnsignedChar();
 
       this->BlendUVW->AddInputConnection( tempCastUVW->GetOutputPort() );
       this->BlendUVW->SetOpacity( layerIndexUVW++, 1.0 );
-
-      tempMathUVW->Delete();  // Blend may still be holding a reference
-      tempCastUVW->Delete();  // Blend may still be holding a reference
       }
     else
       {
@@ -1509,7 +1555,10 @@ void vtkMRMLSliceLogic::CreateSliceModel()
 #endif
     this->SliceModelDisplayNode->SetSaveWithScene(0);
     this->SliceModelDisplayNode->SetDisableModifiedEvent(0);
-
+    // set an attribute to distinguish this from regular model display nodes
+    this->SliceModelDisplayNode->SetAttribute("SliceLogic.IsSliceModelDisplayNode", "True");
+    std::string displayName = std::string(this->Name) + std::string(" Display");
+    this->SliceModelDisplayNode->SetName(displayName.c_str());
     // Turn slice intersection off by default - there is a higher level GUI control
     // in the SliceCompositeNode that tells if slices should be enabled for a given
     // slice viewer
@@ -2582,6 +2631,23 @@ bool vtkMRMLSliceLogic::IsSliceModelNode(vtkMRMLNode *mrmlNode)
       strstr(mrmlNode->GetName(), vtkMRMLSliceLogic::SLICE_MODEL_NODE_NAME_SUFFIX.c_str()) != NULL)
     {
     return true;
+    }
+  return false;
+}
+
+//----------------------------------------------------------------------------
+bool vtkMRMLSliceLogic::IsSliceModelDisplayNode(vtkMRMLDisplayNode *mrmlDisplayNode)
+{
+  if (mrmlDisplayNode != NULL &&
+      mrmlDisplayNode->IsA("vtkMRMLModelDisplayNode"))
+    {
+    const char *attrib = mrmlDisplayNode->GetAttribute("SliceLogic.IsSliceModelDisplayNode");
+    // allow the attribute to be set to anything but 0
+    if (attrib != NULL &&
+        strcmp(attrib, "0") != 0)
+      {
+      return true;
+      }
     }
   return false;
 }

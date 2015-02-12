@@ -2,7 +2,8 @@
 
   Program: 3D Slicer
 
-  Portions (c) Copyright Brigham and Women's Hospital (BWH) All Rights Reserved.
+  Copyright (c) Laboratory for Percutaneous Surgery (PerkLab)
+  Queen's University, Kingston, ON, Canada. All Rights Reserved.
 
   See COPYRIGHT.txt
   or http://www.slicer.org/copyright/copyright.txt for details.
@@ -85,22 +86,9 @@ void vtkSlicerSubjectHierarchyModuleLogic::UpdateFromMRMLScene()
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerSubjectHierarchyModuleLogic::OnMRMLSceneEndBatchProcess()
-{
-  this->InvokeEvent(vtkSlicerSubjectHierarchyModuleLogic::SceneUpdateNeededEvent);
-}
-
-//---------------------------------------------------------------------------
-void vtkSlicerSubjectHierarchyModuleLogic::OnMRMLSceneEndImport()
-{
-  this->InvokeEvent(vtkSlicerSubjectHierarchyModuleLogic::SceneUpdateNeededEvent);
-}
-
-//---------------------------------------------------------------------------
 vtkMRMLSubjectHierarchyNode* vtkSlicerSubjectHierarchyModuleLogic::InsertDicomSeriesInHierarchy(
   vtkMRMLScene *scene, const char* patientId, const char* studyInstanceUID, const char* seriesInstanceUID )
 {
-  //TODO: Move this function to the DICOM plugin?
   if ( !scene || !patientId || !studyInstanceUID || !seriesInstanceUID )
     {
     std::cerr << "vtkSlicerSubjectHierarchyModuleLogic::InsertDicomSeriesInHierarchy: Invalid input arguments!" << std::endl;
@@ -120,12 +108,11 @@ vtkMRMLSubjectHierarchyNode* vtkSlicerSubjectHierarchyModuleLogic::InsertDicomSe
     vtkMRMLSubjectHierarchyNode *node = vtkMRMLSubjectHierarchyNode::SafeDownCast(subjectHierarchyNodes[i]);
     if ( node && node->IsA("vtkMRMLSubjectHierarchyNode") )
       {
-      std::string nodeDicomUIDStr = node->GetUID(vtkMRMLSubjectHierarchyConstants::DICOMHIERARCHY_DICOM_UID_NAME);
+      std::string nodeDicomUIDStr = node->GetUID(vtkMRMLSubjectHierarchyConstants::GetDICOMUIDName());
       const char* nodeDicomUID = nodeDicomUIDStr.c_str();
       if (!nodeDicomUID)
         {
         // Having a UID is not mandatory
-        //TODO: Isn't it?
         continue;
         }
       if (!strcmp(patientId, nodeDicomUID))
@@ -155,8 +142,8 @@ vtkMRMLSubjectHierarchyNode* vtkSlicerSubjectHierarchyModuleLogic::InsertDicomSe
   if (!patientNode)
     {
     patientNode = vtkMRMLSubjectHierarchyNode::New();
-    patientNode->SetLevel(vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_SUBJECT);
-    patientNode->AddUID(vtkMRMLSubjectHierarchyConstants::DICOMHIERARCHY_DICOM_UID_NAME, patientId);
+    patientNode->SetLevel(vtkMRMLSubjectHierarchyConstants::GetDICOMLevelPatient());
+    patientNode->AddUID(vtkMRMLSubjectHierarchyConstants::GetDICOMUIDName(), patientId);
     patientNode->SetOwnerPluginName("DICOM");
     scene->AddNode(patientNode);
     patientNode->Delete(); // Return ownership to the scene only
@@ -165,8 +152,8 @@ vtkMRMLSubjectHierarchyNode* vtkSlicerSubjectHierarchyModuleLogic::InsertDicomSe
   if (!studyNode)
     {
     studyNode = vtkMRMLSubjectHierarchyNode::New();
-    studyNode->SetLevel(vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_STUDY);
-    studyNode->AddUID(vtkMRMLSubjectHierarchyConstants::DICOMHIERARCHY_DICOM_UID_NAME, studyInstanceUID);
+    studyNode->SetLevel(vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy());
+    studyNode->AddUID(vtkMRMLSubjectHierarchyConstants::GetDICOMUIDName(), studyInstanceUID);
     studyNode->SetOwnerPluginName("DICOM");
     studyNode->SetParentNodeID(patientNode->GetID());
     scene->AddNode(studyNode);
@@ -210,14 +197,14 @@ vtkMRMLSubjectHierarchyNode* vtkSlicerSubjectHierarchyModuleLogic::AreNodesInSam
     hierarchyNode1 = vtkMRMLSubjectHierarchyNode::SafeDownCast(hierarchyNode1->GetParentNode());
     if (!hierarchyNode1)
       {
-      vtkWarningWithObjectMacro(node1, "Node ('" << node1->GetName() << "') has no ancestor with DICOM level '" << lowestCommonLevel << "'");
+      vtkDebugWithObjectMacro(node1, "Node ('" << node1->GetName() << "') has no ancestor with DICOM level '" << lowestCommonLevel << "'");
       hierarchyNode1 = NULL;
       break;
       }
     const char* node1Level = hierarchyNode1->GetLevel();
     if (!node1Level)
       {
-      vtkWarningWithObjectMacro(node1, "Node ('" << node1->GetName() << "') has no DICOM level '" << lowestCommonLevel << "'");
+      vtkDebugWithObjectMacro(node1, "Node ('" << node1->GetName() << "') has no DICOM level '" << lowestCommonLevel << "'");
       hierarchyNode1 = NULL;
       break;
       }
@@ -232,14 +219,14 @@ vtkMRMLSubjectHierarchyNode* vtkSlicerSubjectHierarchyModuleLogic::AreNodesInSam
     hierarchyNode2 = vtkMRMLSubjectHierarchyNode::SafeDownCast(hierarchyNode2->GetParentNode());
     if (!hierarchyNode2)
       {
-      vtkWarningWithObjectMacro(node2, "Node ('" << node2->GetName() << "') has no ancestor with DICOM level '" << lowestCommonLevel << "'");
+      vtkDebugWithObjectMacro(node2, "Node ('" << node2->GetName() << "') has no ancestor with DICOM level '" << lowestCommonLevel << "'");
       hierarchyNode2 = NULL;
       break;
       }
     const char* node2Level = hierarchyNode2->GetLevel();
     if (!node2Level)
       {
-      vtkWarningWithObjectMacro(node2, "Node ('" << node2->GetName() << "') has no DICOM level '" << lowestCommonLevel << "'");
+      vtkDebugWithObjectMacro(node2, "Node ('" << node2->GetName() << "') has no DICOM level '" << lowestCommonLevel << "'");
       hierarchyNode2 = NULL;
       break;
       }
@@ -250,4 +237,36 @@ vtkMRMLSubjectHierarchyNode* vtkSlicerSubjectHierarchyModuleLogic::AreNodesInSam
     }
 
   return (hierarchyNode1 == hierarchyNode2 ? hierarchyNode1 : NULL);
+}
+
+//---------------------------------------------------------------------------
+bool vtkSlicerSubjectHierarchyModuleLogic::IsPatientTag(std::string tagName)
+{
+  std::vector<std::string> patientTagNames = vtkMRMLSubjectHierarchyConstants::GetDICOMPatientTagNames();
+  for ( std::vector<std::string>::iterator patientTagIt = patientTagNames.begin();
+    patientTagIt != patientTagNames.end(); ++patientTagIt )
+    {
+    if (!tagName.compare(*patientTagIt))
+      {
+      // Argument was found in patient tag names list, so given tag is a patient tag
+      return true;
+      }
+    }
+  return false;
+}
+
+//---------------------------------------------------------------------------
+bool vtkSlicerSubjectHierarchyModuleLogic::IsStudyTag(std::string tagName)
+{
+  std::vector<std::string> studyTagNames = vtkMRMLSubjectHierarchyConstants::GetDICOMStudyTagNames();
+  for ( std::vector<std::string>::iterator studyTagIt = studyTagNames.begin();
+    studyTagIt != studyTagNames.end(); ++studyTagIt )
+    {
+    if (!tagName.compare(*studyTagIt))
+      {
+      // Argument was found in study tag names list, so given tag is a study tag
+      return true;
+      }
+    }
+  return false;
 }

@@ -15,7 +15,6 @@ set(${KIT}_INCLUDE_DIRECTORIES
 
 set(displayable_manager_SRCS
   vtkMRMLVolumeRenderingDisplayableManager.cxx
-  vtkMRMLVolumeRenderingDisplayableManager.h
   )
 
 set(VTK_USE_INSTANTIATOR_NEW 1)
@@ -35,7 +34,7 @@ set(${KIT}_SRCS
 if(${VTK_VERSION_MAJOR} GREATER 5)
   set(${KIT}_VTK_LIBRARIES
     vtkRenderingVolume
-    vtkRenderingVolumeOpenGL
+    vtkRenderingVolume${VTK_RENDERING_BACKEND}
     )
 else()
   set(${KIT}_TARGET_LIBRARIES

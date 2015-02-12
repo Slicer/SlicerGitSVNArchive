@@ -20,9 +20,9 @@
 #include "vtkMRMLVectorVolumeDisplayNode.h"
 #include "vtkMRMLDiffusionWeightedVolumeDisplayNode.h"
 #include "vtkMRMLDiffusionTensorVolumeDisplayNode.h"
-#include "vtkMRMLLinearTransformNode.h"
 #include "vtkMRMLDiffusionTensorVolumeSliceDisplayNode.h"
 #include "vtkMRMLScene.h"
+#include "vtkMRMLTransformNode.h"
 
 // VTK includes
 #include <vtkAlgorithm.h>
@@ -32,8 +32,6 @@
 #include <vtkFloatArray.h>
 #include <vtkGeneralTransform.h>
 #include <vtkImageData.h>
-#include <vtkImageLinearReslice.h>
-#include <vtkImageResliceMask.h>
 #include <vtkImageReslice.h>
 #include <vtkInformation.h>
 #include <vtkInformationVector.h>
@@ -43,6 +41,10 @@
 #include <vtkTrivialProducer.h>
 #include <vtkTransform.h>
 #include <vtkVersion.h>
+
+#if (VTK_MAJOR_VERSION <= 5)
+#include <vtkImageStencilData.h>
+#endif
 
 //
 #include "vtkImageLabelOutline.h"
@@ -92,8 +94,8 @@ vtkMRMLSliceLayerLogic::vtkMRMLSliceLayerLogic()
   this->AssignAttributeScalarsToTensorsUVW->Assign(vtkDataSetAttributes::SCALARS, vtkDataSetAttributes::TENSORS, vtkAssignAttribute::POINT_DATA);
 
   // Create the parts for the scalar layer pipeline
-  this->Reslice = vtkImageResliceMask::New();
-  this->ResliceUVW = vtkImageResliceMask::New();
+  this->Reslice = vtkImageReslice::New();
+  this->ResliceUVW = vtkImageReslice::New();
   this->LabelOutline = vtkImageLabelOutline::New();
   this->LabelOutlineUVW = vtkImageLabelOutline::New();
 
@@ -106,6 +108,7 @@ vtkMRMLSliceLayerLogic::vtkMRMLSliceLayerLogic()
   this->Reslice->SetOutputOrigin( 0, 0, 0 );
   this->Reslice->SetOutputSpacing( 1, 1, 1 );
   this->Reslice->SetOutputDimensionality( 3 );
+  this->Reslice->GenerateStencilOutputOn();
 
   this->ResliceUVW->SetBackgroundColor(0, 0, 0, 0); // only first two are used
   this->ResliceUVW->AutoCropOutputOff();
@@ -113,10 +116,7 @@ vtkMRMLSliceLayerLogic::vtkMRMLSliceLayerLogic()
   this->ResliceUVW->SetOutputOrigin( 0, 0, 0 );
   this->ResliceUVW->SetOutputSpacing( 1, 1, 1 );
   this->ResliceUVW->SetOutputDimensionality( 3 );
-
-  // Only the transform matrix can change, not the transform itself
-  //this->Reslice->SetResliceTransform( this->XYToIJKTransform->GetConcatenatedTransform(0) );
-  //this->ResliceUVW->SetResliceTransform( this->UVWToIJKTransform->GetConcatenatedTransform(0) );
+  this->ResliceUVW->GenerateStencilOutputOn();
 
   this->UpdatingTransforms = 0;
 }
@@ -507,41 +507,34 @@ void vtkMRMLSliceLayerLogic::UpdateTransforms()
 
       this->XYToIJKTransform->Concatenate(worldTransform.GetPointer());
       this->UVWToIJKTransform->Concatenate(worldTransform.GetPointer());
-      /***
-      if ( !transformNode->IsTransformToWorldLinear() )
-        {
-        if (!reportedNonlinearTransformSupport)
-          {
-          vtkErrorMacro ("Nonlinear transforms are not yet supported in slice viewers.");
-          reportedNonlinearTransformSupport = true;
-          }
-        }
-      else
-        {
-        vtkNew<vtkMatrix4x4> rasToRAS;
-        transformNode->GetMatrixTransformToWorld(rasToRAS.GetPointer());
-        rasToRAS->Invert();
-        vtkMatrix4x4::Multiply4x4(rasToRAS.GetPointer(), xyToIJK.GetPointer(), xyToIJK.GetPointer());
-        vtkMatrix4x4::Multiply4x4(rasToRAS.GetPointer(), uvwToIJK.GetPointer(), uvwToIJK.GetPointer());
-        }
-        ***/
       }
 
     vtkNew<vtkMatrix4x4> rasToIJK;
     this->VolumeNode->GetRASToIJKMatrix(rasToIJK.GetPointer());
 
-    /***
-    vtkMatrix4x4::Multiply4x4(rasToIJK, xyToIJK, xyToIJK);
-    vtkMatrix4x4::Multiply4x4(rasToIJK, uvwToIJK, uvwToIJK);
-    ***/
     this->XYToIJKTransform->Concatenate(rasToIJK.GetPointer());
     this->UVWToIJKTransform->Concatenate(rasToIJK.GetPointer());
 
-    this->Reslice->SetResliceTransform( this->XYToIJKTransform );
-    this->ResliceUVW->SetResliceTransform( this->UVWToIJKTransform );
-
-    //this->XYToIJKTransform->Modified();
-    //this->UVWToIJKTransform->Modified();
+    // vtkImageReslice works faster if the input is a linear transform, so try to convert it
+    // to a linear transform
+    vtkSmartPointer<vtkTransform> linearXYToIJKTransform = vtkSmartPointer<vtkTransform>::New();
+    if (vtkMRMLTransformNode::IsGeneralTransformLinear(this->XYToIJKTransform, linearXYToIJKTransform))
+      {
+      this->Reslice->SetResliceTransform(linearXYToIJKTransform);
+      }
+    else
+      {
+      this->Reslice->SetResliceTransform(this->XYToIJKTransform);
+      }
+    vtkSmartPointer<vtkTransform> linearUVWToIJKTransform = vtkSmartPointer<vtkTransform>::New();
+    if (vtkMRMLTransformNode::IsGeneralTransformLinear(this->UVWToIJKTransform, linearUVWToIJKTransform))
+      {
+      this->ResliceUVW->SetResliceTransform( linearUVWToIJKTransform );
+      }
+    else
+      {
+      this->ResliceUVW->SetResliceTransform( this->UVWToIJKTransform );
+      }
 
   }
 
@@ -876,24 +869,24 @@ void vtkMRMLSliceLayerLogic::UpdateImageDisplay()
       //int wasModifying = volumeDisplayNode->StartModify();
 #if (VTK_MAJOR_VERSION <= 5)
       volumeDisplayNode->SetInputImageData(this->GetSliceImageData());
-      volumeDisplayNode->SetBackgroundImageData(this->Reslice->GetBackgroundMask());
+      volumeDisplayNode->SetBackgroundImageStencilData(this->Reslice->GetStencil());
 #else
       volumeDisplayNode->SetInputImageDataConnection(this->GetSliceImageDataConnection());
-      volumeDisplayNode->SetBackgroundImageDataConnection(this->Reslice->GetBackgroundMaskPort());
+      volumeDisplayNode->SetBackgroundImageStencilDataConnection(this->Reslice->GetOutputPort(1));
 #endif
       // If the background mask is not used, make sure the update extent of the
       // background mask is set to the whole extent so the reslice filter can write
       // into the entire extent instead of trying to access an update extent that won't
       // be up-to-date because not connected to a pipeline.
 #if (VTK_MAJOR_VERSION <= 5)
-      if (volumeDisplayNode->GetBackgroundImageData() == 0 &&
-          this->Reslice->GetBackgroundMask() != 0)
+      if (volumeDisplayNode->GetBackgroundImageStencilData() == 0 &&
+          this->Reslice->GetOutput(1) != 0)
         {
-        this->Reslice->GetBackgroundMask()->SetUpdateExtentToWholeExtent();
+        this->Reslice->GetOutput(1)->SetUpdateExtentToWholeExtent();
         }
 #else
-      if (volumeDisplayNode->GetBackgroundImageData() == 0 &&
-         this->Reslice->GetBackgroundMaskPort() != 0)
+      if (volumeDisplayNode->GetBackgroundImageStencilData() == 0 &&
+         this->Reslice->GetOutputPort(1) != 0)
         {
         this->Reslice->UpdateInformation();
         this->Reslice->SetUpdateExtentToWholeExtent(1);
@@ -909,10 +902,10 @@ void vtkMRMLSliceLayerLogic::UpdateImageDisplay()
       //int wasModifying = volumeDisplayNode->StartModify();
 #if (VTK_MAJOR_VERSION <= 5)
       volumeDisplayNodeUVW->SetInputImageData(this->GetSliceImageDataUVW());
-      volumeDisplayNodeUVW->SetBackgroundImageData(this->ResliceUVW->GetBackgroundMask());
+      volumeDisplayNodeUVW->SetBackgroundImageStencilData(this->ResliceUVW->GetStencil());
 #else
       volumeDisplayNodeUVW->SetInputImageDataConnection(this->GetSliceImageDataConnectionUVW());
-      volumeDisplayNodeUVW->SetBackgroundImageDataConnection(this->ResliceUVW->GetBackgroundMaskPort());
+      volumeDisplayNodeUVW->SetBackgroundImageStencilDataConnection(this->ResliceUVW->GetOutputPort(1));
 #endif
       //volumeDisplayNode->EndModify(wasModifying);
       }
@@ -964,7 +957,7 @@ vtkAlgorithmOutput* vtkMRMLSliceLayerLogic::GetSliceImageDataConnection()
   return this->Reslice->GetOutputPort();
 }
 #endif
-    
+
 //----------------------------------------------------------------------------
 #if (VTK_MAJOR_VERSION <= 5)
 vtkImageData* vtkMRMLSliceLayerLogic::GetSliceImageDataUVW()
@@ -1032,10 +1025,9 @@ void vtkMRMLSliceLayerLogic::UpdateGlyphs()
       vtkMRMLTransformNode* tnode = this->VolumeNode->GetParentTransformNode();
       vtkNew<vtkMatrix4x4> transformToWorld;
       //transformToWorld->Identity();unnecessary, transformToWorld is already identiy
-      if (tnode != 0 && tnode->IsLinear())
+      if (tnode != 0 && tnode->IsTransformToWorldLinear())
         {
-        vtkMRMLLinearTransformNode *lnode = vtkMRMLLinearTransformNode::SafeDownCast(tnode);
-        lnode->GetMatrixTransformToWorld(transformToWorld.GetPointer());
+        tnode->GetMatrixTransformToWorld(transformToWorld.GetPointer());
         transformToWorld->Invert();
         }
 

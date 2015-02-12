@@ -18,11 +18,11 @@ endif()
 
 # Sanity checks
 if(DEFINED VTK_DIR AND NOT EXISTS ${VTK_DIR})
-  message(FATAL_ERROR "VTK_DIR variable is defined but corresponds to non-existing directory")
+  message(FATAL_ERROR "VTK_DIR variable is defined but corresponds to nonexistent directory")
 endif()
 
 if(DEFINED VTK_SOURCE_DIR AND NOT EXISTS ${VTK_SOURCE_DIR})
-  message(FATAL_ERROR "VTK_SOURCE_DIR variable is defined but corresponds to non-existing directory")
+  message(FATAL_ERROR "VTK_SOURCE_DIR variable is defined but corresponds to nonexistent directory")
 endif()
 
 
@@ -87,8 +87,14 @@ if((NOT DEFINED VTK_DIR OR NOT DEFINED VTK_SOURCE_DIR) AND NOT ${CMAKE_PROJECT_N
       )
   endif()
 
+  # Enable VTK_ENABLE_KITS only if CMake >= 3.0 is used
+  set(VTK_ENABLE_KITS 0)
+  if(CMAKE_MAJOR_VERSION EQUAL 3)
+    set(VTK_ENABLE_KITS 1)
+  endif()
+
   set(${CMAKE_PROJECT_NAME}_${proj}_GIT_REPOSITORY "github.com/Slicer/VTK.git" CACHE STRING "Repository from which to get VTK" FORCE)
-  set(${CMAKE_PROJECT_NAME}_${proj}_GIT_TAG "4d7abb2e0232fd8b16057a34104853c073cac4cb" CACHE STRING "VTK git tag to use" FORCE)
+  set(${CMAKE_PROJECT_NAME}_${proj}_GIT_TAG "2e6d9b96329d4bba89f3da29098d69236b868766" CACHE STRING "VTK git tag to use" FORCE)
 
   mark_as_advanced(${CMAKE_PROJECT_NAME}_${proj}_GIT_REPOSITORY ${CMAKE_PROJECT_NAME}_${proj}_GIT_TAG)
 
@@ -124,6 +130,8 @@ if((NOT DEFINED VTK_DIR OR NOT DEFINED VTK_SOURCE_DIR) AND NOT ${CMAKE_PROJECT_N
       -DZLIB_ROOT:PATH=${ZLIB_ROOT}
       -DZLIB_INCLUDE_DIR:PATH=${ZLIB_INCLUDE_DIR}
       -DZLIB_LIBRARY:FILEPATH=${ZLIB_LIBRARY}
+      -DVTK_ENABLE_KITS:BOOL=${VTK_ENABLE_KITS}
+      -DVTK_RENDERING_BACKEND:STRING=${Slicer_VTK_RENDERING_BACKEND}
       ${EXTERNAL_PROJECT_OPTIONAL_ARGS}
     INSTALL_COMMAND ""
     DEPENDS
@@ -145,6 +153,40 @@ if((NOT DEFINED VTK_DIR OR NOT DEFINED VTK_SOURCE_DIR) AND NOT ${CMAKE_PROJECT_N
 #  else()
 #    set(PNG_LIBRARY ${PNG_LIBRARY_DIR}/libvtkpng-6.0.so)
 #  endif()
+
+  #-----------------------------------------------------------------------------
+  # Launcher setting specific to build tree
+
+  # library paths
+  set(${proj}_LIBRARY_PATHS_LAUNCHER_BUILD ${VTK_DIR}/bin/<CMAKE_CFG_INTDIR>)
+  mark_as_superbuild(
+    VARS ${proj}_LIBRARY_PATHS_LAUNCHER_BUILD
+    LABELS "LIBRARY_PATHS_LAUNCHER_BUILD"
+    )
+
+  # pythonpath
+  set(${proj}_PYTHONPATH_LAUNCHER_BUILD
+    ${VTK_DIR}/Wrapping/Python
+    ${VTK_DIR}/lib/<CMAKE_CFG_INTDIR>
+    )
+  mark_as_superbuild(
+    VARS ${proj}_PYTHONPATH_LAUNCHER_BUILD
+    LABELS "PYTHONPATH_LAUNCHER_BUILD"
+    )
+
+  #-----------------------------------------------------------------------------
+  # Launcher setting specific to install tree
+
+  # pythonpath
+  if(NOT APPLE)
+    set(${proj}_PYTHONPATH_LAUNCHER_INSTALLED
+      <APPLAUNCHER_DIR>/${Slicer_INSTALL_LIB_DIR}/python2.7/site-packages
+      )
+    mark_as_superbuild(
+      VARS ${proj}_PYTHONPATH_LAUNCHER_INSTALLED
+      LABELS "PYTHONPATH_LAUNCHER_INSTALLED"
+      )
+  endif()
 
 else()
   ExternalProject_Add_Empty(${proj} DEPENDS ${${proj}_DEPENDENCIES})

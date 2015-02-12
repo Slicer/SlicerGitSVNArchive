@@ -301,8 +301,11 @@ void vtkSlicerTractographyInteractiveSeedingLogic::CreateTractsForOneSeed(vtkSee
   streamer->SetRadiusOfCurvature(stoppingCurvature);
   streamer->SetIntegrationStepLength(integrationStepLength);
 
+#if (VTK_MAJOR_VERSION <= 5)
   // Temp fix to provide a scalar
-  seed->GetInputTensorField()->GetPointData()->SetScalars(volumeNode->GetImageData()->GetPointData()->GetScalars());
+  seed->GetInputTensorField()->GetPointData()->SetScalars(
+        volumeNode->GetImageData()->GetPointData()->GetScalars());
+#endif
 
   vtkMRMLAnnotationControlPointsNode *annotationNode = vtkMRMLAnnotationControlPointsNode::SafeDownCast(transformableNode);
   vtkMRMLMarkupsFiducialNode *markupsFiducialNode = vtkMRMLMarkupsFiducialNode::SafeDownCast(transformableNode);
@@ -447,12 +450,11 @@ int vtkSlicerTractographyInteractiveSeedingLogic::CreateTracts(vtkMRMLTractograp
 #if (VTK_MAJOR_VERSION <= 5)
   ici->SetInput(volumeNode->GetImageData());
   ici->GetOutput()->Update();
-#else
-  ici->SetInputData(volumeNode->GetImageData());
-  ici->Update();
-#endif
-
   seed->SetInputTensorField(ici->GetOutput());
+#else
+  ici->SetInputConnection(volumeNode->GetImageDataConnection());
+  seed->SetInputTensorFieldConnection(ici->GetOutputPort());
+#endif
 
   if ( labelMapNode && parametersNode->GetROILabels() )
     {
@@ -812,9 +814,10 @@ int vtkSlicerTractographyInteractiveSeedingLogic::CreateTractsForLabelMap(
     return 0;
     }
 
+#if (VTK_MAJOR_VERSION <= 5)
   vtkSmartPointer<vtkImageData> ROI;
-#if (VTK_MAJOR_VERSION > 5)
-  vtkSmartPointer<vtkInformation> ROIPipelineInfo;
+#else
+  vtkSmartPointer<vtkAlgorithmOutput> ROIConnection;
 #endif
   vtkNew<vtkImageCast> imageCast;
   vtkNew<vtkDiffusionTensorMathematics> math;
@@ -829,25 +832,26 @@ int vtkSlicerTractographyInteractiveSeedingLogic::CreateTractsForLabelMap(
     imageCast->SetOutputScalarTypeToShort();
 #if (VTK_MAJOR_VERSION <= 5)
     imageCast->SetInput(seedingNode->GetImageData() );
-#else
-    imageCast->SetInputData(seedingNode->GetImageData() );
-#endif
     imageCast->Update();
+#else
+    imageCast->SetInputConnection(seedingNode->GetImageDataConnection() );
+#endif
 
     //Do scale IJK
     double sp[3];
     seedingNode->GetSpacing(sp);
-    vtkImageChangeInformation *ici = vtkImageChangeInformation::New();
+    vtkNew<vtkImageChangeInformation> ici;
     ici->SetOutputSpacing(sp);
 #if (VTK_MAJOR_VERSION <= 5)
     ici->SetInput(imageCast->GetOutput());
     ici->GetOutput()->Update();
+    ROI = ici->GetOutput();
 #else
     ici->SetInputConnection(imageCast->GetOutputPort());
-    ici->Update();
+    ROIConnection = ici->GetOutputPort();
 #endif
 
-    ROI = ici->GetOutput();
+
 
     // Set up the matrix that will take points in ROI
     // to RAS space.  Code assumes this is world space
@@ -862,7 +866,7 @@ int vtkSlicerTractographyInteractiveSeedingLogic::CreateTractsForLabelMap(
 #if (VTK_MAJOR_VERSION <= 5)
     math->SetInput(0, volumeNode->GetImageData());
 #else
-    math->SetInputData(0, volumeNode->GetImageData());
+    math->SetInputConnection(volumeNode->GetImageDataConnection());
 #endif
     if ( stoppingMode == 0 )
       {
@@ -872,9 +876,9 @@ int vtkSlicerTractographyInteractiveSeedingLogic::CreateTractsForLabelMap(
       {
       math->SetOperationToFractionalAnisotropy();
       }
-    math->Update();
 
 #if (VTK_MAJOR_VERSION <= 5)
+    math->Update();
     th->SetInput(math->GetOutput());
 #else
     th->SetInputConnection(math->GetOutputPort());
@@ -885,10 +889,11 @@ int vtkSlicerTractographyInteractiveSeedingLogic::CreateTractsForLabelMap(
     th->ReplaceInOn();
     th->ReplaceOutOn();
     th->SetOutputScalarTypeToShort();
+#if (VTK_MAJOR_VERSION <= 5)
     th->Update();
     ROI = th->GetOutput();
-#if (VTK_MAJOR_VERSION > 5)
-    ROIPipelineInfo = th->GetOutputInformation(0);
+#else
+    ROIConnection = th->GetOutputPort();
 #endif
 
     // Set up the matrix that will take points in ROI
@@ -1012,9 +1017,10 @@ int vtkSlicerTractographyInteractiveSeedingLogic::CreateTractsForLabelMap(
 
   // PENDING: Do merging with input ROI
 
+#if (VTK_MAJOR_VERSION <= 5)
   seed->SetInputROI(ROI);
-#if (VTK_MAJOR_VERSION > 5)
-  seed->SetInputROIPipelineInfo(ROIPipelineInfo);
+#else
+  seed->SetInputROIConnection(ROIConnection);
 #endif
   seed->SetInputROIValue(ROIlabel);
   seed->UseStartingThresholdOn();
@@ -1057,9 +1063,6 @@ int vtkSlicerTractographyInteractiveSeedingLogic::CreateTractsForLabelMap(
   streamer->SetMaximumPropagationDistance(maxPathLength);
   streamer->SetRadiusOfCurvature(stoppingCurvature);
   streamer->SetIntegrationStepLength(integrationStepLength);
-
-  // Temp fix to provide a scalar
-  // seed->GetInputTensorField()->GetPointData()->SetScalars(math->GetOutput()->GetPointData()->GetScalars());
 
   // 5. Run the thing
   seed->SeedStreamlinesInROI();

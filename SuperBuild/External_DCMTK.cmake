@@ -14,7 +14,7 @@ endif()
 
 # Sanity checks
 if(DEFINED DCMTK_DIR AND NOT EXISTS ${DCMTK_DIR})
-  message(FATAL_ERROR "DCMTK_DIR variable is defined but corresponds to non-existing directory")
+  message(FATAL_ERROR "DCMTK_DIR variable is defined but corresponds to nonexistent directory")
 endif()
 
 if(NOT DEFINED DCMTK_DIR AND NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
@@ -34,7 +34,7 @@ if(NOT DEFINED DCMTK_DIR AND NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
   endif()
 
   set(${proj}_REPOSITORY ${git_protocol}://github.com/commontk/DCMTK.git)
-  set(${proj}_GIT_TAG "f461865d1759854db56e4c840991c81c77e45bb9")
+  set(${proj}_GIT_TAG "3366181db75ac0e334045c66350e438adf304cb0")
 
   ExternalProject_Add(${proj}
     ${${proj}_EP_ARGS}
@@ -63,6 +63,20 @@ if(NOT DEFINED DCMTK_DIR AND NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
       ${${proj}_DEPENDENCIES}
   )
   set(DCMTK_DIR ${CMAKE_BINARY_DIR}/${proj}-build)
+
+  #-----------------------------------------------------------------------------
+  # Launcher setting specific to build tree
+
+  set(_lib_subdir lib)
+  if(WIN32)
+    set(_lib_subdir bin)
+  endif()
+
+  set(${proj}_LIBRARY_PATHS_LAUNCHER_BUILD ${DCMTK_DIR}/${_lib_subdir}/<CMAKE_CFG_INTDIR>)
+  mark_as_superbuild(
+    VARS ${proj}_LIBRARY_PATHS_LAUNCHER_BUILD
+    LABELS "LIBRARY_PATHS_LAUNCHER_BUILD"
+    )
 
 else()
   ExternalProject_Add_Empty(${proj} DEPENDS ${${proj}_DEPENDENCIES})

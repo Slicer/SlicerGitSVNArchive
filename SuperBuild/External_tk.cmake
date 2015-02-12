@@ -27,13 +27,23 @@ if(NOT WIN32)
     # used when making a shared object; recompile with -fPIC
     # See http://www.cmake.org/pipermail/cmake/2007-May/014350.html
     #
-    if( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
+    if(CMAKE_SIZEOF_VOID_P EQUAL 8) # 64-bit
       set(_configure_cflags "-fPIC")
     endif()
 
     set(_configure_extra_args)
     if(APPLE)
-      set(_configure_extra_args --disable-corefoundation --x-libraries=/usr/X11R6/lib --x-includes=/usr/X11R6/include --with-x)
+      set(x_libraries /usr/X11R6/lib)
+      set(x_includes /usr/X11R6/include)
+      if(DARWIN_MAJOR_VERSION GREATER 11)
+        # With version of MacOSX > 11.x (Lion), Apple has dropped dedicated support
+        # for X11.app, with users directed to the open source XQuartz project instead.
+        # See http://en.wikipedia.org/wiki/XQuartz
+        # Headers and libraries provided by XQuartz are located in '/opt/X11'
+        set(x_libraries /opt/X11/lib)
+        set(x_includes /opt/X11/include)
+      endif()
+      set(_configure_extra_args --disable-corefoundation --x-libraries=${x_libraries} --x-includes=${x_includes} --with-x)
     endif()
 
     # configure step
@@ -64,8 +74,8 @@ ExternalProject_Execute(${proj} \"install\" make install)
 
     ExternalProject_Add(${proj}
       ${${proj}_EP_ARGS}
-      SVN_REPOSITORY "http://svn.slicer.org/Slicer3-lib-mirrors/trunk/tcl/tk"
-      SVN_REVISION -r "114"
+      URL "http://slicer.kitware.com/midas3/download/item/155631/tk8.6.1-src.tar.gz"
+      URL_MD5 "63f21c3a0e0cefbd854b4eb29b129ac6"
       UPDATE_COMMAND "" # Disable update
       SOURCE_DIR tcl/tk
       BUILD_IN_SOURCE 1
@@ -87,17 +97,29 @@ ExternalProject_Execute(${proj} \"install\" make install)
       )
 
     #-----------------------------------------------------------------------------
-    # Since fixup_bundle expects the library to be writable, let's add an extra step
-    # to make sure it's the case.
+    # Extra steps to work-around tk build system issues
     if(APPLE)
       foreach(var tcl_build TCL_TK_VERSION_DOT)
         if(NOT DEFINED ${var})
           message(FATAL_ERROR "error: ${var} is not defined !")
         endif()
       endforeach()
+      set(_tk_library ${tcl_build}/lib/libtk${TCL_TK_VERSION_DOT}.dylib)
+      # XXX Since fixup_bundle expects the library to be writable, let's add an
+      # extra step to make sure it's the case.
       ExternalProject_Add_Step(${proj} tk_install_chmod_library
-        COMMAND chmod u+xw ${tcl_build}/lib/libtk${TCL_TK_VERSION_DOT}.dylib
+        COMMAND chmod u+xw ${_tk_library}
         DEPENDEES install
+        )
+      # XXX Tk build system has a known problem building the tk shared library.
+      # To ensure fixup_bundle properly process the _tkinter.so python module,
+      # we implemented the following workaround to fix the library id.
+      # For more details
+      #   http://sourceforge.net/p/tcl/mailman/message/30354096/
+      #   http://na-mic.org/Mantis/view.php?id=3822
+      ExternalProject_Add_Step(${proj} tk_install_fix_library_id
+        COMMAND install_name_tool -id ${_tk_library} ${_tk_library}
+        DEPENDEES tk_install_chmod_library
         )
     endif()
 

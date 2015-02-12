@@ -2,7 +2,8 @@
 
   Program: 3D Slicer
 
-  Copyright (c) Kitware Inc.
+  Copyright (c) Laboratory for Percutaneous Surgery (PerkLab)
+  Queen's University, Kingston, ON, Canada. All Rights Reserved.
 
   See COPYRIGHT.txt
   or http://www.slicer.org/copyright/copyright.txt for details.
@@ -28,6 +29,8 @@
 #include <QStringList>
 
 // SubjectHierarchy includes
+#include "vtkMRMLSubjectHierarchyConstants.h"
+
 #include "qSlicerSubjectHierarchyModuleWidgetsExport.h"
 
 class vtkObject;
@@ -35,6 +38,7 @@ class vtkMRMLNode;
 class vtkMRMLSubjectHierarchyNode;
 class QStandardItem;
 class QAction;
+class QIcon;
 class qSlicerAbstractModuleWidget;
 
 /// \ingroup Slicer_QtModules_SubjectHierarchy_Widgets
@@ -89,12 +93,12 @@ public:
   /// Get help text for plugin to be added in subject hierarchy module widget help box
   virtual const QString helpText()const;
 
-  /// Set icon of a owned subject hierarchy node
-  /// \return Flag indicating whether setting an icon was successful
-  virtual bool setIcon(vtkMRMLSubjectHierarchyNode* node, QStandardItem* item);
+  /// Get icon of an owned subject hierarchy node
+  /// \return Icon to set, NULL if nothing to set
+  virtual QIcon icon(vtkMRMLSubjectHierarchyNode* node);
 
-  /// Set visibility icon of a owned subject hierarchy node
-  virtual void setVisibilityIcon(vtkMRMLSubjectHierarchyNode* node, QStandardItem* item);
+  /// Get visibility icon for a visibility state
+  virtual QIcon visibilityIcon(int visible);
 
   /// Open module belonging to node and set inputs in opened module
   virtual void editProperties(vtkMRMLSubjectHierarchyNode* node);
@@ -140,10 +144,14 @@ public:
   ///   node, and 1 means that the plugin is the only one that can handle the node (by node type or identifier attribute)
   virtual double canAddNodeToSubjectHierarchy(vtkMRMLNode* node , vtkMRMLSubjectHierarchyNode* parent=NULL)const;
 
-  /// Add a node to subject hierarchy under a specified parent node. If added non subject hierarchy nodes
-  ///   have certain steps to perform when adding them in Subject Hierarchy, those steps take place here.
+  /// Add a node to subject hierarchy under a specified parent node. This is basically a convenience function to
+  /// call vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode
+  /// Note: This method is no longer virtual, as creating subject hierarchy nodes happens automatically
+  /// \param node Node to add to subject hierarchy
+  /// \param parent Parent node of the added node
+  /// \param level Level of the added node in subject hierarchy, none be default
   /// \return True if added successfully, false otherwise
-  virtual bool addNodeToSubjectHierarchy(vtkMRMLNode* node, vtkMRMLSubjectHierarchyNode* parent);
+  bool addNodeToSubjectHierarchy(vtkMRMLNode* node, vtkMRMLSubjectHierarchyNode* parent, const char* level=NULL);
 
   /// Determines if a subject hierarchy node can be reparented in the hierarchy using the actual plugin,
   /// and gets a confidence value for a certain MRML node (usually the type and possibly attributes are checked).
@@ -161,9 +169,6 @@ public:
 
 // Utility functions
 public:
-  /// Create child node for a given parent node based on the child level map
-  virtual vtkMRMLSubjectHierarchyNode* createChildNode(vtkMRMLSubjectHierarchyNode* parentNode, QString nodeName, vtkMRMLNode* associatedNode=NULL);
-
   /// Determines if the node is owned by this plugin
   bool isThisPluginOwnerOfNode(vtkMRMLSubjectHierarchyNode* node)const;
 
@@ -178,41 +183,29 @@ public:
   /// Get the name of the plugin
   virtual QString name()const;
 
-  /// Get child level map
-  QMap<QString, QString> childLevelMap()const { return m_ChildLevelMap; };
-
 signals:
   /// Signal requesting expanding of the subject hierarchy tree item belonging to a node
   void requestExpandNode(vtkMRMLSubjectHierarchyNode* node);
 
-  /// Signal requesting invalidating the models for the tree view and the potential nodes list
-  void requestInvalidateModels()const;
+  /// Signal requesting invalidating the filter model for the tree view
+  /// (e.g. when a node is added or removed by the plugin)
+  void requestInvalidateFilter()const;
 
   /// Signal that is emitted when a node changes owner plugin
   /// \param node Subject hierarchy node changing owner plugin
-  /// \callData Name of the old plugin (the name of the new plugin can be get from the node)
+  /// \param callData Name of the old plugin (the name of the new plugin can be get from the node)
   void ownerPluginChanged(vtkObject* node, void* callData);
 
 protected:
-  /// Get child level according to child level map of the current plugin
-  virtual QString childLevel(QString parentLevel);
-
   /// Hide all context menu actions offered by the plugin.
   /// This method must be called as a first step in \sa showContextMenuActionsForNode
   /// before showing the actions that apply to the current situation. Calling this method
   /// prevents programming errors made in case plugin actions change.
   void hideAllContextMenuActions()const;
 
-protected slots:
-  /// Create supported child for the current node (which is selected in the tree)
-  void createChildForCurrentNode();
-
 protected:
   /// Name of the plugin
   QString m_Name;
-
-  /// Map assigning a child level to a parent level for the plugin
-  QMap<QString, QString> m_ChildLevelMap;
 
 private:
   qSlicerSubjectHierarchyAbstractPlugin(const qSlicerSubjectHierarchyAbstractPlugin&); // Not implemented

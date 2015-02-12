@@ -151,19 +151,26 @@ class LabelStatisticsWidget:
     """Calculate the label statistics
     """
 
-    volumesLogic = slicer.modules.volumes.logic()
-    warnings = volumesLogic.CheckForLabelVolumeValidity(self.grayscaleNode, self.labelNode)
-    if warnings != "":
-      qt.QMessageBox.warning(slicer.util.mainWindow(),
-          "Label Statistics", "Volumes do not have the same geometry.\n%s" % warnings)
-      return
-
     self.applyButton.text = "Working..."
     # TODO: why doesn't processEvents alone make the label text change?
     self.applyButton.repaint()
     slicer.app.processEvents()
-    self.logic = LabelStatisticsLogic(self.grayscaleNode, self.labelNode)
+    volumesLogic = slicer.modules.volumes.logic()
+    warnings = volumesLogic.CheckForLabelVolumeValidity(self.grayscaleNode, self.labelNode)
+    resampledLabelNode = None
+    if warnings != "":
+      if 'mismatch' in warnings:
+        resampledLabelNode = volumesLogic.ResampleVolumeToReferenceVolume(self.labelNode, self.grayscaleNode)
+        self.logic = LabelStatisticsLogic(self.grayscaleNode, resampledLabelNode)
+      else:
+        qt.QMessageBox.warning(slicer.util.mainWindow(),
+            "Label Statistics", "Volumes do not have the same geometry.\n%s" % warnings)
+        return
+    else:
+      self.logic = LabelStatisticsLogic(self.grayscaleNode, self.labelNode)
     self.populateStats()
+    if resampledLabelNode:
+      slicer.mrmlScene.RemoveNode(resampledLabelNode)
     self.chartFrame.enabled = True
     self.saveButton.enabled = True
     self.applyButton.text = "Apply"
@@ -208,6 +215,7 @@ class LabelStatisticsWidget:
       item = qt.QStandardItem()
       item.setData(color,qt.Qt.DecorationRole)
       item.setToolTip(colorNode.GetColorName(i))
+      item.setEditable(False)
       self.model.setItem(row,0,item)
       self.items.append(item)
       col = 1
@@ -216,6 +224,7 @@ class LabelStatisticsWidget:
         # set data as float with Qt::DisplayRole
         item.setData(float(self.logic.labelStats[i,k]),qt.Qt.DisplayRole)
         item.setToolTip(colorNode.GetColorName(i))
+        item.setEditable(False)
         self.model.setItem(row,col,item)
         self.items.append(item)
         col += 1
@@ -294,9 +303,12 @@ class LabelStatisticsLogic:
       stat1 = vtk.vtkImageAccumulate()
       if vtk.VTK_MAJOR_VERSION <= 5:
         stat1.SetInput(grayscaleNode.GetImageData())
+        stat1.SetStencil(stencil.GetOutput())
       else:
         stat1.SetInputConnection(grayscaleNode.GetImageDataConnection())
-      stat1.SetStencil(stencil.GetOutput())
+        stencil.Update()
+        stat1.SetStencilData(stencil.GetOutput())
+
       stat1.Update()
 
       # this.InvokeEvent(vtkLabelStatisticsLogic::LabelStatsInnerLoop, (void*)"0.75")

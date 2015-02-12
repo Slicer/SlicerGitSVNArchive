@@ -2,7 +2,8 @@
 
   Program: 3D Slicer
 
-  Copyright (c) Kitware Inc.
+  Copyright (c) Laboratory for Percutaneous Surgery (PerkLab)
+  Queen's University, Kingston, ON, Canada. All Rights Reserved.
 
   See COPYRIGHT.txt
   or http://www.slicer.org/copyright/copyright.txt for details.
@@ -27,7 +28,6 @@
 
 // SubjectHierarchy includes
 #include "qMRMLSubjectHierarchyTreeViewPlugin.h"
-#include "qMRMLPotentialSubjectHierarchyListViewPlugin.h"
 
 // \class Group the plugins in one library
 class Q_SLICER_MODULE_SUBJECTHIERARCHY_WIDGETS_PLUGINS_EXPORT qSlicerSubjectHierarchyModuleWidgetsPlugin
@@ -42,7 +42,6 @@ public:
     {
     QList<QDesignerCustomWidgetInterface *> plugins;
     plugins << new qMRMLSubjectHierarchyTreeViewPlugin;
-    plugins << new qMRMLPotentialSubjectHierarchyListViewPlugin;
     return plugins;
     }
 };

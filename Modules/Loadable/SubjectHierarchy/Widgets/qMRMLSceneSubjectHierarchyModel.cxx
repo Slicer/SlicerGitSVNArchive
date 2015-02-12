@@ -2,7 +2,8 @@
 
   Program: 3D Slicer
 
-  Copyright (c) Kitware Inc.
+  Copyright (c) Laboratory for Percutaneous Surgery (PerkLab)
+  Queen's University, Kingston, ON, Canada. All Rights Reserved.
 
   See COPYRIGHT.txt
   or http://www.slicer.org/copyright/copyright.txt for details.
@@ -24,15 +25,16 @@
 // Subject Hierarchy includes
 #include "vtkMRMLSubjectHierarchyConstants.h"
 #include "vtkMRMLSubjectHierarchyNode.h"
-#include "vtkSlicerSubjectHierarchyModuleLogic.h"
 #include "qMRMLSceneSubjectHierarchyModel_p.h"
 #include "qSlicerSubjectHierarchyPluginHandler.h"
 #include "qSlicerSubjectHierarchyAbstractPlugin.h"
 
 // MRML includes
 #include <vtkMRMLScene.h>
-#include <vtkMRMLSceneViewNode.h>
 #include <vtkMRMLTransformNode.h>
+
+// VTK includes
+#include <vtkCollection.h>
 
 // Qt includes
 #include <QDebug>
@@ -64,12 +66,16 @@ void qMRMLSceneSubjectHierarchyModelPrivate::init()
   q->setIDColumn(3);
 
   q->setHorizontalHeaderLabels(
-    QStringList() << "Node" << "Vis" << "Tr" << "IDs");
+    QStringList() << "Node" << "" << "" << "IDs");
 
   q->horizontalHeaderItem(q->nameColumn())->setToolTip(QObject::tr("Node name and type"));
   q->horizontalHeaderItem(q->visibilityColumn())->setToolTip(QObject::tr("Show/hide branch or node"));
   q->horizontalHeaderItem(q->transformColumn())->setToolTip(QObject::tr("Applied transform"));
   q->horizontalHeaderItem(q->idColumn())->setToolTip(QObject::tr("Node ID"));
+
+  q->horizontalHeaderItem(q->visibilityColumn())->setIcon(QIcon(":/Icons/Small/SlicerVisibleInvisible.png"));
+  q->horizontalHeaderItem(q->transformColumn())->setIcon(QIcon(":/Icons/Transform.png"));
+
 
   // Set visibility icons from model to the default plugin
   qSlicerSubjectHierarchyPluginHandler::instance()->defaultPlugin()->setDefaultVisibilityIcons(this->VisibleIcon, this->HiddenIcon, this->PartiallyVisibleIcon);
@@ -92,46 +98,15 @@ qMRMLSceneSubjectHierarchyModel::~qMRMLSceneSubjectHierarchyModel()
 }
 
 //------------------------------------------------------------------------------
-QStringList qMRMLSceneSubjectHierarchyModel::mimeTypes()const
+Qt::DropActions qMRMLSceneSubjectHierarchyModel::supportedDropActions()const
 {
-  QStringList types;
-  types << "application/vnd.text.list";
-  return types;
-}
-
-//------------------------------------------------------------------------------
-QMimeData* qMRMLSceneSubjectHierarchyModel::mimeData(const QModelIndexList &indexes) const
-{
-  Q_D(const qMRMLSceneSubjectHierarchyModel);
-
-  QMimeData* mimeData = new QMimeData();
-  QByteArray encodedData;
-
-  QDataStream stream(&encodedData, QIODevice::WriteOnly);
-
-  foreach (const QModelIndex &index, indexes)
-    {
-    // Only add one pointer per row
-    if (index.isValid() && index.column() == 0)
-      {
-      d->DraggedNodes << this->mrmlNodeFromIndex(index);
-      QString text = data(index, PointerRole).toString();
-      stream << text;
-      }
-    }
-
-  mimeData->setData("application/vnd.text.list", encodedData);
-  return mimeData;
+  return Qt::MoveAction;
 }
 
 //------------------------------------------------------------------------------
 vtkMRMLNode* qMRMLSceneSubjectHierarchyModel::parentNode(vtkMRMLNode* node)const
 {
   vtkMRMLSubjectHierarchyNode* subjectHierarchyNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(node);
-  if (!subjectHierarchyNode)
-    {
-    subjectHierarchyNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(node);
-    }
   return subjectHierarchyNode ? subjectHierarchyNode->GetParentNode() : 0;
 }
 
@@ -150,42 +125,27 @@ int qMRMLSceneSubjectHierarchyModel::nodeIndex(vtkMRMLNode* node)const
     return -1;
     }
 
-  vtkMRMLSubjectHierarchyNode *shNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(node);
-
-  // Is there a hierarchy node associated with this node?
-  if (!shNode)
-    {
-    vtkMRMLSubjectHierarchyNode *assocHierarchyNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(node);
-    if (assocHierarchyNode)
-      {
-      int assocHierarchyNodeIndex = this->nodeIndex(assocHierarchyNode);
-      return assocHierarchyNodeIndex + 1;
-      }
-    }
-
   int index = 0;
-  vtkMRMLNode* parent = this->parentNode(node);
+
+  // If the node is not top-level, then find only the index in the branch
+  vtkMRMLSubjectHierarchyNode* parent = vtkMRMLSubjectHierarchyNode::SafeDownCast(this->parentNode(node));
   if (parent)
     {
-    if (shNode)
+    std::vector<vtkMRMLHierarchyNode*> childHierarchyNodes = parent->GetChildrenNodes();
+    for (std::vector<vtkMRMLHierarchyNode*>::iterator childIt = childHierarchyNodes.begin(); childIt != childHierarchyNodes.end(); ++childIt)
       {
-      vtkMRMLSubjectHierarchyNode* parentHierarchy = vtkMRMLSubjectHierarchyNode::SafeDownCast(parent);
-      const int childrenCount = parentHierarchy->GetNumberOfChildrenNodes();
-      for (int i = 0; i < childrenCount ; ++i)
+      vtkMRMLSubjectHierarchyNode* childNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(*childIt);
+      if (childNode == node)
         {
-        vtkMRMLHierarchyNode* child = parentHierarchy->GetNthChildNode(i);
-        if (child == shNode)
-          {
-          return index;
-          }
-        ++index;
+        return index;
         }
+      ++index;
       }
     }
 
-  // Otherwise, iterate through the scene
+  // Iterate through the scene and see if there is any matching node.
+  // First try to find based on ptr value, as it's much faster than comparing string IDs.
   vtkCollection* nodes = d->MRMLScene->GetNodes();
-  const char* nId = 0;
   vtkMRMLNode* n = 0;
   vtkCollectionSimpleIterator it;
   for (nodes->InitTraversal(it); (n = (vtkMRMLNode*)nodes->GetNextItemAsObject(it)) ;)
@@ -193,33 +153,40 @@ int qMRMLSceneSubjectHierarchyModel::nodeIndex(vtkMRMLNode* node)const
     // Note: parent can be NULL, it means that the scene is the parent
     if (parent == this->parentNode(n))
       {
+      if (node==n)
+        {
+        // found the node
+        return index;
+        }
+      ++index;
+      }
+    }
+
+  // Not found by node ptr, try to find it by ID (much slower)
+  const char* nId = 0;
+  for (nodes->InitTraversal(it);
+    (n = (vtkMRMLNode*)nodes->GetNextItemAsObject(it)) ;)
+    {
+    // Note: parent can be NULL, it means that the scene is the parent
+    if (parent == this->parentNode(n))
+      {
+      ++index;
       nId = n->GetID();
       if (nId && !strcmp(nodeId, nId))
         {
         return index;
         }
-      if (!vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(n))
-        {
-        ++index;
-        }
-      vtkMRMLSubjectHierarchyNode* hierarchy = vtkMRMLSubjectHierarchyNode::SafeDownCast(n);
-      if (hierarchy && hierarchy->GetAssociatedNode())
-        {
-        // if the current node is a hierarchy node associated with the node,
-        // then it should have been caught at the beginning of the function
-        Q_ASSERT(strcmp(nodeId, hierarchy->GetAssociatedNodeID()));
-        ++index;
-        }
       }
     }
 
+  // Not found
   return -1;
 }
 
 //------------------------------------------------------------------------------
 bool qMRMLSceneSubjectHierarchyModel::canBeAChild(vtkMRMLNode* node)const
 {
-  return node && node->IsA("vtkMRMLSubjectHierarchyNode");
+  return node;
 }
 
 //------------------------------------------------------------------------------
@@ -285,6 +252,13 @@ QFlags<Qt::ItemFlag> qMRMLSceneSubjectHierarchyModel::nodeFlags(vtkMRMLNode* nod
 }
 
 //------------------------------------------------------------------------------
+void qMRMLSceneSubjectHierarchyModel::onMRMLSceneImported(vtkMRMLScene* scene)
+{
+  Q_UNUSED(scene);
+  this->updateScene();
+}
+
+//------------------------------------------------------------------------------
 void qMRMLSceneSubjectHierarchyModel::updateItemDataFromNode(QStandardItem* item, vtkMRMLNode* node, int column)
 {
   Q_D(qMRMLSceneSubjectHierarchyModel);
@@ -292,19 +266,47 @@ void qMRMLSceneSubjectHierarchyModel::updateItemDataFromNode(QStandardItem* item
   vtkMRMLSubjectHierarchyNode* subjectHierarchyNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(node);
   if (!subjectHierarchyNode)
     {
+    // If not subject hierarchy node (i.e. filtering is turned off),
+    // then show as any node, except for a tooltip explaining how to add it to subject hierarchy
+    if (column == this->nameColumn())
+      {
+      QString text = QString(node->GetName());
+      item->setText(text);
+      item->setToolTip(tr("To add into subject hierarchy, drag&drop under a subject hierarchy node"));
+      }
+    // ID column
+    if (column == this->idColumn())
+      {
+      item->setText(QString(node->GetID()));
+      }
     return;
     }
-  qSlicerSubjectHierarchyAbstractPlugin* ownerPlugin =
-    qSlicerSubjectHierarchyPluginHandler::instance()->getOwnerPluginForSubjectHierarchyNode(subjectHierarchyNode);
-  if (!ownerPlugin)
-    {
-    // Set warning icon if the column is the node type column
-    if (column == this->nodeTypeColumn())
-      {
-      item->setIcon(d->WarningIcon);
-      }
 
-    qCritical() << "qMRMLSceneSubjectHierarchyModel::updateItemDataFromNode: No owner plugin defined for subject hierarchy node '" << subjectHierarchyNode->GetName() << "'!";
+  qSlicerSubjectHierarchyAbstractPlugin* ownerPlugin = NULL;
+  if (subjectHierarchyNode->GetOwnerPluginName())
+    {
+    ownerPlugin = qSlicerSubjectHierarchyPluginHandler::instance()->getOwnerPluginForSubjectHierarchyNode(subjectHierarchyNode);
+    if (!ownerPlugin)
+      {
+      // Set warning icon if the column is the node type column
+      if ( column == this->nodeTypeColumn()
+        && item->icon().cacheKey() != d->WarningIcon.cacheKey() ) // Only set if it changed (https://bugreports.qt-project.org/browse/QTBUG-20248)
+        {
+        item->setIcon(d->WarningIcon);
+        }
+      if (column == this->nameColumn())
+        {
+          item->setText(node->GetName());
+          item->setToolTip(tr("Not owned by any plugin!"));
+        }
+        return;
+      }
+    }
+  else
+    {
+    // Owner plugin name is not set for subject hierarchy node. Show it as a regular node
+    //qDebug() << "qMRMLSceneSubjectHierarchyModel::updateItemDataFromNode: No owner plugin defined for subject hierarchy node '" << subjectHierarchyNode->GetName() << "'!";
+    //Superclass::updateItemDataFromNode(item,node,column);
     return;
     }
 
@@ -323,17 +325,41 @@ void qMRMLSceneSubjectHierarchyModel::updateItemDataFromNode(QStandardItem* item
   // Visibility column
   if (column == this->visibilityColumn())
     {
-    // Have owner plugin set the visibility icon
-    ownerPlugin->setVisibilityIcon(subjectHierarchyNode, item);
+    // Have owner plugin give the visibility state and icon
+    int visible = ownerPlugin->getDisplayVisibility(subjectHierarchyNode);
+    QIcon visibilityIcon = ownerPlugin->visibilityIcon(visible);
+
+    // It should be fine to set the icon even if it is the same, but due
+    // to a bug in Qt (http://bugreports.qt.nokia.com/browse/QTBUG-20248),
+    // it would fire a superflous itemChanged() signal.
+    if ( item->data(qMRMLSceneModel::VisibilityRole).isNull()
+      || item->data(qMRMLSceneModel::VisibilityRole).toInt() != visible )
+      {
+      item->setData(visible, qMRMLSceneModel::VisibilityRole);
+      if (!visibilityIcon.isNull())
+        {
+        item->setIcon(visibilityIcon);
+        }
+      }
     }
   // Node type column
   if (column == this->nodeTypeColumn())
     {
-    // Have owner plugin set the icon
-    bool iconSetSuccessfullyByPlugin = ownerPlugin->setIcon(subjectHierarchyNode, item);
-    if (!iconSetSuccessfullyByPlugin)
+    // Have owner plugin give the icon
+    QIcon icon = ownerPlugin->icon(subjectHierarchyNode);
+    if (!icon.isNull())
       {
-      item->setIcon(d->UnknownIcon);
+      if (item->icon().cacheKey() != icon.cacheKey()) // Only set if it changed (https://bugreports.qt-project.org/browse/QTBUG-20248)
+        {
+        item->setIcon(icon);
+        }
+      }
+    else
+      {
+      if (item->icon().cacheKey() != d->UnknownIcon.cacheKey()) // Only set if it changed (https://bugreports.qt-project.org/browse/QTBUG-20248)
+        {
+        item->setIcon(d->UnknownIcon);
+        }
       }
     }
   // Transform column
@@ -361,7 +387,6 @@ void qMRMLSceneSubjectHierarchyModel::updateItemDataFromNode(QStandardItem* item
       }
     else
       {
-      //item->setData( tr(""), qMRMLSceneSubjectHierarchyModel::TransformIDRole );
       item->setToolTip(tr("No transform can be directly applied on non-transformable nodes,\nhowever a transform can be chosen to apply it on all the children"));
       }
     }
@@ -373,7 +398,7 @@ void qMRMLSceneSubjectHierarchyModel::updateNodeFromItemData(vtkMRMLNode* node, 
   vtkMRMLSubjectHierarchyNode* subjectHierarchyNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(node);
   if (!subjectHierarchyNode)
     {
-    qCritical() << "qMRMLSceneSubjectHierarchyModel::updateNodeFromItemData: Invalid node in subject hierarchy tree! Nodes must all be subject hierarchy nodes";
+    Superclass::updateNodeFromItemData(node, item);
     return;
     }
   qSlicerSubjectHierarchyAbstractPlugin* ownerPlugin =
@@ -382,7 +407,7 @@ void qMRMLSceneSubjectHierarchyModel::updateNodeFromItemData(vtkMRMLNode* node, 
   // Name column
   if ( item->column() == this->nameColumn() )
     {
-    subjectHierarchyNode->SetName(item->text().append(vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_NODE_NAME_POSTFIX.c_str()).toLatin1().constData());
+    subjectHierarchyNode->SetName(item->text().append(vtkMRMLSubjectHierarchyConstants::GetSubjectHierarchyNodeNamePostfix().c_str()).toLatin1().constData());
 
     // Rename data node too
     vtkMRMLNode* associatedDataNode = subjectHierarchyNode->GetAssociatedNode();
@@ -396,7 +421,7 @@ void qMRMLSceneSubjectHierarchyModel::updateNodeFromItemData(vtkMRMLNode* node, 
     && !item->data(VisibilityRole).isNull() )
     {
     int visible = item->data(VisibilityRole).toInt();
-    if (visible > -1)
+    if (visible > -1 && visible != ownerPlugin->getDisplayVisibility(subjectHierarchyNode))
       {
       // Have owner plugin set the display visibility
       ownerPlugin->setDisplayVisibility(subjectHierarchyNode, visible);
@@ -451,198 +476,71 @@ void qMRMLSceneSubjectHierarchyModel::updateNodeFromItemData(vtkMRMLNode* node, 
 }
 
 //------------------------------------------------------------------------------
-bool qMRMLSceneSubjectHierarchyModel::dropMimeData(const QMimeData* data, Qt::DropAction action, int row, int column, const QModelIndex &parent)
-{
-  Q_D(const qMRMLSceneSubjectHierarchyModel);
-  Q_UNUSED(row);
-  Q_UNUSED(column);
-
-  // This list is not used now in this model, can be emptied
-  d->DraggedNodes.clear();
-
-  if (action == Qt::IgnoreAction)
-    {
-    return true;
-    }
-  if (!this->mrmlScene())
-    {
-    std::cerr << "qMRMLSceneSubjectHierarchyModel::dropMimeData: Invalid MRML scene!" << std::endl;
-    return false;
-    }
-  if (!data->hasFormat("application/vnd.text.list"))
-    {
-    vtkErrorWithObjectMacro(this->mrmlScene(), "qMRMLSceneSubjectHierarchyModel::dropMimeData: Plain text MIME type is expected");
-    return false;
-    }
-
-  // Nothing can be dropped to the top level (subjects/patients can only be loaded at from the DICOM browser or created manually)
-  if (!parent.isValid())
-    {
-    vtkWarningWithObjectMacro(this->mrmlScene(), "qMRMLSceneSubjectHierarchyModel::dropMimeData: Items cannot be dropped on top level!");
-    return false;
-    }
-  vtkMRMLNode* parentNode = this->mrmlNodeFromIndex(parent);
-  if (!parentNode)
-    {
-    vtkErrorWithObjectMacro(this->mrmlScene(), "qMRMLSceneSubjectHierarchyModel::dropMimeData: Unable to get parent node!");
-    // TODO: This is a workaround. Without this the node disappears and the tree collapses
-    emit saveTreeExpandState();
-    QApplication::processEvents();
-    emit invalidateModels();
-    QApplication::processEvents();
-    this->updateScene();
-    emit loadTreeExpandState();
-    return false;
-    }
-
-  // Decode MIME data
-  QByteArray encodedData = data->data("application/vnd.text.list");
-  QDataStream stream(&encodedData, QIODevice::ReadOnly);
-  QStringList streamItems;
-  int rows = 0;
-
-  while (!stream.atEnd())
-    {
-    QString text;
-    stream >> text;
-    streamItems << text;
-    ++rows;
-    }
-
-  if (rows == 0)
-    {
-    vtkErrorWithObjectMacro(this->mrmlScene(), "qMRMLSceneSubjectHierarchyModel::dropMimeData: Unable to decode dropped MIME data!");
-    return false;
-    }
-  if (rows > 1)
-    {
-    vtkWarningWithObjectMacro(this->mrmlScene(), "qMRMLSceneSubjectHierarchyModel::dropMimeData: More than one data item decoded from dropped MIME data! Only the first one will be used.");
-    }
-
-  QString nodePointerString = streamItems[0];
-
-  vtkMRMLNode* droppedNode = vtkMRMLNode::SafeDownCast(reinterpret_cast<vtkObject*>(nodePointerString.toULongLong()));
-  if (!droppedNode)
-    {
-    vtkErrorWithObjectMacro(this->mrmlScene(), "qMRMLSceneSubjectHierarchyModel::dropMimeData: Unable to get MRML node from dropped MIME text (" << nodePointerString.toLatin1().constData() << ")!");
-    return false;
-    }
-
-  // Reparent the node
-  return this->reparent(droppedNode, parentNode);
-}
-
-//------------------------------------------------------------------------------
 bool qMRMLSceneSubjectHierarchyModel::reparent(vtkMRMLNode* node, vtkMRMLNode* newParent)
 {
   if (!node || newParent == node)
     {
-    std::cerr << "qMRMLSceneSubjectHierarchyModel::reparent: Invalid node to reparent!" << std::endl;
+    qCritical() << "qMRMLSceneSubjectHierarchyModel::reparent: Invalid node to reparent!";
     return false;
     }
 
-  // Prevent collapse of the subject hierarchy tree view (TODO: This is a workaround)
-  emit saveTreeExpandState();
-  QApplication::processEvents();
-
-  if (this->parentNode(node) == newParent)
+  vtkMRMLSubjectHierarchyNode* oldParent = vtkMRMLSubjectHierarchyNode::SafeDownCast(this->parentNode(node));
+  if (oldParent == newParent)
     {
-    // TODO: This is a workaround. Without this the node disappears and the tree collapses
-    emit invalidateModels();
-    QApplication::processEvents();
-    this->updateScene();
-    emit loadTreeExpandState();
-    return true;
+    return false;
     }
 
   if (!this->mrmlScene())
     {
-    std::cerr << "qMRMLSceneSubjectHierarchyModel::reparent: Invalid MRML scene!" << std::endl;
+    qCritical() << "qMRMLSceneSubjectHierarchyModel::reparent: Invalid MRML scene!";
     return false;
     }
 
   vtkMRMLSubjectHierarchyNode* parentSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(newParent);
   vtkMRMLSubjectHierarchyNode* subjectHierarchyNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(node);
-
-  if (!this->canBeAParent(newParent))
+  if (!subjectHierarchyNode)
     {
-    vtkWarningWithObjectMacro(this->mrmlScene(), "qMRMLSceneSubjectHierarchyModel::reparent: Target parent node (" << newParent->GetName() << ") is not a valid subject hierarchy parent node!");
+    qCritical() << "qMRMLSceneSubjectHierarchyModel::reparent: Reparented node (" << node->GetName() << ") is not a subject hierarchy node!";
+    return false;
+    }
+
+  if (newParent && !this->canBeAParent(newParent))
+    {
+    qCritical() << "qMRMLSceneSubjectHierarchyModel::reparent: Target parent node (" << newParent->GetName() << ") is not a valid subject hierarchy parent node!";
+    return false;
     }
 
   // If dropped from within the subject hierarchy tree
-  if (subjectHierarchyNode)
+  QList<qSlicerSubjectHierarchyAbstractPlugin*> foundPlugins =
+    qSlicerSubjectHierarchyPluginHandler::instance()->pluginsForReparentingInsideSubjectHierarchyForNode(subjectHierarchyNode, parentSubjectHierarchyNode);
+  qSlicerSubjectHierarchyAbstractPlugin* selectedPlugin = NULL;
+  if (foundPlugins.size() > 1)
     {
-    bool successfullyReparentedByPlugin = false;
-    QList<qSlicerSubjectHierarchyAbstractPlugin*> foundPlugins =
-      qSlicerSubjectHierarchyPluginHandler::instance()->pluginsForReparentingInsideSubjectHierarchyForNode(subjectHierarchyNode, parentSubjectHierarchyNode);
-    qSlicerSubjectHierarchyAbstractPlugin* selectedPlugin = NULL;
-    if (foundPlugins.size() > 1)
-      {
-      // Let the user choose a plugin if more than one returned the same non-zero confidence value
-      vtkMRMLNode* associatedNode = (subjectHierarchyNode->GetAssociatedNode() ? subjectHierarchyNode->GetAssociatedNode() : subjectHierarchyNode);
-      QString textToDisplay = QString("Equal confidence number found for more than one subject hierarchy plugin for reparenting.\n\nSelect plugin to reparent node named\n'%1'\n(type %2)\nParent node: %3").arg(associatedNode->GetName()).arg(associatedNode->GetNodeTagName()).arg(parentSubjectHierarchyNode->GetName());
-      selectedPlugin = qSlicerSubjectHierarchyPluginHandler::instance()->selectPluginFromDialog(textToDisplay, foundPlugins);
-      }
-    else if (foundPlugins.size() == 1)
-      {
-      selectedPlugin = foundPlugins[0];
-      }
-    else
-      {
-      // Choose default plugin if all registered plugins returned confidence value 0
-      selectedPlugin = qSlicerSubjectHierarchyPluginHandler::instance()->defaultPlugin();
-      }
-
-    // Have the selected plugin reparent the node
-    successfullyReparentedByPlugin = selectedPlugin->reparentNodeInsideSubjectHierarchy(subjectHierarchyNode, parentSubjectHierarchyNode);
-    if (!successfullyReparentedByPlugin)
-      {
-      // TODO: Does this cause #473?
-      // Put back to its original place
-      subjectHierarchyNode->SetParentNodeID( subjectHierarchyNode->GetParentNodeID() );
-
-      vtkWarningWithObjectMacro(this->mrmlScene(), "qMRMLSceneSubjectHierarchyModel::reparent: Failed to reparent node "
-        << subjectHierarchyNode->GetName() << " through plugin '" << selectedPlugin->name().toLatin1().constData() << "'");
-      }
+    // Let the user choose a plugin if more than one returned the same non-zero confidence value
+    vtkMRMLNode* associatedNode = (subjectHierarchyNode->GetAssociatedNode() ? subjectHierarchyNode->GetAssociatedNode() : subjectHierarchyNode);
+    QString textToDisplay = QString("Equal confidence number found for more than one subject hierarchy plugin for reparenting.\n\nSelect plugin to reparent node named\n'%1'\n(type %2)\nParent node: %3").arg(associatedNode->GetName()).arg(associatedNode->GetNodeTagName()).arg(parentSubjectHierarchyNode->GetName());
+    selectedPlugin = qSlicerSubjectHierarchyPluginHandler::instance()->selectPluginFromDialog(textToDisplay, foundPlugins);
     }
-  // If dropped from the potential subject hierarchy nodes list
+  else if (foundPlugins.size() == 1)
+    {
+    selectedPlugin = foundPlugins[0];
+    }
   else
     {
-    // If there is a plugin that can handle the dropped node then let it take care of it
-    bool successfullyAddedByPlugin = false;
-    QList<qSlicerSubjectHierarchyAbstractPlugin*> foundPlugins =
-      qSlicerSubjectHierarchyPluginHandler::instance()->pluginsForAddingToSubjectHierarchyForNode(node, parentSubjectHierarchyNode);
-    qSlicerSubjectHierarchyAbstractPlugin* selectedPlugin = NULL;
-    if (foundPlugins.size() > 1)
-      {
-      // Let the user choose a plugin if more than one returned the same non-zero confidence value
-      QString textToDisplay = QString("Equal confidence number found for more than one subject hierarchy plugin for adding potential node to subject hierarchy.\n\nSelect plugin to add node named\n'%1'\n(type %2)\nParent node: %3").arg(node->GetName()).arg(node->GetNodeTagName()).arg(parentSubjectHierarchyNode->GetName());
-      selectedPlugin = qSlicerSubjectHierarchyPluginHandler::instance()->selectPluginFromDialog(textToDisplay, foundPlugins);
-      }
-    else if (foundPlugins.size() == 1)
-      {
-      selectedPlugin = foundPlugins[0];
-      }
-    else
-      {
-      // Choose default plugin if all registered plugins returned confidence value 0
-      selectedPlugin = qSlicerSubjectHierarchyPluginHandler::instance()->defaultPlugin();
-      }
-
-    // Have the selected plugin add the potential node to subject hierarchy
-    successfullyAddedByPlugin = selectedPlugin->addNodeToSubjectHierarchy(node, parentSubjectHierarchyNode);
-    if (!successfullyAddedByPlugin)
-      {
-      vtkWarningWithObjectMacro(this->mrmlScene(), "qMRMLSceneSubjectHierarchyModel::reparent: Failed to add node "
-        << node->GetName() << " through plugin '" << selectedPlugin->name().toLatin1().constData() << "'");
-      }
+    // Choose default plugin if all registered plugins returned confidence value 0
+    selectedPlugin = qSlicerSubjectHierarchyPluginHandler::instance()->defaultPlugin();
     }
 
-  // TODO: This is a workaround. Without this the node disappears and the tree collapses
-  emit invalidateModels();
-  QApplication::processEvents();
-  this->updateScene();
-  emit loadTreeExpandState();
+  // Have the selected plugin reparent the node
+  bool successfullyReparentedByPlugin = selectedPlugin->reparentNodeInsideSubjectHierarchy(subjectHierarchyNode, parentSubjectHierarchyNode);
+  if (!successfullyReparentedByPlugin)
+    {
+    subjectHierarchyNode->SetParentNodeID( subjectHierarchyNode->GetParentNodeID() );
+
+    qCritical() << "qMRMLSceneSubjectHierarchyModel::reparent: Failed to reparent node "
+      << subjectHierarchyNode->GetName() << " through plugin '" << selectedPlugin->name().toLatin1().constData() << "'";
+    return false;
+    }
 
   return true;
 }
@@ -665,11 +563,4 @@ void qMRMLSceneSubjectHierarchyModel::onRemoveTransformsFromBranchOfCurrentNode(
     {
     currentNode->TransformBranch(NULL, false);
     }
-}
-
-//------------------------------------------------------------------------------
-void qMRMLSceneSubjectHierarchyModel::forceUpdateScene()
-{
-  // Force updating the whole scene (TODO: this should not be needed)
-  this->updateScene();
 }

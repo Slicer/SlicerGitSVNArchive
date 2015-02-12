@@ -2,7 +2,8 @@
 
   Program: 3D Slicer
 
-  Portions (c) Copyright Brigham and Women's Hospital (BWH) All Rights Reserved.
+  Copyright (c) Laboratory for Percutaneous Surgery (PerkLab)
+  Queen's University, Kingston, ON, Canada. All Rights Reserved.
 
   See COPYRIGHT.txt
   or http://www.slicer.org/copyright/copyright.txt for details.
@@ -30,7 +31,7 @@
 class vtkMRMLSubjectHierarchyNode;
 class qSlicerSubjectHierarchyModuleWidgetPrivate;
 class qMRMLSceneSubjectHierarchyModel;
-class qMRMLScenePotentialSubjectHierarchyModel;
+class qSlicerSubjectHierarchyPluginLogic;
 class qSlicerSubjectHierarchyAbstractPlugin;
 
 /// \ingroup Slicer_QtModules_SubjectHierarchy
@@ -38,7 +39,6 @@ class Q_SLICER_QTMODULES_SUBJECTHIERARCHY_EXPORT qSlicerSubjectHierarchyModuleWi
   public qSlicerAbstractModuleWidget
 {
   Q_OBJECT
-  QVTK_OBJECT
 
 public:
   typedef qSlicerAbstractModuleWidget Superclass;
@@ -47,6 +47,9 @@ public:
 
   virtual void enter();
   virtual void exit();
+
+  Q_INVOKABLE qSlicerSubjectHierarchyPluginLogic* pluginLogic();
+  Q_INVOKABLE void setPluginLogic(qSlicerSubjectHierarchyPluginLogic* pluginLogic);
 
 public slots:
   /// Update widget GUI from parameter node
@@ -62,19 +65,6 @@ protected slots:
 public:
   /// Assessor function for subject hierarchy scene model (for python)
   Q_INVOKABLE qMRMLSceneSubjectHierarchyModel* subjectHierarchySceneModel()const;
-
-  /// Assessor function for potential subject hierarchy scene model (for python)
-  Q_INVOKABLE qMRMLScenePotentialSubjectHierarchyModel* potentialSubjectHierarchySceneModel()const;
-
-  /// Assessor function for getting subject hierarchy plugin by name (for python)
-  Q_INVOKABLE qSlicerSubjectHierarchyAbstractPlugin* subjectHierarchyPluginByName(QString name)const;
-
-  /// Assessor function for getting currently selected subject hierarchy node (for python)
-  Q_INVOKABLE vtkMRMLSubjectHierarchyNode* currentSubjectHierarchyNode()const;
-
-  /// Utility test function to be able to set currently selected subject hierarchy node from python
-  /// Only used in python tests!
-  Q_INVOKABLE void setCurrentSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode* node);
 
 protected:
   QScopedPointer<qSlicerSubjectHierarchyModuleWidgetPrivate> d_ptr;

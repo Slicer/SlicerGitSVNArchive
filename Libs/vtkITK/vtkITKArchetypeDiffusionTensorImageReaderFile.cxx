@@ -104,17 +104,10 @@ void vtkITKExecuteDataFromFileDiffusionTensor3D(
   for ( it.GoToBegin(); !it.IsAtEnd() ; ++it )
     {
     const itk::Index<3u> index = it.GetIndex();
-#if VTK_MAJOR_VERSION <= 5
     vtkIdType position = data->FindPoint(index[0], index[1], index[2]);
-#else
-    vtkIdType position = index[0] +
-      index[1] * data->GetDimensions()[0] +
-      index[2] * data->GetDimensions()[0] * data->GetDimensions()[1];
-#endif
     if (position == static_cast<vtkIdType>(-1) ||
         position >= tensors->GetNumberOfTuples())
       {
-      std::cout << "bad position" << position << " for index " << index <<std::endl;
       itkGenericExceptionMacro(<< "Can't find index " << index
                                << " in output image data.");
       continue;
@@ -150,7 +143,7 @@ int vtkITKArchetypeDiffusionTensorImageReaderFile::RequestData(
 #if (VTK_MAJOR_VERSION <= 5)
     return;
 #else
-    return 1;
+    return 0;
 #endif
     }
 
@@ -159,14 +152,14 @@ int vtkITKArchetypeDiffusionTensorImageReaderFile::RequestData(
   vtkImageData *data = vtkImageData::SafeDownCast(output);
   //data->UpdateInformation();
   data->GetWholeExtent(extent);
-  data->SetOrigin(0, 0, 0);
-  data->SetSpacing(1, 1, 1);
 #else
   vtkImageData* data = vtkImageData::GetData(outputVector);
   vtkInformation* outInfo = outputVector->GetInformationObject(0);
   outInfo->Get
     (vtkStreamingDemandDrivenPipeline::UPDATE_EXTENT(), extent);
 #endif
+  data->SetOrigin(0, 0, 0);
+  data->SetSpacing(1, 1, 1);
   data->SetExtent(extent);
   vtkNew<vtkFloatArray> tensors;
   tensors->SetName("ArchetypeReader");

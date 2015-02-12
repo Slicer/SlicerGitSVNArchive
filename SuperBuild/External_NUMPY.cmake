@@ -69,8 +69,8 @@ ExternalProject_Execute(${proj} \"install\" \"${PYTHON_EXECUTABLE}\" setup.py in
   #------------------------------------------------------------------------------
   ExternalProject_Add(${proj}
     ${${proj}_EP_ARGS}
-    URL "http://svn.slicer.org/Slicer3-lib-mirrors/trunk/numpy-1.4.1.tar.gz"
-    URL_MD5 "5c7b5349dc3161763f7f366ceb96516b"
+    URL "http://slicer.kitware.com/midas3/download/item/159598/numpy-1.4.1-patched-2014-09-18.tar.gz"
+    URL_MD5 "620e5bbc454a6a3d8c5089be57b9bc83"
     SOURCE_DIR ${proj}
     BUILD_IN_SOURCE 1
     PATCH_COMMAND ${CMAKE_COMMAND} -DNUMPY_SRC_DIR=${CMAKE_BINARY_DIR}/${proj}
@@ -80,6 +80,36 @@ ExternalProject_Execute(${proj} \"install\" \"${PYTHON_EXECUTABLE}\" setup.py in
     INSTALL_COMMAND ${CMAKE_COMMAND} -P ${_install_script}
     DEPENDS
       ${${proj}_DEPENDENCIES}
+    )
+
+  #-----------------------------------------------------------------------------
+  # Launcher setting specific to build tree
+
+  set(_pythonhome ${CMAKE_BINARY_DIR}/python-install)
+  set(pythonpath_subdir lib/python2.7)
+  if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    set(pythonpath_subdir Lib)
+  endif()
+
+  set(${proj}_LIBRARY_PATHS_LAUNCHER_BUILD
+    ${_pythonhome}/${pythonpath_subdir}/site-packages/numpy/core
+    ${_pythonhome}/${pythonpath_subdir}/site-packages/numpy/lib
+    )
+  mark_as_superbuild(
+    VARS ${proj}_LIBRARY_PATHS_LAUNCHER_BUILD
+    LABELS "LIBRARY_PATHS_LAUNCHER_BUILD"
+    )
+
+  #-----------------------------------------------------------------------------
+  # Launcher setting specific to install tree
+
+  set(${proj}_LIBRARY_PATHS_LAUNCHER_INSTALLED
+    <APPLAUNCHER_DIR>/lib/Python/${pythonpath_subdir}/site-packages/numpy/core
+    <APPLAUNCHER_DIR>/lib/Python/${pythonpath_subdir}/site-packages/numpy/lib
+    )
+  mark_as_superbuild(
+    VARS ${proj}_LIBRARY_PATHS_LAUNCHER_INSTALLED
+    LABELS "LIBRARY_PATHS_LAUNCHER_INSTALLED"
     )
 
 else()

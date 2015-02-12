@@ -2,7 +2,8 @@
 
   Program: 3D Slicer
 
-  Portions (c) Copyright Brigham and Women's Hospital (BWH) All Rights Reserved.
+  Copyright (c) Laboratory for Percutaneous Surgery (PerkLab)
+  Queen's University, Kingston, ON, Canada. All Rights Reserved.
 
   See COPYRIGHT.txt
   or http://www.slicer.org/copyright/copyright.txt for details.
@@ -42,7 +43,6 @@ class Q_SLICER_QTMODULES_SUBJECTHIERARCHY_EXPORT qSlicerSubjectHierarchyModule :
   QVTK_OBJECT
 
 public:
-
   typedef qSlicerLoadableModule Superclass;
   explicit qSlicerSubjectHierarchyModule(QObject *parent=0);
   virtual ~qSlicerSubjectHierarchyModule();
@@ -56,7 +56,7 @@ public:
   virtual QString acknowledgementText()const;
 
   /// Return the authors of the module
-  virtual QStringList  contributors()const;
+  virtual QStringList contributors()const;
 
   /// Return a custom icon for the module
   virtual QIcon icon()const;
@@ -72,33 +72,19 @@ protected:
   virtual vtkMRMLAbstractLogic* createLogic();
 
   /// Create and return the widget representation associated to this module
-  virtual qSlicerAbstractModuleRepresentation * createWidgetRepresentation();
+  virtual qSlicerAbstractModuleRepresentation* createWidgetRepresentation();
 
 protected slots:
   /// Handles logic modified event, which happens on major changes in the
   /// scene (new scene, batch processing, import etc.)
   void onLogicModified();
 
-  /// Called when a node is added to the scene so that a plugin can claim it
-  /// if it is a subject hierarchy node
-  void onNodeAdded(vtkObject* scene, vtkObject* nodeObject);
-
-  /// Called when a node is removed to the scene so that the associated
-  /// subject hierarchy node can be deleted too
-  void onNodeAboutToBeRemoved(vtkObject* scene, vtkObject* nodeObject);
-
-  /// Called when a subject hierarchy node is modified.
-  /// A search for owner plugin is performed if the plugin is not overridden by the user,
-  /// in case the changes in the subject hierarchy node leads to a new most suitable plugin.
-  void onSubjectHierarchyNodeModified(vtkObject* nodeObject);
-
 protected:
-  QScopedPointer<qSlicerSubjectHierarchyModulePrivate> d_ptr;
+  QScopedPointer<qSlicerSubjectHierarchyModulePrivate> d_ptr; 
 
 private:
   Q_DECLARE_PRIVATE(qSlicerSubjectHierarchyModule);
   Q_DISABLE_COPY(qSlicerSubjectHierarchyModule);
-
 };
 
 #endif

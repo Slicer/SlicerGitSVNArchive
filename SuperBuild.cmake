@@ -20,7 +20,7 @@
 ################################################################################
 
 #-----------------------------------------------------------------------------
-# Git protocole option
+# Git protocol option
 #-----------------------------------------------------------------------------
 option(${CMAKE_PROJECT_NAME}_USE_GIT_PROTOCOL "If behind a firewall turn this off to use http instead." ON)
 set(git_protocol "git")
@@ -112,14 +112,14 @@ if(Slicer_BUILD_DICOM_SUPPORT)
 endif()
 
 if(Slicer_BUILD_DICOM_SUPPORT AND Slicer_USE_PYTHONQT_WITH_OPENSSL)
-  list(APPEND Slicer_DEPENDENCIES pydicom)
+  list(APPEND Slicer_DEPENDENCIES python-pydicom)
 endif()
 
-if(Slicer_USE_PYTHONQT AND Slicer_BUILD_EXTENSIONMANAGER_SUPPORT AND NOT WIN32)
-  list(APPEND Slicer_DEPENDENCIES GitPython python-chardet)
+if(Slicer_USE_PYTHONQT AND Slicer_BUILD_EXTENSIONMANAGER_SUPPORT)
+  list(APPEND Slicer_DEPENDENCIES python-GitPython python-chardet)
   if(Slicer_USE_PYTHONQT_WITH_OPENSSL OR Slicer_USE_SYSTEM_python)
-    # PyGithub requires SSL support in Python
-    list(APPEND Slicer_DEPENDENCIES PyGithub)
+    # python-PyGithub requires SSL support in Python
+    list(APPEND Slicer_DEPENDENCIES python-PyGithub)
   else()
     message(WARNING "Python was built without SSL support; "
                     "github integration will not be available")
@@ -170,7 +170,7 @@ list(APPEND Slicer_REMOTE_DEPENDENCIES jqPlot)
 
 Slicer_Remote_Add(OpenIGTLinkIF
   GIT_REPOSITORY ${git_protocol}://github.com/openigtlink/OpenIGTLinkIF.git
-  GIT_TAG 0a69b71b63d5075325378272b0e1b46f7ed89f9e
+  GIT_TAG f3f0b4f3948539eb2b88221a2df149f2c7f81c76
   OPTION_NAME Slicer_BUILD_OpenIGTLinkIF
   OPTION_DEPENDS "Slicer_BUILD_QTLOADABLEMODULES;Slicer_USE_OpenIGTLink"
   LABELS REMOTE_MODULE
@@ -182,7 +182,7 @@ mark_as_advanced(Slicer_BUILD_MULTIVOLUME_SUPPORT)
 
 Slicer_Remote_Add(MultiVolumeExplorer
   GIT_REPOSITORY ${git_protocol}://github.com/fedorov/MultiVolumeExplorer.git
-  GIT_TAG d68663f6853212a81f3766d3feca0dac7bb8cbb7
+  GIT_TAG dbdab6e4ae9b54c93fb611bc6085db729b26c71c
   OPTION_NAME Slicer_BUILD_MultiVolumeExplorer
   OPTION_DEPENDS "Slicer_BUILD_QTLOADABLEMODULES;Slicer_BUILD_MULTIVOLUME_SUPPORT;Slicer_USE_PYTHONQT"
   LABELS REMOTE_MODULE
@@ -191,7 +191,7 @@ list_conditional_append(Slicer_BUILD_MultiVolumeExplorer Slicer_REMOTE_DEPENDENC
 
 Slicer_Remote_Add(MultiVolumeImporter
   GIT_REPOSITORY ${git_protocol}://github.com/fedorov/MultiVolumeImporter.git
-  GIT_TAG c5a47aff62e11cd3d3ae7507b0c54c659fd17d62
+  GIT_TAG 37a30b3dd2b632340b7d77fcd7af76765df959b0
   OPTION_NAME Slicer_BUILD_MultiVolumeImporter
   OPTION_DEPENDS "Slicer_BUILD_QTLOADABLEMODULES;Slicer_BUILD_MULTIVOLUME_SUPPORT;Slicer_USE_PYTHONQT"
   LABELS REMOTE_MODULE
@@ -221,6 +221,7 @@ set(BRAINSTools_options
   USE_BRAINSDemonWarp:BOOL=ON
   # BRAINSTools comes with some extra tool that should not be compiled by default
   USE_AutoWorkup:BOOL=OFF
+  USE_ReferenceAtlas:BOOL=OFF
   USE_ANTS:BOOL=OFF
   USE_GTRACT:BOOL=OFF
   USE_BRAINSABC:BOOL=OFF
@@ -247,7 +248,7 @@ set(BRAINSTools_options
   )
 Slicer_Remote_Add(BRAINSTools
   GIT_REPOSITORY "${git_protocol}://github.com/Slicer/BRAINSTools.git"
-  GIT_TAG "94d53a640b398c6b4e50335082bfa34eb8adf35b" # Version f82a01b with Slicer patches
+  GIT_TAG "73a6e2d6c2488823ba7d312471982a1897099c98"
   OPTION_NAME Slicer_BUILD_BRAINSTOOLS
   OPTION_DEPENDS "Slicer_BUILD_CLI_SUPPORT;Slicer_BUILD_CLI"
   LABELS REMOTE_MODULE
@@ -257,16 +258,25 @@ list_conditional_append(Slicer_BUILD_BRAINSTOOLS Slicer_REMOTE_DEPENDENCIES BRAI
 
 Slicer_Remote_Add(EMSegment
   SVN_REPOSITORY "http://svn.slicer.org/Slicer3/branches/Slicer4-EMSegment"
-  SVN_REVISION -r "17066"
+  SVN_REVISION -r "17093"
   OPTION_NAME Slicer_BUILD_EMSegment
   OPTION_DEPENDS "Slicer_BUILD_BRAINSTOOLS;Slicer_BUILD_QTLOADABLEMODULES;Slicer_USE_PYTHONQT_WITH_TCL"
   LABELS REMOTE_MODULE
   )
 list_conditional_append(Slicer_BUILD_EMSegment Slicer_REMOTE_DEPENDENCIES EMSegment)
 
+Slicer_Remote_Add(OtsuThresholdImageFilter
+  GIT_REPOSITORY "${git_protocol}://github.com/Slicer/Slicer-OtsuThresholdImageFilter"
+  GIT_TAG "5efe4123584016d73147e0b68a9487e64c10a074"
+  OPTION_NAME Slicer_BUILD_OtsuThresholdImageFilter
+  OPTION_DEPENDS "Slicer_BUILD_EMSegment"
+  LABELS REMOTE_MODULE
+  )
+list_conditional_append(Slicer_BUILD_OtsuThresholdImageFilter Slicer_REMOTE_DEPENDENCIES OtsuThresholdImageFilter)
+
 Slicer_Remote_Add(DataStore
   GIT_REPOSITORY "${git_protocol}://github.com/Slicer/Slicer-DataStore"
-  GIT_TAG "4ac766c86856df7d13a9ce6de7426ed89fdef12d"
+  GIT_TAG "713f1f8c57f9c234462352702df6f889b18eace3"
   OPTION_NAME Slicer_BUILD_DataStore
   LABELS REMOTE_MODULE
   )
@@ -274,7 +284,7 @@ list_conditional_append(Slicer_BUILD_DataStore Slicer_REMOTE_DEPENDENCIES DataSt
 
 Slicer_Remote_Add(CompareVolumes
   GIT_REPOSITORY "${git_protocol}://github.com/pieper/CompareVolumes"
-  GIT_TAG "db50d7d81ab1b98586161849dd82df5715a411a0"
+  GIT_TAG "61198229a065bf8437166c826baee2ddcc0d7f47"
   OPTION_NAME Slicer_BUILD_CompareVolumes
   OPTION_DEPENDS "Slicer_USE_PYTHONQT"
   LABELS REMOTE_MODULE
@@ -283,7 +293,7 @@ list_conditional_append(Slicer_BUILD_CompareVolumes Slicer_REMOTE_DEPENDENCIES C
 
 Slicer_Remote_Add(LandmarkRegistration
   GIT_REPOSITORY "${git_protocol}://github.com/pieper/LandmarkRegistration"
-  GIT_TAG "3c147f4f73166512da52192517981cc906224c16"
+  GIT_TAG "fbf515ecd91b26177bad25e0336c24deec8bf69b"
   OPTION_NAME Slicer_BUILD_LandmarkRegistration
   OPTION_DEPENDS "Slicer_BUILD_CompareVolumes;Slicer_USE_PYTHONQT"
   LABELS REMOTE_MODULE
@@ -360,61 +370,6 @@ ExternalProject_Add_Step(${proj} forcebuild
   DEPENDEES build
   ALWAYS 1
   )
-
-#-----------------------------------------------------------------------------
-# Project that can NOT be built in parallel should set the
-# variable _EP_<projectName>_<lockname>_LOCK to 1.
-#
-# For example, to address issue #3757 and ensure that project
-# building a python module are not updating the file 'easy-install.pth'
-# concurrently, a "lock" variable can be set in the associated
-# "External_<proj>.cmake" file:
-#
-#    set(_EP_${proj}_SETUPTOOLS_LOCK 1)
-#
-# Then, by calling the function "_ep_setup_lock", we ensure
-# that the "locked" target won't be built in parallel.
-#
-# Internally, the function _ep_setup_lock recusively go through
-# all dependencies and add explicit dependencies between all targets
-# that (1) should be locked  and (2) belong to the same "level".
-#
-function(_ep_get_lock_list lockname depends output_var)
-  set(lock_list)
-  foreach(dep IN LISTS depends)
-    if(_EP_${dep}_${lockname}_LOCK)
-      list(APPEND lock_list ${dep})
-    endif()
-  endforeach()
-  set(${output_var} ${lock_list} PARENT_SCOPE)
-endfunction()
-
-function(_ep_add_lock_dependencies proj lock_list)
-  set(prev )
-  #message("_ep_add_lock_dependencies - ${proj} [lock_list:${lock_list}]")
-  foreach(dep IN LISTS lock_list)
-    if(NOT ${prev} STREQUAL "")
-      #message("${prev} -> ${dep}")
-      add_dependencies(${prev} ${dep})
-    endif()
-    set(prev ${dep})
-  endforeach()
-endfunction()
-
-function(_ep_setup_lock lockname proj)
-  get_property(${proj}_depends TARGET ${proj} PROPERTY _EP_DEPENDS)
-  if(${proj}_depends)
-    _ep_get_lock_list(${lockname} "${${proj}_depends}" ${proj}_lock_list)
-    if(${proj}_lock_list)
-      _ep_add_lock_dependencies(${proj} "${${proj}_lock_list}")
-    endif()
-  endif()
-  foreach(${proj}_dep ${${proj}_depends})
-    _ep_setup_lock(${lockname} ${${proj}_dep})
-  endforeach()
-endfunction()
-
-_ep_setup_lock("SETUPTOOLS" ${proj})
 
 #-----------------------------------------------------------------------------
 # Slicer extensions

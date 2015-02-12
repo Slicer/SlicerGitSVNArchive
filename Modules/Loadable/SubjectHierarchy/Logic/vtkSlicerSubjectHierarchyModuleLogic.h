@@ -2,7 +2,8 @@
 
   Program: 3D Slicer
 
-  Portions (c) Copyright Brigham and Women's Hospital (BWH) All Rights Reserved.
+  Copyright (c) Laboratory for Percutaneous Surgery (PerkLab)
+  Queen's University, Kingston, ON, Canada. All Rights Reserved.
 
   See COPYRIGHT.txt
   or http://www.slicer.org/copyright/copyright.txt for details.
@@ -45,7 +46,6 @@ public:
   void PrintSelf(ostream& os, vtkIndent indent);
 
 public:
-  //TODO: To plugins?
   /// Place series in subject hierarchy. Create subject and study node if needed
   /// \return Series subject hierarchy node of the inserted series
   static vtkMRMLSubjectHierarchyNode* InsertDicomSeriesInHierarchy(
@@ -60,20 +60,15 @@ public:
   static vtkMRMLSubjectHierarchyNode* AreNodesInSameBranch(
     vtkMRMLNode* node1, vtkMRMLNode* node2, const char* lowestCommonLevel );
 
-public:
-  /// Custom events
-  enum
-  {
-    /// Event fired when complete scene update is needed (end import, end batch processing)
-    SceneUpdateNeededEvent = 20000,
-  };
+  /// Determine if a tag name is a patient tag (not attribute, but tag - without prefix!)
+  static bool IsPatientTag(std::string tagName);
+
+  /// Determine if a tag name is a study tag (not attribute, but tag - without prefix!)
+  static bool IsStudyTag(std::string tagName);
 
 protected:
   /// Called each time a new scene is set
   virtual void SetMRMLSceneInternal(vtkMRMLScene* newScene);
-
-  virtual void OnMRMLSceneEndBatchProcess();
-  virtual void OnMRMLSceneEndImport();
 
   /// Called every time the scene has been significantly changed.
   virtual void UpdateFromMRMLScene();

@@ -36,6 +36,7 @@
 
 class vtkMRMLNode;
 class vtkMRMLStorableNode;
+class vtkMRMLStorageNode;
 class vtkCollection;
 class vtkObject;
 class qSlicerCoreIOManagerPrivate;
@@ -129,11 +130,17 @@ public:
   /// Note also that the IOManager takes ownership of \a io
   void registerIO(qSlicerIO* io);
 
+  /// Create and add default storage node
+  Q_INVOKABLE static vtkMRMLStorageNode* createAndAddDefaultStorageNode(vtkMRMLStorableNode* node);
+
 signals:
 
   /// This signal is emitted each time a file is loaded using loadNodes()
+  /// The \a loadedFileParameters QVariant map contains the parameters
+  /// passed to the reader and also the \a fileType and \a nodeIDs keys respectively
+  /// associated with a QString and a QStringList.
   /// \sa loadNodes(const qSlicerIO::IOFileType&, const qSlicerIO::IOProperties&, vtkCollection*)
-  void newFileLoaded(const qSlicerIO::IOProperties& parametersWithFileType);
+  void newFileLoaded(const qSlicerIO::IOProperties& loadedFileParameters);
 
 protected:
 

@@ -30,7 +30,7 @@ set(${PROJECT_NAME}_ITK_COMPONENTS
 if(Slicer_BUILD_CLI_SUPPORT)
   list(APPEND ${PROJECT_NAME}_ITK_COMPONENTS ${ModuleDescriptionParser_ITK_COMPONENTS})
 endif()
-find_package(ITK 4.5 COMPONENTS ${${PROJECT_NAME}_ITK_COMPONENTS} REQUIRED)
+find_package(ITK 4.6 COMPONENTS ${${PROJECT_NAME}_ITK_COMPONENTS} REQUIRED)
 set(ITK_NO_IO_FACTORY_REGISTER_MANAGER 1) # See Libs/ITKFactoryRegistration/CMakeLists.txt
 list(APPEND ITK_LIBRARIES ITKFactoryRegistration)
 list(APPEND ITK_INCLUDE_DIRS
@@ -131,21 +131,6 @@ if(Slicer_USE_PYTHONQT)
     )
 endif()
 
-#set_source_files_properties(
-  #vtkPichonFastMarchingPDF.cxx
-#  WRAP_EXCLUDE
-#  )
-
-# --------------------------------------------------------------------------
-## Create an instantiator for these classes
-# set(VTK_USE_INSTANTIATOR_NEW 1)
-# VTK_MAKE_INSTANTIATOR3("${lib_name}Instantiator"
-#   Instantiator_SRCS
-#   "${SlicerBaseLogic_SRCS}"
-#   "VTK_SLICER_BASE_LOGIC_EXPORT"
-#   ${Slicer_BINARY_DIR}
-#   "vtkSlicerBaseLogic.h")
-
 # --------------------------------------------------------------------------
 # Build library
 # --------------------------------------------------------------------------
@@ -189,7 +174,7 @@ endif()
 if(Slicer_USE_PYTHONQT)
   if(${VTK_VERSION_MAJOR} GREATER 5)
     set(VTK_COMMON_PYTHON_LIBRARY
-      vtkCommonCorePythonD # For vtkPythonUtils
+      vtkWrappingPythonCore # For vtkPythonUtil
       )
   else()
     set(VTK_COMMON_PYTHON_LIBRARY
@@ -204,6 +189,7 @@ endif()
 
 target_link_libraries(${lib_name} ${libs})
 set_target_properties(${lib_name} PROPERTIES LABELS ${lib_name})
+set_target_properties(${lib_name} PROPERTIES FOLDER "Core-Base")
 
 # Apply user-defined properties to the library target.
 if(Slicer_LIBRARY_PROPERTIES)
@@ -239,6 +225,9 @@ if(VTK_WRAP_PYTHON)
     )
   # Export target
   set_property(GLOBAL APPEND PROPERTY Slicer_TARGETS ${lib_name}Python ${lib_name}PythonD)
+
+  set_target_properties(${lib_name}Python PROPERTIES FOLDER "Core-Base")
+  set_target_properties(${lib_name}PythonD PROPERTIES FOLDER "Core-Base")
 endif()
 
 # --------------------------------------------------------------------------

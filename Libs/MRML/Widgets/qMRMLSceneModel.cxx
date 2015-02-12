@@ -30,6 +30,7 @@
 #include <vtkMRMLDisplayableNode.h>
 #include <vtkMRMLDisplayNode.h>
 #include <vtkMRMLScene.h>
+#include <vtkMRMLSelectionNode.h>
 
 // VTK includes
 #include <vtkCollection.h>
@@ -173,7 +174,6 @@ void qMRMLSceneModelPrivate::insertExtraItem(int row, QStandardItem* parent,
   extraItems[extraType] = extraItems[extraType].toStringList() << text;
   parent->setData(extraItems, qMRMLSceneModel::ExtraItemsRole );
 }
-
 
 //------------------------------------------------------------------------------
 QStringList qMRMLSceneModelPrivate::extraItems(QStandardItem* parent, const QString& extraType)const
@@ -419,13 +419,8 @@ vtkMRMLNode* qMRMLSceneModel::mrmlNodeFromItem(QStandardItem* nodeItem)const
     {
     return 0;
     }
-  //return nodeItem ? d->MRMLScene->GetNodeByID(
-  //  nodeItem->data(qMRMLSceneModel::UIDRole).toString().toLatin1()) : 0;
-  vtkMRMLNode* node = static_cast<vtkMRMLNode*>(
-    reinterpret_cast<void *>(
-      nodePointer.toLongLong()));
-  Q_ASSERT(node);
-  return node;
+  return nodeItem ? d->MRMLScene->GetNodeByID(
+    nodeItem->data(qMRMLSceneModel::UIDRole).toString().toLatin1()) : 0;
 }
 //------------------------------------------------------------------------------
 QStandardItem* qMRMLSceneModel::itemFromNode(vtkMRMLNode* node, int column)const
@@ -897,7 +892,7 @@ void qMRMLSceneModel::updateItemFromNode(QStandardItem* item, vtkMRMLNode* node,
       }
     // If the item has no parent, then it means it hasn't been put into the scene yet.
     // and it will do it automatically.
-    if (parentItem)
+    if (parentItem && parentItem != newParentItem)
       {
       int newIndex = this->nodeIndex(node);
       if (parentItem != newParentItem ||
@@ -979,7 +974,28 @@ void qMRMLSceneModel::updateItemDataFromNode(
       }
     else if (displayableNode)
       {
-      visible = displayableNode->GetDisplayVisibility();
+      std::string displayType;
+      std::vector<vtkMRMLNode *> selectionNodes;
+      this->mrmlScene()->GetNodesByClass("vtkMRMLSelectionNode", selectionNodes);
+
+      vtkMRMLSelectionNode* selectionNode = 0;
+      if (selectionNodes.size() > 0)
+        {
+        selectionNode = vtkMRMLSelectionNode::SafeDownCast(selectionNodes[0]);
+        }
+      if (selectionNode)
+        {
+        char *displayableType = (char *)node->GetClassName();
+        displayType = selectionNode->GetModelHierarchyDisplayNodeClassName(displayableType);
+        }
+      if (!displayType.empty())
+        {
+        visible = displayableNode->GetDisplayClassVisibility(displayType.c_str());
+        }
+      else
+        {
+        visible = displayableNode->GetDisplayVisibility();
+        }
       }
     // It should be fine to set the icon even if it is the same, but due
     // to a bug in Qt (http://bugreports.qt.nokia.com/browse/QTBUG-20248),
@@ -1103,7 +1119,28 @@ void qMRMLSceneModel::updateNodeFromItemData(vtkMRMLNode* node, QStandardItem* i
       }
     else if (displayableNode)
       {
-      displayableNode->SetDisplayVisibility(visible);
+      std::string displayType;
+      std::vector<vtkMRMLNode *> selectionNodes;
+      this->mrmlScene()->GetNodesByClass("vtkMRMLSelectionNode", selectionNodes);
+
+      vtkMRMLSelectionNode* selectionNode = 0;
+      if (selectionNodes.size() > 0)
+        {
+        selectionNode = vtkMRMLSelectionNode::SafeDownCast(selectionNodes[0]);
+        }
+      if (selectionNode)
+        {
+        char *displayableType = (char *)node->GetClassName();
+        displayType = selectionNode->GetModelHierarchyDisplayNodeClassName(displayableType);
+        }
+      if (!displayType.empty())
+        {
+        displayableNode->SetDisplayClassVisibility(displayType.c_str(), visible);
+        }
+      else
+        {
+        displayableNode->SetDisplayVisibility(visible);
+        }
       }
     }
 }

@@ -2,7 +2,8 @@
 
   Program: 3D Slicer
 
-  Copyright (c) Kitware Inc.
+  Copyright (c) Laboratory for Percutaneous Surgery (PerkLab)
+  Queen's University, Kingston, ON, Canada. All Rights Reserved.
 
   See COPYRIGHT.txt
   or http://www.slicer.org/copyright/copyright.txt for details.
@@ -37,10 +38,19 @@ class Q_SLICER_MODULE_SUBJECTHIERARCHY_WIDGETS_EXPORT qMRMLSubjectHierarchyTreeV
 {
   Q_OBJECT
 
+  /// Flag determining whether to highlight nodes referenced by DICOM. Storing DICOM references:
+  ///   Referenced SOP instance UIDs (in attribute named vtkMRMLSubjectHierarchyConstants::GetDICOMReferencedInstanceUIDsAttributeName())
+  ///   -> SH node instance UIDs (serialized string lists in subject hierarchy UID vtkMRMLSubjectHierarchyConstants::GetDICOMInstanceUIDName())
+  Q_PROPERTY (bool highlightReferencedNodes READ highlightReferencedNodes WRITE setHighlightReferencedNodes)
+
 public:
   typedef qMRMLTreeView Superclass;
   qMRMLSubjectHierarchyTreeView(QWidget *parent=0);
   virtual ~qMRMLSubjectHierarchyTreeView();
+
+public:
+  bool highlightReferencedNodes()const;
+  void setHighlightReferencedNodes(bool highlightOn);
 
 protected:
   /// Toggle visibility
@@ -51,6 +61,10 @@ protected:
 
   /// Handle mouse press event (facilitates timely update of context menu)
   virtual void mousePressEvent(QMouseEvent* event);
+
+  /// Apply highlight for nodes referenced by argument node by DICOM
+  /// \sa highlightReferencedNodes
+  void applyReferenceHighlightForNode(vtkMRMLSubjectHierarchyNode* node);
 
 public slots:
   /// Set MRML scene
@@ -68,14 +82,14 @@ public slots:
   /// for the currently selected node.
   virtual void updateSelectPluginActions();
 
-  /// Open module belonging to the data node associated to a subject hierarchy node
-  virtual void openModuleForSubjectHierarchyNode(vtkMRMLNode* node);
-
   /// Remove current node from subject hierarchy on context menu choice
   virtual void removeCurrentNodeFromSubjectHierarchy();
 
   /// Edit properties of current node
   virtual void editCurrentSubjectHierarchyNode();
+
+  /// Set multi-selection
+  virtual void setMultiSelection(bool multiSelectionOn);
 
 protected slots:
   /// Expand tree to depth specified by the clicked context menu action

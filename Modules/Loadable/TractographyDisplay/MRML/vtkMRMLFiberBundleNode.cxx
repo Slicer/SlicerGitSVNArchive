@@ -33,6 +33,7 @@ Version:   $Revision: 1.3 $
 #include <vtkExtractSelectedPolyDataIds.h>
 #include <vtkIdTypeArray.h>
 #include <vtkInformation.h>
+#include <vtkNew.h>
 #include <vtkObjectFactory.h>
 #include <vtkPlanes.h>
 #include <vtkSelection.h>
@@ -344,23 +345,22 @@ vtkMRMLFiberBundleDisplayNode* vtkMRMLFiberBundleNode::GetGlyphDisplayNode()
 //----------------------------------------------------------------------------
 vtkMRMLFiberBundleDisplayNode* vtkMRMLFiberBundleNode::AddLineDisplayNode()
 {
-  vtkMRMLFiberBundleDisplayNode *node = this->GetLineDisplayNode();
+  if (!this->GetScene())
+    {
+    return NULL;
+    }
+  vtkSmartPointer<vtkMRMLFiberBundleDisplayNode> node = this->GetLineDisplayNode();
   if (node == NULL)
     {
-    node = vtkMRMLFiberBundleLineDisplayNode::New();
-    if (this->GetScene())
-      {
-      this->GetScene()->AddNode(node);
-      node->Delete();
+    node = vtkSmartPointer<vtkMRMLFiberBundleLineDisplayNode>::New();
+    this->GetScene()->AddNode(node);
 
-      vtkMRMLDiffusionTensorDisplayPropertiesNode *glyphDTDPN = vtkMRMLDiffusionTensorDisplayPropertiesNode::New();
-      this->GetScene()->AddNode(glyphDTDPN);
-      node->SetAndObserveDiffusionTensorDisplayPropertiesNodeID(glyphDTDPN->GetID());
-      node->SetAndObserveColorNodeID("vtkMRMLColorTableNodeRainbow");
-      glyphDTDPN->Delete();
+    vtkNew<vtkMRMLDiffusionTensorDisplayPropertiesNode> glyphDTDPN;
+    this->GetScene()->AddNode(glyphDTDPN.GetPointer());
+    node->SetAndObserveDiffusionTensorDisplayPropertiesNodeID(glyphDTDPN->GetID());
+    node->SetAndObserveColorNodeID("vtkMRMLColorTableNodeRainbow");
 
-      this->AddAndObserveDisplayNodeID(node->GetID());
-      }
+    this->AddAndObserveDisplayNodeID(node->GetID());
     }
   return node;
 }
@@ -368,23 +368,22 @@ vtkMRMLFiberBundleDisplayNode* vtkMRMLFiberBundleNode::AddLineDisplayNode()
 //----------------------------------------------------------------------------
 vtkMRMLFiberBundleDisplayNode* vtkMRMLFiberBundleNode::AddTubeDisplayNode()
 {
-  vtkMRMLFiberBundleDisplayNode *node = this->GetTubeDisplayNode();
+  if (!this->GetScene())
+    {
+    return NULL;
+    }
+  vtkSmartPointer<vtkMRMLFiberBundleDisplayNode> node = this->GetTubeDisplayNode();
   if (node == NULL)
     {
-    node = vtkMRMLFiberBundleTubeDisplayNode::New();
-    if (this->GetScene())
-      {
-      this->GetScene()->AddNode(node);
-      node->Delete();
+    node = vtkSmartPointer<vtkMRMLFiberBundleTubeDisplayNode>::New();
+    this->GetScene()->AddNode(node);
 
-      vtkMRMLDiffusionTensorDisplayPropertiesNode *glyphDTDPN = vtkMRMLDiffusionTensorDisplayPropertiesNode::New();
-      this->GetScene()->AddNode(glyphDTDPN);
-      node->SetAndObserveDiffusionTensorDisplayPropertiesNodeID(glyphDTDPN->GetID());
-      glyphDTDPN->Delete();
-      node->SetAndObserveColorNodeID("vtkMRMLColorTableNodeRainbow");
+    vtkNew<vtkMRMLDiffusionTensorDisplayPropertiesNode> glyphDTDPN;
+    this->GetScene()->AddNode(glyphDTDPN.GetPointer());
+    node->SetAndObserveDiffusionTensorDisplayPropertiesNodeID(glyphDTDPN->GetID());
+    node->SetAndObserveColorNodeID("vtkMRMLColorTableNodeRainbow");
 
-      this->AddAndObserveDisplayNodeID(node->GetID());
-      }
+    this->AddAndObserveDisplayNodeID(node->GetID());
     }
   return node;
 }
@@ -392,23 +391,22 @@ vtkMRMLFiberBundleDisplayNode* vtkMRMLFiberBundleNode::AddTubeDisplayNode()
 //----------------------------------------------------------------------------
 vtkMRMLFiberBundleDisplayNode* vtkMRMLFiberBundleNode::AddGlyphDisplayNode()
 {
-  vtkMRMLFiberBundleDisplayNode *node = this->GetGlyphDisplayNode();
+  if (!this->GetScene())
+    {
+    return NULL;
+    }
+  vtkSmartPointer<vtkMRMLFiberBundleDisplayNode> node = this->GetGlyphDisplayNode();
   if (node == NULL)
     {
-    node = vtkMRMLFiberBundleGlyphDisplayNode::New();
-    if (this->GetScene())
-      {
-      this->GetScene()->AddNode(node);
-      node->Delete();
+    node = vtkSmartPointer<vtkMRMLFiberBundleGlyphDisplayNode>::New();
+    this->GetScene()->AddNode(node);
 
-      vtkMRMLDiffusionTensorDisplayPropertiesNode *glyphDTDPN = vtkMRMLDiffusionTensorDisplayPropertiesNode::New();
-      this->GetScene()->AddNode(glyphDTDPN);
-      node->SetAndObserveDiffusionTensorDisplayPropertiesNodeID(glyphDTDPN->GetID());
-      glyphDTDPN->Delete();
-      node->SetAndObserveColorNodeID("vtkMRMLColorTableNodeRainbow");
+    vtkNew<vtkMRMLDiffusionTensorDisplayPropertiesNode> glyphDTDPN;
+    this->GetScene()->AddNode(glyphDTDPN.GetPointer());
+    node->SetAndObserveDiffusionTensorDisplayPropertiesNodeID(glyphDTDPN->GetID());
+    node->SetAndObserveColorNodeID("vtkMRMLColorTableNodeRainbow");
 
-      this->AddAndObserveDisplayNodeID(node->GetID());
-      }
+    this->AddAndObserveDisplayNodeID(node->GetID());
     }
   return node;
 }
@@ -571,9 +569,9 @@ void vtkMRMLFiberBundleNode::SetAndObserveAnnotationNodeID ( const char *id )
 //----------------------------------------------------------------------------
 void vtkMRMLFiberBundleNode::PrepareSubsampling()
 {
-  vtkSelection* sel = vtkSelection::New();
-  vtkSelectionNode* node = vtkSelectionNode::New();
-  vtkIdTypeArray* arr = vtkIdTypeArray::New();
+  vtkNew<vtkSelection> sel;
+  vtkNew<vtkSelectionNode> node;
+  vtkNew<vtkIdTypeArray> arr;
 
   this->SubsamplingRatio = 1.;
 
@@ -581,18 +579,18 @@ void vtkMRMLFiberBundleNode::PrepareSubsampling()
 
   this->ExtractSelectedPolyDataIds = vtkExtractSelectedPolyDataIds::New();
 
-  sel->AddNode(node);
+  sel->AddNode(node.GetPointer());
 
   node->GetProperties()->Set(vtkSelectionNode::CONTENT_TYPE(), vtkSelectionNode::INDICES);
   node->GetProperties()->Set(vtkSelectionNode::FIELD_TYPE(), vtkSelectionNode::CELL);
 
   arr->SetNumberOfTuples(0);
-  node->SetSelectionList(arr);
+  node->SetSelectionList(arr.GetPointer());
 
 #if (VTK_MAJOR_VERSION <= 5)
-  this->ExtractSelectedPolyDataIds->SetInput(1, sel);
+  this->ExtractSelectedPolyDataIds->SetInput(1, sel.GetPointer());
 #else
-  this->ExtractSelectedPolyDataIds->SetInputData(1, sel);
+  this->ExtractSelectedPolyDataIds->SetInputData(1, sel.GetPointer());
 #endif
 
   this->CleanPolyDataPostSubsampling = vtkCleanPolyData::New();
@@ -603,10 +601,6 @@ void vtkMRMLFiberBundleNode::PrepareSubsampling()
 
   this->CleanPolyDataPostSubsampling->SetInputConnection(
     this->ExtractSelectedPolyDataIds->GetOutputPort());
-
-  arr->Delete();
-  node->Delete();
-  sel->Delete();
 }
 
 //----------------------------------------------------------------------------

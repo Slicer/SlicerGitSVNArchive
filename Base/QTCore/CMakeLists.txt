@@ -26,7 +26,7 @@ if(Slicer_BUILD_CLI_SUPPORT)
     # Import ITK targets required by CTKImageProcessingITKCore
     ITKCommon
     )
-  find_package(ITK 4.5 COMPONENTS ${${PROJECT_NAME}_ITK_COMPONENTS} REQUIRED)
+  find_package(ITK 4.6 COMPONENTS ${${PROJECT_NAME}_ITK_COMPONENTS} REQUIRED)
   set(ITK_NO_IO_FACTORY_REGISTER_MANAGER 1) # See Libs/ITKFactoryRegistration/CMakeLists.txt
   include(${ITK_USE_FILE})
 endif()
@@ -105,6 +105,8 @@ set(KIT_SRCS
 
 if(Slicer_BUILD_EXTENSIONMANAGER_SUPPORT)
   list(APPEND KIT_SRCS
+    qSlicerExtensionDownloadTask.cxx
+    qSlicerExtensionDownloadTask.h
     qSlicerExtensionsManagerModel.cxx
     qSlicerExtensionsManagerModel.h
     )
@@ -144,6 +146,7 @@ set(KIT_MOC_SRCS
 
 if(Slicer_BUILD_EXTENSIONMANAGER_SUPPORT)
   list(APPEND KIT_MOC_SRCS
+    qSlicerExtensionDownloadTask.h
     qSlicerExtensionsManagerModel.h
     )
 endif()
@@ -193,7 +196,7 @@ set(KIT_resources
 if(Slicer_USE_PYTHONQT)
   if(${VTK_VERSION_MAJOR} GREATER 5)
     set(VTK_COMMON_PYTHON_LIBRARY
-      vtkCommonCorePythonD # For vtkPythonUtils
+      vtkWrappingPythonCore # For vtkPythonUtil
       )
   else()
     set(VTK_COMMON_PYTHON_LIBRARY

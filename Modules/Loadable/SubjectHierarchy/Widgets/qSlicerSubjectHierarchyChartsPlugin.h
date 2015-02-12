@@ -2,7 +2,8 @@
 
   Program: 3D Slicer
 
-  Copyright (c) Kitware Inc.
+  Copyright (c) Laboratory for Percutaneous Surgery (PerkLab)
+  Queen's University, Kingston, ON, Canada. All Rights Reserved.
 
   See COPYRIGHT.txt
   or http://www.slicer.org/copyright/copyright.txt for details.
@@ -52,7 +53,7 @@ public:
 public:
   /// Determines if a non subject hierarchy node can be placed in the hierarchy, and gets a confidence
   ///   value for a certain MRML node (usually the type and possibly attributes are checked)
-  /// \param node Node to be added to the hierarchy
+  /// \param nodeToAdd Node to be added to the hierarchy
   /// \param parent Prospective parent of the node to add.
   ///   Default value is NULL. In that case the parent will be ignored, the confidence numbers are got based on the to-be child node alone.
   /// \return Floating point confidence number between 0 and 1, where 0 means that the plugin cannot handle the
@@ -71,12 +72,12 @@ public:
   ///   Each plugin should provide only one role.
   Q_INVOKABLE virtual const QString roleForPlugin()const;
 
-  /// Set icon of a owned subject hierarchy node
-  /// \return Flag indicating whether setting an icon was successful
-  virtual bool setIcon(vtkMRMLSubjectHierarchyNode* node, QStandardItem* item);
+  /// Get icon of an owned subject hierarchy node
+  /// \return Icon to set, NULL if nothing to set
+  virtual QIcon icon(vtkMRMLSubjectHierarchyNode* node);
 
-  /// Set visibility icon of a owned subject hierarchy node
-  virtual void setVisibilityIcon(vtkMRMLSubjectHierarchyNode* node, QStandardItem* item);
+  /// Get visibility icon for a visibility state
+  virtual QIcon visibilityIcon(int visible);
 
   /// Open module belonging to node and set inputs in opened module
   virtual void editProperties(vtkMRMLSubjectHierarchyNode* node);

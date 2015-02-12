@@ -35,7 +35,7 @@ class qSlicerAbstractCoreModule;
 
 ///
 /// qSlicerModuleSelectorToolBar is a toolbar that can be added in your
-/// application and will fired events when the QAction of modules are triggered
+/// application and will fire events when the QAction of modules are triggered
 /// qSlicerModuleSelectorToolBar supports a tree hierarchy of modules (based on
 /// module->categories() ), previous/next buttons to browse the history of
 /// selected modules. (and a plain history button)
@@ -44,6 +44,7 @@ class Q_SLICER_BASE_QTGUI_EXPORT qSlicerModuleSelectorToolBar: public QToolBar
   Q_OBJECT
 public:
   typedef QToolBar Superclass;
+  Q_PROPERTY(QString selectedModule READ selectedModule WRITE selectModule NOTIFY moduleSelected)
 
   /// Constructor
   /// title is the name of the toolbar (can appear using right click on the
@@ -54,6 +55,9 @@ public:
 
   /// Returns a pointer to the modules menu used to populate the list of modules
   qSlicerModulesMenu* modulesMenu()const;
+
+  /// Returns the selected module name
+  QString selectedModule() const;
 
 public slots:
   /// Module manager contains all the loaded modules

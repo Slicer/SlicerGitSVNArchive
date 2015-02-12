@@ -2,7 +2,8 @@
 
   Program: 3D Slicer
 
-  Copyright (c) Kitware Inc.
+  Copyright (c) Laboratory for Percutaneous Surgery (PerkLab)
+  Queen's University, Kingston, ON, Canada. All Rights Reserved.
 
   See COPYRIGHT.txt
   or http://www.slicer.org/copyright/copyright.txt for details.
@@ -42,6 +43,7 @@ qMRMLTransformItemDelegate::qMRMLTransformItemDelegate(QObject *parent)
   : QStyledItemDelegate(parent)
 {
   this->MRMLScene = NULL;
+  this->FixedRowHeight = -1;
 
   this->RemoveTransformAction = new QAction("Remove transforms from branch", this);
   connect(this->RemoveTransformAction, SIGNAL(triggered()), this, SIGNAL(removeTransformsFromBranchOfCurrentNode()));
@@ -158,12 +160,18 @@ QSize qMRMLTransformItemDelegate
 ::sizeHint(const QStyleOptionViewItem &option,
            const QModelIndex &index) const
 {
+  // Get default size hint
+  QSize resultSizeHint = this->QStyledItemDelegate::sizeHint(option, index);
+  if (this->FixedRowHeight > 0)
+    {
+    resultSizeHint.setHeight(this->FixedRowHeight);
+    }
   if (this->isTransform(index))
     {
     // Optionally can return the size hint of a dummy widget for the transforms
-    return this->QStyledItemDelegate::sizeHint(option, index);
+    return resultSizeHint;
     }
-  return this->QStyledItemDelegate::sizeHint(option, index);
+  return resultSizeHint;
 }
 
 //------------------------------------------------------------------------------
@@ -205,4 +213,10 @@ bool qMRMLTransformItemDelegate::eventFilter(QObject *object, QEvent *event)
       }
     }
   return this->QStyledItemDelegate::eventFilter(object, event);
+}
+
+//------------------------------------------------------------------------------
+void qMRMLTransformItemDelegate::setFixedRowHeight(int height)
+{
+  this->FixedRowHeight = height;
 }

@@ -1,4 +1,4 @@
-if(Slicer_BUILD_EXTENSIONMANAGER_SUPPORT)
+if(Slicer_BUILD_EXTENSIONMANAGER_SUPPORT AND Slicer_USE_PYTHONQT)
   # Determine name of Python interpreter
   #
   # NOTE: Do NOT use ${PYTHON_EXECUTABLE}; when using our own Python, it is set
@@ -10,6 +10,12 @@ if(Slicer_BUILD_EXTENSIONMANAGER_SUPPORT)
       PATHS ${Slicer_SUPERBUILD_DIR}/python-install/bin
       NO_DEFAULT_PATH
       )
+  endif()
+
+  if(WIN32)
+    set(EXPORT_GIT_PYTHON_GIT_EXECUTABLE_CONFIG
+"\# Export path to git executable provided by Git Bash
+export GIT_PYTHON_GIT_EXECUTABLE=/bin/git")
   endif()
 
   # Configure and Extension Wizard launcher scripts

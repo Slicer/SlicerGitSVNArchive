@@ -46,7 +46,7 @@
 #include "itkSubtractImageFilter.h"
 #include "itkRescaleIntensityImageFilter.h"
 #include "itkExtractImageFilter.h"
-#include "itkDifferenceImageFilter.h"
+#include "itkTestingComparisonImageFilter.h"
 #include "itksys/SystemTools.hxx"
 #include "itkIntTypes.h"
 #include "itkFloatingPointExceptions.h"
@@ -308,7 +308,7 @@ int RegressionTestImage(const char *testImageFilename,
     }
 
   // Now compare the two images
-  typedef itk::DifferenceImageFilter<ImageType, ImageType> DiffType;
+  typedef itk::Testing::ComparisonImageFilter<ImageType, ImageType> DiffType;
   DiffType::Pointer diff = DiffType::New();
   diff->SetValidInput( baselineReader->GetOutput() );
   diff->SetTestInput( testReader->GetOutput() );
@@ -316,7 +316,7 @@ int RegressionTestImage(const char *testImageFilename,
   diff->SetToleranceRadius(radiusTolerance);
   diff->UpdateLargestPossibleRegion();
 
-  itk::SizeValueType status = itk::NumericTraits<itk::SizeValueType>::Zero;
+  itk::SizeValueType status = itk::NumericTraits<itk::SizeValueType>::ZeroValue();
   status = diff->GetNumberOfPixelsWithDifferences();
 
   // if there are discrepencies, create an diff image

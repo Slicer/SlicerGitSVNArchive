@@ -2,7 +2,8 @@
 
   Program: 3D Slicer
 
-  Copyright (c) Kitware Inc.
+  Copyright (c) Laboratory for Percutaneous Surgery (PerkLab)
+  Queen's University, Kingston, ON, Canada. All Rights Reserved.
 
   See COPYRIGHT.txt
   or http://www.slicer.org/copyright/copyright.txt for details.
@@ -40,6 +41,7 @@ public:
 
   void setMRMLScene(vtkMRMLScene* scene);
 
+  /// Determine if the current index contains a transform
   bool isTransform(const QModelIndex& index)const;
 
   virtual QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option,
@@ -57,6 +59,11 @@ public:
 
   virtual bool eventFilter(QObject *object, QEvent *event);
 
+  /// Set a fixed row height. Useful if uniform row heights is turned on, but the
+  /// desired row height is different than that of the first row (often scene).
+  /// Set value to -1 to disable fixed row height (this is the default)
+  void setFixedRowHeight(int height);
+
   // We make initStyleOption public so it can be used by qMRMLTreeView
   using QStyledItemDelegate::initStyleOption;
 
@@ -71,6 +78,7 @@ protected:
   vtkMRMLScene* MRMLScene;
   QAction* RemoveTransformAction;
   QAction* HardenAction;
+  int FixedRowHeight;
 };
 
 #endif

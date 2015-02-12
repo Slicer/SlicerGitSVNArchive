@@ -100,7 +100,7 @@ if((NOT DEFINED PYTHON_INCLUDE_DIR
   ExternalProject_Add(${proj}
     ${${proj}_EP_ARGS}
     GIT_REPOSITORY "${git_protocol}://github.com/davidsansome/python-cmake-buildsystem.git"
-    GIT_TAG "3c5864f210a8d0ae1196be7c691252e16e459f59"
+    GIT_TAG "0838470ec2a0d20909571793ebb4ccc8a3292ac5"
     SOURCE_DIR ${CMAKE_BINARY_DIR}/${proj}
     BINARY_DIR ${proj}-build
     CMAKE_CACHE_ARGS
@@ -169,6 +169,83 @@ if((NOT DEFINED PYTHON_INCLUDE_DIR
     set(CMAKE_CFG_INTDIR ${SAVED_CMAKE_CFG_INTDIR}) # Restore CMAKE_CFG_INTDIR
   endif()
 
+  #-----------------------------------------------------------------------------
+  # Launcher setting specific to build tree
+
+  set(_lib_subdir lib)
+  if(WIN32)
+    set(_lib_subdir bin)
+  endif()
+
+  # library paths
+  set(${proj}_LIBRARY_PATHS_LAUNCHER_BUILD ${python_DIR}/${_lib_subdir})
+  mark_as_superbuild(
+    VARS ${proj}_LIBRARY_PATHS_LAUNCHER_BUILD
+    LABELS "LIBRARY_PATHS_LAUNCHER_BUILD"
+    )
+
+  # paths
+  set(${proj}_PATHS_LAUNCHER_BUILD ${python_DIR}/bin)
+  mark_as_superbuild(
+    VARS ${proj}_PATHS_LAUNCHER_BUILD
+    LABELS "PATHS_LAUNCHER_BUILD"
+    )
+
+  # pythonpath
+  set(_pythonhome ${CMAKE_BINARY_DIR}/python-install)
+  set(pythonpath_subdir lib/python2.7)
+  if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    set(pythonpath_subdir Lib)
+  endif()
+
+  set(${proj}_PYTHONPATH_LAUNCHER_BUILD
+    ${_pythonhome}/${pythonpath_subdir}
+    ${_pythonhome}/${pythonpath_subdir}/lib-dynload
+    ${_pythonhome}/${pythonpath_subdir}/site-packages
+    )
+  mark_as_superbuild(
+    VARS ${proj}_PYTHONPATH_LAUNCHER_BUILD
+    LABELS "PYTHONPATH_LAUNCHER_BUILD"
+    )
+
+  # environment variables
+  set(${proj}_ENVVARS_LAUNCHER_BUILD "PYTHONHOME=${python_DIR}")
+  mark_as_superbuild(
+    VARS ${proj}_ENVVARS_LAUNCHER_BUILD
+    LABELS "ENVVARS_LAUNCHER_BUILD"
+    )
+
+  #-----------------------------------------------------------------------------
+  # Launcher setting specific to install tree
+
+  # library paths
+  if(UNIX)
+    # On windows, python libraries are installed along with the executable
+    set(${proj}_LIBRARY_PATHS_LAUNCHER_INSTALLED <APPLAUNCHER_DIR>/lib/Python/lib)
+    mark_as_superbuild(
+      VARS ${proj}_LIBRARY_PATHS_LAUNCHER_INSTALLED
+      LABELS "LIBRARY_PATHS_LAUNCHER_INSTALLED"
+      )
+  endif()
+
+  # pythonpath
+  set(${proj}_PYTHONPATH_LAUNCHER_INSTALLED
+    <APPLAUNCHER_DIR>/lib/Python/${pythonpath_subdir}
+    <APPLAUNCHER_DIR>/lib/Python/${pythonpath_subdir}/lib-dynload
+    <APPLAUNCHER_DIR>/lib/Python/${pythonpath_subdir}/site-packages
+    )
+  mark_as_superbuild(
+    VARS ${proj}_PYTHONPATH_LAUNCHER_INSTALLED
+    LABELS "PYTHONPATH_LAUNCHER_INSTALLED"
+    )
+
+  # environment variables
+  set(${proj}_ENVVARS_LAUNCHER_INSTALLED "PYTHONHOME=<APPLAUNCHER_DIR>/lib/Python")
+  mark_as_superbuild(
+    VARS ${proj}_ENVVARS_LAUNCHER_INSTALLED
+    LABELS "ENVVARS_LAUNCHER_INSTALLED"
+    )
+
 else()
   ExternalProject_Add_Empty(${proj} DEPENDS ${${proj}_DEPENDENCIES})
 endif()
@@ -190,3 +267,39 @@ if(WIN32)
   mark_as_superbuild(VARS PYTHON_DEBUG_LIBRARY LABELS "FIND_PACKAGE")
   ExternalProject_Message(${proj} "PYTHON_DEBUG_LIBRARY:${PYTHON_DEBUG_LIBRARY}")
 endif()
+
+#!
+#! ExternalProject_PythonModule_InstallTreeCleanup(<proj> <modname> "[<dirname1>;[<dirname2>;[...]]]"))
+#!
+#! Add post-install cleanup step to project <proj>. For each <dirname>, this step will
+#! import the module <modname> and delete the <dirname> folder located in the module
+#! directory.
+#!
+#! This function is particularly useful to remove option and too long directories
+#! from python module install tree. This function was first developer to address
+#! issue #3749.
+#!
+function(ExternalProject_PythonModule_InstallTreeCleanup proj modname dirnames)
+  ExternalProject_Get_Property(${proj} tmp_dir)
+  set(_file "${tmp_dir}/${proj}_install_tree_cleanup.py")
+  set(_content
+"import ${modname}
+import os.path
+import shutil
+")
+  foreach(dirname ${dirnames})
+    set(_content "${_content}
+dir=os.path.join(os.path.dirname(${modname}.__file__), '${dirname}')
+print('Removing %s' % dir)
+shutil.rmtree(dir, True)
+print('Removing %s [done]' % dir)
+")
+  endforeach()
+  file(WRITE ${_file} ${_content})
+
+  ExternalProject_Add_Step(${proj} install_tree_cleanup
+    COMMAND ${PYTHON_EXECUTABLE} ${_file}
+    COMMENT "Performing install tree cleanup for '${proj}'"
+    DEPENDEES install
+    )
+endfunction()

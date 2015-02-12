@@ -15,7 +15,7 @@ find_package(SlicerExecutionModel REQUIRED ModuleDescriptionParser)
 set(${PROJECT_NAME}_ITK_COMPONENTS
   ${ModuleDescriptionParser_ITK_COMPONENTS}
   )
-find_package(ITK 4.5 COMPONENTS ${${PROJECT_NAME}_ITK_COMPONENTS} REQUIRED)
+find_package(ITK 4.6 COMPONENTS ${${PROJECT_NAME}_ITK_COMPONENTS} REQUIRED)
 
 #
 # VTK
@@ -134,6 +134,9 @@ if(VTK_WRAP_PYTHON)
     KIT_PYTHON_LIBRARIES SlicerBaseLogicPythonD
     )
   set_property(GLOBAL APPEND PROPERTY Slicer_TARGETS ${PROJECT_NAME}Python ${PROJECT_NAME}PythonD)
+  # Folder
+  set_target_properties(${PROJECT_NAME}Python PROPERTIES FOLDER "Core-Base")
+  set_target_properties(${PROJECT_NAME}PythonD PROPERTIES FOLDER "Core-Base")
 endif()
 
 # --------------------------------------------------------------------------

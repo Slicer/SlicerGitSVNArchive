@@ -98,6 +98,8 @@
 #include "vtkSlicerVersionConfigure.h" // For Slicer_VERSION_{MINOR, MAJOR}, Slicer_VERSION_FULL
 
 #ifdef Slicer_BUILD_DICOM_SUPPORT
+// XXX Avoid  warning: "HAVE_STAT" redefined
+#undef HAVE_STAT
 #include <ctkDICOMDatabase.h>
 #endif
 
@@ -178,9 +180,12 @@ void qSlicerCoreApplicationPrivate::init()
 #ifdef Slicer_USE_PYTHONQT_WITH_OPENSSL
   if (!QSslSocket::supportsSsl())
     {
-    qDebug() << "[SSL] SSL support disabled - Failed to load SSL library !";
+    qWarning() << "[SSL] SSL support disabled - Failed to load SSL library !";
     }
-  qSlicerCoreApplication::loadCaCertificates();
+  if (!qSlicerCoreApplication::loadCaCertificates())
+    {
+    qWarning() << "[SSL] Failed to load Slicer.crt";
+    }
 #endif
 
   QCoreApplication::setOrganizationDomain(Slicer_ORGANIZATION_DOMAIN);
@@ -297,6 +302,13 @@ void qSlicerCoreApplicationPrivate::init()
   this->createDirectory(q->extensionsInstallPath(), "extensions"); // Make sure the path exists
 
   model->updateModel();
+
+  QStringList updatedExtensions;
+  model->updateScheduledExtensions(updatedExtensions);
+  foreach(const QString& extensionName, updatedExtensions)
+    {
+    qDebug() << "Successfully updated extension" << extensionName;
+    }
 
   QStringList uninstalledExtensions;
   model->uninstallScheduledExtensions(uninstalledExtensions);
@@ -687,7 +699,7 @@ void qSlicerCoreApplication::setEnvironmentVariable(const QString& key, const QS
   // Since QProcessEnvironment can't be used to update the environment of the
   // current process, let's use 'putenv()'.
   // See http://doc.qt.nokia.com/4.6/qprocessenvironment.html#details
-  vtksys::SystemTools::PutEnv(QString("%1=%2").arg(key).arg(value).toLatin1());
+  vtksys::SystemTools::PutEnv(QString("%1=%2").arg(key).arg(value).toLatin1().constData());
 
 #ifdef Slicer_USE_PYTHONQT
   d->setPythonOsEnviron(key, value);
@@ -1151,6 +1163,7 @@ QString qSlicerCoreApplication::defaultExtensionsInstallPath() const
 #ifdef Slicer_BUILD_EXTENSIONMANAGER_SUPPORT
   return QFileInfo(appSettings->fileName()).dir().filePath(Slicer_EXTENSIONS_DIRNAME);
 #else
+  Q_UNUSED(appSettings);
   return QString();
 #endif
 }
@@ -1553,9 +1566,8 @@ void qSlicerCoreApplication::loadLanguage()
 bool qSlicerCoreApplication::loadCaCertificates()
 {
 #ifdef Slicer_USE_PYTHONQT_WITH_OPENSSL
-  if (QSslSocket::supportsSsl() && QSslSocket::defaultCaCertificates().empty())
+  if (QSslSocket::supportsSsl())
     {
-    qDebug() << "[SSL] No default CA certificates found - Loading Slicer.crt";
     QSslSocket::setDefaultCaCertificates(QSslCertificate::fromPath(":/Certs/Slicer.crt"));
     }
   return !QSslSocket::defaultCaCertificates().empty();

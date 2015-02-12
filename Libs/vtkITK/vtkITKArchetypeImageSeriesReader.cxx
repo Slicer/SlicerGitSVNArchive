@@ -54,31 +54,11 @@
   }
 #endif
 
-
-//
-// uncomment the define below to enable use of the GE5 (Signa) reader
-// this is not on by default because the reader does not support
-// reading directions from the file.
-// The GE5 reader was fixed just after the itk 3.2 release
-//
-#define USE_ITKGE5READER
-
-#ifdef USE_ITKGE5READER
-#include "itkImageIOFactory.h"
-#include "itkMutexLock.h"
-#include "itkMutexLockHolder.h"
-#include "itkGE5ImageIOFactory.h"
-#endif
-
 #include "itkArchetypeSeriesFileNames.h"
 #include "itkOrientImageFilter.h"
 #include "itkImageSeriesReader.h"
 #include "itkGDCMSeriesFileNames.h"
 #include "itkGDCMImageIO.h"
-#ifdef ITKV3_COMPATIBILITY
-#include "itkAnalyzeImageIOFactory.h"
-#include "itkAnalyzeImageIO.h"
-#endif
 
 vtkStandardNewMacro(vtkITKArchetypeImageSeriesReader);
 
@@ -128,56 +108,8 @@ vtkITKArchetypeImageSeriesReader::vtkITKArchetypeImageSeriesReader()
   this->SelectedSlice = -1;
   this->SelectedOrientation = -1;
 
-  this->RegisterExtraBuiltInFactories();
-  this->UnRegisterDeprecatedBuiltInFactories();
   this->SetNumberOfInputPorts(0);
   this->SetNumberOfOutputPorts(1);
-}
-
-//
-// ITK internally does not register all of the IO types that get built
-// (possibly due to lingering bugs?) but many slicer users have
-// GE5 (Signa - magic number: IMGF) files that they need to work
-// with so we register the factory explictly here
-//
-void
-vtkITKArchetypeImageSeriesReader::RegisterExtraBuiltInFactories()
-{
-#ifdef USE_ITKGE5READER
-  static bool firstTime = true;
-
-  static itk::SimpleMutexLock mutex;
-  {
-  // This helper class makes sure the Mutex is unlocked
-  // in the event an exception is thrown.
-  itk::MutexLockHolder<itk::SimpleMutexLock> mutexHolder( mutex );
-  if( firstTime )
-    {
-#ifdef ITKV3_COMPATIBILITY
-    itk::AnalyzeImageIOFactory::Pointer analyzeFactory = itk::AnalyzeImageIOFactory::New();
-    itk::ObjectFactoryBase::RegisterFactory( analyzeFactory.GetPointer() );
-#endif
-    itk::GE5ImageIOFactory::Pointer ge5Factory = itk::GE5ImageIOFactory::New();
-    itk::ObjectFactoryBase::RegisterFactory( ge5Factory.GetPointer() );
-    firstTime = false;
-    }
-  }
-#endif
-}
-
-//
-// ITK includes some old/unwanted IO Factories that cause
-// incorrect parsing of dicom files in some circumstances
-//
-void
-vtkITKArchetypeImageSeriesReader::UnRegisterDeprecatedBuiltInFactories()
-{
-  static bool firstTime = true;
-  if (!firstTime)
-    {
-    return;
-    }
-  firstTime = false;
 }
 
 //----------------------------------------------------------------------------

@@ -198,10 +198,10 @@ def initLogging(logger, args):
   lhe.setLevel(logging.WARNING)
   lhe.setFormatter(f)
 
-  # Set root logging level and add handlers
-  logging.getLogger().addHandler(lho)
-  logging.getLogger().addHandler(lhe)
-  logging.getLogger().setLevel(_logLevel)
+  # Set logging level and add handlers
+  logger.addHandler(lho)
+  logger.addHandler(lhe)
+  logger.setLevel(_logLevel)
 
   # Turn of github debugging
   ghLogger = logging.getLogger("github")
@@ -284,7 +284,7 @@ def buildProcessArgs(*args, **kwargs):
 
 #-----------------------------------------------------------------------------
 def createEmptyRepo(path, tool=None):
-  """Create a repository in an empty or non-existing location.
+  """Create a repository in an empty or nonexistent location.
 
   :param path:
     Location which should contain the newly created repository.
