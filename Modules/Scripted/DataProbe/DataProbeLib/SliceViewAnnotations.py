@@ -641,6 +641,8 @@ class SliceAnnotations(object):
 
     # Get slice view name
     sliceNode = backgroundLayer.GetSliceNode()
+    if not sliceNode:
+      return
     sliceViewName = sliceNode.GetLayoutName()
     self.currentSliceViewName = sliceViewName
 
@@ -744,6 +746,8 @@ class SliceAnnotations(object):
 
     # Get slice view name
     sliceNode = backgroundLayer.GetSliceNode()
+    if not sliceNode:
+      return
     sliceViewName = sliceNode.GetLayoutName()
     self.currentSliceViewName = sliceViewName
 
@@ -805,6 +809,8 @@ class SliceAnnotations(object):
 
     # Get slice view name
     sliceNode = backgroundLayer.GetSliceNode()
+    if not sliceNode:
+      return
     sliceViewName = sliceNode.GetLayoutName()
     self.currentSliceViewName = sliceViewName
 
