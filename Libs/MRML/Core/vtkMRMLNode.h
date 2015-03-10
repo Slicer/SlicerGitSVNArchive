@@ -115,6 +115,56 @@ void class::Set##name (const char* _arg)            \
   }
 #endif
 
+// Macro for logging informational messages
+//
+// Informational messages log important information and non-error events
+// that can be used for approximately tracking user actions.
+// The information is essential for troubleshooting errors (as the user
+// can be asked to simply provide the application log instead of describing
+// what he did in detail).
+//
+// A new vtkInfoMacro logging macro had to be added as vtkDebugMacro only logs
+// the message if debug is enabled for the particular object (also, typically
+// debug output contains many low-level details), and Error and Warning macros
+// are reserved for reporting potential issues.
+
+#ifndef vtkInfoWithObjectMacro
+#define vtkInfoWithObjectMacro(self, x)                        \
+  {                                                            \
+  if (true)                                                    \
+    {                                                          \
+    vtkOStreamWrapper::EndlType endl;                          \
+    vtkOStreamWrapper::UseEndl(endl);                          \
+    vtkOStrStreamWrapper vtkmsg;                               \
+    vtkmsg << "INFO: In " __FILE__ ", line " << __LINE__       \
+          << "\n" << self->GetClassName() << " (" << self      \
+          << "): " x << "\n\n";                                \
+    vtkOutputWindowDisplayText(vtkmsg.str());                  \
+    vtkmsg.rdbuf()->freeze(0);                                 \
+    }                                                          \
+  }
+#endif
+
+#ifndef vtkInfoWithoutObjectMacro
+#define vtkInfoWithoutObjectMacro(x)                           \
+  {                                                            \
+  if (true)                                                    \
+    {                                                          \
+    vtkOStreamWrapper::EndlType endl;                          \
+    vtkOStreamWrapper::UseEndl(endl);                          \
+    vtkOStrStreamWrapper vtkmsg;                               \
+    vtkmsg << "INFO: In " __FILE__ ", line " << __LINE__       \
+          << "\n" x << "\n\n";                                 \
+    vtkOutputWindowDisplayText(vtkmsg.str());                  \
+    vtkmsg.rdbuf()->freeze(0);                                 \
+    }                                                          \
+  }
+#endif
+
+#ifndef vtkInfoMacro
+#define vtkInfoMacro(x)                                        \
+  vtkInfoWithObjectMacro(this,x);
+#endif
 
 /// \brief Abstract Superclass for all specific types of MRML nodes.
 ///
