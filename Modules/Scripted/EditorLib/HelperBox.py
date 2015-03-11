@@ -572,7 +572,7 @@ class HelperBox(object):
       # label index
       item = qt.QStandardItem()
       item.setEditable(False)
-      item.setText( str(structureIndex) )
+      item.setText( "%03d"%int(structureIndex) )
       self.structures.setItem(self.row,0,item)
       self.items.append(item)
       # label color
