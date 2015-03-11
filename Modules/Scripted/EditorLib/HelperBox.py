@@ -1,5 +1,5 @@
 import os
-import re
+import fnmatch
 from __main__ import qt
 from __main__ import ctk
 from __main__ import vtk
@@ -504,8 +504,8 @@ class HelperBox(object):
     while vNode:
       vName = vNode.GetName()
       # match something like "CT-lung-label1"
-      regexp = "%s-.*-label" % masterName
-      if re.match(regexp, vName):
+      fnmatchExp = "%s-*-label*" % masterName
+      if fnmatch.fnmatch(vName,fnmatchExp):
         volumeNodes.append(vNode)
       vNode = slicer.mrmlScene.GetNextNodeByClass( "vtkMRMLScalarVolumeNode" )
     return volumeNodes
