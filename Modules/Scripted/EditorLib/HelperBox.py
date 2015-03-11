@@ -237,11 +237,12 @@ class HelperBox(object):
     labelName = colorNode.GetColorName( label )
     structureName = self.master.GetName()+"-%s-label"%labelName
 
-    struct = self.volumesLogic.CreateAndAddLabelVolume( slicer.mrmlScene, self.master, structureName )
-    struct.SetName(structureName)
-    struct.GetDisplayNode().SetAndObserveColorNodeID( colorNode.GetID() )
+    if labelName not in self.structureLabelNames:
+      struct = self.volumesLogic.CreateAndAddLabelVolume( slicer.mrmlScene, self.master, structureName )
+      struct.SetName(structureName)
+      struct.GetDisplayNode().SetAndObserveColorNodeID( colorNode.GetID() )
+      self.updateStructures()
 
-    self.updateStructures()
     if options.find("noEdit") < 0:
       self.edit( label )
 
@@ -612,6 +613,12 @@ class HelperBox(object):
     self.structuresView.setModel(self.structures)
     self.structuresView.connect("activated(QModelIndex)", self.onStructuresClicked)
     self.structuresView.setProperty('SH_ItemView_ActivateItemOnSingleClick', 1)
+
+    self.structureLabelNames = []
+    rows = self.structures.rowCount()
+    for row in xrange(rows):
+      self.structureLabelNames.append(self.structures.item(row,2).text())
+
 
   #
   # callback helpers (slots)
