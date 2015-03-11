@@ -601,12 +601,9 @@ class HelperBox(object):
       self.items.append(item)
       self.row += 1
 
+    for i in range(5):
+      self.structuresView.resizeColumnToContents(i)
 
-    self.structuresView.setColumnWidth(0,70)
-    self.structuresView.setColumnWidth(1,50)
-    self.structuresView.setColumnWidth(2,60)
-    self.structuresView.setColumnWidth(3,100)
-    self.structuresView.setColumnWidth(4,10)
     self.structures.setHeaderData(0,1,"Number")
     self.structures.setHeaderData(1,1,"Color")
     self.structures.setHeaderData(2,1,"Name")
