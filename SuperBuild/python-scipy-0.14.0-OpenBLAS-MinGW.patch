@@ -1,0 +1,13 @@
+diff -rupN scipy-0.14.0/scipy/spatial/qhull/src/mem.h scipy-0.14.0_build/scipy/spatial/qhull/src/mem.h
+--- scipy-0.14.0/scipy/spatial/qhull/src/mem.h	2014-02-03 14:48:50.000000000 +0100
++++ scipy-0.14.0_build/scipy/spatial/qhull/src/mem.h	2013-12-09 14:47:49.823399400 +0100
+@@ -78,7 +78,7 @@ Trace short and quick memory allocations
+     Qhull uses int instead of size_t except for system calls such as malloc, qsort, qh_malloc, etc.
+     This matches Qt convention and is easier to work with.  
+ */
+-#if _MSC_VER && defined(_WIN64)
++#if (_MSC_VER || defined(__MINGW64__)) && defined(_WIN64)
+ typedef long long ptr_intT;
+ #else
+ typedef long ptr_intT;
+ 

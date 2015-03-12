@@ -1,0 +1,4 @@
+.gitattributes   export-ignore
+*.patch          eol=lf
+*.patch.in       eol=lf
+

@@ -1,0 +1,13 @@
+diff -rupN numpy-1.9.0rc1_org/numpy/lib/tests/test_function_base.py numpy-1.9.0rc1/numpy/lib/tests/test_function_base.py
+--- numpy-1.9.0rc1_org/numpy/lib/tests/test_function_base.py	2014-08-09 03:38:44.000000000 +0200
++++ numpy-1.9.0rc1/numpy/lib/tests/test_function_base.py	2014-08-19 16:38:43.390012500 +0200
+@@ -551,7 +551,7 @@ class TestVectorize(TestCase):
+         args = np.array([0, 0.5*np.pi, np.pi, 1.5*np.pi, 2*np.pi])
+         r1 = f(args)
+         r2 = np.cos(args)
+-        assert_array_equal(r1, r2)
++        assert_array_almost_equal(r1, r2)
+ 
+     def test_keywords(self):
+         import math
+ 

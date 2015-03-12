@@ -1,0 +1,11 @@
+diff -rupN numpy-1.9.0rc1_org/numpy/setup.py numpy-1.9.0rc1/numpy/setup.py
+--- numpy-1.9.0rc1_org/numpy/setup.py	2014-08-09 03:38:44.000000000 +0200
++++ numpy-1.9.0rc1/numpy/setup.py	2014-08-19 16:38:43.400012500 +0200
+@@ -22,6 +22,7 @@ def configuration(parent_package='',top_
+     config.add_subpackage('doc')
+     config.add_data_dir('doc')
+     config.add_data_dir('tests')
++    config.add_data_files('core/libopenblas.so.0') # copy libopenblas.so.0 into numpy/core
+     config.make_config_py() # installs __config__.py
+     return config
+ 
