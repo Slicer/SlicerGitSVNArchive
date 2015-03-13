@@ -80,6 +80,20 @@ public:
   void PropagateVolumeSelection(int fit);
   void PropagateVolumeSelection() {this->PropagateVolumeSelection(1);}
 
+  ///
+  /// Propagate only active background volume in the SelectionNode to slice composite
+  /// nodes
+  void PropagateBackgroundVolumeSelection(int fit);
+
+  ///
+  /// Propagate only active foreground volume in the SelectionNode to slice composite
+  /// nodes
+  void PropagateForegroundVolumeSelection(int fit);
+
+  ///
+  /// Propagate only active label volume in the SelectionNode to slice composite
+  /// nodes
+  void PropagateLabelVolumeSelection(int fit);
 
   /// Fit all the volumes into their views
   void FitSliceToAll();

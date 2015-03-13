@@ -68,9 +68,17 @@ vtkStandardNewMacro(vtkMRMLApplicationLogic);
 class vtkMRMLApplicationLogic::vtkInternal
 {
 public:
-  vtkInternal();
+  vtkInternal(vtkMRMLApplicationLogic * external);
+  void PropagateVolumeSelection(int layer, int fit);
   ~vtkInternal();
 
+  enum{
+    Background=0,
+    Foreground,
+    Label,
+    };
+
+  vtkMRMLApplicationLogic*        External;
   vtkSmartPointer<vtkMRMLSelectionNode>    SelectionNode;
   vtkSmartPointer<vtkMRMLInteractionNode>  InteractionNode;
   vtkSmartPointer<vtkCollection> SliceLogics;
@@ -85,8 +93,9 @@ public:
 // vtkInternal methods
 
 //----------------------------------------------------------------------------
-vtkMRMLApplicationLogic::vtkInternal::vtkInternal()
+vtkMRMLApplicationLogic::vtkInternal::vtkInternal(vtkMRMLApplicationLogic * external)
 {
+  this->External = external;
   this->SliceLinkLogic = vtkSmartPointer<vtkMRMLSliceLinkLogic>::New();
   this->ModelHierarchyLogic = vtkSmartPointer<vtkMRMLModelHierarchyLogic>::New();
   this->ColorLogic = vtkSmartPointer<vtkMRMLColorLogic>::New();
@@ -98,12 +107,54 @@ vtkMRMLApplicationLogic::vtkInternal::~vtkInternal()
 }
 
 //----------------------------------------------------------------------------
+void vtkMRMLApplicationLogic::vtkInternal::PropagateVolumeSelection(int layer, int fit)
+{
+  if ( !this->SelectionNode || !this->External->GetMRMLScene() )
+    {
+    std::cout << this->SelectionNode << "    " << this->External->GetMRMLScene() << std::endl;
+    return;
+    }
+
+  char *ID = this->SelectionNode->GetActiveVolumeID();
+  char *secondID = this->SelectionNode->GetSecondaryVolumeID();
+  char *labelID = this->SelectionNode->GetActiveLabelVolumeID();
+
+  vtkMRMLSliceCompositeNode *cnode;
+  const int nnodes = this->External->GetMRMLScene()->GetNumberOfNodesByClass("vtkMRMLSliceCompositeNode");
+
+  for (int i = 0; i < nnodes; i++)
+    {
+    cnode = vtkMRMLSliceCompositeNode::SafeDownCast (
+      this->External->GetMRMLScene()->GetNthNodeByClass( i, "vtkMRMLSliceCompositeNode" ) );
+    if(!cnode->GetDoPropagateVolumeSelection())
+      {
+      continue;
+      }
+    switch (layer)
+    {
+      case Background:
+        cnode->SetBackgroundVolumeID( ID );
+        break;
+      case Foreground:
+        cnode->SetForegroundVolumeID( secondID );
+        break;
+      case Label:
+        cnode->SetLabelVolumeID( labelID );
+        break;
+    }
+  if (fit)
+    {
+    this->External->FitSliceToAll();
+    }
+}
+}
+//----------------------------------------------------------------------------
 // vtkMRMLApplicationLogic methods
 
 //----------------------------------------------------------------------------
 vtkMRMLApplicationLogic::vtkMRMLApplicationLogic()
 {
-  this->Internal = new vtkInternal;
+  this->Internal = new vtkInternal(this);
   this->Internal->SliceLinkLogic->SetMRMLApplicationLogic(this);
   this->Internal->ModelHierarchyLogic->SetMRMLApplicationLogic(this);
   this->Internal->ColorLogic->SetMRMLApplicationLogic(this);
@@ -312,6 +363,24 @@ void vtkMRMLApplicationLogic::PropagateVolumeSelection(int fit)
     }
 }
 
+
+//----------------------------------------------------------------------------
+void vtkMRMLApplicationLogic::PropagateBackgroundVolumeSelection(int fit)
+{
+  this->Internal->PropagateVolumeSelection(vtkInternal::Background,fit);
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLApplicationLogic::PropagateForegroundVolumeSelection(int fit)
+{
+  this->Internal->PropagateVolumeSelection(vtkInternal::Foreground,fit);
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLApplicationLogic::PropagateLabelVolumeSelection(int fit)
+{
+  this->Internal->PropagateVolumeSelection(vtkInternal::Label,fit);
+}
 
 //----------------------------------------------------------------------------
 void vtkMRMLApplicationLogic::FitSliceToAll()
