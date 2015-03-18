@@ -66,6 +66,12 @@ bool qSlicerCommandOptions::enableQtTesting()const
 }
 
 //-----------------------------------------------------------------------------
+bool qSlicerCommandOptions::enableDeveloperFeatures() const
+{
+  return this->parsedArgs().value("enable-developer-features").toBool();
+}
+
+//-----------------------------------------------------------------------------
 void qSlicerCommandOptions::addArguments()
 {
   this->Superclass::addArguments();
@@ -78,6 +84,9 @@ void qSlicerCommandOptions::addArguments()
 
   this->addArgument("no-main-window", "", QVariant::Bool,
                     "Disables display of the main slicer window.  Use with --python-script for alternate interface");
+
+  this->addArgument("enable-developer-features", "d", QVariant::Bool,
+                    "Enables the developer mode");
 
 #ifdef Slicer_USE_PYTHONQT
   if (!qSlicerCoreApplication::testAttribute(qSlicerCoreApplication::AA_DisablePython))
