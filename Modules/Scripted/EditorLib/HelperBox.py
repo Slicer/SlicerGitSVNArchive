@@ -734,7 +734,10 @@ class HelperBox(object):
     self.structuresView = qt.QTreeView()
     self.structuresView.objectName = 'StructuresView'
     self.structuresView.sortingEnabled = True
-    self.structuresFrame.layout().addWidget(self.structuresView)
+    structuresExpandableWidget = ctk.ctkExpandableWidget()
+    structuresExpandableWidget.setLayout(qt.QVBoxLayout())
+    self.structuresFrame.layout().addWidget(structuresExpandableWidget)
+    structuresExpandableWidget.layout().addWidget(self.structuresView)
 
     # all buttons frame
 
