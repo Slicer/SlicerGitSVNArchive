@@ -56,13 +56,7 @@
 #include <itkFactoryRegistration.h>
 
 // VTK includes
-//#include <vtkObject.h>
 #include <vtksys/SystemTools.hxx>
-
-#if defined (_WIN32) && !defined (Slicer_BUILD_WIN32_CONSOLE)
-# include <windows.h>
-# include <vtksys/Encoding.hxx>
-#endif
 
 namespace
 {
@@ -89,8 +83,10 @@ void splashMessage(QScopedPointer<QSplashScreen>& splashScreen, const QString& m
   splashScreen->showMessage(message, Qt::AlignBottom | Qt::AlignHCenter);
 }
 
+} // end of anonymous namespace
+
 //----------------------------------------------------------------------------
-int SlicerAppMain(int argc, char* argv[])
+int main(int argc, char *argv[])
 {
   itk::itkFactoryRegistration();
 
@@ -219,38 +215,3 @@ int SlicerAppMain(int argc, char* argv[])
   // clean up code to the aboutToQuit() signal
   return app.exec();
 }
-
-} // end of anonymous namespace
-
-#if defined (_WIN32) && !defined (Slicer_BUILD_WIN32_CONSOLE)
-int __stdcall WinMain(HINSTANCE hInstance,
-                      HINSTANCE hPrevInstance,
-                      LPSTR lpCmdLine, int nShowCmd)
-{
-  Q_UNUSED(hInstance);
-  Q_UNUSED(hPrevInstance);
-  Q_UNUSED(nShowCmd);
-
-  // CommandLineToArgvW has no narrow-character version, so we get the arguments in wide strings
-  // and then convert to regular string.
-  int argc;
-  LPWSTR* argvStringW = CommandLineToArgvW(GetCommandLineW(), &argc);
-
-  std::vector< const char* > argv(argc); // usual const char** array used in main() functions
-  std::vector< std::string > argvString(argc); // this stores the strings that the argv pointers point to
-  for(int i=0; i<argc; i++)
-    {
-    argvString[i] = vtksys::Encoding::ToNarrow(argvStringW[i]);
-    argv[i] = argvString[i].c_str();
-    }
-
-  LocalFree(argvStringW);
-
-  return SlicerAppMain(argc, const_cast< char** >(&argv[0]));
-}
-#else
-int main(int argc, char *argv[])
-{
-  return SlicerAppMain(argc, argv);
-}
-#endif

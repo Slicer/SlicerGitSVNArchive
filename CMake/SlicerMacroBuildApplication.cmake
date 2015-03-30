@@ -422,6 +422,16 @@ macro(slicerMacroBuildApplication)
     OUTPUT_NAME ${executable_name}
     )
 
+  if(WIN32)
+    if(NOT Slicer_HAS_CONSOLE_IO_SUPPORT)
+      set_property(
+        TARGET ${slicerapp_target}
+        APPEND_STRING
+        PROPERTY LINK_FLAGS " /ENTRY:mainCRTStartup"
+        )
+    endif()
+  endif()
+
   if(APPLE)
     set(link_flags "-Wl,-rpath,@loader_path/../")
     set_target_properties(${slicerapp_target}
