@@ -153,7 +153,6 @@ class DICOMDiffusionVolumePlugin:
     parent.helpText = """
     Plugin to the DICOM Module to parse and load diffusion volumes
     from DICOM files.
-    No module interface here, only in the DICOM module
     """
     parent.acknowledgementText = """
     This DICOM Plugin was developed by
@@ -161,8 +160,8 @@ class DICOMDiffusionVolumePlugin:
     and was partially funded by NIH grant 3P41RR013218.
     """
 
-    # don't show this module - it only appears in the DICOM module
-    parent.hidden = True
+    # This module does not provide a user interface
+    parent.interactive = False
 
     # Add this extension to the DICOM module's list for discovery when the module
     # is created.  Since this module may be discovered before DICOM itself,
@@ -172,23 +171,3 @@ class DICOMDiffusionVolumePlugin:
     except AttributeError:
       slicer.modules.dicomPlugins = {}
     slicer.modules.dicomPlugins['DICOMDiffusionVolumePlugin'] = DICOMDiffusionVolumePluginClass
-
-#
-# DICOMDiffusionVolumeWidget
-#
-
-class DICOMDiffusionVolumeWidget:
-  def __init__(self, parent = None):
-    self.parent = parent
-
-  def setup(self):
-    # don't display anything for this widget - it will be hidden anyway
-    pass
-
-  def enter(self):
-    pass
-
-  def exit(self):
-    pass
-
-
