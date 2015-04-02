@@ -43,6 +43,7 @@ class Q_SLICER_BASE_QTGUI_EXPORT qSlicerScriptedLoadableModule : public qSlicerL
   Q_PROPERTY(QVariantMap extensions READ extensions WRITE setExtensions)
   Q_PROPERTY(QIcon icon READ icon WRITE setIcon)
   Q_PROPERTY(bool hidden READ isHidden WRITE setHidden)
+  Q_PROPERTY(bool interactive READ isInteractive WRITE setInteractive)
   Q_PROPERTY(QStringList dependencies READ dependencies WRITE setDependencies)
   Q_PROPERTY(int index READ index WRITE setIndex)
 
@@ -87,6 +88,10 @@ public:
   /// Needs to be hidden before the module menu is created.
   virtual bool isHidden()const;
   void setHidden(bool hidden);
+
+  /// Enable/Disable interactive state of the module.
+  virtual bool isInteractive()const;
+  void setInteractive(bool interactive);
 
 protected:
 

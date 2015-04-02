@@ -55,6 +55,7 @@ public:
   QString AcknowledgementText;
   QIcon   Icon;
   bool   Hidden;
+  bool   Interactive;
   QVariantMap   Extensions;
   int Index;
 
@@ -87,6 +88,7 @@ qSlicerScriptedLoadableModulePrivate::qSlicerScriptedLoadableModulePrivate()
 {
   this->PythonSelf = 0;
   this->Hidden = false;
+  this->Interactive = true;
   this->Index = -1;
   for (int i = 0; i < Self::APIMethodCount; ++i)
     {
@@ -305,6 +307,11 @@ qSlicerAbstractModuleRepresentation* qSlicerScriptedLoadableModule::createWidget
 {
   Q_D(qSlicerScriptedLoadableModule);
 
+  if (!this->isInteractive())
+    {
+    return 0;
+    }
+
   QScopedPointer<qSlicerScriptedLoadableModuleWidget> widget(new qSlicerScriptedLoadableModuleWidget);
   bool ret = widget->setPythonSource(d->PythonSource);
   if (!ret)
@@ -363,6 +370,10 @@ CTK_GET_CPP(qSlicerScriptedLoadableModule, QIcon, icon, Icon)
 //-----------------------------------------------------------------------------
 CTK_SET_CPP(qSlicerScriptedLoadableModule, bool, setHidden, Hidden)
 CTK_GET_CPP(qSlicerScriptedLoadableModule, bool, isHidden, Hidden)
+
+//-----------------------------------------------------------------------------
+CTK_SET_CPP(qSlicerScriptedLoadableModule, bool, setInteractive, Interactive)
+CTK_GET_CPP(qSlicerScriptedLoadableModule, bool, isInteractive, Interactive)
 
 //-----------------------------------------------------------------------------
 CTK_SET_CPP(qSlicerScriptedLoadableModule, const QStringList&, setDependencies, Dependencies)
