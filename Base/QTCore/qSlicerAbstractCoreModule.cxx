@@ -192,7 +192,13 @@ CTK_GET_CPP(qSlicerAbstractCoreModule, vtkSlicerApplicationLogic*, appLogic, App
 //-----------------------------------------------------------------------------
 bool qSlicerAbstractCoreModule::isHidden()const
 {
-  return false;
+  return this->isInteractive() ? false : true;
+}
+
+//-----------------------------------------------------------------------------
+bool qSlicerAbstractCoreModule::isInteractive()const
+{
+  return true;
 }
 
 //-----------------------------------------------------------------------------
@@ -226,6 +232,11 @@ qSlicerAbstractModuleRepresentation* qSlicerAbstractCoreModule::widgetRepresenta
 qSlicerAbstractModuleRepresentation* qSlicerAbstractCoreModule::createNewWidgetRepresentation()
 {
   Q_D(qSlicerAbstractCoreModule);
+
+  if (!this->isInteractive())
+    {
+    return 0;
+    }
 
   // Since 'logic()' should have been called in 'initialize(), let's make
   // sure the 'logic()' method call is consistent and won't create a

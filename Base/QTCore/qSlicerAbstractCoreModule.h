@@ -107,6 +107,12 @@ class Q_SLICER_BASE_QTCORE_EXPORT qSlicerAbstractCoreModule : public QObject
   /// \sa isHidden
   Q_PROPERTY(bool hidden READ isHidden)
 
+  /// This property holds whether the user can interact with the module or not.
+  /// If the module is non-interactive, it will not have a widget representation.
+  /// By default, modules are interactive (interactive == true).
+  /// \sa isHidden
+  Q_PROPERTY(bool interactive READ isInteractive)
+
   /// This property holds the help of the module.
   /// The help is displayed inside the module as a tab.
   /// \a helpText must be reimplemented for each module.
@@ -199,10 +205,17 @@ public:
   /// Return the category index of the module.
   virtual int index()const;
 
-  /// Returns true if the module should be hidden to the user.
-  /// By default, modules are not hidden.
-  /// \sa hidden
+  /// Returns \a true if the module should be hidden to the user.
+  /// By default, interactive modules are visible and non-interactive
+  /// modules are hidden.
+  /// \sa hidden, interactive
   virtual bool isHidden()const;
+
+  /// Return \a true if the module provide an interface allowing
+  /// the user to directly use the module.
+  /// Non-interactive module are not expected to provide a widget representation.
+  /// \sa widgetRepresentation(), hidden
+  virtual bool isInteractive()const;
 
   /// Return the contributors of the module
   virtual QStringList contributors()const;
