@@ -131,9 +131,10 @@ class VTK_Teem_EXPORT vtkTeemEstimateDiffusionTensor : public vtkThreadedImageAl
   ///
   /// Internal class use only
   void TransformDiffusionGradients();
+  void RescaleGradients();
   int SetGradientsToContext ( tenEstimateContext *tec,Nrrd *ngrad, Nrrd *nbmat);
   int SetTenContext(  tenEstimateContext *tec,Nrrd *ngrad, Nrrd *nbmat);
-
+  
   ///
   /// Flag to shift eigenvalues upwards to that smallest one is non-negative
   /// (negEvalShift in Teem's Ten)
@@ -147,12 +148,11 @@ class VTK_Teem_EXPORT vtkTeemEstimateDiffusionTensor : public vtkThreadedImageAl
   void operator=(const vtkTeemEstimateDiffusionTensor&);
   void PrintSelf(ostream& os, vtkIndent indent);
 
-
-
   int NumberOfGradients;
 
   vtkDoubleArray *BValues;
   vtkDoubleArray *DiffusionGradients;
+  vtkDoubleArray *RescaledDiffusionGradients;
   /// Maximum of the B values
   double MaxB;
 
