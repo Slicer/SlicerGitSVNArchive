@@ -43,7 +43,7 @@ class VTK_MRML_EXPORT vtkMRMLLabelMapVolumeNode : public vtkMRMLScalarVolumeNode
 
   ///
   /// Get node XML tag name (like Volume, Model)
-  virtual const char* GetNodeTagName() {return "vtkMRMLLabelMapVolumeNode";};
+  virtual const char* GetNodeTagName() {return "LabelMap";};
 
   ///
   /// Make a 'None' volume node with blank image data
