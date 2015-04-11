@@ -21,6 +21,7 @@
 #include "vtkMRMLDiffusionWeightedVolumeDisplayNode.h"
 #include "vtkMRMLDiffusionTensorVolumeDisplayNode.h"
 #include "vtkMRMLDiffusionTensorVolumeSliceDisplayNode.h"
+#include "vtkMRMLLabelMapVolumeNode.h"
 #include "vtkMRMLScene.h"
 #include "vtkMRMLTransformNode.h"
 
@@ -308,13 +309,8 @@ void vtkMRMLSliceLayerLogic::SetVolumeNode(vtkMRMLVolumeNode *volumeNode)
 void vtkMRMLSliceLayerLogic::UpdateNodeReferences ()
 {
   // if there's a display node, observe it
-  vtkMRMLVolumeDisplayNode *displayNode = 0;
-  vtkMRMLDiffusionTensorDisplayPropertiesNode *propNode = 0;
-
-  vtkMRMLDiffusionTensorVolumeDisplayNode *dtdisplayNode = 0;
-  vtkMRMLDiffusionWeightedVolumeDisplayNode *dwdisplayNode = 0;
-  vtkMRMLVectorVolumeDisplayNode *vdisplayNode = 0;
-  vtkMRMLScalarVolumeDisplayNode *sdisplayNode = 0;
+  vtkSmartPointer<vtkMRMLVolumeDisplayNode> displayNode;
+  vtkSmartPointer<vtkMRMLDiffusionTensorDisplayPropertiesNode> dtPropNode;
 
   if ( this->VolumeNode )
     {
@@ -327,78 +323,65 @@ void vtkMRMLSliceLayerLogic::UpdateNodeReferences ()
       {
       // TODO: this is a hack
       vtkDebugMacro("UpdateNodeReferences: Volume Node " << this->VolumeNode->GetID() << " doesn't have a display node, adding one.");
-      int isLabelMap =0;
       if (vtkMRMLDiffusionTensorVolumeNode::SafeDownCast(this->VolumeNode))
         {
-        dtdisplayNode = vtkMRMLDiffusionTensorVolumeDisplayNode::New();
-        displayNode= dtdisplayNode;
-        propNode = vtkMRMLDiffusionTensorDisplayPropertiesNode::New();
+        displayNode.TakeReference(vtkMRMLDiffusionTensorVolumeDisplayNode::New());
+        dtPropNode.TakeReference(vtkMRMLDiffusionTensorDisplayPropertiesNode::New());
         }
       else if (vtkMRMLDiffusionWeightedVolumeNode::SafeDownCast(this->VolumeNode))
         {
-        dwdisplayNode = vtkMRMLDiffusionWeightedVolumeDisplayNode::New();
-        displayNode= dwdisplayNode;
+        displayNode.TakeReference(vtkMRMLDiffusionWeightedVolumeDisplayNode::New());
         }
       else if (vtkMRMLVectorVolumeNode::SafeDownCast(this->VolumeNode))
         {
-        vdisplayNode = vtkMRMLVectorVolumeDisplayNode::New();
-        displayNode= vdisplayNode;
+        displayNode.TakeReference(vtkMRMLVectorVolumeDisplayNode::New());
+        }
+      else if (vtkMRMLLabelMapVolumeNode::SafeDownCast(this->VolumeNode))
+        {
+        displayNode.TakeReference(vtkMRMLLabelMapVolumeDisplayNode::New());
         }
       else if (vtkMRMLScalarVolumeNode::SafeDownCast(this->VolumeNode))
         {
-        isLabelMap = vtkMRMLScalarVolumeNode::SafeDownCast(this->VolumeNode)->GetLabelMap();
-        if (isLabelMap)
-          {
-          displayNode = vtkMRMLLabelMapVolumeDisplayNode::New();
-          }
-        else
-         {
-         sdisplayNode = vtkMRMLScalarVolumeDisplayNode::New();
-         displayNode = sdisplayNode;
-         }
-
+        displayNode.TakeReference(vtkMRMLScalarVolumeDisplayNode::New());
         }
+
       displayNode->SetScene(this->GetMRMLScene());
       this->GetMRMLScene()->AddNode(displayNode);
 
-      if (propNode)
+      if (dtPropNode.GetPointer())
         {
-        propNode->SetScene(this->GetMRMLScene());
-        this->GetMRMLScene()->AddNode(propNode);
-        displayNode->SetAndObserveColorNodeID(propNode->GetID());
+        dtPropNode->SetScene(this->GetMRMLScene());
+        this->GetMRMLScene()->AddNode(dtPropNode);
+        displayNode->SetAndObserveColorNodeID(dtPropNode->GetID());
         }
 
       displayNode->SetDefaultColorMap();
 
       this->VolumeNode->SetAndObserveDisplayNodeID(displayNode->GetID());
-      displayNode->Delete();
       }
     }
 
-    if ( displayNode != this->VolumeDisplayNodeObserved &&
-         this->VolumeDisplayNode != 0)
+  if ( displayNode.GetPointer() != this->VolumeDisplayNodeObserved)
+    {
+    if (this->VolumeDisplayNode != 0)
       {
       vtkDebugMacro("vtkMRMLSliceLayerLogic::UpdateNodeReferences: new display node = " << (displayNode == 0 ? "null" : "valid") << endl);
       this->VolumeDisplayNode->Delete();
       this->VolumeDisplayNode = 0;
       }
-
-    if ( displayNode != this->VolumeDisplayNodeObserved &&
-         this->VolumeDisplayNodeUVW != 0)
+    if (this->VolumeDisplayNodeUVW != 0)
       {
       vtkDebugMacro("vtkMRMLSliceLayerLogic::UpdateNodeReferences: new display node = " << (displayNode == 0 ? "null" : "valid") << endl);
       this->VolumeDisplayNodeUVW->Delete();
       this->VolumeDisplayNodeUVW = 0;
       }
-    // vtkSetAndObserveMRMLNodeMacro could fire an event but we want to wait
-    // after UpdateVolumeDisplayNode is called to fire it.
-    if (this->VolumeDisplayNodeObserved != displayNode)
-      {
-      bool wasModifying = this->StartModify();
-      vtkSetAndObserveMRMLNodeMacro(this->VolumeDisplayNodeObserved, displayNode);
-      this->UpdateVolumeDisplayNode();
-      this->EndModify(wasModifying);
-      }
+    }
+  // vtkSetAndObserveMRMLNodeMacro could fire an event but we want to wait
+  // after UpdateVolumeDisplayNode is called to fire it.
+  bool wasModifying = this->StartModify();
+  vtkSetAndObserveMRMLNodeMacro(this->VolumeDisplayNodeObserved, displayNode);
+  this->UpdateVolumeDisplayNode();
+  this->EndModify(wasModifying);
 }
 
 //----------------------------------------------------------------------------
