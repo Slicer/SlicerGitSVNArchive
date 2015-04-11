@@ -259,9 +259,11 @@ Slicer_Remote_Add(BRAINSTools
   )
 list_conditional_append(Slicer_BUILD_BRAINSTOOLS Slicer_REMOTE_DEPENDENCIES BRAINSTools)
 
+# XXX After changes are committed to the Slicer core and EMSegment core, the SVN_REPOSITORY
+#     has to be reverted to http://svn.slicer.org/Slicer3/branches/Slicer4-EMSegment
 Slicer_Remote_Add(EMSegment
-  SVN_REPOSITORY "http://svn.slicer.org/Slicer3/branches/Slicer4-EMSegment"
-  SVN_REVISION -r "17095"
+  SVN_REPOSITORY "http://svn.slicer.org/Slicer3/branches/Slicer4-EMSegment-LabelMapVolumeNode"
+  SVN_REVISION -r "17097"
   OPTION_NAME Slicer_BUILD_EMSegment
   OPTION_DEPENDS "Slicer_BUILD_BRAINSTOOLS;Slicer_BUILD_QTLOADABLEMODULES;Slicer_USE_PYTHONQT_WITH_TCL"
   LABELS REMOTE_MODULE
