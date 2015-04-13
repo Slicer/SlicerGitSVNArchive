@@ -29,6 +29,7 @@
 #include "qMRMLNodeComboBox.h"
 #include "qMRMLSliceControllerWidget.h"
 #include <vtkMRMLColorLogic.h>
+#include <vtkMRMLLabelMapVolumeNode.h>
 #include <vtkMRMLScalarVolumeNode.h>
 #include <vtkMRMLScene.h>
 #include <vtkMRMLSliceCompositeNode.h>
@@ -64,7 +65,6 @@ private slots:
   void testSetLabelVolume();
   void testSetLabelVolume_data();
 
-  void testChangeLabelMapToScalarVolume();
   void testSetLabelVolumeWithNoLinkedControl();
 };
 
@@ -95,9 +95,8 @@ void qMRMLSliceControllerWidgetTester::init()
   volumeNode3->SetName("Volume 3");
   this->MRMLScene->AddNode(volumeNode3.GetPointer());
 
-  vtkNew<vtkMRMLScalarVolumeNode> labelmapNode1;
+  vtkNew<vtkMRMLLabelMapVolumeNode> labelmapNode1;
   labelmapNode1->SetName("Labelmap 1");
-  labelmapNode1->SetLabelMap(1);
   this->MRMLScene->AddNode(labelmapNode1.GetPointer());
 
   this->MRMLSliceNode = sliceNode.GetPointer();
@@ -272,24 +271,6 @@ void qMRMLSliceControllerWidgetTester::testSetLabelVolume_data()
 }
 
 // ----------------------------------------------------------------------------
-void qMRMLSliceControllerWidgetTester::testChangeLabelMapToScalarVolume()
-{
-  qMRMLSliceControllerWidget sliceControllerWidget;
-  sliceControllerWidget.setMRMLScene(this->MRMLScene);
-
-  vtkMRMLScalarVolumeNode* scalarVolumeNode =
-    vtkMRMLScalarVolumeNode::SafeDownCast(this->MRMLScene->GetNodeByID("vtkMRMLScalarVolumeNode4"));
-  sliceControllerWidget.mrmlSliceCompositeNode()->SetLabelVolumeID("vtkMRMLScalarVolumeNode4");
-
-  // Remove the label map property
-  scalarVolumeNode->SetLabelMap(0);
-
-  qMRMLNodeComboBox* comboBox =
-    qobject_cast<qMRMLNodeComboBox*>(sliceControllerWidget.findChild<qMRMLNodeComboBox*>("LabelMapComboBox"));
-  QCOMPARE(comboBox->currentNodeID(), QString());
-}
-
-// ----------------------------------------------------------------------------
 void qMRMLSliceControllerWidgetTester::testSetLabelVolumeWithNoLinkedControl()
 {
   qMRMLSliceControllerWidget sliceControllerWidget;
@@ -302,9 +283,8 @@ void qMRMLSliceControllerWidgetTester::testSetLabelVolumeWithNoLinkedControl()
     sliceControllerWidget.mrmlSliceCompositeNode()->SetLabelVolumeID(scalarVolumeNode->GetID());
     }
 
-  vtkNew<vtkMRMLScalarVolumeNode> labelmapNode2;
+  vtkNew<vtkMRMLLabelMapVolumeNode> labelmapNode2;
   labelmapNode2->SetName("Labelmap 2");
-  labelmapNode2->SetLabelMap(1);
   this->MRMLScene->AddNode(labelmapNode2.GetPointer());
 
   vtkMRMLSliceCompositeNode* sliceCompositeNode =
