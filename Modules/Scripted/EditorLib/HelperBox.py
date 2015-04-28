@@ -954,7 +954,7 @@ class HelperBox(object):
         nodeName = node.GetName()
         if nodeName.find(name) == 0:
           # prefix matches, is the rest all numbers?
-          if nodeName == name or nodeName[len(name):].isdigit():
+          if nodeName == name or nodeName[len(name)+1:].isdigit():
             return node
       except:
         pass
