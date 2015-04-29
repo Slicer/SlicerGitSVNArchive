@@ -297,7 +297,8 @@ void vtkImageLabelOutline::SetOutline(int outline)
   this->Outline = outline;
 
   // also set the kernel size for 2D
-  this->SetKernelSize(outline, outline, 1);
+  int kernelSize = (outline * 2) + 1;
+  this->SetKernelSize(kernelSize, kernelSize, 1);
 
   this->Modified();
 }
