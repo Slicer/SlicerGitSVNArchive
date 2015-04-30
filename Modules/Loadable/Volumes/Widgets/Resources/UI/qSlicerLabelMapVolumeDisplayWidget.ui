@@ -37,7 +37,7 @@
    <item row="1" column="0">
      <widget class="QLabel" name="SliceIntersectionThicknessLabel">
        <property name="text">
-         <string>Slice Intersections &amp;Thickness:</string>
+         <string>Label Outline &amp;Thickness:</string>
        </property>
        <property name="buddy">
          <cstring>SliceIntersectionThicknessSpinBox</cstring>
@@ -56,13 +56,13 @@
          <number>20</number>
        </property>
        <property name="value">
-         <number>1</number>
+         <number>3</number>
        </property>
        <property name="singleStep">
          <number>1</number>
        </property>
        <property name="toolTip">
-         <string>Width of the label outline when displayed unfilled</string>
+         <string>When displaying the label map with the outline/not filled option, this controls the width of the outline.</string>
        </property>
      </widget>
    </item>
