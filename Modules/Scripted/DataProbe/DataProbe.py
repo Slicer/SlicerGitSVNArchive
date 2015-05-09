@@ -85,8 +85,13 @@ class DataProbeInfoWidget(object):
     modulePath = slicer.modules.dataprobe.path.replace("DataProbe.py","")
     self.iconsDIR = modulePath + '/Resources/Icons'
 
+    self.imageCrop = vtk.vtkExtractVOI()
+    self.imageZoom = 10
+    self.showImage = True
+
     if type == 'small':
       self.createSmall()
+
 
     #Helper class to calculate and display tensor scalars
     self.calculateTensorScalars = CalculateTensorScalars()
@@ -265,6 +270,23 @@ class DataProbeInfoWidget(object):
       self.layerValues[layer].setText(
         "<b>%s</b>" % self.getPixelString(volumeNode,ijk) if volumeNode else "")
 
+    # set image
+    if sliceLogic and self.showImage:
+      self.imageCrop.SetInputConnection(sliceLogic.GetBlend().GetOutputPort())
+      xyzInt = [0, 0, 0]
+      xyzInt = [_roundInt(value) for value in xyz]
+      dims = sliceLogic.GetBlend().GetOutput().GetDimensions()
+      minDim = min(dims[0],dims[1])
+      imageSize = _roundInt(minDim/self.imageZoom/2.0)
+      self.imageCrop.SetVOI(xyzInt[0]-imageSize, xyzInt[0]+imageSize, xyzInt[1]-imageSize, xyzInt[1]+imageSize, 0,0)
+      self.imageCrop.Update()
+      vtkImage = self.imageCrop.GetOutput()
+      qImage = qt.QImage()
+      slicer.qMRMLUtils().vtkImageDataToQImage(vtkImage, qImage)
+      self.imagePixmap = self.imagePixmap.fromImage(qImage)
+      self.imagePixmap = self.imagePixmap.scaled(self.imageLabel.size, qt.Qt.KeepAspectRatio, qt.Qt.FastTransformation)
+      self.imageLabel.setPixmap(self.imagePixmap)
+
     sceneName = slicer.mrmlScene.GetURL()
     if sceneName != "":
       self.frame.parent().text = "Data Probe: %s" % self.fitName(sceneName,nameSize=2*self.nameSize)
@@ -285,6 +307,15 @@ class DataProbeInfoWidget(object):
     self.goToModule.connect("clicked()", self.onGoToModule)
     # hide this for now - there's not much to see in the module itself
     self.goToModule.hide()
+
+    # image view
+    if self.showImage:
+      self.imageLabel = qt.QLabel()
+      self.imagePixmap = qt.QPixmap()
+      qSize = qt.QSizePolicy(qt.QSizePolicy.Expanding, qt.QSizePolicy.Expanding)
+      self.imageLabel.setSizePolicy(qSize)
+      #self.imageLabel.setScaledContents(True)
+      self.frame.layout().addWidget(self.imageLabel)
 
     # top row - things about the viewer itself
     self.viewerFrame = qt.QFrame(self.frame)
