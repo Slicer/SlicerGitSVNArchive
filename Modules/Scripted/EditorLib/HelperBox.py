@@ -110,8 +110,8 @@ class HelperBox(object):
     """select master volume - load merge volume if one with the correct name exists"""
 
     self.master = self.masterSelector.currentNode()
-    self.merge = None
     merge = self.mergeVolume()
+    self.merge = None
     mergeText = "None"
     if merge:
       if merge.GetClassName() != "vtkMRMLScalarVolumeNode" or not merge.GetLabelMap():
@@ -189,7 +189,7 @@ class HelperBox(object):
         return self.merge
 
     self.merge = None
-    self.masterWhenMergeWasSemasterWhenMergeWasSet = None
+    self.masterWhenMergeWasSet = None
 
     # otherwise pick the merge based on the master name
     # - either return the merge volume or empty string
