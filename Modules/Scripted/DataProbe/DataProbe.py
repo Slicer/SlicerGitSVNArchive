@@ -62,7 +62,13 @@ See <a>http://www.slicer.org</a> for details.  Module implemented by Steve Piepe
       print("No Data Probe frame - cannot create DataProbe")
       return
     self.infoWidget = DataProbeInfoWidget(parent,type='small')
+    self.infoWidget.onShowImage(False)
     parent.layout().insertWidget(0,self.infoWidget.frame)
+
+  def showZoomedSlice(self, value=False):
+    self.showZoomedSlice = value
+    if self.infoWidget:
+      self.infoWidget.onShowImage(value)
 
 class DataProbeInfoWidget(object):
 
@@ -309,13 +315,18 @@ class DataProbeInfoWidget(object):
     self.goToModule.hide()
 
     # image view
-    if self.showImage:
-      self.imageLabel = qt.QLabel()
-      self.imagePixmap = qt.QPixmap()
-      qSize = qt.QSizePolicy(qt.QSizePolicy.Expanding, qt.QSizePolicy.Expanding)
-      self.imageLabel.setSizePolicy(qSize)
-      #self.imageLabel.setScaledContents(True)
-      self.frame.layout().addWidget(self.imageLabel)
+    self.showImageBox = qt.QCheckBox('Show Zoomed Slice', self.frame)
+    self.frame.layout().addWidget(self.showImageBox)
+    self.showImageBox.connect("toggled(bool)", self.onShowImage)
+    self.showImageBox.setChecked(False)
+
+    self.imageLabel = qt.QLabel()
+    self.imagePixmap = qt.QPixmap()
+    qSize = qt.QSizePolicy(qt.QSizePolicy.Expanding, qt.QSizePolicy.Expanding)
+    self.imageLabel.setSizePolicy(qSize)
+    #self.imageLabel.setScaledContents(True)
+    self.frame.layout().addWidget(self.imageLabel)
+    self.onShowImage(False)
 
     # top row - things about the viewer itself
     self.viewerFrame = qt.QFrame(self.frame)
@@ -374,6 +385,12 @@ class DataProbeInfoWidget(object):
   def onGoToModule(self):
     m = slicer.util.mainWindow()
     m.moduleSelector().selectModule('DataProbe')
+
+  def onShowImage(self, value=False):
+    if value:
+      self.imageLabel.show()
+    else:
+      self.imageLabel.hide()
 
 #
 # DataProbe widget
