@@ -250,8 +250,8 @@ set(BRAINSTools_options
   USE_DWIConvert:BOOL=${Slicer_BUILD_DICOM_SUPPORT} ## Need to figure out library linking
   )
 Slicer_Remote_Add(BRAINSTools
-  GIT_REPOSITORY "${git_protocol}://github.com/Slicer/BRAINSTools.git"
-  GIT_TAG "73a6e2d6c2488823ba7d312471982a1897099c98"
+  GIT_REPOSITORY "${git_protocol}://github.com/BRAINSia/BRAINSTools.git"
+  GIT_TAG "980803c1fe9821af99df269ef06fa7161584776b"
   OPTION_NAME Slicer_BUILD_BRAINSTOOLS
   OPTION_DEPENDS "Slicer_BUILD_CLI_SUPPORT;Slicer_BUILD_CLI"
   LABELS REMOTE_MODULE
