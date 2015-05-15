@@ -93,7 +93,7 @@ class DataProbeInfoWidget(object):
 
     self.imageCrop = vtk.vtkExtractVOI()
     self.imageZoom = 10
-    self.showImage = True
+    self.showImage = False
 
     if type == 'small':
       self.createSmall()
@@ -221,7 +221,17 @@ class DataProbeInfoWidget(object):
         self.layerNames[layer].setText( "" )
         self.layerIJKs[layer].setText( "" )
         self.layerValues[layer].setText( "" )
+      self.imageLabel.hide()
+      self.viewerColor.hide()
+      self.viewInfo.hide()
+      self.viewerFrame.hide()
+      self.showImageBox.show()
       return
+
+    self.viewerColor.show()
+    self.viewInfo.show()
+    self.viewerFrame.show()
+    self.showImageBox.hide()
 
     self.currentLayoutName = sliceNode.GetLayoutName()
 
@@ -284,14 +294,20 @@ class DataProbeInfoWidget(object):
       dims = sliceLogic.GetBlend().GetOutput().GetDimensions()
       minDim = min(dims[0],dims[1])
       imageSize = _roundInt(minDim/self.imageZoom/2.0)
-      self.imageCrop.SetVOI(xyzInt[0]-imageSize, xyzInt[0]+imageSize, xyzInt[1]-imageSize, xyzInt[1]+imageSize, 0,0)
+      imin = max(0,xyzInt[0]-imageSize)
+      imax = min(dims[0]-1,  xyzInt[0]+imageSize)
+      jmin = max(0,xyzInt[1]-imageSize)
+      jmax = min(dims[1]-1,  xyzInt[1]+imageSize)
+      self.imageCrop.SetVOI(imin, imax, jmin, jmax, 0,0)
       self.imageCrop.Update()
       vtkImage = self.imageCrop.GetOutput()
-      qImage = qt.QImage()
-      slicer.qMRMLUtils().vtkImageDataToQImage(vtkImage, qImage)
-      self.imagePixmap = self.imagePixmap.fromImage(qImage)
-      self.imagePixmap = self.imagePixmap.scaled(self.imageLabel.size, qt.Qt.KeepAspectRatio, qt.Qt.FastTransformation)
-      self.imageLabel.setPixmap(self.imagePixmap)
+      if vtkImage:
+        qImage = qt.QImage()
+        slicer.qMRMLUtils().vtkImageDataToQImage(vtkImage, qImage)
+        self.imagePixmap = self.imagePixmap.fromImage(qImage)
+        self.imagePixmap = self.imagePixmap.scaled(self.imageLabel.size, qt.Qt.KeepAspectRatio, qt.Qt.FastTransformation)
+        self.imageLabel.setPixmap(self.imagePixmap)
+      self.onShowImage(self.showImage)
 
     sceneName = slicer.mrmlScene.GetURL()
     if sceneName != "":
@@ -387,10 +403,13 @@ class DataProbeInfoWidget(object):
     m.moduleSelector().selectModule('DataProbe')
 
   def onShowImage(self, value=False):
+    self.showImage = value
     if value:
       self.imageLabel.show()
     else:
       self.imageLabel.hide()
+      pixmap = qt.QPixmap()
+      self.imageLabel.setPixmap(pixmap)
 
 #
 # DataProbe widget
