@@ -268,6 +268,7 @@ class DataProbeInfoWidget(object):
       except ValueError:
         return 0
 
+    hasVolume = False
     layerLogicCalls = (('L', sliceLogic.GetLabelLayer),
                        ('F', sliceLogic.GetForegroundLayer),
                        ('B', sliceLogic.GetBackgroundLayer))
@@ -276,6 +277,7 @@ class DataProbeInfoWidget(object):
       volumeNode = layerLogic.GetVolumeNode()
       ijk = [0, 0, 0]
       if volumeNode:
+        hasVolume = True
         xyToIJK = layerLogic.GetXYToIJKTransform()
         ijkFloat = xyToIJK.TransformDoublePoint(xyz)
         ijk = [_roundInt(value) for value in ijkFloat]
@@ -287,7 +289,7 @@ class DataProbeInfoWidget(object):
         "<b>%s</b>" % self.getPixelString(volumeNode,ijk) if volumeNode else "")
 
     # set image
-    if sliceLogic and self.showImage:
+    if sliceLogic and hasVolume and self.showImage:
       self.imageCrop.SetInputConnection(sliceLogic.GetBlend().GetOutputPort())
       xyzInt = [0, 0, 0]
       xyzInt = [_roundInt(value) for value in xyz]
