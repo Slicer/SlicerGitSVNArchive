@@ -289,7 +289,7 @@ class DataProbeInfoWidget(object):
         "<b>%s</b>" % self.getPixelString(volumeNode,ijk) if volumeNode else "")
 
     # set image
-    if sliceLogic and hasVolume and self.showImage:
+    if (not slicer.mrmlScene.IsBatchProcessing()) and sliceLogic and hasVolume and self.showImage:
       self.imageCrop.SetInputConnection(sliceLogic.GetBlend().GetOutputPort())
       xyzInt = [0, 0, 0]
       xyzInt = [_roundInt(value) for value in xyz]
@@ -300,16 +300,17 @@ class DataProbeInfoWidget(object):
       imax = min(dims[0]-1,  xyzInt[0]+imageSize)
       jmin = max(0,xyzInt[1]-imageSize)
       jmax = min(dims[1]-1,  xyzInt[1]+imageSize)
-      self.imageCrop.SetVOI(imin, imax, jmin, jmax, 0,0)
-      self.imageCrop.Update()
-      vtkImage = self.imageCrop.GetOutput()
-      if vtkImage:
-        qImage = qt.QImage()
-        slicer.qMRMLUtils().vtkImageDataToQImage(vtkImage, qImage)
-        self.imagePixmap = self.imagePixmap.fromImage(qImage)
-        self.imagePixmap = self.imagePixmap.scaled(self.imageLabel.size, qt.Qt.KeepAspectRatio, qt.Qt.FastTransformation)
-        self.imageLabel.setPixmap(self.imagePixmap)
-      self.onShowImage(self.showImage)
+      if (imin <= imax) and (jmin <= jmax):
+        self.imageCrop.SetVOI(imin, imax, jmin, jmax, 0,0)
+        self.imageCrop.Update()
+        vtkImage = self.imageCrop.GetOutput()
+        if vtkImage:
+          qImage = qt.QImage()
+          slicer.qMRMLUtils().vtkImageDataToQImage(vtkImage, qImage)
+          self.imagePixmap = self.imagePixmap.fromImage(qImage)
+          self.imagePixmap = self.imagePixmap.scaled(self.imageLabel.size, qt.Qt.KeepAspectRatio, qt.Qt.FastTransformation)
+          self.imageLabel.setPixmap(self.imagePixmap)
+          self.onShowImage(self.showImage)
 
     sceneName = slicer.mrmlScene.GetURL()
     if sceneName != "":
