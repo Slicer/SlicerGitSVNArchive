@@ -95,6 +95,9 @@ class DataProbeInfoWidget(object):
     self.imageZoom = 10
     self.showImage = False
 
+    self.painter = qt.QPainter()
+    self.pen = qt.QPen()
+
     if type == 'small':
       self.createSmall()
 
@@ -309,6 +312,15 @@ class DataProbeInfoWidget(object):
           slicer.qMRMLUtils().vtkImageDataToQImage(vtkImage, qImage)
           self.imagePixmap = self.imagePixmap.fromImage(qImage)
           self.imagePixmap = self.imagePixmap.scaled(self.imageLabel.size, qt.Qt.KeepAspectRatio, qt.Qt.FastTransformation)
+
+          # draw crosshair
+          self.painter.begin(self.imagePixmap)
+          self.pen.setColor(color)
+          self.painter.setPen(self.pen)
+          self.painter.drawLine(0,self.imagePixmap.height()/2, self.imagePixmap.width(), self.imagePixmap.height()/2)
+          self.painter.drawLine(self.imagePixmap.width()/2,0, self.imagePixmap.width()/2, self.imagePixmap.height())
+          self.painter.end()
+
           self.imageLabel.setPixmap(self.imagePixmap)
           self.onShowImage(self.showImage)
 
