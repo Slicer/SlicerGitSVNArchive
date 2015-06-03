@@ -16,6 +16,7 @@
 #include "vtkMRMLSliceLayerLogic.h"
 
 // MRML includes
+#include "vtkMRMLLabelMapVolumeNode.h"
 #include "vtkMRMLLabelMapVolumeDisplayNode.h"
 #include "vtkMRMLVectorVolumeDisplayNode.h"
 #include "vtkMRMLDiffusionWeightedVolumeDisplayNode.h"
@@ -380,19 +381,15 @@ void vtkMRMLSliceLayerLogic::UpdateNodeReferences ()
         {
         displayNode.TakeReference(vtkMRMLVectorVolumeDisplayNode::New());
         }
+      else if (vtkMRMLLabelMapVolumeNode::SafeDownCast(this->VolumeNode))
+        {
+        displayNode.TakeReference(vtkMRMLLabelMapVolumeDisplayNode::New());
+        }
       else if (vtkMRMLScalarVolumeNode::SafeDownCast(this->VolumeNode))
         {
-        isLabelMap = vtkMRMLScalarVolumeNode::SafeDownCast(this->VolumeNode)->GetLabelMap();
-        if (isLabelMap)
-          {
-          displayNode.TakeReference(vtkMRMLLabelMapVolumeDisplayNode::New());
-          }
-        else
-         {
-         displayNode.TakeReference(vtkMRMLScalarVolumeDisplayNode::New());
-         }
-
+        displayNode.TakeReference(vtkMRMLScalarVolumeDisplayNode::New());
         }
+
       displayNode->SetScene(this->GetMRMLScene());
       if (this->GetMRMLScene())
         {
