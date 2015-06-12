@@ -33,6 +33,9 @@ class HelperBox(VTKObservationMixin):
 
   mergeValidCommand = _map_property(lambda self: self.structureListWidget, "mergeValidCommand")
 
+  # Backward compatibility
+  structures = _map_property(lambda self: self.structureListWidget, "structures")
+
   def __init__(self, parent=None):
     VTKObservationMixin.__init__(self)
 
