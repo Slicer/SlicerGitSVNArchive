@@ -365,9 +365,19 @@ ExternalProject_Add(${proj}
 
 # This custom external project step forces the build and later
 # steps to run whenever a top level build is done...
+#
+# BUILD_ALWAYS flag is available in CMake 3.1 that allows force build
+# of external projects without this workaround. Remove this workaround
+# and use the CMake flag instead, when Slicer's required minimum CMake
+# version will be at least 3.1.
+#
+if(CMAKE_CONFIGURATION_TYPES)
+  set(BUILD_STAMP_FILE "${CMAKE_CURRENT_BINARY_DIR}/Slicer-prefix/src/Slicer-stamp/${CMAKE_CFG_INTDIR}/Slicer-build")
+else()
+  set(BUILD_STAMP_FILE "${CMAKE_CURRENT_BINARY_DIR}/Slicer-prefix/src/Slicer-stamp/Slicer-build")
+endif()
 ExternalProject_Add_Step(${proj} forcebuild
-  COMMAND ${CMAKE_COMMAND} -E remove
-    ${CMAKE_CURRENT_BINARY_DIR}/Slicer-prefix/src/Slicer-stamp/Slicer-build
+  COMMAND ${CMAKE_COMMAND} -E remove ${BUILD_STAMP_FILE}
   COMMENT "Forcing build step for '${proj}'"
   DEPENDEES build
   ALWAYS 1
