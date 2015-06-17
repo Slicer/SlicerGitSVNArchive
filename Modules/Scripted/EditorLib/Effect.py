@@ -4,6 +4,7 @@ from __main__ import qt
 from __main__ import slicer
 from EditOptions import EditOptions
 import EditUtil
+from slicer.util import NodeModify
 
 
 #########################################################
@@ -128,14 +129,10 @@ class EffectOptions(EditOptions):
     self.updateMRMLFromGUI()
 
   def updateMRMLFromGUI(self):
-    disableState = self.parameterNode.GetDisableModifiedEvent()
-    self.parameterNode.SetDisableModifiedEvent(1)
-    super(EffectOptions,self).updateMRMLFromGUI()
-    self.scope = self.availableScopeOptions[self.scopeComboBox.currentIndex]
-    self.parameterNode.SetParameter( "Effect,scope", str(self.scope) )
-    self.parameterNode.SetDisableModifiedEvent(disableState)
-    if not disableState:
-      self.parameterNode.InvokePendingModifiedEvent()
+    with NodeModify(self.parameterNode):
+      super(EffectOptions,self).updateMRMLFromGUI()
+      self.scope = self.availableScopeOptions[self.scopeComboBox.currentIndex]
+      self.parameterNode.SetParameter( "Effect,scope", str(self.scope) )
 
 #
 # EffectTool
@@ -178,17 +175,23 @@ class EffectTool(object):
     # - make the observers high priority so they can override other
     #   event processors
     self.interactorObserverTags = []
-    events = ( "LeftButtonPressEvent", "LeftButtonReleaseEvent",
-      "MiddleButtonPressEvent", "MiddleButtonReleaseEvent",
-      "RightButtonPressEvent", "RightButtonReleaseEvent",
-      "MouseMoveEvent", "KeyPressEvent", "EnterEvent", "LeaveEvent" )
+    events = ( vtk.vtkCommand.LeftButtonPressEvent,
+      vtk.vtkCommand.LeftButtonReleaseEvent,
+      vtk.vtkCommand.MiddleButtonPressEvent,
+      vtk.vtkCommand.MiddleButtonReleaseEvent,
+      vtk.vtkCommand.RightButtonPressEvent,
+      vtk.vtkCommand.RightButtonReleaseEvent,
+      vtk.vtkCommand.MouseMoveEvent,
+      vtk.vtkCommand.KeyPressEvent,
+      vtk.vtkCommand.EnterEvent,
+      vtk.vtkCommand.LeaveEvent )
     for e in events:
       tag = self.interactor.AddObserver(e, self.processEvent, 1.0)
       self.interactorObserverTags.append(tag)
 
     self.sliceNodeTags = []
     sliceNode = self.sliceLogic.GetSliceNode()
-    tag = sliceNode.AddObserver('ModifiedEvent', self.processEvent, 1.0)
+    tag = sliceNode.AddObserver(vtk.vtkCommand.ModifiedEvent, self.processEvent, 1.0)
     self.sliceNodeTags.append(tag)
 
     # spot for tracking the current cursor while it is turned off for paining

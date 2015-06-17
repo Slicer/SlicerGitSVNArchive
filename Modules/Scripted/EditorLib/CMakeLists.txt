@@ -40,6 +40,8 @@ set(MODULE_PYTHON_SCRIPTS
   EditUtil
   Effect
   HelperBox
+  LabelCreateDialog
+  LabelStructureListWidget
   ${EDITOR_BUILTIN_EFFECTS}
   )
 
