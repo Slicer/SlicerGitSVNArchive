@@ -268,7 +268,11 @@ public slots:
   /// \sa nodeCount, setCurrentNode(vtkMRMLNode* ), setCurrentNodeID(const QString&)
   void setCurrentNodeIndex(int index);
 
-  /// Creates a node of the same type than on the "node types" properties.
+  /// Creates a node of the same type as in the "node types" properties.
+  /// It's name is generated using \a basename.
+  virtual vtkMRMLNode* addNode(QString nodeType);
+
+  /// Creates a node of the same type as the first in the "node types" properties.
   /// It's name is generated using \a basename.
   virtual vtkMRMLNode* addNode();
 
