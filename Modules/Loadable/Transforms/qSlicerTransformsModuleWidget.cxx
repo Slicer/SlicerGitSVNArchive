@@ -60,8 +60,8 @@ public:
   vtkSlicerTransformLogic*      logic()const;
   QButtonGroup*                 CoordinateReferenceButtonGroup;
   vtkMRMLTransformNode*         MRMLTransformNode;
-  QShortcut*                      CopyShortcut;
-  QShortcut*                      PasteShortcut;
+  QShortcut*                    CopyShortcut;
+  QShortcut*                    PasteShortcut;
 };
 
 //-----------------------------------------------------------------------------
@@ -419,14 +419,16 @@ void qSlicerTransformsModuleWidget::onPasteShortcutActivated()
   QString text = QApplication::clipboard()->text();
   QRegExp rx("(\\ |\\,|\\:|\\t|\\n)");
   QStringList entries = text.split(rx);
-  int i = 0;
+
   if( entries.count() != 4 && entries.count() != 9 && entries.count() != 16 )
   {
     // Silent fail, incompatible matrix size
-    qDebug() << "Pasted matrix is not a 2x2 or 3x3 or 4x4 matrix.";
+    qDebug() << "qSlicerTransformsModuleWidget::onPasteShortcutActivated -- Pasted matrix is not a 2x2 or 3x3 or 4x4 matrix.";
     return;
   }
-  bool ok;
+
+  bool ok(true);
+  int i(0);
   for( QStringList::iterator entryIterator = entries.begin(); entryIterator != entries.end(); ++entryIterator)
   {
     QString entry = *entryIterator;
@@ -434,10 +436,10 @@ void qSlicerTransformsModuleWidget::onPasteShortcutActivated()
     if( !ok )
     {
       // Silent fail, no problem!
-      qDebug() << "Unable to cast string to double: " << entry;
+      qDebug() << "qSlicerTransformsModuleWidget::onPasteShortcutActivated -- Unable to cast string to double: " << entry;
       return;
     }
-    tempMatrix->SetElement(i / sqrt(entries.count()), i % (int)sqrt(entries.count()), numericEntry);
+    tempMatrix->SetElement(i / (int)sqrt(entries.count()), i % (int)sqrt(entries.count()), numericEntry);
     ++i;
   }
 
