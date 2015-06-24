@@ -17,6 +17,9 @@
 // SlicerExecutionModel includes
 #include <ModuleDescription.h>
 
+// Markups includes
+#include <vtkMRMLMarkupsStorageNode.h>
+
 // MRML includes
 #include <vtkEventBroker.h>
 #include <vtkMRMLColorNode.h>
@@ -676,6 +679,17 @@ vtkSlicerCLIModuleLogic
     fname = fname + ext;
     }
 
+  if (tag == "pointfile")
+    {
+    // fiducial files are always passed via files
+    std::string ext = ".fcsv";
+    if (extensions.size() != 0)
+      {
+      ext = extensions[0];
+      }
+    fname = fname + ext;
+    }
+
   return fname;
 }
 
@@ -920,7 +934,7 @@ void vtkSlicerCLIModuleLogic::ApplyTask(void *clientdata)
   std::vector<ModuleParameterGroup>::iterator pgit;
 
   // Make a pass over the parameters and establish which parameters
-  // have images or geometry or transforms or tables that need to be written
+  // have images or geometry or transforms or tables or point files that need to be written
   // before execution or loaded upon completion.
   for (pgit = pgbeginit; pgit != pgendit; ++pgit)
     {
@@ -935,7 +949,7 @@ void vtkSlicerCLIModuleLogic::ApplyTask(void *clientdata)
       {
       if ((*pit).GetTag() == "image" || (*pit).GetTag() == "geometry"
           || (*pit).GetTag() == "transform" || (*pit).GetTag() == "table"
-          || (*pit).GetTag() == "measurement")
+          || (*pit).GetTag() == "measurement" || (*pit).GetTag() == "pointfile")
         {
         std::string id = (*pit).GetDefault();
 
@@ -962,7 +976,6 @@ void vtkSlicerCLIModuleLogic::ApplyTask(void *clientdata)
                                              commandType);
 
         filesToDelete.insert(fname);
-
         if ((*pit).GetChannel() == "input")
           {
           nodesToWrite[id] = fname;
@@ -970,6 +983,17 @@ void vtkSlicerCLIModuleLogic::ApplyTask(void *clientdata)
         else if ((*pit).GetChannel() == "output")
           {
           nodesToReload[id] = fname;
+          }
+
+        // if it's a point file, set an attribute on the node to pass along to the storage node
+        if ((*pit).GetTag() == "pointfile")
+          {
+          std::string coordinateSystemStr = (*pit).GetCoordinateSystem();
+          vtkMRMLNode *nodeToFlag = this->GetMRMLScene()->GetNodeByID(id.c_str());
+          if (nodeToFlag)
+            {
+            nodeToFlag->SetAttribute("Markups.CoordinateSystem", coordinateSystemStr.c_str());
+            }
           }
         }
       }
@@ -1074,6 +1098,29 @@ void vtkSlicerCLIModuleLogic::ApplyTask(void *clientdata)
     if (mhnd)
       {
       this->AddCompleteModelHierarchyToMiniScene(miniscene.GetPointer(), mhnd, &sceneToMiniSceneMap, filesToDelete);
+      }
+
+    // check for a point file that may need to set a coordinate system flag
+    // vtkMRMLMarkupsFiducialNode *fidNode = vtkMRMLMarkupsFiducialNode::SafeDownCast(nd);
+    if (out && out->IsA("vtkMRMLMarkupsStorageNode"))
+      {
+      // parameter flag?
+      std::string coordinateSystemStr = nd->GetAttribute("Markups.CoordinateSystem");
+      int coordinateSystemFlag = 0;
+      if (coordinateSystemStr.compare("lps") == 0)
+        {
+        coordinateSystemFlag = 1;
+        }
+      else if (coordinateSystemStr.compare("ijk") == 0)
+        {
+        coordinateSystemFlag = 2;
+        }
+      // have a markups storage node, is there a coordinate flag?
+      vtkMRMLMarkupsStorageNode *markupsStorage = vtkMRMLMarkupsStorageNode::SafeDownCast(out);
+      if (markupsStorage)
+        {
+        markupsStorage->SetCoordinateSystem(coordinateSystemFlag);
+        }
       }
 
     // if the file is to be written, then write it
@@ -1286,6 +1333,7 @@ void vtkSlicerCLIModuleLogic::ApplyTask(void *clientdata)
             && (*pit).GetTag() != "string-vector"
             && (*pit).GetTag() != "image"
             && (*pit).GetTag() != "point"
+            && (*pit).GetTag() != "pointfile"
             && (*pit).GetTag() != "region"
             && (*pit).GetTag() != "transform"
             && (*pit).GetTag() != "geometry"
@@ -1332,7 +1380,8 @@ void vtkSlicerCLIModuleLogic::ApplyTask(void *clientdata)
           }
         if ((*pit).GetTag() == "image" || (*pit).GetTag() == "geometry"
             || (*pit).GetTag() == "transform" || (*pit).GetTag() == "table"
-            || (*pit).GetTag() == "measurement")
+            || (*pit).GetTag() == "measurement"
+            || (*pit).GetTag() == "pointfile")
           {
           std::string fname;
 
@@ -1482,6 +1531,37 @@ void vtkSlicerCLIModuleLogic::ApplyTask(void *clientdata)
             }
           continue;
           }
+        if ((*pit).GetTag() == "pointfile")
+          {
+          // check for a coordinate system flag
+          std::string coordinateSystemStr = (*pit).GetCoordinateSystem();
+          // markups storage has RAS as 0, LPS as 1, IJK as 2
+          int coordinateSystemFlag = 0;
+          if (coordinateSystemStr.compare("lps") == 0)
+            {
+            coordinateSystemFlag = 1;
+            }
+          else if (coordinateSystemStr.compare("ijk") == 0)
+            {
+            coordinateSystemFlag = 2;
+            }
+          // get the fiducial list node
+          vtkMRMLNode *node
+            = this->GetMRMLScene()->GetNodeByID((*pit).GetDefault().c_str());
+          vtkMRMLDisplayableNode *markups = vtkMRMLDisplayableNode::SafeDownCast(node);
+          if (markups && markups->IsA("vtkMRMLMarkupsFiducialNode"))
+            {
+            vtkMRMLStorageNode *mrmlStorageNode = markups->GetStorageNode();
+            if (mrmlStorageNode)
+              {
+              vtkMRMLMarkupsStorageNode *markupsStorageNode = vtkMRMLMarkupsStorageNode::SafeDownCast(mrmlStorageNode);
+              if (markupsStorageNode)
+                {
+                markupsStorageNode->SetCoordinateSystem(coordinateSystemFlag);
+                }
+              }
+            }
+          }
         if ((*pit).GetTag() == "region")
           {
           // check for a coordinate system flag
@@ -1623,6 +1703,7 @@ void vtkSlicerCLIModuleLogic::ApplyTask(void *clientdata)
         && (*iit).second.GetTag() != "directory"
         && (*iit).second.GetTag() != "string"
         && (*iit).second.GetTag() != "point"
+        && (*iit).second.GetTag() != "pointfile"
         && (*iit).second.GetTag() != "region"
         && (*iit).second.GetTag() != "integer-vector"
         && (*iit).second.GetTag() != "float-vector"
@@ -1663,7 +1744,7 @@ void vtkSlicerCLIModuleLogic::ApplyTask(void *clientdata)
       }
     else
       {
-      // image or geometry or transform or table or measurement index parameter
+      // image or geometry or transform or table or measurement index parameter or point file
 
       std::string fname;
 

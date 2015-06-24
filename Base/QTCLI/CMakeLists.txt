@@ -40,6 +40,8 @@ set(KIT_include_directories
   ${ModuleDescriptionParser_INCLUDE_DIRS}
   ${MRMLCLI_INCLUDE_DIRS}
   ${MRMLLogic_INCLUDE_DIRS}
+  ${vtkSlicerMarkupsModuleMRML_SOURCE_DIR}
+  ${vtkSlicerMarkupsModuleMRML_BINARY_DIR}
   )
 
 # Source files
@@ -93,6 +95,7 @@ set(KIT_target_libraries
   qSlicerBaseQTGUI
   ModuleDescriptionParser ${ITK_LIBRARIES}
   MRMLCLI
+  vtkSlicerMarkupsModuleMRML
   )
 
 if(Slicer_USE_QtTesting)
