@@ -20,6 +20,13 @@
 
 // Qt includes
 #include <QFileDialog>
+#include <QShortcut>
+#include <QApplication>
+#include <QClipboard>
+#include <QStringBuilder>
+
+// C++ includes
+#include <cmath>
 
 // SlicerQt includes
 #include "qSlicerTransformsModuleWidget.h"
@@ -53,6 +60,8 @@ public:
   vtkSlicerTransformLogic*      logic()const;
   QButtonGroup*                 CoordinateReferenceButtonGroup;
   vtkMRMLTransformNode*         MRMLTransformNode;
+  QShortcut*                      CopyShortcut;
+  QShortcut*                      PasteShortcut;
 };
 
 //-----------------------------------------------------------------------------
@@ -61,6 +70,8 @@ qSlicerTransformsModuleWidgetPrivate::qSlicerTransformsModuleWidgetPrivate(qSlic
 {
   this->CoordinateReferenceButtonGroup = 0;
   this->MRMLTransformNode = 0;
+  this->CopyShortcut = 0;
+  this->PasteShortcut = 0;
 }
 //-----------------------------------------------------------------------------
 vtkSlicerTransformLogic* qSlicerTransformsModuleWidgetPrivate::logic()const
@@ -114,6 +125,14 @@ void qSlicerTransformsModuleWidget::setup()
     d->GlobalRadioButton, qMRMLTransformSliders::GLOBAL);
   d->CoordinateReferenceButtonGroup->addButton(
     d->LocalRadioButton, qMRMLTransformSliders::LOCAL);
+  d->CopyShortcut =
+    new QShortcut(this);
+  d->CopyShortcut->setContext(Qt::WidgetWithChildrenShortcut);
+  d->CopyShortcut->setKey(QKeySequence::Copy);
+  d->PasteShortcut =
+    new QShortcut(this);
+  d->PasteShortcut->setContext(Qt::WidgetWithChildrenShortcut);
+  d->PasteShortcut->setKey(QKeySequence::Paste);
 
   // Connect button group
   this->connect(d->CoordinateReferenceButtonGroup,
@@ -167,6 +186,15 @@ void qSlicerTransformsModuleWidget::setup()
   this->connect(d->TransformedCollapsibleButton,
                 SIGNAL(clicked(bool)),
                 SLOT(onTransformableSectionClicked(bool)));
+
+  // Connect copy and paste actions
+  this->connect(d->CopyShortcut,
+                SIGNAL(activated()),
+                SLOT(onCopyShortcutActivated()));
+
+  this->connect(d->PasteShortcut,
+                SIGNAL(activated()),
+                SLOT(onPasteShortcutActivated()));
 
   // Icons
   QIcon rightIcon =
@@ -350,6 +378,70 @@ void qSlicerTransformsModuleWidget::onTranslationRangeChanged(double newMin,
 {
   Q_D(qSlicerTransformsModuleWidget);
   d->MatrixWidget->setRange(newMin, newMax);
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerTransformsModuleWidget::onCopyShortcutActivated()
+{
+  Q_D(qSlicerTransformsModuleWidget);
+
+  vtkLinearTransform* linearTransform = vtkLinearTransform::SafeDownCast(d->MRMLTransformNode->GetTransformToParent());
+  if( !linearTransform )
+  {
+    // Silent fail, no worries!
+    qDebug() << "Unable to cast parent transform as a vtkLinearTransform";
+    return;
+  }
+
+  vtkMatrix4x4* internalMatrix = linearTransform->GetMatrix();
+  QString output;
+
+  for( int i = 0; i < 4; ++i )
+  {
+    for( int j = 0; j < 4; ++j )
+    {
+      output.append(QString::number(internalMatrix->GetElement(i, j)));
+      output.append(" ");
+    }
+    output.append("\n");
+  }
+
+  QApplication::clipboard()->setText(output);
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerTransformsModuleWidget::onPasteShortcutActivated()
+{
+  Q_D(qSlicerTransformsModuleWidget);
+
+  vtkSmartPointer<vtkMatrix4x4> tempMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+
+  QString text = QApplication::clipboard()->text();
+  QRegExp rx("(\\ |\\,|\\:|\\t|\\n)");
+  QStringList entries = text.split(rx);
+  int i = 0;
+  if( entries.count() != 4 && entries.count() != 9 && entries.count() != 16 )
+  {
+    // Silent fail, incompatible matrix size
+    qDebug() << "Pasted matrix is not a 2x2 or 3x3 or 4x4 matrix.";
+    return;
+  }
+  bool ok;
+  for( QStringList::iterator entryIterator = entries.begin(); entryIterator != entries.end(); ++entryIterator)
+  {
+    QString entry = *entryIterator;
+    double numericEntry = entry.toDouble(&ok);
+    if( !ok )
+    {
+      // Silent fail, no problem!
+      qDebug() << "Unable to cast string to double: " << entry;
+      return;
+    }
+    tempMatrix->SetElement(i / sqrt(entries.count()), i % (int)sqrt(entries.count()), numericEntry);
+    ++i;
+  }
+
+  d->MRMLTransformNode->SetMatrixTransformToParent(tempMatrix);
 }
 
 //-----------------------------------------------------------------------------
