@@ -45,6 +45,7 @@
 #include <vtkImageData.h>
 #include <vtkNew.h>
 #include <vtkSmartPointer.h>
+#include <vtksys/SystemTools.hxx>
 
 //----------------------------------------------------------------------------
 qSlicerSceneWriter::qSlicerSceneWriter(QObject* parentObject)
@@ -111,6 +112,14 @@ bool qSlicerSceneWriter::write(const qSlicerIO::IOProperties& properties)
 //----------------------------------------------------------------------------
 bool qSlicerSceneWriter::writeToMRML(const qSlicerIO::IOProperties& properties)
 {
+  // set the mrml scene url first
+  Q_ASSERT(!properties["fileName"].toString().isEmpty());
+  QString fileName = properties["fileName"].toString();
+
+  this->mrmlScene()->SetURL(fileName.toLatin1());
+  std::string parentDir = vtksys::SystemTools::GetParentDirectory(this->mrmlScene()->GetURL());
+  this->mrmlScene()->SetRootDirectory(parentDir.c_str());
+
   // save an explicit default scene view recording the state of the scene when
   // saved to file
   const char *defaultSceneName = "Master Scene View";
@@ -161,11 +170,9 @@ bool qSlicerSceneWriter::writeToMRML(const qSlicerIO::IOProperties& properties)
   // force a write
   sceneViewNode->GetStorageNode()->WriteData(sceneViewNode);
 
-  Q_ASSERT(!properties["fileName"].toString().isEmpty());
-  QString fileName = properties["fileName"].toString();
-
-  this->mrmlScene()->SetURL(fileName.toLatin1());
+  // write out the mrml file
   bool res = this->mrmlScene()->Commit();
+
   return res;
 }
 
@@ -255,6 +262,13 @@ bool qSlicerSceneWriter::writeToMRB(const qSlicerIO::IOProperties& properties)
     QMessageBox::critical(0, tr("Save scene as MRB"), tr("Could not remove temp directory"));
     return false;
     }
+
+  // Mark the storable nodes as modified since read, since that flag was reset
+  // when the files were written out. If there was newly generated data in the
+  // scene that only got saved to the MRB bundle directory, it would be marked
+  // as unmodified since read when saving as a MRML file + data. This will not
+  // disrupt multiple MRB saves.
+  this->mrmlScene()->SetStorableNodesModifiedSinceRead();
 
   qDebug() << "saved " << fileInfo.absoluteFilePath();
   return true;

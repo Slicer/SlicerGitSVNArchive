@@ -79,6 +79,10 @@ void vtkMRMLSceneViewNode::WriteXML(ostream& of, int nIndent)
 //----------------------------------------------------------------------------
 void vtkMRMLSceneViewNode::WriteNodeBodyXML(ostream& of, int nIndent)
 {
+  // first make sure that the scene view scene is to be saved relative to the same place as the main scene
+  const char *sceneURL = this->SnapshotScene->GetURL();
+  const char *rootDir = this->SnapshotScene->GetRootDirectory();
+  this->SnapshotScene->SetRootDirectory(this->GetScene()->GetRootDirectory());
   this->SetAbsentStorageFileNames();
 
   vtkMRMLNode * node = NULL;
@@ -361,6 +365,42 @@ void vtkMRMLSceneViewNode::StoreScene()
     this->SnapshotScene->SetRootDirectory(this->GetScene()->GetRootDirectory());
     }
 
+  // make sure that any storable nodes in the scene have storage nodes before
+  // saving them to the scene view, this prevents confusion on scene view
+  // restore with mismatched nodes.
+  std::vector<vtkMRMLNode *> nodes;
+  int nnodes = this->GetScene()->GetNodesByClass("vtkMRMLStorableNode", nodes);
+  for (int i = 0; i < nnodes; ++i)
+    {
+    vtkMRMLStorableNode *storableNode = vtkMRMLStorableNode::SafeDownCast(nodes[i]);
+    if (storableNode)
+      {
+      if (this->IncludeNodeInSceneView(storableNode) &&
+          storableNode->GetSaveWithScene() )
+        {
+        vtkSmartPointer<vtkMRMLStorageNode> storageNode = storableNode->GetStorageNode();
+        if (!storageNode)
+          {
+          // No storage node in the main scene, add one there, and ensure it
+          // gets added to the scene view
+          vtkWarningMacro("SceneView StoreScene: creating a new storage node for "
+                           << storableNode->GetID());
+          storageNode.TakeReference(storableNode->CreateDefaultStorageNode());
+          if (storageNode)
+            {
+            std::string fileBaseName = std::string(storableNode->GetName());
+            std::string extension = storageNode->GetDefaultWriteFileExtension();
+            std::string storageFileName = fileBaseName + std::string(".") + extension;
+            storageNode->SetFileName(storageFileName.c_str());
+            // add to the main scene
+            this->Scene->AddNode(storageNode);
+            storableNode->SetAndObserveStorageNodeID(storageNode->GetID());
+            }
+          }
+        }
+      }
+    }
+
   /// \todo: GetNumberOfNodes/GetNthNode is slow, fasten by using collection
   /// iterators.
   for (int n=0; n < this->Scene->GetNumberOfNodes(); n++)
@@ -553,6 +593,8 @@ void vtkMRMLSceneViewNode::SetAbsentStorageFileNames()
     return;
     }
 
+  // TBD: determine if storage nodes in the all scene views need unique file names
+  // in order to support reading into scene view nodes on xml read.
   unsigned int numNodesInSceneView = this->SnapshotScene->GetNodes()->GetNumberOfItems();
   unsigned int n;
   vtkMRMLNode *node = NULL;
@@ -573,6 +615,15 @@ void vtkMRMLSceneViewNode::SetAbsentStorageFileNames()
           if (snode1)
             {
             snode->SetFileName(snode1->GetFileName());
+            int numberOfFileNames = snode1->GetNumberOfFileNames();
+            if (numberOfFileNames > 0)
+              {
+              snode->ResetFileNameList();
+              for (int i = 0; i < numberOfFileNames; ++i)
+                {
+                snode->AddFileName(snode1->GetNthFileName(i));
+                }
+              }
             }
           }
         }

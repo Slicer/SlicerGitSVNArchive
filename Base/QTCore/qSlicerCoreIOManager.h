@@ -23,6 +23,7 @@
 
 // Qt includes
 #include <QList>
+#include <QImage>
 #include <QMap>
 #include <QObject>
 #include <QVariantMap>
@@ -42,7 +43,6 @@ class vtkObject;
 class qSlicerCoreIOManagerPrivate;
 class qSlicerFileReader;
 class qSlicerFileWriter;
-
 class Q_SLICER_BASE_QTCORE_EXPORT qSlicerCoreIOManager:public QObject
 {
   Q_OBJECT;
@@ -58,18 +58,31 @@ public:
   /// Return the file description associated with a \a file
   /// Usually the description is a short text of one or two words
   /// e.g. Volume, Model, ...
-  QStringList fileDescriptions(const QString& file)const;
+  Q_INVOKABLE QStringList fileDescriptions(const QString& file)const;
   QStringList fileDescriptionsByType(const qSlicerIO::IOFileType fileType)const;
 
   /// Return the file type associated with an VTK \a object.
   Q_INVOKABLE qSlicerIO::IOFileType fileWriterFileType(vtkObject* object)const;
 
   Q_INVOKABLE QStringList fileWriterDescriptions(const qSlicerIO::IOFileType& fileType)const;
-  QStringList fileWriterExtensions(vtkObject* object)const;
+  Q_INVOKABLE QStringList fileWriterExtensions(vtkObject* object)const;
+  /// Return a string list of all the writable file extensions for all
+  /// registered types of storage nodes. Includes the leading dot.
+  Q_INVOKABLE QStringList allWritableFileExtensions()const;
+  /// Return a string list of all the readable file extensions for all
+  /// registered types of storage nodes. Includes the leading dot.
+  Q_INVOKABLE QStringList allReadableFileExtensions()const;
 
   /// Return the file option associated with a \a file type
   qSlicerIOOptions* fileOptions(const QString& fileDescription)const;
   qSlicerIOOptions* fileWriterOptions(vtkObject* object, const QString& extension)const;
+
+  /// Returns a full extension for this file that is recognised by Slicer IO.
+  /// Consults the qSlicerIOCoreManager for a list of known suffixes, if no match
+  /// is found and the .* extension exists, return the Qt completeSuffix string.
+  /// If .* is not in the complete list of known suffixes, returns an empty suffix.
+  /// Always includes the leading dot.
+  Q_INVOKABLE QString completeSlicerWritableFileNameSuffix(const QString &fileName)const;
 
   /// Load a list of nodes corresponding to \a fileType. A given \a fileType corresponds
   /// to a specific reader qSlicerIO.
@@ -105,7 +118,7 @@ public:
   /// Load/import a scene corresponding to \a fileName
   /// This function is provided for convenience and is equivalent to call
   /// loadNodes function with QString("SceneFile")
-  bool loadScene(const QString& fileName, bool clear = true);
+  Q_INVOKABLE bool loadScene(const QString& fileName, bool clear = true);
 
   /// Convenient function to load a file. All the options (e.g. filetype) are
   /// chosen by default.
@@ -125,6 +138,12 @@ public:
   Q_INVOKABLE bool saveNodes(qSlicerIO::IOFileType fileType,
                              const qSlicerIO::IOProperties& parameters);
 #endif
+
+  /// Save a scene corresponding to \a fileName
+  /// This function is provided for convenience and is equivalent to call
+  /// saveNodes function with QString("SceneFile") with the fileName
+  /// and screenShot set as properties.
+  Q_INVOKABLE bool saveScene(const QString& fileName, QImage screenShot);
 
   /// Register the reader/writer \a io
   /// Note also that the IOManager takes ownership of \a io

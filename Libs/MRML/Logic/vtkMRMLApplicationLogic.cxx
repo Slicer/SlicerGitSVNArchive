@@ -607,15 +607,10 @@ bool vtkMRMLApplicationLogic::SaveSceneToSlicerDataBundleDirectory(const char *s
     }
     if (mrmlNode->IsA("vtkMRMLSceneViewNode"))
       {
-      // get all additioanl storable nodes for all scene views except "Master Scene View"
+      // get all additional storable nodes for all scene views
       vtkMRMLSceneViewNode *sceneViewNode = vtkMRMLSceneViewNode::SafeDownCast(mrmlNode);
       sceneViewNode->SetSceneViewRootDir(this->GetMRMLScene()->GetRootDirectory());
 
-      // skip "Master Scene View" since it contains the same ndoes as the scene
-      if (sceneViewNode->GetName() && std::string("Master Scene View") == std::string(sceneViewNode->GetName()))
-        {
-        continue;
-        }
       std::vector<vtkMRMLNode *> snodes;
       sceneViewNode->GetNodesByClass("vtkMRMLStorableNode", snodes);
       std::vector<vtkMRMLNode *>::iterator sit;
@@ -632,6 +627,20 @@ bool vtkMRMLApplicationLogic::SaveSceneToSlicerDataBundleDirectory(const char *s
           storableNodes[std::string(storableNode->GetID())] = storableNode;
           storableNode->SetAddToScene(0);
           }
+        else
+          {
+          // just do the path save/update since the paths are indexed by the node, not id
+          vtkMRMLStorageNode *storageNode = storableNode->GetStorageNode();
+          if (storageNode)
+            {
+            std::string fileName(storageNode->GetFileName());
+            this->OriginalStorageNodeFileNames[storageNode].push_back(fileName);
+            for (int i = 0; i < storageNode->GetNumberOfFileNames(); ++i)
+              {
+              this->OriginalStorageNodeFileNames[storageNode].push_back(storageNode->GetNthFileName(i));
+              }
+            }
+          }
         }
       }
   }
@@ -646,22 +655,22 @@ bool vtkMRMLApplicationLogic::SaveSceneToSlicerDataBundleDirectory(const char *s
   newSceneViewNode->StoreScene();
   this->GetMRMLScene()->AddNode(newSceneViewNode);
 
-  vtkMRMLStorageNode *sceneViewStorageNode = 0;
+  vtkSmartPointer<vtkMRMLStorageNode> newSceneViewStorageNode;
   if (screenShot)
     {
     // assumes has been passed a screen shot of the full layout
     newSceneViewNode->SetScreenShotType(4);
     newSceneViewNode->SetScreenShot(screenShot);
     // create a storage node
-    vtkMRMLStorageNode *sceneViewStorageNode = newSceneViewNode->CreateDefaultStorageNode();
+    newSceneViewStorageNode.TakeReference(newSceneViewNode->CreateDefaultStorageNode());
     // set the file name from the node name, using a relative path, it will go
     // at the same level as the  .mrml file
     std::string sceneViewFileName = std::string(newSceneViewNode->GetName()) + std::string(".png");
-    sceneViewStorageNode->SetFileName(sceneViewFileName.c_str());
-    this->GetMRMLScene()->AddNode(sceneViewStorageNode);
-    newSceneViewNode->SetAndObserveStorageNodeID(sceneViewStorageNode->GetID());
+    newSceneViewStorageNode->SetFileName(sceneViewFileName.c_str());
+    this->GetMRMLScene()->AddNode(newSceneViewStorageNode);
+    newSceneViewNode->SetAndObserveStorageNodeID(newSceneViewStorageNode->GetID());
     // force a write
-    sceneViewStorageNode->WriteData(newSceneViewNode);
+    newSceneViewStorageNode->WriteData(newSceneViewNode);
     }
 
   // write the scene to disk, changes paths to relative
@@ -672,13 +681,15 @@ bool vtkMRMLApplicationLogic::SaveSceneToSlicerDataBundleDirectory(const char *s
   // Now, restore the state of the scene
   //
 
+  this->GetMRMLScene()->SetURL(origURL.c_str());
+  this->GetMRMLScene()->SetRootDirectory(origRootDirectory.c_str());
+
   // clean up scene views
   this->GetMRMLScene()->RemoveNode(newSceneViewNode);
   newSceneViewNode->Delete();
-  if (sceneViewStorageNode)
+  if (newSceneViewStorageNode)
     {
-    this->GetMRMLScene()->RemoveNode(sceneViewStorageNode);
-    sceneViewStorageNode->Delete();
+    this->GetMRMLScene()->RemoveNode(newSceneViewStorageNode);
     }
 
   // reset the storage paths
@@ -694,14 +705,10 @@ bool vtkMRMLApplicationLogic::SaveSceneToSlicerDataBundleDirectory(const char *s
     if (mrmlNode->IsA("vtkMRMLSceneViewNode"))
       {
       vtkMRMLSceneViewNode *sceneViewNode = vtkMRMLSceneViewNode::SafeDownCast(mrmlNode);
+      sceneViewNode->GetScene()->SetURL(origURL.c_str());
       sceneViewNode->SetSceneViewRootDir(origRootDirectory.c_str());
 
-      // get all additioanl storable nodes for all scene views except "Master Scene View"
-      // skip "Master Scene View" since it contains the same ndoes as the scene
-      if (sceneViewNode->GetName() && std::string("Master Scene View") == std::string(sceneViewNode->GetName()))
-        {
-        continue;
-        }
+      // get all additional storable nodes for all scene views
       std::vector<vtkMRMLNode *> snodes;
       sceneViewNode->GetNodesByClass("vtkMRMLStorableNode", snodes);
       std::vector<vtkMRMLNode *>::iterator sit;
@@ -712,7 +719,20 @@ bool vtkMRMLApplicationLogic::SaveSceneToSlicerDataBundleDirectory(const char *s
 
         if (storageNode && this->OriginalStorageNodeFileNames.find( storageNode ) != this->OriginalStorageNodeFileNames.end() )
           {
-          storageNode->SetFileName(this->OriginalStorageNodeFileNames[storageNode].c_str());
+          storageNode->SetFileName(this->OriginalStorageNodeFileNames[storageNode][0].c_str());
+          if (this->OriginalStorageNodeFileNames[storageNode].size() > 1)
+            {
+            // set the file list
+            storageNode->ResetFileNameList();
+            for (unsigned int fileNumber = 0;
+                 fileNumber < this->OriginalStorageNodeFileNames[storageNode].size();
+                 ++fileNumber)
+              {
+              // the fileName is also in the file list, but AddFileName does
+              // check for duplicates
+              storageNode->AddFileName(this->OriginalStorageNodeFileNames[storageNode][fileNumber].c_str());
+              }
+            }
           }
         if (storageNode && this->OriginalStorageNodeDirs.find( storageNode ) != this->OriginalStorageNodeDirs.end() )
           {
@@ -726,7 +746,19 @@ bool vtkMRMLApplicationLogic::SaveSceneToSlicerDataBundleDirectory(const char *s
       vtkMRMLStorageNode *storageNode = storableNode->GetStorageNode();
       if (storageNode && this->OriginalStorageNodeFileNames.find( storageNode ) != this->OriginalStorageNodeFileNames.end() )
         {
-        storageNode->SetFileName(this->OriginalStorageNodeFileNames[storageNode].c_str());
+        // std::cout << "Resetting filename on storage node " << storageNode->GetID() << " from " << storageNode->GetFileName() << " back to " << this->OriginalStorageNodeFileNames[storageNode][0].c_str() << "\n\tmodified since read = " << storableNode->GetModifiedSinceRead() << std::endl;
+        storageNode->SetFileName(this->OriginalStorageNodeFileNames[storageNode][0].c_str());
+        if (this->OriginalStorageNodeFileNames[storageNode].size() > 1)
+          {
+          // set the file list
+          for (unsigned int fileNumber = 0;
+               fileNumber < this->OriginalStorageNodeFileNames[storageNode].size();
+               ++fileNumber)
+            {
+            // the fileName is also in the file list
+            storageNode->AddFileName(this->OriginalStorageNodeFileNames[storageNode][fileNumber].c_str());
+            }
+          }
         }
       if (storageNode && this->OriginalStorageNodeDirs.find( storageNode ) != this->OriginalStorageNodeDirs.end() )
         {
@@ -755,7 +787,7 @@ void vtkMRMLApplicationLogic::SaveStorableNodeToSlicerDataBundleDirectory(vtkMRM
   if (!storageNode)
     {
     // no storage node, so we have to create one with a valid name in the new directory
-    vtkWarningMacro("creating a new storage node for " << storableNode->GetID());
+    vtkDebugMacro("creating a new storage node for " << storableNode->GetID());
     storageNode = storableNode->CreateDefaultStorageNode();
     if (storageNode)
       {
@@ -778,10 +810,15 @@ void vtkMRMLApplicationLogic::SaveStorableNodeToSlicerDataBundleDirectory(vtkMRM
   if (storageNode)
     {
     // save the old values for the storage nodes
-    // - this->OriginalStorageNodeFileNames has the old filename (absolute path)
+    // - this->OriginalStorageNodeFileNames has the old filenames (absolute paths)
     // - this->OriginalStorageNodeDirs has old paths
+    // std::cout << "SaveStorableNodeToSlicerDataBundleDirectory: saving old storage node file name of " << storageNode->GetFileName() << "\n\tmodified since read = " << storableNode->GetModifiedSinceRead() << std::endl;
     std::string fileName(storageNode->GetFileName());
-    this->OriginalStorageNodeFileNames[storageNode] = fileName;
+    this->OriginalStorageNodeFileNames[storageNode].push_back(fileName);
+    for (int i = 0; i < storageNode->GetNumberOfFileNames(); ++i)
+      {
+      this->OriginalStorageNodeFileNames[storageNode].push_back(storageNode->GetNthFileName(i));
+      }
 
     std::vector<std::string> pathComponents;
     vtksys::SystemTools::SplitPath(fileName.c_str(), pathComponents);
@@ -796,9 +833,21 @@ void vtkMRMLApplicationLogic::SaveStorableNodeToSlicerDataBundleDirectory(vtkMRM
     std::string extension = vtkMRMLStorageNode::GetLowercaseExtensionFromFileName(fileBaseName);
     if (defaultWriteExtension != extension)
       {
-      uniqueFileName = uniqueFileName + defaultWriteExtension;
+      // for saving to MRB all nodes will be written in their default format
+      if (extension.find(".gz") != std::string::npos)
+        {
+        // there's a double extension
+        uniqueFileName = vtksys::SystemTools::GetFilenameWithoutLastExtension(vtksys::SystemTools::GetFilenameWithoutLastExtension(fileBaseName)) +
+                         defaultWriteExtension;
+        }
+      else
+        {
+        uniqueFileName = vtksys::SystemTools::GetFilenameWithoutLastExtension(fileBaseName) + defaultWriteExtension;
+        }
       }
     storageNode->SetFileName(uniqueFileName.c_str());
+    // also clear out the file list since it's assumed that the default write format is a single file one
+    storageNode->ResetFileNameList();
     storageNode->SetDataDirectory(dataDir.c_str());
     vtkDebugMacro("set data directory to "
       << dataDir.c_str() << ", storable node " << storableNode->GetID()

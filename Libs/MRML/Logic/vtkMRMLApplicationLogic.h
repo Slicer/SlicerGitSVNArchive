@@ -142,6 +142,8 @@ public:
   std::string PercentEncode(std::string s);
 
   /// Save the scene into a self contained directory, sdbDir
+  /// Called by the qSlicerSceneWriter, which can be accessed via
+  /// \sa qSlicerCoreIOManager::saveScene
   /// If screenShot is not null, use it as the screen shot for a scene view
   /// Returns false if the save failed
   bool SaveSceneToSlicerDataBundleDirectory(const char *sdbDir, vtkImageData *screenShot = NULL);
@@ -210,7 +212,10 @@ protected:
 private:
 
   std::map<vtkMRMLStorageNode*, std::string> OriginalStorageNodeDirs;
-  std::map<vtkMRMLStorageNode*, std::string> OriginalStorageNodeFileNames;
+  /// use a map to store the file names from a storage node, the 0th one is by
+  /// definition the GetFileName returned value, then the rest are at index n+1
+  /// from GetNthFileName(n)
+  std::map<vtkMRMLStorageNode*, std::vector<std::string> > OriginalStorageNodeFileNames;
 
   vtkMRMLApplicationLogic(const vtkMRMLApplicationLogic&);
   void operator=(const vtkMRMLApplicationLogic&);
