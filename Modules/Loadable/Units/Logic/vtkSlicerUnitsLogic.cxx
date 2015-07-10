@@ -191,22 +191,22 @@ void vtkSlicerUnitsLogic::AddBuiltInUnits(vtkMRMLScene* scene)
   this->AddUnitNodeToScene(scene,
     "Herz", "frequency", "", "Hz", 3, -10000., 10000., 1., 0.);
   this->AddUnitNodeToScene(scene,
-    "decahertz", "frequency", "", "daHz", 3, -10000., 10000., 10., 0.);
+    "decahertz", "frequency", "", "daHz", 3, -10000., 10000., 0.1, 0.);
   this->AddUnitNodeToScene(scene,
-    "HectoHerz", "frequency", "", "hHz", 3, -10000., 10000., 100., 0.);
+    "HectoHerz", "frequency", "", "hHz", 3, -10000., 10000., 0.01, 0.);
   this->AddUnitNodeToScene(scene,
-    "KiloHerz", "frequency", "", "kHz", 3, -10000., 10000., 1000., 0.);
+    "KiloHerz", "frequency", "", "kHz", 3, -10000., 10000., 0.001, 0.);
   this->AddUnitNodeToScene(scene,
-    "MegaHerz", "frequency", "", "MHz", 3, -10000., 10000., 1000000., 0.);
+    "MegaHerz", "frequency", "", "MHz", 3, -10000., 10000., 0.000001, 0.);
   this->AddUnitNodeToScene(scene,
-    "GigaHerz", "frequency", "", "GHz", 3, -10000., 10000., 1000000000., 0.);
+    "GigaHerz", "frequency", "", "GHz", 3, -10000., 10000., 0.000000001, 0.);
   this->AddUnitNodeToScene(scene,
-    "TeraHerz", "frequency", "", "THz", 3, -10000., 10000., 1000000000000., 0.);
+    "TeraHerz", "frequency", "", "THz", 3, -10000., 10000., 0.000000000001, 0.);
 
   this->AddUnitNodeToScene(scene,
     "Metre per second", "velocity", "", "m/s", 3, -10000., 10000., 1., 0.);
   this->AddUnitNodeToScene(scene,
-    "Kilometre per second", "velocity", "", "km/s", 3, -10000., 10000., 1., 0.);
+    "Kilometre per second", "velocity", "", "km/s", 3, -10000., 10000., 0.01, 0.);
 
   this->AddUnitNodeToScene(scene,
     "Intensity", "intensity", "", "W/m\xB2", 3, -10000., 10000., 1., 0.);
