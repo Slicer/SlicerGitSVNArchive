@@ -806,5 +806,157 @@ int qSlicerUtilsTest1(int, char * [] )
       }
   }
 
+  //-----------------------------------------------------------------------------
+  // Test isRelease()
+  //-----------------------------------------------------------------------------
+  {
+
+    // <MAJOR_VERSION>.<MINOR_VERSION>.<PATCH_VERSION>
+    bool expected = true;
+    bool current = qSlicerUtils::isRelease("1.22.333");
+    if (current != expected)
+      {
+      std::cerr << __LINE__ << " - Error in  isRelease()" << std::endl
+                            << "current = " << current << std::endl
+                            << "expected = " << expected << std::endl;
+      return EXIT_FAILURE;
+      }
+
+    // <MAJOR_VERSION>.<MINOR_VERSION>.<PATCH_VERSION>-rc{1|2|3...}
+    expected = true;
+    current = qSlicerUtils::isRelease("1.22.3001-rc12");
+    if (current != expected)
+      {
+      std::cerr << __LINE__ << " - Error in  isRelease()" << std::endl
+                            << "current = " << current << std::endl
+                            << "expected = " << expected << std::endl;
+      return EXIT_FAILURE;
+      }
+
+    // <MAJOR_VERSION>.<MINOR_VERSION>.<PATCH_VERSION>-<TWEAK_VERSION>
+    expected = true;
+    current = qSlicerUtils::isRelease("1.22.3001-1");
+    if (current != expected)
+      {
+      std::cerr << __LINE__ << " - Error in  isRelease()" << std::endl
+                            << "current = " << current << std::endl
+                            << "expected = " << expected << std::endl;
+      return EXIT_FAILURE;
+      }
+
+    // <MAJOR_VERSION>.<MINOR_VERSION>.<PATCH_VERSION>-YYYY-MM-DD
+    expected = false;
+    current = qSlicerUtils::isRelease("1.2.3-2013-01-11");
+    if (current != expected)
+      {
+      std::cerr << __LINE__ << " - Error in  isRelease()" << std::endl
+                            << "current = " << current << std::endl
+                            << "expected = " << expected << std::endl;
+      return EXIT_FAILURE;
+      }
+
+    // <MAJOR_VERSION>.<MINOR_VERSION>.<PATCH_VERSION>-YYYY-MM-DD
+    expected = false;
+    current = qSlicerUtils::isRelease("1.2.3-2013-01-11");
+    if (current != expected)
+      {
+      std::cerr << __LINE__ << " - Error in  isRelease()" << std::endl
+                            << "current = " << current << std::endl
+                            << "expected = " << expected << std::endl;
+      return EXIT_FAILURE;
+      }
+
+    // <MAJOR_VERSION>.<MINOR_VERSION>.<PATCH_VERSION>-rc{1|2|3...}-YYYY-MM-DD
+    expected = false;
+    current = qSlicerUtils::isRelease("1.2.3-rc26-2013-01-11");
+    if (current != expected)
+      {
+      std::cerr << __LINE__ << " - Error in  isRelease()" << std::endl
+                            << "current = " << current << std::endl
+                            << "expected = " << expected << std::endl;
+      return EXIT_FAILURE;
+      }
+
+    // <MAJOR_VERSION>.<MINOR_VERSION>.<PATCH_VERSION>-<TWEAK_VERSION>-YYYY-MM-DD
+    expected = false;
+    current = qSlicerUtils::isRelease("1.2.3-231-2013-01-11");
+    if (current != expected)
+      {
+      std::cerr << __LINE__ << " - Error in  isRelease()" << std::endl
+                            << "current = " << current << std::endl
+                            << "expected = " << expected << std::endl;
+      return EXIT_FAILURE;
+      }
+  }
+
+  //-----------------------------------------------------------------------------
+  // Test replaceWikiUrlVersion()
+  //-----------------------------------------------------------------------------
+  {
+    //! [replaceWikiUrlVersion example1]
+    QString input =
+        "http://wiki.slicer.org/slicerWiki/index.php/Documentation/Nightly/Extensions/SlicerToKiwiExporter";
+    QString output = qSlicerUtils::replaceWikiUrlVersion(input, "4.4");
+    QString expectedOutput =
+        "http://wiki.slicer.org/slicerWiki/index.php/Documentation/4.4/Extensions/SlicerToKiwiExporter";
+    //! [replaceWikiUrlVersion example1]
+    if (output != expectedOutput)
+      {
+      std::cerr << __LINE__ << " - Error in  updateWikiUrlVersion()" << std::endl
+                            << "current = " << qPrintable(output) << std::endl
+                            << "expected = " << qPrintable(expectedOutput) << std::endl;
+      return EXIT_FAILURE;
+      }
+
+    //! [replaceWikiUrlVersion example2]
+    input =
+        "http://wiki.slicer.org/slicerWiki/index.php/Documentation/Foo/Extensions/SlicerToKiwiExporter";
+    output = qSlicerUtils::replaceWikiUrlVersion(input, "Bar");
+    expectedOutput =
+        "http://wiki.slicer.org/slicerWiki/index.php/Documentation/Bar/Extensions/SlicerToKiwiExporter";
+    //! [replaceWikiUrlVersion example2]
+    if (output != expectedOutput)
+      {
+      std::cerr << __LINE__ << " - Error in  updateWikiUrlVersion()" << std::endl
+                            << "current = " << qPrintable(output) << std::endl
+                            << "expected = " << qPrintable(expectedOutput) << std::endl;
+      return EXIT_FAILURE;
+      }
+
+    //! [replaceWikiUrlVersion example3]
+    input =
+        "http://wiki.slicer.org/slicerWiki/index.php/Documentation/Foo/Extensions/SlicerToKiwiExporter/Foo";
+    output = qSlicerUtils::replaceWikiUrlVersion(input, "Bar");
+    expectedOutput =
+        "http://wiki.slicer.org/slicerWiki/index.php/Documentation/Bar/Extensions/SlicerToKiwiExporter/Foo";
+    //! [replaceWikiUrlVersion example3]
+    if (output != expectedOutput)
+      {
+      std::cerr << __LINE__ << " - Error in  updateWikiUrlVersion()" << std::endl
+                            << "current = " << qPrintable(output) << std::endl
+                            << "expected = " << qPrintable(expectedOutput) << std::endl;
+      return EXIT_FAILURE;
+      }
+
+    //! [replaceWikiUrlVersion example4]
+    input =
+        "Read documentation at "
+        "http://wiki.slicer.org/slicerWiki/index.php/Documentation/4.4/Extensions/SlicerToKiwiExporter."
+        "You will learn how to ...";
+    output = qSlicerUtils::replaceWikiUrlVersion(input, "Nightly");
+    expectedOutput =
+        "Read documentation at "
+        "http://wiki.slicer.org/slicerWiki/index.php/Documentation/Nightly/Extensions/SlicerToKiwiExporter."
+        "You will learn how to ...";
+    //! [replaceWikiUrlVersion example4]
+    if (output != expectedOutput)
+      {
+      std::cerr << __LINE__ << " - Error in  updateWikiUrlVersion()" << std::endl
+                            << "current = " << qPrintable(output) << std::endl
+                            << "expected = " << qPrintable(expectedOutput) << std::endl;
+      return EXIT_FAILURE;
+      }
+  }
+
   return EXIT_SUCCESS;
 }

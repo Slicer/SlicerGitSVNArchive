@@ -172,6 +172,25 @@ public:
                                         QFile::Permissions directoryPermissions,
                                         QFile::Permissions filePermissions);
 
+  /// \brief Return \a true if \a version corresponds to a \a Release build.
+  ///
+  /// A given build could either be a \a Release or a \a Nightly one:
+  /// * \a Release build matches `<MAJOR_VERSION>.<MINOR_VERSION>.<PATCH_VERSION>[-rc{1|2|3...}][-<TWEAK_VERSION>]`
+  /// * \a Nightly build matches the same string as a \a Release build appended with `-<DATE>`
+  static bool isRelease(const QString& version);
+
+  /// \brief Return an updated \a text where Slicer wiki URL version is replaced
+  /// with the provided one.
+  ///
+  /// Any URL containing `Documentation\<VERSION>\` will be updated.
+  ///
+  /// Examples:
+  /// \snippet qSlicerUtilsTest1.cxx replaceWikiUrlVersion example1
+  /// \snippet qSlicerUtilsTest1.cxx replaceWikiUrlVersion example2
+  /// \snippet qSlicerUtilsTest1.cxx replaceWikiUrlVersion example3
+  /// \snippet qSlicerUtilsTest1.cxx replaceWikiUrlVersion example4
+  static QString replaceWikiUrlVersion(const QString& text, const QString& version);
+
 private:
   /// Not implemented
   qSlicerUtils(){}
