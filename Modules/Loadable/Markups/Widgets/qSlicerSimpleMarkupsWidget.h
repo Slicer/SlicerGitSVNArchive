@@ -23,6 +23,7 @@
 
 // Qt includes
 #include "qSlicerWidget.h"
+class vtkSlicerMarkupsLogic;
 
 #include "qMRMLUtils.h"
 
@@ -46,6 +47,10 @@ public:
 
   /// Get the currently selected markups node.
   Q_INVOKABLE vtkMRMLNode* getCurrentNode();
+
+  /// Set/Get Markups logic.
+  Q_INVOKABLE virtual vtkSlicerMarkupsLogic* markupsLogic()const;
+  Q_INVOKABLE virtual void setMarkupsLogic(vtkSlicerMarkupsLogic* logic);
   
 public slots:
   /// Set the currently selected markups node.

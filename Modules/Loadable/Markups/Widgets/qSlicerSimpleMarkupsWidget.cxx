@@ -138,19 +138,6 @@ void qSlicerSimpleMarkupsWidget::enter()
 {
   Q_D(qSlicerSimpleMarkupsWidget);
 
-  // This cannot be called by the constructor, because Slicer may not exist when the constructor is called
-  qSlicerAbstractCoreModule* MarkupsModule = qSlicerApplication::application()->moduleManager()->module( "Markups" );
-  if ( MarkupsModule != NULL )
-    {
-    d->MarkupsLogic = vtkSlicerMarkupsLogic::SafeDownCast( MarkupsModule->logic() );
-    }
-  else
-    {
-    d->MarkupsLogic = NULL;
-    }
-
-  this->setMRMLScene( d->MarkupsLogic->GetMRMLScene() );
-
   // Connect to the selection singleton node - that way we can update the GUI if the Active node changes
   // Note that only the GUI cares about the active node (the logic and mrml don't)
   this->connectInteractionAndSelectionNodes();
@@ -181,6 +168,27 @@ vtkMRMLNode* qSlicerSimpleMarkupsWidget::getCurrentNode()
   Q_D(qSlicerSimpleMarkupsWidget);
 
   return d->MarkupsFiducialNodeComboBox->currentNode();
+}
+
+//-----------------------------------------------------------------------------
+vtkSlicerMarkupsLogic* qSlicerSimpleMarkupsWidget::markupsLogic()const
+{
+  Q_D(const qSlicerSimpleMarkupsWidget);
+  return d->MarkupsLogic;
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerSimpleMarkupsWidget::setMarkupsLogic(vtkSlicerMarkupsLogic* logic)
+{
+  Q_D(qSlicerSimpleMarkupsWidget);
+  if (d->MarkupsLogic == logic)
+    {
+    return;
+    }
+  d->MarkupsLogic = logic;
+
+  // Conveniently set MRMLScene
+  this->setMRMLScene(d->MarkupsLogic->GetMRMLScene());
 }
 
 //-----------------------------------------------------------------------------
