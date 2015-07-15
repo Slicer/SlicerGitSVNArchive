@@ -112,7 +112,7 @@ void qMRMLNodeAttributeTableWidget::showEvent(QShowEvent *)
   // Update the widget, now that it becomes becomes visible
   // (we might have missed some updates, because widget contents is not updated
   // if the widget is not visible).
-  updateWidgetFromMRML();
+  this->updateWidgetFromMRML();
 }
 
 //------------------------------------------------------------------------------
@@ -128,7 +128,6 @@ void qMRMLNodeAttributeTableWidget::updateWidgetFromMRML()
 
   if (d->MRMLNode.GetPointer())
     {
-    // EncapsulateMetaData<double>(dict, bValueKey, maxBValue);
     std::stringstream infoStream;
     d->MRMLNode->PrintSelf(infoStream, vtkIndent(0));
     d->MRMLNodeInfoLabel->setText(QLatin1String(infoStream.str().c_str()));
@@ -137,5 +136,4 @@ void qMRMLNodeAttributeTableWidget::updateWidgetFromMRML()
     {
     d->MRMLNodeInfoLabel->clear();
     }
-
 }
