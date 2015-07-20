@@ -17,15 +17,13 @@
 // SlicerExecutionModel includes
 #include <ModuleDescription.h>
 
-// Markups includes
-#include <vtkMRMLMarkupsStorageNode.h>
-
 // MRML includes
 #include <vtkEventBroker.h>
 #include <vtkMRMLColorNode.h>
 #include <vtkMRMLDisplayableNode.h>
 #include <vtkMRMLDisplayNode.h>
 #include <vtkMRMLFiducialListNode.h>
+#include <vtkMRMLMarkupsStorageNode.h>
 #include <vtkMRMLModelHierarchyNode.h>
 #include <vtkMRMLModelNode.h>
 #include <vtkMRMLROIListNode.h>
