@@ -87,7 +87,7 @@ int main(int argc, char *argv[])
     }
   // fiducials
   std::cout << "Have an input seed list of size " << seed.size() << std::endl;
-  for (int i = 0; i < seed.size(); ++i)
+  for (unsigned int i = 0; i < seed.size(); ++i)
     {
     std::cout << i << "\t" << seed[i][0] << "\t" << seed[i][1] << "\t" << seed[i][2] << std::endl;
     }
@@ -112,7 +112,7 @@ int main(int argc, char *argv[])
   // set the node name so that fiducials have names that don't just
   // start with -1, -2 etc
   copiedFiducialNode->SetName("seedsCopy");
-  for (int i = 0; i < seed.size(); ++i)
+  for (unsigned int i = 0; i < seed.size(); ++i)
     {
     std::cout << "Copying seed list to output file list: " << seed[i][0] << ", " << seed[i][1] << ", " << seed[i][2] << std::endl;
     copiedFiducialNode->AddFiducial(seed[i][0], seed[i][1], seed[i][2]);
