@@ -198,6 +198,10 @@ class VTK_MRML_EXPORT vtkMRMLScalarVolumeDisplayNode : public vtkMRMLVolumeDispl
   /// Volume node and returns its image data scalar range.
   virtual void GetDisplayScalarRange(double range[2]);
 
+  ///
+  /// Given a volume node, create a human readable string describing the contents
+  virtual const char* getPixelString(double* ijk);
+
 protected:
   vtkMRMLScalarVolumeDisplayNode();
   virtual ~vtkMRMLScalarVolumeDisplayNode();

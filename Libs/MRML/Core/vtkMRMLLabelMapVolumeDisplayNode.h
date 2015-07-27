@@ -64,6 +64,10 @@ class VTK_MRML_EXPORT vtkMRMLLabelMapVolumeDisplayNode : public vtkMRMLVolumeDis
 
   virtual void UpdateImageDataPipeline();
 
+  ///
+  /// Given a volume node, create a human readable string describing the contents
+  virtual const char *getPixelString(double *ijk);
+
 protected:
   vtkMRMLLabelMapVolumeDisplayNode();
   virtual ~vtkMRMLLabelMapVolumeDisplayNode();

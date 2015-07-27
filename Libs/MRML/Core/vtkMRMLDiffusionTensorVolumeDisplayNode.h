@@ -184,6 +184,10 @@ class VTK_MRML_EXPORT vtkMRMLDiffusionTensorVolumeDisplayNode : public vtkMRMLGl
   static int GetNumberOfScalarInvariants();
   static int GetNthScalarInvariant(int i);
 
+  ///
+  /// Given a volume node, create a human readable string describing the contents
+  virtual const char* getPixelString(double *ijk);
+
 protected:
   vtkMRMLDiffusionTensorVolumeDisplayNode();
   ~vtkMRMLDiffusionTensorVolumeDisplayNode();
@@ -220,6 +224,11 @@ protected:
 
    /// Scalar display parameters
   int ScalarInvariant;
+
+  ///smart Pointer needed for calculatating PixelString
+  vtkSmartPointer<vtkDiffusionTensorMathematics> dtimath;
+  vtkSmartPointer<vtkImageData> singlepixelimage;
+  vtkSmartPointer<vtkFloatArray> tensordata;
 
 
 };

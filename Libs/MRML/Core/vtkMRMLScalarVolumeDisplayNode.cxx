@@ -143,6 +143,32 @@ vtkMRMLScalarVolumeDisplayNode::~vtkMRMLScalarVolumeDisplayNode()
     }
 }
 
+namespace
+{
+//----------------------------------------------------------------------------
+template <typename T> std::string NumberToString(T V)
+{
+    std::string stringValue;
+    std::stringstream strstream;
+    strstream << V;
+    strstream >> stringValue;
+    return stringValue;
+}
+
+
+//----------------------------------------------------------------------------
+std::string DoubleToString(double Value)
+{
+    return NumberToString<double>(Value);
+}
+
+//----------------------------------------------------------------------------
+std::string IntToString(int Value)
+{
+    return NumberToString<int>(Value);
+}
+}// end namespace
+
 //----------------------------------------------------------------------------
 void vtkMRMLScalarVolumeDisplayNode::SetDefaultColorMap()
 {
@@ -767,7 +793,33 @@ void vtkMRMLScalarVolumeDisplayNode::GetDisplayScalarRange(double range[2])
     {
     range[0] = 0;
     range[1] = 255;
+  }
+}
+
+//----------------------------------------------------------------------------
+const char *vtkMRMLScalarVolumeDisplayNode::getPixelString(double *ijk)
+{
+    if(this->GetVolumeNode()->GetImageData() == NULL){
+        return "No Image";
     }
+
+    for(int i = 0; i < 3; i++){
+        if(ijk[i] < 0 or ijk[i] >=  this->GetVolumeNode()->GetImageData()->GetDimensions()[i])
+            return "Out of Frame";
+    }
+
+    int numberOfComponents = this->GetVolumeNode()->GetImageData()->GetNumberOfScalarComponents();
+    if(numberOfComponents > 3){
+        std::string s = IntToString(numberOfComponents) + " components";
+        return s.c_str();
+    }
+    std::string pixel;
+    for(int i = 0; i < numberOfComponents; i++){
+        double component = this->GetVolumeNode()->GetImageData()->GetScalarComponentAsDouble(ijk[0],ijk[1],ijk[2],i);
+        pixel += DoubleToString(component) + ",";
+    }
+    pixel.erase(pixel.size()-1);
+    return pixel.c_str();
 }
 
 //---------------------------------------------------------------------------

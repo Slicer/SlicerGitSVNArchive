@@ -122,5 +122,14 @@ void vtkMRMLScalarVolumeNode::PrintSelf(ostream& os, vtkIndent indent)
 //---------------------------------------------------------------------------
 vtkMRMLStorageNode* vtkMRMLScalarVolumeNode::CreateDefaultStorageNode()
 {
-  return vtkMRMLVolumeArchetypeStorageNode::New();
+    return vtkMRMLVolumeArchetypeStorageNode::New();
+}
+
+//---------------------------------------------------------------------------
+void vtkMRMLScalarVolumeNode::GetCustomizeWorldCoordinates(double *ijk, double *SlicerWorld)
+{
+    if(ijk != NULL && SlicerWorld != NULL){
+        //here child class can implement this method for
+        //retrieving custom coordinates (needed for example by Dataprobe)
+    }
 }

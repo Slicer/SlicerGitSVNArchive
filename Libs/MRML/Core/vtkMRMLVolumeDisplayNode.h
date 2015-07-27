@@ -125,6 +125,26 @@ public:
   /// set gray colormap or override in subclass
   virtual void SetDefaultColorMap();
 
+  ///
+  /// Get methods returning the reference quantity names
+  virtual const char* GetHorizontalQuantity();
+  virtual const char* GetVerticalQuantity();
+  virtual const char* GetDepthQuantity();
+
+  ///
+  /// Set methods for the reference quantity names
+  virtual void SetHorizontalQuantity(const char*);
+  virtual void SetVerticalQuantity(const char*);
+  virtual void SetDepthQuantity(const char*);
+
+  ///
+  /// Get the name of the system of reference
+  virtual const char* GetCoodinatesSystemName();
+
+  ///
+  /// Set the name of the system of reference
+  virtual void SetCoodinatesSystemName(const char*);
+
   /// Search in the scene the volume node vtkMRMLVolumeDisplayNode is associated
   /// to
   vtkMRMLVolumeNode* GetVolumeNode();
@@ -140,6 +160,12 @@ protected:
 #else
   virtual void SetInputToImageDataPipeline(vtkAlgorithmOutput *imageDataConnection);
 #endif
+
+  std::string sysref;
+  std::string HorizontalQuantity;
+  std::string VerticalQuantity;
+  std::string DepthQuantity;
+
 };
 
 #endif

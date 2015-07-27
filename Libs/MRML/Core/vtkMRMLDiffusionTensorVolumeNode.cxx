@@ -64,5 +64,5 @@ vtkMRMLDiffusionTensorVolumeDisplayNode* vtkMRMLDiffusionTensorVolumeNode
 //----------------------------------------------------------------------------
 vtkMRMLStorageNode* vtkMRMLDiffusionTensorVolumeNode::CreateDefaultStorageNode()
 {
-  return vtkMRMLNRRDStorageNode::New();
+    return vtkMRMLNRRDStorageNode::New();
 }

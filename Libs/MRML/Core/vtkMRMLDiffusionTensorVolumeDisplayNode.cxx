@@ -13,6 +13,7 @@ Version:   $Revision: 1.2 $
 =========================================================================auto=*/
 
 // MRML includes
+#include "vtkMRMLDiffusionTensorDisplayPropertiesNode.h"
 #include "vtkMRMLDiffusionTensorVolumeDisplayNode.h"
 #include "vtkMRMLDiffusionTensorVolumeSliceDisplayNode.h"
 #include "vtkMRMLScene.h"
@@ -35,6 +36,10 @@ Version:   $Revision: 1.2 $
 #include <vtkObjectFactory.h>
 #include <vtkSphereSource.h>
 #include <vtkVersion.h>
+#include <vtkPointData.h>
+#include <vtkTensor.h>
+#include <vtkFloatArray.h>
+#include <vtkDiffusionTensorMathematics.h>
 
 // STD includes
 
@@ -68,6 +73,24 @@ vtkMRMLDiffusionTensorVolumeDisplayNode
  sphere->Delete();
 
  this->AutoScalarRange = 1;
+
+ this->dtimath = vtkSmartPointer<vtkDiffusionTensorMathematics>::New();
+ this->singlepixelimage = vtkSmartPointer<vtkImageData>::New();
+ this->singlepixelimage->SetExtent(0, 0, 0, 0, 0, 0);
+#if (VTK_MAJOR_VERSION <= 5)
+ singlepixelimage->AllocateScalars();
+#endif
+ this->tensordata = vtkSmartPointer<vtkFloatArray>::New();
+
+ this->tensordata->SetNumberOfComponents(9);
+ this->tensordata->SetNumberOfTuples(singlepixelimage->GetNumberOfPoints());
+ this->singlepixelimage->GetPointData()->SetTensors(tensordata);
+
+#if (VTK_MAJOR_VERSION <= 5)
+ this->dtimath->SetInput(singlepixelimage);
+#else
+ this->dtimath->SetInputData(singlepixelimage);
+#endif
 }
 
 //----------------------------------------------------------------------------
@@ -83,6 +106,24 @@ vtkMRMLDiffusionTensorVolumeDisplayNode
   this->ImageCast->Delete();
 }
 
+namespace
+{
+//----------------------------------------------------------------------------
+template <typename T> std::string NumberToString(T V)
+{
+    std::string stringValue;
+    std::stringstream strstream;
+    strstream << V;
+    strstream >> stringValue;
+    return stringValue;
+}
+
+//----------------------------------------------------------------------------
+std::string DoubleToString(double Value)
+{
+    return NumberToString<double>(Value);
+}
+}// end namespace
 
 //----------------------------------------------------------------------------
 void vtkMRMLDiffusionTensorVolumeDisplayNode::WriteXML(ostream& of, int nIndent)
@@ -470,4 +511,47 @@ int vtkMRMLDiffusionTensorVolumeDisplayNode::GetNthScalarInvariant(int i)
   static std::vector<int> modes =
     vtkMRMLDiffusionTensorVolumeDisplayNode::GetSupportedColorModes();
   return modes[i];
+}
+
+//----------------------------------------------------------------------------
+const char *vtkMRMLDiffusionTensorVolumeDisplayNode::getPixelString(double *ijk)
+{
+    vtkImageData *imageData = this->GetVolumeNode()->GetImageData();
+    if(imageData == NULL){
+        return "No Image";
+    }
+
+    vtkIdType point_idx = imageData->FindPoint(ijk[0], ijk[1], ijk[2]);
+
+    if(point_idx == -1)
+      return "Out of bounds";
+
+    if(imageData->GetPointData() == NULL)
+      return "No Point Data";
+
+    if(imageData->GetPointData()->GetTensors() == NULL)
+      return "No Tensor Data";
+
+    double tensor[9];
+    double *a = &tensor[0];
+    imageData->GetPointData()->GetTensors()->GetTuple(point_idx, a);
+
+    int operation;
+
+    operation = this->GetScalarInvariant();
+
+    std::string valueString = this->GetScalarInvariantAsString();
+
+    const float *tensorf = (float*) &tensor[0];
+    this->tensordata->SetTupleValue(0, tensorf);
+    this->tensordata->Modified();
+    this->singlepixelimage->Modified();
+    this->dtimath->SetOperation(operation);
+    this->dtimath->Update();
+    vtkImageData *output = this->dtimath->GetOutput();
+
+    if(output && output->GetNumberOfScalarComponents() > 0)
+        valueString += " " + DoubleToString(output->GetScalarComponentAsDouble(0, 0, 0, 0));
+
+    return valueString.c_str();
 }

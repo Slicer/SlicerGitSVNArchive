@@ -67,6 +67,11 @@ class VTK_MRML_EXPORT vtkMRMLScalarVolumeNode : public vtkMRMLVolumeNode
   /// Create default storage node or NULL if does not have one
   virtual vtkMRMLStorageNode* CreateDefaultStorageNode();
 
+
+  ///
+  /// This method return customized SlicerWorld coordinated given ijk
+  virtual void GetCustomizeWorldCoordinates(double* ijk, double* SlicerWorld);
+
 protected:
   vtkMRMLScalarVolumeNode();
   ~vtkMRMLScalarVolumeNode();

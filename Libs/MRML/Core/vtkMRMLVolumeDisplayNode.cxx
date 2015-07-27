@@ -33,6 +33,10 @@ vtkMRMLVolumeDisplayNode::vtkMRMLVolumeDisplayNode()
 {
   // try setting a default greyscale color map
   //this->SetDefaultColorMap(0);
+    HorizontalQuantity = "length";
+    VerticalQuantity = "length";
+    DepthQuantity = "length";
+    sysref = "RAS";
 }
 
 //----------------------------------------------------------------------------
@@ -44,6 +48,12 @@ vtkMRMLVolumeDisplayNode::~vtkMRMLVolumeDisplayNode()
 void vtkMRMLVolumeDisplayNode::WriteXML(ostream& of, int nIndent)
 {
   Superclass::WriteXML(of, nIndent);
+  vtkIndent indent(nIndent);
+
+  of << indent << "HorizontalQuantity=\"" << HorizontalQuantity << "\"";
+  of << indent << "VerticalQuantity=\"" << VerticalQuantity << "\"";
+  of << indent << "DepthQuantity=\"" << DepthQuantity << "\"";
+  of << indent << "sysref=\"" << sysref << "\"";
 }
 
 //----------------------------------------------------------------------------
@@ -51,6 +61,36 @@ void vtkMRMLVolumeDisplayNode::ReadXMLAttributes(const char** atts)
 {
 
   Superclass::ReadXMLAttributes(atts);
+
+  const char* attName;
+  const char* attValue;
+
+  while (*atts != NULL){
+    attName = *(atts++);
+    attValue = *(atts++);
+
+    if (!strcmp(attName, "HorizontalQuantity")){
+      HorizontalQuantity = attValue;
+      continue;
+    }
+
+    if (!strcmp(attName, "VerticalQuantity")){
+      VerticalQuantity = attValue;
+      continue;
+    }
+
+    if (!strcmp(attName, "DepthQuantity")){
+      DepthQuantity = attValue;
+      continue;
+    }
+
+    if (!strcmp(attName, "sysref")){
+      sysref = attValue;
+      continue;
+    }
+  }
+
+  this->WriteXML(std::cout,0);
 }
 
 //----------------------------------------------------------------------------
@@ -66,10 +106,18 @@ void vtkMRMLVolumeDisplayNode::Copy(vtkMRMLNode *anode)
   if (node)
     {
     this->SetInputImageDataConnection(node->GetInputImageDataConnection());
+    node->HorizontalQuantity = this->HorizontalQuantity;
+    node->VerticalQuantity = this->VerticalQuantity;
+    node->DepthQuantity = this->DepthQuantity;
+    node->sysref = this->sysref;
     }
   this->UpdateImageDataPipeline();
 #endif
+
+
+
   this->EndModify(wasModifying);
+
 }
 
 //---------------------------------------------------------------------------
@@ -88,6 +136,11 @@ void vtkMRMLVolumeDisplayNode::ProcessMRMLEvents(vtkObject *caller,
 void vtkMRMLVolumeDisplayNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
+
+    os << indent << "HorizontalQuantity:   "<< HorizontalQuantity << std::endl;
+    os << indent << "VerticalQuantity=   " << VerticalQuantity << std::endl;
+    os << indent << "DepthQuantity=   " << DepthQuantity << std::endl;
+    os << indent << "sysref=   " << sysref << std::endl;
 }
 
 //-----------------------------------------------------------
@@ -241,7 +294,55 @@ void vtkMRMLVolumeDisplayNode::UpdateImageDataPipeline()
 //----------------------------------------------------------------------------
 void vtkMRMLVolumeDisplayNode::SetDefaultColorMap()
 {
-  this->SetAndObserveColorNodeID("vtkMRMLColorTableNodeGrey");
+    this->SetAndObserveColorNodeID("vtkMRMLColorTableNodeGrey");
+}
+
+//----------------------------------------------------------------------------
+const char *vtkMRMLVolumeDisplayNode::GetHorizontalQuantity()
+{
+    return HorizontalQuantity.c_str();
+}
+
+//----------------------------------------------------------------------------
+const char *vtkMRMLVolumeDisplayNode::GetVerticalQuantity()
+{
+    return VerticalQuantity.c_str();
+}
+
+//----------------------------------------------------------------------------
+const char *vtkMRMLVolumeDisplayNode::GetDepthQuantity()
+{
+    return DepthQuantity.c_str();
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLVolumeDisplayNode::SetHorizontalQuantity(const char *quantity)
+{
+    this->HorizontalQuantity = quantity;
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLVolumeDisplayNode::SetVerticalQuantity(const char *quantity)
+{
+    this->VerticalQuantity = quantity;
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLVolumeDisplayNode::SetDepthQuantity(const char *quantity)
+{
+    this->DepthQuantity = quantity;
+}
+
+//----------------------------------------------------------------------------
+const char *vtkMRMLVolumeDisplayNode::GetCoodinatesSystemName()
+{
+    return sysref.c_str();
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLVolumeDisplayNode::SetCoodinatesSystemName(const char *sys)
+{
+    this->sysref = sys;
 }
 
 //----------------------------------------------------------------------------

@@ -15,6 +15,9 @@ Version:   $Revision: 1.2 $
 #include "vtkMRMLLabelMapVolumeDisplayNode.h"
 #include "vtkMRMLProceduralColorNode.h"
 #include "vtkMRMLScene.h"
+#include "vtkMRMLColorNode.h"
+#include "vtkMRMLDisplayNode.h"
+#include "vtkMRMLVolumeNode.h"
 
 // VTK includes
 #include <vtkImageData.h>
@@ -26,6 +29,7 @@ Version:   $Revision: 1.2 $
 
 // STD includes
 #include <cassert>
+#include <sstream>
 
 //----------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLLabelMapVolumeDisplayNode);
@@ -46,6 +50,25 @@ vtkMRMLLabelMapVolumeDisplayNode::~vtkMRMLLabelMapVolumeDisplayNode()
 {
    this->MapToColors->Delete();
 }
+
+namespace
+{
+//----------------------------------------------------------------------------
+template <typename T> std::string NumberToString(T V)
+{
+    std::string stringValue;
+    std::stringstream strstream;
+    strstream << V;
+    strstream >> stringValue;
+    return stringValue;
+}
+
+//----------------------------------------------------------------------------
+std::string IntToString(int Value)
+{
+    return NumberToString<int>(Value);
+}
+}// end namespace
 
 //----------------------------------------------------------------------------
 void vtkMRMLLabelMapVolumeDisplayNode::SetDefaultColorMap()
@@ -155,4 +178,26 @@ void vtkMRMLLabelMapVolumeDisplayNode::UpdateImageDataPipeline()
   // if there is no point, the mapping will fail (not sure)
   assert(!lookupTable || !vtkLookupTable::SafeDownCast(lookupTable) ||
          vtkLookupTable::SafeDownCast(lookupTable)->GetNumberOfTableValues());
+}
+
+//---------------------------------------------------------------------------
+const char *vtkMRMLLabelMapVolumeDisplayNode::getPixelString(double *ijk)
+{
+    if(this->GetVolumeNode()->GetImageData() == NULL){
+        return "No Image";
+    }
+
+    for(int i = 0; i < 3; i++){
+        if(ijk[i] < 0 or ijk[i] >=  this->GetVolumeNode()->GetImageData()->GetDimensions()[i])
+            return "Out of Frame";
+    }
+
+    std::string labelValue = "Unknown";
+    int labelIndex = int(this->GetVolumeNode()->GetImageData()->GetScalarComponentAsDouble(ijk[0],ijk[1],ijk[2],0));
+
+    vtkMRMLColorNode *colornode = this->GetColorNode();
+    if(colornode) labelValue = colornode->GetColorName(labelIndex);
+
+    labelValue += "(" + IntToString(labelIndex) + ")";
+    return labelValue.c_str();
 }
