@@ -33,15 +33,37 @@ vtkMRMLVolumeDisplayNode::vtkMRMLVolumeDisplayNode()
 {
   // try setting a default greyscale color map
   //this->SetDefaultColorMap(0);
-    HorizontalQuantity = "length";
-    VerticalQuantity = "length";
-    DepthQuantity = "length";
-    sysref = "RAS";
+    this->HorizontalQuantity = 0;
+    this->VerticalQuantity = 0;
+    this->DepthQuantity = 0;
+    this->CoordinateSystem = 0;
+
+    this->SetHorizontalQuantity("length");
+    this->SetVerticalQuantity("length");
+    this->SetDepthQuantity("length");
+    this->SetCoordinateSystem("RAS");
 }
 
 //----------------------------------------------------------------------------
 vtkMRMLVolumeDisplayNode::~vtkMRMLVolumeDisplayNode()
 {
+    if (this->HorizontalQuantity)
+      {
+      delete [] this->HorizontalQuantity;
+      }
+    if (this->VerticalQuantity)
+      {
+      delete [] this->VerticalQuantity;
+      }
+    if (this->DepthQuantity)
+      {
+      delete [] this->DepthQuantity;
+      }
+    if (this->CoordinateSystem)
+      {
+      delete [] this->CoordinateSystem;
+      }
+
 }
 
 //----------------------------------------------------------------------------
@@ -50,10 +72,10 @@ void vtkMRMLVolumeDisplayNode::WriteXML(ostream& of, int nIndent)
   Superclass::WriteXML(of, nIndent);
   vtkIndent indent(nIndent);
 
-  of << indent << "HorizontalQuantity=\"" << HorizontalQuantity << "\"";
-  of << indent << "VerticalQuantity=\"" << VerticalQuantity << "\"";
-  of << indent << "DepthQuantity=\"" << DepthQuantity << "\"";
-  of << indent << "sysref=\"" << sysref << "\"";
+  of << indent << " HorizontalQuantity=\"" << (this->HorizontalQuantity ? this->HorizontalQuantity : "") << "\"";
+  of << indent << " VerticalQuantity=\"" << (this->VerticalQuantity ? this->VerticalQuantity : "") << "\"";
+  of << indent << " DepthQuantity=\"" << (this->DepthQuantity ? this->DepthQuantity : "") << "\"";
+  of << indent << " CoordinateSystem=\"" << (this->CoordinateSystem ? this->CoordinateSystem : "") << "\"";
 }
 
 //----------------------------------------------------------------------------
@@ -70,22 +92,22 @@ void vtkMRMLVolumeDisplayNode::ReadXMLAttributes(const char** atts)
     attValue = *(atts++);
 
     if (!strcmp(attName, "HorizontalQuantity")){
-      HorizontalQuantity = attValue;
+      this->SetHorizontalQuantity(attValue);
       continue;
     }
 
     if (!strcmp(attName, "VerticalQuantity")){
-      VerticalQuantity = attValue;
+      this->SetVerticalQuantity(attValue);
       continue;
     }
 
     if (!strcmp(attName, "DepthQuantity")){
-      DepthQuantity = attValue;
+      this->SetDepthQuantity(attValue);
       continue;
     }
 
     if (!strcmp(attName, "sysref")){
-      sysref = attValue;
+      this->SetCoordinateSystem(attValue);
       continue;
     }
   }
@@ -106,10 +128,10 @@ void vtkMRMLVolumeDisplayNode::Copy(vtkMRMLNode *anode)
   if (node)
     {
     this->SetInputImageDataConnection(node->GetInputImageDataConnection());
-    node->HorizontalQuantity = this->HorizontalQuantity;
-    node->VerticalQuantity = this->VerticalQuantity;
-    node->DepthQuantity = this->DepthQuantity;
-    node->sysref = this->sysref;
+    this->SetHorizontalQuantity(node->GetHorizontalQuantity());
+    this->SetVerticalQuantity(node->GetVerticalQuantity());
+    this->SetDepthQuantity(node->GetDepthQuantity());
+    this->SetCoordinateSystem(node->GetCoordinateSystem());
     }
   this->UpdateImageDataPipeline();
 #endif
@@ -137,10 +159,14 @@ void vtkMRMLVolumeDisplayNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
 
-    os << indent << "HorizontalQuantity:   "<< HorizontalQuantity << std::endl;
-    os << indent << "VerticalQuantity=   " << VerticalQuantity << std::endl;
-    os << indent << "DepthQuantity=   " << DepthQuantity << std::endl;
-    os << indent << "sysref=   " << sysref << std::endl;
+    os << indent << "HorizontalQuantity: " <<
+      (this->HorizontalQuantity ? this->HorizontalQuantity : "(none)") << "\n";
+    os << indent << "VerticalQuantity: " <<
+      (this->VerticalQuantity ? this->VerticalQuantity : "(none)") << "\n";
+    os << indent << "DepthQuantity: " <<
+      (this->DepthQuantity ? this->DepthQuantity : "(none)") << "\n";
+    os << indent << "CoordinateSystem: " <<
+      (this->CoordinateSystem ? this->CoordinateSystem : "(none)") << "\n";
 }
 
 //-----------------------------------------------------------
@@ -295,54 +321,6 @@ void vtkMRMLVolumeDisplayNode::UpdateImageDataPipeline()
 void vtkMRMLVolumeDisplayNode::SetDefaultColorMap()
 {
     this->SetAndObserveColorNodeID("vtkMRMLColorTableNodeGrey");
-}
-
-//----------------------------------------------------------------------------
-const char *vtkMRMLVolumeDisplayNode::GetHorizontalQuantity()
-{
-    return HorizontalQuantity.c_str();
-}
-
-//----------------------------------------------------------------------------
-const char *vtkMRMLVolumeDisplayNode::GetVerticalQuantity()
-{
-    return VerticalQuantity.c_str();
-}
-
-//----------------------------------------------------------------------------
-const char *vtkMRMLVolumeDisplayNode::GetDepthQuantity()
-{
-    return DepthQuantity.c_str();
-}
-
-//----------------------------------------------------------------------------
-void vtkMRMLVolumeDisplayNode::SetHorizontalQuantity(const char *quantity)
-{
-    this->HorizontalQuantity = quantity;
-}
-
-//----------------------------------------------------------------------------
-void vtkMRMLVolumeDisplayNode::SetVerticalQuantity(const char *quantity)
-{
-    this->VerticalQuantity = quantity;
-}
-
-//----------------------------------------------------------------------------
-void vtkMRMLVolumeDisplayNode::SetDepthQuantity(const char *quantity)
-{
-    this->DepthQuantity = quantity;
-}
-
-//----------------------------------------------------------------------------
-const char *vtkMRMLVolumeDisplayNode::GetCoodinatesSystemName()
-{
-    return sysref.c_str();
-}
-
-//----------------------------------------------------------------------------
-void vtkMRMLVolumeDisplayNode::SetCoodinatesSystemName(const char *sys)
-{
-    this->sysref = sys;
 }
 
 //----------------------------------------------------------------------------

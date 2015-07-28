@@ -212,27 +212,27 @@ class DataProbeInfoWidget(object):
         if display:
           if layer == 'B':
             hasBLayer = True
-            volumeNode.GetCustomizeWorldCoordinates(ijk, ras)
+            volumeNode.GetCustomWorldCoordinates(ijk, ras)
             HorizontalUnitNode = selectionNode.GetUnitNode(display.GetHorizontalQuantity())
             VerticalUnitNode = selectionNode.GetUnitNode(display.GetVerticalQuantity())
             DepthUnitNode = selectionNode.GetUnitNode(display.GetDepthQuantity())
-            CoordinateSystemName = display.GetCoodinatesSystemName()
+            CoordinateSystemName = display.GetCoordinateSystem()
 
           if layer == "F" and hasBLayer == False:
             hasFLayer = True
-            volumeNode.GetCustomizeWorldCoordinates(ijk, ras)
+            volumeNode.GetCustomWorldCoordinates(ijk, ras)
             HorizontalUnitNode = selectionNode.GetUnitNode(display.GetHorizontalQuantity())
             VerticalUnitNode = selectionNode.GetUnitNode(display.GetVerticalQuantity())
             DepthUnitNode = selectionNode.GetUnitNode(display.GetDepthQuantity())
-            CoordinateSystemName = display.GetCoodinatesSystemName()
+            CoordinateSystemName = display.GetCoordinateSystem()
 
           if layer == "L" and hasBLayer == False and hasFLayer == False:
             hasLLayer = True
-            volumeNode.GetCustomizeWorldCoordinates(ijk, ras)
+            volumeNode.GetCustomWorldCoordinates(ijk, ras)
             HorizontalUnitNode = selectionNode.GetUnitNode(display.GetHorizontalQuantity())
             VerticalUnitNode = selectionNode.GetUnitNode(display.GetVerticalQuantity())
             DepthUnitNode = selectionNode.GetUnitNode(display.GetDepthQuantity())
-            CoordinateSystemName = display.GetCoodinatesSystemName()
+            CoordinateSystemName = display.GetCoordinateSystem()
         self.layerNames[layer].setText(
           "<b>%s</b>" % (self.fitName(volumeNode.GetName()) if volumeNode else "None"))
         self.layerIJKs[layer].setText(

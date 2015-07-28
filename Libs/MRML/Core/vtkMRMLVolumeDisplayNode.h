@@ -125,25 +125,35 @@ public:
   /// set gray colormap or override in subclass
   virtual void SetDefaultColorMap();
 
-  ///
-  /// Get methods returning the reference quantity names
-  virtual const char* GetHorizontalQuantity();
-  virtual const char* GetVerticalQuantity();
-  virtual const char* GetDepthQuantity();
 
   ///
-  /// Set methods for the reference quantity names
-  virtual void SetHorizontalQuantity(const char*);
-  virtual void SetVerticalQuantity(const char*);
-  virtual void SetDepthQuantity(const char*);
+  /// Set/Get the unit CoordinateSystem.
+  /// Default is "RAS".
+  /// \sa SetCoordinateSystem(), GetCoordinateSystem()
+  vtkGetStringMacro(CoordinateSystem);
+  vtkSetStringMacro(CoordinateSystem);
 
   ///
-  /// Get the name of the system of reference
-  virtual const char* GetCoodinatesSystemName();
+  /// Set/Get the unit HorizontalQuantity.
+  /// Default is "length".
+  /// \sa SetHorizontalQuantity(), GetHorizontalQuantity()
+  vtkGetStringMacro(HorizontalQuantity);
+  vtkSetStringMacro(HorizontalQuantity);
 
   ///
-  /// Set the name of the system of reference
-  virtual void SetCoodinatesSystemName(const char*);
+  /// Set/Get the unit VerticalQuantity.
+  /// Default is "length".
+  /// \sa SetVerticalQuantity(), GetVerticalQuantity()
+  vtkGetStringMacro(VerticalQuantity);
+  vtkSetStringMacro(VerticalQuantity);
+
+  ///
+  /// Set/Get the unit DepthQuantity.
+  /// Default is "length".
+  /// \sa SetDepthQuantity(), GetDepthQuantity()
+  vtkGetStringMacro(DepthQuantity);
+  vtkSetStringMacro(DepthQuantity);
+
 
   /// Search in the scene the volume node vtkMRMLVolumeDisplayNode is associated
   /// to
@@ -161,10 +171,10 @@ protected:
   virtual void SetInputToImageDataPipeline(vtkAlgorithmOutput *imageDataConnection);
 #endif
 
-  std::string sysref;
-  std::string HorizontalQuantity;
-  std::string VerticalQuantity;
-  std::string DepthQuantity;
+  char* CoordinateSystem;
+  char* HorizontalQuantity;
+  char* VerticalQuantity;
+  char* DepthQuantity;
 
 };
 

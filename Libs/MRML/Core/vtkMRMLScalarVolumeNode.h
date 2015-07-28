@@ -70,7 +70,7 @@ class VTK_MRML_EXPORT vtkMRMLScalarVolumeNode : public vtkMRMLVolumeNode
 
   ///
   /// This method return customized SlicerWorld coordinated given ijk
-  virtual void GetCustomizeWorldCoordinates(double* ijk, double* SlicerWorld);
+  virtual void GetCustomWorldCoordinates(double* ijk, double* SlicerWorld);
 
 protected:
   vtkMRMLScalarVolumeNode();

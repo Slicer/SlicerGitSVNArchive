@@ -126,7 +126,7 @@ vtkMRMLStorageNode* vtkMRMLScalarVolumeNode::CreateDefaultStorageNode()
 }
 
 //---------------------------------------------------------------------------
-void vtkMRMLScalarVolumeNode::GetCustomizeWorldCoordinates(double *ijk, double *SlicerWorld)
+void vtkMRMLScalarVolumeNode::GetCustomWorldCoordinates(double *ijk, double *SlicerWorld)
 {
     if(ijk != NULL && SlicerWorld != NULL){
         //here child class can implement this method for
