@@ -19,6 +19,10 @@
 ==============================================================================*/
 
 // Qt includes
+#include <QAbstractButton>
+
+// CTK includes
+#include <ctkMessageBox.h>
 
 // qMRML includes
 #include "qMRMLSceneViewMenu_p.h"
@@ -177,7 +181,49 @@ void qMRMLSceneViewMenuPrivate::restoreSceneView(const QString& sceneViewNodeId)
       this->MRMLScene->GetNodeByID(sceneViewNodeId.toLatin1()));
   Q_ASSERT(sceneViewNode);
   this->MRMLScene->SaveStateForUndo();
-  sceneViewNode->RestoreScene();
+  // pass false to not delete nodes from the scene
+  sceneViewNode->RestoreScene(false);
+  if (this->MRMLScene->GetErrorCode() != 0)
+    {
+    QString errorMsg = QString(this->MRMLScene->GetErrorMessage().c_str());
+    // reset the error state
+    this->MRMLScene->SetErrorCode(0);
+    this->MRMLScene->SetErrorMessage("");
+
+    // ask the user if they wish to continue removing the node(s) or
+    // add the missing nodes to the scene view
+    ctkMessageBox missingNodesMsgBox;
+    missingNodesMsgBox.setWindowTitle("Data missing from Scene View");
+    QString labelText = QString(
+      "Data is present in the current scene but not in the scene view.\n"
+      "\n"
+      "Continue restoring and Discard data, Save missing data to this scene view, or Cancel?\n"
+      "\n"
+      "Saved Volumes may not be shown in slice views after restore.\n"
+      "Default if don't show again: Save.");
+    missingNodesMsgBox.setText(labelText);
+    QPushButton *continueButton = missingNodesMsgBox.addButton(QMessageBox::Discard);
+    QPushButton *addButton = missingNodesMsgBox.addButton(QMessageBox::Save);
+    missingNodesMsgBox.addButton(QMessageBox::Cancel);
+
+    missingNodesMsgBox.setIcon(QMessageBox::Question);
+    missingNodesMsgBox.setDontShowAgainVisible(true);
+    missingNodesMsgBox.setDontShowAgainSettingsKey("SceneViewMenu/AlwaysRemoveNodes");
+    missingNodesMsgBox.exec();
+    if (missingNodesMsgBox.clickedButton() != 0)
+      {
+      if (missingNodesMsgBox.buttonRole(missingNodesMsgBox.clickedButton()) == QMessageBox::DestructiveRole)
+        {
+        sceneViewNode->RestoreScene(true);
+        }
+      else if (missingNodesMsgBox.buttonRole(missingNodesMsgBox.clickedButton()) == QMessageBox::AcceptRole)
+        {
+        sceneViewNode->AddMissingNodes();
+        // try to restore again
+        this->restoreSceneView(sceneViewNode->GetID());
+        }
+      }
+    }
 }
 
 // --------------------------------------------------------------------------
