@@ -814,7 +814,7 @@ std::string vtkMRMLScalarVolumeDisplayNode::GetPixelString(double *ijk)
   if(numberOfComponents > 3)
     {
     std::string s = IntToString(numberOfComponents) + " components";
-    return s.c_str();
+    return s;
     }
   std::string pixel;
   for(int i = 0; i < numberOfComponents; i++)
