@@ -122,14 +122,18 @@ void vtkMRMLScalarVolumeNode::PrintSelf(ostream& os, vtkIndent indent)
 //---------------------------------------------------------------------------
 vtkMRMLStorageNode* vtkMRMLScalarVolumeNode::CreateDefaultStorageNode()
 {
-    return vtkMRMLVolumeArchetypeStorageNode::New();
+  return vtkMRMLVolumeArchetypeStorageNode::New();
 }
 
-//---------------------------------------------------------------------------
-void vtkMRMLScalarVolumeNode::GetCustomWorldCoordinates(double *ijk, double *SlicerWorld)
+void vtkMRMLScalarVolumeNode::GetReferenceSpace(const double *ijk, const char *Space, double *SpaceCoordinates)
 {
-    if(ijk != NULL && SlicerWorld != NULL){
-        //here child class can implement this method for
-        //retrieving custom coordinates (needed for example by Dataprobe)
+  if (ijk != NULL && SpaceCoordinates != NULL)
+    {
+    if (!strcmp(Space, "RAS"))
+      {
+      //here child class can implement this method for
+      //retrieving coordinates of a given Space of Reference
+      //for displaying reasons (needed for example by Dataprobe)
+      }
     }
 }

@@ -23,6 +23,8 @@ Version:   $Revision: 1.2 $
 #include <vtkImageData.h>
 #include <vtkImageStencilData.h>
 #include <vtkTrivialProducer.h>
+#include <vtkStringArray.h>
+#include <vtkNew.h>
 
 // Initialize static member that controls resampling --
 // old comment: "This offset will be changed to 0.5 from 0.0 per 2/8/2002 Slicer
@@ -33,37 +35,30 @@ vtkMRMLVolumeDisplayNode::vtkMRMLVolumeDisplayNode()
 {
   // try setting a default greyscale color map
   //this->SetDefaultColorMap(0);
-    this->HorizontalQuantity = 0;
-    this->VerticalQuantity = 0;
-    this->DepthQuantity = 0;
-    this->CoordinateSystem = 0;
-
-    this->SetHorizontalQuantity("length");
-    this->SetVerticalQuantity("length");
-    this->SetDepthQuantity("length");
-    this->SetCoordinateSystem("RAS");
+  this->SpaceQuantities = 0;
+  this->Space = 0;
+  this->SetSpaceQuantities("length;length;length");
+  this->SetSpace("RAS");
+  this->Tokens = vtkStringArray::New();
+  this->Tokens->SetNumberOfComponents(1);
+  this->Tokens->SetName("tokens");
 }
 
 //----------------------------------------------------------------------------
 vtkMRMLVolumeDisplayNode::~vtkMRMLVolumeDisplayNode()
 {
-    if (this->HorizontalQuantity)
-      {
-      delete [] this->HorizontalQuantity;
-      }
-    if (this->VerticalQuantity)
-      {
-      delete [] this->VerticalQuantity;
-      }
-    if (this->DepthQuantity)
-      {
-      delete [] this->DepthQuantity;
-      }
-    if (this->CoordinateSystem)
-      {
-      delete [] this->CoordinateSystem;
-      }
-
+  if (this->SpaceQuantities)
+    {
+    delete [] this->SpaceQuantities;
+    }
+  if (this->Space)
+    {
+    delete [] this->Space;
+    }
+  if (this->Tokens)
+    {
+    this->Tokens->Delete();
+    }
 }
 
 //----------------------------------------------------------------------------
@@ -72,10 +67,8 @@ void vtkMRMLVolumeDisplayNode::WriteXML(ostream& of, int nIndent)
   Superclass::WriteXML(of, nIndent);
   vtkIndent indent(nIndent);
 
-  of << indent << " HorizontalQuantity=\"" << (this->HorizontalQuantity ? this->HorizontalQuantity : "") << "\"";
-  of << indent << " VerticalQuantity=\"" << (this->VerticalQuantity ? this->VerticalQuantity : "") << "\"";
-  of << indent << " DepthQuantity=\"" << (this->DepthQuantity ? this->DepthQuantity : "") << "\"";
-  of << indent << " CoordinateSystem=\"" << (this->CoordinateSystem ? this->CoordinateSystem : "") << "\"";
+  of << indent << " SpaceQuantities=\"" << (this->SpaceQuantities ? this->SpaceQuantities : "") << "\"";
+  of << indent << " Space=\"" << (this->Space ? this->Space : "") << "\"";
 }
 
 //----------------------------------------------------------------------------
@@ -87,30 +80,23 @@ void vtkMRMLVolumeDisplayNode::ReadXMLAttributes(const char** atts)
   const char* attName;
   const char* attValue;
 
-  while (*atts != NULL){
+  while (*atts != NULL)
+    {
     attName = *(atts++);
     attValue = *(atts++);
 
-    if (!strcmp(attName, "HorizontalQuantity")){
-      this->SetHorizontalQuantity(attValue);
+    if (!strcmp(attName, "SpaceQuantities"))
+      {
+      this->SetSpaceQuantities(attValue);
       continue;
-    }
+      }
 
-    if (!strcmp(attName, "VerticalQuantity")){
-      this->SetVerticalQuantity(attValue);
+    if (!strcmp(attName, "Space"))
+      {
+      this->SetSpace(attValue);
       continue;
+      }
     }
-
-    if (!strcmp(attName, "DepthQuantity")){
-      this->SetDepthQuantity(attValue);
-      continue;
-    }
-
-    if (!strcmp(attName, "sysref")){
-      this->SetCoordinateSystem(attValue);
-      continue;
-    }
-  }
 
   this->WriteXML(std::cout,0);
 }
@@ -124,22 +110,17 @@ void vtkMRMLVolumeDisplayNode::Copy(vtkMRMLNode *anode)
   this->Superclass::Copy(anode);
 #if VTK_MAJOR_VERSION > 5
   vtkMRMLVolumeDisplayNode *node =
-    vtkMRMLVolumeDisplayNode::SafeDownCast(anode);
+      vtkMRMLVolumeDisplayNode::SafeDownCast(anode);
   if (node)
     {
     this->SetInputImageDataConnection(node->GetInputImageDataConnection());
-    this->SetHorizontalQuantity(node->GetHorizontalQuantity());
-    this->SetVerticalQuantity(node->GetVerticalQuantity());
-    this->SetDepthQuantity(node->GetDepthQuantity());
-    this->SetCoordinateSystem(node->GetCoordinateSystem());
+    this->SetSpaceQuantities(node->GetSpaceQuantities());
+    this->SetSpace(node->GetSpace());
     }
   this->UpdateImageDataPipeline();
 #endif
 
-
-
   this->EndModify(wasModifying);
-
 }
 
 //---------------------------------------------------------------------------
@@ -159,14 +140,10 @@ void vtkMRMLVolumeDisplayNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
 
-    os << indent << "HorizontalQuantity: " <<
-      (this->HorizontalQuantity ? this->HorizontalQuantity : "(none)") << "\n";
-    os << indent << "VerticalQuantity: " <<
-      (this->VerticalQuantity ? this->VerticalQuantity : "(none)") << "\n";
-    os << indent << "DepthQuantity: " <<
-      (this->DepthQuantity ? this->DepthQuantity : "(none)") << "\n";
-    os << indent << "CoordinateSystem: " <<
-      (this->CoordinateSystem ? this->CoordinateSystem : "(none)") << "\n";
+  os << indent << "SpaceQuantities: " <<
+    (this->SpaceQuantities ? this->SpaceQuantities : "(none)") << "\n";
+  os << indent << "Space: " <<
+    (this->Space ? this->Space : "(none)") << "\n";
 }
 
 //-----------------------------------------------------------
@@ -320,7 +297,25 @@ void vtkMRMLVolumeDisplayNode::UpdateImageDataPipeline()
 //----------------------------------------------------------------------------
 void vtkMRMLVolumeDisplayNode::SetDefaultColorMap()
 {
-    this->SetAndObserveColorNodeID("vtkMRMLColorTableNodeGrey");
+  this->SetAndObserveColorNodeID("vtkMRMLColorTableNodeGrey");
+}
+
+vtkStringArray* vtkMRMLVolumeDisplayNode::GetSpaceQuantitiesList()
+{
+  if (this->Tokens)
+    {
+    this->Tokens->Delete();
+    this->Tokens = vtkStringArray::New();
+    this->Tokens->SetNumberOfComponents(1);
+    this->Tokens->SetName("tokens");
+    }
+  std::istringstream f(this->SpaceQuantities);
+  std::string s;
+  while (std::getline(f, s, ';'))
+    {
+    this->Tokens->InsertNextValue(s);
+    }
+  return this->Tokens;
 }
 
 //----------------------------------------------------------------------------

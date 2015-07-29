@@ -186,7 +186,7 @@ class VTK_MRML_EXPORT vtkMRMLDiffusionTensorVolumeDisplayNode : public vtkMRMLGl
 
   ///
   /// Given a volume node, create a human readable string describing the contents
-  virtual const char* getPixelString(double *ijk);
+  virtual std::string GetPixelString(double *ijk);
 
 protected:
   vtkMRMLDiffusionTensorVolumeDisplayNode();
@@ -225,10 +225,10 @@ protected:
    /// Scalar display parameters
   int ScalarInvariant;
 
-  ///smart Pointer needed for calculatating PixelString
-  vtkSmartPointer<vtkDiffusionTensorMathematics> dtimath;
-  vtkSmartPointer<vtkImageData> singlepixelimage;
-  vtkSmartPointer<vtkFloatArray> tensordata;
+  /// Smart Pointer needed for calculatating PixelString
+  vtkSmartPointer<vtkDiffusionTensorMathematics> DTIMath;
+  vtkSmartPointer<vtkImageData> SinglePixelImage;
+  vtkSmartPointer<vtkFloatArray> TensorData;
 
 
 };

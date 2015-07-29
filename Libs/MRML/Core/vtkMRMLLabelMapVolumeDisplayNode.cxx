@@ -181,23 +181,28 @@ void vtkMRMLLabelMapVolumeDisplayNode::UpdateImageDataPipeline()
 }
 
 //---------------------------------------------------------------------------
-const char *vtkMRMLLabelMapVolumeDisplayNode::getPixelString(double *ijk)
+std::string vtkMRMLLabelMapVolumeDisplayNode::GetPixelString(double *ijk)
 {
-    if(this->GetVolumeNode()->GetImageData() == NULL){
-        return "No Image";
+  if(this->GetVolumeNode()->GetImageData() == NULL)
+    {
+    return "No Image";
+    }
+  for(int i = 0; i < 3; i++)
+    {
+    if(ijk[i] < 0 or ijk[i] >=  this->GetVolumeNode()->GetImageData()->GetDimensions()[i])
+      {
+      return "Out of Frame";
+      }
     }
 
-    for(int i = 0; i < 3; i++){
-        if(ijk[i] < 0 or ijk[i] >=  this->GetVolumeNode()->GetImageData()->GetDimensions()[i])
-            return "Out of Frame";
+  std::string labelValue = "Unknown";
+  int labelIndex = int(this->GetVolumeNode()->GetImageData()->GetScalarComponentAsDouble(ijk[0],ijk[1],ijk[2],0));
+  vtkMRMLColorNode *colornode = this->GetColorNode();
+  if(colornode)
+    {
+    labelValue = colornode->GetColorName(labelIndex);
     }
+  labelValue += "(" + IntToString(labelIndex) + ")";
 
-    std::string labelValue = "Unknown";
-    int labelIndex = int(this->GetVolumeNode()->GetImageData()->GetScalarComponentAsDouble(ijk[0],ijk[1],ijk[2],0));
-
-    vtkMRMLColorNode *colornode = this->GetColorNode();
-    if(colornode) labelValue = colornode->GetColorName(labelIndex);
-
-    labelValue += "(" + IntToString(labelIndex) + ")";
-    return labelValue.c_str();
+  return labelValue;
 }

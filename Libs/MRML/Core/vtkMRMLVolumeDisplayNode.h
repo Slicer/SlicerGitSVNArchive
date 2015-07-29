@@ -24,6 +24,7 @@ class vtkMRMLVolumeNode;
 class vtkAlgorithmOutput;
 class vtkImageData;
 class vtkImageStencilData;
+class vtkStringArray;
 
 /// \brief MRML node for representing a volume display attributes.
 ///
@@ -129,31 +130,17 @@ public:
   ///
   /// Set/Get the unit CoordinateSystem.
   /// Default is "RAS".
-  /// \sa SetCoordinateSystem(), GetCoordinateSystem()
-  vtkGetStringMacro(CoordinateSystem);
-  vtkSetStringMacro(CoordinateSystem);
+  /// \sa SetSpace(), GetSpace()
+  vtkGetStringMacro(Space);
+  vtkSetStringMacro(Space);
 
   ///
-  /// Set/Get the unit HorizontalQuantity.
-  /// Default is "length".
-  /// \sa SetHorizontalQuantity(), GetHorizontalQuantity()
-  vtkGetStringMacro(HorizontalQuantity);
-  vtkSetStringMacro(HorizontalQuantity);
-
-  ///
-  /// Set/Get the unit VerticalQuantity.
-  /// Default is "length".
-  /// \sa SetVerticalQuantity(), GetVerticalQuantity()
-  vtkGetStringMacro(VerticalQuantity);
-  vtkSetStringMacro(VerticalQuantity);
-
-  ///
-  /// Set/Get the unit DepthQuantity.
-  /// Default is "length".
-  /// \sa SetDepthQuantity(), GetDepthQuantity()
-  vtkGetStringMacro(DepthQuantity);
-  vtkSetStringMacro(DepthQuantity);
-
+  /// Set/Get the SpaceQuantities.
+  /// Default is "length;length;length".
+  /// \sa SetSpaceQuantities(), GetSpaceQuantities()
+  vtkGetStringMacro(SpaceQuantities);
+  vtkSetStringMacro(SpaceQuantities);
+  virtual vtkStringArray* GetSpaceQuantitiesList();
 
   /// Search in the scene the volume node vtkMRMLVolumeDisplayNode is associated
   /// to
@@ -165,17 +152,15 @@ protected:
   vtkMRMLVolumeDisplayNode(const vtkMRMLVolumeDisplayNode&);
   void operator=(const vtkMRMLVolumeDisplayNode&);
 
+  char* Space;
+  char* SpaceQuantities;
+  vtkStringArray *Tokens;
+
 #if (VTK_MAJOR_VERSION <= 5)
   virtual void SetInputToImageDataPipeline(vtkImageData *imageData);
 #else
   virtual void SetInputToImageDataPipeline(vtkAlgorithmOutput *imageDataConnection);
 #endif
-
-  char* CoordinateSystem;
-  char* HorizontalQuantity;
-  char* VerticalQuantity;
-  char* DepthQuantity;
-
 };
 
 #endif

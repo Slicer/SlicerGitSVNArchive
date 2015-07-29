@@ -797,29 +797,33 @@ void vtkMRMLScalarVolumeDisplayNode::GetDisplayScalarRange(double range[2])
 }
 
 //----------------------------------------------------------------------------
-const char *vtkMRMLScalarVolumeDisplayNode::getPixelString(double *ijk)
+std::string vtkMRMLScalarVolumeDisplayNode::GetPixelString(double *ijk)
 {
-    if(this->GetVolumeNode()->GetImageData() == NULL){
-        return "No Image";
+  if(this->GetVolumeNode()->GetImageData() == NULL)
+    {
+    return "No Image";
     }
-
-    for(int i = 0; i < 3; i++){
-        if(ijk[i] < 0 or ijk[i] >=  this->GetVolumeNode()->GetImageData()->GetDimensions()[i])
-            return "Out of Frame";
+  for(int i = 0; i < 3; i++)
+    {
+    if(ijk[i] < 0 or ijk[i] >=  this->GetVolumeNode()->GetImageData()->GetDimensions()[i])
+      {
+      return "Out of Frame";
+      }
     }
-
-    int numberOfComponents = this->GetVolumeNode()->GetImageData()->GetNumberOfScalarComponents();
-    if(numberOfComponents > 3){
-        std::string s = IntToString(numberOfComponents) + " components";
-        return s.c_str();
+  int numberOfComponents = this->GetVolumeNode()->GetImageData()->GetNumberOfScalarComponents();
+  if(numberOfComponents > 3)
+    {
+    std::string s = IntToString(numberOfComponents) + " components";
+    return s.c_str();
     }
-    std::string pixel;
-    for(int i = 0; i < numberOfComponents; i++){
-        double component = this->GetVolumeNode()->GetImageData()->GetScalarComponentAsDouble(ijk[0],ijk[1],ijk[2],i);
-        pixel += DoubleToString(component) + ",";
+  std::string pixel;
+  for(int i = 0; i < numberOfComponents; i++)
+    {
+    double component = this->GetVolumeNode()->GetImageData()->GetScalarComponentAsDouble(ijk[0],ijk[1],ijk[2],i);
+    pixel += DoubleToString(component) + ",";
     }
-    pixel.erase(pixel.size()-1);
-    return pixel.c_str();
+  pixel.erase(pixel.size()-1);
+  return pixel;
 }
 
 //---------------------------------------------------------------------------

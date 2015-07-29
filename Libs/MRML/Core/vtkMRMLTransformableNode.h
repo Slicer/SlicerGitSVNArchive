@@ -92,7 +92,6 @@ public:
   /// Get referenced transform node id
   const char *GetTransformNodeID();
 
-
 protected:
   vtkMRMLTransformableNode();
   ~vtkMRMLTransformableNode();

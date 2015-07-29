@@ -129,11 +129,11 @@ class DataProbeInfoWidget(object):
   def processEvent(self,observee,event):
     # TODO: use a timer to delay calculation and compress events
     insideView = False
-    ras = [0.0,0.0,0.0]
+    world = [0.0,0.0,0.0]
     xyz = [0.0,0.0,0.0]
     sliceNode = None
     if self.CrosshairNode:
-      insideView = self.CrosshairNode.GetCursorPositionRAS(ras)
+      insideView = self.CrosshairNode.GetCursorPositionRAS(world)
       sliceNode = self.CrosshairNode.GetCursorPositionXYZ(xyz)
 
     selectionNode = slicer.mrmlScene.GetNthNodeByClass(0,'vtkMRMLSelectionNode')
@@ -212,43 +212,46 @@ class DataProbeInfoWidget(object):
         if display:
           if layer == 'B':
             hasBLayer = True
-            volumeNode.GetCustomWorldCoordinates(ijk, ras)
-            HorizontalUnitNode = selectionNode.GetUnitNode(display.GetHorizontalQuantity())
-            VerticalUnitNode = selectionNode.GetUnitNode(display.GetVerticalQuantity())
-            DepthUnitNode = selectionNode.GetUnitNode(display.GetDepthQuantity())
-            CoordinateSystemName = display.GetCoordinateSystem()
+            CoordinateSystemName = display.GetSpace()
+            volumeNode.GetReferenceSpace(ijk, CoordinateSystemName, world)
+            Quantities = display.GetSpaceQuantitiesList()
+            UnitNode1 = selectionNode.GetUnitNode(Quantities.GetValue(0))
+            UnitNode2 = selectionNode.GetUnitNode(Quantities.GetValue(1))
+            UnitNode3 = selectionNode.GetUnitNode(Quantities.GetValue(2))
 
           if layer == "F" and hasBLayer == False:
             hasFLayer = True
-            volumeNode.GetCustomWorldCoordinates(ijk, ras)
-            HorizontalUnitNode = selectionNode.GetUnitNode(display.GetHorizontalQuantity())
-            VerticalUnitNode = selectionNode.GetUnitNode(display.GetVerticalQuantity())
-            DepthUnitNode = selectionNode.GetUnitNode(display.GetDepthQuantity())
-            CoordinateSystemName = display.GetCoordinateSystem()
+            CoordinateSystemName = display.GetSpace()
+            volumeNode.GetReferenceSpace(ijk, CoordinateSystemName, world)
+            Quantities = display.GetSpaceQuantitiesList()
+            UnitNode1 = selectionNode.GetUnitNode(Quantities.GetValue(0))
+            UnitNode2 = selectionNode.GetUnitNode(Quantities.GetValue(1))
+            UnitNode3 = selectionNode.GetUnitNode(Quantities.GetValue(2))
 
           if layer == "L" and hasBLayer == False and hasFLayer == False:
             hasLLayer = True
-            volumeNode.GetCustomWorldCoordinates(ijk, ras)
-            HorizontalUnitNode = selectionNode.GetUnitNode(display.GetHorizontalQuantity())
-            VerticalUnitNode = selectionNode.GetUnitNode(display.GetVerticalQuantity())
-            DepthUnitNode = selectionNode.GetUnitNode(display.GetDepthQuantity())
-            CoordinateSystemName = display.GetCoordinateSystem()
+            CoordinateSystemName = display.GetSpace()
+            volumeNode.GetReferenceSpace(ijk, CoordinateSystemName, world)
+            Quantities = display.GetSpaceQuantitiesList()
+            UnitNode1 = selectionNode.GetUnitNode(Quantities.GetValue(0))
+            UnitNode2 = selectionNode.GetUnitNode(Quantities.GetValue(1))
+            UnitNode3 = selectionNode.GetUnitNode(Quantities.GetValue(2))
         self.layerNames[layer].setText(
           "<b>%s</b>" % (self.fitName(volumeNode.GetName()) if volumeNode else "None"))
         self.layerIJKs[layer].setText(
           "({i:4d}, {j:4d}, {k:4d})".format(i=ijk[0], j=ijk[1], k=ijk[2]) if volumeNode else "")
         self.layerValues[layer].setText(
-          "<b>%s</b>" % display.getPixelString(ijk) if display else "")
+          "<b>%s</b>" % display.GetPixelString(ijk) if display else "")
 
     if not (hasBLayer or hasFLayer or hasLLayer):
-      HorizontalUnitNode = selectionNode.GetUnitNode("length")
-      VerticalUnitNode = selectionNode.GetUnitNode("length")
-      DepthUnitNode = selectionNode.GetUnitNode("length")
+      UnitNode1 = selectionNode.GetUnitNode("length")
+      UnitNode2 = selectionNode.GetUnitNode("length")
+      UnitNode3 = selectionNode.GetUnitNode("length")
       CoordinateSystemName = "RAS"
 
-    world_x = HorizontalUnitNode.GetDisplayStringFromValue(ras[0])
-    world_y = VerticalUnitNode.GetDisplayStringFromValue(ras[1])
-    world_z = DepthUnitNode.GetDisplayStringFromValue(ras[2])
+    world_x = UnitNode1.GetDisplayStringFromValue(world[0])
+    world_y = UnitNode2.GetDisplayStringFromValue(world[1])
+    world_z = UnitNode3.GetDisplayStringFromValue(world[2])
 
     self.viewInfo.text = \
       "  {layoutName: <8s} {sys:s}:({world_x:>10s},{world_y:>10s},{world_z:>10s}) {orient: >8s} Sp:{spacing:s}" \
