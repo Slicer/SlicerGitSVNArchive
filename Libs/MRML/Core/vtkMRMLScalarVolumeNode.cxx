@@ -125,3 +125,48 @@ vtkMRMLStorageNode* vtkMRMLScalarVolumeNode::CreateDefaultStorageNode()
 {
   return vtkMRMLVolumeArchetypeStorageNode::New();
 }
+
+void vtkMRMLScalarVolumeNode::GetReferenceSpace(const double ijk[3], const char *Space, double SpaceCoordinates[3])
+{
+  if (Space != NULL)
+    {
+
+    if (!strcmp(Space, "IJK"))
+      {
+        for (int i=0; i<3; i++)
+          {
+          SpaceCoordinates[i] = ijk[i];
+          }
+        return;
+      }
+
+    vtkSmartPointer<vtkMatrix4x4> IJKtoRAS =
+      vtkSmartPointer<vtkMatrix4x4>::New();
+    this->GetIJKToRASMatrix(IJKtoRAS);
+
+    vtkSmartPointer<vtkMatrix4x4> Rotation =
+       vtkSmartPointer<vtkMatrix4x4>::New();
+    Rotation->Identity();
+    double ijkw[4] = {ijk[0], ijk[1], ijk[2], 1.0 };
+    double SpaceCoordinatesw[4] = {0.0, 0.0, 0.0, 1.0};
+
+    if (!strcmp(Space, "LAS"))
+      {
+      Rotation->SetElement(1, 1, -1);
+      Rotation->SetElement(2, 2, -1);
+      }
+    if (!strcmp(Space, "LPS") || !strcmp(Space, "scanner-xyz"))
+      {
+      Rotation->SetElement(0, 0, -1);
+      Rotation->SetElement(2, 2, -1);
+    }
+
+    Rotation->Multiply4x4(IJKtoRAS, Rotation, Rotation);
+    Rotation->MultiplyPoint(ijkw, SpaceCoordinatesw);
+
+    for (int i=0; i<3; i++)
+      {
+      SpaceCoordinates[i] = SpaceCoordinatesw[i];
+      }
+    }
+}

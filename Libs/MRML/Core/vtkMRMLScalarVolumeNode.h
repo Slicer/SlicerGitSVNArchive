@@ -67,6 +67,10 @@ class VTK_MRML_EXPORT vtkMRMLScalarVolumeNode : public vtkMRMLVolumeNode
   /// Create default storage node or NULL if does not have one
   virtual vtkMRMLStorageNode* CreateDefaultStorageNode();
 
+  ///
+  /// This method return World coordinated given ijk and the Space
+  virtual void GetReferenceSpace(const double ijk[3], const char *Space, double SpaceCoordinates[3]);
+
 protected:
   vtkMRMLScalarVolumeNode();
   ~vtkMRMLScalarVolumeNode();
