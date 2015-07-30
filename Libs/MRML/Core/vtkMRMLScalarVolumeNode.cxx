@@ -16,6 +16,7 @@ Version:   $Revision: 1.14 $
 #include "vtkMRMLScalarVolumeNode.h"
 #include "vtkMRMLScene.h"
 #include "vtkMRMLVolumeArchetypeStorageNode.h"
+#include "vtkMRMLTransformNode.h"
 
 // VTK includes
 #include <vtkDataArray.h>
@@ -140,9 +141,21 @@ void vtkMRMLScalarVolumeNode::GetReferenceSpace(const double ijk[3], const char 
         return;
       }
 
+    // get the nodes's transform node
+    vtkMRMLTransformNode* tnode = this->GetParentTransformNode();
+
+    vtkSmartPointer<vtkMatrix4x4> transformToWorld =
+       vtkSmartPointer<vtkMatrix4x4>::New();
+    transformToWorld->Identity();
+    if (tnode)
+      {
+      tnode->GetMatrixTransformToWorld(transformToWorld);
+      }
     vtkSmartPointer<vtkMatrix4x4> IJKtoRAS =
       vtkSmartPointer<vtkMatrix4x4>::New();
     this->GetIJKToRASMatrix(IJKtoRAS);
+
+    IJKtoRAS->Multiply4x4(transformToWorld, IJKtoRAS, IJKtoRAS);
 
     vtkSmartPointer<vtkMatrix4x4> Rotation =
        vtkSmartPointer<vtkMatrix4x4>::New();
