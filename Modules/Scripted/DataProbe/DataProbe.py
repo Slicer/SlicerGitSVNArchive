@@ -133,7 +133,6 @@ class DataProbeInfoWidget(object):
     xyz = [0.0,0.0,0.0]
     sliceNode = None
     if self.CrosshairNode:
-      insideView = self.CrosshairNode.GetCursorPositionRAS(world)
       sliceNode = self.CrosshairNode.GetCursorPositionXYZ(xyz)
 
     selectionNode = slicer.mrmlScene.GetNthNodeByClass(0,'vtkMRMLSelectionNode')
@@ -144,7 +143,7 @@ class DataProbeInfoWidget(object):
       if appLogic:
         sliceLogic = appLogic.GetSliceLogic(sliceNode)
 
-    if not insideView or not sliceNode or not sliceLogic:
+    if not sliceNode or not sliceLogic:
       self.currentLayoutName = None
       # reset all the readouts
       self.viewerColor.text = ""
@@ -214,7 +213,7 @@ class DataProbeInfoWidget(object):
             hasBLayer = True
             CoordinateSystemName = display.GetSpace()
             volumeNode.GetReferenceSpace(ijk, CoordinateSystemName, world)
-            Quantities = display.GetSpaceQuantitiesList()
+            Quantities = display.GetSpaceQuantities()
             UnitNode1 = selectionNode.GetUnitNode(Quantities.GetValue(0))
             UnitNode2 = selectionNode.GetUnitNode(Quantities.GetValue(1))
             UnitNode3 = selectionNode.GetUnitNode(Quantities.GetValue(2))
@@ -223,7 +222,7 @@ class DataProbeInfoWidget(object):
             hasFLayer = True
             CoordinateSystemName = display.GetSpace()
             volumeNode.GetReferenceSpace(ijk, CoordinateSystemName, world)
-            Quantities = display.GetSpaceQuantitiesList()
+            Quantities = display.GetSpaceQuantities()
             UnitNode1 = selectionNode.GetUnitNode(Quantities.GetValue(0))
             UnitNode2 = selectionNode.GetUnitNode(Quantities.GetValue(1))
             UnitNode3 = selectionNode.GetUnitNode(Quantities.GetValue(2))
@@ -232,7 +231,7 @@ class DataProbeInfoWidget(object):
             hasLLayer = True
             CoordinateSystemName = display.GetSpace()
             volumeNode.GetReferenceSpace(ijk, CoordinateSystemName, world)
-            Quantities = display.GetSpaceQuantitiesList()
+            Quantities = display.GetSpaceQuantities()
             UnitNode1 = selectionNode.GetUnitNode(Quantities.GetValue(0))
             UnitNode2 = selectionNode.GetUnitNode(Quantities.GetValue(1))
             UnitNode3 = selectionNode.GetUnitNode(Quantities.GetValue(2))

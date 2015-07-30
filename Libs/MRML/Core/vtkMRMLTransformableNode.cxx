@@ -23,6 +23,7 @@ Version:   $Revision: 1.14 $
 #include <vtkCommand.h>
 #include <vtkIntArray.h>
 #include <vtkTransform.h>
+#include <vtkGeneralTransform.h>
 #include <vtkMatrix4x4.h>
 
 const char* vtkMRMLTransformableNode::TransformNodeReferenceRole = "transform";
@@ -95,6 +96,66 @@ const char* vtkMRMLTransformableNode::GetTransformNodeID()
     this->GetNodeReferenceID(this->GetTransformNodeReferenceRole()));
 
   return this->GetTransformNodeIDInternal();
+}
+
+void vtkMRMLTransformableNode::GetReferenceSpace(const double ijk[3], const char *Space, double SpaceCoordinates[3])
+{
+  if (Space != NULL)
+    {
+
+    if (!strcmp(Space, "IJK"))
+      {
+        for (int i=0; i<3; i++)
+          {
+          SpaceCoordinates[i] = ijk[i];
+          }
+        return;
+      }
+
+    // get the nodes's transform node
+    vtkMRMLTransformNode* tnode = this->GetParentTransformNode();
+
+    if (!tnode)
+      {
+      for (int i=0; i<3; i++)
+        {
+        SpaceCoordinates[i] = ijk[i];
+        }
+      }
+    else
+      {
+
+      vtkSmartPointer<vtkMatrix4x4> transformToWorld =
+         vtkSmartPointer<vtkMatrix4x4>::New();
+      transformToWorld->Identity();
+      tnode->GetMatrixTransformToWorld(transformToWorld);
+
+      vtkSmartPointer<vtkMatrix4x4> Rotation =
+         vtkSmartPointer<vtkMatrix4x4>::New();
+      Rotation->Identity();
+      double ijkw[4] = {ijk[0], ijk[1], ijk[2], 1.0 };
+      double SpaceCoordinatesw[4] = {0.0, 0.0, 0.0, 1.0};
+
+      if (!strcmp(Space, "LAS"))
+        {
+        Rotation->SetElement(1, 1, -1);
+        Rotation->SetElement(2, 2, -1);
+        }
+      if (!strcmp(Space, "LPS") || !strcmp(Space, "scanner-xyz"))
+        {
+        Rotation->SetElement(0, 0, -1);
+        Rotation->SetElement(2, 2, -1);
+        }
+
+      Rotation->Multiply4x4(transformToWorld, Rotation, Rotation);
+      Rotation->MultiplyPoint(ijkw, SpaceCoordinatesw);
+
+      for (int i=0; i<3; i++)
+        {
+        SpaceCoordinates[i] = SpaceCoordinatesw[i];
+        }
+      }
+    }
 }
 
 //----------------------------------------------------------------------------

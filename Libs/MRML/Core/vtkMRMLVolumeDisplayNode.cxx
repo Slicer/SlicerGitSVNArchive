@@ -35,13 +35,14 @@ vtkMRMLVolumeDisplayNode::vtkMRMLVolumeDisplayNode()
 {
   // try setting a default greyscale color map
   //this->SetDefaultColorMap(0);
-  this->SpaceQuantities = 0;
+  this->SpaceQuantities = vtkStringArray::New();
+  this->SpaceQuantities->SetName("Tokens");
+  this->SpaceQuantities->SetNumberOfValues(3);
+  this->SpaceQuantities->SetValue(0, "length");
+  this->SpaceQuantities->SetValue(1, "length");
+  this->SpaceQuantities->SetValue(2, "length");
   this->Space = 0;
-  this->SetSpaceQuantities("length;length;length");
   this->SetSpace("RAS");
-  this->Tokens = vtkStringArray::New();
-  this->Tokens->SetNumberOfComponents(1);
-  this->Tokens->SetName("tokens");
 }
 
 //----------------------------------------------------------------------------
@@ -49,15 +50,11 @@ vtkMRMLVolumeDisplayNode::~vtkMRMLVolumeDisplayNode()
 {
   if (this->SpaceQuantities)
     {
-    delete [] this->SpaceQuantities;
+    this->SpaceQuantities->Delete();
     }
   if (this->Space)
     {
     delete [] this->Space;
-    }
-  if (this->Tokens)
-    {
-    this->Tokens->Delete();
     }
 }
 
@@ -67,7 +64,16 @@ void vtkMRMLVolumeDisplayNode::WriteXML(ostream& of, int nIndent)
   Superclass::WriteXML(of, nIndent);
   vtkIndent indent(nIndent);
 
-  of << indent << " SpaceQuantities=\"" << (this->SpaceQuantities ? this->SpaceQuantities : "") << "\"";
+  std::string quantities = "";
+  if (this->SpaceQuantities)
+    {
+    for(int i = 0; i < this->SpaceQuantities->GetNumberOfValues(); i++)
+      {
+      quantities +=  this->SpaceQuantities->GetValue(i) + ";";
+      }
+    }
+
+  of << indent << " SpaceQuantities=\"" << quantities << "\"";
   of << indent << " Space=\"" << (this->Space ? this->Space : "") << "\"";
 }
 
@@ -87,7 +93,14 @@ void vtkMRMLVolumeDisplayNode::ReadXMLAttributes(const char** atts)
 
     if (!strcmp(attName, "SpaceQuantities"))
       {
-      this->SetSpaceQuantities(attValue);
+      std::istringstream f(attValue);
+      std::string s;
+      int i = 0;
+      while (std::getline(f, s, ';'))
+        {
+        this->SetSpaceQuantity(i, s.c_str());
+        i++;
+        }
       continue;
       }
 
@@ -108,15 +121,18 @@ void vtkMRMLVolumeDisplayNode::Copy(vtkMRMLNode *anode)
 {
   bool wasModifying = this->StartModify();
   this->Superclass::Copy(anode);
-#if VTK_MAJOR_VERSION > 5
+
   vtkMRMLVolumeDisplayNode *node =
       vtkMRMLVolumeDisplayNode::SafeDownCast(anode);
   if (node)
     {
+#if VTK_MAJOR_VERSION > 5
     this->SetInputImageDataConnection(node->GetInputImageDataConnection());
+#endif
     this->SetSpaceQuantities(node->GetSpaceQuantities());
     this->SetSpace(node->GetSpace());
     }
+#if VTK_MAJOR_VERSION > 5
   this->UpdateImageDataPipeline();
 #endif
 
@@ -140,8 +156,8 @@ void vtkMRMLVolumeDisplayNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
 
-  os << indent << "SpaceQuantities: " <<
-    (this->SpaceQuantities ? this->SpaceQuantities : "(none)") << "\n";
+  //os << indent << "SpaceQuantities: " <<
+   // (this->SpaceQuantities ? this->SpaceQuantities : "(none)") << "\n";
   os << indent << "Space: " <<
     (this->Space ? this->Space : "(none)") << "\n";
 }
@@ -300,22 +316,20 @@ void vtkMRMLVolumeDisplayNode::SetDefaultColorMap()
   this->SetAndObserveColorNodeID("vtkMRMLColorTableNodeGrey");
 }
 
-vtkStringArray* vtkMRMLVolumeDisplayNode::GetSpaceQuantitiesList()
+//----------------------------------------------------------------------------
+int vtkMRMLVolumeDisplayNode::SetSpaceQuantity(int ind, const char *name)
 {
-  if (this->Tokens)
+  if (ind >= this->SpaceQuantities->GetNumberOfValues())
     {
-    this->Tokens->Delete();
-    this->Tokens = vtkStringArray::New();
-    this->Tokens->SetNumberOfComponents(1);
-    this->Tokens->SetName("tokens");
+    this->SpaceQuantities->SetNumberOfValues(ind+1);
     }
-  std::istringstream f(this->SpaceQuantities);
-  std::string s;
-  while (std::getline(f, s, ';'))
+  vtkStdString SpaceQuantities(name);
+  if (this->SpaceQuantities->GetValue(ind) != SpaceQuantities)
     {
-    this->Tokens->InsertNextValue(s);
+    this->SpaceQuantities->SetValue(ind, SpaceQuantities);
+    return 1;
     }
-  return this->Tokens;
+  return 0;
 }
 
 //----------------------------------------------------------------------------

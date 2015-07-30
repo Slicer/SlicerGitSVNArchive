@@ -21,10 +21,10 @@ class vtkMRMLScene;
 class vtkMRMLVolumeNode;
 
 // VTK includes
+#include <vtkStringArray.h>
 class vtkAlgorithmOutput;
 class vtkImageData;
 class vtkImageStencilData;
-class vtkStringArray;
 
 /// \brief MRML node for representing a volume display attributes.
 ///
@@ -136,11 +136,14 @@ public:
 
   ///
   /// Set/Get the SpaceQuantities.
-  /// Default is "length;length;length".
+  /// The default is 3 and all the values are "length".
   /// \sa SetSpaceQuantities(), GetSpaceQuantities()
-  vtkGetStringMacro(SpaceQuantities);
-  vtkSetStringMacro(SpaceQuantities);
-  virtual vtkStringArray* GetSpaceQuantitiesList();
+  vtkGetObjectMacro(SpaceQuantities, vtkStringArray);
+  vtkSetObjectMacro(SpaceQuantities, vtkStringArray);
+
+  ///
+  /// Set the i-th SpaceQunatity name
+  int SetSpaceQuantity(int ind, const char *name);
 
   /// Search in the scene the volume node vtkMRMLVolumeDisplayNode is associated
   /// to
@@ -153,8 +156,7 @@ protected:
   void operator=(const vtkMRMLVolumeDisplayNode&);
 
   char* Space;
-  char* SpaceQuantities;
-  vtkStringArray *Tokens;
+  vtkStringArray* SpaceQuantities;
 
 #if (VTK_MAJOR_VERSION <= 5)
   virtual void SetInputToImageDataPipeline(vtkImageData *imageData);

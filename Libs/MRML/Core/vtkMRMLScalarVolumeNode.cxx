@@ -23,6 +23,7 @@ Version:   $Revision: 1.14 $
 #include <vtkImageData.h>
 #include <vtkNew.h>
 #include <vtkPointData.h>
+#include <vtkMatrix4x4.h>
 
 //----------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLScalarVolumeNode);
@@ -123,17 +124,4 @@ void vtkMRMLScalarVolumeNode::PrintSelf(ostream& os, vtkIndent indent)
 vtkMRMLStorageNode* vtkMRMLScalarVolumeNode::CreateDefaultStorageNode()
 {
   return vtkMRMLVolumeArchetypeStorageNode::New();
-}
-
-void vtkMRMLScalarVolumeNode::GetReferenceSpace(const double *ijk, const char *Space, double *SpaceCoordinates)
-{
-  if (ijk != NULL && SpaceCoordinates != NULL)
-    {
-    if (!strcmp(Space, "RAS"))
-      {
-      //here child class can implement this method for
-      //retrieving coordinates of a given Space of Reference
-      //for displaying reasons (needed for example by Dataprobe)
-      }
-    }
 }
