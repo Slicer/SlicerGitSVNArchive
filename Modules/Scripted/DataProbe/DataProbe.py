@@ -101,10 +101,6 @@ class DataProbeInfoWidget(object):
     if type == 'small':
       self.createSmall()
 
-
-    #Helper class to calculate and display tensor scalars
-    self.calculateTensorScalars = CalculateTensorScalars()
-
     # Observe the crosshair node to get the current cursor position
     self.CrosshairNode = slicer.mrmlScene.GetNthNodeByClass(0, 'vtkMRMLCrosshairNode')
     if self.CrosshairNode:
@@ -130,83 +126,16 @@ class DataProbeInfoWidget(object):
       self.CrosshairNode.RemoveObserver(self.CrosshairNodeObserverTag)
     self.CrosshairNodeObserverTag = None
 
-  def getPixelString(self,volumeNode,ijk):
-    """Given a volume node, create a human readable
-    string describing the contents"""
-    # TODO: the volume nodes should have a way to generate
-    # these strings in a generic way
-    if not volumeNode:
-      return "No volume"
-    imageData = volumeNode.GetImageData()
-    if not imageData:
-      return "No Image"
-    dims = imageData.GetDimensions()
-    for ele in xrange(3):
-      if ijk[ele] < 0 or ijk[ele] >= dims[ele]:
-        return "Out of Frame"
-    pixel = ""
-    if volumeNode.IsA("vtkMRMLLabelMapVolumeNode"):
-      labelIndex = int(imageData.GetScalarComponentAsDouble(ijk[0], ijk[1], ijk[2], 0))
-      labelValue = "Unknown"
-      displayNode = volumeNode.GetDisplayNode()
-      if displayNode:
-        colorNode = displayNode.GetColorNode()
-        if colorNode:
-          labelValue = colorNode.GetColorName(labelIndex)
-      return "%s (%d)" % (labelValue, labelIndex)
-
-    if volumeNode.IsA("vtkMRMLDiffusionTensorVolumeNode"):
-        point_idx = imageData.FindPoint(ijk[0], ijk[1], ijk[2])
-        if point_idx == -1:
-            return "Out of bounds"
-
-        if not imageData.GetPointData():
-            return "No Point Data"
-
-        tensors = imageData.GetPointData().GetTensors()
-        if not tensors:
-            return "No Tensor Data"
-
-        tensor = imageData.GetPointData().GetTensors().GetTuple9(point_idx)
-        scalarVolumeDisplayNode = volumeNode.GetScalarVolumeDisplayNode()
-
-        if scalarVolumeDisplayNode:
-            operation = scalarVolumeDisplayNode.GetScalarInvariant()
-        else:
-            operation = None
-
-        value = self.calculateTensorScalars(tensor, operation=operation)
-        if value is not None:
-            valueString = ("%f" % value).rstrip('0').rstrip('.')
-            return "%s %s"%(scalarVolumeDisplayNode.GetScalarInvariantAsString(), valueString)
-        else:
-            return scalarVolumeDisplayNode.GetScalarInvariantAsString()
-
-    # default - non label scalar volume
-    numberOfComponents = imageData.GetNumberOfScalarComponents()
-    if numberOfComponents > 3:
-      return "%d components" % numberOfComponents
-    for c in xrange(numberOfComponents):
-      component = imageData.GetScalarComponentAsDouble(ijk[0],ijk[1],ijk[2],c)
-      if component.is_integer():
-        component = int(component)
-      # format string according to suggestion here:
-      # http://stackoverflow.com/questions/2440692/formatting-floats-in-python-without-superfluous-zeros
-      # also set the default field width for each coordinate
-      componentString = ("%4f" % component).rstrip('0').rstrip('.')
-      pixel += ("%s, " % componentString)
-    return pixel[:-2]
-
-
   def processEvent(self,observee,event):
     # TODO: use a timer to delay calculation and compress events
     insideView = False
-    ras = [0.0,0.0,0.0]
+    world = [0.0,0.0,0.0]
     xyz = [0.0,0.0,0.0]
     sliceNode = None
     if self.CrosshairNode:
-      insideView = self.CrosshairNode.GetCursorPositionRAS(ras)
       sliceNode = self.CrosshairNode.GetCursorPositionXYZ(xyz)
+
+    selectionNode = slicer.mrmlScene.GetNthNodeByClass(0,'vtkMRMLSelectionNode')
 
     sliceLogic = None
     if sliceNode:
@@ -214,7 +143,7 @@ class DataProbeInfoWidget(object):
       if appLogic:
         sliceLogic = appLogic.GetSliceLogic(sliceNode)
 
-    if not insideView or not sliceNode or not sliceLogic:
+    if not sliceNode or not sliceLogic:
       self.currentLayoutName = None
       # reset all the readouts
       self.viewerColor.text = ""
@@ -255,16 +184,6 @@ class DataProbeInfoWidget(object):
     if sliceNode.GetSliceSpacingMode() == slicer.vtkMRMLSliceNode.PrescribedSliceSpacingMode:
       spacing = "(%s)" % spacing
 
-    self.viewInfo.text = \
-      "  {layoutName: <8s}  RAS: ({ras_x:6.1f}, {ras_y:6.1f}, {ras_z:6.1f})  {orient: >8s} Sp: {spacing:s}" \
-      .format(layoutName=sliceNode.GetLayoutName(),
-              ras_x=ras[0],
-              ras_y=ras[1],
-              ras_z=ras[2],
-              orient=sliceNode.GetOrientationString(),
-              spacing=spacing
-              )
-
     def _roundInt(value):
       try:
         return int(round(value))
@@ -272,9 +191,13 @@ class DataProbeInfoWidget(object):
         return 0
 
     hasVolume = False
-    layerLogicCalls = (('L', sliceLogic.GetLabelLayer),
+    hasBLayer = False
+    hasFLayer = False
+    hasLLayer = False
+
+    layerLogicCalls = (('B', sliceLogic.GetBackgroundLayer),
                        ('F', sliceLogic.GetForegroundLayer),
-                       ('B', sliceLogic.GetBackgroundLayer))
+                       ('L', sliceLogic.GetLabelLayer))
     for layer,logicCall in layerLogicCalls:
       layerLogic = logicCall()
       volumeNode = layerLogic.GetVolumeNode()
@@ -284,18 +207,69 @@ class DataProbeInfoWidget(object):
         xyToIJK = layerLogic.GetXYToIJKTransform()
         ijkFloat = xyToIJK.TransformDoublePoint(xyz)
         ijk = [_roundInt(value) for value in ijkFloat]
-      self.layerNames[layer].setText(
-        "<b>%s</b>" % (self.fitName(volumeNode.GetName()) if volumeNode else "None"))
-      self.layerIJKs[layer].setText(
-        "({i:4d}, {j:4d}, {k:4d})".format(i=ijk[0], j=ijk[1], k=ijk[2]) if volumeNode else "")
-      self.layerValues[layer].setText(
-        "<b>%s</b>" % self.getPixelString(volumeNode,ijk) if volumeNode else "")
+        display = volumeNode.GetDisplayNode()
+        if display:
+          if layer == 'B':
+            hasBLayer = True
+            CoordinateSystemName = display.GetSpace()
+            volumeNode.GetReferenceSpace(ijk, CoordinateSystemName, world)
+            Quantities = display.GetSpaceQuantities()
+            UnitNode1 = selectionNode.GetUnitNode(Quantities.GetValue(0))
+            UnitNode2 = selectionNode.GetUnitNode(Quantities.GetValue(1))
+            UnitNode3 = selectionNode.GetUnitNode(Quantities.GetValue(2))
+
+          if layer == "F" and hasBLayer == False:
+            hasFLayer = True
+            CoordinateSystemName = display.GetSpace()
+            volumeNode.GetReferenceSpace(ijk, CoordinateSystemName, world)
+            Quantities = display.GetSpaceQuantities()
+            UnitNode1 = selectionNode.GetUnitNode(Quantities.GetValue(0))
+            UnitNode2 = selectionNode.GetUnitNode(Quantities.GetValue(1))
+            UnitNode3 = selectionNode.GetUnitNode(Quantities.GetValue(2))
+
+          if layer == "L" and hasBLayer == False and hasFLayer == False:
+            hasLLayer = True
+            CoordinateSystemName = display.GetSpace()
+            volumeNode.GetReferenceSpace(ijk, CoordinateSystemName, world)
+            Quantities = display.GetSpaceQuantities()
+            UnitNode1 = selectionNode.GetUnitNode(Quantities.GetValue(0))
+            UnitNode2 = selectionNode.GetUnitNode(Quantities.GetValue(1))
+            UnitNode3 = selectionNode.GetUnitNode(Quantities.GetValue(2))
+        self.layerNames[layer].setText(
+          "<b>%s</b>" % (self.fitName(volumeNode.GetName()) if volumeNode else "None"))
+        self.layerIJKs[layer].setText(
+          "({i:4d}, {j:4d}, {k:4d})".format(i=ijk[0], j=ijk[1], k=ijk[2]) if volumeNode else "")
+        self.layerValues[layer].setText(
+          "<b>%s</b>" % display.GetPixelString(ijk) if display else "")
+
+    if not (hasBLayer or hasFLayer or hasLLayer):
+      UnitNode1 = selectionNode.GetUnitNode("length")
+      UnitNode2 = selectionNode.GetUnitNode("length")
+      UnitNode3 = selectionNode.GetUnitNode("length")
+      CoordinateSystemName = "RAS"
+
+    world_x = UnitNode1.GetDisplayStringFromValue(world[0])
+    world_y = UnitNode2.GetDisplayStringFromValue(world[1])
+    world_z = UnitNode3.GetDisplayStringFromValue(world[2])
+
+    self.viewInfo.text = \
+      "  {layoutName: <8s} {sys:s}:({world_x:>10s},{world_y:>10s},{world_z:>10s}) {orient: >8s} Sp:{spacing:s}" \
+      .format(layoutName=sliceNode.GetLayoutName(),
+              sys = CoordinateSystemName,
+              world_x=world_x,
+              world_y=world_y,
+              world_z=world_z,
+              orient=sliceNode.GetOrientationString(),
+              spacing=spacing
+              )
+
 
     # set image
     if (not slicer.mrmlScene.IsBatchProcessing()) and sliceLogic and hasVolume and self.showImage:
       self.imageCrop.SetInputConnection(sliceLogic.GetBlend().GetOutputPort())
       xyzInt = [0, 0, 0]
       xyzInt = [_roundInt(value) for value in xyz]
+
       dims = sliceLogic.GetBlend().GetOutput().GetDimensions()
       minDim = min(dims[0],dims[1])
       imageSize = _roundInt(minDim/self.imageZoom/2.0)
@@ -430,6 +404,7 @@ class DataProbeInfoWidget(object):
       pixmap = qt.QPixmap()
       self.imageLabel.setPixmap(pixmap)
 
+
 #
 # DataProbe widget
 #
@@ -505,48 +480,6 @@ class DataProbeWidget:
     evalString = 'globals()["%s"].%sTest()' % (moduleName, moduleName)
     tester = eval(evalString)
     tester.runTest()
-
-
-class CalculateTensorScalars:
-    def __init__(self):
-        self.dti_math = slicer.vtkDiffusionTensorMathematics()
-
-        self.single_pixel_image = vtk.vtkImageData()
-        self.single_pixel_image.SetExtent(0, 0, 0, 0, 0, 0)
-        if vtk.VTK_MAJOR_VERSION <= 5:
-          self.single_pixel_image.AllocateScalars()
-
-        self.tensor_data = vtk.vtkFloatArray()
-        self.tensor_data.SetNumberOfComponents(9)
-        self.tensor_data.SetNumberOfTuples(self.single_pixel_image.GetNumberOfPoints())
-        self.single_pixel_image.GetPointData().SetTensors(self.tensor_data)
-
-        if vtk.VTK_MAJOR_VERSION <= 5:
-          self.dti_math.SetInput(self.single_pixel_image)
-        else:
-          self.dti_math.SetInputData(self.single_pixel_image)
-
-    def __call__(self, tensor, operation=None):
-        if len(tensor) != 9:
-            raise ValueError("Invalid tensor a 9-array is required")
-
-        self.tensor_data.SetTupleValue(0, tensor)
-        self.tensor_data.Modified()
-        self.single_pixel_image.Modified()
-
-        if operation is not None:
-            self.dti_math.SetOperation(operation)
-        else:
-            self.dti_math.SetOperationToFractionalAnisotropy()
-
-        self.dti_math.Update()
-        output = self.dti_math.GetOutput()
-
-        if output and output.GetNumberOfScalarComponents() > 0:
-            value = output.GetScalarComponentAsDouble(0, 0, 0, 0)
-            return value
-        else:
-            return None
 
 
 #

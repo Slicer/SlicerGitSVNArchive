@@ -21,6 +21,7 @@ class vtkMRMLScene;
 class vtkMRMLVolumeNode;
 
 // VTK includes
+#include <vtkStringArray.h>
 class vtkAlgorithmOutput;
 class vtkImageData;
 class vtkImageStencilData;
@@ -125,6 +126,25 @@ public:
   /// set gray colormap or override in subclass
   virtual void SetDefaultColorMap();
 
+
+  ///
+  /// Set/Get the unit CoordinateSystem.
+  /// Default is "RAS".
+  /// \sa SetSpace(), GetSpace()
+  vtkGetStringMacro(Space);
+  vtkSetStringMacro(Space);
+
+  ///
+  /// Set/Get the SpaceQuantities.
+  /// The default is 3 and all the values are "length".
+  /// \sa SetSpaceQuantities(), GetSpaceQuantities()
+  vtkGetObjectMacro(SpaceQuantities, vtkStringArray);
+  vtkSetObjectMacro(SpaceQuantities, vtkStringArray);
+
+  ///
+  /// Set the i-th SpaceQunatity name
+  int SetSpaceQuantity(int ind, const char *name);
+
   /// Search in the scene the volume node vtkMRMLVolumeDisplayNode is associated
   /// to
   vtkMRMLVolumeNode* GetVolumeNode();
@@ -134,6 +154,9 @@ protected:
   ~vtkMRMLVolumeDisplayNode();
   vtkMRMLVolumeDisplayNode(const vtkMRMLVolumeDisplayNode&);
   void operator=(const vtkMRMLVolumeDisplayNode&);
+
+  char* Space;
+  vtkStringArray* SpaceQuantities;
 
 #if (VTK_MAJOR_VERSION <= 5)
   virtual void SetInputToImageDataPipeline(vtkImageData *imageData);

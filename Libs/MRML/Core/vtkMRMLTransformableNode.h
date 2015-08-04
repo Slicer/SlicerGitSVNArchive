@@ -92,6 +92,8 @@ public:
   /// Get referenced transform node id
   const char *GetTransformNodeID();
 
+  /// This method return World coordinated given ijk and the Space
+  virtual void GetReferenceSpace(const double ijk[3], const char *Space, double SpaceCoordinates[3]);
 
 protected:
   vtkMRMLTransformableNode();

@@ -23,6 +23,8 @@ Version:   $Revision: 1.2 $
 #include <vtkImageData.h>
 #include <vtkImageStencilData.h>
 #include <vtkTrivialProducer.h>
+#include <vtkStringArray.h>
+#include <vtkNew.h>
 
 // Initialize static member that controls resampling --
 // old comment: "This offset will be changed to 0.5 from 0.0 per 2/8/2002 Slicer
@@ -33,17 +35,46 @@ vtkMRMLVolumeDisplayNode::vtkMRMLVolumeDisplayNode()
 {
   // try setting a default greyscale color map
   //this->SetDefaultColorMap(0);
+  this->SpaceQuantities = vtkStringArray::New();
+  this->SpaceQuantities->SetName("Tokens");
+  this->SpaceQuantities->SetNumberOfValues(3);
+  this->SpaceQuantities->SetValue(0, "length");
+  this->SpaceQuantities->SetValue(1, "length");
+  this->SpaceQuantities->SetValue(2, "length");
+  this->Space = 0;
+  this->SetSpace("RAS");
 }
 
 //----------------------------------------------------------------------------
 vtkMRMLVolumeDisplayNode::~vtkMRMLVolumeDisplayNode()
 {
+  if (this->SpaceQuantities)
+    {
+    this->SpaceQuantities->Delete();
+    }
+  if (this->Space)
+    {
+    delete [] this->Space;
+    }
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLVolumeDisplayNode::WriteXML(ostream& of, int nIndent)
 {
   Superclass::WriteXML(of, nIndent);
+  vtkIndent indent(nIndent);
+
+  std::string quantities = "";
+  if (this->SpaceQuantities)
+    {
+    for(int i = 0; i < this->SpaceQuantities->GetNumberOfValues(); i++)
+      {
+      quantities +=  this->SpaceQuantities->GetValue(i) + ";";
+      }
+    }
+
+  of << indent << " SpaceQuantities=\"" << quantities << "\"";
+  of << indent << " Space=\"" << (this->Space ? this->Space : "") << "\"";
 }
 
 //----------------------------------------------------------------------------
@@ -51,6 +82,36 @@ void vtkMRMLVolumeDisplayNode::ReadXMLAttributes(const char** atts)
 {
 
   Superclass::ReadXMLAttributes(atts);
+
+  const char* attName;
+  const char* attValue;
+
+  while (*atts != NULL)
+    {
+    attName = *(atts++);
+    attValue = *(atts++);
+
+    if (!strcmp(attName, "SpaceQuantities"))
+      {
+      std::istringstream f(attValue);
+      std::string s;
+      int i = 0;
+      while (std::getline(f, s, ';'))
+        {
+        this->SetSpaceQuantity(i, s.c_str());
+        i++;
+        }
+      continue;
+      }
+
+    if (!strcmp(attName, "Space"))
+      {
+      this->SetSpace(attValue);
+      continue;
+      }
+    }
+
+  this->WriteXML(std::cout,0);
 }
 
 //----------------------------------------------------------------------------
@@ -60,15 +121,21 @@ void vtkMRMLVolumeDisplayNode::Copy(vtkMRMLNode *anode)
 {
   bool wasModifying = this->StartModify();
   this->Superclass::Copy(anode);
-#if VTK_MAJOR_VERSION > 5
+
   vtkMRMLVolumeDisplayNode *node =
-    vtkMRMLVolumeDisplayNode::SafeDownCast(anode);
+      vtkMRMLVolumeDisplayNode::SafeDownCast(anode);
   if (node)
     {
+#if VTK_MAJOR_VERSION > 5
     this->SetInputImageDataConnection(node->GetInputImageDataConnection());
+#endif
+    this->SetSpaceQuantities(node->GetSpaceQuantities());
+    this->SetSpace(node->GetSpace());
     }
+#if VTK_MAJOR_VERSION > 5
   this->UpdateImageDataPipeline();
 #endif
+
   this->EndModify(wasModifying);
 }
 
@@ -88,6 +155,11 @@ void vtkMRMLVolumeDisplayNode::ProcessMRMLEvents(vtkObject *caller,
 void vtkMRMLVolumeDisplayNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
+
+  //os << indent << "SpaceQuantities: " <<
+   // (this->SpaceQuantities ? this->SpaceQuantities : "(none)") << "\n";
+  os << indent << "Space: " <<
+    (this->Space ? this->Space : "(none)") << "\n";
 }
 
 //-----------------------------------------------------------
@@ -242,6 +314,22 @@ void vtkMRMLVolumeDisplayNode::UpdateImageDataPipeline()
 void vtkMRMLVolumeDisplayNode::SetDefaultColorMap()
 {
   this->SetAndObserveColorNodeID("vtkMRMLColorTableNodeGrey");
+}
+
+//----------------------------------------------------------------------------
+int vtkMRMLVolumeDisplayNode::SetSpaceQuantity(int ind, const char *name)
+{
+  if (ind >= this->SpaceQuantities->GetNumberOfValues())
+    {
+    this->SpaceQuantities->SetNumberOfValues(ind+1);
+    }
+  vtkStdString SpaceQuantities(name);
+  if (this->SpaceQuantities->GetValue(ind) != SpaceQuantities)
+    {
+    this->SpaceQuantities->SetValue(ind, SpaceQuantities);
+    return 1;
+    }
+  return 0;
 }
 
 //----------------------------------------------------------------------------
