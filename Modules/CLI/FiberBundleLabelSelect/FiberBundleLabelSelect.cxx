@@ -153,11 +153,12 @@ int main( int argc, char * argv[] )
   double p[3];
 
   unsigned int label;
-  std::vector<bool> passAll;
-  for (label=0; label<PassLabel.size(); label++)
-    {
-    passAll.push_back(false);
-    }
+  // CHANGE: removed for the bug from ADD for 'Labels to include'
+  // std::vector<bool> passAll;
+  // for (label=0; label<PassLabel.size(); label++)
+  //   {
+  //   passAll.push_back(false);
+  //   }
 
   int *labelDims = imageCastLabel_A->GetOutput()->GetDimensions();
   // Check lines
@@ -171,6 +172,14 @@ int main( int argc, char * argv[] )
       std::cerr << "Less than two points in line " << inCellId << std::endl;
       continue; //skip this polyline
       }
+
+    // CHANGE: added for the bug from ADD for 'Labels to include'
+    std::vector<bool> passAll;
+    for (label=0; label<PassLabel.size(); label++)
+      {
+      passAll.push_back(false);
+      }
+
     double pIJK[3];
     int pt[3];
     short *inPtr;
