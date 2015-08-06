@@ -19,7 +19,7 @@
 ==============================================================================*/
 
 // Qt includes
-#include <QAbstractButton>
+#include <QPushButton>
 
 // CTK includes
 #include <ctkMessageBox.h>
@@ -194,34 +194,44 @@ void qMRMLSceneViewMenuPrivate::restoreSceneView(const QString& sceneViewNodeId)
     // add the missing nodes to the scene view
     ctkMessageBox missingNodesMsgBox;
     missingNodesMsgBox.setWindowTitle("Data missing from Scene View");
-    QString labelText = QString(
+    QString sceneViewName = QString(sceneViewNode->GetName());
+    QString labelText = QString("Add data to scene view \"")
+      + sceneViewName
+      + QString("\" before restoring?\n"
+                "\n");
+    QString infoText = QString(
       "Data is present in the current scene but not in the scene view.\n"
       "\n"
-      "Continue restoring and Discard data, Save missing data to this scene view, or Cancel?\n"
-      "\n"
-      "Saved Volumes may not be shown in slice views after restore.\n"
-      "Default if don't show again: Save.");
-    missingNodesMsgBox.setText(labelText);
+      "If you don't add and restore, data not already saved to disk"
+      ", or saved in another scene view,"
+      " will be permanently lost!\n");
+    missingNodesMsgBox.setText(labelText + infoText);
+    // until CTK bug is fixed, informative text will overlap the don't show
+    // again message so put it all in the label text
+    // missingNodesMsgBox.setInformativeText(infoText);
     QPushButton *continueButton = missingNodesMsgBox.addButton(QMessageBox::Discard);
+    continueButton->setText("Restore without saving");
     QPushButton *addButton = missingNodesMsgBox.addButton(QMessageBox::Save);
+    addButton->setText("Add and Restore");
     missingNodesMsgBox.addButton(QMessageBox::Cancel);
 
-    missingNodesMsgBox.setIcon(QMessageBox::Question);
+    missingNodesMsgBox.setIcon(QMessageBox::Warning);
     missingNodesMsgBox.setDontShowAgainVisible(true);
     missingNodesMsgBox.setDontShowAgainSettingsKey("SceneViewMenu/AlwaysRemoveNodes");
-    missingNodesMsgBox.exec();
-    if (missingNodesMsgBox.clickedButton() != 0)
+    int ret = missingNodesMsgBox.exec();
+    switch (ret)
       {
-      if (missingNodesMsgBox.buttonRole(missingNodesMsgBox.clickedButton()) == QMessageBox::DestructiveRole)
-        {
+      case QMessageBox::Discard:
         sceneViewNode->RestoreScene(true);
-        }
-      else if (missingNodesMsgBox.buttonRole(missingNodesMsgBox.clickedButton()) == QMessageBox::AcceptRole)
-        {
+        break;
+      case QMessageBox::Save:
         sceneViewNode->AddMissingNodes();
         // try to restore again
         this->restoreSceneView(sceneViewNode->GetID());
-        }
+        break;
+      case QMessageBox::Cancel:
+      default:
+        break;
       }
     }
 }

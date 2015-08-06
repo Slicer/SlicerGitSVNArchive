@@ -21,6 +21,7 @@
 #include <QMessageBox>
 #include <QPrintDialog>
 #include <QPrinter>
+#include <QPushButton>
 #include <QSettings>
 #include <QStatusBar>
 #include <QTextBrowser>
@@ -295,32 +296,42 @@ void qSlicerSceneViewsModuleWidget::restoreSceneView(const QString& mrmlId)
     // ask if the user wishes to save the current scene nodes, retore and delete them or cancel
     ctkMessageBox missingNodesMsgBox;
     missingNodesMsgBox.setWindowTitle("Data missing from Scene View");
-    QString labelText = QString(
+    vtkMRMLSceneViewNode* viewNode = vtkMRMLSceneViewNode::SafeDownCast(this->mrmlScene()->GetNodeByID(mrmlId.toLatin1()));
+    QString sceneViewName;
+    if (viewNode)
+      {
+      sceneViewName = QString(viewNode->GetName());
+      }
+    QString labelText = QString("Add data to scene view \"")
+      + sceneViewName
+      + QString("\" before restoring?\n"
+                "\n");
+    QString infoText = QString(
       "Data is present in the current scene but not in the scene view.\n"
       "\n"
-      "Continue restoring and Discard data, Save missing data to this scene view, or Cancel?\n"
-      "\n"
-      "Saved Volumes may not be shown in slice views after restore.\n"
-      "Default if don't show again: Save.");
-    missingNodesMsgBox.setText(labelText);
+      "If you don't add and restore, data not already saved to disk"
+      ", or saved in another scene view,"
+      " will be permanently lost!\n");
+    missingNodesMsgBox.setText(labelText + infoText);
+    // until CTK bug is fixed, informative text will overlap the don't show
+    // again message so put it all in the label text
+    // missingNodesMsgBox.setInformativeText(infoText);
     QPushButton *continueButton = missingNodesMsgBox.addButton(QMessageBox::Discard);
+    continueButton->setText("Restore without saving");
     QPushButton *addButton = missingNodesMsgBox.addButton(QMessageBox::Save);
+    addButton->setText("Add and Restore");
     missingNodesMsgBox.addButton(QMessageBox::Cancel);
 
-    missingNodesMsgBox.setIcon(QMessageBox::Question);
+    missingNodesMsgBox.setIcon(QMessageBox::Warning);
     missingNodesMsgBox.setDontShowAgainVisible(true);
     missingNodesMsgBox.setDontShowAgainSettingsKey("SceneViewsModule/AlwaysRemoveNodes");
-    missingNodesMsgBox.exec();
-    if (missingNodesMsgBox.clickedButton() != 0)
+    int ret = missingNodesMsgBox.exec();
+    switch (ret)
       {
-      if (missingNodesMsgBox.buttonRole(missingNodesMsgBox.clickedButton()) == QMessageBox::DestructiveRole)
-        {
+      case QMessageBox::Discard:
         d->logic()->RestoreSceneView(mrmlId.toLatin1(), true);
-        }
-      else if (missingNodesMsgBox.buttonRole(missingNodesMsgBox.clickedButton()) == QMessageBox::AcceptRole)
-        {
-        // add nodes to the scene
-        vtkMRMLSceneViewNode* viewNode = vtkMRMLSceneViewNode::SafeDownCast(this->mrmlScene()->GetNodeByID(mrmlId.toLatin1()));
+        break;
+      case QMessageBox::Save:
         if (viewNode)
           {
           viewNode->AddMissingNodes();
@@ -328,9 +339,13 @@ void qSlicerSceneViewsModuleWidget::restoreSceneView(const QString& mrmlId)
           // and restore again
           d->logic()->RestoreSceneView(mrmlId.toLatin1(), false);
           }
-        }
+        break;
+      case QMessageBox::Cancel:
+      default:
+        break;
       }
     }
+
   qSlicerApplication::application()->mainWindow()->statusBar()->showMessage("The SceneView was restored including the attached scene.", 2000);
 }
 
