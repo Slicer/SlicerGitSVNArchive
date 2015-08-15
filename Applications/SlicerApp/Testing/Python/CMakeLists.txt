@@ -64,7 +64,6 @@ slicer_add_python_test(SCRIPT SlicerTestingExitSuccessTest.py)
 slicer_add_python_test(SCRIPT SlicerTestingExitFailureTest.py)
 set_tests_properties(py_SlicerTestingExitFailureTest PROPERTIES WILL_FAIL TRUE)
 
-
 #
 # Check if 'slicer.testing.runUnitTest()' works as expected
 #
@@ -195,6 +194,16 @@ slicer_add_python_unittest(
   SLICER_ARGS --no-main-window --disable-modules
   TESTNAME_PREFIX nomainwindow_
   )
+
+# DCMTKPrivateDictionary test
+add_test(
+  NAME py_nomainwindow_DCMTKPrivateDictionaryTest
+  COMMAND ${Slicer_LAUNCH_COMMAND} $<TARGET_FILE:${APP_TARGET_NAME}>
+  --ignore-slicerrc --disable-cli-modules --disable-loadable-modules --disable-scripted-loadable-modules --no-main-window
+  --python-script ${Slicer_SOURCE_DIR}/Applications/SlicerApp/Testing/Python/DCMTKPrivateDictTest.py
+  ${Slicer_SOURCE_DIR}/Testing/Data/Input/philips_ingenia_4_1_3_dwi.dcm
+)
+
 
 #
 # SelfTests
