@@ -1,6 +1,13 @@
-import DICOMLib, sys, slicer
+import DICOMLib, sys, slicer, os
 
 dcmfile = sys.argv[1]
+
+print 'DCMDICTPATH is',
+try:
+  print os.environ['DCMDICTPATH']
+except:
+  print 'not defined'
+  exit(slicer.util.EXIT_FAILURE)
 
 dcmdump=DICOMLib.DICOMCommand('dcmdump',[dcmfile])
 dump=str(dcmdump.start()).split('\n')
