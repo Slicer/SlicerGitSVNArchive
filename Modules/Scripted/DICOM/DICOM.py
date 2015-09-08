@@ -165,7 +165,7 @@ class DICOMWidget:
     # - if the update is requested before the timeout, the call to timer.start() resets it
     # - the actual update only happens when the the full time elapses since the last request
     self.updateRecentActivityTimer = qt.QTimer()
-    self.updateRecentActivityTimer.singleShot = True
+    self.updateRecentActivityTimer.setSingleShot(True)
     self.updateRecentActivityTimer.interval = 500
     self.updateRecentActivityTimer.connect('timeout()', self.onUpateRecentActivityRequestTimeout)
 
