@@ -252,45 +252,8 @@ class DataProbeInfoWidget(object):
     #  1: decimal point:
     #  1: number of digits after decimal point
 
-    spacing = "%.1f" % sliceLogic.GetLowestVolumeSliceSpacing()[2]
-    if sliceNode.GetSliceSpacingMode() == slicer.vtkMRMLSliceNode.PrescribedSliceSpacingMode:
-      spacing = "(%s)" % spacing
 
-    self.viewInfo.text = \
-      "  {layoutName: <8s}  RAS: ({ras_x:6.1f}, {ras_y:6.1f}, {ras_z:6.1f})  {orient: >8s} Sp: {spacing:s}" \
-      .format(layoutName=sliceNode.GetLayoutName(),
-              ras_x=ras[0],
-              ras_y=ras[1],
-              ras_z=ras[2],
-              orient=sliceNode.GetOrientationString(),
-              spacing=spacing
-              )
-
-    def _roundInt(value):
-      try:
-        return int(round(value))
-      except ValueError:
-        return 0
-
-    hasVolume = False
-    layerLogicCalls = (('L', sliceLogic.GetLabelLayer),
-                       ('F', sliceLogic.GetForegroundLayer),
-                       ('B', sliceLogic.GetBackgroundLayer))
-    for layer,logicCall in layerLogicCalls:
-      layerLogic = logicCall()
-      volumeNode = layerLogic.GetVolumeNode()
-      ijk = [0, 0, 0]
-      if volumeNode:
-        hasVolume = True
-        xyToIJK = layerLogic.GetXYToIJKTransform()
-        ijkFloat = xyToIJK.TransformDoublePoint(xyz)
-        ijk = [_roundInt(value) for value in ijkFloat]
-      self.layerNames[layer].setText(
-        "<b>%s</b>" % (self.fitName(volumeNode.GetName()) if volumeNode else "None"))
-      self.layerIJKs[layer].setText(
-        "({i:4d}, {j:4d}, {k:4d})".format(i=ijk[0], j=ijk[1], k=ijk[2]) if volumeNode else "")
-      self.layerValues[layer].setText(
-        "<b>%s</b>" % self.getPixelString(volumeNode,ijk) if volumeNode else "")
+    hasVolume = self.GetInfo(xyz, ras, sliceNode, sliceLogic)
 
     # set image
     if (not slicer.mrmlScene.IsBatchProcessing()) and sliceLogic and hasVolume and self.showImage:
@@ -330,6 +293,52 @@ class DataProbeInfoWidget(object):
       self.frame.parent().text = "Data Probe: %s" % self.fitName(sceneName,nameSize=2*self.nameSize)
     else:
       self.frame.parent().text = "Data Probe"
+
+
+  def GetInfo(self, xyz, ras, sliceNode, sliceLogic):
+    spacing = "%.1f" % sliceLogic.GetLowestVolumeSliceSpacing()[2]
+    if sliceNode.GetSliceSpacingMode() == slicer.vtkMRMLSliceNode.PrescribedSliceSpacingMode:
+      spacing = "(%s)" % spacing
+
+    self.viewInfo.text = \
+      "  {layoutName: <8s}  RAS: ({ras_x:6.1f}, {ras_y:6.1f}, {ras_z:6.1f})  {orient: >8s} Sp: {spacing:s}" \
+      .format(layoutName=sliceNode.GetLayoutName(),
+              ras_x=ras[0],
+              ras_y=ras[1],
+              ras_z=ras[2],
+              orient=sliceNode.GetOrientationString(),
+              spacing=spacing
+              )
+
+    def _roundInt(value):
+      try:
+        return int(round(value))
+      except ValueError:
+        return 0
+
+    hasVolume = True
+
+    layerLogicCalls = (('L', sliceLogic.GetLabelLayer),
+                       ('F', sliceLogic.GetForegroundLayer),
+                       ('B', sliceLogic.GetBackgroundLayer))
+    for layer,logicCall in layerLogicCalls:
+      layerLogic = logicCall()
+      volumeNode = layerLogic.GetVolumeNode()
+      ijk = [0, 0, 0]
+      if volumeNode:
+        hasVolume = True
+        xyToIJK = layerLogic.GetXYToIJKTransform()
+        ijkFloat = xyToIJK.TransformDoublePoint(xyz)
+        ijk = [_roundInt(value) for value in ijkFloat]
+      self.layerNames[layer].setText(
+        "<b>%s</b>" % (self.fitName(volumeNode.GetName()) if volumeNode else "None"))
+      self.layerIJKs[layer].setText(
+        "({i:4d}, {j:4d}, {k:4d})".format(i=ijk[0], j=ijk[1], k=ijk[2]) if volumeNode else "")
+      self.layerValues[layer].setText(
+        "<b>%s</b>" % self.getPixelString(volumeNode,ijk) if volumeNode else "")
+
+    return hasVolume
+
 
   def createSmall(self):
     """Make the internals of the widget to display in the
