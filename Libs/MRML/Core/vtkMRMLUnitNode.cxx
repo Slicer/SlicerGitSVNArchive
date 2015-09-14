@@ -198,10 +198,10 @@ const char* vtkMRMLUnitNode::GetDisplayStringFromValue(double value)
 }
 
 //----------------------------------------------------------------------------
-const char* vtkMRMLUnitNode
-::GetDisplayValueStringFromDisplayValue(double displayValue)
+const char* vtkMRMLUnitNode::GetDisplayValueStringFromDisplayValue(double displayValue)
 {
   std::stringstream strstream;
+  strstream.setf(ios::fixed,ios::floatfield);
   strstream.precision(this->Precision);
   strstream << displayValue;
   strstream >> this->LastValueString;
@@ -238,7 +238,7 @@ std::string vtkMRMLUnitNode::WrapValueWithPrefix(const std::string& value) const
   std::string wrappedString = "";
   if (this->Prefix)
     {
-    wrappedString = std::string(this->Prefix) + " ";
+    wrappedString = std::string(this->Prefix);
     }
   return wrappedString + value;
 }
@@ -249,7 +249,7 @@ std::string vtkMRMLUnitNode::WrapValueWithSuffix(const std::string& value) const
   std::string wrappedString = "";
   if (this->Suffix)
     {
-    wrappedString = " " + std::string(this->Suffix);
+    wrappedString = std::string(this->Suffix);
     }
   return value + wrappedString;
 }
