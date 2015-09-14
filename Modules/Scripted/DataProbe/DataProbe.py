@@ -253,7 +253,7 @@ class DataProbeInfoWidget(object):
     #  1: number of digits after decimal point
 
 
-    hasVolume = self.GetInfo(xyz, ras, sliceNode, sliceLogic)
+    hasVolume = self.UpdateCursorPositionDisplayText(xyz, ras, sliceNode, sliceLogic)
 
     # set image
     if (not slicer.mrmlScene.IsBatchProcessing()) and sliceLogic and hasVolume and self.showImage:
@@ -295,7 +295,7 @@ class DataProbeInfoWidget(object):
       self.frame.parent().text = "Data Probe"
 
 
-  def GetInfo(self, xyz, ras, sliceNode, sliceLogic):
+  def UpdateCursorPositionDisplayText(self, xyz, ras, sliceNode, sliceLogic):
     spacing = "%.1f" % sliceLogic.GetLowestVolumeSliceSpacing()[2]
     if sliceNode.GetSliceSpacingMode() == slicer.vtkMRMLSliceNode.PrescribedSliceSpacingMode:
       spacing = "(%s)" % spacing
