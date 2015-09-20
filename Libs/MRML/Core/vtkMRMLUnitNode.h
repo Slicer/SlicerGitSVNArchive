@@ -58,6 +58,7 @@ public:
   /// Get node XML tag name (like Volume, Model)
   virtual const char* GetNodeTagName() {return "Unit";};
 
+  ///
   /// Reimplemented to prevent reset if unit node is a singleton.
   virtual void Reset();
 
@@ -67,19 +68,30 @@ public:
   const char* GetQuantity();
   void SetQuantity(const char* quantity);
 
+  ///
   /// Return the value multiplied by DisplayCoefficient and summed by
   /// DisplayOffset.
   /// \sa GetValueFromDisplayValue(), GetDisplayStringFromValue(),
   /// GetDisplayCoefficient(), GetDisplayOffset()
   virtual double GetDisplayValueFromValue(double value);
+
+  ///
   /// Return the value subtracted from DisplayOffset and divided by
   /// DisplayCoefficient.
   /// \sa GetDisplayValueFromValue(), GetDisplayStringFromValue()
   virtual double GetValueFromDisplayValue(double value);
+
+  ///
   /// Return the display value with prefix and suffix.
   /// \sa GetDisplayValueFromValue(), GetValueFromDisplayValue()
   const char* GetDisplayStringFromValue(double value);
 
+  ///
+  /// Return the display value with prefix and suffixes.
+  /// \sa GetDisplayValueFromValue(), GetValueFromDisplayValue()
+  const char* GetDisplayStringFromValue(double value[3]);
+
+  ///
   /// Return the display string format to use with printf/sprintf.
   /// Note that the value passed to the format must be the DisplayValue.
   /// For example: "%#6.3g mm" if the precision is 3 and the suffix mm.
@@ -99,12 +111,28 @@ public:
   vtkSetStringMacro(Prefix);
 
   ///
-  /// Set/Get the unit suffix. For example, the suffix for the unity
-  /// meter would be "m".
+  /// Set/Get the unit suffix. For example, the suffix
+  /// for the unity metre would be "m".
   /// Default is "".
   /// \sa SetSuffix(), GetSuffix()
   vtkGetStringMacro(Suffix);
   vtkSetStringMacro(Suffix);
+
+  ///
+  /// Set/Get the unit secondsuffix. For example, the secondsuffix
+  /// for the unity degree would be "\x27".
+  /// Default is "".
+  /// \sa SetSecondSuffix(), GetSecondSuffix()
+  vtkGetStringMacro(SecondSuffix);
+  vtkSetStringMacro(SecondSuffix);
+
+  ///
+  /// Set/Get the unit thirdsuffix. For example, the thirdsuffix
+  /// for the unity degree would be "\x22".
+  /// Default is "".
+  /// \sa SetThirdSuffix(), GetThirdSuffix()
+  vtkGetStringMacro(ThirdSuffix);
+  vtkSetStringMacro(ThirdSuffix);
 
   ///
   /// Set/Get the precision (i.e. number of decimals) of the unit.
@@ -145,7 +173,12 @@ protected:
   void operator=(const vtkMRMLUnitNode&);
 
   virtual const char* GetDisplayValueStringFromDisplayValue(double displayValue);
+
   virtual const char* GetDisplayStringFromDisplayValueString(const char* displayValue);
+  virtual const char* GetDisplayStringFromDisplayValueString(const char* firstDisplayValueString,
+                                                             const char* secondDisplayValueString,
+                                                             const char* thirdDisplayValueString);
+
   ///
   /// Helper functions that wrap the given string with the
   /// suffix and or the prefix. A space is used between the
@@ -154,8 +187,18 @@ protected:
   std::string WrapValueWithSuffix(const std::string& value) const;
   std::string WrapValueWithPrefixAndSuffix(const std::string& value) const;
 
+  std::string WrapValueWithSuffix(const std::string& firstValue,
+                                  const std::string& secondValue,
+                                  const std::string& thirdVvalue) const;
+  std::string WrapValueWithPrefixAndSuffix(const std::string& firstvValue,
+                                           const std::string& secondValue,
+                                           const std::string& thirdValue) const;
+
   char* Prefix;
   char* Suffix;
+  char* SecondSuffix;
+  char* ThirdSuffix;
+
   int Precision;
   double MinimumValue;
   double MaximumValue;

@@ -116,6 +116,12 @@ void qSlicerUnitsSettingsPanelPrivate
   q->registerProperty(quantity + "/suffix", unitWidget->unitWidget(),
     "suffix", SIGNAL(suffixChanged(QString)),
     QString(), ctkSettingsPanel::OptionNone, app->revisionUserSettings());
+  q->registerProperty(quantity + "/secondSuffix", unitWidget->unitWidget(),
+    "secondSuffix", SIGNAL(secondSuffixChanged(QString)),
+    QString(), ctkSettingsPanel::OptionNone, app->revisionUserSettings());
+  q->registerProperty(quantity + "/thirdSuffix", unitWidget->unitWidget(),
+    "thirdSuffix", SIGNAL(thirdSuffixChanged(QString)),
+    QString(), ctkSettingsPanel::OptionNone, app->revisionUserSettings());
   q->registerProperty(quantity + "/precision", unitWidget->unitWidget(),
     "precision", SIGNAL(precisionChanged(int)),
     QString(), ctkSettingsPanel::OptionNone, app->revisionUserSettings());
@@ -351,6 +357,7 @@ void qSlicerUnitsSettingsPanel::showAll(bool showAll)
     qMRMLUnitWidget::UnitProperties allButNameAndQuantity =
       qMRMLUnitWidget::Preset |
       qMRMLUnitWidget::Prefix | qMRMLUnitWidget::Suffix |
+      qMRMLUnitWidget::SecondSuffix |   qMRMLUnitWidget::ThirdSuffix |
       qMRMLUnitWidget::Precision |
       qMRMLUnitWidget::Minimum | qMRMLUnitWidget::Maximum |
       qMRMLUnitWidget::Coefficient | qMRMLUnitWidget::Offset;

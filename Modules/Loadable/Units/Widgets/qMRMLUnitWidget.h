@@ -55,6 +55,12 @@ class Q_SLICER_MODULE_UNITS_WIDGETS_EXPORT qMRMLUnitWidget : public qMRMLWidget
   /// This property controls the suffix of the unit node.
   /// \sa suffix(), setSuffix(), suffixChanged()
   Q_PROPERTY(QString suffix READ suffix WRITE setSuffix NOTIFY suffixChanged)
+  /// This property controls the secondSuffix of the unit node.
+  /// \sa secondSuffix(), setSecondSuffix(), secondSuffixChanged()
+  Q_PROPERTY(QString secondSuffix READ secondSuffix WRITE setSecondSuffix NOTIFY secondSuffixChanged)
+  /// This property controls the thirdSuffix of the unit node.
+  /// \sa thirdSuffix(), setThirdSuffix(), thirdSuffixChanged()
+  Q_PROPERTY(QString thirdSuffix READ thirdSuffix WRITE setThirdSuffix NOTIFY thirdSuffixChanged)
   /// This property controls the precision of the unit node.
   /// \sa precision(), setPrecision(), precisionChanged()
   Q_PROPERTY(int precision READ precision WRITE setPrecision NOTIFY precisionChanged)
@@ -100,6 +106,12 @@ public:
   /// Return the suffix property value.
   /// \sa suffix
   QString suffix() const;
+  /// Return the secondSuffix property value.
+  /// \sa secondSuffix
+  QString secondSuffix() const;
+  /// Return the thirdSuffix property value.
+  /// \sa thirdSuffix
+  QString thirdSuffix() const;
   /// Return the precision property value.
   /// \sa precision
   int precision() const;
@@ -125,6 +137,8 @@ public:
     Precision = 0x008,
     Prefix = 0x010,
     Suffix = 0x020,
+    SecondSuffix = 0x021,
+    ThirdSuffix = 0x022,
     Minimum = 0x040,
     Maximum = 0x080,
     Coefficient = 0x100,
@@ -160,6 +174,12 @@ public slots:
   /// Set the suffix property value.
   /// \sa suffix
   void setSuffix(const QString &);
+  /// Set the secondSuffix property value.
+  /// \sa secondSuffix
+  void setSecondSuffix(const QString &);
+  /// Set the thirdSuffix property value.
+  /// \sa thirdSuffix
+  void setThirdSuffix(const QString &);
   /// Set the precision property value.
   /// \sa precision
   void setPrecision(int);
@@ -194,6 +214,8 @@ signals:
   void quantityChanged(QString);
   void prefixChanged(QString);
   void suffixChanged(QString);
+  void secondSuffixChanged(QString);
+  void thirdSuffixChanged(QString);
   void precisionChanged(int);
   void minimumChanged(double);
   void maximumChanged(double);
