@@ -112,7 +112,7 @@ public:
 
   ///
   /// Set/Get the unit suffix. For example, the suffix
-  /// for the unity metre would be "m".
+  /// for the unity meter would be "m".
   /// Default is "".
   /// \sa SetSuffix(), GetSuffix()
   vtkGetStringMacro(Suffix);
@@ -120,7 +120,7 @@ public:
 
   ///
   /// Set/Get the unit secondsuffix. For example, the secondsuffix
-  /// for the unity degree would be "\x27".
+  /// for the unity degree would be "arcminute (')".
   /// Default is "".
   /// \sa SetSecondSuffix(), GetSecondSuffix()
   vtkGetStringMacro(SecondSuffix);
@@ -128,7 +128,7 @@ public:
 
   ///
   /// Set/Get the unit thirdsuffix. For example, the thirdsuffix
-  /// for the unity degree would be "\x22".
+  /// for the unity degree would be "arcsecond (")".
   /// Default is "".
   /// \sa SetThirdSuffix(), GetThirdSuffix()
   vtkGetStringMacro(ThirdSuffix);
