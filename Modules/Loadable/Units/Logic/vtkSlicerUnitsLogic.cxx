@@ -64,10 +64,10 @@ void vtkSlicerUnitsLogic::PrintSelf(ostream& os, vtkIndent indent)
 //----------------------------------------------------------------------------
 vtkMRMLUnitNode* vtkSlicerUnitsLogic
 ::AddUnitNode(const char* name, const char* quantity, const char* prefix,
-              const char* suffix, int precision, double min, double max)
+              const char* suffix, const char* displayHint, int precision, double min, double max)
 {
   return this->AddUnitNodeToScene(this->GetMRMLScene(), name, quantity,
-    prefix, suffix, precision, min, max);
+    prefix, suffix, displayHint, precision, min, max);
 }
 
 //----------------------------------------------------------------------------
@@ -118,7 +118,8 @@ double vtkSlicerUnitsLogic::GetDisplayCoefficient(const char* prefix, const char
 vtkMRMLUnitNode* vtkSlicerUnitsLogic
 ::AddUnitNodeToScene(vtkMRMLScene* scene, const char* name,
                      const char* quantity, const char* prefix,
-                     const char* suffix, int precision,
+                     const char* suffix, const char* displayHint,
+                     int precision,
                      double min, double max,
                      double displayCoeff, double displayOffset)
 {
@@ -132,6 +133,7 @@ vtkMRMLUnitNode* vtkSlicerUnitsLogic
   unitNode->SetQuantity(quantity);
   unitNode->SetPrefix(prefix);
   unitNode->SetSuffix(suffix);
+  unitNode->SetDisplayHint(displayHint);
   unitNode->SetPrecision(precision);
   unitNode->SetMinimumValue(min);
   unitNode->SetMaximumValue(max);
@@ -163,23 +165,23 @@ void vtkSlicerUnitsLogic::ObserveMRMLScene()
 void vtkSlicerUnitsLogic::AddDefaultsUnits()
 {
   vtkMRMLUnitNode* node =
-    this->AddUnitNode("ApplicationLength", "length", "", "mm", 3);
+    this->AddUnitNode("ApplicationLength", "length", "", "mm", "", 3);
   node->SetSaveWithScene(false);
   this->SetDefaultUnit(node->GetQuantity(), node->GetID());
 
-  node = this->AddUnitNode("ApplicationTime", "time", "", "s", 3);
+  node = this->AddUnitNode("ApplicationTime", "time", "", "s", "", 3);
   node->SetSaveWithScene(false);
   this->SetDefaultUnit(node->GetQuantity(), node->GetID());
 
-  node = this->AddUnitNode("ApplicationFrequency", "frequency", "", "Hz", 3);
+  node = this->AddUnitNode("ApplicationFrequency", "frequency", "", "Hz", "", 3);
   node->SetSaveWithScene(false);
   this->SetDefaultUnit(node->GetQuantity(), node->GetID());
 
-  node = this->AddUnitNode("ApplicationVelocity", "velocity", "", "m/s", 3);
+  node = this->AddUnitNode("ApplicationVelocity", "velocity", "", "m/s", "", 3);
   node->SetSaveWithScene(false);
   this->SetDefaultUnit(node->GetQuantity(), node->GetID());
 
-  node = this->AddUnitNode("ApplicationIntensity", "intensity", "", "W/m\xB2", 3);
+  node = this->AddUnitNode("ApplicationIntensity", "intensity", "", "W/m\xB2", "", 3);
   node->SetSaveWithScene(false);
   this->SetDefaultUnit(node->GetQuantity(), node->GetID());
 }
@@ -198,56 +200,56 @@ void vtkSlicerUnitsLogic::AddBuiltInUnits(vtkMRMLScene* scene)
 
   // in Slicer, "length" quantity values are always expressed in millimeters.
   this->AddUnitNodeToScene(scene,
-    "Meter", "length", "", "m", 3, -10000., 10000., Self::GetDisplayCoefficient("", "milli"), 0.);
+    "Meter", "length", "", "m", "", 3, -10000., 10000., Self::GetDisplayCoefficient("", "milli"), 0.);
   this->AddUnitNodeToScene(scene,
-    "Centimeter", "length", "", "cm", 3, -10000., 10000., Self::GetDisplayCoefficient("centi", "milli"), 0.);
+    "Centimeter", "length", "", "cm", "", 3, -10000., 10000., Self::GetDisplayCoefficient("centi", "milli"), 0.);
   this->AddUnitNodeToScene(scene,
-    "Millimeter", "length", "", "mm", 3, -10000., 10000., Self::GetDisplayCoefficient("milli", "milli"), 0.);
+    "Millimeter", "length", "", "mm", "", 3, -10000., 10000., Self::GetDisplayCoefficient("milli", "milli"), 0.);
   this->AddUnitNodeToScene(scene,
-    "Micrometer", "length", "", "\xB5m", 3, -10000., 10000., Self::GetDisplayCoefficient("micro", "milli"), 0.);
+    "Micrometer", "length", "", "\xB5m", "", 3, -10000., 10000., Self::GetDisplayCoefficient("micro", "milli"), 0.);
   this->AddUnitNodeToScene(scene,
-    "Nanometer", "length", "", "nm", 3, -10000., 10000., Self::GetDisplayCoefficient("nano", "milli"), 0.);
+    "Nanometer", "length", "", "nm", "", 3, -10000., 10000., Self::GetDisplayCoefficient("nano", "milli"), 0.);
 
   // 30.436875 is average number of days in a month
   this->AddUnitNodeToScene(scene,
-    "Year", "time", "", "year", 2, -10000., 10000., 1.0 / 12.0*30.436875*24.0*60.0*60.0, 0.);
+    "Year", "time", "", "year", "", 2, -10000., 10000., 1.0 / 12.0*30.436875*24.0*60.0*60.0, 0.);
   this->AddUnitNodeToScene(scene,
-    "Month", "time", "", "month", 2, -10000., 10000., 1.0 / 30.436875*24.0*60.0*60.0, 0.);
+    "Month", "time", "", "month", "", 2, -10000., 10000., 1.0 / 30.436875*24.0*60.0*60.0, 0.);
   this->AddUnitNodeToScene(scene,
-    "Day", "time", "", "day", 2, -10000., 10000., 1.0 / 24.0*60.0*60.0, 0.);
+    "Day", "time", "", "day", "", 2, -10000., 10000., 1.0 / 24.0*60.0*60.0, 0.);
   this->AddUnitNodeToScene(scene,
-    "Hour", "time", "", "h", 2, -10000., 10000., 1.0 / 60.0*60.0, 0.);
+    "Hour", "time", "", "h", "", 2, -10000., 10000., 1.0 / 60.0*60.0, 0.);
   this->AddUnitNodeToScene(scene,
-    "Minute", "time", "", "min", 2, -10000., 10000., 1.0/60.0, 0.);
+    "Minute", "time", "", "min", "", 2, -10000., 10000., 1.0/60.0, 0.);
   this->AddUnitNodeToScene(scene,
-    "Second", "time", "", "s", 3, -10000., 10000., Self::GetDisplayCoefficient(""), 0.);
+    "Second", "time", "", "s", "", 3, -10000., 10000., Self::GetDisplayCoefficient(""), 0.);
   this->AddUnitNodeToScene(scene,
-    "Millisecond", "time", "", "ms", 3, -10000., 10000., Self::GetDisplayCoefficient("milli"), 0.);
+    "Millisecond", "time", "", "ms", "", 3, -10000., 10000., Self::GetDisplayCoefficient("milli"), 0.);
   this->AddUnitNodeToScene(scene,
-    "Microsecond", "time", "", "\xB5s", 3, -10000., 10000., Self::GetDisplayCoefficient("micro"), 0.);
+    "Microsecond", "time", "", "\xB5s", "", 3, -10000., 10000., Self::GetDisplayCoefficient("micro"), 0.);
 
   this->AddUnitNodeToScene(scene,
-    "Herz", "frequency", "", "Hz", 3, -10000., 10000., Self::GetDisplayCoefficient(""), 0.);
+    "Herz", "frequency", "", "Hz", "", 3, -10000., 10000., Self::GetDisplayCoefficient(""), 0.);
   this->AddUnitNodeToScene(scene,
-    "decahertz", "frequency", "", "daHz", 3, -10000., 10000., Self::GetDisplayCoefficient("deca"), 0.);
+    "decahertz", "frequency", "", "daHz", "", 3, -10000., 10000., Self::GetDisplayCoefficient("deca"), 0.);
   this->AddUnitNodeToScene(scene,
-    "HectoHerz", "frequency", "", "hHz", 3, -10000., 10000., Self::GetDisplayCoefficient("hecto"), 0.);
+    "HectoHerz", "frequency", "", "hHz", "", 3, -10000., 10000., Self::GetDisplayCoefficient("hecto"), 0.);
   this->AddUnitNodeToScene(scene,
-    "KiloHerz", "frequency", "", "kHz", 3, -10000., 10000., Self::GetDisplayCoefficient("kilo"), 0.);
+    "KiloHerz", "frequency", "", "kHz", "", 3, -10000., 10000., Self::GetDisplayCoefficient("kilo"), 0.);
   this->AddUnitNodeToScene(scene,
-    "MegaHerz", "frequency", "", "MHz", 3, -10000., 10000., Self::GetDisplayCoefficient("mega"), 0.);
+    "MegaHerz", "frequency", "", "MHz", "", 3, -10000., 10000., Self::GetDisplayCoefficient("mega"), 0.);
   this->AddUnitNodeToScene(scene,
-    "GigaHerz", "frequency", "", "GHz", 3, -10000., 10000., Self::GetDisplayCoefficient("giga"), 0.);
+    "GigaHerz", "frequency", "", "GHz", "", 3, -10000., 10000., Self::GetDisplayCoefficient("giga"), 0.);
   this->AddUnitNodeToScene(scene,
-    "TeraHerz", "frequency", "", "THz", 3, -10000., 10000., Self::GetDisplayCoefficient("tera"), 0.);
+    "TeraHerz", "frequency", "", "THz", "", 3, -10000., 10000., Self::GetDisplayCoefficient("tera"), 0.);
 
   this->AddUnitNodeToScene(scene,
-    "Metre per second", "velocity", "", "m/s", 3, -10000., 10000., Self::GetDisplayCoefficient(""), 0.);
+    "Metre per second", "velocity", "", "m/s", "", 3, -10000., 10000., Self::GetDisplayCoefficient(""), 0.);
   this->AddUnitNodeToScene(scene,
-    "Kilometre per second", "velocity", "", "km/s", 3, -10000., 10000., Self::GetDisplayCoefficient("kilo"), 0.);
+    "Kilometre per second", "velocity", "", "km/s", "", 3, -10000., 10000., Self::GetDisplayCoefficient("kilo"), 0.);
 
   this->AddUnitNodeToScene(scene,
-    "Intensity", "intensity", "", "W/m\xB2", 3, -10000., 10000., 1., 0.);
+    "Intensity", "intensity", "", "W/m\xB2", "", 3, -10000., 10000., 1., 0.);
 }
 
 //-----------------------------------------------------------------------------

@@ -54,6 +54,7 @@ public:
     const char* quantity = "length",
     const char* prefix = "",
     const char* suffix = "",
+    const char* displayHint = "",
     int precision = 3,
     double min = -10000.,
     double max = 10000.);
@@ -187,6 +188,7 @@ protected:
     const char* quantity = "length",
     const char* prefix = "",
     const char* suffix = "",
+    const char* displayHint = "",
     int precision = 3,
     double min = -10000.,
     double max = 10000.,

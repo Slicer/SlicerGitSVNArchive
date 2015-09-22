@@ -39,6 +39,7 @@ vtkMRMLUnitNode::vtkMRMLUnitNode()
 
   this->Prefix = 0;
   this->Suffix = 0;
+  this->DisplayHint = 0;
   this->Precision = 3;
   this->MinimumValue = VTK_DOUBLE_MIN;
   this->MaximumValue = VTK_DOUBLE_MAX;
@@ -49,6 +50,7 @@ vtkMRMLUnitNode::vtkMRMLUnitNode()
   this->SetQuantity("");
   this->SetPrefix("");
   this->SetSuffix("");
+  this->SetDisplayHint("");
 }
 
 //----------------------------------------------------------------------------
@@ -62,6 +64,11 @@ vtkMRMLUnitNode::~vtkMRMLUnitNode()
     {
     delete [] this->Suffix;
     }
+  if (this->DisplayHint)
+    {
+    delete [] this->DisplayHint;
+    }
+
 }
 
 //----------------------------------------------------------------------------
@@ -75,6 +82,7 @@ void vtkMRMLUnitNode::WriteXML(ostream& of, int nIndent)
     << (this->GetQuantity() ? this->GetQuantity() : "") << "\"";
   of << indent << " Prefix=\"" << (this->Prefix ? this->Prefix : "") << "\"";
   of << indent << " Suffix=\"" << (this->Suffix ? this->Suffix : "") << "\"";
+  of << indent << " DisplayHint=\"" << (this->DisplayHint ? this->DisplayHint : "") << "\"";
   of << indent << " Precision=\"" << this->Precision << "\"";
   of << indent << " MinimumValue=\"" << this->MinimumValue << "\"";
   of << indent << " MaximumValue=\"" << this->MaximumValue << "\"";
@@ -128,6 +136,10 @@ void vtkMRMLUnitNode::ReadXMLAttributes(const char** atts)
     else if (!strcmp(attName, "Suffix"))
       {
       this->SetSuffix(attValue);
+      }
+    else if (!strcmp(attName, "DisplayHint"))
+      {
+      this->SetDisplayHint(attValue);
       }
     else if (!strcmp(attName, "Precision"))
       {
@@ -285,6 +297,7 @@ void vtkMRMLUnitNode::Copy(vtkMRMLNode *anode)
   this->SetQuantity(node->GetQuantity());
   this->SetPrefix(node->GetPrefix());
   this->SetSuffix(node->GetSuffix());
+  this->SetDisplayHint(node->GetDisplayHint());
   this->SetPrecision(node->GetPrecision());
   this->SetMinimumValue(node->GetMinimumValue());
   this->SetMaximumValue(node->GetMaximumValue());
@@ -315,6 +328,8 @@ void vtkMRMLUnitNode::PrintSelf(ostream& os, vtkIndent indent)
     (this->Prefix ? this->Prefix : "(none)") << "\n";
   os << indent << "Suffix: " <<
     (this->Suffix ? this->Suffix : "(none)") << "\n";
+  os << indent << "DisplayHint: " <<
+    (this->DisplayHint ? this->DisplayHint : "(none)") << "\n";
   os << indent << "Precision: " << this->Precision << "\n";
   os << indent << "MinimumValue: " << this->MinimumValue << "\n";
   os << indent << "MaximumValue: " << this->MaximumValue << "\n";

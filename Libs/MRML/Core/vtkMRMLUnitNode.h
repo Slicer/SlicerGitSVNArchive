@@ -107,6 +107,15 @@ public:
   vtkSetStringMacro(Suffix);
 
   ///
+  /// Set/Get the unit DisplayHint. This is a support attribute
+  /// used for specific formatting output: i.e. "FractionsAsMinutesSeconds"
+  /// means that 15.324 h has to be formatted as 15h 19min 26.4s
+  /// Default is "".
+  /// \sa SetDisplayHint(), GetDisplayHint()
+  vtkGetStringMacro(DisplayHint);
+  vtkSetStringMacro(DisplayHint);
+
+  ///
   /// Set/Get the precision (i.e. number of decimals) of the unit.
   /// Default is 3.
   vtkGetMacro(Precision, int);
@@ -156,6 +165,7 @@ protected:
 
   char* Prefix;
   char* Suffix;
+  char* DisplayHint;
   int Precision;
   double MinimumValue;
   double MaximumValue;
