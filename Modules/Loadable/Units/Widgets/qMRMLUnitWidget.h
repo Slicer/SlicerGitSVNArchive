@@ -55,9 +55,6 @@ class Q_SLICER_MODULE_UNITS_WIDGETS_EXPORT qMRMLUnitWidget : public qMRMLWidget
   /// This property controls the suffix of the unit node.
   /// \sa suffix(), setSuffix(), suffixChanged()
   Q_PROPERTY(QString suffix READ suffix WRITE setSuffix NOTIFY suffixChanged)
-  /// This property controls the displayHint of the unit node.
-  /// \sa displayHint(), setDisplayHint(), displayHintChanged()
-  Q_PROPERTY(QString displayHint READ displayHint WRITE setDisplayHint NOTIFY displayHintChanged)
   /// This property controls the precision of the unit node.
   /// \sa precision(), setPrecision(), precisionChanged()
   Q_PROPERTY(int precision READ precision WRITE setPrecision NOTIFY precisionChanged)
@@ -103,9 +100,6 @@ public:
   /// Return the suffix property value.
   /// \sa suffix
   QString suffix() const;
-  /// Return the displayHint property value.
-  /// \sa displayHint
-  QString displayHint() const;
   /// Return the precision property value.
   /// \sa precision
   int precision() const;
@@ -131,7 +125,6 @@ public:
     Precision = 0x008,
     Prefix = 0x010,
     Suffix = 0x020,
-    DisplayHint = 0x020,
     Minimum = 0x040,
     Maximum = 0x080,
     Coefficient = 0x100,
@@ -167,9 +160,6 @@ public slots:
   /// Set the suffix property value.
   /// \sa suffix
   void setSuffix(const QString &);
-  /// Set the displayHint property value.
-  /// \sa displayHint
-  void setDisplayHint(const QString &);
   /// Set the precision property value.
   /// \sa precision
   void setPrecision(int);
@@ -204,7 +194,6 @@ signals:
   void quantityChanged(QString);
   void prefixChanged(QString);
   void suffixChanged(QString);
-  void displayHintChanged(QString);
   void precisionChanged(int);
   void minimumChanged(double);
   void maximumChanged(double);

@@ -86,11 +86,6 @@ void qMRMLUnitWidgetPrivate::setupUi(qMRMLUnitWidget* q)
   QObject::connect(this->SuffixLineEdit, SIGNAL(textChanged(QString)),
     q, SIGNAL(suffixChanged(QString)));
 
-  QObject::connect(this->DisplayHintLineEdit, SIGNAL(textChanged(QString)),
-    q, SLOT(setDisplayHint(QString)));
-  QObject::connect(this->DisplayHintLineEdit, SIGNAL(textChanged(QString)),
-    q, SIGNAL(displayHintChanged(QString)));
-
   QObject::connect(this->PrecisionSpinBox, SIGNAL(valueChanged(int)),
     q, SLOT(setPrecision(int)));
   QObject::connect(this->PrecisionSpinBox, SIGNAL(valueChanged(int)),
@@ -185,16 +180,6 @@ void qMRMLUnitWidgetPrivate::updatePropertyWidgets()
     this->DisplayFlags.testFlag(qMRMLUnitWidget::Suffix));
   this->SuffixLabel->setEnabled(
     this->EditableProperties.testFlag(qMRMLUnitWidget::Suffix));
-
-  this->DisplayHintLineEdit->setVisible(
-    this->DisplayFlags.testFlag(qMRMLUnitWidget::DisplayHint));
-  this->DisplayHintLineEdit->setEnabled(
-    this->EditableProperties.testFlag(qMRMLUnitWidget::DisplayHint));
-  this->DisplayHintLabel->setVisible(
-    this->DisplayFlags.testFlag(qMRMLUnitWidget::DisplayHint));
-  this->DisplayHintLabel->setEnabled(
-    this->EditableProperties.testFlag(qMRMLUnitWidget::DisplayHint));
-
 
   this->PrecisionSpinBox->setVisible(
     this->DisplayFlags.testFlag(qMRMLUnitWidget::Precision));
@@ -308,7 +293,6 @@ void qMRMLUnitWidget::updateWidgetFromNode()
   d->NameLineEdit->setEnabled(d->CurrentUnitNode != 0);
   d->PrefixLineEdit->setEnabled(d->CurrentUnitNode != 0);
   d->SuffixLineEdit->setEnabled(d->CurrentUnitNode != 0);
-  d->DisplayHintLineEdit->setEnabled(d->CurrentUnitNode != 0);
   d->PrecisionSpinBox->setEnabled(d->CurrentUnitNode != 0);
   d->MinimumSpinBox->setEnabled(d->CurrentUnitNode != 0);
   d->MaximumSpinBox->setEnabled(d->CurrentUnitNode != 0);
@@ -333,7 +317,6 @@ void qMRMLUnitWidget::updateWidgetFromNode()
   d->QuantityLineEdit->setText(d->CurrentUnitNode->GetQuantity());
   d->SuffixLineEdit->setText(d->CurrentUnitNode->GetSuffix());
   d->PrefixLineEdit->setText(QString(d->CurrentUnitNode->GetPrefix()));
-  d->DisplayHintLineEdit->setText(QString(d->CurrentUnitNode->GetDisplayHint()));
   d->PrecisionSpinBox->setValue(d->CurrentUnitNode->GetPrecision());
   d->MinimumSpinBox->setValue(d->CurrentUnitNode->GetMinimumValue());
   d->MaximumSpinBox->setValue(d->CurrentUnitNode->GetMaximumValue());
@@ -415,24 +398,6 @@ void qMRMLUnitWidget::setSuffix(const QString& newSuffix)
     }
   d->MaximumSpinBox->setSuffix(newSuffix);
   d->MinimumSpinBox->setSuffix(newSuffix);
-}
-
-//-----------------------------------------------------------------------------
-QString qMRMLUnitWidget::displayHint() const
-{
-  Q_D(const qMRMLUnitWidget);
-  return d->DisplayHintLineEdit->text();
-}
-
-//-----------------------------------------------------------------------------
-void qMRMLUnitWidget::setDisplayHint(const QString& newDisplayHint)
-{
-  Q_D(qMRMLUnitWidget);
-
-  if (d->CurrentUnitNode)
-    {
-    d->CurrentUnitNode->SetDisplayHint(newDisplayHint.toLatin1());
-    }
 }
 
 //-----------------------------------------------------------------------------
@@ -553,7 +518,6 @@ void qMRMLUnitWidget::setUnitFromPreset(vtkMRMLNode* presetNode)
   d->CurrentUnitNode->SetQuantity(presetUnitNode->GetQuantity());
   d->CurrentUnitNode->SetPrefix(presetUnitNode->GetPrefix());
   d->CurrentUnitNode->SetSuffix(presetUnitNode->GetSuffix());
-  d->CurrentUnitNode->SetDisplayHint(presetUnitNode->GetDisplayHint());
   d->CurrentUnitNode->SetPrecision(presetUnitNode->GetPrecision());
   d->CurrentUnitNode->SetMinimumValue(presetUnitNode->GetMinimumValue());
   d->CurrentUnitNode->SetMaximumValue(presetUnitNode->GetMaximumValue());

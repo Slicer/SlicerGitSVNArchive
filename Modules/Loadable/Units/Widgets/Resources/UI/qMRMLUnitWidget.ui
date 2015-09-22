@@ -57,21 +57,21 @@
      </property>
     </widget>
    </item>
-   <item row="9" column="0">
+   <item row="8" column="0">
     <widget class="QLabel" name="MinimumValueLabel">
      <property name="text">
       <string>Minimum</string>
      </property>
     </widget>
    </item>
-   <item row="8" column="0">
+   <item row="7" column="0">
     <widget class="QLabel" name="PrecisionLabel">
      <property name="text">
       <string>Precision</string>
      </property>
     </widget>
    </item>
-   <item row="10" column="1">
+   <item row="9" column="1">
     <widget class="ctkDoubleSpinBox" name="MaximumSpinBox">
      <property name="toolTip">
       <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
@@ -95,7 +95,7 @@ p, li { white-space: pre-wrap; }
      </property>
     </widget>
    </item>
-   <item row="9" column="1">
+   <item row="8" column="1">
     <widget class="ctkDoubleSpinBox" name="MinimumSpinBox">
      <property name="toolTip">
       <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
@@ -119,7 +119,7 @@ p, li { white-space: pre-wrap; }
      </property>
     </widget>
    </item>
-   <item row="8" column="1">
+   <item row="7" column="1">
     <widget class="QSpinBox" name="PrecisionSpinBox">
      <property name="toolTip">
       <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
@@ -159,7 +159,7 @@ p, li { white-space: pre-wrap; }
      </property>
     </widget>
    </item>
-   <item row="10" column="0">
+   <item row="9" column="0">
     <widget class="QLabel" name="MaximumValueLabel">
      <property name="text">
       <string>Maximum</string>
@@ -187,10 +187,10 @@ p, li { white-space: pre-wrap; }
      </property>
     </widget>
    </item>
-   <item row="3" column="0">
-    <widget class="QLabel" name="NameLabel">
-     <property name="text">
-      <string>Name</string>
+   <item row="4" column="1">
+    <widget class="QLineEdit" name="QuantityLineEdit">
+     <property name="enabled">
+      <bool>false</bool>
      </property>
     </widget>
    </item>
@@ -201,10 +201,10 @@ p, li { white-space: pre-wrap; }
      </property>
     </widget>
    </item>
-   <item row="4" column="1">
-    <widget class="QLineEdit" name="QuantityLineEdit">
-     <property name="enabled">
-      <bool>false</bool>
+   <item row="3" column="0">
+    <widget class="QLabel" name="NameLabel">
+     <property name="text">
+      <string>Name</string>
      </property>
     </widget>
    </item>
@@ -215,14 +215,14 @@ p, li { white-space: pre-wrap; }
      </property>
     </widget>
    </item>
-   <item row="11" column="0">
+   <item row="10" column="0">
     <widget class="QLabel" name="CoefficientLabel">
      <property name="text">
       <string>Coefficient</string>
      </property>
     </widget>
    </item>
-   <item row="11" column="1">
+   <item row="10" column="1">
     <widget class="ctkDoubleSpinBox" name="CoefficientSpinBox">
      <property name="decimalsOption">
       <set>ctkDoubleSpinBox::DecimalsByKey|ctkDoubleSpinBox::DecimalsByShortcuts|ctkDoubleSpinBox::DecimalsByValue|ctkDoubleSpinBox::InsertDecimals</set>
@@ -238,14 +238,14 @@ p, li { white-space: pre-wrap; }
      </property>
     </widget>
    </item>
-   <item row="12" column="0">
+   <item row="11" column="0">
     <widget class="QLabel" name="OffsetLabel">
      <property name="text">
       <string>Offset</string>
      </property>
     </widget>
    </item>
-   <item row="12" column="1">
+   <item row="11" column="1">
     <widget class="ctkDoubleSpinBox" name="OffsetSpinBox">
      <property name="decimals">
       <number>0</number>
@@ -260,16 +260,6 @@ p, li { white-space: pre-wrap; }
       <double>10000.000000000000000</double>
      </property>
     </widget>
-   </item>
-   <item row="7" column="0">
-    <widget class="QLabel" name="DisplayHintLabel">
-     <property name="text">
-      <string>DisplayHint</string>
-     </property>
-    </widget>
-   </item>
-   <item row="7" column="1">
-    <widget class="QLineEdit" name="DisplayHintLineEdit"/>
    </item>
   </layout>
  </widget>
