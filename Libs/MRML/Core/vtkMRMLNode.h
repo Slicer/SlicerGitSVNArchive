@@ -333,13 +333,33 @@ public:
   ///
   /// If set to NULL, multiple instances of this node class are allowed.
   ///
-  /// If set to a non-NULL string, the node will be a singletong and
+  /// If set to a non-NULL string, the node will be a singleton and
   /// the scene will replace this node instead of adding new instances.
   ///
   /// The SingletonTag is used by the scene to build a unique ID.
+  ///
+  /// If the there can only be one instance of a given node class in the scene,
+  /// then the singleton tag should be Singleton.
+  /// If the singleton node is associated with a specific module it should be
+  /// named for the module, which already needs to be unique.
+  /// If the there is more than one instance of the node class then the
+  /// singleton tag should be Singleton post-pended with a unique identifier
+  /// for that specific node (e.g. the name).
   /// \sa vtkMRMLScene::BuildID
   vtkSetStringMacro(SingletonTag);
   vtkGetStringMacro(SingletonTag);
+  void SetSingletonOn()
+    {
+    this->SetSingletonTag("Singleton");
+    }
+  void SetSingletonOff()
+    {
+    this->SetSingletonTag(NULL);
+    }
+  bool IsSingleton()
+    {
+    return (this->GetSingletonTag() != NULL);
+    }
 
   /// Save node with MRML scene.
   vtkGetMacro(SaveWithScene, int);
