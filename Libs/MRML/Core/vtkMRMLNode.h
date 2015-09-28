@@ -339,12 +339,19 @@ public:
   /// The SingletonTag is used by the scene to build a unique ID.
   ///
   /// If the there can only be one instance of a given node class in the scene,
-  /// then the singleton tag should be Singleton.
+  /// then the singleton tag should be Singleton. For example, the interaction and
+  /// selection nodes are named Selection and Interaction, with Singleton tags set to
+  /// Singleton, and with IDs set to vtkMRMLSelectionNodeSingleton and
+  /// vtkMRMLInteractionNodeSingleton.
   /// If the singleton node is associated with a specific module it should be
-  /// named for the module, which already needs to be unique.
+  /// named for the module, which already needs to be unique. The Editor module
+  /// uses this naming convention, with a parameter node that has a singleton tag
+  /// of Editor and a node ID of vtkMRMLScriptedModuleNodeEditor.
   /// If the there is more than one instance of the node class then the
   /// singleton tag should be Singleton post-pended with a unique identifier
-  /// for that specific node (e.g. the name).
+  /// for that specific node (e.g. the name). Any new color nodes should use this
+  /// convention, with a name of NewName, a Singleton tag of SingletonNewName, leading
+  /// to an ID of vtkMRMLColroTableNodeSingletonNewName.
   /// \sa vtkMRMLScene::BuildID
   vtkSetStringMacro(SingletonTag);
   vtkGetStringMacro(SingletonTag);
