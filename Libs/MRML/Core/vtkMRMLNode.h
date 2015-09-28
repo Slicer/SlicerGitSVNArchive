@@ -351,7 +351,9 @@ public:
   /// singleton tag should be Singleton post-pended with a unique identifier
   /// for that specific node (e.g. the name). Any new color nodes should use this
   /// convention, with a name of NewName, a Singleton tag of SingletonNewName, leading
-  /// to an ID of vtkMRMLColroTableNodeSingletonNewName.
+  /// to an ID of vtkMRMLColorTableNodeSingletonNewName.
+  /// The existing MRML nodes don't always use these conventions but are kept unchanged
+  /// for backward compatibility.
   /// \sa vtkMRMLScene::BuildID
   vtkSetStringMacro(SingletonTag);
   vtkGetStringMacro(SingletonTag);
