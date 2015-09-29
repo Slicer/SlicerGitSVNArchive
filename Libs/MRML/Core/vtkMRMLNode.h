@@ -343,8 +343,8 @@ public:
   /// selection nodes are named Selection and Interaction, with Singleton tags set to
   /// Singleton, and with IDs set to vtkMRMLSelectionNodeSingleton and
   /// vtkMRMLInteractionNodeSingleton.
-  /// If the singleton node is associated with a specific module it should be
-  /// named for the module, which already needs to be unique. The Editor module
+  /// If the singleton node is associated with a specific module it should use
+  /// the module name, which already needs to be unique, as a suffix. The Editor module
   /// uses this naming convention, with a parameter node that has a singleton tag
   /// of Editor and a node ID of vtkMRMLScriptedModuleNodeEditor.
   /// If the there is more than one instance of the node class then the
