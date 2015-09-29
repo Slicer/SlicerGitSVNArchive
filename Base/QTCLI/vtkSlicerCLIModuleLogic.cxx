@@ -2716,13 +2716,13 @@ void vtkSlicerCLIModuleLogic::ProcessMRMLLogicsEvents(vtkObject* caller,
       // If the status is not Completing, then there should be no request made
       // on the application logic.
       assert(node->GetStatus() == vtkMRMLCommandLineModuleNode::Completing);
-      node->SetStatus(vtkMRMLCommandLineModuleNode::Completed);
       this->Internal->LastRequests.erase(it);
       // we are not interested in any request anymore because the cli node is
       // Completed.
       vtkEventBroker::GetInstance()->RemoveObservations(
         this->GetApplicationLogic(), vtkSlicerApplicationLogic::RequestProcessedEvent,
         this, this->GetMRMLLogicsCallbackCommand());
+      node->SetStatus(vtkMRMLCommandLineModuleNode::Completed);
       }
     }
 }
