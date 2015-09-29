@@ -235,6 +235,7 @@ if(Slicer_USE_QtTesting AND Slicer_USE_PYTHONQT)
   slicer_add_python_unittest(SCRIPT FiducialLayoutSwitchBug1914.py)
   slicer_add_python_unittest(SCRIPT SubjectHierarchyGenericSelfTest.py)
   slicer_add_python_unittest(SCRIPT SubjectHierarchyCorePluginsSelfTest.py)
+  slicer_add_python_unittest(SCRIPT TwoCLIsInARowTest.py)
 
   # add as hidden module for use at run time
   set(KIT_PYTHON_SCRIPTS
@@ -260,6 +261,7 @@ if(Slicer_USE_QtTesting AND Slicer_USE_PYTHONQT)
     FiducialLayoutSwitchBug1914.py
     SubjectHierarchyGenericSelfTest.py
     SubjectHierarchyCorePluginsSelfTest.py
+    TwoCLIsInARowTest.py
     )
 
   set(KIT_PYTHON_RESOURCES
