@@ -57,6 +57,7 @@ class qMRMLSliceWidgetPrivate
 protected:
   qMRMLSliceWidget* const q_ptr;
 public:
+  typedef QObject Superclass;
   qMRMLSliceWidgetPrivate(qMRMLSliceWidget& object);
   ~qMRMLSliceWidgetPrivate();
 
