@@ -269,6 +269,9 @@ signals:
 #endif
   void renderRequested();
 
+protected:
+  qMRMLSliceControllerWidget(qMRMLSliceControllerWidgetPrivate* pimpl, QWidget* parent = 0);
+
 private:
   Q_DECLARE_PRIVATE(qMRMLSliceControllerWidget);
   Q_DISABLE_COPY(qMRMLSliceControllerWidget);
