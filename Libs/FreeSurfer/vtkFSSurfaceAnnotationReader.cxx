@@ -1057,14 +1057,7 @@ void vtkFSSurfaceAnnotationReader::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "Number of Color Table Entries: " << this->NumColorTableEntries << endl;
   os << indent << "Use External Color Table File: " << this->UseExternalColorTableFile << endl;
   os << indent << "Color Table File Name: ";
-  if (this->ColorTableFileName != NULL)
-  {
-      os << this->ColorTableFileName << endl;
-  }
-  else
-  {
-      os << "(None)\n";
-  }
+  os << this->ColorTableFileName << endl;
 }
 
 //-------------------------------------------------------------------------

@@ -87,8 +87,8 @@ protected:
   char           *NamesList;
   int            NumColorTableEntries;
 
-    /// bool UseExternalColorTableFile;
-    int UseExternalColorTableFile;
+  /// bool UseExternalColorTableFile;
+  int UseExternalColorTableFile;
   char ColorTableFileName[1024];
 
   /// Read color table information from a source, allocate the arrays
