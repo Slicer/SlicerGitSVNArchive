@@ -117,7 +117,6 @@ set(vtkITK_SRCS
   vtkITKNewOtsuThresholdImageFilter.cxx
   vtkITKTimeSeriesDatabase.cxx
   vtkITKIslandMath.cxx
-  vtkITKGrowCutSegmentationImageFilter.cxx
   )
 
 # these types are never instantiated, so they don't

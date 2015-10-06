@@ -96,12 +96,6 @@ class ThresholdThreading(unittest.TestCase):
     self.delayDisplay("Now grow cut")
 
     #
-    # now do GrowCut
-    #
-    growCutLogic = EditorLib.GrowCutEffectLogic(sliceWidget.sliceLogic())
-    growCutLogic.growCut()
-
-    #
     # now split the volume, merge it back, and see if it looks right
     #
     preArray = slicer.util.array(croppedHeadLabel.GetName())
