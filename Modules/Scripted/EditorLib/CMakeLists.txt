@@ -24,7 +24,6 @@ set(EDITOR_BUILTIN_EFFECTS
   RemoveIslandsEffect
   SaveIslandEffect
   ChangeLabelEffect
-  GrowCutEffect
   WatershedFromMarkerEffect
   FastMarchingEffect
   WandEffect

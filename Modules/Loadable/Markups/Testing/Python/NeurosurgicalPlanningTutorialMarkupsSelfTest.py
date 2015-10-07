@@ -413,13 +413,6 @@ class NeurosurgicalPlanningTutorialMarkupsSelfTestLogic:
     paintTool = None
 
     #
-    # Grow cut
-    #
-    growCutLogic = EditorLib.GrowCutEffectLogic(sliceWidget.sliceLogic())
-    growCutLogic.growCut()
-    self.takeScreenshot('NeurosurgicalPlanning-Growcut','Growcut',-1)
-
-    #
     # Merge split volume
     #
     slicer.util.selectModule('Editor')

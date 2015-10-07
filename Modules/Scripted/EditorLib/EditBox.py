@@ -60,7 +60,6 @@ class EditBox(VTKObservationMixin):
     self.editorBuiltins["IdentifyIslandsEffect"] = EditorLib.IdentifyIslandsEffect
     self.editorBuiltins["SaveIslandEffect"] = EditorLib.SaveIslandEffect
     self.editorBuiltins["ChangeIslandEffect"] = EditorLib.ChangeIslandEffect
-    self.editorBuiltins["GrowCutEffect"] = EditorLib.GrowCutEffect
     self.editorBuiltins["WatershedFromMarkerEffect"] = EditorLib.WatershedFromMarkerEffect
     self.editorBuiltins["FastMarchingEffect"] = EditorLib.FastMarchingEffect
     self.editorBuiltins["WandEffect"] = EditorLib.WandEffect
