@@ -47,7 +47,7 @@ class DICOMDetailsPopup(VTKObservationMixin):
   def __init__(self,dicomBrowser=None):
     VTKObservationMixin.__init__(self)
     self.dicomBrowser = dicomBrowser
-    if self.dicomBrowser == None:
+    if self.dicomBrowser is None:
       self.dicomBrowser = ctk.ctkDICOMBrowser()
 
     self.browserPersistent = settingsValue('DICOM/BrowserPersistent', False, converter=toBool)
