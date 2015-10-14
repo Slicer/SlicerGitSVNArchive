@@ -1130,6 +1130,11 @@ void qSlicerExtensionsManagerModel::downloadAndInstallExtension(const QString& e
     }
 
   qSlicerExtensionDownloadTask* const task = d->downloadExtension(extensionId);
+  if (!task)
+  {
+    d->critical("Failed to retrieve metadata for extension " + extensionId);
+    return;
+  }
   connect(task, SIGNAL(finished(qSlicerExtensionDownloadTask*)),
           this, SLOT(onInstallDownloadFinished(qSlicerExtensionDownloadTask*)));
 }
