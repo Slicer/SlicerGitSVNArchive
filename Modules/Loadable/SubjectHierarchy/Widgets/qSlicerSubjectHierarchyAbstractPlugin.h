@@ -27,7 +27,6 @@
 #include <QObject>
 #include <QMap>
 #include <QStringList>
-#include <QIcon>
 
 // SubjectHierarchy includes
 #include "vtkMRMLSubjectHierarchyConstants.h"
@@ -39,6 +38,7 @@ class vtkMRMLNode;
 class vtkMRMLSubjectHierarchyNode;
 class QStandardItem;
 class QAction;
+class QIcon;
 class qSlicerAbstractModuleWidget;
 
 /// \ingroup Slicer_QtModules_SubjectHierarchy_Widgets
@@ -68,7 +68,7 @@ class Q_SLICER_MODULE_SUBJECTHIERARCHY_WIDGETS_EXPORT qSlicerSubjectHierarchyAbs
   /// This property stores the name of the plugin
   /// Cannot be empty.
   /// \sa name()
-  Q_PROPERTY(QString name READ name WRITE setName)
+  Q_PROPERTY(QString name READ name)
 
 public:
   typedef QObject Superclass;
@@ -84,7 +84,7 @@ public:
   /// \param node Note to handle in the subject hierarchy tree
   /// \return Floating point confidence number between 0 and 1, where 0 means that the plugin cannot handle the
   ///   node, and 1 means that the plugin is the only one that can handle the node (by node type or identifier attribute)
-  Q_INVOKABLE virtual double canOwnSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode* node)const;
+  virtual double canOwnSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode* node)const;
 
   /// Get role that the plugin assigns to the subject hierarchy node.
   ///   Each plugin should provide only one role.
@@ -98,24 +98,24 @@ public:
   virtual QIcon icon(vtkMRMLSubjectHierarchyNode* node);
 
   /// Get visibility icon for a visibility state
-  Q_INVOKABLE virtual QIcon visibilityIcon(int visible);
+  virtual QIcon visibilityIcon(int visible);
 
   /// Open module belonging to node and set inputs in opened module
-  Q_INVOKABLE virtual void editProperties(vtkMRMLSubjectHierarchyNode* node);
+  virtual void editProperties(vtkMRMLSubjectHierarchyNode* node);
 
   /// Generate displayed name for the owned subject hierarchy node corresponding to its role.
   /// The default implementation removes the '_SubjectHierarchy' ending from the node's name.
-  virtual QString displayedNodeName(vtkMRMLSubjectHierarchyNode* node)const;
+  virtual QString displayedName(vtkMRMLSubjectHierarchyNode* node)const;
 
   /// Generate tooltip for a owned subject hierarchy node
-  Q_INVOKABLE virtual QString tooltip(vtkMRMLSubjectHierarchyNode* node)const;
+  virtual QString tooltip(vtkMRMLSubjectHierarchyNode* node)const;
 
   /// Set display visibility of a owned subject hierarchy node
   Q_INVOKABLE virtual void setDisplayVisibility(vtkMRMLSubjectHierarchyNode* node, int visible);
 
   /// Get display visibility of a owned subject hierarchy node
   /// \return Display visibility (0: hidden, 1: shown, 2: partially shown)
-  Q_INVOKABLE virtual int getDisplayVisibility(vtkMRMLSubjectHierarchyNode* node)const;
+  virtual int getDisplayVisibility(vtkMRMLSubjectHierarchyNode* node)const;
 
 // Function related virtual methods
 public:
@@ -125,11 +125,11 @@ public:
   /// Get scene context menu item actions to add to tree view
   /// Separate method is needed for the scene, as its actions are set to the
   /// tree by a different method \sa nodeContextMenuActions
-  Q_INVOKABLE virtual QList<QAction*> sceneContextMenuActions()const;
+  virtual QList<QAction*> sceneContextMenuActions()const;
 
   /// Show context menu actions valid for  given subject hierarchy node.
   /// \param node Subject Hierarchy node to show the context menu items for. If NULL, then shows menu items for the scene
-  Q_INVOKABLE virtual void showContextMenuActionsForNode(vtkMRMLSubjectHierarchyNode* node) { Q_UNUSED(node); };
+  virtual void showContextMenuActionsForNode(vtkMRMLSubjectHierarchyNode* node) { Q_UNUSED(node); };
 
 // Parenting related virtual methods with default implementation
 public:
@@ -170,22 +170,18 @@ public:
 // Utility functions
 public:
   /// Determines if the node is owned by this plugin
-  Q_INVOKABLE bool isThisPluginOwnerOfNode(vtkMRMLSubjectHierarchyNode* node)const;
+  bool isThisPluginOwnerOfNode(vtkMRMLSubjectHierarchyNode* node)const;
 
   /// Emit owner plugin changed signal
-  Q_INVOKABLE void emitOwnerPluginChanged(vtkObject* node, void* callData);
+  void emitOwnerPluginChanged(vtkObject* node, void* callData);
 
   /// Switch to module with given name
   /// \return Widget representation of the module if found, NULL otherwise
-  Q_INVOKABLE static qSlicerAbstractModuleWidget* switchToModule(QString moduleName);
+  static qSlicerAbstractModuleWidget* switchToModule(QString moduleName);
 
 public:
   /// Get the name of the plugin
   virtual QString name()const;
-
-  /// Set the name of the plugin
-  /// NOTE: name must be defined in constructor in C++ plugins, this can only be used in python scripted ones
-  virtual void setName(QString name);
 
 signals:
   /// Signal requesting expanding of the subject hierarchy tree item belonging to a node
