@@ -134,7 +134,7 @@ bool qSlicerSubjectHierarchyPluginHandler::registerPlugin(qSlicerSubjectHierarch
     {
     if (pluginToRegister->name().compare(currentPlugin->name()) == 0)
       {
-      qDebug() << "qSlicerSubjectHierarchyPluginHandler::RegisterPlugin: "
+      qWarning() << "qSlicerSubjectHierarchyPluginHandler::RegisterPlugin: "
                     "SubjectHierarchy plugin " << pluginToRegister->name() << " is already registered";
       return false;
       }
