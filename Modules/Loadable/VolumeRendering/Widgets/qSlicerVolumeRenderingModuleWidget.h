@@ -71,7 +71,6 @@ public slots:
   void addVolumeIntoView(vtkMRMLNode* node);
 
   void fitROIToVolume();
-  void setDisplayROIEnabled(bool visibility);
 
   void applyPreset(vtkMRMLNode* volumePropertyNode);
 

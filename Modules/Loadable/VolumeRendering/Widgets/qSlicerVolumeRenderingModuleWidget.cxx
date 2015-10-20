@@ -541,13 +541,6 @@ void qSlicerVolumeRenderingModuleWidget
 }
 
 // --------------------------------------------------------------------------
-void qSlicerVolumeRenderingModuleWidget::setDisplayROIEnabled(bool visibility)
-{
-  Q_D(qSlicerVolumeRenderingModuleWidget);
-  d->ROIWidget->setDisplayClippingBox(visibility);
-}
-
-// --------------------------------------------------------------------------
 vtkMRMLVolumePropertyNode* qSlicerVolumeRenderingModuleWidget
 ::mrmlVolumePropertyNode()const
 {
