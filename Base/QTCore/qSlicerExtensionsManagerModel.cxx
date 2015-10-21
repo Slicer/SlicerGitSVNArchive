@@ -1355,14 +1355,18 @@ bool qSlicerExtensionsManagerModel::installExtension(
     if (result == QMessageBox::Yes)
       {
       // Install dependencies
+      QStringList extensionsNotInstalled ;
       foreach (const ExtensionMetadataType& dependency, dependenciesMetadata)
         {
-        bool res = this->downloadAndInstallExtension(dependency.value("extension_id").toString());
+        bool res = this->downloadAndInstallExtension(dependency.value("extension_id").toString() ) ;
         if( !res )
           {
-          QString msg = QString("<p>Error while installing %1</p><ul>").arg(dependency.value("extensionname").toString());
-          QMessageBox::warning(0, "Error installing dependencies", msg);
+          extensionsNotInstalled << "Error while installing: " + dependency.value("extensionname").toString() ;
           }
+        }
+      if( !extensionsNotInstalled.isEmpty() )
+        {
+          d->critical( extensionsNotInstalled.join("\n") ) ;
         }
       }
     }
