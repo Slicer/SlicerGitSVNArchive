@@ -227,8 +227,50 @@ class ExtensionDescription(object):
 
   #---------------------------------------------------------------------------
   def _write(self, fp):
-    for key in sorted(self.__dict__):
-      fp.write(("%s %s" % (key, getattr(self, key))).strip() + "\n")
+    fp.write("""#
+# First token of each non-comment line is the keyword and the rest of the line
+# (including spaces) is the value.
+# - the value can be blank
+#
+
+# This is source code manager (i.e. svn)\n""")
+    fp.write("scm " + ("%s" % getattr(self, "scm")).strip() + "\n")
+    fp.write("scmurl " + ("%s" % getattr(self, "scmurl")).strip() + "\n")
+    fp.write("scmrevision " + ("%s" % getattr(self, "scmrevision")).strip() + "\n")
+    fp.write("""
+# list dependencies
+# - These should be names of other modules that have .s4ext files
+# - The dependencies will be built first\n""")
+    fp.write("depends " + ("%s" % getattr(self, "depends")).strip() + "\n")
+    fp.write("""
+# Inner build directory (default is ".")\n""")
+    fp.write("build_subdirectory " + ("%s" % getattr(self, "build_subdirectory")).strip() + "\n")
+    fp.write("""
+# homepage\n""")
+    fp.write("homepage " + ("%s" % getattr(self, "homepage")).strip() + "\n")
+    fp.write("""
+# Firstname1 Lastname1 ([SubOrg1, ]Org1), Firstname2 Lastname2 ([SubOrg2, ]Org2)
+# For example: Jane Roe (Superware), John Doe (Lab1, Nowhere), Joe Bloggs (Noware)\n""")
+    fp.write("contributors " + ("%s" % getattr(self, "contributors")).strip() + "\n")
+    fp.write("""
+# Match category in the xml description of the module (where it shows up in Modules menu)\n""")
+    fp.write("category " + ("%s" % getattr(self, "category")).strip() + "\n")
+    fp.write("""
+# url to icon (png, size 128x128 pixels)\n""")
+    fp.write("iconurl " + ("%s" % getattr(self, "iconurl")).strip() + "\n")
+    fp.write("""
+# Give people an idea what to expect from this code
+#  - Is it just a test or something you stand behind?\n""")
+    fp.write("status " + ("%s" % getattr(self, "status")).strip() + "\n")
+    fp.write("""
+# One line stating what the module does\n""")
+    fp.write("description " + ("%s" % getattr(self, "description")).strip() + "\n")
+    fp.write("""
+# Space separated list of urls\n""")
+    fp.write("screenshoturls " + ("%s" % getattr(self, "screenshoturls")).strip() + "\n")
+    fp.write("""
+# 0 or 1: Define if the extension should be enabled after its installation.\n""")
+    fp.write("enabled " + ("%s" % getattr(self, "enabled")).strip() + "\n")
 
   #---------------------------------------------------------------------------
   def write(self, out):
