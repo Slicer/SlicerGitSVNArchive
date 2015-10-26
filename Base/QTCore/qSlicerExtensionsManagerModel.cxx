@@ -1118,7 +1118,7 @@ qSlicerExtensionsManagerModelPrivate::downloadExtension(
 }
 
 // --------------------------------------------------------------------------
-void qSlicerExtensionsManagerModel::downloadAndInstallExtension(const QString& extensionId)
+bool qSlicerExtensionsManagerModel::downloadAndInstallExtension(const QString& extensionId)
 {
   Q_D(qSlicerExtensionsManagerModel);
 
@@ -1126,12 +1126,18 @@ void qSlicerExtensionsManagerModel::downloadAndInstallExtension(const QString& e
   if (!d->checkExtensionSettingsPermissions(error))
     {
     d->critical(error);
-    return;
+    return false;
     }
 
   qSlicerExtensionDownloadTask* const task = d->downloadExtension(extensionId);
+  if (!task)
+  {
+    d->critical("Failed to retrieve metadata for extension " + extensionId);
+    return false;
+  }
   connect(task, SIGNAL(finished(qSlicerExtensionDownloadTask*)),
           this, SLOT(onInstallDownloadFinished(qSlicerExtensionDownloadTask*)));
+  return true;
 }
 
 // --------------------------------------------------------------------------
@@ -1349,9 +1355,18 @@ bool qSlicerExtensionsManagerModel::installExtension(
     if (result == QMessageBox::Yes)
       {
       // Install dependencies
+      QStringList extensionsNotInstalled ;
       foreach (const ExtensionMetadataType& dependency, dependenciesMetadata)
         {
-        this->downloadAndInstallExtension(dependency.value("extension_id").toString());
+        bool res = this->downloadAndInstallExtension(dependency.value("extension_id").toString() ) ;
+        if( !res )
+          {
+          extensionsNotInstalled << "Error while installing: " + dependency.value("extensionname").toString() ;
+          }
+        }
+      if( !extensionsNotInstalled.isEmpty() )
+        {
+          d->critical( extensionsNotInstalled.join("\n") ) ;
         }
       }
     }
