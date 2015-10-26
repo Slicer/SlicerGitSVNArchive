@@ -951,6 +951,17 @@ void vtkSlicerVolumeRenderingLogic::UpdateDisplayNodeFromVolumeNode(
 vtkMRMLVolumePropertyNode* vtkSlicerVolumeRenderingLogic
 ::AddVolumePropertyFromFile (const char* filename)
 {
+  if (!this->GetMRMLScene())
+    {
+    return NULL;
+    }
+  if (!filename ||
+      !strcmp(filename, ""))
+    {
+    vtkErrorMacro("AddVolumePropertyFromFile: can't load volume properties from empty file name");
+    return NULL;
+    }
+
   vtkMRMLVolumePropertyNode *vpNode = vtkMRMLVolumePropertyNode::New();
   vtkMRMLVolumePropertyStorageNode *vpStorageNode = vtkMRMLVolumePropertyStorageNode::New();
 
@@ -961,7 +972,6 @@ vtkMRMLVolumePropertyNode* vtkSlicerVolumeRenderingLogic
     useURI = this->GetMRMLScene()->GetCacheManager()->IsRemoteReference(filename);
     }
 
-  itksys_stl::string name;
   const char *localFile;
   if (useURI)
     {
@@ -974,13 +984,14 @@ vtkMRMLVolumePropertyNode* vtkSlicerVolumeRenderingLogic
     vpStorageNode->SetFileName(filename);
     localFile = filename;
     }
-  const itksys_stl::string fname(localFile);
-  // the model name is based on the file name (itksys call should work even if
+  const std::string fname(localFile);
+  // the node name is based on the file name (itksys call should work even if
   // file is not on disk yet)
-  name = itksys::SystemTools::GetFilenameName(fname);
+  std::string filenameName = itksys::SystemTools::GetFilenameName(fname);
+  const std::string name = itksys::SystemTools::GetFilenameWithoutExtension(filenameName);
 
   // check to see which node can read this type of file
-  if (!vpStorageNode->SupportedFileType(name.c_str()))
+  if (!vpStorageNode->SupportedFileType(fname.c_str()))
     {
     vpStorageNode->Delete();
     vpStorageNode = NULL;

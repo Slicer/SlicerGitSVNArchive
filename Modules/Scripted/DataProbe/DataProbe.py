@@ -1,7 +1,7 @@
 import os
 import unittest
 import qt, vtk, ctk
-from __main__ import slicer
+import slicer
 import DataProbeLib
 
 #
@@ -62,8 +62,7 @@ See <a>http://www.slicer.org</a> for details.  Module implemented by Steve Piepe
     except IndexError:
       print("No Data Probe frame - cannot create DataProbe")
       return
-    self.infoWidget = DataProbeInfoWidget(parent,type='small')
-    self.infoWidget.onShowImage(False)
+    self.infoWidget = DataProbeInfoWidget(parent)
     parent.layout().insertWidget(0,self.infoWidget.frame)
 
   def showZoomedSlice(self, value=False):
@@ -73,15 +72,8 @@ See <a>http://www.slicer.org</a> for details.  Module implemented by Steve Piepe
 
 class DataProbeInfoWidget(object):
 
-  def __init__(self, parent=None,type='small'):
-    self.type = type
+  def __init__(self, parent=None):
     self.nameSize = 24
-    # the currentLayoutName is tag on the slice node that corresponds
-    # view which should currently be shown in the DataProbe window.
-    # Keeping track of this allows us to respond to non-interactor updates
-    # to the slice (like from an external tracker) but only in the view where
-    # the mouse has most recently entered.
-    self.currentLayoutName = None
 
     self.CrosshairNode = None
     self.CrosshairNodeObserverTag = None
@@ -92,16 +84,14 @@ class DataProbeInfoWidget(object):
     modulePath = slicer.modules.dataprobe.path.replace("DataProbe.py","")
     self.iconsDIR = modulePath + '/Resources/Icons'
 
-    self.imageCrop = vtk.vtkExtractVOI()
-    self.imageZoom = 10
     self.showImage = False
 
+    # Used in _createMagnifiedPixmap()
+    self.imageCrop = vtk.vtkExtractVOI()
     self.painter = qt.QPainter()
     self.pen = qt.QPen()
 
-    if type == 'small':
-      self.createSmall()
-
+    self._createSmall()
 
     #Helper class to calculate and display tensor scalars
     self.calculateTensorScalars = CalculateTensorScalars()
@@ -216,7 +206,6 @@ class DataProbeInfoWidget(object):
         sliceLogic = appLogic.GetSliceLogic(sliceNode)
 
     if not insideView or not sliceNode or not sliceLogic:
-      self.currentLayoutName = None
       # reset all the readouts
       self.viewerColor.text = ""
       self.viewInfo.text =  ""
@@ -237,8 +226,6 @@ class DataProbeInfoWidget(object):
     self.viewerFrame.show()
     self.showImageBox.hide()
 
-    self.currentLayoutName = sliceNode.GetLayoutName()
-
     # populate the widgets
     self.viewerColor.setText( " " )
     rgbColor = sliceNode.GetLayoutColor();
@@ -246,25 +233,7 @@ class DataProbeInfoWidget(object):
     if hasattr(color, 'name'):
       self.viewerColor.setStyleSheet('QLabel {background-color : %s}' % color.name())
 
-    # Described below are the details for the ras coordinate width set to 6:
-    #  1: sign
-    #  3: suggested number of digits before decimal point
-    #  1: decimal point:
-    #  1: number of digits after decimal point
-
-    spacing = "%.1f" % sliceLogic.GetLowestVolumeSliceSpacing()[2]
-    if sliceNode.GetSliceSpacingMode() == slicer.vtkMRMLSliceNode.PrescribedSliceSpacingMode:
-      spacing = "(%s)" % spacing
-
-    self.viewInfo.text = \
-      "  {layoutName: <8s}  RAS: ({ras_x:6.1f}, {ras_y:6.1f}, {ras_z:6.1f})  {orient: >8s} Sp: {spacing:s}" \
-      .format(layoutName=sliceNode.GetLayoutName(),
-              ras_x=ras[0],
-              ras_y=ras[1],
-              ras_z=ras[2],
-              orient=sliceNode.GetOrientationString(),
-              spacing=spacing
-              )
+    self.viewInfo.text = self.generateViewDescription(xyz, ras, sliceNode, sliceLogic)
 
     def _roundInt(value):
       try:
@@ -285,45 +254,17 @@ class DataProbeInfoWidget(object):
         xyToIJK = layerLogic.GetXYToIJKTransform()
         ijkFloat = xyToIJK.TransformDoublePoint(xyz)
         ijk = [_roundInt(value) for value in ijkFloat]
-      self.layerNames[layer].setText(
-        "<b>%s</b>" % (self.fitName(volumeNode.GetName()) if volumeNode else "None"))
-      self.layerIJKs[layer].setText(
-        "({i:4d}, {j:4d}, {k:4d})".format(i=ijk[0], j=ijk[1], k=ijk[2]) if volumeNode else "")
-      self.layerValues[layer].setText(
-        "<b>%s</b>" % self.getPixelString(volumeNode,ijk) if volumeNode else "")
+      self.layerNames[layer].setText(self.generateLayerName(layerLogic))
+      self.layerIJKs[layer].setText(self.generateIJKPixelDescription(ijk, layerLogic))
+      self.layerValues[layer].setText(self.generateIJKPixelValueDescription(ijk, layerLogic))
 
     # set image
     if (not slicer.mrmlScene.IsBatchProcessing()) and sliceLogic and hasVolume and self.showImage:
-      self.imageCrop.SetInputConnection(sliceLogic.GetBlend().GetOutputPort())
-      xyzInt = [0, 0, 0]
-      xyzInt = [_roundInt(value) for value in xyz]
-      dims = sliceLogic.GetBlend().GetOutput().GetDimensions()
-      minDim = min(dims[0],dims[1])
-      imageSize = _roundInt(minDim/self.imageZoom/2.0)
-      imin = max(0,xyzInt[0]-imageSize)
-      imax = min(dims[0]-1,  xyzInt[0]+imageSize)
-      jmin = max(0,xyzInt[1]-imageSize)
-      jmax = min(dims[1]-1,  xyzInt[1]+imageSize)
-      if (imin <= imax) and (jmin <= jmax):
-        self.imageCrop.SetVOI(imin, imax, jmin, jmax, 0,0)
-        self.imageCrop.Update()
-        vtkImage = self.imageCrop.GetOutput()
-        if vtkImage:
-          qImage = qt.QImage()
-          slicer.qMRMLUtils().vtkImageDataToQImage(vtkImage, qImage)
-          self.imagePixmap = self.imagePixmap.fromImage(qImage)
-          self.imagePixmap = self.imagePixmap.scaled(self.imageLabel.size, qt.Qt.KeepAspectRatio, qt.Qt.FastTransformation)
-
-          # draw crosshair
-          self.painter.begin(self.imagePixmap)
-          self.pen.setColor(color)
-          self.painter.setPen(self.pen)
-          self.painter.drawLine(0,self.imagePixmap.height()/2, self.imagePixmap.width(), self.imagePixmap.height()/2)
-          self.painter.drawLine(self.imagePixmap.width()/2,0, self.imagePixmap.width()/2, self.imagePixmap.height())
-          self.painter.end()
-
-          self.imageLabel.setPixmap(self.imagePixmap)
-          self.onShowImage(self.showImage)
+      pixmap = self._createMagnifiedPixmap(
+        xyz, sliceLogic.GetBlend().GetOutputPort(), self.imageLabel.size, color)
+      if pixmap:
+        self.imageLabel.setPixmap(pixmap)
+        self.onShowImage(self.showImage)
 
     sceneName = slicer.mrmlScene.GetURL()
     if sceneName != "":
@@ -331,7 +272,89 @@ class DataProbeInfoWidget(object):
     else:
       self.frame.parent().text = "Data Probe"
 
-  def createSmall(self):
+  def generateViewDescription(self, xyz, ras, sliceNode, sliceLogic):
+
+    # Note that 'xyz' is unused in the Slicer implementation but could
+    # be used when customizing the behavior of this function in extension.
+
+    # Described below are the details for the ras coordinate width set to 6:
+    #  1: sign
+    #  3: suggested number of digits before decimal point
+    #  1: decimal point:
+    #  1: number of digits after decimal point
+
+    spacing = "%.1f" % sliceLogic.GetLowestVolumeSliceSpacing()[2]
+    if sliceNode.GetSliceSpacingMode() == slicer.vtkMRMLSliceNode.PrescribedSliceSpacingMode:
+      spacing = "(%s)" % spacing
+
+    return \
+      "  {layoutName: <8s}  RAS: ({ras_x:6.1f}, {ras_y:6.1f}, {ras_z:6.1f})  {orient: >8s} Sp: {spacing:s}" \
+      .format(layoutName=sliceNode.GetLayoutName(),
+              ras_x=ras[0],
+              ras_y=ras[1],
+              ras_z=ras[2],
+              orient=sliceNode.GetOrientationString(),
+              spacing=spacing
+              )
+
+  def generateLayerName(self, slicerLayerLogic):
+    volumeNode = slicerLayerLogic.GetVolumeNode()
+    return "<b>%s</b>" % (self.fitName(volumeNode.GetName()) if volumeNode else "None")
+
+  def generateIJKPixelDescription(self, ijk, slicerLayerLogic):
+    volumeNode = slicerLayerLogic.GetVolumeNode()
+    return "({i:4d}, {j:4d}, {k:4d})".format(i=ijk[0], j=ijk[1], k=ijk[2]) if volumeNode else ""
+
+  def generateIJKPixelValueDescription(self, ijk, slicerLayerLogic):
+    volumeNode = slicerLayerLogic.GetVolumeNode()
+    return "<b>%s</b>" % self.getPixelString(volumeNode,ijk) if volumeNode else ""
+
+  def _createMagnifiedPixmap(self, xyz, inputImageDataConnection, outputSize, crosshairColor, imageZoom=10):
+
+    # Use existing instance of objects to avoid instanciating one at each event.
+    imageCrop = self.imageCrop
+    painter = self.painter
+    pen = self.pen
+
+    def _roundInt(value):
+      try:
+        return int(round(value))
+      except ValueError:
+        return 0
+
+    imageCrop.SetInputConnection(inputImageDataConnection)
+    xyzInt = [0, 0, 0]
+    xyzInt = [_roundInt(value) for value in xyz]
+    producer = inputImageDataConnection.GetProducer()
+    dims = producer.GetOutput().GetDimensions()
+    minDim = min(dims[0],dims[1])
+    imageSize = _roundInt(minDim/imageZoom/2.0)
+    imin = max(0,xyzInt[0]-imageSize)
+    imax = min(dims[0]-1,  xyzInt[0]+imageSize)
+    jmin = max(0,xyzInt[1]-imageSize)
+    jmax = min(dims[1]-1,  xyzInt[1]+imageSize)
+    if (imin <= imax) and (jmin <= jmax):
+      imageCrop.SetVOI(imin, imax, jmin, jmax, 0,0)
+      imageCrop.Update()
+      vtkImage = imageCrop.GetOutput()
+      if vtkImage:
+        qImage = qt.QImage()
+        slicer.qMRMLUtils().vtkImageDataToQImage(vtkImage, qImage)
+        imagePixmap = qt.QPixmap.fromImage(qImage)
+        imagePixmap = imagePixmap.scaled(outputSize, qt.Qt.KeepAspectRatio, qt.Qt.FastTransformation)
+
+        # draw crosshair
+        painter.begin(imagePixmap)
+        pen = qt.QPen()
+        pen.setColor(crosshairColor)
+        painter.setPen(pen)
+        painter.drawLine(0, imagePixmap.height()/2, imagePixmap.width(), imagePixmap.height()/2)
+        painter.drawLine(imagePixmap.width()/2,0, imagePixmap.width()/2, imagePixmap.height())
+        painter.end()
+        return imagePixmap
+    return None
+
+  def _createSmall(self):
     """Make the internals of the widget to display in the
     Data Probe frame (lower left of slicer main window by default)"""
 
@@ -353,7 +376,7 @@ class DataProbeInfoWidget(object):
     self.showImageBox.setChecked(False)
 
     self.imageLabel = qt.QLabel()
-    self.imagePixmap = qt.QPixmap()
+
     # qt.QSizePolicy(qt.QSizePolicy.Expanding, qt.QSizePolicy.Expanding)
     # fails on some systems, therefore set the policies using separate method calls
     qSize = qt.QSizePolicy()
@@ -437,9 +460,6 @@ class DataProbeInfoWidget(object):
 
 class DataProbeWidget:
   """This builds the module contents - nothing here"""
-  # TODO: this could have a more in-depth set of information
-  # about the volumes and layers in the slice views
-  # and possibly other view types as well
   # TODO: Since this is empty for now, it should be hidden
   # from the Modules menu.
 

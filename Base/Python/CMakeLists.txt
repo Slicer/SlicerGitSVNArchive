@@ -1,5 +1,6 @@
 
 set(Slicer_PYTHON_SCRIPTS
+  slicer/__init__
   slicer/logic
   slicer/ScriptedLoadableModule
   slicer/slicerqt
@@ -14,6 +15,7 @@ set(Slicer_PYTHON_SCRIPTS
   mrmlLogic
   saferef
   teem
+  vtkAddon
   vtkITK
   )
 
@@ -50,12 +52,12 @@ if(Slicer_BUILD_CLI_SUPPORT)
 endif()
 
 configure_file(
-  slicer/__init__.py.in
-  ${CMAKE_CURRENT_BINARY_DIR}/slicer/__init__.py
+  slicer/kits.py.in
+  ${CMAKE_CURRENT_BINARY_DIR}/slicer/kits.py
   @ONLY
   )
 
-list(APPEND Slicer_PYTHON_SCRIPTS ${CMAKE_CURRENT_BINARY_DIR}/slicer/__init__.py)
+list(APPEND Slicer_PYTHON_SCRIPTS ${CMAKE_CURRENT_BINARY_DIR}/slicer/kits.py)
 
 set(Slicer_PYTHON_RESOURCES
   )

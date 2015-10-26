@@ -1,8 +1,8 @@
 import os, glob, sys, copy
-from __main__ import qt
-from __main__ import vtk
-from __main__ import ctk
-from __main__ import slicer
+import qt
+import vtk
+import ctk
+import slicer
 from slicer.util import VTKObservationMixin
 
 from slicer.util import settingsValue, toBool
@@ -47,12 +47,20 @@ class DICOMDetailsPopup(VTKObservationMixin):
   def __init__(self,dicomBrowser=None):
     VTKObservationMixin.__init__(self)
     self.dicomBrowser = dicomBrowser
+    
+    # initialize the dicomDatabase
+    #   - pick a default and let the user know
+    if not slicer.dicomDatabase:
+      self.promptForDatabaseDirectory()
+    
     if self.dicomBrowser == None:
+      # This creates a DICOM database in the current working directory if nothing else
+      # is specified in the settings, therefore promptForDatabaseDirectory must be called before this.
       self.dicomBrowser = ctk.ctkDICOMBrowser()
 
     self.browserPersistent = settingsValue('DICOM/BrowserPersistent', False, converter=toBool)
     self.tableDensity = settingsValue('DICOM/tableDensity', 'Compact')
-    self.popupGeometry = settingsValue('detailsPopup.geometry', qt.QRect())
+    self.popupGeometry = settingsValue('DICOM/detailsPopup.geometry', qt.QRect())
     self.advancedView = settingsValue('DICOM/advancedView', 0, converter=int)
     self.horizontalTables = settingsValue('DICOM/horizontalTables', 0, converter=int)
 
@@ -64,10 +72,6 @@ class DICOMDetailsPopup(VTKObservationMixin):
     setDatabasePrecacheTags(self.dicomBrowser)
 
     self.dicomBrowser.connect('databaseDirectoryChanged(QString)', self.onDatabaseDirectoryChanged)
-    # initialize the dicomDatabase
-    #   - pick a default and let the user know
-    if not slicer.dicomDatabase:
-      self.promptForDatabaseDirectory()
 
     # Update visibility
     for name in [
@@ -354,6 +358,10 @@ class DICOMDetailsPopup(VTKObservationMixin):
         messages += "Directory not writable. "
       if not os.access(databaseDirectory, os.R_OK):
         messages += "Directory not readable. "
+      if os.listdir(databaseDirectory) and not os.path.isfile(databaseFilepath):
+        # Prevent users from the error of trying to import a DICOM directory by selecting it as DICOM database path
+        messages += "Directory is not empty and not an existing DICOM database."
+        
     if messages != "":
       slicer.util.warningDisplay('The database file path "%s" cannot be used.  %s\n'
                                  'Please pick a different database directory using the '
@@ -572,10 +580,9 @@ class DICOMDetailsPopup(VTKObservationMixin):
     self.organizeLoadables()
     self.loadableTable.setLoadables(self.loadablesByPlugin)
 
-  '''
-  Take list of file lists, return loadables by plugin dictionary
-  '''
   def getLoadablesFromFileLists(self, fileLists):
+    """Take list of file lists, return loadables by plugin dictionary
+    """
 
     loadablesByPlugin = {}
 
@@ -1176,115 +1183,6 @@ class DICOMSendDialog(object):
   def onCancel(self):
     self.dialog.close()
 
-class DICOMStudyBrowser(object):
-  """Create a dialog for looking at studies and series
-
-    TODO: this is an experiment to implement some of the ideas from:
-     https://www.assembla.com/spaces/sparkit/wiki/20120125_Slicer_DICOM_browser_meeting
-    Still a work in progress
- """
-  def __init__(self):
-    settings = qt.QSettings()
-    directory = settings.value('DatabaseDirectory')
-    self.db = qt.QSqlDatabase.addDatabase("QSQLITE")
-    self.db.setDatabaseName('%s/ctkDICOM.sql' % directory)
-    self.db.open()
-
-    self.dialog = qt.QDialog()
-    self.dialog.setWindowTitle('Study Browser')
-    self.dialog.setLayout(qt.QVBoxLayout())
-    self.studyTable = DICOMStudyTable(self.dialog,self.db)
-    self.dialog.layout().addWidget(self.studyTable.view)
-    self.seriesTable = DICOMSeriesTable(self.dialog,self.db)
-    self.dialog.layout().addWidget(self.seriesTable.view)
-
-    self.studyTable.view.connect('clicked(QModelIndex)',self.onStudyClicked)
-
-    self.dialog.show()
-
-  def onStudyClicked(self,index):
-    uid = index.sibling(index.row(),6).data()
-    self.seriesTable.setStudyInstanceUID(uid)
-
-
-class DICOMStudyTable(object):
-  """Implement the Qt table for a list of studies by patient
-  """
-
-  def __init__(self,parent,db):
-    self.view = qt.QTableView(parent)
-    self.model = qt.QSqlQueryModel()
-    self.statement = """ SELECT
-                            Patients.PatientsName, Patients.PatientID, Patients.PatientsBirthDate,
-                            Studies.StudyDate, Studies.StudyDescription, Studies.ModalitiesInStudy,
-                            Studies.StudyInstanceUID
-                         FROM
-                            Patients,Studies
-                          WHERE
-                            Patients.UID=Studies.PatientsUID
-                         ORDER BY
-                            Patients.PatientsName
-                         ; """
-    self.query = qt.QSqlQuery(db)
-    self.query.prepare(self.statement)
-    self.query.exec_()
-    self.model.setQuery(self.query)
-
-    self.view.setModel(self.model)
-    self.view.sortingEnabled = False
-    self.view.setSelectionBehavior(self.view.SelectRows)
-    self.view.setSelectionMode(self.view.SingleSelection)
-    self.view.setColumnWidth(0, 250)
-    self.view.setColumnWidth(1, 100)
-    self.view.setColumnWidth(2, 150)
-    self.view.setColumnWidth(3, 100)
-    self.view.setColumnWidth(4, 180)
-    self.view.setColumnWidth(5, 180)
-    self.view.setColumnWidth(6, 180)
-    self.view.verticalHeader().visible = False
-
-
-class DICOMSeriesTable(object):
-  """Implement the Qt table for a list of series for a given study
-  """
-
-  def __init__(self,parent,db):
-    self.view = qt.QTableView(parent)
-    self.model = qt.QSqlQueryModel()
-
-    self.statementFormat = """SELECT
-                            Series.SeriesNumber, Series.SeriesDescription,
-                            Series.SeriesDate, Series.SeriesTime, Series.SeriesInstanceUID
-                         FROM
-                            Series
-                          WHERE
-                            Series.StudyInstanceUID='{StudyInstanceUID}'
-                         ORDER BY
-                            Series.SeriesNumber
-                         ; """
-    self.query = qt.QSqlQuery(db)
-    self.query.prepare(self.statementFormat.format(StudyInstanceUID='Nothing'))
-    self.query.exec_()
-    self.model.setQuery(self.query)
-
-    self.view.setModel(self.model)
-    self.view.sortingEnabled = False
-    self.view.setSelectionBehavior(self.view.SelectRows)
-    self.view.setSelectionMode(self.view.SingleSelection)
-    self.view.setColumnWidth(0, 250)
-    self.view.setColumnWidth(1, 100)
-    self.view.setColumnWidth(2, 150)
-    self.view.setColumnWidth(3, 100)
-    self.view.setColumnWidth(4, 180)
-    self.view.setColumnWidth(5, 180)
-    self.view.setColumnWidth(6, 180)
-    self.view.verticalHeader().visible = False
-
-  def setStudyInstanceUID(self,uid):
-    statement = self.statementFormat.format(StudyInstanceUID=uid)
-    self.query.prepare(statement)
-    self.query.exec_()
-
 class DICOMHeaderPopup(object):
 
   def __init__(self):
@@ -1296,9 +1194,6 @@ class DICOMHeaderPopup(object):
     self.popupPositioned = False
     self.window = ctk.ctkDICOMObjectListWidget()
     self.window.setWindowTitle('DICOM File Metadata')
-
-    self.layout = qt.QGridLayout()
-    self.window.setLayout(self.layout)
 
   def open(self):
     if not self.window.isVisible():

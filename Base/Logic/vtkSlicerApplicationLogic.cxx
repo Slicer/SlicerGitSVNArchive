@@ -1230,7 +1230,7 @@ void vtkSlicerApplicationLogic::ProcessReadNodeData(ReadDataRequest& req)
    //       dtvdn->SetUpperThreshold(0);
    //       dtvdn->SetLowerThreshold(0);
    //       dtvdn->SetAutoWindowLevel(1);
-          disp = dtvdn; // assign to superclass pointer
+          disp.TakeReference(dtvdn); // assign to superclass pointer
           }
         else
           {
@@ -1683,6 +1683,8 @@ bool vtkSlicerApplicationLogic::IsEmbeddedModule(const std::string& filePath,
     {
     isEmbedded = false;
     }
+#else
+  (void)slicerRevision;
 #endif
   return isEmbedded;
 }
@@ -1726,6 +1728,44 @@ bool vtkSlicerApplicationLogic::IsPluginInstalled(const std::string& filePath,
   while(!canonicalPathWithoutRoot.empty());
 
   return true;
+}
+
+//----------------------------------------------------------------------------
+bool vtkSlicerApplicationLogic::IsPluginBuiltIn(const std::string& filePath,
+                                                  const std::string& applicationHomeDir)
+{
+  if (filePath.empty())
+    {
+    vtkGenericWarningMacro( << "filePath is an empty string !");
+    return false;
+    }
+  if (applicationHomeDir.empty())
+    {
+    vtkGenericWarningMacro( << "applicationHomeDir is an empty string !");
+    return false;
+    }
+
+  std::string canonicalApplicationHomeDir =
+      itksys::SystemTools::GetRealPath(applicationHomeDir.c_str());
+
+  std::string path = itksys::SystemTools::GetFilenamePath(filePath);
+  std::string canonicalPath = itksys::SystemTools::GetRealPath(path.c_str());
+
+  bool isBuiltIn = itksys::SystemTools::StringStartsWith(
+        canonicalPath.c_str(), canonicalApplicationHomeDir.c_str());
+
+#ifdef Slicer_BUILD_EXTENSIONMANAGER_SUPPORT
+  // On MacOSX extensions are installed in the "<Slicer_EXTENSIONS_DIRBASENAME>-<slicerRevision>"
+  // folder being a sub directory of the application dir, an extra test is required to make sure the
+  // tested filePath doesn't belong to that "<Slicer_EXTENSIONS_DIRBASENAME>-<slicerRevision>" folder.
+  // Since package name can be rename from "Slicer.app" to "Something.app", let's compare
+  // using ".app/Contents/" instead of "Slicer_BUNDLE_LOCATION" which is "Slicer.app/Contents/"
+  bool macExtension = (canonicalPath.find(".app/Contents/" Slicer_EXTENSIONS_DIRBASENAME "-") != std::string::npos);
+#else
+  bool macExtension = false;
+#endif
+
+  return  isBuiltIn && !macExtension;
 }
 
 namespace

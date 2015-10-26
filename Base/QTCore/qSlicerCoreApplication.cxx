@@ -98,8 +98,18 @@
 #include "vtkSlicerVersionConfigure.h" // For Slicer_VERSION_{MINOR, MAJOR}, Slicer_VERSION_FULL
 
 #ifdef Slicer_BUILD_DICOM_SUPPORT
-// XXX Avoid  warning: "HAVE_STAT" redefined
+// XXX Avoid  warning: "HAVE_XXXX" redefined
 #undef HAVE_STAT
+#undef HAVE_FTIME
+#undef HAVE_GETPID
+#undef HAVE_IO_H
+#undef HAVE_STRERROR
+#undef HAVE_SYS_UTIME_H
+#undef HAVE_TEMPNAM
+#undef HAVE_TMPNAM
+#undef HAVE_LONG_LONG
+// XXX Fix windows build error
+#undef HAVE_INT64_T
 #include <ctkDICOMDatabase.h>
 #endif
 
@@ -181,17 +191,6 @@ void qSlicerCoreApplicationPrivate::init()
     QMessageBox::information(0, "Attach process", msg.arg(QCoreApplication::applicationPid()));
     }
 
-#ifdef Slicer_USE_PYTHONQT_WITH_OPENSSL
-  if (!QSslSocket::supportsSsl())
-    {
-    qWarning() << "[SSL] SSL support disabled - Failed to load SSL library !";
-    }
-  if (!qSlicerCoreApplication::loadCaCertificates())
-    {
-    qWarning() << "[SSL] Failed to load Slicer.crt";
-    }
-#endif
-
   QCoreApplication::setOrganizationDomain(Slicer_ORGANIZATION_DOMAIN);
   QCoreApplication::setOrganizationName(Slicer_ORGANIZATION_NAME);
 
@@ -207,6 +206,25 @@ void qSlicerCoreApplicationPrivate::init()
   this->SlicerHome = this->discoverSlicerHomeDirectory();
   this->setEnvironmentVariable("SLICER_HOME", this->SlicerHome);
 
+#ifdef Slicer_USE_PYTHONQT_WITH_OPENSSL
+  if (!QSslSocket::supportsSsl())
+    {
+    qWarning() << "[SSL] SSL support disabled - Failed to load SSL library !";
+    }
+  if (!qSlicerCoreApplication::loadCaCertificates(this->SlicerHome))
+    {
+    qWarning() << "[SSL] Failed to load Slicer.crt";
+    }
+# ifdef Q_OS_MAC
+  if (this->isInstalled(this->SlicerHome))
+    {
+    this->setEnvironmentVariable(
+          "SSL_CERT_FILE",
+          this->SlicerHome + "/" Slicer_SHARE_DIR "/Slicer.crt");
+    }
+# endif
+#endif
+
   // Add 'SLICER_SHARE_DIR' to the environment so that Tcl scripts can reference
   // their dependencies.
   this->setEnvironmentVariable("SLICER_SHARE_DIR", Slicer_SHARE_DIR);
@@ -215,13 +233,6 @@ void qSlicerCoreApplicationPrivate::init()
   this->setEnvironmentVariable("ITK_AUTOLOAD_PATH", this->ITKFactoriesDir);
   this->setPythonEnvironmentVariables();
   this->setTclEnvironmentVariables();
-#if defined(Slicer_BUILD_DICOM_SUPPORT) && defined(Q_OS_MAC)
-  if (q->isInstalled())
-    {
-    this->setEnvironmentVariable("DCMDICTPATH", this->SlicerHome + "/" Slicer_SHARE_DIR "/dicom.dic:" +
-       this->SlicerHome + "/" Slicer_SHARE_DIR "/private.dic");
-    }
-#endif
 
   // Load default settings if any.
   if (q->defaultSettings())
@@ -1605,12 +1616,14 @@ void qSlicerCoreApplication::loadLanguage()
 }
 
 //----------------------------------------------------------------------------
-bool qSlicerCoreApplication::loadCaCertificates()
+bool qSlicerCoreApplication::loadCaCertificates(const QString& slicerHome)
 {
 #ifdef Slicer_USE_PYTHONQT_WITH_OPENSSL
   if (QSslSocket::supportsSsl())
     {
-    QSslSocket::setDefaultCaCertificates(QSslCertificate::fromPath(":/Certs/Slicer.crt"));
+    QSslSocket::setDefaultCaCertificates(
+          QSslCertificate::fromPath(
+            slicerHome + "/" Slicer_SHARE_DIR "/Slicer.crt"));
     }
   return !QSslSocket::defaultCaCertificates().empty();
 #else

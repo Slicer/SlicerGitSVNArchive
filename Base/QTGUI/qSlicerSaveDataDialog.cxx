@@ -113,7 +113,7 @@ QString qSlicerFileNameItemDelegate::fixupFileName(const QString& fileName, cons
       }
     }
 
-  QString stippedFileName = fixup;
+  QString strippedFileName = fixup;
   if(mrmlScene)
     {
     vtkObject * object = mrmlScene;
@@ -122,10 +122,10 @@ QString qSlicerFileNameItemDelegate::fixupFileName(const QString& fileName, cons
       object = mrmlScene->GetNodeByID(nodeID.toLatin1());
       }
     Q_ASSERT(object);
-    stippedFileName = qSlicerSaveDataDialogPrivate::stripKnownExtension(fixup, object);
-    stippedFileName += extension;
+    strippedFileName = qSlicerSaveDataDialogPrivate::stripKnownExtension(fixup, object);
+    strippedFileName += extension;
     }
-  return stippedFileName;
+  return strippedFileName;
 }
 
 //-----------------------------------------------------------------------------
@@ -741,6 +741,12 @@ QString qSlicerSaveDataDialogPrivate::stripKnownExtension(const QString& fileNam
   if (!knownExtension.isEmpty())
     {
     strippedFileName.chop(knownExtension.length());
+    // check that the extension wasn't doubled by having the file name be
+    // constructed from a node name that included the extension
+    if (strippedFileName.endsWith(knownExtension))
+      {
+      return Self::stripKnownExtension(strippedFileName, object);
+      }
     return strippedFileName;
     }
   return strippedFileName;
@@ -1172,10 +1178,21 @@ void qSlicerSaveDataDialogPrivate::saveSceneAsDataBundle()
   QComboBox* box = qobject_cast<QComboBox*>(
     this->FileWidget->cellWidget(sceneRow, FileFormatColumn));
   int mrbIndex = box->findText("mrb", Qt::MatchContains);
-  // Select scene data bundle entry
+  int mrmlIndex = box->findText("mrml", Qt::MatchContains);
+  // Toggle between scene data bundle entry and mrml entry
   if (mrbIndex != -1)
     {
-    box->setCurrentIndex(mrbIndex);
+    if (box->currentIndex() != mrbIndex)
+      {
+      box->setCurrentIndex(mrbIndex);
+      }
+    else
+      {
+      if (mrmlIndex != -1)
+        {
+        box->setCurrentIndex(mrmlIndex);
+        }
+      }
     }
 }
 

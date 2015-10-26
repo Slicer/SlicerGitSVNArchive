@@ -1,8 +1,10 @@
 import os
-from __main__ import slicer
+import slicer
 import qt, ctk, vtk
 import EditorLib
 from EditorLib.EditUtil import EditUtil
+import slicer
+from slicer.util import VTKObservationMixin
 
 #
 # Editor
@@ -39,13 +41,13 @@ This work is partially supported by PAR-07-249: R01CA131718 NA-MIC Virtual Colon
 # qSlicerPythonModuleExampleWidget
 #
 
-class EditorWidget:
+class EditorWidget(VTKObservationMixin):
 
   # Lower priorities:
   #->> additional option for list of allowed labels - texts
 
   def __init__(self, parent=None, showVolumesFrame=True):
-    self.observerTags = []
+    VTKObservationMixin.__init__(self)
     self.shortcuts = []
     self.toolsBox = None
 
@@ -64,8 +66,6 @@ class EditorWidget:
     else:
       self.parent = parent
       self.layout = parent.layout()
-
-    slicer.mrmlScene.AddObserver(slicer.mrmlScene.StartCloseEvent, self.resetInterface)
 
   def turnOffLightboxes(self):
     """Since the editor effects can't be used in lightbox mode,
@@ -152,7 +152,9 @@ class EditorWidget:
     # Observe the parameter node in order to make changes to
     # button states as needed
     self.parameterNode = EditUtil.getParameterNode()
-    self.parameterNodeTag = self.parameterNode.AddObserver(vtk.vtkCommand.ModifiedEvent, self.updateGUIFromMRML)
+    self.addObserver(self.parameterNode, vtk.vtkCommand.ModifiedEvent, self.updateGUIFromMRML)
+
+    self.addObserver(slicer.mrmlScene, slicer.mrmlScene.StartCloseEvent, self.resetInterface)
 
     if self.helper:
       self.helper.onEnter()
@@ -161,7 +163,7 @@ class EditorWidget:
       self.toolsColor.updateGUIFromMRML(self.parameterNode, vtk.vtkCommand.ModifiedEvent)
 
   def exit(self):
-    self.parameterNode.RemoveObserver(self.parameterNodeTag)
+    self.removeObservers()
     self.resetInterface()
     self.removeShortcutKeys()
 

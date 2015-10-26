@@ -530,10 +530,6 @@ const char* vtkMRMLScene::GetClassNameByTag(const char *tagName)
 //------------------------------------------------------------------------------
 const char* vtkMRMLScene::GetTagByClassName(const char *className)
 {
-  if ( !this )
-    {
-    return NULL;
-    }
   if ( !className )
     {
     vtkErrorMacro("GetTagByClassName: className is null");
@@ -1489,10 +1485,6 @@ std::list< std::string > vtkMRMLScene::GetNodeClassesList()
 //------------------------------------------------------------------------------
 vtkMRMLNode *vtkMRMLScene::GetNextNodeByClass(const char *className)
 {
-  if ( !this || !this->Nodes)
-    {
-    return NULL;
-    }
   if (!className)
     {
     vtkErrorMacro("GetNextNodeByClass: class name is null.");
@@ -1552,6 +1544,8 @@ vtkMRMLNode* vtkMRMLScene::GetSingletonNode(vtkMRMLNode* n)
 
   // No singleton node found, but it may be possible that a non-singleton node exists with
   // the same ID, which is probably a singleton node where the tag was not set by mistake.
+  // The vtkMRMLNode was updated to serialize the singleton tag but legacy scene files from
+  // before October 2015 may have saved nodes without the singleton tag having been set.
   std::string singletonId = this->GenerateUniqueID(n);
   sn = this->GetNodeByID(singletonId.c_str());
   if (sn != NULL)
@@ -1702,11 +1696,6 @@ vtkMRMLNode* vtkMRMLScene::GetNodeByID(std::string id)
 //------------------------------------------------------------------------------
 vtkMRMLNode* vtkMRMLScene::GetNodeByID(const char* id)
 {
-  if (this == NULL)
-    {
-    vtkErrorMacro("GetNodeByID: That's scary, you accessed a null scene !");
-    return NULL;
-    }
   if (id == NULL)
     {
     // don't use a macro here, can cause a crash on exit

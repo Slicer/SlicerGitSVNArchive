@@ -41,6 +41,7 @@
 #include <QMimeData>
 #include <QApplication>
 #include <QMessageBox>
+#include <QTimer>
 
 //------------------------------------------------------------------------------
 qMRMLSceneSubjectHierarchyModelPrivate::qMRMLSceneSubjectHierarchyModelPrivate(qMRMLSceneSubjectHierarchyModel& object)
@@ -48,6 +49,8 @@ qMRMLSceneSubjectHierarchyModelPrivate::qMRMLSceneSubjectHierarchyModelPrivate(q
 {
   this->NodeTypeColumn = -1;
   this->TransformColumn = -1;
+
+  this->DelayedItemChangedFired = false;
 
   this->UnknownIcon = QIcon(":Icons/Unknown.png");
   this->WarningIcon = QIcon(":Icons/Warning.png");
@@ -75,7 +78,6 @@ void qMRMLSceneSubjectHierarchyModelPrivate::init()
 
   q->horizontalHeaderItem(q->visibilityColumn())->setIcon(QIcon(":/Icons/Small/SlicerVisibleInvisible.png"));
   q->horizontalHeaderItem(q->transformColumn())->setIcon(QIcon(":/Icons/Transform.png"));
-
 
   // Set visibility icons from model to the default plugin
   qSlicerSubjectHierarchyPluginHandler::instance()->defaultPlugin()->setDefaultVisibilityIcons(this->VisibleIcon, this->HiddenIcon, this->PartiallyVisibleIcon);
@@ -276,6 +278,59 @@ void qMRMLSceneSubjectHierarchyModel::onMRMLSceneImported(vtkMRMLScene* scene)
 }
 
 //------------------------------------------------------------------------------
+void qMRMLSceneSubjectHierarchyModel::onItemChanged(QStandardItem * item)
+{
+  Q_D(qMRMLSceneSubjectHierarchyModel);
+
+  if (d->PendingItemModified >= 0)
+    {
+    ++d->PendingItemModified;
+    return;
+    }
+  if (!this->isANode(item))
+    {
+    return;
+    }
+
+  if (d->DraggedNodes.count())
+    {
+    if (item->column() == 0)
+      {
+      d->DraggedItems.insert(item);
+      }
+    if (d->DraggedItems.count() > 0 && !d->DelayedItemChangedFired)
+      {
+      // Item changed will be triggered multiple times in course of the drag&drop event. Setting this flag
+      // makes sure the final onItemChanged with the collected DraggedItems is called only once.
+      d->DelayedItemChangedFired = true;
+      QTimer::singleShot(200, this, SLOT(delayedItemChanged()));
+      }
+    return;
+    }
+
+  // Only nodes can be changed, scene and extra items should be not editable
+  vtkMRMLNode* mrmlNode = this->mrmlNodeFromItem(item);
+  if (!mrmlNode)
+  {
+    qCritical() << "qMRMLSceneSubjectHierarchyModel::onItemChanged: Failed to get MRML node from scene model item";
+    return;
+  }
+  this->updateNodeFromItem(mrmlNode, item);
+}
+
+//------------------------------------------------------------------------------
+void qMRMLSceneSubjectHierarchyModel::delayedItemChanged()
+{
+  Q_D(qMRMLSceneSubjectHierarchyModel);
+  foreach(QStandardItem* item, d->DraggedItems)
+    {
+    this->onItemChanged(item);
+    }
+  d->DraggedItems.clear();
+  d->DelayedItemChangedFired = false;
+}
+
+//------------------------------------------------------------------------------
 void qMRMLSceneSubjectHierarchyModel::updateItemDataFromNode(QStandardItem* item, vtkMRMLNode* node, int column)
 {
   Q_D(qMRMLSceneSubjectHierarchyModel);
@@ -331,7 +386,7 @@ void qMRMLSceneSubjectHierarchyModel::updateItemDataFromNode(QStandardItem* item
   if (column == this->nameColumn())
     {
     // Have owner plugin set the name and the tooltip
-    item->setText(ownerPlugin->displayedName(subjectHierarchyNode));
+    item->setText(ownerPlugin->displayedNodeName(subjectHierarchyNode));
     item->setToolTip(ownerPlugin->tooltip(subjectHierarchyNode));
     }
   // ID column
@@ -579,11 +634,13 @@ bool qMRMLSceneSubjectHierarchyModel::reparent(vtkMRMLNode* node, vtkMRMLNode* n
 //------------------------------------------------------------------------------
 void qMRMLSceneSubjectHierarchyModel::onHardenTransformOnBranchOfCurrentNode()
 {
+  QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
   vtkMRMLSubjectHierarchyNode* currentNode = qSlicerSubjectHierarchyPluginHandler::instance()->currentNode();
   if (currentNode)
     {
     currentNode->HardenTransformOnBranch();
     }
+  QApplication::restoreOverrideCursor();
 }
 
 //------------------------------------------------------------------------------

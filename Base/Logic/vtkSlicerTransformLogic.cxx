@@ -131,7 +131,6 @@ vtkMRMLTransformNode* vtkSlicerTransformLogic::AddTransform (const char* filenam
     useURI = scene->GetCacheManager()->IsRemoteReference(filename);
     }
 
-  itksys_stl::string name;
   const char *localFile;
   if (useURI)
     {
@@ -146,10 +145,10 @@ vtkMRMLTransformNode* vtkSlicerTransformLogic::AddTransform (const char* filenam
     localFile = filename;
     }
 
-  const itksys_stl::string fname(localFile);
+  const std::string fname(localFile);
   // the model name is based on the file name (itksys call should work even if
   // file is not on disk yet)
-  name = itksys::SystemTools::GetFilenameName(fname);
+  const std::string name = itksys::SystemTools::GetFilenameName(fname);
 
   if (!storageNode->SupportedFileType(name.c_str()))
     {
@@ -197,7 +196,7 @@ vtkMRMLTransformNode* vtkSlicerTransformLogic::AddTransform (const char* filenam
       tnode =  generalTransform.GetPointer();
     }
 
-  const itksys_stl::string basename(itksys::SystemTools::GetFilenameWithoutExtension(fname));
+  const std::string basename(itksys::SystemTools::GetFilenameWithoutExtension(fname));
   const std::string uname( scene->GetUniqueNameByString(basename.c_str()));
   tnode->SetName(uname.c_str());
   scene->AddNode(storageNode.GetPointer());
@@ -454,6 +453,49 @@ vtkMRMLScalarVolumeNode* vtkSlicerTransformLogic::CreateDisplacementVolumeFromTr
   return outputVolumeNode.GetPointer();
 }
 
+//----------------------------------------------------------------------------
+vtkMRMLTransformNode* vtkSlicerTransformLogic::ConvertToGridTransform(vtkMRMLTransformNode* inputTransformNode, vtkMRMLVolumeNode* referenceVolumeNode)
+{
+  if (inputTransformNode==NULL || referenceVolumeNode==NULL || referenceVolumeNode->GetImageData()==NULL)
+    {
+    vtkErrorMacro("vtkSlicerTransformLogic::ConvertToGridTransform failed: inputs are invalid");
+    return NULL;
+    }
+  vtkMRMLScene* scene=this->GetMRMLScene();
+  if (scene==NULL)
+    {
+    vtkErrorMacro("vtkSlicerTransformLogic::ConvertToGridTransform failed: scene invalid");
+    return NULL;
+    }
+
+  // Fill the volume
+  vtkNew<vtkImageData> outputVolume;
+  outputVolume->SetExtent(referenceVolumeNode->GetImageData()->GetExtent());
+  vtkNew<vtkMatrix4x4> ijkToRas;
+  referenceVolumeNode->GetIJKToRASMatrix(ijkToRas.GetPointer());
+  vtkSlicerTransformLogic::GetTransformedPointSamplesAsVectorImage(outputVolume.GetPointer(), inputTransformNode, ijkToRas.GetPointer());
+
+  // Create a volume node
+  vtkNew<vtkMRMLTransformNode> outputGridTransformNode;
+  std::string nodeName=std::string(inputTransformNode->GetName())+" grid transform";
+  outputGridTransformNode->SetName(scene->GenerateUniqueName(nodeName).c_str());
+
+  vtkNew<vtkOrientedGridTransform> outputGridTransform;
+  // The output volume has unit spacing and zero origin (because ijkToRas contains origin, spacing, and directions)
+  // so we have to set it here
+  outputVolume->SetOrigin(referenceVolumeNode->GetOrigin());
+  outputVolume->SetSpacing(referenceVolumeNode->GetSpacing());
+  // Volume cannot store directions, therefore that has to be set in the grid transform
+  vtkNew<vtkMatrix4x4> ijkToRasDirection; // normalized direction matrix
+  referenceVolumeNode->GetIJKToRASDirectionMatrix(ijkToRasDirection.GetPointer());
+  outputGridTransform->SetGridDirectionMatrix(ijkToRasDirection.GetPointer());
+  outputGridTransform->SetDisplacementGridData(outputVolume.GetPointer());
+
+  outputGridTransformNode->SetAndObserveTransformToParent(outputGridTransform.GetPointer());
+  scene->AddNode(outputGridTransformNode.GetPointer());
+
+  return outputGridTransformNode.GetPointer();
+}
 
 //----------------------------------------------------------------------------
 void vtkSlicerTransformLogic::GetTransformedPointSamplesAsVectorImage(vtkImageData* vectorImage, vtkMRMLTransformNode* inputTransformNode, vtkMatrix4x4* ijkToRAS)
@@ -673,7 +715,7 @@ void vtkSlicerTransformLogic::GetGlyphVisualization2d(vtkPolyData* output, vtkMR
   else
     {
     // the arrow tips are note always oriented correctly, but the direction of the shaft looks correct
-    rotateArrow->RotateX(vtkMath::DegreesFromRadians(acos(abs(sliceNormal_RAS[2])))); // TODO: check this, it might not be correct for an arbitrarily oriented slice normal
+    rotateArrow->RotateX(vtkMath::DegreesFromRadians(std::acos(std::abs(sliceNormal_RAS[2])))); // TODO: check this, it might not be correct for an arbitrarily oriented slice normal
     }
 
   glyph2DSource->SetScale(1);
