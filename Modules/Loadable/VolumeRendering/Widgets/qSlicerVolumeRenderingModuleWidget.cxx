@@ -497,9 +497,20 @@ void qSlicerVolumeRenderingModuleWidget::updateFromMRMLDisplayROINode()
 {
   Q_D(qSlicerVolumeRenderingModuleWidget);
   //ROI visibility
-  d->ROICropDisplayCheckBox->setChecked(d->ROIWidget->mrmlROINode() ?
-         d->ROIWidget->mrmlROINode()->GetDisplayClassVisibility
-                     ("vtkMRMLAnnotationLineDisplayNode") : false);
+
+  if (!d->ROIWidget->mrmlROINode())
+    {
+    return;
+    }
+
+  if(d->ROIWidget->mrmlROINode()->GetDisplayVisibility())
+    {
+    d->ROICropDisplayCheckBox->setChecked(true);
+    }
+  else
+    {
+    d->ROICropDisplayCheckBox->setChecked(false);
+    }
 }
 
 
@@ -829,6 +840,19 @@ void qSlicerVolumeRenderingModuleWidget
     {
     d->DisplayNode->SetCroppingEnabled(toggle);
     }
-  d->ROIWidget->mrmlROINode()->SetDisplayClassVisibility
-         ("vtkMRMLAnnotationLineDisplayNode",toggle);
+
+  int n = d->ROIWidget->mrmlROINode()->GetNumberOfDisplayNodes();
+  int wasModifying [n];
+  for(int i = 0; i < n; i++)
+    {
+    wasModifying[i] = d->ROIWidget->mrmlROINode()->GetNthDisplayNode(i)->StartModify();
+    }
+
+  d->ROIWidget->mrmlROINode()->SetDisplayVisibility(toggle);
+
+  for(int i = 0; i < n; i++)
+    {
+    d->ROIWidget->mrmlROINode()->GetNthDisplayNode(i)->EndModify(wasModifying[i]);
+    }
+
 }

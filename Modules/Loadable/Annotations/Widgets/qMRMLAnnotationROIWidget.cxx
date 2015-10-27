@@ -195,8 +195,19 @@ void qMRMLAnnotationROIWidget::setExtent(double minLR, double maxLR,
 void qMRMLAnnotationROIWidget::setDisplayClippingBox(bool visible)
 {
   Q_D(qMRMLAnnotationROIWidget);
-  d->ROINode->SetDisplayClassVisibility
-        ("vtkMRMLAnnotationLineDisplayNode", visible);
+
+  int n = d->ROINode->GetNumberOfDisplayNodes();
+  int wasModifying [n];
+  for(int i = 0; i < n; i++)
+    {
+    wasModifying[i] = d->ROINode->GetNthDisplayNode(i)->StartModify();
+    }
+  d->ROINode->SetDisplayVisibility(visible);
+  for(int i = 0; i < n; i++)
+    {
+    d->ROINode->GetNthDisplayNode(i)->EndModify(wasModifying[i]);
+    }
+
 }
 
 // --------------------------------------------------------------------------
@@ -245,6 +256,12 @@ void qMRMLAnnotationROIWidget::onMRMLDisplayNodeModified()
     }
 
   // Visibility
-  d->DisplayClippingBoxButton->setChecked(d->ROINode->
-          GetDisplayClassVisibility("vtkMRMLAnnotationLineDisplayNode"));
+  if(d->ROINode->GetDisplayVisibility())
+    {
+    d->DisplayClippingBoxButton->setChecked(true);
+    }
+  else
+    {
+    d->DisplayClippingBoxButton->setChecked(false);
+    }
 }
