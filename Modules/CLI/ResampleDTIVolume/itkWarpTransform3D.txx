@@ -76,17 +76,6 @@ WarpTransform3D<FieldData>
   return transformedPoint;
 }
 
-// Copied and modified from dtiprocess
-// available there: http://www.nitrc.org/projects/dtiprocess/
-template <class FieldData>
-const typename WarpTransform3D<FieldData>::JacobianType
-& WarpTransform3D<FieldData>
-::GetJacobian( const InputPointType &inputPoint ) const
-  {
-  this->ComputeJacobianWithRespectToParameters( inputPoint, this->m_NonThreadsafeSharedJacobian );
-  return this->m_NonThreadsafeSharedJacobian;
-  }
-
 template <class FieldData>
 void
 WarpTransform3D<FieldData>
