@@ -13,7 +13,6 @@ set(testname ${CLP}Test)
 add_test(NAME ${testname} COMMAND ${SEM_LAUNCH_COMMAND} $<TARGET_FILE:${CLP}Test>
   ${testname}
     --otsuomegathreshold 0.5
-    --removeislands
     ${MRML_TEST_DATA}/helix-DWI.nhdr
     ${TEMP}/${CLP}_estimatedBaseline.nhdr
     ${TEMP}/${CLP}_output.nhdr
