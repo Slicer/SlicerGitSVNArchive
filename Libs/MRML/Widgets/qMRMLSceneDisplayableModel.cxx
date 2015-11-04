@@ -41,6 +41,7 @@ qMRMLSceneDisplayableModelPrivate
 void qMRMLSceneDisplayableModelPrivate::init()
 {
   Q_Q(qMRMLSceneDisplayableModel);
+  q->setLazyUpdate(true);
   q->setVisibilityColumn(q->nameColumn());
 }
 
