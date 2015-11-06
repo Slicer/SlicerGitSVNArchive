@@ -945,7 +945,13 @@ void vtkMRMLVolumeNode::ApplyTransformMatrix(vtkMatrix4x4* transformMatrix)
 //---------------------------------------------------------------------------
 void vtkMRMLVolumeNode::GetRASBounds(double bounds[6])
 {
-  Superclass::GetRASBounds( bounds);
+  this->GetSliceBounds(bounds, NULL);
+}
+
+//---------------------------------------------------------------------------
+void vtkMRMLVolumeNode::GetSliceBounds(double bounds[6], vtkMatrix4x4* rasToSlice)
+{
+  Superclass::GetRASBounds(bounds);
 
   vtkImageData *volumeImage;
   if (! (volumeImage = this->GetImageData()) )
@@ -978,6 +984,10 @@ void vtkMRMLVolumeNode::GetRASBounds(double bounds[6])
     transformNode->GetTransformToWorld(worldTransform.GetPointer());
     transform->Concatenate(worldTransform.GetPointer());
     }
+  if (rasToSlice)
+  {
+    transform->Concatenate(rasToSlice);
+  }
 
   int dimensions[3];
   int i,j,k;
