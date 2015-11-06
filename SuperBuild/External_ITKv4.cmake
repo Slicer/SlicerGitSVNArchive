@@ -53,21 +53,6 @@ if(NOT DEFINED ITK_DIR AND NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
       -DITK_USE_SYSTEM_SWIG:BOOL=ON
       -DITK_LEGACY_SILENT:BOOL=ON
       )
-    # Install WrapITK.pth for use in the build tree
-    set(python_check "from __future__ import print_function\ntry:\n    import distutils.sysconfig\n    print(distutils.sysconfig.get_python_lib(plat_specific=1))\nexcept:\n    pass")
-    file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/det_spp.py ${python_check})
-    execute_process(COMMAND "${PYTHON_EXECUTABLE}" "${CMAKE_CURRENT_BINARY_DIR}/det_spp.py"
-      OUTPUT_VARIABLE py_spp
-      ERROR_VARIABLE py_spp
-      )
-    string(REGEX REPLACE "\n" "" py_spp_no_newline "${py_spp}")
-    string(REGEX REPLACE "\\\\" "/" py_spp_nobackslashes "${py_spp_no_newline}")
-    set(ITKv4_INSTALL_COMMAND ${CMAKE_COMMAND} -E copy
-          "${CMAKE_BINARY_DIR}/${proj}-build/Wrapping/Generators/Python/${CMAKE_CFG_INTDIR}/WrapITK.pth"
-          "${py_spp_nobackslashes}"
-          )
-  else()
-    set(ITKv4_INSTALL_COMMAND ${CMAKE_COMMAND} -E echo "Skip install step.")
   endif()
 
   ExternalProject_Add(${proj}
@@ -104,11 +89,29 @@ if(NOT DEFINED ITK_DIR AND NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
       -DZLIB_INCLUDE_DIR:PATH=${ZLIB_INCLUDE_DIR}
       -DZLIB_LIBRARY:FILEPATH=${ZLIB_LIBRARY}
       ${EXTERNAL_PROJECT_OPTIONAL_CMAKE_CACHE_ARGS}
-    INSTALL_COMMAND ${ITKv4_INSTALL_COMMAND}
+    INSTALL_COMMAND ""
     DEPENDS
       ${${proj}_DEPENDENCIES}
     )
   set(ITK_DIR ${CMAKE_BINARY_DIR}/${proj}-build)
+
+  # pythonpath
+  if(CMAKE_CONFIGURATION_TYPES)
+    set(${proj}_PYTHONPATH_LAUNCHER_BUILD
+      ${ITK_DIR}/Wrapping/Generators/Python/<CMAKE_CFG_INTDIR>
+      ${ITK_DIR}/lib/<CMAKE_CFG_INTDIR>
+      ${ITK_DIR}/lib
+      )
+  else()
+    set(${proj}_PYTHONPATH_LAUNCHER_BUILD
+      ${ITK_DIR}/Wrapping/Generators/Python
+      ${ITK_DIR}/lib
+      )
+  endif()
+  mark_as_superbuild(
+    VARS ${proj}_PYTHONPATH_LAUNCHER_BUILD
+    LABELS "PYTHONPATH_LAUNCHER_BUILD"
+    )
 
   #-----------------------------------------------------------------------------
   # Launcher setting specific to build tree
