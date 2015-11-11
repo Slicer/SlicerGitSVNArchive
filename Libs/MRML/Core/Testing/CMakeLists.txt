@@ -7,6 +7,7 @@ create_test_sourcelist(Tests ${KIT}CxxTests.cxx
   vtkMRMLColorNodeTest1.cxx
   vtkMRMLColorTableNodeTest1.cxx
   vtkMRMLColorTableStorageNodeTest1.cxx
+  vtkMRMLCoreTestingUtilitiesTest.cxx
   vtkMRMLCrosshairNodeTest1.cxx
   vtkMRMLDiffusionImageVolumeNodeTest1.cxx
   vtkMRMLDiffusionTensorDisplayPropertiesNodeTest1.cxx
@@ -108,6 +109,7 @@ set_target_properties(${KIT}CxxTests PROPERTIES FOLDER ${${PROJECT_NAME}_FOLDER}
 
 #-----------------------------------------------------------------------------
 set(TEMP "${CMAKE_BINARY_DIR}/Testing/Temporary")
+set(DATAPATH "${CMAKE_CURRENT_SOURCE_DIR}/TestData")
 
 #-----------------------------------------------------------------------------
 simple_test( vtkMRMLBSplineTransformNodeTest1 )
@@ -116,6 +118,7 @@ simple_test( vtkMRMLClipModelsNodeTest1 )
 simple_test( vtkMRMLColorNodeTest1 )
 simple_test( vtkMRMLColorTableNodeTest1 ${TEMP})
 simple_test( vtkMRMLColorTableStorageNodeTest1 )
+simple_test( vtkMRMLCoreTestingUtilitiesTest )
 simple_test( vtkMRMLCrosshairNodeTest1 )
 simple_test( vtkMRMLdGEMRICProceduralColorNodeTest1 )
 simple_test( vtkMRMLDiffusionImageVolumeNodeTest1 )
@@ -127,7 +130,7 @@ simple_test( vtkMRMLDiffusionWeightedVolumeDisplayNodeTest1 )
 simple_test( vtkMRMLDiffusionWeightedVolumeNodeTest1 )
 simple_test( vtkMRMLDisplayableNodeTest1 )
 simple_test( vtkMRMLDisplayNodeTest1 )
-simple_test( vtkMRMLDoubleArrayNodeTest1 )
+simple_test( vtkMRMLDoubleArrayNodeTest1 ${TEMP} ${DATAPATH})
 simple_test( vtkMRMLFiducialListNodeTest1 )
 simple_test( vtkMRMLFiducialListStorageNodeTest1 )
 simple_test( vtkMRMLFreeSurferModelOverlayStorageNodeTest1 )

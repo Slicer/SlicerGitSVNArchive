@@ -471,7 +471,7 @@ class SliceAnnotations(VTKObservationMixin):
 
   def createCornerAnnotations(self):
     self.createGlobalVariables()
-    self.sliceViewNames = self.layoutManager.sliceViewNames()
+    self.sliceViewNames = list(self.layoutManager.sliceViewNames())
     for sliceViewName in self.sliceViewNames:
       self.addSliceViewObserver(sliceViewName)
       self.createActors(sliceViewName)
@@ -612,7 +612,7 @@ class SliceAnnotations(VTKObservationMixin):
     else:
       # Clear Annotations
       for position in range(3):
-        cornerAnnotation.SetText(position, " ")
+        cornerAnnotation.SetText(position, "")
 
   def updateOrientationMarker(self, sliceLogic):
     sliceNode = sliceLogic.GetBackgroundLayer().GetSliceNode()
@@ -1259,7 +1259,7 @@ class SliceAnnotations(VTKObservationMixin):
       sliceCornerAnnotation = self.sliceViews[sliceViewName].cornerAnnotation()
       # encode to avoid 'unicode conversion error' for patient names containing international characters
       cornerAnnotation = slicer.util.toVTKString(cornerAnnotation)
-      sliceCornerAnnotation.SetText(i, cornerAnnotation if len(cornerAnnotation) else ' ')
+      sliceCornerAnnotation.SetText(i, cornerAnnotation)
       textProperty = sliceCornerAnnotation.GetTextProperty()
       textProperty.SetShadow(1)
 

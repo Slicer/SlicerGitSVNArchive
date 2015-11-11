@@ -1001,6 +1001,23 @@ int vtkMRMLScene::Commit(const char* url)
   return 1;
 }
 
+namespace
+{
+
+//------------------------------------------------------------------------------
+inline bool IsNodeWithoutID(vtkMRMLNode* node)
+{
+  return node->GetID() == NULL || node->GetID()[0] == '\0';
+}
+
+//------------------------------------------------------------------------------
+inline bool IsNodeWithoutName(vtkMRMLNode* node)
+{
+  return node->GetName() == NULL|| node->GetName()[0] == '\0';
+}
+
+}
+
 //------------------------------------------------------------------------------
 vtkMRMLNode*  vtkMRMLScene::AddNodeNoNotify(vtkMRMLNode *n)
 {
@@ -1057,8 +1074,7 @@ vtkMRMLNode*  vtkMRMLScene::AddNodeNoNotify(vtkMRMLNode *n)
         }
       // If NodeIDs[newId] already contains a value, that node can't be found
       // anymore in the NodeIDs cache.
-      this->NodeIDs[newId] = sn;
-      this->NodeIDsMTime = this->Nodes->GetMTime();
+      this->AddNodeID(sn);
 
       sn->EndModify(wasModifyingSingeltonNode);
       n->EndModify(wasModifying);
@@ -1070,7 +1086,7 @@ vtkMRMLNode*  vtkMRMLScene::AddNodeNoNotify(vtkMRMLNode *n)
   // ID. This can create a node ID conflict with the nodes already in the
   // scene. A new unique ID  must be set to the node to add and references to
   // the node must be updated with the new ID.
-  if (n->GetID() == NULL || n->GetID()[0] == '\0' || this->GetNodeByID(n->GetID()) != NULL)
+  if (IsNodeWithoutID(n) || this->GetNodeByID(n->GetID()) != NULL)
     {
     std::string oldID;
     if (n->GetID())
@@ -1093,7 +1109,7 @@ vtkMRMLNode*  vtkMRMLScene::AddNodeNoNotify(vtkMRMLNode *n)
     }
 
   // Set a default name if none is given automatically
-  if (n->GetName() == NULL|| n->GetName()[0] == '\0')
+  if (IsNodeWithoutName(n))
     {
     n->SetName(this->GenerateUniqueName(n).c_str());
     }
@@ -1758,15 +1774,6 @@ vtkCollection* vtkMRMLScene::GetNodesByClassByName(const char* className, const 
 }
 
 //------------------------------------------------------------------------------
-int  vtkMRMLScene::GetTransformBetweenNodes(vtkMRMLNode * vtkNotUsed(node1),
-                                            vtkMRMLNode * vtkNotUsed(node2),
-                                            vtkGeneralTransform * vtkNotUsed(xform))
-{
-  vtkErrorMacro("NOT IMPLEMENTEED YET");
-  return 1;
-}
-
-//------------------------------------------------------------------------------
 vtkMRMLNode* vtkMRMLScene::InsertAfterNode(vtkMRMLNode *item, vtkMRMLNode *n)
 {
   if (!n)
@@ -1787,7 +1794,7 @@ vtkMRMLNode* vtkMRMLScene::InsertAfterNode(vtkMRMLNode *item, vtkMRMLNode *n)
   this->InvokeEvent(this->NodeAboutToBeAddedEvent, n);
 
   // code from add node no notify
-  if (n->GetID() == NULL || n->GetID()[0] == '\0' || this->GetNodeByID(n->GetID()) != NULL)
+  if (IsNodeWithoutID(n) || this->GetNodeByID(n->GetID()) != NULL)
     {
     std::string oldID;
     if (n->GetID())
@@ -1813,7 +1820,7 @@ vtkMRMLNode* vtkMRMLScene::InsertAfterNode(vtkMRMLNode *item, vtkMRMLNode *n)
   int modifyStatus = n->GetDisableModifiedEvent();
   n->SetDisableModifiedEvent(1);
 
-  if (n->GetName() == NULL|| n->GetName()[0] == '\0')
+  if (IsNodeWithoutName(n))
     {
     n->SetName(n->GetID());
     }
@@ -1870,7 +1877,7 @@ vtkMRMLNode* vtkMRMLScene::InsertBeforeNode(vtkMRMLNode *item, vtkMRMLNode *n)
   this->InvokeEvent(this->NodeAboutToBeAddedEvent, n);
 
   // code from add node no notify
-  if (n->GetID() == NULL || n->GetID()[0] == '\0' || this->GetNodeByID(n->GetID()) != NULL)
+  if (IsNodeWithoutID(n) || this->GetNodeByID(n->GetID()) != NULL)
     {
     std::string oldID;
     if (n->GetID())
@@ -1896,7 +1903,7 @@ vtkMRMLNode* vtkMRMLScene::InsertBeforeNode(vtkMRMLNode *item, vtkMRMLNode *n)
   int modifyStatus = n->GetDisableModifiedEvent();
   n->SetDisableModifiedEvent(1);
 
-  if (n->GetName() == NULL|| n->GetName()[0] == '\0')
+  if (IsNodeWithoutName(n))
     {
     n->SetName(n->GetID());
     }
@@ -2060,7 +2067,7 @@ int vtkMRMLScene::GetUniqueIDIndex(const std::string& baseID)
     std::string candidateID = this->BuildID(baseID, index);
     isUnique =
       (this->GetNodeByID(candidateID) == 0) &&
-      (this->ReservedIDs.find(candidateID) == this->ReservedIDs.end());
+      (!this->IsReservedID(candidateID));
     }
   return index;
 }
@@ -2138,6 +2145,12 @@ std::string vtkMRMLScene::BuildName(const std::string& baseName, int nameIndex)c
     name << "_" << nameIndex;
     }
   return name.str();
+}
+
+//------------------------------------------------------------------------------
+bool vtkMRMLScene::IsReservedID(const std::string& id)
+{
+  return !(this->ReservedIDs.find(id) == this->ReservedIDs.end());
 }
 
 //------------------------------------------------------------------------------
@@ -2758,7 +2771,9 @@ void vtkMRMLScene::UpdateNodeReferences(vtkCollection* checkNodes/*=NULL*/)
   for (std::map< std::string, std::string>::const_iterator iterChanged = this->ReferencedIDChanges.begin();
     iterChanged != this->ReferencedIDChanges.end(); iterChanged++)
     {
-    NodeReferencesType::iterator referencedIdIt=this->NodeReferences.find(iterChanged->first);
+    const std::string& oldID = iterChanged->first;
+    const std::string& newID = iterChanged->second;
+    NodeReferencesType::iterator referencedIdIt=this->NodeReferences.find(oldID);
     if (referencedIdIt==this->NodeReferences.end())
       {
       // this updated ID is not observed by any node
@@ -2779,7 +2794,7 @@ void vtkMRMLScene::UpdateNodeReferences(vtkCollection* checkNodes/*=NULL*/)
         {
         continue;
         }
-      node->UpdateReferenceID(iterChanged->first.c_str(), iterChanged->second.c_str());
+      node->UpdateReferenceID(oldID.c_str(), newID.c_str());
       }
     }
 }

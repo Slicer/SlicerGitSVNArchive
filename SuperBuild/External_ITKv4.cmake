@@ -30,7 +30,13 @@ if(NOT DEFINED ITK_DIR AND NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
   endif()
 
   set(ITKv4_REPOSITORY ${git_protocol}://github.com/Slicer/ITK.git)
-  set(ITKv4_GIT_TAG 087e9384fc54e5d9ede5707bfc5cf472be51c00c) # release branch + Slicer patches for CMP0042
+  # ITK release branch of 2015-10-23 (38095f7) with
+  #   * Slicer patches for CMP0042 (See Slicer r24522)
+  #   * backported ITK ExternalModule support
+  #   * backported segfault fix for IsolatedWatershed Threshold (Slicer #4065)
+  #   * backported segfault fix for DiffusionTensor3DReconstruction
+  #   * backported tweaks for optional ITK Python wrapping
+  set(ITKv4_GIT_TAG 03055046e2693349937339975df4e16b598609c1)
 
   set(EXTERNAL_PROJECT_OPTIONAL_CMAKE_CACHE_ARGS)
 
@@ -62,7 +68,7 @@ if(NOT DEFINED ITK_DIR AND NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
     string(REGEX REPLACE "\n" "" py_spp_no_newline "${py_spp}")
     string(REGEX REPLACE "\\\\" "/" py_spp_nobackslashes "${py_spp_no_newline}")
     set(ITKv4_INSTALL_COMMAND ${CMAKE_COMMAND} -E copy
-          "${CMAKE_BINARY_DIR}/${proj}-build/Wrapping/Generators/Python/WrapITK.pth"
+          "${CMAKE_BINARY_DIR}/${proj}-build/Wrapping/Generators/Python/${CMAKE_CFG_INTDIR}/WrapITK.pth"
           "${py_spp_nobackslashes}"
           )
   else()
