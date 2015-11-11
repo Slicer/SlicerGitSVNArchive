@@ -642,7 +642,7 @@ def delayDisplay(message,autoCloseMsec=1000):
   messagePopup.exec_()
 
 def infoDisplay(message,windowTitle="Slicer information"):
-  """Display popup with a warning message.
+  """Display popup with a info message.
   """
   import qt, slicer
   import logging
@@ -667,6 +667,14 @@ def errorDisplay(message,windowTitle="Slicer error"):
   logging.error(message)
   if mainWindow(verbose=False):
     qt.QMessageBox.critical(slicer.util.mainWindow(), windowTitle, message)
+
+def confirmDisplay(message,windowTitle="Slicer confirmation"):
+  """Display an confirmation popup. Return if confirmed with OK.
+  """
+  import qt, slicer
+  result = qt.QMessageBox.question(slicer.util.mainWindow(), windowTitle, message,
+                                   qt.QMessageBox.Ok | qt.QMessageBox.Cancel)
+  return result == qt.QMessageBox.Ok
 
 def toBool(value):
   """Convert any type of value to a boolean.
