@@ -641,6 +641,15 @@ def delayDisplay(message,autoCloseMsec=1000):
     okButton.connect('clicked()', messagePopup.close)
   messagePopup.exec_()
 
+def infoDisplay(message,windowTitle="Slicer information"):
+  """Display popup with a warning message.
+  """
+  import qt, slicer
+  import logging
+  logging.info(message)
+  if mainWindow(verbose=False):
+    qt.QMessageBox.info(slicer.util.mainWindow(), windowTitle, message)
+
 def warningDisplay(message,windowTitle="Slicer warning"):
   """Display popup with a warning message.
   """
