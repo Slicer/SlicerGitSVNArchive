@@ -161,8 +161,7 @@ class LabelStatisticsWidget:
         resampledLabelNode = volumesLogic.ResampleVolumeToReferenceVolume(self.labelNode, self.grayscaleNode)
         self.logic = LabelStatisticsLogic(self.grayscaleNode, resampledLabelNode)
       else:
-        qt.QMessageBox.warning(slicer.util.mainWindow(),
-            "Label Statistics", "Volumes do not have the same geometry.\n%s" % warnings)
+        slicer.util.warnDisplay("Volumes do not have the same geometry.\n%s" % warnings, windowTitle="Label Statistics")
         return
     else:
       self.logic = LabelStatisticsLogic(self.grayscaleNode, self.labelNode)

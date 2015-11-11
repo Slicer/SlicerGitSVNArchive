@@ -113,7 +113,7 @@ class FiberBundleToLabelMapWidget:
     fiberNode = self.fiberSelector.currentNode()
     labelNode = self.labelSelector.currentNode()
     if not fiberNode and not labelNode:
-      qt.QMessageBox.critical(slicer.util.mainWindow(), 'FiberBundleToLabelMap', "Must select fiber bundle and label map")
+      slicer.util.errorDisplay("Must select fiber bundle and label map", windowTitle="FiberBundleToLabelMap")
 
     logic = FiberBundleToLabelMapLogic()
     logic.rasterizeFibers(fiberNode, labelNode, self.labelValue.value)
