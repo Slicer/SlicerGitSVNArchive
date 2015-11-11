@@ -707,7 +707,7 @@ def messageBox(text, parent=None, **kwargs):
       setattr(mbox, key, value)
   return mbox.exec_()
 
-def createProgressDialog(value=0, maximum=100, labelText="", windowTitle="Processing...", **kwargs):
+def createProgressDialog(parent=None, value=0, maximum=100, labelText="", windowTitle="Processing...", **kwargs):
   """Display a modal QProgressDialog. Go to QProgressDialog documentation
   http://pyqt.sourceforge.net/Docs/PyQt4/qprogressdialog.html for more keyword arguments, that could be used.
   E.g. progressbar = createProgressIndicator(autoClose=False) if you don't want the progress dialog to automatically
@@ -716,7 +716,7 @@ def createProgressDialog(value=0, maximum=100, labelText="", windowTitle="Proces
   Updating label text with progressbar.labelText = "processing XYZ"
   """
   import qt
-  progressIndicator = qt.QProgressDialog()
+  progressIndicator = qt.QProgressDialog(parent)
   progressIndicator.minimumDuration = 0
   progressIndicator.maximum = maximum
   progressIndicator.value = value
