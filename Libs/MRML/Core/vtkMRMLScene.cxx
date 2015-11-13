@@ -413,13 +413,13 @@ vtkMRMLNode* vtkMRMLScene::CreateNodeByClass(const char* className)
 }
 
 //------------------------------------------------------------------------------
-void vtkMRMLScene::RegisterNodeClass(vtkMRMLNode* node)
+void vtkMRMLScene::RegisterNodeClass(vtkMRMLNode* node, bool force /* = true*/)
 {
-  this->RegisterNodeClass(node, node->GetNodeTagName());
+  this->RegisterNodeClass(node, node->GetNodeTagName(), force);
 }
 
 //------------------------------------------------------------------------------
-void vtkMRMLScene::RegisterNodeClass(vtkMRMLNode* node, const char* tagName)
+void vtkMRMLScene::RegisterNodeClass(vtkMRMLNode* node, const char* tagName, bool force /*= true */)
 {
   if (!node)
     {
@@ -438,7 +438,7 @@ void vtkMRMLScene::RegisterNodeClass(vtkMRMLNode* node, const char* tagName)
     return;
     }
   std::string xmlTag(tagName);
-  // Replace the previously registered node if any.
+  // Check if a node with the same class is registered already.
   // By doing so we make sure there is no more than 1 node matching a given
   // XML tag. It allows plugins to MRML to overide default behavior when
   // instantiating nodes via XML tags.
@@ -446,6 +446,12 @@ void vtkMRMLScene::RegisterNodeClass(vtkMRMLNode* node, const char* tagName)
     {
     if (this->RegisteredNodeTags[i] == xmlTag)
       {
+      if (!force)
+        {
+        // The node is registered already. Overwriting of the class
+        // is not forced, so we just keep the current class.
+        return;
+        }
       vtkWarningMacro("Tag " << tagName
                       << " has already been registered, unregistering previous node class "
                       << (this->RegisteredNodeClasses[i]->GetClassName() ? this->RegisteredNodeClasses[i]->GetClassName() : "(no class name)")
