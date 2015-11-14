@@ -39,30 +39,43 @@ class vtkMRMLColorTableNode;
 class VTK_MRML_LOGIC_EXPORT vtkMRMLColorLogic : public vtkMRMLAbstractLogic
 {
 public:
-  typedef struct
+
+  /// Terminology used with DICOM Segmentation objects
+  /// ftp://medical.nema.org/medical/dicom/final/sup111_ft.pdf
+  struct StandardTerm
     {
+      StandardTerm() {}
+
       std::string CodeValue;
       std::string CodingSchemeDesignator;
       std::string CodeMeaning;
 
-      void StandardTerm() {
-        CodeValue = "";
-        CodingSchemeDesignator = "";
-        CodeMeaning = "";
-      }
-      void StandardTerm(std::string value, std::string designator, std::string meaning) {
-        CodeValue = value;
-        CodingSchemeDesignator = designator;
-        CodeMeaning = meaning;
+      StandardTerm(const std::string& value, const std::string& designator, const std::string& meaning)
+      : CodeValue(value),
+        CodingSchemeDesignator(designator),
+        CodeMeaning(meaning)
+      {
       }
 
-      void PrintSelf(ostream &os) {
-        os << "\tCode value: " << CodeValue
-           << "\n\tCode scheme designator: " << CodingSchemeDesignator
-           << "\n\tCode meaning: " << CodeMeaning
+      void Print(std::ostream& os)
+      {
+        vtkIndent indent;
+        this->PrintSelf(os, indent.GetNextIndent());
+      }
+      std::ostream& operator<<(std::ostream& os)
+      {
+        this->Print(os);
+        return os;
+      }
+
+      void PrintSelf(std::ostream &os, vtkIndent indent)
+      {
+        os << indent << "Code value: " << CodeValue << std::endl
+           << indent << "Code scheme designator: " << CodingSchemeDesignator << std::endl
+           << indent << "Code meaning: " << CodeMeaning
            << std::endl;
       }
-    } StandardTerm;
+  };
 
   struct ColorLabelCategorization
     {
@@ -73,18 +86,28 @@ public:
     StandardTerm AnatomicRegion;
     StandardTerm AnatomicRegionModifier;
 
-    void PrintSelf(ostream &os){
+      void Print(std::ostream& os)
+      {
+        vtkIndent indent;
+        this->PrintSelf(os, indent.GetNextIndent());
+      }
+      std::ostream& operator<<(std::ostream& os)
+      {
+        this->Print(os);
+        return os;
+      }
+      void PrintSelf(ostream &os, vtkIndent indent){
       os << "Label: " << LabelValue << std::endl;
       os << "Segmented property category:\n";
-      SegmentedPropertyCategory.PrintSelf(os);
+      SegmentedPropertyCategory.PrintSelf(os, indent);
       os << "Segmented property type:\n";
-      SegmentedPropertyType.PrintSelf(os);
+      SegmentedPropertyType.PrintSelf(os, indent);
       os << "Segmented property type modifier:\n";
-      SegmentedPropertyTypeModifier.PrintSelf(os);
+      SegmentedPropertyTypeModifier.PrintSelf(os, indent);
       os << "Anatomic region:\n";
-      AnatomicRegion.PrintSelf(os);
+      AnatomicRegion.PrintSelf(os, indent);
       os << "Antatomic region modifier:\n";
-      AnatomicRegionModifier.PrintSelf(os);
+      AnatomicRegionModifier.PrintSelf(os, indent);
       os << std::endl;
     };
     };
@@ -177,78 +200,79 @@ public:
   static vtkMRMLProceduralColorNode* CopyProceduralNode(vtkMRMLColorNode* colorNode, const char* copyName);
 
   /// Return the label's terminology in this color table.
-  bool LookupCategorizationFromLabel(int label, ColorLabelCategorization&, const char *lutName = "GenericAnatomyColors");
-  /// Returns a string with the terminology term requested, or an empty string if not found.
+  bool LookupCategorizationFromLabel(int label, ColorLabelCategorization&, const char *lutName = vtkMRMLColorLogic::DEFAULT_TERMINOLOGY_NAME);
+  /// \brief Returns a string with the terminology term requested, or an empty string if not found.
+  ///
   /// Valid values for categorization are SegmentedPropertyCategory, SegmentedPropertyType,
   /// SegmentedPropertyTypeModifier, AnatomicRegion, AnatomicRegionModifier.
   /// Valid values for standard term are CodeValue, CodeMeaning, CodingSchemeDesignator
+  ///
   /// \sa LookupCategorizationFromLabel
-  std::string GetTerminologyFromLabel(std::string categorization, std::string standardTerm, int label,
-                                      const char *lutName = "GenericAnatomyColors");
-  /// From a given terminology, find the label value that corresponds to it for this color table.
-  bool LookupLabelFromCategorization(ColorLabelCategorization&, int&, const char *lutName = "GenericAnatomyColors");
+  std::string GetTerminologyFromLabel(const std::string& categorization,
+                                      const std::string& standardTerm, int label,
+                                      const char *lutName = vtkMRMLColorLogic::DEFAULT_TERMINOLOGY_NAME);
   /// Print the terminology for this label in the color table to standard output.
-  bool PrintCategorizationFromLabel(int label, const char *lutName = "GenericAnatomyColors");
+  bool PrintCategorizationFromLabel(int label, const char *lutName = vtkMRMLColorLogic::DEFAULT_TERMINOLOGY_NAME);
 
   /// Utility methods to look up the terminology for the SegmentedPropertyCategory
   /// for a specific label in a color node.
   /// Returns an empty string if not found or defined.
-  std::string GetSegmentedPropertyCategoryCodeValue(int label, const char *lutName = "GenericAnatomyColors");
-  std::string GetSegmentedPropertyCategoryCodeMeaning(int label, const char *lutName = "GenericAnatomyColors");
-  std::string GetSegmentedPropertyCategoryCodingSchemeDesignator(int label, const char *lutName = "GenericAnatomyColors");
+  std::string GetSegmentedPropertyCategoryCodeValue(int label, const char *lutName = vtkMRMLColorLogic::DEFAULT_TERMINOLOGY_NAME);
+  std::string GetSegmentedPropertyCategoryCodeMeaning(int label, const char *lutName = vtkMRMLColorLogic::DEFAULT_TERMINOLOGY_NAME);
+  std::string GetSegmentedPropertyCategoryCodingSchemeDesignator(int label, const char *lutName = vtkMRMLColorLogic::DEFAULT_TERMINOLOGY_NAME);
   /// Utility method that returns a colon separated triplet for the
   /// SegmentedPropertyCategory for this label in this color node.
   /// Returns an empty string if all elements not found or defined, otherwise a
   /// color separated tuple of the format CodeValue:CodingSchemeDesignator:CodeMeaning
-  std::string GetSegmentedPropertyCategory(int label, const char *lutName = "GenericAnatomyColors");
+  std::string GetSegmentedPropertyCategory(int label, const char *lutName = vtkMRMLColorLogic::DEFAULT_TERMINOLOGY_NAME);
 
   /// Utility methods to look up the terminology for the SegmentedPropertyType
   /// for a specific label in a color node.
   /// Returns an empty string if not found or defined.
-  std::string GetSegmentedPropertyTypeCodeValue(int label, const char *lutName = "GenericAnatomyColors");
-  std::string GetSegmentedPropertyTypeCodeMeaning(int label, const char *lutName = "GenericAnatomyColors");
-  std::string GetSegmentedPropertyTypeCodingSchemeDesignator(int label, const char *lutName = "GenericAnatomyColors");
+  std::string GetSegmentedPropertyTypeCodeValue(int label, const char *lutName = vtkMRMLColorLogic::DEFAULT_TERMINOLOGY_NAME);
+  std::string GetSegmentedPropertyTypeCodeMeaning(int label, const char *lutName = vtkMRMLColorLogic::DEFAULT_TERMINOLOGY_NAME);
+  std::string GetSegmentedPropertyTypeCodingSchemeDesignator(int label, const char *lutName = vtkMRMLColorLogic::DEFAULT_TERMINOLOGY_NAME);
   /// Utility method that returns a colon separated triplet for the
   /// SegmentedPropertyType for this label in this color node.
   /// Returns an empty string if all elements not found or defined, otherwise a
   /// color separated tuple of the format CodeValue:CodingSchemeDesignator:CodeMeaning
-  std::string GetSegmentedPropertyType(int label, const char *lutName = "GenericAnatomyColors");
+  std::string GetSegmentedPropertyType(int label, const char *lutName = vtkMRMLColorLogic::DEFAULT_TERMINOLOGY_NAME);
 
   /// Utility methods to look up the terminology for the SegmentedPropertyTypeModifier
   /// for a specific label in a color node.
   /// Returns an empty string if not found or defined.
-  std::string GetSegmentedPropertyTypeModifierCodeValue(int label, const char *lutName = "GenericAnatomyColors");
-  std::string GetSegmentedPropertyTypeModifierCodeMeaning(int label, const char *lutName = "GenericAnatomyColors");
-  std::string GetSegmentedPropertyTypeModifierCodingSchemeDesignator(int label, const char *lutName = "GenericAnatomyColors");
+  std::string GetSegmentedPropertyTypeModifierCodeValue(int label, const char *lutName = vtkMRMLColorLogic::DEFAULT_TERMINOLOGY_NAME);
+  std::string GetSegmentedPropertyTypeModifierCodeMeaning(int label, const char *lutName = vtkMRMLColorLogic::DEFAULT_TERMINOLOGY_NAME);
+  std::string GetSegmentedPropertyTypeModifierCodingSchemeDesignator(int label, const char *lutName = vtkMRMLColorLogic::DEFAULT_TERMINOLOGY_NAME);
   /// Utility method that returns a colon separated triplet for the
   /// SegmentedPropertyTypeModifier for this label in this color node.
   /// Returns an empty string if all elements not found or defined, otherwise a
   /// color separated tuple of the format CodeValue:CodingSchemeDesignator:CodeMeaning
-  std::string GetSegmentedPropertyTypeModifier(int label, const char *lutName = "GenericAnatomyColors");
+  std::string GetSegmentedPropertyTypeModifier(int label, const char *lutName = vtkMRMLColorLogic::DEFAULT_TERMINOLOGY_NAME);
 
   /// Utility methods to look up the terminology for the AnatomicRegion
   /// for a specific label in a color node.
   /// Returns an empty string if not found or defined.
-  std::string GetAnatomicRegionCodeValue(int label, const char *lutName = "GenericAnatomyColors");
-  std::string GetAnatomicRegionCodeMeaning(int label, const char *lutName = "GenericAnatomyColors");
-  std::string GetAnatomicRegionCodingSchemeDesignator(int label, const char *lutName = "GenericAnatomyColors");
+  std::string GetAnatomicRegionCodeValue(int label, const char *lutName = vtkMRMLColorLogic::DEFAULT_TERMINOLOGY_NAME);
+  std::string GetAnatomicRegionCodeMeaning(int label, const char *lutName = vtkMRMLColorLogic::DEFAULT_TERMINOLOGY_NAME);
+  std::string GetAnatomicRegionCodingSchemeDesignator(int label, const char *lutName = vtkMRMLColorLogic::DEFAULT_TERMINOLOGY_NAME);
   /// Utility method that returns a colon separated triplet for the
   /// AnatomicRegion for this label in this color node.
   /// Returns an empty string if all elements not found or defined, otherwise a
   /// color separated tuple of the format CodeValue:CodingSchemeDesignator:CodeMeaning
-  std::string GetAnatomicRegion(int label, const char *lutName = "GenericAnatomyColors");
+  std::string GetAnatomicRegion(int label, const char *lutName = vtkMRMLColorLogic::DEFAULT_TERMINOLOGY_NAME);
 
   /// Utility methods to look up the terminology for the AnatomicRegionModifier
   /// for a specific label in a color node.
   /// Returns an empty string if not found or defined.
-  std::string GetAnatomicRegionModifierCodeValue(int label, const char *lutName = "GenericAnatomyColors");
-  std::string GetAnatomicRegionModifierCodeMeaning(int label, const char *lutName = "GenericAnatomyColors");
-  std::string GetAnatomicRegionModifierCodingSchemeDesignator(int label, const char *lutName = "GenericAnatomyColors");
+  std::string GetAnatomicRegionModifierCodeValue(int label, const char *lutName = vtkMRMLColorLogic::DEFAULT_TERMINOLOGY_NAME);
+  std::string GetAnatomicRegionModifierCodeMeaning(int label, const char *lutName = vtkMRMLColorLogic::DEFAULT_TERMINOLOGY_NAME);
+  std::string GetAnatomicRegionModifierCodingSchemeDesignator(int label, const char *lutName = vtkMRMLColorLogic::DEFAULT_TERMINOLOGY_NAME);
   /// Utility method that returns a colon separated triplet for the
   /// AnatomicRegionModifier for this label in this color node.
   /// Returns an empty string if all elements not found or defined, otherwise a
   /// color separated tuple of the format CodeValue:CodingSchemeDesignator:CodeMeaning
-  std::string GetAnatomicRegionModifier(int label, const char *lutName = "GenericAnatomyColors");
+  std::string GetAnatomicRegionModifier(int label, const char *lutName = vtkMRMLColorLogic::DEFAULT_TERMINOLOGY_NAME);
 
   /// Create a new empty terminology for this LUT and try to associate it with a color
   /// node of the same name.
@@ -287,6 +311,9 @@ public:
                             std::string regionModifierValue,
                             std::string regionModifierSchemeDesignator,
                             std::string regionModifierMeaning);
+
+  // public for python wrapping of the methods where it's used to initialize parameters
+  static const char *DEFAULT_TERMINOLOGY_NAME;
 
 protected:
   vtkMRMLColorLogic();
@@ -390,17 +417,14 @@ protected:
   /// vtkMRMLApplication::GetColorFilePaths
   char *UserColorFilePaths;
 
-  // mappings used for terminology color look ups
+  /// Mappings used for terminology color look ups
   typedef std::map<int,ColorLabelCategorization> ColorCategorizationMapType;
-  std::map<std::string, ColorCategorizationMapType> colorCategorizationMaps;
+  std::map<std::string, ColorCategorizationMapType> ColorCategorizationMaps;
 
   static std::string TempColorNodeID;
 
- private:
-
   std::string RemoveLeadAndTrailSpaces(std::string);
-  bool ParseTerm(std::string, StandardTerm&);
-
+  bool ParseTerm(const std::string, StandardTerm&);
 };
 
 #endif

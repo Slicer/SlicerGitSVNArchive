@@ -356,23 +356,23 @@ void qMRMLColorModel::updateItemFromColor(QStandardItem* item, int color, int co
         // only show the not empty terminology terms
         if (!category.empty())
           {
-          terminology = terminology + QString("\nCategory: %1").arg(category.c_str());
+          terminology = terminology + QString("\nSegmentedPropertyCategory: %1").arg(category.c_str());
           }
         if (!type.empty())
           {
-          terminology = terminology + QString("\nType: %1").arg(type.c_str());
+          terminology = terminology + QString("\nSegmentedPropertyType: %1").arg(type.c_str());
           }
         if (!typeMod.empty())
           {
-          terminology = terminology + QString("\nModifier: %1").arg(typeMod.c_str());
+          terminology = terminology + QString("\nSegmentedPropertyTypeModifier: %1").arg(typeMod.c_str());
           }
         if (!region.empty())
           {
-          terminology = terminology + QString("\nRegion: %1").arg(region.c_str());
+          terminology = terminology + QString("\nAnatomicRegion: %1").arg(region.c_str());
           }
         if (!regionMod.empty())
           {
-          terminology = terminology + QString("\nRegion Modifier: %1").arg(regionMod.c_str());
+          terminology = terminology + QString("\nAnatomicRegionModifier: %1").arg(regionMod.c_str());
           }
         // check if no terminology was found and use an empty tool tip
         if (!terminology.compare("Terminology:"))

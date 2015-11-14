@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!-- This XML file comes from the AIM on ClearCanvas project, https://github.com/NCIP/annotation-and-image-markup -->
 <AnatomicCodes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="AnatomicRegionAndModifier.xsd">
   <AnatomicRegion SNOMEDCTConceptID="91750005" UMLSConceptUID="C0524430" cid="3014" codeMeaning="1st Diagonal Coronary Artery" codeValue="T-43117" codingScheme="SRT" contextGroupName="Coronary Artery Segments" />
   <AnatomicRegion SNOMEDCTConceptID="" UMLSConceptUID="" cid="3014" codeMeaning="1st Diagonal Coronary Artery Laterals" codeValue="15A" codingScheme="BARI" contextGroupName="Coronary Artery Segments" />

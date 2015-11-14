@@ -109,7 +109,7 @@ bool TestTerminology()
               << lutName << std::endl;
     return false;
     }
-  labelCat.PrintSelf(std::cout);
+  labelCat.Print(std::cout);
   if (labelCat.SegmentedPropertyType.CodeMeaning.length() == 0 ||
       labelCat.SegmentedPropertyType.CodeMeaning.compare("Tissue") != 0)
     {
@@ -117,23 +117,6 @@ bool TestTerminology()
               << ": for label 1, code meaning does not match 'Tissue': '"
               <<  labelCat.SegmentedPropertyType.CodeMeaning.c_str()
               << "'" << std::endl;
-    return false;
-    }
-  // reverse the look up, by label
-  int reverseLabel = -1;
-  if (!colorLogic->LookupLabelFromCategorization(labelCat, reverseLabel, lutName.c_str()))
-    {
-    std::cerr << "Line " << __LINE__
-              << ": for categorization for label 1, failed to look up label."
-              << std::endl;
-    return false;
-    }
-  if (reverseLabel != 1)
-    {
-    std::cerr << "Line " << __LINE__
-              << ": for categorization for label 1, lookup up the label returned "
-              << reverseLabel
-              << std::endl;
     return false;
     }
 
@@ -193,7 +176,7 @@ bool TestTerminology()
               << pelvisLUTName << std::endl;
     return false;
     }
-  pelvisLabelCat.PrintSelf(std::cout);
+  pelvisLabelCat.Print(std::cout);
   // check the strings
   if (pelvisLabelCat.AnatomicRegion.CodeMeaning.compare(regionMeaning) &&
     pelvisLabelCat.AnatomicRegion.CodeValue.compare(regionValue) &&
@@ -299,7 +282,7 @@ bool TestTerminology()
               << pelvisLUTName << std::endl;
     return false;
     }
-  missingPelvisLabelCat.PrintSelf(std::cout);
+  missingPelvisLabelCat.Print(std::cout);
   // check all are empty strings
   if (missingPelvisLabelCat.AnatomicRegion.CodeMeaning.length() ||
     missingPelvisLabelCat.AnatomicRegion.CodeValue.length() ||

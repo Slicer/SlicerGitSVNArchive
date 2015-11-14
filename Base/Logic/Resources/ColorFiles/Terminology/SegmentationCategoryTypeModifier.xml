@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- This XML file comes from the AIM on ClearCanvas project, https://github.com/NCIP/annotation-and-image-markup -->
 <SegmentationCodes xsi:noNamespaceSchemaLocation="SegmentationCategoryTypeModifier.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <Category codingScheme="SRT" codeValue="T-D0050" codeMeaning="Tissue" cid="7051" contextGroupName="Segmentation Property Categories" SNOMEDCTConceptID="85756007" UMLSConceptUID="C0040300" showAnatomy="true">
     <Type codingScheme="SRT" codeValue="T-1A190" cid="7156" contextGroupName="Vascular Tissue Segmentation Types" SNOMEDCTConceptID="30180000" UMLSConceptUID="C0225342" codeMeaning="Adventitia" />

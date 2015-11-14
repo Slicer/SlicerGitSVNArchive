@@ -41,6 +41,8 @@ std::string vtkMRMLColorLogic::TempColorNodeID;
 
 vtkStandardNewMacro(vtkMRMLColorLogic);
 
+const char * vtkMRMLColorLogic::DEFAULT_TERMINOLOGY_NAME = "GenericAnatomyColors";
+
 //----------------------------------------------------------------------------
 vtkMRMLColorLogic::vtkMRMLColorLogic()
 {
@@ -1112,7 +1114,12 @@ bool vtkMRMLColorLogic::CreateNewTerminology(std::string lutName)
     {
     return false;
     }
-  this->colorCategorizationMaps[lutName] = ColorCategorizationMapType();
+  if (this->TerminologyExists(lutName))
+    {
+    vtkWarningMacro("Create new terminology: one already exists with name " << lutName);
+    return false;
+    }
+  this->ColorCategorizationMaps[lutName] = ColorCategorizationMapType();
   return this->AssociateTerminologyWithColorNode(lutName);
 }
 
@@ -1124,8 +1131,8 @@ bool vtkMRMLColorLogic::TerminologyExists(std::string lutName)
     return false;
     }
 
-  if (this->colorCategorizationMaps.find(lutName) !=
-      this->colorCategorizationMaps.end())
+  if (this->ColorCategorizationMaps.find(lutName) !=
+      this->ColorCategorizationMaps.end())
     {
     return true;
     }
@@ -1154,11 +1161,11 @@ bool vtkMRMLColorLogic
                        std::string regionModifierSchemeDesignator,
                        std::string regionModifierMeaning)
 {
-  StandardTerm category = {categoryValue, categorySchemeDesignator, categoryMeaning};
-  StandardTerm type = {typeValue, typeSchemeDesignator, typeMeaning};
-  StandardTerm modifier = {modifierValue, modifierSchemeDesignator, modifierMeaning};
-  StandardTerm region = {regionValue, regionSchemeDesignator, regionMeaning};
-  StandardTerm regionModifier = {regionModifierValue, regionModifierSchemeDesignator, regionModifierMeaning};
+  StandardTerm category(categoryValue, categorySchemeDesignator, categoryMeaning);
+  StandardTerm type(typeValue, typeSchemeDesignator, typeMeaning);
+  StandardTerm modifier(modifierValue, modifierSchemeDesignator, modifierMeaning);
+  StandardTerm region(regionValue, regionSchemeDesignator, regionMeaning);
+  StandardTerm regionModifier(regionModifierValue, regionModifierSchemeDesignator, regionModifierMeaning);
   return this->AddTermToTerminologyMapping(lutName, labelValue, category, type, modifier, region, regionModifier);
 }
 
@@ -1192,7 +1199,7 @@ bool vtkMRMLColorLogic::AddTermToTerminologyMapping(std::string lutName, int lab
  termMapping.AnatomicRegion = region;
  termMapping.AnatomicRegionModifier = regionModifier;
 
- this->colorCategorizationMaps[lutName][termMapping.LabelValue] = termMapping;
+ this->ColorCategorizationMaps[lutName][termMapping.LabelValue] = termMapping;
 
  return true;
 }
@@ -1225,6 +1232,7 @@ bool vtkMRMLColorLogic::InitializeTerminologyMappingFromFile(std::string mapFile
   std::string lutName = "";
   bool addFlag = true;
   bool assocFlag = true;
+  bool parseFlag = true;
   if (status)
     {
     while (!mapFile.eof())
@@ -1262,21 +1270,42 @@ bool vtkMRMLColorLogic::InitializeTerminologyMappingFromFile(std::string mapFile
         tokens.push_back(item);
         }
 
-      int labelValue = atoi(tokens[0].c_str());
-      StandardTerm category, type, modifier;
-      this->ParseTerm(tokens[2],category);
-      this->ParseTerm(tokens[3],type);
-      this->ParseTerm(tokens[4],modifier);
+      if (tokens.size() < 5)
+        {
+        vtkWarningMacro("InitializeTerminologyMappingFromFile: line has incorrect number of tokens: "
+                        << tokens.size()
+                        << " < 5");
+        parseFlag = false;
+        }
+      else
+        {
+        int labelValue = atoi(tokens[0].c_str());
+        StandardTerm category, type, modifier;
+        if (this->ParseTerm(tokens[2],category) &&
+            this->ParseTerm(tokens[3],type))
+          {
+          // modifier is optional, ParseTerm will return false on an empty string
+          this->ParseTerm(tokens[4],modifier);
 
-      // for now region doesn't appear in the file
-      StandardTerm region, regionModifier;
-      addFlag = addFlag && this->AddTermToTerminologyMapping(lutName, labelValue, category, type, modifier, region, regionModifier);
+          // for now region doesn't appear in the file
+          StandardTerm region, regionModifier;
+          addFlag = addFlag && this->AddTermToTerminologyMapping(lutName, labelValue, category, type, modifier, region, regionModifier);
+          }
+        else
+          {
+          vtkWarningMacro("InitializeTerminologyMappingFromFile: failed to parse category or type: "
+                          << tokens[2].c_str() << "\n"
+                          << tokens[3].c_str() << "\n"
+                          << tokens[4].c_str());
+          parseFlag = false;
+          }
+        }
      }
   }
-  std::cout << this->colorCategorizationMaps[lutName].size()
+  std::cout << this->ColorCategorizationMaps[lutName].size()
             << " terms were read for Slicer LUT " << lutName << std::endl;
 
-  return status && addFlag && assocFlag;
+  return status && addFlag && assocFlag && parseFlag;
 }
 
 //-------------------------------------------------------------------------------
@@ -1290,10 +1319,10 @@ bool vtkMRMLColorLogic::
     {
     // set the label value so that if it's not found, it's still a valid categorisation
     labelCat.LabelValue = label;
-    if (this->colorCategorizationMaps[lutName].find(label) !=
-      this->colorCategorizationMaps[lutName].end())
+    if (this->ColorCategorizationMaps[lutName].find(label) !=
+      this->ColorCategorizationMaps[lutName].end())
       {
-      labelCat = this->colorCategorizationMaps[lutName][label];
+      labelCat = this->ColorCategorizationMaps[lutName][label];
       success = true;
       }
     }
@@ -1302,7 +1331,9 @@ bool vtkMRMLColorLogic::
 
 //---------------------------------------------------------------------------
 std::string vtkMRMLColorLogic::
-  GetTerminologyFromLabel(std::string categorization, std::string standardTerm, int label, const char *lutName)
+  GetTerminologyFromLabel(const std::string& categorization,
+                          const std::string& standardTerm,
+                          int label, const char *lutName)
 {
   std::string returnString;
   ColorLabelCategorization labelCat;
@@ -1347,72 +1378,6 @@ std::string vtkMRMLColorLogic::
 }
 
 //---------------------------------------------------------------------------
-bool vtkMRMLColorLogic::
-LookupLabelFromCategorization(ColorLabelCategorization& labelCat, int& label, const char *lutName)
-{
-  if (!this->TerminologyExists(lutName))
-    {
-    return false;
-    }
-
-  int labelFound = -1;
-
-  std::string inputTypeName, inputModifierName;
-
-  inputTypeName = labelCat.SegmentedPropertyType.CodeMeaning;
-  inputModifierName = labelCat.SegmentedPropertyTypeModifier.CodeMeaning;
-  std::transform(inputTypeName.begin(), inputTypeName.end(), inputTypeName.begin(), ::tolower);
-  std::transform(inputModifierName.begin(), inputModifierName.end(), inputModifierName.begin(), ::tolower);
-
-  ColorCategorizationMapType::const_iterator iter = this->colorCategorizationMaps[lutName].begin();
-  ColorCategorizationMapType::const_iterator iterEnd = this->colorCategorizationMaps[lutName].end();
-  for (;iter!=iterEnd;iter++)
-    {
-    ColorLabelCategorization mapCat = iter->second;
-
-    // fuzzy comparison rules:
-    //  -- property category is ignored
-    //  -- property type must be found in the mapping
-    //  -- if modifier is non-empty, must match as well
-    //  -- capitalization is ignored
-    //  -- look at the meaning, ignore codes and designators
-    std::string mapTypeName, mapModifierName;
-
-    mapTypeName = mapCat.SegmentedPropertyType.CodeMeaning;
-    mapModifierName = mapCat.SegmentedPropertyTypeModifier.CodeMeaning;
-    std::transform(mapTypeName.begin(), mapTypeName.end(), mapTypeName.begin(), ::tolower);
-    std::transform(mapModifierName.begin(), mapModifierName.end(), mapModifierName.begin(), ::tolower);
-
-    if (mapTypeName.find(inputTypeName) != std::string::npos)
-      {
-      // found match in category name
-      if (inputModifierName != "")
-        {
-        // modifier is not empty
-        if (mapModifierName.find(inputModifierName) != std::string::npos)
-          {
-          labelFound = iter->first;
-          break;
-          }
-        }
-      else
-        {
-        // modifier is empty, and category matches, assume this is the right
-        // term
-        labelFound = iter->first;
-        break;
-        }
-      }
-  }
-
-  if (labelFound != -1)
-    {
-    label = labelFound;
-    }
-  return (labelFound==-1) ? false: true;
-}
-
-//---------------------------------------------------------------------------
 bool vtkMRMLColorLogic::PrintCategorizationFromLabel(int label, const char *lutName)
 {
   ColorLabelCategorization labelCat;
@@ -1420,11 +1385,11 @@ bool vtkMRMLColorLogic::PrintCategorizationFromLabel(int label, const char *lutN
     {
     return false;
     }
-  if (this->colorCategorizationMaps[lutName].find(label) !=
-    this->colorCategorizationMaps[lutName].end())
+  if (this->ColorCategorizationMaps[lutName].find(label) !=
+    this->ColorCategorizationMaps[lutName].end())
     {
-    labelCat = this->colorCategorizationMaps[lutName][label];
-    labelCat.PrintSelf(std::cout);
+    labelCat = this->ColorCategorizationMaps[lutName][label];
+    labelCat.Print(std::cout);
     return true;
     }
   return false;
@@ -1442,11 +1407,30 @@ std::string vtkMRMLColorLogic::RemoveLeadAndTrailSpaces(std::string in)
 }
 
 //---------------------------------------------------------------------------
-bool vtkMRMLColorLogic::ParseTerm(std::string str, StandardTerm& term)
+bool vtkMRMLColorLogic::ParseTerm(const std::string inputStr, StandardTerm& term)
 {
+  std::string str = inputStr;
   str = this->RemoveLeadAndTrailSpaces(str);
-  if(str.length()<10)
+  if (str.length() < 10)
     {
+    // can get empty strings for optional modifiers
+    return false;
+    }
+  // format check, should be enclosed in parentheses, have two ;'s
+  if (str.at(0) != '(' ||
+      str.at(str.length()-1) != ')')
+    {
+    vtkWarningMacro(<< __LINE__
+                    << "ParseTerm: input string doesn't start/end with parentheses "
+                    << str);
+    return false;
+    }
+  size_t n = std::count(str.begin(), str.end(), ';');
+  if (n != 2)
+    {
+    vtkWarningMacro(<< __LINE__
+                    << "ParseTerm: input string doesn't have 2 semi colons "
+                    << str);
     return false;
     }
   // get rid of parentheses

@@ -307,10 +307,6 @@ std::vector<std::string> vtkSlicerColorLogic::
             // add it to the list
             this->AddColorFile(fileToCheck.c_str(), &filenames);
             }
-          else
-            {
-            vtkWarningMacro("FindColorFiles: not a supported file type:\n"<< fileToCheck);
-            }
           }
         else
           {
