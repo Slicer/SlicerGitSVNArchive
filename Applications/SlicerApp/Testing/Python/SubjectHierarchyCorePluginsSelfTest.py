@@ -120,11 +120,9 @@ class SubjectHierarchyCorePluginsSelfTestTest(ScriptedLoadableModuleTest):
     markupsNode.AddFiducialFromArray(fiducialPosition)
 
     # Add markups to subject hierarchy
-    from vtkSlicerSubjectHierarchyModuleMRML import vtkMRMLSubjectHierarchyNode
-
-    patientNode = vtkMRMLSubjectHierarchyNode.CreateSubjectHierarchyNode(slicer.mrmlScene, None, slicer.vtkMRMLSubjectHierarchyConstants.GetDICOMLevelPatient(), 'Patient')
-    studyNode = vtkMRMLSubjectHierarchyNode.CreateSubjectHierarchyNode(slicer.mrmlScene, patientNode, self.studyName, slicer.vtkMRMLSubjectHierarchyConstants.GetDICOMLevelStudy())
-    markupsShNode = vtkMRMLSubjectHierarchyNode.CreateSubjectHierarchyNode(slicer.mrmlScene, studyNode, slicer.vtkMRMLSubjectHierarchyConstants.GetDICOMLevelSeries(), self.sampleMarkupName, markupsNode)
+    patientNode = slicer.vtkMRMLSubjectHierarchyNode.CreateSubjectHierarchyNode(slicer.mrmlScene, None, slicer.vtkMRMLSubjectHierarchyConstants.GetDICOMLevelPatient(), 'Patient')
+    studyNode = slicer.vtkMRMLSubjectHierarchyNode.CreateSubjectHierarchyNode(slicer.mrmlScene, patientNode, self.studyName, slicer.vtkMRMLSubjectHierarchyConstants.GetDICOMLevelStudy())
+    markupsShNode = slicer.vtkMRMLSubjectHierarchyNode.CreateSubjectHierarchyNode(slicer.mrmlScene, studyNode, slicer.vtkMRMLSubjectHierarchyConstants.GetDICOMLevelSeries(), self.sampleMarkupName, markupsNode)
 
     self.assertTrue( markupsShNode != None )
     self.assertTrue( markupsShNode.GetParentNode() == studyNode )
@@ -140,12 +138,10 @@ class SubjectHierarchyCorePluginsSelfTestTest(ScriptedLoadableModuleTest):
     chartNode.SetName(self.sampleChartName)
 
     # Add markups to subject hierarchy
-    from vtkSlicerSubjectHierarchyModuleMRML import vtkMRMLSubjectHierarchyNode
-
     studyNode = slicer.util.getNode(self.studyName + slicer.vtkMRMLSubjectHierarchyConstants.GetSubjectHierarchyNodeNamePostfix())
     self.assertTrue( studyNode != None )
 
-    chartShNode = vtkMRMLSubjectHierarchyNode.CreateSubjectHierarchyNode(slicer.mrmlScene, studyNode, slicer.vtkMRMLSubjectHierarchyConstants.GetDICOMLevelSeries(), self.sampleChartName, chartNode)
+    chartShNode = slicer.vtkMRMLSubjectHierarchyNode.CreateSubjectHierarchyNode(slicer.mrmlScene, studyNode, slicer.vtkMRMLSubjectHierarchyConstants.GetDICOMLevelSeries(), self.sampleChartName, chartNode)
 
     self.assertTrue( chartShNode != None )
     self.assertTrue( chartShNode.GetParentNode() == studyNode )
