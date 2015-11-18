@@ -42,6 +42,7 @@ public:
 
   /// Terminology used with DICOM Segmentation objects
   /// ftp://medical.nema.org/medical/dicom/final/sup111_ft.pdf
+  VTK_MRML_LOGIC_EXPORT
   struct StandardTerm
     {
       StandardTerm() {}
@@ -62,6 +63,7 @@ public:
       void PrintSelf(std::ostream &os, vtkIndent indent);
   };
 
+  VTK_MRML_LOGIC_EXPORT
   struct ColorLabelCategorization
     {
     unsigned LabelValue;
