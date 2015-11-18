@@ -1168,7 +1168,7 @@ void vtkMRMLColorLogic::AddDefaultTerminologyColors()
 }
 
 //------------------------------------------------------------------------------
-bool vtkMRMLColorLogic::CreateNewTerminology(std::string lutName)
+bool vtkMRMLColorLogic::CreateNewTerminology(const std::string& lutName)
 {
   if (lutName.length() == 0)
     {
