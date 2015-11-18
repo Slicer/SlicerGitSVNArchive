@@ -46,9 +46,60 @@ public:
     return this->RemoveLeadAndTrailSpaces(str);
     }
 
-  bool test_ParseTerm(std::string str, StandardTerm& term)
+  bool test_ParseTerm(std::string str, StandardTerm& term, bool expectedParseFlag,
+                      const char * expectedCode, const char * expectedScheme, const char * expectedMeaning,
+                      int lineNumber)
     {
-    return this->ParseTerm(str, term);
+    std::string outputString = str;
+    bool retVal = this->ParseTerm(str, term);
+
+    if (!retVal && !expectedParseFlag)
+      {
+      // Expected to fail parsing this string, test passes
+      return true;
+      }
+    if (retVal && !expectedParseFlag)
+      {
+      // expected to fail but succeeded, test fails
+      std::cerr << lineNumber
+                << ": test_ParseTerm: failed to not parse invalid string "
+                << str
+                << std::endl;
+      return false;
+      }
+    if (!retVal && expectedParseFlag)
+      {
+      // expected to parse it, but failed, test fails
+      std::cerr << lineNumber
+                << ": test_ParseTerm: failed to parse string "
+                << str
+                << std::endl;
+      return false;
+      }
+    // the string parsed as expected, now check that the term is as expected
+
+    // the parsing shouldn't alter the input string
+    if (!CheckString(lineNumber, "test_ParseTerm input string unchanged",
+                     str.c_str(), outputString.c_str()))
+      {
+      return false;
+      }
+    if (!CheckString(lineNumber, "test_ParseTerm code value",
+                   term.CodeValue.c_str(), expectedCode))
+      {
+      return false;
+      }
+    if (!CheckString(lineNumber, "test_ParseTerm coding scheme designator",
+                   term.CodingSchemeDesignator.c_str(), expectedScheme))
+      {
+      return false;
+      }
+    if (!CheckString(lineNumber, "test_ParseTerm meaning",
+                   term.CodeMeaning.c_str(), expectedMeaning))
+      {
+      return false;
+      }
+    return true;
     }
 
 protected:
@@ -158,100 +209,55 @@ int vtkMRMLColorLogicTest2(int vtkNotUsed(argc), char * vtkNotUsed(argv) [])
   //----------------------------------------------------------------------------
   std::string str = "(T-D0050;SRT;Tissue)";
   vtkMRMLColorLogic::StandardTerm term;
-  if (!colorLogic->test_ParseTerm(str, term))
-    {
-    std::cerr << __LINE__
-              << "test_ParseTerm: failed to parse string "
-              << str
-              << std::endl;
-    return EXIT_FAILURE;
-    }
   // the parsing shouldn't change the input string
-  if (!CheckString(__LINE__, "test_ParseTerm empty string",
-                   str.c_str(), "(T-D0050;SRT;Tissue)"))
+  if (!colorLogic->test_ParseTerm(str, term, true, "T-D0050", "SRT", "Tissue", __LINE__))
     {
     return EXIT_FAILURE;
     }
+
   str = "(M-01000;SRT;Morphologically Altered Structure)";
-  if (!colorLogic->test_ParseTerm(str, term))
-    {
-    std::cerr << __LINE__
-              << "test_ParseTerm: failed to parse string terminology"
-              << str
-              << std::endl;
-    return EXIT_FAILURE;
-    }
-  if (!CheckString(__LINE__, "test_ParseTerm code value",
-                   term.CodeValue.c_str(), "M-01000"))
-    {
-    return EXIT_FAILURE;
-    }
-  if (!CheckString(__LINE__, "test_ParseTerm coding scheme designator",
-                   term.CodingSchemeDesignator.c_str(), "SRT"))
-    {
-    return EXIT_FAILURE;
-    }
-  if (!CheckString(__LINE__, "test_ParseTerm meaning",
-                   term.CodeMeaning.c_str(), "Morphologically Altered Structure"))
+  if (!colorLogic->test_ParseTerm(str, term, true,
+                                  "M-01000", "SRT", "Morphologically Altered Structure",
+                                  __LINE__))
     {
     return EXIT_FAILURE;
     }
 
-  // invalid strings
+  // invalid strings with the expected flag false will return true
+  // empty string
   str = "";
-  if (colorLogic->test_ParseTerm(str, term))
+  if (!colorLogic->test_ParseTerm(str, term, false, "", "", "", __LINE__))
     {
-    std::cerr << __LINE__
-              << "test_ParseTerm: failed to not parse too short invalid string "
-              << str
-              << std::endl;
     return EXIT_FAILURE;
     }
+  // too short a term string
   str = "(M;S;B)";
-  if (colorLogic->test_ParseTerm(str, term))
+  if (!colorLogic->test_ParseTerm(str, term, false, "", "", "", __LINE__))
     {
-    std::cerr << __LINE__
-              << "test_ParseTerm: failed to not parse too short invalid string "
-              << str
-              << std::endl;
     return EXIT_FAILURE;
     }
 
+  // test missing brackets
   str = "M-01000;SRT;Morphologically Altered Structure";
-  if (colorLogic->test_ParseTerm(str, term))
+  if (!colorLogic->test_ParseTerm(str, term, false, "", "", "", __LINE__))
     {
-    std::cerr << __LINE__
-              << "test_ParseTerm: failed to not parse invalid string "
-              << str
-              << std::endl;
     return EXIT_FAILURE;
     }
 
+  // test with missing semi colons
   str = "(M-01000;SRT Morphologically Altered Structure)";
-  if (colorLogic->test_ParseTerm(str, term))
+  if (!colorLogic->test_ParseTerm(str, term, false, "", "", "", __LINE__))
     {
-    std::cerr << __LINE__
-              << "test_ParseTerm: failed to not parse invalid string "
-              << str
-              << std::endl;
     return EXIT_FAILURE;
     }
   str = "(M-01000 SRT;Morphologically Altered Structure)";
-  if (colorLogic->test_ParseTerm(str, term))
+  if (!colorLogic->test_ParseTerm(str, term, false, "", "", "", __LINE__))
     {
-    std::cerr << __LINE__
-              << "test_ParseTerm: failed to not parse invalid string "
-              << str
-              << std::endl;
     return EXIT_FAILURE;
     }
   str = "(M-01000 SRT Morphologically Altered Structure)";
-  if (colorLogic->test_ParseTerm(str, term))
+  if (!colorLogic->test_ParseTerm(str, term, false, "", "", "", __LINE__))
     {
-    std::cerr << __LINE__
-              << "test_ParseTerm: failed to not parse invalid string "
-              << str
-              << std::endl;
     return EXIT_FAILURE;
     }
   return EXIT_SUCCESS;

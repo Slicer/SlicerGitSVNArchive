@@ -238,7 +238,7 @@ public:
   /// Returns true on success, false if lutName is empty or can't associate the new
   /// terminology with a color node
   /// \sa AssociateTerminologyWithColorNode
-  bool CreateNewTerminology(std::string lutName);
+  bool CreateNewTerminology(const std::string& lutName);
   /// Return true if a terminology mapping already exists for this lutName,
   // false if empty name or none found.
   bool TerminologyExists(std::string lutName);
