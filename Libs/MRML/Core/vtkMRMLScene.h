@@ -121,14 +121,20 @@ public:
   /// where X is the major version of Slicer scene to support, Y the minor and
   /// Z the patch version.
   ///
+  /// If force is set to true then if a class with the same tag is already registered
+  /// it will be overwritten with the new class.
+  ///
   /// \sa CreateNodeByClass(), GetClassNameByTag()
-  void RegisterNodeClass(vtkMRMLNode* node, const char* tagName);
+  void RegisterNodeClass(vtkMRMLNode* node, const char* tagName, bool force = true);
 
   /// \brief Utility function to RegisterNodeClass(), the node tag name is used when
   /// registering the node.
   ///
+  /// If force is set to true then if a class with the same tag is already registered
+  /// it will be overwritten with the new class.
+  ///
   /// \sa RegisterNodeClass()
-  void RegisterNodeClass(vtkMRMLNode* node);
+  void RegisterNodeClass(vtkMRMLNode* node, bool force = true);
 
   /// Add a path to the list.
   const char* GetClassNameByTag(const char *tagName);

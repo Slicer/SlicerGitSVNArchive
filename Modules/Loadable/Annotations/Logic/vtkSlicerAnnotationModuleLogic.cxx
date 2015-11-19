@@ -748,39 +748,43 @@ void vtkSlicerAnnotationModuleLogic::RegisterNodes()
   // The core nodes
   //
 
+  // We just want to make sure the classes are registered, there
+  // is no need to overwrite them if they are already registered.
+  const bool forceOverwriteExistingClass = false;
+
   // base nodes
   vtkNew<vtkMRMLAnnotationNode> annotationNode;
-  scene->RegisterNodeClass(annotationNode.GetPointer());
+  scene->RegisterNodeClass(annotationNode.GetPointer(), forceOverwriteExistingClass);
 
   vtkNew<vtkMRMLAnnotationDisplayNode> annotationDisplayNode;
-  scene->RegisterNodeClass(annotationDisplayNode.GetPointer());
+  scene->RegisterNodeClass(annotationDisplayNode.GetPointer(), forceOverwriteExistingClass);
 
   vtkNew<vtkMRMLAnnotationStorageNode> annotationStorageNode;
-  scene->RegisterNodeClass(annotationStorageNode.GetPointer());
+  scene->RegisterNodeClass(annotationStorageNode.GetPointer(), forceOverwriteExistingClass);
 
   // Control Points
   vtkNew<vtkMRMLAnnotationControlPointsNode> annotationControlPointsNode;
-  scene->RegisterNodeClass(annotationControlPointsNode.GetPointer());
+  scene->RegisterNodeClass(annotationControlPointsNode.GetPointer(), forceOverwriteExistingClass);
 
   vtkNew<vtkMRMLAnnotationControlPointsStorageNode> annotationControlPointsStorageNode;
-  scene->RegisterNodeClass(annotationControlPointsStorageNode.GetPointer());
+  scene->RegisterNodeClass(annotationControlPointsStorageNode.GetPointer(), forceOverwriteExistingClass);
 
   vtkNew<vtkMRMLAnnotationPointDisplayNode> annotationControlPointsDisplayNode;
-  scene->RegisterNodeClass(annotationControlPointsDisplayNode.GetPointer());
+  scene->RegisterNodeClass(annotationControlPointsDisplayNode.GetPointer(), forceOverwriteExistingClass);
 
   // Lines
   vtkNew<vtkMRMLAnnotationLinesNode> annotationLinesNode;
-  scene->RegisterNodeClass(annotationLinesNode.GetPointer());
+  scene->RegisterNodeClass(annotationLinesNode.GetPointer(), forceOverwriteExistingClass);
 
   vtkNew<vtkMRMLAnnotationLinesStorageNode> annotationLinesStorageNode;
-  scene->RegisterNodeClass(annotationLinesStorageNode.GetPointer());
+  scene->RegisterNodeClass(annotationLinesStorageNode.GetPointer(), forceOverwriteExistingClass);
 
   vtkNew<vtkMRMLAnnotationLineDisplayNode> annotationLinesDisplayNode;
-  scene->RegisterNodeClass(annotationLinesDisplayNode.GetPointer());
+  scene->RegisterNodeClass(annotationLinesDisplayNode.GetPointer(), forceOverwriteExistingClass);
 
   // Text
   vtkNew<vtkMRMLAnnotationTextDisplayNode> annotationTextDisplayNode;
-  scene->RegisterNodeClass(annotationTextDisplayNode.GetPointer());
+  scene->RegisterNodeClass(annotationTextDisplayNode.GetPointer(), forceOverwriteExistingClass);
 
   //
   // Now the actual Annotation tool nodes
@@ -788,46 +792,46 @@ void vtkSlicerAnnotationModuleLogic::RegisterNodes()
 
   // Snapshot annotation
   vtkNew<vtkMRMLAnnotationSnapshotNode> annotationSnapshotNode;
-  scene->RegisterNodeClass(annotationSnapshotNode.GetPointer());
+  scene->RegisterNodeClass(annotationSnapshotNode.GetPointer(), forceOverwriteExistingClass);
 
   vtkNew<vtkMRMLAnnotationSnapshotStorageNode> annotationSnapshotStorageNode;
-  scene->RegisterNodeClass(annotationSnapshotStorageNode.GetPointer());
+  scene->RegisterNodeClass(annotationSnapshotStorageNode.GetPointer(), forceOverwriteExistingClass);
 
   // Text annotation
   vtkNew<vtkMRMLAnnotationTextNode> annotationTextNode;
-  scene->RegisterNodeClass(annotationTextNode.GetPointer());
+  scene->RegisterNodeClass(annotationTextNode.GetPointer(), forceOverwriteExistingClass);
 
   // Ruler annotation
   vtkNew<vtkMRMLAnnotationRulerNode> annotationRulerNode;
-  scene->RegisterNodeClass(annotationRulerNode.GetPointer());
+  scene->RegisterNodeClass(annotationRulerNode.GetPointer(), forceOverwriteExistingClass);
 
   vtkNew<vtkMRMLAnnotationRulerStorageNode> annotationRulerStorageNode;
-  scene->RegisterNodeClass(annotationRulerStorageNode.GetPointer());
+  scene->RegisterNodeClass(annotationRulerStorageNode.GetPointer(), forceOverwriteExistingClass);
 
   // ROI annotation
   vtkNew<vtkMRMLAnnotationROINode> annotationROINode;
-  scene->RegisterNodeClass(annotationROINode.GetPointer());
+  scene->RegisterNodeClass(annotationROINode.GetPointer(), forceOverwriteExistingClass);
   // ROI annotation backwards compatibility
 #if MRML_SUPPORT_VERSION < 0x040000
-  scene->RegisterNodeClass(annotationROINode.GetPointer(), "ROI");
+  scene->RegisterNodeClass(annotationROINode.GetPointer(), "ROI", forceOverwriteExistingClass);
 #endif
 
   // Bidimensional annotation
   vtkNew<vtkMRMLAnnotationBidimensionalNode> annotationBidimensionalNode;
-  scene->RegisterNodeClass(annotationBidimensionalNode.GetPointer());
+  scene->RegisterNodeClass(annotationBidimensionalNode.GetPointer(), forceOverwriteExistingClass);
 
   // Fiducial annotation
   vtkNew<vtkMRMLAnnotationFiducialNode> annotationFiducialNode;
-  scene->RegisterNodeClass(annotationFiducialNode.GetPointer());
+  scene->RegisterNodeClass(annotationFiducialNode.GetPointer(), forceOverwriteExistingClass);
 
   vtkNew<vtkMRMLAnnotationFiducialsStorageNode> annotationFiducialsStorageNode;
-  scene->RegisterNodeClass(annotationFiducialsStorageNode.GetPointer());
+  scene->RegisterNodeClass(annotationFiducialsStorageNode.GetPointer(), forceOverwriteExistingClass);
 
   //
   // Annotation hierarchies
   //
   vtkNew<vtkMRMLAnnotationHierarchyNode> annotationHierarchyNode;
-  scene->RegisterNodeClass(annotationHierarchyNode.GetPointer());
+  scene->RegisterNodeClass(annotationHierarchyNode.GetPointer(), forceOverwriteExistingClass);
 }
 
 //---------------------------------------------------------------------------
