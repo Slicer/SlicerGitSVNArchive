@@ -737,11 +737,11 @@ double DecayCorrection(parameters & list, double inVal )
 // ...
 // ...............................................................................................
 // ...
-const char * MapLabelIDtoColorName( int id, std::string colorFile )
+std::string MapLabelIDtoColorName( int id, std::string colorFile )
 {
   // use the colour table that was passed in with the VOI volume
 
-  const char *colorName = "";
+  std::string colorName;
 
   vtkNew<vtkMRMLColorTableNode> colorNode;
   vtkNew<vtkMRMLColorTableStorageNode> colorStorageNode;
@@ -1520,11 +1520,18 @@ int LoadImagesAndComputeSUV( parameters & list, T )
           }
         else
           {
+          ss.str("");
+          ofile.seekp(0,ios::end);
+          long pos = ofile.tellp();
+          if (pos == 0)
+            {
+            ss << "patientID,studyDate,dose,labelID,suvmin,suvmax,suvmean,labelName" << std::endl;
+            }
           // --- for each value..
           // --- format looks like:
           // patientID, studyDate, dose, labelID, suvmin, suvmax, suvmean, labelName
           // ...
-          ss.str("");
+
           ss << list.patientName << ", " << list.studyDate << ", " << list.injectedDose  << ", "  << i << ", " << suvmin << ", " << suvmax
              << ", " << suvmean << ", " << labelName.c_str() << std::endl;
           ofile << ss.str();
