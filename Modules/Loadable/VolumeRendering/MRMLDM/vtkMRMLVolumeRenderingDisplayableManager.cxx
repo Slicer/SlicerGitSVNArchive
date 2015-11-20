@@ -709,8 +709,9 @@ void vtkMRMLVolumeRenderingDisplayableManager::UpdateClipping(
 //---------------------------------------------------------------------------
 void vtkMRMLVolumeRenderingDisplayableManager::TransformModified(vtkMRMLVolumeRenderingDisplayNode* vspNode)
 {
-  if (vspNode == NULL)
+  if (vspNode == NULL || vspNode != this->DisplayedNode)
     {
+    // only the current DisplayedNode is visible, therefore we can ignore all other transform updates
     return;
     }
   vtkNew<vtkMatrix4x4> matrix;
