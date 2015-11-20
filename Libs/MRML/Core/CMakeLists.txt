@@ -165,6 +165,9 @@ set(MRMLCore_SRCS
   vtkMRMLSnapshotClipNode.cxx
   vtkMRMLStorableNode.cxx
   vtkMRMLStorageNode.cxx
+  vtkMRMLSubjectHierarchyConstants.h
+  vtkMRMLSubjectHierarchyNode.cxx
+  vtkMRMLSubjectHierarchyNode.h
   vtkMRMLTransformNode.cxx
   vtkMRMLTransformStorageNode.cxx
   vtkMRMLTransformDisplayNode.cxx

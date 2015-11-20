@@ -209,7 +209,6 @@ class SubjectHierarchyGenericSelfTestTest(ScriptedLoadableModuleTest):
   def section_AddNodeToSubjectHierarchy(self):
     self.delayDisplay("Add node to subject hierarchy",self.delayMs)
 
-    from vtkSlicerSubjectHierarchyModuleMRML import vtkMRMLSubjectHierarchyNode
     import qSlicerSubjectHierarchyModuleWidgetsPythonQt
 
     # Get volume previously loaded from DICOM
@@ -228,11 +227,11 @@ class SubjectHierarchyGenericSelfTestTest(ScriptedLoadableModuleTest):
     self.assertTrue( subjectHierarchySceneModel != None )
 
     # Get subject hierarchy nodes and study node
-    ctVolumeShNode = vtkMRMLSubjectHierarchyNode.GetAssociatedSubjectHierarchyNode(ctVolumeNode)
+    ctVolumeShNode = slicer.vtkMRMLSubjectHierarchyNode.GetAssociatedSubjectHierarchyNode(ctVolumeNode)
     self.assertTrue( ctVolumeShNode != None )
-    sampleLabelmapShNode = vtkMRMLSubjectHierarchyNode.GetAssociatedSubjectHierarchyNode(sampleLabelmapNode)
+    sampleLabelmapShNode = slicer.vtkMRMLSubjectHierarchyNode.GetAssociatedSubjectHierarchyNode(sampleLabelmapNode)
     self.assertTrue( sampleLabelmapShNode != None )
-    sampleModelShNode = vtkMRMLSubjectHierarchyNode.GetAssociatedSubjectHierarchyNode(sampleModelNode)
+    sampleModelShNode = slicer.vtkMRMLSubjectHierarchyNode.GetAssociatedSubjectHierarchyNode(sampleModelNode)
     self.assertTrue( sampleModelShNode != None )
     studyNode = ctVolumeShNode.GetParentNode()
     self.assertTrue( studyNode != None )
@@ -262,12 +261,10 @@ class SubjectHierarchyGenericSelfTestTest(ScriptedLoadableModuleTest):
   def section_CreateSecondBranch(self):
     self.delayDisplay("Create second branch in subject hierarchy",self.delayMs)
 
-    from vtkSlicerSubjectHierarchyModuleMRML import vtkMRMLSubjectHierarchyNode
-
-    patient2Node = vtkMRMLSubjectHierarchyNode.CreateSubjectHierarchyNode(slicer.mrmlScene, None, slicer.vtkMRMLSubjectHierarchyConstants.GetDICOMLevelPatient(), self.patient2Name)
-    study2Node = vtkMRMLSubjectHierarchyNode.CreateSubjectHierarchyNode(slicer.mrmlScene, patient2Node, slicer.vtkMRMLSubjectHierarchyConstants.GetDICOMLevelStudy(), self.study2Name)
-    seriesNode = vtkMRMLSubjectHierarchyNode.CreateSubjectHierarchyNode(slicer.mrmlScene, study2Node, slicer.vtkMRMLSubjectHierarchyConstants.GetDICOMLevelSeries(), self.testSeriesName)
-    subseriesNode = vtkMRMLSubjectHierarchyNode.CreateSubjectHierarchyNode(slicer.mrmlScene, seriesNode, slicer.vtkMRMLSubjectHierarchyConstants.GetDICOMLevelSubseries(), self.testSubseriesName)
+    patient2Node = slicer.vtkMRMLSubjectHierarchyNode.CreateSubjectHierarchyNode(slicer.mrmlScene, None, slicer.vtkMRMLSubjectHierarchyConstants.GetDICOMLevelPatient(), self.patient2Name)
+    study2Node = slicer.vtkMRMLSubjectHierarchyNode.CreateSubjectHierarchyNode(slicer.mrmlScene, patient2Node, slicer.vtkMRMLSubjectHierarchyConstants.GetDICOMLevelStudy(), self.study2Name)
+    seriesNode = slicer.vtkMRMLSubjectHierarchyNode.CreateSubjectHierarchyNode(slicer.mrmlScene, study2Node, slicer.vtkMRMLSubjectHierarchyConstants.GetDICOMLevelSeries(), self.testSeriesName)
+    subseriesNode = slicer.vtkMRMLSubjectHierarchyNode.CreateSubjectHierarchyNode(slicer.mrmlScene, seriesNode, slicer.vtkMRMLSubjectHierarchyConstants.GetDICOMLevelSubseries(), self.testSubseriesName)
 
     # Check if the created nodes have the right parents
     self.assertTrue( study2Node.GetParentNode() == patient2Node )
