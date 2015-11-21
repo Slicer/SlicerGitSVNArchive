@@ -43,7 +43,8 @@
 
 //---------------------------------------------------------------------------
 qMRMLSliceWidgetPrivate::qMRMLSliceWidgetPrivate(qMRMLSliceWidget& object)
-  : q_ptr(&object)
+  : QObject(0)
+  , q_ptr(&object)
 {
 }
 
@@ -103,11 +104,19 @@ void qMRMLSliceWidgetPrivate::setImageDataConnection(vtkAlgorithmOutput * imageD
 // qMRMLSliceView methods
 
 // --------------------------------------------------------------------------
-qMRMLSliceWidget::qMRMLSliceWidget(QWidget* _parent) : Superclass(_parent)
+qMRMLSliceWidget::qMRMLSliceWidget(QWidget* parentWidget)
+  : Superclass(parentWidget)
   , d_ptr(new qMRMLSliceWidgetPrivate(*this))
 {
   Q_D(qMRMLSliceWidget);
   d->init();
+}
+
+qMRMLSliceWidget::qMRMLSliceWidget(qMRMLSliceWidgetPrivate *pimpl, QWidget *parentWidget)
+  : Superclass(parentWidget)
+  , d_ptr(pimpl)
+{
+  // init() should be called in the subclass constructor
 }
 
 // --------------------------------------------------------------------------

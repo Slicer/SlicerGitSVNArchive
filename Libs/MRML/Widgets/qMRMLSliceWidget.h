@@ -151,6 +151,7 @@ public slots:
 
 protected:
   QScopedPointer<qMRMLSliceWidgetPrivate> d_ptr;
+  qMRMLSliceWidget(qMRMLSliceWidgetPrivate* pimpl, QWidget* parent = 0);
 
 private:
   Q_DECLARE_PRIVATE(qMRMLSliceWidget);

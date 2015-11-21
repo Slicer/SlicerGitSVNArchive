@@ -1232,11 +1232,17 @@ void qMRMLSliceControllerWidgetPrivate::applyCustomLightbox()
 // qMRMLSliceView methods
 
 // --------------------------------------------------------------------------
-qMRMLSliceControllerWidget::qMRMLSliceControllerWidget(QWidget* _parent)
-  : Superclass(new qMRMLSliceControllerWidgetPrivate(*this), _parent)
+qMRMLSliceControllerWidget::qMRMLSliceControllerWidget(QWidget* parentWidget)
+  : Superclass(new qMRMLSliceControllerWidgetPrivate(*this), parentWidget)
 {
   Q_D(qMRMLSliceControllerWidget);
   d->init();
+}
+
+qMRMLSliceControllerWidget::qMRMLSliceControllerWidget(qMRMLSliceControllerWidgetPrivate *pimpl, QWidget *parentWidget)
+  : Superclass(pimpl, parentWidget)
+{
+  // init() should be called in the subclass constructor
 }
 
 // --------------------------------------------------------------------------
