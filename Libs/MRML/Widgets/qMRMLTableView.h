@@ -25,17 +25,19 @@
 #include <QTableView>
 
 // qMRML includes
-#include "qSlicerTablesModuleWidgetsExport.h"
+#include "qMRMLWidgetsExport.h"
 
 class QSortFilterProxyModel;
 class qMRMLTableViewPrivate;
 class qMRMLTableModel;
-class vtkMRMLTableNode;
 class vtkMRMLNode;
+class vtkMRMLScene;
+class vtkMRMLTableNode;
+class vtkMRMLTableViewNode;
 
 /// \brief Spreadsheet view for table nodes.
 /// Allow view/edit of a vtkMRMLTableNode.
-class Q_SLICER_MODULE_TABLES_WIDGETS_EXPORT qMRMLTableView : public QTableView
+class QMRML_WIDGETS_EXPORT qMRMLTableView : public QTableView
 {
   Q_OBJECT
   Q_PROPERTY(bool transposed READ transposed WRITE setTransposed)
@@ -45,7 +47,14 @@ public:
   qMRMLTableView(QWidget *parent=0);
   virtual ~qMRMLTableView();
 
+  /// Return a pointer on the current MRML scene
+  vtkMRMLScene* mrmlScene() const;
+
+  /// Get the TableView node observed by view.
+  vtkMRMLTableViewNode* mrmlTableViewNode()const;
+
   vtkMRMLTableNode* mrmlTableNode()const;
+
   qMRMLTableModel* tableModel()const;
   QSortFilterProxyModel* sortFilterProxyModel()const;
 
@@ -54,6 +63,12 @@ public:
   bool firstColumnLocked()const;
 
 public slots:
+  /// Set the MRML \a scene that should be listened for events
+  void setMRMLScene(vtkMRMLScene* newScene);
+
+  /// Set the current \a viewNode to observe. If NULL then view properties are not stored in the scene.
+  void setMRMLTableViewNode(vtkMRMLTableViewNode* newTableViewNode);
+
   void setMRMLTableNode(vtkMRMLTableNode* tableNode);
   /// Utility function to simply connect signals/slots with Qt Designer
   void setMRMLTableNode(vtkMRMLNode* tableNode);
@@ -74,6 +89,13 @@ public slots:
 
   void deleteRow();
   void deleteColumn();
+
+signals:
+
+  /// When designing custom qMRMLWidget in the designer, you can connect the
+  /// mrmlSceneChanged signal directly to the aggregated MRML widgets that
+  /// have a setMRMLScene slot.
+  void mrmlSceneChanged(vtkMRMLScene*);
 
 protected:
   virtual void keyPressEvent(QKeyEvent* event);

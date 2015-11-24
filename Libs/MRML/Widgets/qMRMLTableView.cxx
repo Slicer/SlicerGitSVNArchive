@@ -23,15 +23,23 @@
 #include <QClipboard>
 #include <QDebug>
 #include <QHeaderView>
+#include <QHBoxLayout>
 #include <QKeyEvent>
 #include <QSortFilterProxyModel>
+#include <QToolButton>
+
+// CTK includes
+#include <ctkPopupWidget.h>
 
 // qMRML includes
 #include "qMRMLTableView.h"
+#include "qMRMLTableView_p.h"
 #include "qMRMLTableModel.h"
 
 // MRML includes
+#include <vtkMRMLScene.h>
 #include <vtkMRMLTableNode.h>
+#include <vtkMRMLTableViewNode.h>
 
 #define VERIFY_TABLE_MODEL_AND_NODE(methodName, returnValue) \
   if (!this->tableModel()) \
@@ -46,19 +54,15 @@
     }
 
 //------------------------------------------------------------------------------
-class qMRMLTableViewPrivate
-{
-  Q_DECLARE_PUBLIC(qMRMLTableView);
-protected:
-  qMRMLTableView* const q_ptr;
-public:
-  qMRMLTableViewPrivate(qMRMLTableView& object);
-  void init();
-};
-
-//------------------------------------------------------------------------------
 qMRMLTableViewPrivate::qMRMLTableViewPrivate(qMRMLTableView& object)
   : q_ptr(&object)
+  , MRMLScene(0)
+  , MRMLTableViewNode(0)
+{
+}
+
+//---------------------------------------------------------------------------
+qMRMLTableViewPrivate::~qMRMLTableViewPrivate()
 {
 }
 
@@ -73,6 +77,68 @@ void qMRMLTableViewPrivate::init()
   q->setModel(sortFilterModel);
 
   q->horizontalHeader()->setStretchLastSection(false);
+
+  // Let the view expand in both directions
+  q->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
+  this->PopupWidget = new ctkPopupWidget;
+  QHBoxLayout* popupLayout = new QHBoxLayout;
+  popupLayout->addWidget(new QToolButton);
+  this->PopupWidget->setLayout(popupLayout);
+}
+
+//---------------------------------------------------------------------------
+void qMRMLTableViewPrivate::setMRMLScene(vtkMRMLScene* newScene)
+{
+  //Q_Q(qMRMLTableView);
+  if (newScene == this->MRMLScene)
+    {
+    return;
+    }
+  this->qvtkReconnect(
+    this->mrmlScene(), newScene,
+    vtkMRMLScene::StartBatchProcessEvent, this, SLOT(startProcessing()));
+
+  this->qvtkReconnect(
+    this->mrmlScene(), newScene,
+    vtkMRMLScene::EndBatchProcessEvent, this, SLOT(endProcessing()));
+  this->MRMLScene = newScene;
+}
+
+// --------------------------------------------------------------------------
+void qMRMLTableViewPrivate::startProcessing()
+{
+}
+
+// --------------------------------------------------------------------------
+void qMRMLTableViewPrivate::endProcessing()
+{
+  this->updateWidgetFromViewNode();
+}
+
+// --------------------------------------------------------------------------
+vtkMRMLScene* qMRMLTableViewPrivate::mrmlScene()
+{
+  return this->MRMLScene;
+}
+
+// --------------------------------------------------------------------------
+void qMRMLTableViewPrivate::updateWidgetFromViewNode()
+{
+  Q_Q(qMRMLTableView);
+  if (!this->MRMLScene || !this->MRMLTableViewNode)
+    {
+    q->setMRMLTableNode((vtkMRMLNode*)NULL);
+    return;
+    }
+
+  if (!q->isEnabled())
+    {
+    return;
+    }
+
+  // Get the TableNode
+  q->setMRMLTableNode(this->MRMLTableViewNode->GetTableNode());
 }
 
 //------------------------------------------------------------------------------
@@ -137,13 +203,6 @@ vtkMRMLTableNode* qMRMLTableView::mrmlTableNode()const
 }
 
 //------------------------------------------------------------------------------
-void qMRMLTableView::setTransposed(bool transposed)
-{
-  VERIFY_TABLE_MODEL_AND_NODE(setTransposed);
-  tableModel()->setTransposed(transposed);
-}
-
-//------------------------------------------------------------------------------
 bool qMRMLTableView::transposed()const
 {
   VERIFY_TABLE_MODEL_AND_NODE(transposed, false);
@@ -151,8 +210,26 @@ bool qMRMLTableView::transposed()const
 }
 
 //------------------------------------------------------------------------------
+void qMRMLTableView::setTransposed(bool transposed)
+{
+  VERIFY_TABLE_MODEL_AND_NODE(setTransposed);
+  tableModel()->setTransposed(transposed);
+}
+
+//------------------------------------------------------------------------------
 void qMRMLTableView::keyPressEvent(QKeyEvent *event)
 {
+  if(event->matches(QKeySequence::Copy) )
+    {
+    this->copySelection();
+    return;
+    }
+  if(event->matches(QKeySequence::Paste) )
+    {
+    this->pasteSelection();
+    return;
+    }
+
   // Prevent giving the focus to the previous/next widget if arrow keys are used
   // at the edge of the table (without this: if the current cell is in the top
   // row and user press the Up key, the focus goes from the table to the previous
@@ -237,27 +314,36 @@ void qMRMLTableView::pasteSelection()
   int rowIndex = currentIndex().row();
   int startColumnIndex = currentIndex().column();
   QStringList lines = text.split('\n');
-  foreach(QString line, lines)
+  if (!lines.empty())
     {
-    if (rowIndex>=mrmlModel->rowCount())
-        {
-        // reached last row in the table, ignore subsequent rows
-        break;
-        }
-    int columnIndex = startColumnIndex;
-    QStringList cells = line.split('\t');
-    foreach(QString cell, cells)
+    // If there are multiple table views then each cell modification would trigger
+    // a table update, which may be very slow in case of large tables, therefore
+    // we need to use StartModify/EndModify.
+    vtkMRMLTableNode* tableNode = mrmlTableNode();
+    int wasModified = tableNode->StartModify();
+    foreach(QString line, lines)
       {
-      if (columnIndex>=mrmlModel->columnCount())
+      if (rowIndex>=mrmlModel->rowCount())
+          {
+          // reached last row in the table, ignore subsequent rows
+          break;
+          }
+      int columnIndex = startColumnIndex;
+      QStringList cells = line.split('\t');
+      foreach(QString cell, cells)
         {
-        // reached last column in the table, ignore subsequent columns
-        break;
+        if (columnIndex>=mrmlModel->columnCount())
+          {
+          // reached last column in the table, ignore subsequent columns
+          break;
+          }
+        mrmlModel->item(rowIndex,columnIndex)->setText(cell);
+        columnIndex++;
         }
-      mrmlModel->item(rowIndex,columnIndex)->setText(cell);
-      columnIndex++;
+      rowIndex++;
       }
-    rowIndex++;
-  }
+    tableNode->EndModify(wasModified);
+    }
 }
 
 //-----------------------------------------------------------------------------
@@ -387,4 +473,58 @@ void qMRMLTableView::setFirstColumnLocked(bool locked)
     mrmlTableNode()->SetUseFirstColumnAsRowHeader(locked);
     }
   this->resizeColumnsToContents();
+}
+
+//------------------------------------------------------------------------------
+void qMRMLTableView::setMRMLScene(vtkMRMLScene* newScene)
+{
+  Q_D(qMRMLTableView);
+  if (newScene == d->MRMLScene)
+    {
+    return;
+    }
+
+  d->setMRMLScene(newScene);
+
+  if (d->MRMLTableViewNode && newScene != d->MRMLTableViewNode->GetScene())
+    {
+    this->setMRMLTableViewNode(0);
+    }
+
+  emit mrmlSceneChanged(newScene);
+}
+
+//---------------------------------------------------------------------------
+void qMRMLTableView::setMRMLTableViewNode(vtkMRMLTableViewNode* newTableViewNode)
+{
+  Q_D(qMRMLTableView);
+  if (d->MRMLTableViewNode == newTableViewNode)
+    {
+    return;
+    }
+
+  // connect modified event on TableViewNode to updating the widget
+  d->qvtkReconnect(
+    d->MRMLTableViewNode, newTableViewNode,
+    vtkCommand::ModifiedEvent, d, SLOT(updateWidgetFromViewNode()));
+
+  // cache the TableViewNode
+  d->MRMLTableViewNode = newTableViewNode;
+
+  // make sure the gui is up to date
+  d->updateWidgetFromViewNode();
+}
+
+//---------------------------------------------------------------------------
+vtkMRMLTableViewNode* qMRMLTableView::mrmlTableViewNode()const
+{
+  Q_D(const qMRMLTableView);
+  return d->MRMLTableViewNode;
+}
+
+//---------------------------------------------------------------------------
+vtkMRMLScene* qMRMLTableView::mrmlScene()const
+{
+  Q_D(const qMRMLTableView);
+  return d->MRMLScene;
 }

@@ -25,7 +25,6 @@
 #include <QVBoxLayout>
 
 // qMRML includes
-#include "qSlicerCoreApplication.h"
 #include "qMRMLTableModel.h"
 #include "qMRMLTableView.h"
 
@@ -40,7 +39,7 @@
 
 int qMRMLTableViewTest1( int argc, char * argv [] )
 {
-  qSlicerCoreApplication app(argc, argv);
+  QApplication app(argc, argv);
 
   // Create a table with some points in it...
   vtkNew<vtkTable> table;

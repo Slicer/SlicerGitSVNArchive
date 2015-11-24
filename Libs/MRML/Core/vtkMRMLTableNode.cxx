@@ -272,7 +272,8 @@ vtkAbstractArray* vtkMRMLTableNode::AddColumn(vtkAbstractArray* column)
     }
 
   this->Table->AddColumn(newColumn);
-  this->Table->Modified();  this->EndModify(tableWasModified);
+  this->Table->Modified();
+  this->EndModify(tableWasModified);
   return newColumn;
 }
 
@@ -302,13 +303,15 @@ int vtkMRMLTableNode::AddEmptyRow()
     vtkErrorMacro("vtkMRMLTableNode::AddEmptyRow failed: invalid table");
     return -1;
     }
+  int tableWasModified = this->StartModify();
   if (this->Table->GetNumberOfColumns()==0)
     {
-    vtkErrorMacro("vtkMRMLTableNode::AddEmptyRow failed: no columns are defined");
-    return -1;
+    vtkDebugMacro("vtkMRMLTableNode::AddEmptyRow called for an empty table. Add an empty column first.");
+    this->AddColumn();
     }
   vtkIdType rowIndex = this->Table->InsertNextBlankRow();
   this->Table->Modified();
+  this->EndModify(tableWasModified);
   return rowIndex;
 }
 

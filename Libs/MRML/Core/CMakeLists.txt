@@ -167,6 +167,7 @@ set(MRMLCore_SRCS
   vtkMRMLStorageNode.cxx
   vtkMRMLTableNode.cxx
   vtkMRMLTableStorageNode.cxx
+  vtkMRMLTableViewNode.cxx
   vtkMRMLTransformNode.cxx
   vtkMRMLTransformStorageNode.cxx
   vtkMRMLTransformDisplayNode.cxx

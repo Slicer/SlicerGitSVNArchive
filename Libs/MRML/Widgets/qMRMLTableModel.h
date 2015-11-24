@@ -29,7 +29,7 @@
 #include <ctkVTKObject.h>
 
 // qMRML includes
-#include "qSlicerTablesModuleWidgetsExport.h"
+#include "qMRMLWidgetsExport.h"
 
 class vtkMRMLNode;
 class vtkMRMLTableNode;
@@ -38,7 +38,7 @@ class QAction;
 class qMRMLTableModelPrivate;
 
 //------------------------------------------------------------------------------
-class Q_SLICER_MODULE_TABLES_WIDGETS_EXPORT qMRMLTableModel : public QStandardItemModel
+class QMRML_WIDGETS_EXPORT qMRMLTableModel : public QStandardItemModel
 {
   Q_OBJECT
   QVTK_OBJECT

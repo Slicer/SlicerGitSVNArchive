@@ -30,6 +30,9 @@
 #include "qSlicerTablesModule.h"
 #include "qSlicerTablesReader.h"
 #include "qSlicerTablesModuleWidget.h"
+// SubjectHierarchy Plugins includes
+#include "qSlicerSubjectHierarchyPluginHandler.h"
+#include "qSlicerSubjectHierarchyTablesPlugin.h"
 
 //-----------------------------------------------------------------------------
 Q_EXPORT_PLUGIN2(qSlicerTablesModule, qSlicerTablesModule);
@@ -117,6 +120,8 @@ void qSlicerTablesModule::setup()
   ioManager->registerIO(new qSlicerNodeWriter(
     "Table", QString("TableFile"),
     QStringList() << "vtkMRMLTableNode", false, this));
+  // Register Subject Hierarchy core plugins
+  qSlicerSubjectHierarchyPluginHandler::instance()->registerPlugin(new qSlicerSubjectHierarchyTablesPlugin());
 }
 
 

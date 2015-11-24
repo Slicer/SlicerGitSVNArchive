@@ -26,6 +26,7 @@
 #include <vtkMRMLModelHierarchyNode.h>
 #include <vtkMRMLScene.h>
 #include <vtkMRMLSelectionNode.h>
+#include <vtkMRMLTableNode.h>
 #include <vtkMRMLRemoteIOLogic.h>
 
 // VTK includes
@@ -1046,6 +1047,7 @@ void vtkSlicerApplicationLogic::ProcessReadNodeData(ReadDataRequest& req)
     if (vtkMRMLLabelMapVolumeNode::SafeDownCast(nd)!=NULL)
       {
       this->GetSelectionNode()->SetActiveLabelVolumeID( req.GetNode().c_str() );
+      this->PropagateVolumeSelection();
       }
     else if (vtkMRMLScalarVolumeNode::SafeDownCast(nd)!=NULL)
       {
@@ -1056,8 +1058,13 @@ void vtkSlicerApplicationLogic::ProcessReadNodeData(ReadDataRequest& req)
         {
         displayNode->Modified();
         }
+      this->PropagateVolumeSelection();
       }
-    this->PropagateVolumeSelection();
+    else if (vtkMRMLTableNode::SafeDownCast(nd)!=NULL)
+      {
+      this->GetSelectionNode()->SetActiveTableID( req.GetNode().c_str() );
+      this->PropagateTableSelection();
+      }
     }
 }
 

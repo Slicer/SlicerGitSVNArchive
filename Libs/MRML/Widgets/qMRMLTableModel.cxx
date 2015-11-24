@@ -202,12 +202,33 @@ void qMRMLTableModel::updateModelFromMRML()
     for (vtkIdType tableRow = tableRowOffset; tableRow < numberOfTableRows; ++tableRow)
       {
       int modelRow = static_cast<int>(tableRow - tableRowOffset);
-      QStandardItem* item = new QStandardItem();
+
+      QStandardItem* existingItem = NULL;
+      if (d->Transposed)
+        {
+        existingItem = item(modelCol, static_cast<int>(modelRow));
+        }
+      else
+        {
+        existingItem = item(static_cast<int>(modelRow), modelCol);
+        }
+      QStandardItem* item = existingItem;
+      if (item==NULL)
+        {
+        item = new QStandardItem();
+        }
 
       if (tableRow>=0)
         {
         vtkVariant variant = table->GetValue(tableRow, tableCol);
         item->setText(QString(variant.ToString()));
+        if (tableRow==0)
+          {
+          // the first row might have been bold earlier, make sure
+          // it is reset to non-bold
+          QFont font;
+          item->setData(font, Qt::FontRole);
+          }
         }
       else
         {
@@ -226,13 +247,16 @@ void qMRMLTableModel::updateModelFromMRML()
         // Item is editable, set the ItemIsEditable flag
         item->setFlags(item->flags() | Qt::ItemIsEditable);
         }
-      if (d->Transposed)
+      if (item!=existingItem)
         {
-        setItem(modelCol, static_cast<int>(modelRow), item);
-        }
-      else
-        {
-        setItem(static_cast<int>(modelRow), modelCol, item);
+        if (d->Transposed)
+          {
+          setItem(modelCol, static_cast<int>(modelRow), item);
+          }
+        else
+          {
+          setItem(static_cast<int>(modelRow), modelCol, item);
+          }
         }
       }
     }

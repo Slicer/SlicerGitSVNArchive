@@ -29,6 +29,7 @@
 
 // MRML includes
 #include <vtkMRMLScene.h>
+#include <vtkMRMLSelectionNode.h>
 #include <vtkMRMLTableNode.h>
 
 // VTK includes
@@ -118,6 +119,17 @@ bool qSlicerTablesReader::load(const IOProperties& properties)
     }
   if (node)
     {
+    // Show table in viewers
+    vtkSlicerApplicationLogic* appLogic = d->Logic->GetApplicationLogic();
+    vtkMRMLSelectionNode* selectionNode = appLogic ? appLogic->GetSelectionNode() : 0;
+    if (selectionNode)
+      {
+      selectionNode->SetReferenceActiveTableID(node->GetID());
+      }
+    if (appLogic)
+      {
+      appLogic->PropagateTableSelection();
+      }
     this->setLoadedNodes(QStringList(QString(node->GetID())));
     }
   else
