@@ -111,7 +111,7 @@ double qSlicerSubjectHierarchyTablesPlugin::canAddNodeToSubjectHierarchy(vtkMRML
   Q_UNUSED(parent);
   if (!node)
     {
-    qCritical() << "qSlicerSubjectHierarchyTablesPlugin::canAddNodeToSubjectHierarchy: Input node is NULL!";
+    qCritical("qSlicerSubjectHierarchyTablesPlugin::canAddNodeToSubjectHierarchy: Input node is NULL");
     return 0.0;
     }
   else if (node->IsA("vtkMRMLTableNode"))
@@ -128,7 +128,7 @@ double qSlicerSubjectHierarchyTablesPlugin::canOwnSubjectHierarchyNode(vtkMRMLSu
 {
   if (!node)
     {
-    qCritical() << "qSlicerSubjectHierarchyTablesPlugin::canOwnSubjectHierarchyNode: Input node is NULL!";
+    qCritical("qSlicerSubjectHierarchyTablesPlugin::canOwnSubjectHierarchyNode: Input node is NULL");
     return 0.0;
     }
 
@@ -153,7 +153,7 @@ QIcon qSlicerSubjectHierarchyTablesPlugin::icon(vtkMRMLSubjectHierarchyNode* nod
 {
   if (!node)
     {
-    qCritical() << "qSlicerSubjectHierarchyTablesPlugin::icon: NULL node given!";
+    qCritical("qSlicerSubjectHierarchyTablesPlugin::icon: NULL node given");
     return QIcon();
     }
 
@@ -180,13 +180,13 @@ void qSlicerSubjectHierarchyTablesPlugin::setDisplayVisibility(vtkMRMLSubjectHie
 {
   if (!node)
     {
-    qCritical() << "qSlicerSubjectHierarchyTablesPlugin::setDisplayVisibility: NULL node!";
+    qCritical("qSlicerSubjectHierarchyTablesPlugin::setDisplayVisibility: NULL node");
     return;
     }
   vtkMRMLScene* scene = qSlicerSubjectHierarchyPluginHandler::instance()->scene();
   if (!scene)
     {
-    qCritical() << "qSlicerSubjectHierarchyTablesPlugin::setDisplayVisibility: Invalid MRML scene!";
+    qCritical("qSlicerSubjectHierarchyTablesPlugin::setDisplayVisibility: Invalid MRML scene");
     return;
     }
   if (this->getDisplayVisibility(node) == visible)
@@ -202,7 +202,7 @@ void qSlicerSubjectHierarchyTablesPlugin::setDisplayVisibility(vtkMRMLSubjectHie
   vtkMRMLLayoutNode* layoutNode = vtkMRMLLayoutNode::SafeDownCast(layoutNodeVtkObject);
   if (!layoutNode)
     {
-    qCritical() << "qSlicerSubjectHierarchyTablesPlugin::getTableViewNode: Unable to get layout node!";
+    qCritical("qSlicerSubjectHierarchyTablesPlugin::getTableViewNode: Unable to get layout node");
     return;
     }
 
@@ -219,6 +219,11 @@ void qSlicerSubjectHierarchyTablesPlugin::setDisplayVisibility(vtkMRMLSubjectHie
     if (!tableViewNode)
       {
       tableViewNode = this->getTableViewNode();
+      }
+    if (!tableViewNode)
+      {
+      qCritical("qSlicerSubjectHierarchyTablesPlugin::getTableViewNode: Unable to get table view node");
+      return;
       }
 
     // Hide currently shown table and trigger icon update
@@ -253,7 +258,7 @@ int qSlicerSubjectHierarchyTablesPlugin::getDisplayVisibility(vtkMRMLSubjectHier
 {
   if (!node)
     {
-    qCritical() << "qSlicerSubjectHierarchyTablesPlugin::getDisplayVisibility: NULL node!";
+    qCritical("qSlicerSubjectHierarchyTablesPlugin::getDisplayVisibility: NULL node");
     return -1;
     }
 
@@ -266,11 +271,12 @@ int qSlicerSubjectHierarchyTablesPlugin::getDisplayVisibility(vtkMRMLSubjectHier
 
   // Return hidden if current layout is not one of the table ones
   if ( qSlicerApplication::application()->layoutManager()->layout() != vtkMRMLLayoutNode::SlicerLayoutFourUpTableView
-  /*
-    && qSlicerApplication::application()->layoutManager()->layout() != vtkMRMLLayoutNode::SlicerLayoutOneUpTablwView
+    /* All layouts should be added here where a table can be shown:
+    && qSlicerApplication::application()->layoutManager()->layout() != vtkMRMLLayoutNode::SlicerLayoutOneUpTableView
     && qSlicerApplication::application()->layoutManager()->layout() != vtkMRMLLayoutNode::SlicerLayoutConventionalTableView
     && qSlicerApplication::application()->layoutManager()->layout() != vtkMRMLLayoutNode::SlicerLayoutThreeOverThreeTableView
-    */ )
+    */
+    )
     {
     return 0;
     }
@@ -312,7 +318,7 @@ vtkMRMLTableViewNode* qSlicerSubjectHierarchyTablesPlugin::getTableViewNode()con
   vtkMRMLScene* scene = qSlicerSubjectHierarchyPluginHandler::instance()->scene();
   if (!scene)
     {
-    qCritical() << "qSlicerSubjectHierarchyTablesPlugin::getTableViewNode: Invalid MRML scene!";
+    qCritical("qSlicerSubjectHierarchyTablesPlugin::getTableViewNode: Invalid MRML scene");
     return NULL;
     }
 
@@ -322,7 +328,7 @@ vtkMRMLTableViewNode* qSlicerSubjectHierarchyTablesPlugin::getTableViewNode()con
   vtkMRMLTableViewNode* tableViewNode = vtkMRMLTableViewNode::SafeDownCast( tableViewNodes->GetNextItemAsObject() );
   if (!tableViewNode)
     {
-    qCritical() << "qSlicerSubjectHierarchyTablesPlugin::getTableViewNode: Unable to get table view node!";
+    qCritical("qSlicerSubjectHierarchyTablesPlugin::getTableViewNode: Unable to get table view node");
     return NULL;
     }
 

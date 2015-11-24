@@ -73,6 +73,10 @@ vtkMRMLTableNode* vtkSlicerTablesLogic
 
   // Storable node
   vtkNew<vtkMRMLTableNode> tableNode;
+  if (name)
+    {
+    tableNode->SetName(name);
+    }
   this->GetMRMLScene()->AddNode(tableNode.GetPointer());
 
   // Read
@@ -83,10 +87,6 @@ vtkMRMLTableNode* vtkSlicerTablesLogic
     this->GetMRMLScene()->RemoveNode(tableStorageNode.GetPointer());
     this->GetMRMLScene()->RemoveNode(tableNode.GetPointer());
     return 0;
-    }
-  if (name)
-    {
-    tableNode->SetName(name);
     }
   return tableNode.GetPointer();
 }
