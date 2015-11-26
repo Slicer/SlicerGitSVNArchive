@@ -17,6 +17,7 @@
 #include "vtkTestErrorObserver.h"
 
 #include "vtkMRMLCoreTestingMacros.h"
+#include "vtkMRMLCoreTestingUtilities.h"
 
 int vtkMRMLTableNodeTest1(int , char * [] )
 {
@@ -34,105 +35,43 @@ int vtkMRMLTableNodeTest1(int , char * [] )
   node2->AddObserver(vtkCommand::ErrorEvent, errorWarningObserver);
 
   vtkTable* table = node2->GetTable();
+  CHECK_NOT_NULL(table);
 
   // Verify if a proper storage node is created
   vtkSmartPointer< vtkMRMLTableStorageNode > storageNode = vtkSmartPointer< vtkMRMLTableStorageNode >::Take(vtkMRMLTableStorageNode::SafeDownCast(node2->CreateDefaultStorageNode()));
-  if (storageNode==NULL)
-    {
-    std::cerr << "CreateDefaultStorageNode test failed" << std::endl;
-    return EXIT_FAILURE;
-    }
+  CHECK_NOT_NULL(storageNode);
 
   // Verify basic add/remove column methods
 
-  if (node2->AddColumn()==NULL)
-    {
-    std::cerr << "AddColumn test 1a failed" << std::endl;
-    return EXIT_FAILURE;
-    }
-  if (table->GetNumberOfColumns()!=1)
-    {
-    std::cerr << "AddColumn test 1b failed" << std::endl;
-    return EXIT_FAILURE;
-    }
+  CHECK_NOT_NULL(node2->AddColumn());
+  CHECK_INT(table->GetNumberOfColumns(), 1);
 
   vtkSmartPointer< vtkStringArray > newEmptyArray = vtkSmartPointer< vtkStringArray >::New();
-  if (node2->AddColumn(newEmptyArray)==NULL)
-    {
-    std::cerr << "AddColumn test 2 failed" << std::endl;
-    return EXIT_FAILURE;
-    }
-  if (table->GetNumberOfColumns()!=2)
-    {
-    std::cerr << "AddColumn test 2b failed" << std::endl;
-    return EXIT_FAILURE;
-    }
+  CHECK_NOT_NULL(node2->AddColumn(newEmptyArray));
+  CHECK_INT(table->GetNumberOfColumns(), 2);
 
-  if (!node2->RemoveColumn(1))
-    {
-    std::cerr << "RemoveColumn test 1a failed" << std::endl;
-    return EXIT_FAILURE;
-    }
-  if (table->GetNumberOfColumns()!=1)
-    {
-    std::cerr << "RemoveColumn test 1b failed" << std::endl;
-    return EXIT_FAILURE;
-    }
+  CHECK_BOOL(node2->RemoveColumn(1), true);
+  CHECK_INT(table->GetNumberOfColumns(), 1);
 
-  if (node2->AddEmptyRow()!=0)
-    {
-    std::cerr << "AddEmptyRow test 1a failed" << std::endl;
-    return EXIT_FAILURE;
-    }
-  if (table->GetNumberOfRows()!=1)
-    {
-    std::cerr << "AddEmptyRow test 1b failed" << std::endl;
-    return EXIT_FAILURE;
-    }
-  node2->AddEmptyRow();
-  node2->AddEmptyRow();
-  node2->AddEmptyRow();
-  if (table->GetNumberOfRows()!=4)
-    {
-    std::cerr << "AddEmptyRow test 2 failed" << std::endl;
-    return EXIT_FAILURE;
-    }
+  CHECK_INT(node2->AddEmptyRow(), 0);
+  CHECK_INT(table->GetNumberOfRows(), 1);
 
-  if (!node2->RemoveRow(1))
-    {
-    std::cerr << "RemoveRow test 1a failed" << std::endl;
-    return EXIT_FAILURE;
-    }
-  if (table->GetNumberOfRows()!=3)
-    {
-    std::cerr << "RemoveRow test 1b failed" << std::endl;
-    return EXIT_FAILURE;
-    }
+  CHECK_INT(node2->AddEmptyRow(), 1);
+  CHECK_INT(node2->AddEmptyRow(), 2);
+  CHECK_INT(node2->AddEmptyRow(), 3);
+  CHECK_INT(table->GetNumberOfRows(), 4);
+
+  CHECK_BOOL(node2->RemoveRow(1), true);
+  CHECK_INT(table->GetNumberOfRows(), 3);
 
   // Verify that arrays that are shorter than the table size are extended to match the current table size
 
   vtkSmartPointer< vtkStringArray > newShortArray = vtkSmartPointer< vtkStringArray >::New();
   newShortArray->InsertNextValue("something");
-  if (node2->AddColumn(newShortArray)==NULL)
-    {
-    std::cerr << "AddColumn test 3a failed" << std::endl;
-    return EXIT_FAILURE;
-    }
-  if (table->GetNumberOfRows()!=3)
-    {
-    std::cerr << "AddColumn test 3b failed" << std::endl;
-    return EXIT_FAILURE;
-    }
-  if (table->GetNumberOfColumns()!=2)
-    {
-    std::cerr << "AddColumn test 3c failed" << std::endl;
-    return EXIT_FAILURE;
-    }
-  if (newShortArray->GetNumberOfTuples()!=table->GetNumberOfRows())
-    {
-    std::cerr << "AddColumn test 3d failed" << std::endl;
-    return EXIT_FAILURE;
-    }
+  CHECK_NOT_NULL(node2->AddColumn(newShortArray));
+  CHECK_INT(table->GetNumberOfRows(), 3);
+  CHECK_INT(table->GetNumberOfColumns(), 2);
+  CHECK_INT(newShortArray->GetNumberOfTuples(), table->GetNumberOfRows());
 
   // Verify that arrays that are shorter than the table extend the table
 
@@ -147,101 +86,45 @@ int vtkMRMLTableNodeTest1(int , char * [] )
   newLongArray->InsertNextValue("something8");
   newLongArray->InsertNextValue("something9");
   newLongArray->InsertNextValue("something10");
-  if (node2->AddColumn(newLongArray)==NULL)
-    {
-    std::cerr << "AddColumn test 4a failed" << std::endl;
-    return EXIT_FAILURE;
-    }
-  if (table->GetNumberOfRows()!=10)
-    {
-    std::cerr << "AddColumn test 4b failed" << std::endl;
-    return EXIT_FAILURE;
-    }
-  if (table->GetNumberOfColumns()!=3)
-    {
-    std::cerr << "AddColumn test 4c failed" << std::endl;
-    return EXIT_FAILURE;
-    }
-  if (newLongArray->GetNumberOfTuples()!=table->GetNumberOfRows())
-    {
-    std::cerr << "AddColumn test 4d failed" << std::endl;
-    return EXIT_FAILURE;
-    }
 
-  if (node2->GetCellText(2,2)!="something3")
-    {
-    std::cerr << "GetCellText test 1 failed" << std::endl;
-    return EXIT_FAILURE;
-    }
-  // Test out of range cases:
-  if (errorWarningObserver->GetError() || errorWarningObserver->GetWarning())
-    {
-    std::cerr << "Error cases test failed: unexpected errors" << std::endl;
-    errorWarningObserver->Clear();
-    }
-  if (node2->GetCellText(20,2)!="")
-    {
-    std::cerr << "GetCellText test 2a failed" << std::endl;
-    return EXIT_FAILURE;
-    }
-  // error log is expected
-  if (!errorWarningObserver->GetError())
-    {
-    std::cerr << "GetCellText test 2b failed" << std::endl;
-    return EXIT_FAILURE;
-    }
+  CHECK_NOT_NULL(node2->AddColumn(newLongArray));
+  CHECK_INT(table->GetNumberOfRows(), 10);
+  CHECK_INT(table->GetNumberOfColumns(), 3);
+
+  // Test GetCellText
+
+  CHECK_INT(newLongArray->GetNumberOfTuples(), table->GetNumberOfRows());
+  CHECK_STRING(node2->GetCellText(2,2).c_str(), "something3");
+
+  CHECK_BOOL(errorWarningObserver->GetError(), false);
+  CHECK_BOOL(errorWarningObserver->GetWarning(), false);
+
+  CHECK_STRING(node2->GetCellText(20,2).c_str(), ""); // error log is expected
+  CHECK_BOOL(errorWarningObserver->GetError(), true);
   errorWarningObserver->Clear();
-  if (node2->GetCellText(2,20)!="")
-    {
-    std::cerr << "GetCellText test 3a failed" << std::endl;
-    return EXIT_FAILURE;
-    }
-  // error log is expected
-  if (!errorWarningObserver->GetError())
-    {
-    std::cerr << "GetCellText test 3b failed" << std::endl;
-    return EXIT_FAILURE;
-    }
+
+  CHECK_STRING(node2->GetCellText(20,2).c_str(), ""); // error log is expected
+  CHECK_BOOL(errorWarningObserver->GetError(), true);
   errorWarningObserver->Clear();
-  if (!node2->SetCellText(2,2,"ModifiedText"))
-    {
-    std::cerr << "SetCellText test 1a failed" << std::endl;
-    return EXIT_FAILURE;
-    }
-  if (node2->GetCellText(2,2)!="ModifiedText")
-    {
-    std::cerr << "SetCellText test 1b failed" << std::endl;
-    return EXIT_FAILURE;
-    }
-  // Test out of range cases:
-  if (node2->SetCellText(20,2,"invalid"))
-    {
-    std::cerr << "SetCellText test 2 failed" << std::endl;
-    return EXIT_FAILURE;
-    }
-  if (node2->SetCellText(2,20,"invalid"))
-    {
-    std::cerr << "SetCellText test 3 failed" << std::endl;
-    return EXIT_FAILURE;
-    }
+
+  CHECK_BOOL(node2->SetCellText(2,2,"ModifiedText"), true);
+  CHECK_STRING(node2->GetCellText(2,2).c_str(), "ModifiedText");
+
+  // Test SetCellText
+
+  CHECK_BOOL(node2->SetCellText(20,2,"invalid"), false);
+  CHECK_BOOL(node2->SetCellText(2,20,"invalid"), false);
 
   // Verify that Copy method creates a true independent copy
   vtkSmartPointer< vtkMRMLTableNode > node2copy = vtkSmartPointer< vtkMRMLTableNode >::New();
   node2copy->Copy(node2);
   // After copying the contents of the tables should be the same
-  if (node2->GetCellText(0,0) != node2copy->GetCellText(0,0))
-    {
-    std::cerr << "Copy test 1a failed" << std::endl;
-    return EXIT_FAILURE;
-    }
+  CHECK_STRING(node2->GetCellText(0,0).c_str(), node2copy->GetCellText(0,0).c_str());
+
   // After modifying the copied version, the tables should be different
   // (if there was a shallow copy only, the original table would have been changed, too)
-  node2copy->SetCellText(0,0,"someModifiedText");
-  if (node2->GetCellText(0,0) == node2copy->GetCellText(0,0))
-    {
-    std::cerr << "Copy test 1b failed" << std::endl;
-    return EXIT_FAILURE;
-    }
+  CHECK_BOOL(node2copy->SetCellText(0,0,"someModifiedText"), true);
+  CHECK_STRING_DIFFERENT(node2->GetCellText(0,0).c_str(), node2copy->GetCellText(0,0).c_str());
 
   std::cout << "vtkMRMLTableNodeTest1 completed successfully" << std::endl;
   return EXIT_SUCCESS;
