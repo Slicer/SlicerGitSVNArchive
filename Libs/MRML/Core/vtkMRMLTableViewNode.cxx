@@ -103,9 +103,6 @@ void vtkMRMLTableViewNode::PrintSelf(ostream& os, vtkIndent indent)
 void vtkMRMLTableViewNode::SetTableNodeID(const char* tableNodeId)
 {
   this->SetNodeReferenceID(this->GetTableNodeReferenceRole(), tableNodeId);
-  // Instead of calling Modified() here, we let OnNodeReference* methods to call
-  // modified (this the behavior is correct, even if the references are modified
-  // directly, without calling SetTableNodeID)
 }
 
 //----------------------------------------------------------------------------
@@ -130,34 +127,4 @@ const char* vtkMRMLTableViewNode::GetTableNodeReferenceRole()
 const char* vtkMRMLTableViewNode::GetTableNodeReferenceMRMLAttributeName()
 {
   return vtkMRMLTableViewNode::TableNodeReferenceMRMLAttributeName;
-}
-
-//----------------------------------------------------------------------------
-void vtkMRMLTableViewNode::OnNodeReferenceAdded(vtkMRMLNodeReference *reference)
-{
-  this->Superclass::OnNodeReferenceAdded(reference);
-  if (std::string(reference->GetReferenceRole()) == this->GetTableNodeReferenceRole())
-    {
-    this->Modified();
-    }
-}
-
-//----------------------------------------------------------------------------
-void vtkMRMLTableViewNode::OnNodeReferenceModified(vtkMRMLNodeReference *reference)
-{
-  this->Superclass::OnNodeReferenceModified(reference);
-  if (std::string(reference->GetReferenceRole()) == this->GetTableNodeReferenceRole())
-    {
-    this->Modified();
-    }
-}
-
-//----------------------------------------------------------------------------
-void vtkMRMLTableViewNode::OnNodeReferenceRemoved(vtkMRMLNodeReference *reference)
-{
-  this->Superclass::OnNodeReferenceRemoved(reference);
-  if (std::string(reference->GetReferenceRole()) == this->GetTableNodeReferenceRole())
-    {
-    this->Modified();
-    }
 }

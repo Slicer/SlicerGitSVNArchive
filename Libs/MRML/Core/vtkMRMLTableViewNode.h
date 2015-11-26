@@ -59,40 +59,20 @@ public:
   vtkMRMLTableNode* GetTableNode();
 
   ///
-  /// configures the behavior of PropagateTableSelection():
-  /// if set to false then this view will not be affected by
-  /// PropagateTableSelection. Default value is true
+  /// Configures the behavior of PropagateTableSelection().
+  /// If DoPropagateTableSelection set to false then this
+  /// view will not be affected by PropagateTableSelection.
+  /// Default value is true.
   vtkSetMacro (DoPropagateTableSelection, bool );
   vtkGetMacro (DoPropagateTableSelection, bool );
 
   virtual const char* GetTableNodeReferenceRole();
-
-  /*
-  ///
-  /// Events
-  enum
-  {
-    TableNodeChangedEvent = 16001
-  };
-  */
 
 protected:
   vtkMRMLTableViewNode();
   ~vtkMRMLTableViewNode();
   vtkMRMLTableViewNode(const vtkMRMLTableViewNode&);
   void operator=(const vtkMRMLTableViewNode&);
-
-    ///
-  /// Called when a node reference ID is added (list size increased).
-  virtual void OnNodeReferenceAdded(vtkMRMLNodeReference *reference);
-
-  ///
-  /// Called when a node reference ID is modified.
-  virtual void OnNodeReferenceModified(vtkMRMLNodeReference *reference);
-
-  ///
-  /// Called after a node reference ID is removed (list size decreased).
-  virtual void OnNodeReferenceRemoved(vtkMRMLNodeReference *reference);
 
   virtual const char* GetTableNodeReferenceMRMLAttributeName();
 
