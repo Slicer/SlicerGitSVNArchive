@@ -300,5 +300,5 @@ int ImportModelHierarchyTwiceTest()
   CHECK_NOT_NULL(hierarchyNode2);
   CHECK_POINTER(modelHierarchyNode2->GetParentNode(), hierarchyNode2);
 
-  return true;
+  return EXIT_SUCCESS;
 }

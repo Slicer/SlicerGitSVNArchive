@@ -103,6 +103,7 @@ std::string ToString(Type value);
 ///
 /// \endcode
 
+/// Verifies that pointer is NULL
 #define CHECK_NULL(pointer) \
   { \
   const void* pointerValue = (pointer); \
@@ -112,6 +113,7 @@ std::string ToString(Type value);
     } \
   }
 
+/// Verifies that pointer is not NULL
 #define CHECK_NOT_NULL(pointer) \
   { \
   const void* pointerValue = (pointer); \
@@ -121,6 +123,8 @@ std::string ToString(Type value);
     } \
   }
 
+/// Verifies that pointer is NULL,
+/// if check fails then it calls methodToCallOnFailure before returning with failure
 #define CHECK_NOT_NULL_ADD_REPORT(pointer, methodToCallOnFailure) \
   { \
   const void* pointerValue = (pointer); \
@@ -131,6 +135,7 @@ std::string ToString(Type value);
     } \
   }
 
+/// Verifies if actual int value is the same as expected
 #define CHECK_INT(actual, expected) \
   { \
   int a = (actual); \
@@ -141,6 +146,8 @@ std::string ToString(Type value);
     } \
   }
 
+/// Verifies if actual int value is the same as expected,
+/// if check fails then it calls methodToCallOnFailure before returning with failure
 #define CHECK_INT_ADD_REPORT(actual, expected, methodToCallOnFailure) \
   { \
   int a = (actual); \
@@ -152,6 +159,7 @@ std::string ToString(Type value);
     } \
   }
 
+/// Verifies if actual pointer value is the same as expected
 #define CHECK_POINTER(actual, expected) \
   { \
   void* a = (actual); \
@@ -162,6 +170,7 @@ std::string ToString(Type value);
     } \
   }
 
+/// Verifies if actual bool value is the same as expected
 #define CHECK_BOOL(actual, expected) \
   { \
   bool a = (actual); \
@@ -172,6 +181,11 @@ std::string ToString(Type value);
     } \
   }
 
+/// Verifies if actual const char* value is the same as expected.
+/// It can handle NULL pointer inputs.
+/// Not recommended for comparing std::string values with c_str, because
+/// if the string is a temporary object, created as a return value then
+/// the string object may be deleted before the comparison happens.
 #define CHECK_STRING(actual, expected) \
   { \
   const char* a = (actual); \
@@ -182,6 +196,22 @@ std::string ToString(Type value);
     } \
   }
 
+/// Verifies if actual std::string value is the same as expected.
+/// It is safe to use for comparing std::string values.
+/// It cannot handle NULL pointer inputs.
+#define CHECK_STD_STRING(actual, expected) \
+  { \
+  std::string a = (actual); \
+  std::string e = (expected); \
+  if (!vtkMRMLCoreTestingUtilities::CheckString(__LINE__,#actual " != " #expected, a.c_str(), e.c_str())) \
+    { \
+    return EXIT_FAILURE; \
+    } \
+  }
+
+/// Verifies if actual const char* value is the same as expected,
+/// if check fails then it calls methodToCallOnFailure before returning with failure
+/// It can handle NULL pointer inputs.
 #define CHECK_STRING_ADD_REPORT(actual, expected, methodToCallOnFailure) \
   { \
   const char* a = (actual); \
@@ -193,6 +223,8 @@ std::string ToString(Type value);
     } \
   }
 
+/// Verifies if actual const char* value is not the same as expected.
+/// It can handle NULL pointer inputs.
 #define CHECK_STRING_DIFFERENT(actual, expected) \
   { \
   const char* a = (actual); \
@@ -203,6 +235,20 @@ std::string ToString(Type value);
     } \
   }
 
+/// Verifies if actual std::string value is not the same as expected.
+/// It is safe to use for comparing std::string values.
+/// It cannot handle NULL pointer inputs.
+#define CHECK_STD_STRING_DIFFERENT(actual, expected) \
+  { \
+  std::string a = (actual); \
+  std::string e = (expected); \
+  if (!vtkMRMLCoreTestingUtilities::CheckString(__LINE__,#actual " != " #expected, a.c_str(), e.c_str(), false)) \
+    { \
+    return EXIT_FAILURE; \
+    } \
+  }
+
+/// Verifies if the node's pointer defined by nodeID in scene is the same as expected
 #define CHECK_NODE_IN_SCENE_BY_ID(scene, nodeID, expected) \
   { \
   vtkMRMLScene* s = (scene); \
@@ -214,6 +260,7 @@ std::string ToString(Type value);
     } \
   }
 
+/// Verifies if the node's ID and name are the same as expected
 #define CHECK_NODE_ID_AND_NAME(node, expectedID, expectedName) \
   { \
   vtkMRMLNode* n = (node); \

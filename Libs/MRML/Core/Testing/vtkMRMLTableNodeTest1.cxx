@@ -94,21 +94,21 @@ int vtkMRMLTableNodeTest1(int , char * [] )
   // Test GetCellText
 
   CHECK_INT(newLongArray->GetNumberOfTuples(), table->GetNumberOfRows());
-  CHECK_STRING(node2->GetCellText(2,2).c_str(), "something3");
+  CHECK_STD_STRING(node2->GetCellText(2,2), "something3");
 
   CHECK_BOOL(errorWarningObserver->GetError(), false);
   CHECK_BOOL(errorWarningObserver->GetWarning(), false);
 
-  CHECK_STRING(node2->GetCellText(20,2).c_str(), ""); // error log is expected
+  CHECK_STD_STRING(node2->GetCellText(20,2), ""); // error log is expected
   CHECK_BOOL(errorWarningObserver->GetError(), true);
   errorWarningObserver->Clear();
 
-  CHECK_STRING(node2->GetCellText(20,2).c_str(), ""); // error log is expected
+  CHECK_STD_STRING(node2->GetCellText(20,2), ""); // error log is expected
   CHECK_BOOL(errorWarningObserver->GetError(), true);
   errorWarningObserver->Clear();
 
   CHECK_BOOL(node2->SetCellText(2,2,"ModifiedText"), true);
-  CHECK_STRING(node2->GetCellText(2,2).c_str(), "ModifiedText");
+  CHECK_STD_STRING(node2->GetCellText(2,2), "ModifiedText");
 
   // Test SetCellText
 
@@ -119,12 +119,12 @@ int vtkMRMLTableNodeTest1(int , char * [] )
   vtkSmartPointer< vtkMRMLTableNode > node2copy = vtkSmartPointer< vtkMRMLTableNode >::New();
   node2copy->Copy(node2);
   // After copying the contents of the tables should be the same
-  CHECK_STRING(node2->GetCellText(0,0).c_str(), node2copy->GetCellText(0,0).c_str());
+  CHECK_STD_STRING(node2->GetCellText(0,0), node2copy->GetCellText(0,0));
 
   // After modifying the copied version, the tables should be different
   // (if there was a shallow copy only, the original table would have been changed, too)
   CHECK_BOOL(node2copy->SetCellText(0,0,"someModifiedText"), true);
-  CHECK_STRING_DIFFERENT(node2->GetCellText(0,0).c_str(), node2copy->GetCellText(0,0).c_str());
+  CHECK_STD_STRING_DIFFERENT(node2->GetCellText(0,0), node2copy->GetCellText(0,0));
 
   std::cout << "vtkMRMLTableNodeTest1 completed successfully" << std::endl;
   return EXIT_SUCCESS;
