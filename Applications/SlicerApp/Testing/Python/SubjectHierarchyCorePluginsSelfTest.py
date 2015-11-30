@@ -91,6 +91,7 @@ class SubjectHierarchyCorePluginsSelfTestTest(ScriptedLoadableModuleTest):
     self.section_SetupPathsAndNames()
     self.section_MarkupRole()
     self.section_ChartRole()
+    self.section_TableRole()
     self.section_CloneNode()
     self.section_PluginAutoSearch()
 
@@ -106,6 +107,7 @@ class SubjectHierarchyCorePluginsSelfTestTest(ScriptedLoadableModuleTest):
     # Set constants
     self.sampleMarkupName = 'SampleMarkup'
     self.sampleChartName = 'SampleChart'
+    self.sampleTableName = 'SampleTable'
     self.studyName = 'Study'
     from qSlicerSubjectHierarchyModuleWidgetsPythonQt import qSlicerSubjectHierarchyCloneNodePlugin
     self.cloneNodeNamePostfix = qSlicerSubjectHierarchyCloneNodePlugin().getCloneNodeNamePostfix()
@@ -141,7 +143,7 @@ class SubjectHierarchyCorePluginsSelfTestTest(ScriptedLoadableModuleTest):
     slicer.mrmlScene.AddNode(chartNode)
     chartNode.SetName(self.sampleChartName)
 
-    # Add markups to subject hierarchy
+    # Add node to subject hierarchy
     from vtkSlicerSubjectHierarchyModuleMRML import vtkMRMLSubjectHierarchyNode
 
     studyNode = slicer.util.getNode(self.studyName + slicer.vtkMRMLSubjectHierarchyConstants.GetSubjectHierarchyNodeNamePostfix())
@@ -152,6 +154,27 @@ class SubjectHierarchyCorePluginsSelfTestTest(ScriptedLoadableModuleTest):
     self.assertIsNotNone( chartShNode )
     self.assertEqual( chartShNode.GetParentNode(), studyNode )
     self.assertEqual( chartShNode.GetOwnerPluginName(), 'Charts' )
+
+      # ------------------------------------------------------------------------------
+  def section_TableRole(self):
+    self.delayDisplay("Table role",self.delayMs)
+
+    # Create sample table node
+    tableNode = slicer.vtkMRMLTableNode()
+    slicer.mrmlScene.AddNode(tableNode)
+    tableNode.SetName(self.sampleTableName)
+
+    # Add node to subject hierarchy
+    from vtkSlicerSubjectHierarchyModuleMRML import vtkMRMLSubjectHierarchyNode
+
+    studyNode = slicer.util.getNode(self.studyName + slicer.vtkMRMLSubjectHierarchyConstants.GetSubjectHierarchyNodeNamePostfix())
+    self.assertTrue( studyNode != None )
+
+    tableShNode = vtkMRMLSubjectHierarchyNode.CreateSubjectHierarchyNode(slicer.mrmlScene, studyNode, slicer.vtkMRMLSubjectHierarchyConstants.GetDICOMLevelSeries(), self.sampleTableName, tableNode)
+
+    self.assertTrue( tableShNode != None )
+    self.assertTrue( tableShNode.GetParentNode() == studyNode )
+    self.assertTrue( tableShNode.GetOwnerPluginName() == 'Tables' )
 
   # ------------------------------------------------------------------------------
   def section_CloneNode(self):
