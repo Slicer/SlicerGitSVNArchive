@@ -74,6 +74,10 @@ public slots:
 
   void applyPreset(vtkMRMLNode* volumePropertyNode);
 
+signals:
+  void newCurrentMRMLVolumeNode(vtkMRMLNode* node);
+  void newCurrentDisplayNode(vtkMRMLNode* node);
+
 protected slots:
   void onCurrentMRMLVolumeNodeChanged(vtkMRMLNode* node);
   void onVisibilityChanged(bool);
@@ -96,6 +100,7 @@ protected slots:
   void resetOffset();
   void updatePresetSliderRange();
   void updateFromMRMLDisplayNode();
+  void updateFromMRMLDisplayROINode();
 
   void synchronizeScalarDisplayNode();
   void setFollowVolumeDisplayNode(bool);

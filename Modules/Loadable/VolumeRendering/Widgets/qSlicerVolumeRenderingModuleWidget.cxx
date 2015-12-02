@@ -354,6 +354,8 @@ void qSlicerVolumeRenderingModuleWidget::onCurrentMRMLVolumeNodeChanged(vtkMRMLN
     }
 
   this->setMRMLDisplayNode(dnode);
+
+  emit newCurrentMRMLVolumeNode(node);
 }
 
 // --------------------------------------------------------------------------
@@ -415,6 +417,8 @@ void qSlicerVolumeRenderingModuleWidget
   d->DisplayNode = displayNode;
 
   this->updateFromMRMLDisplayNode();
+
+  emit newCurrentDisplayNode(displayNode);
 }
 
 // --------------------------------------------------------------------------
@@ -486,6 +490,29 @@ void qSlicerVolumeRenderingModuleWidget::updateFromMRMLDisplayNode()
     d->RenderingMethodStackedWidget->setCurrentIndex(0);
     }
 }
+
+
+// --------------------------------------------------------------------------
+void qSlicerVolumeRenderingModuleWidget::updateFromMRMLDisplayROINode()
+{
+  Q_D(qSlicerVolumeRenderingModuleWidget);
+  //ROI visibility
+
+  if (!d->ROIWidget->mrmlROINode())
+    {
+    return;
+    }
+
+  if(d->ROIWidget->mrmlROINode()->GetDisplayVisibility())
+    {
+    d->ROICropDisplayCheckBox->setChecked(true);
+    }
+  else
+    {
+    d->ROICropDisplayCheckBox->setChecked(false);
+    }
+}
+
 
 // --------------------------------------------------------------------------
 void qSlicerVolumeRenderingModuleWidget::addVolumeIntoView(vtkMRMLNode* viewNode)
@@ -596,7 +623,12 @@ void qSlicerVolumeRenderingModuleWidget::onCurrentMRMLROINodeChanged(vtkMRMLNode
     return;
     }
   vtkMRMLAnnotationROINode *roiNode = vtkMRMLAnnotationROINode::SafeDownCast(node);
+  this->qvtkReconnect(d->DisplayNode->GetROINode(), roiNode,
+                        vtkMRMLDisplayableNode::DisplayModifiedEvent,
+                        this, SLOT(updateFromMRMLDisplayROINode()));
+
   d->DisplayNode->SetAndObserveROINodeID(roiNode ? roiNode->GetID() : 0);
+  this->updateFromMRMLDisplayROINode();
 }
 
 // --------------------------------------------------------------------------
@@ -628,6 +660,7 @@ void qSlicerVolumeRenderingModuleWidget::onCurrentRenderingMethodChanged(int ind
     {
     this->mrmlScene()->RemoveNode(oldDisplayNode);
     }
+  emit newCurrentDisplayNode(displayNode);
 }
 
 // --------------------------------------------------------------------------
@@ -805,6 +838,21 @@ void qSlicerVolumeRenderingModuleWidget
   // cropping (to follow the "what you see is what you get" pattern).
   if (toggle)
     {
-    d->ROICropCheckBox->setChecked(true);
+    d->DisplayNode->SetCroppingEnabled(toggle);
     }
+
+  int n = d->ROIWidget->mrmlROINode()->GetNumberOfDisplayNodes();
+  int wasModifying [n];
+  for(int i = 0; i < n; i++)
+    {
+    wasModifying[i] = d->ROIWidget->mrmlROINode()->GetNthDisplayNode(i)->StartModify();
+    }
+
+  d->ROIWidget->mrmlROINode()->SetDisplayVisibility(toggle);
+
+  for(int i = 0; i < n; i++)
+    {
+    d->ROIWidget->mrmlROINode()->GetNthDisplayNode(i)->EndModify(wasModifying[i]);
+    }
+
 }
