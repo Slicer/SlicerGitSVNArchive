@@ -74,6 +74,9 @@ public slots:
 
   void applyPreset(vtkMRMLNode* volumePropertyNode);
 
+signals:
+  void currentVolumeRenderingDisplayNodeChanged(vtkMRMLNode* node);
+
 protected slots:
   void onCurrentMRMLVolumeNodeChanged(vtkMRMLNode* node);
   void onVisibilityChanged(bool);
