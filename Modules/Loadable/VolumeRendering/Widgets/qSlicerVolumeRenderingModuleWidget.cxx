@@ -356,7 +356,7 @@ void qSlicerVolumeRenderingModuleWidget::onCurrentMRMLVolumeNodeChanged(vtkMRMLN
 
   this->setMRMLDisplayNode(dnode);
 
-  emit currentVolumeRenderingDisplayNodeChanged(dnode);
+  emit currentVolumeNodeChanged(volumeNode);
 }
 
 // --------------------------------------------------------------------------
