@@ -227,50 +227,39 @@ class ExtensionDescription(object):
 
   #---------------------------------------------------------------------------
   def _write(self, fp):
-    fp.write("""#
-# First token of each non-comment line is the keyword and the rest of the line
-# (including spaces) is the value.
-# - the value can be blank
-#
-
-# This is source code manager (i.e. svn)\n""")
-    fp.write("scm " + ("%s" % getattr(self, "scm")).strip() + "\n")
-    fp.write("scmurl " + ("%s" % getattr(self, "scmurl")).strip() + "\n")
-    fp.write("scmrevision " + ("%s" % getattr(self, "scmrevision")).strip() + "\n")
-    fp.write("""
-# list dependencies
-# - These should be names of other modules that have .s4ext files
-# - The dependencies will be built first\n""")
-    fp.write("depends " + ("%s" % getattr(self, "depends")).strip() + "\n")
-    fp.write("""
-# Inner build directory (default is ".")\n""")
-    fp.write("build_subdirectory " + ("%s" % getattr(self, "build_subdirectory")).strip() + "\n")
-    fp.write("""
-# homepage\n""")
-    fp.write("homepage " + ("%s" % getattr(self, "homepage")).strip() + "\n")
-    fp.write("""
-# Firstname1 Lastname1 ([SubOrg1, ]Org1), Firstname2 Lastname2 ([SubOrg2, ]Org2)
-# For example: Jane Roe (Superware), John Doe (Lab1, Nowhere), Joe Bloggs (Noware)\n""")
-    fp.write("contributors " + ("%s" % getattr(self, "contributors")).strip() + "\n")
-    fp.write("""
-# Match category in the xml description of the module (where it shows up in Modules menu)\n""")
-    fp.write("category " + ("%s" % getattr(self, "category")).strip() + "\n")
-    fp.write("""
-# url to icon (png, size 128x128 pixels)\n""")
-    fp.write("iconurl " + ("%s" % getattr(self, "iconurl")).strip() + "\n")
-    fp.write("""
-# Give people an idea what to expect from this code
-#  - Is it just a test or something you stand behind?\n""")
-    fp.write("status " + ("%s" % getattr(self, "status")).strip() + "\n")
-    fp.write("""
-# One line stating what the module does\n""")
-    fp.write("description " + ("%s" % getattr(self, "description")).strip() + "\n")
-    fp.write("""
-# Space separated list of urls\n""")
-    fp.write("screenshoturls " + ("%s" % getattr(self, "screenshoturls")).strip() + "\n")
-    fp.write("""
-# 0 or 1: Define if the extension should be enabled after its installation.\n""")
-    fp.write("enabled " + ("%s" % getattr(self, "enabled")).strip() + "\n")
+    #Creation of the map
+    dictio = dict()
+    dictio["scm_type"] = getattr(self, "scm")
+    dictio["scm_path_token"] = "scmurl"
+    dictio["scm_url"] = getattr(self, "scmurl")
+    dictio["MY_EXTENSION_WC_REVISION"] = getattr(self, "scmrevision")
+    dictio["MY_EXTENSION_DEPENDS"] = getattr(self, "depends")
+    dictio["MY_EXTENSION_BUILD_SUBDIRECTORY"] = getattr(self, "build_subdirectory")
+    dictio["MY_EXTENSION_HOMEPAGE"] = getattr(self, "homepage")
+    dictio["MY_EXTENSION_CONTRIBUTORS"] = getattr(self, "contributors")
+    dictio["MY_EXTENSION_CATEGORY"] = getattr(self, "category")
+    dictio["MY_EXTENSION_ICONURL"] = getattr(self, "iconurl")
+    dictio["MY_EXTENSION_STATUS"] = getattr(self, "status")
+    dictio["MY_EXTENSION_DESCRIPTION"] = getattr(self, "description")
+    dictio["MY_EXTENSION_SCREENSHOTURLS"] = getattr(self, "screenshoturls")
+    dictio["MY_EXTENSION_ENABLED"] = getattr(self, "enabled")
+                                                                  
+    extDescriptFile = open('/Users/jvimort/Applications/Slicer/build-slicer/Slicer/CMake/extension_description.s4ext.in','r') # this will not be the final path
+    for ligne in extDescriptFile.readlines() :
+      if  "${" in ligne:
+        variables = self.findOccurences(ligne,"$")
+        temp = ligne
+        for variable in variables:
+          if ligne[variable] is '$' and ligne[variable + 1] is '{':
+            var = ""
+            i = variable + 2
+            while ligne[i] is not '}':
+              var+=ligne[i]
+              i+=1
+            temp = temp.replace("${"+var+"}",dictio[var])
+          fp.write(temp)
+      else:
+        fp.write(ligne)
 
   #---------------------------------------------------------------------------
   def write(self, out):
