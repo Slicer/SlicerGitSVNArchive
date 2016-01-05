@@ -47,21 +47,6 @@ if(Slicer_BUILD_DICOM_SUPPORT)
   list(APPEND cli_modules PETStandardUptakeValueComputation)
 endif()
 
-if(Slicer_BUILD_DIFFUSION_SUPPORT)
-  list(APPEND cli_modules
-    DiffusionTensorScalarMeasurements
-    DiffusionWeightedVolumeMasking
-    DWIJointRicianLMMSEFilter
-    DWIRicianLMMSEFilter
-    DWIToDTIEstimation
-    DWIUnbiasedNonLocalMeansFilter
-    DTIImportExport
-    TractographyLabelMapSeeding
-    FiberBundleLabelSelect
-    FiberTractMeasurements
-    )
-endif()
-
 if(Slicer_BUILD_LEGACY_CLI)
   set(legacy_cli_modules
     BSplineToDeformationField

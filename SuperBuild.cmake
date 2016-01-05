@@ -303,6 +303,15 @@ Slicer_Remote_Add(LandmarkRegistration
   )
 list_conditional_append(Slicer_BUILD_LandmarkRegistration Slicer_REMOTE_DEPENDENCIES LandmarkRegistration)
 
+Slicer_Remote_Add(SlicerDMRI
+  GIT_REPOSITORY "${git_protocol}://github.com/SlicerDMRI/SlicerDMRI"
+  GIT_TAG "0402ca481affc4a881c1bd0132c6daa6f7643f00"
+  OPTION_NAME Slicer_BUILD_SlicerDMRI
+  LABELS REMOTE_MODULE
+  VARS SlicerDMRI_SUPERBUILD:BOOL=OFF MRML_USE_vtkTeem:BOOL=ON # no way to detect this in Superbuild
+  )
+list_conditional_append(Slicer_BUILD_SlicerDMRI Slicer_REMOTE_DEPENDENCIES SlicerDMRI)
+
 #-----------------------------------------------------------------------------
 # Define list of additional options used to configure Slicer
 #------------------------------------------------------------------------------
