@@ -244,7 +244,7 @@ class ExtensionDescription(object):
     dictio["MY_EXTENSION_SCREENSHOTURLS"] = getattr(self, "screenshoturls")
     dictio["MY_EXTENSION_ENABLED"] = getattr(self, "enabled")
                                                                   
-    extDescriptFile = open('/Users/jvimort/Applications/Slicer/build-slicer/Slicer/CMake/extension_description.s4ext.in','r') # this will not be the final path
+    extDescriptFile = open(self.DESCRIPTION_FILE_TEMPLATE,'r')
     for ligne in extDescriptFile.readlines() :
       if  "${" in ligne:
         variables = self.findOccurences(ligne,"$")
@@ -257,7 +257,7 @@ class ExtensionDescription(object):
               var+=ligne[i]
               i+=1
             temp = temp.replace("${"+var+"}",dictio[var])
-          fp.write(temp)
+        fp.write(temp)
       else:
         fp.write(ligne)
 
@@ -279,3 +279,11 @@ class ExtensionDescription(object):
     else:
       with open(out, "w") as fp:
         self._write(fp)
+
+  def findOccurences(self, a_str, sub):
+    start = 0
+    while True:
+        start = a_str.find(sub, start)
+        if start == -1: return
+        yield start
+        start += len(sub)
