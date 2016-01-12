@@ -86,6 +86,8 @@ if((NOT DEFINED CURL_INCLUDE_DIR
       ${${proj}_DEPENDENCIES}
     )
 
+  ExternalProject_GenerateProjectDescription_Step(${proj})
+
   if(UNIX)
     set(curl_IMPORT_SUFFIX .a)
     if(APPLE)
