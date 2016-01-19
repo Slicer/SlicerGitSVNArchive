@@ -77,7 +77,7 @@ int vtkMRMLTableStorageNode::ReadDataInternal(vtkMRMLNode *refNode)
     }
 
   // check that the file exists
-  if (vtksys::SystemTools::FileExists(fullName) == false)
+  if (vtksys::SystemTools::FileExists(fullName.c_str()) == false)
     {
     vtkErrorMacro("ReadData: table file '" << fullName << "' not found.");
     return 0;
