@@ -108,7 +108,7 @@ function(slicerFunctionGenerateExtensionDescription)
   endif()
 
  configure_file(
- ${CMAKE_CURRENT_LIST_DIR}/extension_description.s4ext.in
+ ${CMAKE_CURRENT_LIST_DIR}/../Utilities/Templates/Extensions/extension_description.s4ext.in
  ${filename})
 
 message(STATUS "Extension description has been written to: ${filename}")

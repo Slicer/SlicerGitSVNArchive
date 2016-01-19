@@ -608,15 +608,15 @@ class ExtensionWizard(object):
     # Add built-in templates
     scriptPath = os.path.dirname(os.path.realpath(__file__))
 
-    self._templateManager.addPath( # Run from source directory
-      os.path.join(scriptPath, "..", "..", "Templates"))
-
-    self._templateManager.addPath( # Run from install
-      os.path.join(scriptPath, "..", "..", "..", "share",
-                   "Slicer-%s.%s" % tuple(__version_info__[:2]),
-                   "Wizard", "Templates"))
+#    self._templateManager.addPath( # Run from source directory
+#      os.path.join(scriptPath, "..", "..", "Templates"))
+#
+#    self._templateManager.addPath( # Run from install
+#      os.path.join(scriptPath, "..", "..", "..", "share",
+#                   "Slicer-%s.%s" % tuple(__version_info__[:2]),
+#                   "Wizard", "Templates"))
     candidateBuiltInTemplatePaths = [
-        os.path.join(scriptPath, "..", "..", "Templates"), # Run from source directory
+        os.path.join(scriptPath, "..", "..", "..", "Utilities", "Templates"), # Run from source directory
         os.path.join(scriptPath, "..", "..", "..", "share", # Run from install
                      "Slicer-%s.%s" % tuple(__version_info__[:2]),
                      "Wizard", "Templates")
