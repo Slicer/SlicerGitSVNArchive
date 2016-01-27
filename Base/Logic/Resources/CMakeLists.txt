@@ -46,3 +46,20 @@ foreach(filename ${terminology_filenames})
     COMPONENT Runtime
     )
 endforeach()
+
+set(orientation_markers_dir "OrientationMarkers")
+set(orientation_marker_filenames
+  Human.vtp
+  )
+foreach(orientation_marker_filename ${orientation_marker_filenames})
+  configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/${orientation_markers_dir}/${orientation_marker_filename}
+    ${CMAKE_BINARY_DIR}/${Slicer_SHARE_DIR}/${orientation_markers_dir}/${orientation_marker_filename}
+    COPYONLY
+    )
+endforeach()
+install(
+  FILES ${orientation_marker_filenames}/${orientation_markers_dir}
+  DESTINATION ${Slicer_INSTALL_SHARE_DIR}/${orientation_markers_dir}
+  COMPONENT Runtime
+  )
