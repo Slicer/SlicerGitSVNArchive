@@ -87,20 +87,19 @@ public:
   vtkInternal(vtkMRMLOrientationMarkerDisplayableManager * external);
   ~vtkInternal();
 
-  void UpdateMarkerType();
-  void UpdateMarkerSize();
-  void UpdateMarkerOrientation();
-
-  std::string GetOrientationMarkerModelPath(const char* modelFileName);
-
-  void CreateMarkerRenderer();
+  void SetupMarkerRenderer();
+  void AddRendererUpdateObserver(vtkRenderer* renderer);
+  void RemoveRendererUpdateObserver();
 
   vtkProp3D* GetCubeActor();
   vtkProp3D* GetHumanActor();
   vtkProp3D* GetAxesActor();
 
-  void AddRendererUpdateObserver(vtkRenderer* renderer);
-  void RemoveRendererUpdateObserver();
+  void UpdateMarkerType();
+  void UpdateMarkerSize();
+  void UpdateMarkerOrientation();
+
+  std::string GetOrientationMarkerModelPath(const char* modelFileName);
 
   vtkSmartPointer<vtkRenderer> MarkerRenderer;
 
@@ -131,6 +130,12 @@ vtkMRMLOrientationMarkerDisplayableManager::vtkInternal::vtkInternal(vtkMRMLOrie
   this->RendererUpdateObserver->DisplayableManager = this->External;
   this->RendererUpdateObservationId = 0;
   this->DisplayedActor = NULL;
+  this->MarkerRenderer = vtkSmartPointer<vtkRenderer>::New();
+  this->HumanPolyData = vtkSmartPointer<vtkPolyData>::New();
+  this->HumanPolyDataMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+  // Orientation marker actors are not created here to converve resources
+  // (especially the human marker may be expensive). These actors are created
+  // when they are first needed.
 }
 
 //---------------------------------------------------------------------------
@@ -162,16 +167,15 @@ void vtkMRMLOrientationMarkerDisplayableManager::vtkInternal::RemoveRendererUpda
 }
 
 //---------------------------------------------------------------------------
-void vtkMRMLOrientationMarkerDisplayableManager::vtkInternal::CreateMarkerRenderer()
+void vtkMRMLOrientationMarkerDisplayableManager::vtkInternal::SetupMarkerRenderer()
 {
   vtkRenderer* renderer = this->External->GetRenderer();
   if (renderer==NULL)
     {
-    vtkErrorWithObjectMacro(this->External, "vtkMRMLOrientationMarkerDisplayableManager::vtkInternal::CreateMarkerRenderer() failed: renderer is invalid");
+    vtkErrorWithObjectMacro(this->External, "vtkMRMLOrientationMarkerDisplayableManager::vtkInternal::SetupMarkerRenderer() failed: renderer is invalid");
     return;
     }
 
-  this->MarkerRenderer = vtkSmartPointer<vtkRenderer>::New();
   this->MarkerRenderer->InteractiveOff();
 
   vtkRenderWindow* renderWindow = renderer->GetRenderWindow();
@@ -233,11 +237,9 @@ vtkProp3D* vtkMRMLOrientationMarkerDisplayableManager::vtkInternal::GetHumanActo
     vtkNew<vtkXMLPolyDataReader> polyDataReader;
     polyDataReader->SetFileName(this->GetOrientationMarkerModelPath(HUMAN_MODEL_VTP_FILENAME).c_str());
     polyDataReader->Update();
-    this->HumanPolyData = vtkSmartPointer<vtkPolyData>::New();
     this->HumanPolyData->ShallowCopy(polyDataReader->GetOutput());
     this->HumanPolyData->GetPointData()->SetActiveScalars("Color");
 
-    this->HumanPolyDataMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
     this->HumanPolyDataMapper->SetInputData(this->HumanPolyData);
     this->HumanPolyDataMapper->SetColorModeToDirectScalars();
 
@@ -307,7 +309,7 @@ void vtkMRMLOrientationMarkerDisplayableManager::vtkInternal::UpdateMarkerType()
     this->DisplayedActor = actorToDisplay;
     }
 
-  if (vtkMRMLAbstractViewNode::OrientationMarkerTypeHuman)
+  if (viewNode->GetOrientationMarkerType() == vtkMRMLAbstractViewNode::OrientationMarkerTypeHuman)
     {
     vtkMRMLModelNode* humanModelNode = viewNode->GetOrientationMarkerHumanModelNode();
     if (humanModelNode && humanModelNode->GetPolyData())
@@ -333,7 +335,7 @@ void vtkMRMLOrientationMarkerDisplayableManager::vtkInternal::UpdateMarkerType()
           }
         }
       }
-    else
+    else if (this->HumanPolyDataMapper)
       {
       this->HumanPolyDataMapper->SetInputData(this->HumanPolyData);
       this->HumanPolyDataMapper->SetColorModeToDirectScalars();
@@ -507,7 +509,7 @@ void vtkMRMLOrientationMarkerDisplayableManager::PrintSelf(ostream& os, vtkInden
 //---------------------------------------------------------------------------
 void vtkMRMLOrientationMarkerDisplayableManager::Create()
 {
-  this->Internal->CreateMarkerRenderer();
+  this->Internal->SetupMarkerRenderer();
   this->Superclass::Create();
 }
 
@@ -532,4 +534,5 @@ void vtkMRMLOrientationMarkerDisplayableManager::UpdateFromRenderer()
 {
   // Rendering is performed, so let's re-render the marker with up-to-date orientation
   this->Internal->UpdateMarkerOrientation();
+  this->Internal->UpdateMarkerSize(); // update size if render window size changes
 }

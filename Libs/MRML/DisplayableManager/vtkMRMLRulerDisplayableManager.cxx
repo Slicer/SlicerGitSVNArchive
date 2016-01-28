@@ -87,15 +87,13 @@ public:
   vtkInternal(vtkMRMLRulerDisplayableManager * external);
   ~vtkInternal();
 
-  void CreateRuler();
-
-  void UpdateRuler();
-
-  void CreateMarkerRenderer();
-
+  void SetupMarkerRenderer();
   void AddRendererUpdateObserver(vtkRenderer* renderer);
   void RemoveRendererUpdateObserver();
 
+  void SetupRuler();
+
+  void UpdateRuler();
   void ShowActors(bool show);
 
   vtkSmartPointer<vtkRenderer> MarkerRenderer;
@@ -104,12 +102,6 @@ public:
   // to the right side of the line (the Title is almost usable, but the distance from the line is varying
   // and vertical alignment is not perfect)
   vtkSmartPointer<vtkTextActor> RulerTextActor;
-
-  // Ruler points are in normalized coordinates (ruler will set to the correct size by adjusting actor scaling):
-  // X: -0.5 .. 0.5
-  // Y: 0 .. 1
-  // Z: 0
-  vtkSmartPointer<vtkPoints> RulerLinePoints;
 
   vtkSmartPointer<vtkRulerRendererUpdateObserver> RendererUpdateObserver;
   int RendererUpdateObservationId;
@@ -131,6 +123,9 @@ vtkMRMLRulerDisplayableManager::vtkInternal::vtkInternal(vtkMRMLRulerDisplayable
   this->RendererUpdateObserver->DisplayableManager = this->External;
   this->RendererUpdateObservationId = 0;
   this->ActorsAddedToRenderer = false;
+  this->MarkerRenderer = vtkSmartPointer<vtkRenderer>::New();
+  this->RulerLineActor = vtkSmartPointer<vtkAxisActor2D>::New();
+  this->RulerTextActor = vtkSmartPointer<vtkTextActor>::New();
 }
 
 //---------------------------------------------------------------------------
@@ -183,16 +178,15 @@ void vtkMRMLRulerDisplayableManager::vtkInternal::RemoveRendererUpdateObserver()
 }
 
 //---------------------------------------------------------------------------
-void vtkMRMLRulerDisplayableManager::vtkInternal::CreateMarkerRenderer()
+void vtkMRMLRulerDisplayableManager::vtkInternal::SetupMarkerRenderer()
 {
   vtkRenderer* renderer = this->External->GetRenderer();
   if (renderer==NULL)
     {
-    vtkErrorWithObjectMacro(this->External, "vtkMRMLRulerDisplayableManager::vtkInternal::CreateMarkerRenderer() failed: renderer is invalid");
+    vtkErrorWithObjectMacro(this->External, "vtkMRMLRulerDisplayableManager::vtkInternal::SetupMarkerRenderer() failed: renderer is invalid");
     return;
     }
 
-  this->MarkerRenderer = vtkSmartPointer<vtkRenderer>::New();
   this->MarkerRenderer->InteractiveOff();
 
   vtkRenderWindow* renderWindow = renderer->GetRenderWindow();
@@ -210,16 +204,14 @@ void vtkMRMLRulerDisplayableManager::vtkInternal::CreateMarkerRenderer()
     this->AddRendererUpdateObserver(renderer);
     }
 
-  this->CreateRuler();
 }
 
 
 //---------------------------------------------------------------------------
-void vtkMRMLRulerDisplayableManager::vtkInternal::CreateRuler()
+void vtkMRMLRulerDisplayableManager::vtkInternal::SetupRuler()
 {
   const int numberOfTickLines = 11;
 
-  this->RulerLineActor = vtkSmartPointer<vtkAxisActor2D>::New();
   this->RulerLineActor->GetPoint1Coordinate()->SetCoordinateSystemToDisplay();
   this->RulerLineActor->GetPoint2Coordinate()->SetCoordinateSystemToDisplay();
   this->RulerLineActor->LabelVisibilityOff();
@@ -229,7 +221,6 @@ void vtkMRMLRulerDisplayableManager::vtkInternal::CreateRuler()
   this->RulerLineActor->PickableOff();
   this->RulerLineActor->DragableOff();
 
-  this->RulerTextActor = vtkSmartPointer<vtkTextActor>::New();
   vtkTextProperty* textProperty = this->RulerTextActor->GetTextProperty();
   textProperty->SetFontSize(RULER_BASE_FONT_SIZE);
   textProperty->SetFontFamilyToArial();
@@ -241,16 +232,15 @@ void vtkMRMLRulerDisplayableManager::vtkInternal::UpdateRuler()
   vtkMRMLAbstractViewNode* viewNode = vtkMRMLAbstractViewNode::SafeDownCast(this->External->GetMRMLDisplayableNode());
   if (!viewNode || !viewNode->GetRulerEnabled())
     {
+    vtkErrorWithObjectMacro(this->External, "vtkMRMLRulerDisplayableManager::UpdateMarkerOrientation() failed: view node is invalid");
+    this->ShowActors(false);
     return;
     }
 
-  if (!this->RulerTextActor || !this->RulerLineActor)
-    {
-    return;
-    }
   if (this->External->RulerScalePresets.empty())
     {
     vtkErrorWithObjectMacro(this->External, "vtkMRMLRulerDisplayableManager::UpdateMarkerOrientation() failed: no ruler scale presets are defined");
+    this->ShowActors(false);
     return;
     }
 
@@ -285,7 +275,7 @@ void vtkMRMLRulerDisplayableManager::vtkInternal::UpdateRuler()
   else if (threeDViewNode && this->ObservedRenderer)
     {
     vtkCamera *cam = this->ObservedRenderer->GetActiveCamera();
-    if (cam->GetParallelProjection())
+    if (cam && cam->GetParallelProjection())
       {
       // Viewport: xmin, ymin, xmax, ymax; range: 0.0-1.0; origin is bottom left
       double* viewport = this->MarkerRenderer->GetViewport();
@@ -333,9 +323,9 @@ void vtkMRMLRulerDisplayableManager::vtkInternal::UpdateRuler()
     }
 
   double actualRulerLengthPixel = double(bestMatchScalePreset->Length)*scalingFactorPixelPerMm;
-  if (actualRulerLengthPixel < RULER_MINIMUM_LENGTH*viewWidthPixel || actualRulerLengthPixel > RULER_MAXIMUM_LENGTH*viewWidthPixel)
+  if (actualRulerLengthPixel < RULER_MINIMUM_LENGTH*viewWidthPixel || actualRulerLengthPixel > RULER_MAXIMUM_LENGTH*viewWidthPixel || viewWidthPixel==0)
     {
-    // ruler is too small or too big to display
+    // ruler is too small or too big to display or view type is invalid
     this->ShowActors(false);
     return;
     }
@@ -435,9 +425,9 @@ void vtkMRMLRulerDisplayableManager::PrintSelf(ostream& os, vtkIndent indent)
 //---------------------------------------------------------------------------
 void vtkMRMLRulerDisplayableManager::Create()
 {
-  this->Internal->CreateMarkerRenderer();
+  this->Internal->SetupMarkerRenderer();
+  this->Internal->SetupRuler();
   this->Superclass::Create();
-//  this->UpdateFromViewNode();
 }
 
 //---------------------------------------------------------------------------
@@ -497,6 +487,5 @@ void vtkMRMLRulerDisplayableManager::AddRulerScalePreset(double length, int numb
 //---------------------------------------------------------------------------
 void vtkMRMLRulerDisplayableManager::RemoveAllRulerScalePresets()
 {
-  // Rendering is performed, so let's re-render the marker with up-to-date orientation
   this->RulerScalePresets.clear();
 }
