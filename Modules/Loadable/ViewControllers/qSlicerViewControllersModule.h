@@ -26,7 +26,12 @@
 
 #include "qSlicerViewControllersModuleExport.h"
 
+class QSettings;
+
 class qSlicerViewControllersModulePrivate;
+class vtkMRMLAbstractViewNode;
+class vtkMRMLSliceNode;
+class vtkMRMLViewNode;
 
 class Q_SLICER_QTMODULES_VIEWCONTROLLERS_EXPORT qSlicerViewControllersModule
   : public qSlicerLoadableModule
@@ -48,6 +53,26 @@ public:
   virtual QString acknowledgementText()const;
   virtual QStringList contributors()const;
 
+  /// Read default slice view settings from application settings (.ini file)
+  /// into defaultViewNode.
+  static void readDefaultSliceViewSettings(vtkMRMLSliceNode* defaultViewNode);
+
+  /// Read default 3D view settings from application settings (.ini file)
+  /// into defaultViewNode.
+  static void writeDefaultSliceViewSettings(vtkMRMLSliceNode* defaultViewNode);
+
+  /// Write default slice view settings to application settings (.ini file)
+  /// from defaultViewNode.
+  static void readDefaultThreeDViewSettings(vtkMRMLViewNode* defaultViewNode);
+
+  /// Write default 3D  view settings to application settings (.ini file)
+  /// from defaultViewNode.
+  static void writeDefaultThreeDViewSettings(vtkMRMLViewNode* defaultViewNode);
+
+  /// Set MRML scene for the module. Updates the default view settings based on
+  /// the application settings.
+  virtual void setMRMLScene(vtkMRMLScene* scene);
+
 protected:
   /// Initialize the module. Register the volumes reader/writer
   virtual void setup();
@@ -57,6 +82,10 @@ protected:
 
   /// Create and return the logic associated to this module
   virtual vtkMRMLAbstractLogic* createLogic();
+
+  /// Helper functions to read/write common view settings
+  static void readCommonViewSettings(vtkMRMLAbstractViewNode* defaultViewNode, QSettings& settings);
+  static void writeCommonViewSettings(vtkMRMLAbstractViewNode* defaultViewNode, QSettings& settings);
 
 protected:
   QScopedPointer<qSlicerViewControllersModulePrivate> d_ptr;
