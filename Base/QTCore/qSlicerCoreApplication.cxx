@@ -350,6 +350,8 @@ void qSlicerCoreApplicationPrivate::init()
     // We load the language selected for the application
     qSlicerCoreApplication::loadLanguage();
     }
+    
+  this->setEnvironmentVariable("SLICER_TEMPORARY_DIR", this->AppLogic->GetTemporaryPath());
 }
 
 //-----------------------------------------------------------------------------
