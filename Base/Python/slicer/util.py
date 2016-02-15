@@ -132,7 +132,7 @@ def findChildren(widget=None,name="",text="",title="",className=""):
     return []
   children = []
   parents = [widget]
-  while parents != []:
+  while parents:
     p = parents.pop()
     # sometimes, p is null, f.e. when using --python-script or --python-code
     if not p:
@@ -140,29 +140,18 @@ def findChildren(widget=None,name="",text="",title="",className=""):
     if not hasattr(p,'children'):
       continue
     parents += p.children()
-    if name and fnmatch.fnmatchcase(p.name, name):
-      children.append(p)
-    elif text:
-      try:
-        p.text
-        if fnmatch.fnmatchcase(p.text, text):
-          children.append(p)
-      except (AttributeError, TypeError):
-        pass
-    elif title:
-      try:
-        p.title
-        if fnmatch.fnmatchcase(p.title, title):
-          children.append(p)
-      except AttributeError:
-        pass
-    elif className:
-      try:
-        p.className()
-        if fnmatch.fnmatchcase(p.className(), className):
-          children.append(p)
-      except AttributeError:
-        pass
+    matched_filter_criteria = True
+    if name and hasattr(p, 'name'):
+      matched_filter_criteria &= fnmatch.fnmatchcase(p.name, name)
+    if text and hasattr(p, 'text'):
+      matched_filter_criteria &= fnmatch.fnmatchcase(p.text, text)
+    if title and hasattr(p, 'title'):
+      matched_filter_criteria &= fnmatch.fnmatchcase(p.title, title)
+    if className and hasattr(p, 'className'):
+      matched_filter_criteria &= fnmatch.fnmatchcase(p.className(), className)
+
+    if matched_filter_criteria:
+        children.append(p)
   return children
 
 #
