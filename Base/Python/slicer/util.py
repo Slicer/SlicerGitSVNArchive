@@ -121,10 +121,20 @@ def showStatusMessage(message, duration = 0):
   if mw:
     mw.statusBar().showMessage(message, duration)
 
-def findChildren(widget=None,name="",text="",title="",className=""):
-  """ return a list of child widgets that match the passed name """
-  # TODO: figure out why the native QWidget.findChildren method
-  # does not seem to work from PythonQt
+def findChildren(widget=None, name="", text="", title="", className=""):
+  """ Return a list of child widgets that meet all the given criteria.
+  If no criteria are given, the function will return all the child widgets.
+  The function applies an "and" filter, instead of the previous "or" behavior
+  (see http://slicer-devel.65872.n3.nabble.com/Changing-the-behavior-of-slicer-util-findChildren-td4036266.html
+  for additional info)
+  :param widget: parent widget where the widgets will be searched
+  :param name: name attribute of the widget
+  :param text: text attribute of the widget
+  :param title: title attribute of the widget
+  :param className: className() attribute of the widget
+  :return: list with all the widgets that meet all the given criteria.
+  """
+  # TODO: figure out why the native QWidget.findChildren method does not seem to work from PythonQt
   import slicer, fnmatch
   if not widget:
     widget = mainWindow()
