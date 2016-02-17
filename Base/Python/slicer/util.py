@@ -168,6 +168,24 @@ def findChildren(widget=None, name="", text="", title="", className=""):
 # IO
 #
 
+def findChild(widget=None, name="", text="", title="", className=""):
+  """ Return a single child widget that meet all the given criteria.
+  If there is more than one widget that matches the conditions, an Exception is raised.
+  If there is no widget that matches the conditions, the method returns None.  
+  :param widget: parent widget where the widgets will be searched
+  :param name: name attribute of the widget
+  :param text: text attribute of the widget
+  :param title: title attribute of the widget
+  :param className: className() attribute of the widget
+  :return: single widget that meet all the given criteria (or None otherwise)
+  """
+  results = findChildren(widget, name, text, title, className)
+  if len(results) == 0:
+    return None
+  if len(results) > 1:
+      raise Exception("There is more than one widget that matches the given conditions")
+  return results[0]  
+
 def loadNodeFromFile(filename, filetype, properties={}, returnNode=False):
   from slicer import app
   from vtk import vtkCollection
