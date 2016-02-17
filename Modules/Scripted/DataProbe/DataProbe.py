@@ -59,7 +59,6 @@ See <a>http://www.slicer.org</a> for details.  Module implemented by Steve Piepe
     # TODO - the parent name will likely change
     try:
       parent = slicer.util.findChildren(name='DataProbeCollapsibleButton')[0]
-      print "Este es el dataProbe: ", parent
     except IndexError:
       print("No Data Probe frame - cannot create DataProbe")
       return
