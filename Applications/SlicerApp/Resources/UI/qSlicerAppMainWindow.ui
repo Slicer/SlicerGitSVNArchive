@@ -186,6 +186,9 @@
        <property name="text">
         <string>Data Probe</string>
        </property>
+       <property name="objectName">
+	    <string>DataProbeCollapsibleButton</string>
+	   </property>
        <layout class="QHBoxLayout" name="horizontalLayout"/>
       </widget>
      </item>

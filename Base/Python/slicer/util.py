@@ -121,10 +121,20 @@ def showStatusMessage(message, duration = 0):
   if mw:
     mw.statusBar().showMessage(message, duration)
 
-def findChildren(widget=None,name="",text="",title="",className=""):
-  """ return a list of child widgets that match the passed name """
-  # TODO: figure out why the native QWidget.findChildren method
-  # does not seem to work from PythonQt
+def findChildren(widget=None, name="", text="", title="", className=""):
+  """ Return a list of child widgets that meet all the given criteria.
+  If no criteria are given, the function will return all the child widgets.
+  The function applies an "and" filter, instead of the previous "or" behavior
+  (see http://slicer-devel.65872.n3.nabble.com/Changing-the-behavior-of-slicer-util-findChildren-td4036266.html
+  for additional info)
+  :param widget: parent widget where the widgets will be searched
+  :param name: name attribute of the widget
+  :param text: text attribute of the widget
+  :param title: title attribute of the widget
+  :param className: className() attribute of the widget
+  :return: list with all the widgets that meet all the given criteria.
+  """
+  # TODO: figure out why the native QWidget.findChildren method does not seem to work from PythonQt
   import slicer, fnmatch
   if not widget:
     widget = mainWindow()
@@ -132,7 +142,7 @@ def findChildren(widget=None,name="",text="",title="",className=""):
     return []
   children = []
   parents = [widget]
-  while parents != []:
+  while parents:
     p = parents.pop()
     # sometimes, p is null, f.e. when using --python-script or --python-code
     if not p:
@@ -140,34 +150,41 @@ def findChildren(widget=None,name="",text="",title="",className=""):
     if not hasattr(p,'children'):
       continue
     parents += p.children()
-    if name and fnmatch.fnmatchcase(p.name, name):
-      children.append(p)
-    elif text:
-      try:
-        p.text
-        if fnmatch.fnmatchcase(p.text, text):
-          children.append(p)
-      except (AttributeError, TypeError):
-        pass
-    elif title:
-      try:
-        p.title
-        if fnmatch.fnmatchcase(p.title, title):
-          children.append(p)
-      except AttributeError:
-        pass
-    elif className:
-      try:
-        p.className()
-        if fnmatch.fnmatchcase(p.className(), className):
-          children.append(p)
-      except AttributeError:
-        pass
+    matched_filter_criteria = True
+    if name and hasattr(p, 'name'):
+      matched_filter_criteria &= fnmatch.fnmatchcase(p.name, name)
+    if text and hasattr(p, 'text'):
+      matched_filter_criteria &= fnmatch.fnmatchcase(p.text, text)
+    if title and hasattr(p, 'title'):
+      matched_filter_criteria &= fnmatch.fnmatchcase(p.title, title)
+    if className and hasattr(p, 'className'):
+      matched_filter_criteria &= fnmatch.fnmatchcase(p.className(), className)
+
+    if matched_filter_criteria:
+        children.append(p)
   return children
 
 #
 # IO
 #
+
+def findChild(widget=None, name="", text="", title="", className=""):
+  """ Return a single child widget that meet all the given criteria.
+  If there is more than one widget that matches the conditions, an Exception is raised.
+  If there is no widget that matches the conditions, the method returns None.  
+  :param widget: parent widget where the widgets will be searched
+  :param name: name attribute of the widget
+  :param text: text attribute of the widget
+  :param title: title attribute of the widget
+  :param className: className() attribute of the widget
+  :return: single widget that meet all the given criteria (or None otherwise)
+  """
+  results = findChildren(widget, name, text, title, className)
+  if len(results) == 0:
+    return None
+  if len(results) > 1:
+      raise Exception("There is more than one widget that matches the given conditions")
+  return results[0]  
 
 def loadNodeFromFile(filename, filetype, properties={}, returnNode=False):
   from slicer import app
