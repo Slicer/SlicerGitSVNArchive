@@ -79,7 +79,7 @@ if(NOT Slicer_SOURCE_DIR)
   # Options
   #-----------------------------------------------------------------------------
   set(Slicer_BUILD_EXTENSIONS ON CACHE INTERNAL "Build Slicer extensions.")
-  set(Slicer_EXTENSION_DESCRIPTION_DIR "${default_extension_description_dir}" CACHE STRING "Path to folder containing *.s4ext files to consider.")
+  set(Slicer_EXTENSION_DESCRIPTION_DIR "${default_extension_description_dir}" CACHE PATH "Path to folder containing *.s4ext files to consider.")
   set(Slicer_LOCAL_EXTENSIONS_DIR "${default_local_extension_dir}" CACHE STRING "Path to extension sources locally available")
   option(BUILD_TESTING "Test extensions." ${Slicer_BUILD_TESTING})
 else()
