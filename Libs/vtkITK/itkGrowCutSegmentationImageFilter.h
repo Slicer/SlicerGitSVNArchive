@@ -9,9 +9,11 @@
 
 //#include "itkGrowCutSegmentationUpdateFilter.h"
 
-#include "vcl_list.h"
+#include <vcl_compiler.h>
+#include <iostream>
+#include "list"
 
-#include <vcl_vector.h>
+#include <vector>
 
 
 #ifndef PixelState
@@ -297,7 +299,7 @@ template<class TInputImage,
 
   void GetRegionOfInterest();
 
-  void ComputeLabelVolumes(TOutputImage *outputImage, vcl_vector< unsigned > &volumes, vcl_vector< unsigned > &phyVolumes);
+  void ComputeLabelVolumes(TOutputImage *outputImage, std::vector< unsigned > &volumes, std::vector< unsigned > &phyVolumes);
 
   void MaskSegmentedImageByWeight(float upperThresh);
 
