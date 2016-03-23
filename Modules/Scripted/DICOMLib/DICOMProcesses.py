@@ -138,6 +138,8 @@ class DICOMListener(DICOMProcess):
       self.fileAddedCallback = fileAddedCallback
 
     if not self.incomingDir:
+      if not self.dicomDatabase:
+        raise(UserWarning('Indexing is disabled and no directory has been specified for incoming data.'))
       databaseDirectory = settings.value('DatabaseDirectory')
       if not databaseDirectory:
         raise(UserWarning('Database directory not set: cannot start DICOMListener'))
