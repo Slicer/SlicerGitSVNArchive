@@ -116,6 +116,11 @@ class DICOMCommand(DICOMProcess):
 
 
 class DICOMStoreSCPProcess(DICOMProcess):
+  """helper class to run dcmtk's storescp
+  Code here depends only on python and DCMTK executables
+  TODO: it might make sense to refactor this as a generic tool
+  for interacting with DCMTK
+  """
 
   STORESCP_PROCESS_FILE_NAME = "storescp"
 
@@ -217,10 +222,8 @@ class DICOMStoreSCPProcess(DICOMProcess):
 
 
 class DICOMListener(DICOMStoreSCPProcess):
-  """helper class to run dcmtk's storescp as listener
-  Code here depends only on python and DCMTK executables
-  TODO: it might make sense to refactor this as a generic tool
-  for interacting with DCMTK
+  """helper class that uses storscp process including indexing
+  into Slicer DICOMdatabase.
   TODO: down the line we might have ctkDICOMListener perform
   this task as a QObject callable from PythonQt
   """
