@@ -724,6 +724,7 @@ def createProgressDialog(parent=None, value=0, maximum=100, labelText="", window
   """
   import qt
   progressIndicator = qt.QProgressDialog(parent if parent else mainWindow())
+  progressIndicator.modal = True
   progressIndicator.minimumDuration = 0
   progressIndicator.maximum = maximum
   progressIndicator.value = value
