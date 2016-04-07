@@ -121,6 +121,9 @@ void qSlicerColorsModule::setup()
                                 "Labels", SIGNAL(colorSelected(QColor)),
                                 SIGNAL(colorNameSelected(QString)));
   ctkColorDialog::setDefaultTab(1);
+
+  // Register module for "Edit node" action
+  qSlicerApplication::application()->registerNodeModule("vtkMRMLColorNode", this->name());
 }
 
 //-----------------------------------------------------------------------------

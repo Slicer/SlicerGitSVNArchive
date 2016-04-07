@@ -41,6 +41,8 @@ public:
   qSlicerCamerasModule(QObject *parent=0);
   virtual ~qSlicerCamerasModule();
 
+  virtual void setup();
+
   virtual QStringList categories()const;
   virtual QIcon icon()const;
 

@@ -150,6 +150,11 @@ void qSlicerVolumeRenderingModule::setup()
   coreIOManager->registerIO(new qSlicerNodeWriter(
     "Transfer Function", QString("TransferFunctionFile"),
     QStringList() << "vtkMRMLVolumePropertyNode", true, this));
+
+  // Register module for "Edit node" action
+  qSlicerApplication::application()->registerNodeModule("vtkMRMLVolumePropertyNode", this->name());
+  qSlicerApplication::application()->registerNodeModule("vtkMRMLVolumeRenderingDisplayNode", this->name());
+  qSlicerApplication::application()->registerNodeModule("vtkMRMLAnnotationROINode", this->name()); // clipping box
 }
 
 //-----------------------------------------------------------------------------

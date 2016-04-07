@@ -4,6 +4,7 @@
 #include <QtPlugin>
 
 // Slicer includes
+#include <qSlicerApplication.h>
 #include <qSlicerCoreApplication.h>
 #include <qSlicerModuleManager.h>
 
@@ -125,6 +126,9 @@ void qSlicerCropVolumeModule::setup()
     {
     qWarning() << "ResampleScalarVectorDWIVolume module is not found";
     }
+
+  // Register module for "Edit node" action
+  qSlicerApplication::application()->registerNodeModule("vtkMRMLCropVolumeParametersNode", this->name());
 }
 
 //-----------------------------------------------------------------------------

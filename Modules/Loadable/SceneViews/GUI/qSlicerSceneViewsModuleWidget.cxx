@@ -552,3 +552,29 @@ void qSlicerSceneViewsModuleWidget::showSceneViewDialog()
   d->sceneViewDialog()->exec();
 }
 
+//-----------------------------------------------------------
+bool qSlicerSceneViewsModuleWidget::setEditedNode(vtkMRMLNode* node, QString role /* = QString()*/, QString context /* = QString() */)
+{
+  Q_D(qSlicerSceneViewsModuleWidget);
+  if (vtkMRMLSceneViewNode::SafeDownCast(node))
+    {
+    // Scene view is a webview and does not support selection
+    // TODO: change the webview to a native view (webview looks quite bad anyway, especially on high-DPI screens)
+    return true;
+    }
+
+  return false;
+}
+
+//-----------------------------------------------------------
+double qSlicerSceneViewsModuleWidget::nodeEditable(vtkMRMLNode* node)
+{
+  if (vtkMRMLSceneViewNode::SafeDownCast(node))
+    {
+    return 0.5;
+    }
+  else
+    {
+    return 0.0;
+    }
+}

@@ -151,3 +151,42 @@ void  qSlicerCamerasModuleWidget::setMRMLScene(vtkMRMLScene* scene)
   // Let's resync here.
   this->synchronizeCameraWithView();
 }
+
+//-----------------------------------------------------------
+bool qSlicerCamerasModuleWidget::setEditedNode(vtkMRMLNode* node, QString role /* = QString()*/, QString context /* = QString() */)
+{
+  Q_D(qSlicerCamerasModuleWidget);
+
+  if (vtkMRMLViewNode::SafeDownCast(node))
+    {
+    d->ViewNodeSelector->setCurrentNode(node);
+    return true;
+    }
+
+  if (vtkMRMLCameraNode::SafeDownCast(node))
+    {
+    vtkMRMLCameraNode* cameraNode = vtkMRMLCameraNode::SafeDownCast(node);
+    vtkMRMLViewNode* viewNode = vtkMRMLViewNode::SafeDownCast(this->mrmlScene()->GetNodeByID(cameraNode->GetActiveTag()));
+    if (!viewNode)
+      {
+      return false;
+      }
+    d->ViewNodeSelector->setCurrentNode(viewNode);
+    return true;
+    }
+
+  return false;
+}
+
+//-----------------------------------------------------------
+double qSlicerCamerasModuleWidget::nodeEditable(vtkMRMLNode* node)
+{
+  if (vtkMRMLViewNode::SafeDownCast(node) || vtkMRMLCameraNode::SafeDownCast(node))
+    {
+    return 0.5;
+    }
+  else
+    {
+    return 0.0;
+    }
+}

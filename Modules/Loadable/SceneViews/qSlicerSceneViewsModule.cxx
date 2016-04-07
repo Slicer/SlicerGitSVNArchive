@@ -51,6 +51,9 @@ void qSlicerSceneViewsModule::setup()
   // Register Subject Hierarchy core plugins
   qSlicerSubjectHierarchyPluginHandler::instance()->registerPlugin(
     new qSlicerSubjectHierarchySceneViewsPlugin());
+
+  // Register module for "Edit node" action
+  qSlicerApplication::application()->registerNodeModule("vtkMRMLSceneViewNode", this->name());
 }
 
 //-----------------------------------------------------------------------------

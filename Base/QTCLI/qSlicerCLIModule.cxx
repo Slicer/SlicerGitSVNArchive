@@ -28,6 +28,7 @@
 #include <ctkWidgetsUtils.h>
 
 // Slicer includes
+#include <qSlicerApplication.h>
 #include "qMRMLNodeComboBox.h"
 #include "qSlicerCLIModuleWidget.h"
 #include "vtkSlicerCLIModuleLogic.h"
@@ -93,6 +94,9 @@ void qSlicerCLIModule::setup()
   // Temporary directory should be set before the module is initialized
   Q_ASSERT(!d->TempDirectory.isEmpty());
 #endif
+
+  // Register module for "Edit node" action
+  qSlicerApplication::application()->registerNodeModule("vtkMRMLCommandLineModuleNode", this->name());
 }
 
 //-----------------------------------------------------------------------------

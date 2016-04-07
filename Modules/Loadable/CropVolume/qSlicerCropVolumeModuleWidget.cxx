@@ -732,3 +732,28 @@ void qSlicerCropVolumeModuleWidget::updateWidget()
 
   d->SpacingScalingSpinBox->setValue(parametersNode->GetSpacingScalingConst());
 }
+
+//-----------------------------------------------------------
+bool qSlicerCropVolumeModuleWidget::setEditedNode(vtkMRMLNode* node, QString role /* = QString()*/, QString context /* = QString() */)
+{
+  Q_D(qSlicerCropVolumeModuleWidget);
+  if (vtkMRMLCropVolumeParametersNode::SafeDownCast(node))
+    {
+    d->ParametersNodeComboBox->setCurrentNode(node);
+    return true;
+    }
+  return false;
+}
+
+//-----------------------------------------------------------
+double qSlicerCropVolumeModuleWidget::nodeEditable(vtkMRMLNode* node)
+{
+  if (vtkMRMLCropVolumeParametersNode::SafeDownCast(node))
+    {
+    return 0.5;
+    }
+  else
+    {
+    return 0.0;
+    }
+}

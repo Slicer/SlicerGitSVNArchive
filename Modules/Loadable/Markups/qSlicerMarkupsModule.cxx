@@ -162,8 +162,13 @@ void qSlicerMarkupsModule::setup()
 
   // Register Subject Hierarchy core plugins
   qSlicerSubjectHierarchyPluginHandler::instance()->registerPlugin(new qSlicerSubjectHierarchyMarkupsPlugin());
-}
 
+  // Register module for "Edit node" action
+  qSlicerApplication::application()->registerNodeModule("vtkMRMLAnnotationFiducialNode", this->name());
+  qSlicerApplication::application()->registerNodeModule("vtkMRMLMarkupsDisplayNode", this->name());
+  qSlicerApplication::application()->registerNodeModule("vtkMRMLMarkupsFiducialNode", this->name());
+  qSlicerApplication::application()->registerNodeModule("vtkMRMLMarkupsFiducialStorageNode", this->name());
+}
 
 //-----------------------------------------------------------------------------
 qSlicerAbstractModuleRepresentation * qSlicerMarkupsModule::createWidgetRepresentation()
