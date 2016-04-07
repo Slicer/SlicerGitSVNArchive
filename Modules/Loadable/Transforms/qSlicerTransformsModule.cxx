@@ -158,4 +158,8 @@ void qSlicerTransformsModule::setup()
 
   // Register Subject Hierarchy core plugins
   qSlicerSubjectHierarchyPluginHandler::instance()->registerPlugin(new qSlicerSubjectHierarchyTransformsPlugin());
+
+  // Register module for "Edit node" action
+  qSlicerApplication::application()->registerNodeModule("vtkMRMLTransformNode", this->name());
+  qSlicerApplication::application()->registerNodeModule("vtkMRMLTransformDisplayNode", this->name());
 }

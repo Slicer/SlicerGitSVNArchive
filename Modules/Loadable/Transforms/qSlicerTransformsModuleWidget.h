@@ -45,6 +45,9 @@ public:
   /// Reimplemented for internal reasons
   void setMRMLScene(vtkMRMLScene* scene);
 
+  virtual bool setEditedNode(vtkMRMLNode* node, QString role = QString(), QString context = QString());
+  virtual double nodeEditable(vtkMRMLNode* node);
+
 public slots:
 
   /// Set the transform to identity. Only for linear transforms.

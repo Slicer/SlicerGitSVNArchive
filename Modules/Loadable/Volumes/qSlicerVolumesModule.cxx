@@ -155,6 +155,10 @@ void qSlicerVolumesModule::setup()
   // Register Subject Hierarchy core plugins
   qSlicerSubjectHierarchyPluginHandler::instance()->registerPlugin(new qSlicerSubjectHierarchyVolumesPlugin());
   qSlicerSubjectHierarchyPluginHandler::instance()->registerPlugin(new qSlicerSubjectHierarchyLabelMapsPlugin());
+
+  // Register module for "Edit node" action
+  qSlicerApplication::application()->registerNodeModule("vtkMRMLVolumeNode", this->name());
+  qSlicerApplication::application()->registerNodeModule("vtkMRMLVolumeDisplayNode", this->name());
 }
 
 //-----------------------------------------------------------------------------

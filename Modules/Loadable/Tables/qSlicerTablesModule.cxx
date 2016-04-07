@@ -24,7 +24,7 @@
 #include <QtPlugin>
 
 // Slice includes
-#include <qSlicerCoreApplication.h>
+#include <qSlicerApplication.h>
 #include <qSlicerCoreIOManager.h>
 #include <qSlicerNodeWriter.h>
 
@@ -131,6 +131,8 @@ void qSlicerTablesModule::setup()
     QStringList() << "vtkMRMLTableNode", false, this));
   // Register Subject Hierarchy core plugins
   qSlicerSubjectHierarchyPluginHandler::instance()->registerPlugin(new qSlicerSubjectHierarchyTablesPlugin());
+  // Register module for "Edit node" action
+  qSlicerApplication::application()->registerNodeModule("vtkMRMLTableNode", this->name());
 }
 
 

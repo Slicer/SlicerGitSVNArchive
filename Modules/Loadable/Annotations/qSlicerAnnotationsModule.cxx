@@ -91,6 +91,12 @@ void qSlicerAnnotationsModule::setup()
   ioManager->registerIO(new qSlicerNodeWriter(
     "Annotations", QString("AnnotationFile"),
     QStringList() << "vtkMRMLAnnotationNode", true, this));
+
+  // Register module for "Edit node" action
+  qSlicerApplication::application()->registerNodeModule("vtkMRMLAnnotationNode", this->name());
+  qSlicerApplication::application()->registerNodeModule("vtkMRMLAnnotationDisplayNode", this->name());
+  qSlicerApplication::application()->registerNodeModule("vtkMRMLAnnotationStorageNode", this->name());
+  qSlicerApplication::application()->registerNodeModule("vtkMRMLAnnotationHierarchyNode", this->name());
 }
 
 //-----------------------------------------------------------------------------

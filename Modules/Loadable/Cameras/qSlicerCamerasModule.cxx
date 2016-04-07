@@ -21,6 +21,9 @@
 // Qt includes
 #include <QtPlugin>
 
+// QTGUI includes
+#include "qSlicerApplication.h"
+
 // SlicerQt includes
 #include "qSlicerCamerasModule.h"
 #include "qSlicerCamerasModuleWidget.h"
@@ -45,6 +48,16 @@ qSlicerCamerasModule::qSlicerCamerasModule(QObject* _parent)
 //-----------------------------------------------------------------------------
 qSlicerCamerasModule::~qSlicerCamerasModule()
 {
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerCamerasModule::setup()
+{
+  this->Superclass::setup();
+
+  // Register module for "Edit node" action
+  qSlicerApplication::application()->registerNodeModule("vtkMRMLCameraNode", this->name());
+  qSlicerApplication::application()->registerNodeModule("vtkMRMLViewNode", this->name());
 }
 
 //-----------------------------------------------------------------------------

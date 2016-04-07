@@ -431,3 +431,29 @@ void qSlicerColorsModuleWidget::copyCurrentColorNode()
     d->ColorTableComboBox->setCurrentNode(colorNode);
     }
 }
+
+//-----------------------------------------------------------
+bool qSlicerColorsModuleWidget::setEditedNode(vtkMRMLNode* node, QString role /* = QString()*/, QString context /* = QString() */)
+{
+  Q_D(qSlicerColorsModuleWidget);
+  if (vtkMRMLColorNode::SafeDownCast(node))
+    {
+    d->ColorTableComboBox->setCurrentNode(node);
+    return true;
+    }
+
+  return false;
+}
+
+//-----------------------------------------------------------
+double qSlicerColorsModuleWidget::nodeEditable(vtkMRMLNode* node)
+{
+  if (vtkMRMLColorNode::SafeDownCast(node))
+    {
+    return 0.5;
+    }
+  else
+    {
+    return 0.0;
+    }
+}

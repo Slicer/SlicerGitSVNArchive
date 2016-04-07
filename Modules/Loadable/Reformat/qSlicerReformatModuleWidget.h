@@ -46,6 +46,9 @@ public:
   /// Utility function that sets the normal of the slice plane.
   void setSliceNormal(double x, double y, double z);
 
+  virtual bool setEditedNode(vtkMRMLNode* node, QString role = QString(), QString context = QString());
+  virtual double nodeEditable(vtkMRMLNode* node);
+
 protected:
   virtual void setup();
 

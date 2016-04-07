@@ -232,3 +232,28 @@ void qSlicerTablesModuleWidget::setCurrentTableNode(vtkMRMLNode* tableNode)
   Q_D(qSlicerTablesModuleWidget);
   d->TableNodeSelector->setCurrentNode(tableNode);
 }
+
+//-----------------------------------------------------------
+bool qSlicerTablesModuleWidget::setEditedNode(vtkMRMLNode* node, QString role /* = QString()*/, QString context /* = QString() */)
+{
+  Q_D(qSlicerTablesModuleWidget);
+  if (vtkMRMLTableNode::SafeDownCast(node))
+    {
+    d->TableNodeSelector->setCurrentNode(node);
+    return true;
+    }
+  return false;
+}
+
+//-----------------------------------------------------------
+double qSlicerTablesModuleWidget::nodeEditable(vtkMRMLNode* node)
+{
+  if (vtkMRMLTableNode::SafeDownCast(node))
+    {
+    return 0.5;
+    }
+  else
+    {
+    return 0.0;
+    }
+}

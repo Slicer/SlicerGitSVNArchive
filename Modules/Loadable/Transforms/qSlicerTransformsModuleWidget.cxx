@@ -614,3 +614,41 @@ void qSlicerTransformsModuleWidget::updateConvertButtonState()
     d->ConvertMagnitudeOnlyCheckBox->setChecked(false);
     }
 }
+
+//-----------------------------------------------------------
+bool qSlicerTransformsModuleWidget::setEditedNode(vtkMRMLNode* node, QString role /* = QString()*/, QString context /* = QString() */)
+{
+  Q_D(qSlicerTransformsModuleWidget);
+  if (vtkMRMLTransformNode::SafeDownCast(node))
+    {
+    d->TransformNodeSelector->setCurrentNode(node);
+    return true;
+    }
+
+  if (vtkMRMLTransformDisplayNode::SafeDownCast(node))
+    {
+    vtkMRMLTransformDisplayNode* displayNode = vtkMRMLTransformDisplayNode::SafeDownCast(node);
+    vtkMRMLTransformNode* displayableNode = vtkMRMLTransformNode::SafeDownCast(displayNode->GetDisplayableNode());
+    if (!displayableNode)
+      {
+      return false;
+      }
+    d->TransformNodeSelector->setCurrentNode(displayableNode);
+    return true;
+    }
+
+  return false;
+}
+
+//-----------------------------------------------------------
+double qSlicerTransformsModuleWidget::nodeEditable(vtkMRMLNode* node)
+{
+  if (vtkMRMLTransformNode::SafeDownCast(node) || vtkMRMLTransformDisplayNode::SafeDownCast(node))
+    {
+    return 0.5;
+    }
+  else
+    {
+    return 0.0;
+    }
+}

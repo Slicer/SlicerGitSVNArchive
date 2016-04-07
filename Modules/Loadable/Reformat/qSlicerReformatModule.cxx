@@ -21,6 +21,9 @@
 // Qt includes
 #include <QtPlugin>
 
+// QTGUI includes
+#include "qSlicerApplication.h"
+
 // Reformat Logic includes
 #include <vtkSlicerReformatLogic.h>
 
@@ -110,6 +113,10 @@ QStringList qSlicerReformatModule::contributors()const
 void qSlicerReformatModule::setup()
 {
   this->Superclass::setup();
+
+  // Register module for "Edit node" action
+  qSlicerApplication::application()->registerNodeModule("vtkMRMLSliceNode", this->name());
+  qSlicerApplication::application()->registerNodeModule("vtkMRMLSliceCompositeNode", this->name());
 }
 
 //------------------------------------------------------------------------------

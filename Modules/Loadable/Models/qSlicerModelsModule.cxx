@@ -167,6 +167,11 @@ void qSlicerModelsModule::setup()
 
   // Register Subject Hierarchy core plugins
   qSlicerSubjectHierarchyPluginHandler::instance()->registerPlugin(new qSlicerSubjectHierarchyModelsPlugin());
+
+  // Register module for "Edit node" action
+  qSlicerApplication::application()->registerNodeModule("vtkMRMLModelNode", this->name());
+  qSlicerApplication::application()->registerNodeModule("vtkMRMLModelDisplayNode", this->name());
+  qSlicerApplication::application()->registerNodeModule("vtkMRMLModelHierarchyNode", this->name());
 }
 
 //-----------------------------------------------------------------------------
