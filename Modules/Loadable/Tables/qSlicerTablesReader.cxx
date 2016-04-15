@@ -22,6 +22,9 @@
 
 // Qt includes
 #include <QFileInfo>
+#include <QInputDialog>
+#include <QLineEdit>
+#include <QDir>
 
 // SlicerQt includes
 #include "qSlicerTablesReader.h"
@@ -36,6 +39,7 @@
 
 // VTK includes
 #include <vtkSmartPointer.h>
+#include <vtkSQLiteDatabase.h>
 
 //-----------------------------------------------------------------------------
 class qSlicerTablesReaderPrivate
@@ -98,6 +102,7 @@ QStringList qSlicerTablesReader::extensions()const
     << "Table (*.tsv)"
     << "Table (*.csv)"
     << "Table (*.txt)"
+    << "Table (*.db)"
     ;
 }
 
@@ -114,6 +119,30 @@ bool qSlicerTablesReader::load(const IOProperties& properties)
     name = properties["name"].toString();
     }
   std::string uname = this->mrmlScene()->GetUniqueNameByString(name.toLatin1());
+
+  if (fileName.contains(".db"))
+    {
+   uname = "";
+    std::string dbname = std::string("sqlite://") + fileName.toStdString();
+    vtkSQLiteDatabase *database = vtkSQLiteDatabase::SafeDownCast( vtkSQLiteDatabase::CreateFromURL(dbname.c_str()));
+    if (!database->Open("", vtkSQLiteDatabase::USE_EXISTING))
+      {
+      bool ok;
+      QString text = QInputDialog::getText(0, tr("QInputDialog::getText()"),
+                                           tr("Database Password:"), QLineEdit::Normal,
+                                           "", &ok);
+      if (ok && !text.isEmpty())
+        {
+        uname = text.toStdString();
+        }
+      }
+    database->Delete();
+    }
+  else
+    {
+    uname = this->mrmlScene()->GetUniqueNameByString(name.toLatin1());
+    }
+
   vtkMRMLTableNode* node = NULL;
   if (d->Logic!=NULL)
     {
