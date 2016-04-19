@@ -608,13 +608,25 @@ class ExtensionWizard(object):
     # Add built-in templates
     scriptPath = os.path.dirname(os.path.realpath(__file__))
 
-    self._templateManager.addPath( # Run from source directory
-      os.path.join(scriptPath, "..", "..", "Templates"))
-
-    self._templateManager.addPath( # Run from install
-      os.path.join(scriptPath, "..", "..", "..", "share",
-                   "Slicer-%s.%s" % tuple(__version_info__[:2]),
-                   "Wizard", "Templates"))
+#    self._templateManager.addPath( # Run from source directory
+#      os.path.join(scriptPath, "..", "..", "Templates"))
+#
+#    self._templateManager.addPath( # Run from install
+#      os.path.join(scriptPath, "..", "..", "..", "share",
+#                   "Slicer-%s.%s" % tuple(__version_info__[:2]),
+#                   "Wizard", "Templates"))
+    candidateBuiltInTemplatePaths = [
+        os.path.join(scriptPath, "..", "..", "..", "Utilities", "Templates"), # Run from source directory
+        os.path.join(scriptPath, "..", "..", "..", "share", # Run from install
+                     "Slicer-%s.%s" % tuple(__version_info__[:2]),
+                     "Wizard", "Templates")
+        ]
+    builtInTemplatePath = None
+    for candidate in candidateBuiltInTemplatePaths:
+        if os.path.exists(candidate):
+            self._templateManager.addPath(candidate)
+            builtInTemplatePath = candidate
+    ExtensionDescription.DESCRIPTION_FILE_TEMPLATE = os.path.join(builtInTemplatePath, "Extensions", "extension_description.s4ext.in")
 
     # Add user-specified template paths and keys
     self._templateManager.parseArguments(args)

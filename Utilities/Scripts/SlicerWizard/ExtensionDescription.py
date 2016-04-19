@@ -227,8 +227,39 @@ class ExtensionDescription(object):
 
   #---------------------------------------------------------------------------
   def _write(self, fp):
-    for key in sorted(self.__dict__):
-      fp.write(("%s %s" % (key, getattr(self, key))).strip() + "\n")
+    #Creation of the map
+    dictio = dict()
+    dictio["scm_type"] = getattr(self, "scm")
+    dictio["scm_path_token"] = "scmurl"
+    dictio["scm_url"] = getattr(self, "scmurl")
+    dictio["MY_EXTENSION_WC_REVISION"] = getattr(self, "scmrevision")
+    dictio["MY_EXTENSION_DEPENDS"] = getattr(self, "depends")
+    dictio["MY_EXTENSION_BUILD_SUBDIRECTORY"] = getattr(self, "build_subdirectory")
+    dictio["MY_EXTENSION_HOMEPAGE"] = getattr(self, "homepage")
+    dictio["MY_EXTENSION_CONTRIBUTORS"] = getattr(self, "contributors")
+    dictio["MY_EXTENSION_CATEGORY"] = getattr(self, "category")
+    dictio["MY_EXTENSION_ICONURL"] = getattr(self, "iconurl")
+    dictio["MY_EXTENSION_STATUS"] = getattr(self, "status")
+    dictio["MY_EXTENSION_DESCRIPTION"] = getattr(self, "description")
+    dictio["MY_EXTENSION_SCREENSHOTURLS"] = getattr(self, "screenshoturls")
+    dictio["MY_EXTENSION_ENABLED"] = getattr(self, "enabled")
+                                                                  
+    extDescriptFile = open(self.DESCRIPTION_FILE_TEMPLATE,'r')
+    for ligne in extDescriptFile.readlines() :
+      if  "${" in ligne:
+        variables = self.findOccurences(ligne,"$")
+        temp = ligne
+        for variable in variables:
+          if ligne[variable] is '$' and ligne[variable + 1] is '{':
+            var = ""
+            i = variable + 2
+            while ligne[i] is not '}':
+              var+=ligne[i]
+              i+=1
+            temp = temp.replace("${"+var+"}",dictio[var])
+        fp.write(temp)
+      else:
+        fp.write(ligne)
 
   #---------------------------------------------------------------------------
   def write(self, out):
@@ -248,3 +279,11 @@ class ExtensionDescription(object):
     else:
       with open(out, "w") as fp:
         self._write(fp)
+
+  def findOccurences(self, a_str, sub):
+    start = 0
+    while True:
+        start = a_str.find(sub, start)
+        if start == -1: return
+        yield start
+        start += len(sub)
