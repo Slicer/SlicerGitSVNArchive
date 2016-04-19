@@ -36,6 +36,7 @@
 #include <vtkMRMLScene.h>
 #include <vtkMRMLSelectionNode.h>
 #include <vtkMRMLTableNode.h>
+#include <vtkMRMLStorageNode.h>
 
 // VTK includes
 #include <vtkSmartPointer.h>
@@ -103,6 +104,9 @@ QStringList qSlicerTablesReader::extensions()const
     << "Table (*.csv)"
     << "Table (*.txt)"
     << "Table (*.db)"
+    << "Table (*.db3)"
+    << "Table (*.sqlite)"
+    << "Table (*.sqlite3)"
     ;
 }
 
@@ -120,11 +124,22 @@ bool qSlicerTablesReader::load(const IOProperties& properties)
     }
   std::string uname = this->mrmlScene()->GetUniqueNameByString(name.toLatin1());
 
-  if (fileName.contains(".db"))
+  // Chek if the file is sqlite
+  std::string extension = vtkMRMLStorageNode::GetLowercaseExtensionFromFileName(fileName.toStdString());
+  if( extension.empty() )
     {
-   uname = "";
+    qCritical("ReadData: no file extension specified: %s", qPrintable(fileName));
+    return false;
+    }
+  if (   !extension.compare(".db")
+      || !extension.compare(".db3")
+      || !extension.compare(".sqlite")
+      || !extension.compare(".sqlite3"))
+    {
+    uname = "";
     std::string dbname = std::string("sqlite://") + fileName.toStdString();
-    vtkSQLiteDatabase *database = vtkSQLiteDatabase::SafeDownCast( vtkSQLiteDatabase::CreateFromURL(dbname.c_str()));
+    vtkSmartPointer<vtkSQLiteDatabase> database = vtkSmartPointer<vtkSQLiteDatabase>::Take(
+                   vtkSQLiteDatabase::SafeDownCast( vtkSQLiteDatabase::CreateFromURL(dbname.c_str())));
     if (!database->Open("", vtkSQLiteDatabase::USE_EXISTING))
       {
       bool ok;
@@ -136,7 +151,6 @@ bool qSlicerTablesReader::load(const IOProperties& properties)
         uname = text.toStdString();
         }
       }
-    database->Delete();
     }
   else
     {

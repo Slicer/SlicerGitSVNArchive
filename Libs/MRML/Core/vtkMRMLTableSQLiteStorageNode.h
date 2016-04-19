@@ -31,6 +31,9 @@
 /// SQLight database.
 ///
 ///
+
+class vtkSQLiteDatabase;
+
 class VTK_MRML_EXPORT vtkMRMLTableSQLiteStorageNode : public vtkMRMLStorageNode
 {
 public:
@@ -56,6 +59,9 @@ public:
   /// SQLight Database table name
   vtkSetStringMacro(TableName);
   vtkGetStringMacro(TableName);
+
+  /// Drop a specified table from the database
+  static int DropTable(char *tableName, vtkSQLiteDatabase* database);
 
 protected:
   vtkMRMLTableSQLiteStorageNode();

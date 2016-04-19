@@ -36,6 +36,7 @@
 #include <vtkSQLDatabase.h>
 #include <vtkSQLiteDatabase.h>
 #include <vtkSQLiteQuery.h>
+#include <vtkSmartPointer.h>
 
 #include <vtksys/SystemTools.hxx>
 
@@ -71,7 +72,7 @@ int vtkMRMLTableSQLiteStorageNode::ReadDataInternal(vtkMRMLNode *refNode)
 {
   std::string fullName = this->GetFullNameFromFileName();
 
-  if (fullName == std::string(""))
+  if (fullName.empty())
     {
     vtkErrorMacro("ReadData: File name not specified");
     return 0;
@@ -91,15 +92,17 @@ int vtkMRMLTableSQLiteStorageNode::ReadDataInternal(vtkMRMLNode *refNode)
     }
 
   std::string dbname = std::string("sqlite://") + fullName;
-  vtkSQLiteDatabase *database = vtkSQLiteDatabase::SafeDownCast( vtkSQLiteDatabase::CreateFromURL(dbname.c_str()));
-  if (!database->Open(this->GetPassword(), vtkSQLiteDatabase::USE_EXISTING))
+  vtkSmartPointer<vtkSQLiteDatabase> database = vtkSmartPointer<vtkSQLiteDatabase>::Take(
+                   vtkSQLiteDatabase::SafeDownCast( vtkSQLiteDatabase::CreateFromURL(dbname.c_str())));
+
+  if (!database.GetPointer() || !database->Open(this->GetPassword(), vtkSQLiteDatabase::USE_EXISTING))
     {
     vtkErrorMacro("ReadData: database file '" << fullName << "cannot be openned");
-    database->Delete();
     return 0;
     }
 
-  vtkSQLiteQuery *query = vtkSQLiteQuery::SafeDownCast( database->GetQueryInstance());
+  vtkSmartPointer<vtkSQLiteQuery> query = vtkSmartPointer<vtkSQLiteQuery>::Take(
+                   vtkSQLiteQuery::SafeDownCast( database->GetQueryInstance()));
   std::string queryString("select * from ");
   queryString += std::string(this->TableName);
   query->SetQuery(queryString.c_str());
@@ -115,9 +118,6 @@ int vtkMRMLTableSQLiteStorageNode::ReadDataInternal(vtkMRMLNode *refNode)
 
   vtkDebugMacro("ReadData: successfully read table from file: " << fullName);
 
-  //database->Close();
-  query->Delete();
-  database->Delete();
   return 1;
 }
 
@@ -132,7 +132,7 @@ int vtkMRMLTableSQLiteStorageNode::WriteDataInternal(vtkMRMLNode *refNode)
   std::string fullName = this->GetFullNameFromFileName();
   if (fullName.empty())
     {
-      vtkErrorMacro("WriteData: file name not specified");
+    vtkErrorMacro("WriteData: file name not specified");
     return 0;
     }
 
@@ -142,22 +142,38 @@ int vtkMRMLTableSQLiteStorageNode::WriteDataInternal(vtkMRMLNode *refNode)
     vtkErrorMacro("WriteData: unable to cast input node " << refNode->GetID() << " to a valid table node");
     return 0;
     }
-  if(this->TableName == "")
+  if(!this->TableName || std::string(this->TableName).empty())
     {
     vtkErrorMacro(<<"No table name specified!");
     return 0;
     }
 
   std::string dbname = std::string("sqlite://") + fullName;
+
+  //vtkSmartPointer<vtkSQLiteDatabase> database = vtkSmartPointer<vtkSQLiteDatabase>::Take(vtkSQLiteDatabase::SafeDownCast( vtkSQLiteDatabase::CreateFromURL(dbname.c_str())));
   vtkSQLiteDatabase *database = vtkSQLiteDatabase::SafeDownCast( vtkSQLiteDatabase::CreateFromURL(dbname.c_str()));
-  if (!database->Open(this->GetPassword(), vtkSQLiteDatabase::USE_EXISTING_OR_CREATE))
+
+  if (!database || !database->Open(this->GetPassword(), vtkSQLiteDatabase::USE_EXISTING_OR_CREATE))
     {
     vtkErrorMacro("ReadData: database file '" << fullName << "cannot be openned");
-    database->Delete();
     return 0;
     }
 
   vtkTable *table = tableNode->GetTable();
+  if (!table)
+    {
+    vtkErrorMacro("ReadData: no table to write for the node '" << std::string(tableNode->GetName()));
+    return 0;
+    }
+
+  if (!this->TableName || std::string(this->TableName).empty())
+    {
+    vtkErrorMacro("ReadData: no table name for the node '" << std::string(tableNode->GetName()));
+    return 0;
+    }
+
+  // first try to drop the table
+  this->DropTable(this->TableName, database);
 
   //converting this table to SQLite will require two queries: one to create
   //the table, and another to populate its rows with data.
@@ -250,20 +266,60 @@ int vtkMRMLTableSQLiteStorageNode::WriteDataInternal(vtkMRMLNode *refNode)
   return 1;
 }
 
+int vtkMRMLTableSQLiteStorageNode::DropTable(char *tableName, vtkSQLiteDatabase* database)
+{
+  if(!tableName || std::string(tableName).empty())
+    {
+    std::cerr <<"No table name specified!";
+    return 0;
+    }
+
+  if (!database)
+    {
+    std::cerr << "No databse specified!";
+    return 0;
+    }
+
+  vtkStringArray *tables = database->GetTables();
+  vtkSmartPointer<vtkSQLiteQuery> query = vtkSmartPointer<vtkSQLiteQuery>::Take(
+                       vtkSQLiteQuery::SafeDownCast( database->GetQueryInstance()));
+
+  for (int i=0; i<tables->GetNumberOfValues(); i++)
+    {
+    if (!tables->GetValue(i).compare(tableName))
+      {
+      std::string dropTableQuery = "DROP TABLE ";
+      dropTableQuery += tableName;
+      query->SetQuery(dropTableQuery.c_str());
+      query->Execute();
+      break;
+      }
+    }
+
+  //database->Close();
+  return 1;
+}
+
 //----------------------------------------------------------------------------
 void vtkMRMLTableSQLiteStorageNode::InitializeSupportedReadFileTypes()
 {
   this->SupportedReadFileTypes->InsertNextValue("SQLight database (.db)");
+  this->SupportedReadFileTypes->InsertNextValue("SQLight database (.db3)");
+  this->SupportedReadFileTypes->InsertNextValue("SQLight database (.sqlite)");
+  this->SupportedReadFileTypes->InsertNextValue("SQLight database (.sqlite3)");
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLTableSQLiteStorageNode::InitializeSupportedWriteFileTypes()
 {
   this->SupportedWriteFileTypes->InsertNextValue("SQLight database (.db)");
+  this->SupportedWriteFileTypes->InsertNextValue("SQLight database (.db3)");
+  this->SupportedWriteFileTypes->InsertNextValue("SQLight database (.sqlite)");
+  this->SupportedWriteFileTypes->InsertNextValue("SQLight database (.sqlite3)");
 }
 
 //----------------------------------------------------------------------------
 const char* vtkMRMLTableSQLiteStorageNode::GetDefaultWriteFileExtension()
 {
-  return "db";
+  return "sqlite3";
 }

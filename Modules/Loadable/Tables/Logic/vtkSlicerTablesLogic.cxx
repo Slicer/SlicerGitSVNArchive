@@ -75,15 +75,26 @@ vtkMRMLTableNode* vtkSlicerTablesLogic
   // Storable node
   vtkMRMLTableNode *tableNode;
 
-  if (std::string(fileName).find(".db") != std::string::npos)
+  // Chek if the file is sqlite
+  std::string extension = vtkMRMLStorageNode::GetLowercaseExtensionFromFileName(fileName);
+  if( extension.empty() )
+    {
+    vtkErrorMacro("ReadData: no file extension specified: " << fileName);
+    return false;
+    }
+  if (   !extension.compare(".db")
+      || !extension.compare(".db3")
+      || !extension.compare(".sqlite")
+      || !extension.compare(".sqlite3"))
     {
     // SQLite
     std::string dbname = std::string("sqlite://") + std::string(fileName);
-    vtkSQLiteDatabase *database = vtkSQLiteDatabase::SafeDownCast( vtkSQLiteDatabase::CreateFromURL(dbname.c_str()));
+    vtkSmartPointer<vtkSQLiteDatabase> database = vtkSmartPointer<vtkSQLiteDatabase>::Take(
+                   vtkSQLiteDatabase::SafeDownCast( vtkSQLiteDatabase::CreateFromURL(dbname.c_str())));
+
     if (!database->Open(name?name:"", vtkSQLiteDatabase::USE_EXISTING))
       {
       vtkErrorMacro("Failed to read tables from " << fileName);
-      database->Delete();
       return 0;
       }
     vtkStringArray *tables = database->GetTables();
@@ -114,7 +125,6 @@ vtkMRMLTableNode* vtkSlicerTablesLogic
         }
       tableNode = tableNode1.GetPointer();
       }
-    database->Delete();
     }
   else
   {
