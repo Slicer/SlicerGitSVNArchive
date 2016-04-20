@@ -14,31 +14,30 @@
 namespace
 {
 
-template <class T>
+template <typename TPixel>
 int DoIt( int argc, char * argv[], T )
 {
   PARSE_ARGS;
 
-  typedef    T InputPixelType;
-  typedef    T OutputPixelType;
+  typedef TPixel InputPixelType;
+  typedef TPixel OutputPixelType;
 
-  typedef itk::Image<InputPixelType,  3> InputImageType;
-  typedef itk::Image<OutputPixelType, 3> OutputImageType;
+  const unsigned int Dimension = 3;
+
+  typedef itk::Image<InputPixelType,  Dimension> InputImageType;
+  typedef itk::Image<OutputPixelType, Dimension> OutputImageType;
 
   typedef itk::ImageFileReader<InputImageType>  ReaderType;
-  typedef itk::ImageFileWriter<OutputImageType> WriterType;
+  typename ReaderType::Pointer reader = ReaderType::New();
+  reader->SetFileName( inputVolume.c_str() );
 
   typedef itk::SmoothingRecursiveGaussianImageFilter<
     InputImageType, OutputImageType>  FilterType;
-
-  typename ReaderType::Pointer reader = ReaderType::New();
-
-  reader->SetFileName( inputVolume.c_str() );
-
   typename FilterType::Pointer filter = FilterType::New();
   filter->SetInput( reader->GetOutput() );
   filter->SetSigma( sigma );
 
+  typedef itk::ImageFileWriter<OutputImageType> WriterType;
   typename WriterType::Pointer writer = WriterType::New();
   writer->SetFileName( outputVolume.c_str() );
   writer->SetInput( filter->GetOutput() );
@@ -69,7 +68,7 @@ int main( int argc, char * argv[] )
         return DoIt( argc, argv, static_cast<unsigned char>(0) );
         break;
       case itk::ImageIOBase::CHAR:
-        return DoIt( argc, argv, static_cast<char>(0) );
+        return DoIt( argc, argv, static_cast<signed char>(0) );
         break;
       case itk::ImageIOBase::USHORT:
         return DoIt( argc, argv, static_cast<unsigned short>(0) );
@@ -97,11 +96,13 @@ int main( int argc, char * argv[] )
         break;
       case itk::ImageIOBase::UNKNOWNCOMPONENTTYPE:
       default:
-        std::cout << "unknown component type" << std::endl;
+        std::cerr << "Unknown input image pixel component type: ";
+        std::cerr << itk::ImageIOBase::GetComponentTypeAsString( componentType );
+        std::cerr << std::endl;
+        return EXIT_FAILURE;
         break;
       }
     }
-
   catch( itk::ExceptionObject & excep )
     {
     std::cerr << argv[0] << ": exception caught !" << std::endl;
