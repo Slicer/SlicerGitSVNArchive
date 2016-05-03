@@ -124,6 +124,8 @@ public:
   Q_INVOKABLE virtual void setMRMLScene(vtkMRMLScene* scene);
   Q_INVOKABLE vtkMRMLScene* mrmlScene()const;
 
+  virtual void updateScene();
+
   /// 0 until a valid scene is set
   QStandardItem* mrmlSceneItem()const;
 
@@ -266,7 +268,6 @@ protected:
 
   qMRMLSceneModel(qMRMLSceneModelPrivate* pimpl, QObject *parent=0);
 
-  virtual void updateScene();
   virtual void populateScene();
   virtual QStandardItem* insertNode(vtkMRMLNode* node);
   virtual QStandardItem* insertNode(vtkMRMLNode* node, QStandardItem* parent, int row = -1);
