@@ -100,7 +100,7 @@ if(Slicer_USE_SimpleITK)
 endif()
 
 if(Slicer_BUILD_CLI_SUPPORT)
-  list(APPEND Slicer_DEPENDENCIES SlicerExecutionModel)
+  list(APPEND Slicer_DEPENDENCIES SlicerExecutionModel python-ctk_cli)
 endif()
 
 if(Slicer_BUILD_EXTENSIONMANAGER_SUPPORT)
