@@ -251,16 +251,6 @@ void vtkMRMLModelDisplayableManager::PrintSelf ( ostream& os, vtkIndent indent )
 //---------------------------------------------------------------------------
 void vtkMRMLModelDisplayableManager::AdditionalInitializeStep()
 {
-  vtkRenderWindowInteractor * interactor = this->GetInteractor();
-  if (interactor)
-    {
-    vtkThreeDViewInteractorStyle * interactorStyle =
-        vtkThreeDViewInteractorStyle::SafeDownCast(interactor->GetInteractorStyle());
-    if (interactorStyle)
-      {
-      interactorStyle->SetModelDisplayableManager(this);
-      }
-    }
 }
 
 //---------------------------------------------------------------------------

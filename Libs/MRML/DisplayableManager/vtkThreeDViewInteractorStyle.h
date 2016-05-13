@@ -27,7 +27,6 @@
 
 #include "vtkMRMLDisplayableManagerWin32Header.h"
 
-class vtkMRMLModelDisplayableManager;
 class vtkCellPicker;
 
 /// \brief Interactive manipulation of the camera.
@@ -83,8 +82,6 @@ public:
   virtual void Dolly();
   virtual void Dolly(double factor);
 
-  virtual void OnExpose();
-
   ///
   /// Get/Set the CameraNode
   vtkGetObjectMacro ( CameraNode, vtkMRMLCameraNode );
@@ -93,11 +90,6 @@ public:
   ///
   /// Reimplemented to set the default interactive update rate
   virtual void SetInteractor(vtkRenderWindowInteractor *interactor);
-
-  ///
-  /// Get/Set the ModelDisplayableManager, for picking
-  vtkGetObjectMacro(ModelDisplayableManager, vtkMRMLModelDisplayableManager);
-  virtual void SetModelDisplayableManager(vtkMRMLModelDisplayableManager *modelDisplayableManager);
 
 protected:
   vtkThreeDViewInteractorStyle();
@@ -117,10 +109,6 @@ protected:
   /// The number of "clicks" the transient mouse-modes come loaded with.
   /// Currently makes sense to set this to 1 -- but we can change it if appropriate.
   int NumberOfTransientPlaces;
-
-  ///
-  /// A pointer back to the ModelDisplayableManager, useful for picking
-  vtkMRMLModelDisplayableManager * ModelDisplayableManager;
 
   /// For jump to slice feature (when mouse is moved while shift key is pressed)
   vtkSmartPointer<vtkCellPicker> CellPicker;

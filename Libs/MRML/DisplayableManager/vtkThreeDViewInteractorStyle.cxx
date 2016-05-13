@@ -15,7 +15,6 @@
 #include "vtkThreeDViewInteractorStyle.h"
 
 // MRML includes
-#include "vtkMRMLModelDisplayableManager.h"
 #include "vtkMRMLScene.h"
 #include "vtkMRMLSliceNode.h"
 
@@ -28,8 +27,8 @@
 #include <vtkPoints.h>
 #include <vtkRenderWindowInteractor.h>
 #include <vtkRenderer.h>
+#include <vtkRenderWindow.h>
 #include <vtkMRMLInteractionNode.h>
-
 
 vtkStandardNewMacro(vtkThreeDViewInteractorStyle);
 
@@ -40,7 +39,6 @@ vtkThreeDViewInteractorStyle::vtkThreeDViewInteractorStyle()
   this->CameraNode = 0;
   this->NumberOfPlaces= 0;
   this->NumberOfTransientPlaces = 1;
-  this->ModelDisplayableManager = 0;
   this->CellPicker = vtkSmartPointer<vtkCellPicker>::New();
   this->CellPicker->SetTolerance( .005 );
 }
@@ -49,7 +47,6 @@ vtkThreeDViewInteractorStyle::vtkThreeDViewInteractorStyle()
 vtkThreeDViewInteractorStyle::~vtkThreeDViewInteractorStyle()
 {
   this->SetCameraNode(0);
-  this->SetModelDisplayableManager(0);
   this->NumberOfPlaces = 0;
 }
 
@@ -498,15 +495,6 @@ void vtkThreeDViewInteractorStyle::OnMouseWheelBackward()
 }
 
 //----------------------------------------------------------------------------
-void vtkThreeDViewInteractorStyle::OnExpose()
-{
-  if ( this->GetModelDisplayableManager() != 0 )
-    {
-    this->GetModelDisplayableManager()->RequestRender();
-    }
-}
-
-//----------------------------------------------------------------------------
 void vtkThreeDViewInteractorStyle::Rotate()
 {
   if (this->CurrentRenderer == 0)
@@ -747,13 +735,6 @@ void vtkThreeDViewInteractorStyle::Dolly(double factor)
 void vtkThreeDViewInteractorStyle::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
-}
-
-//----------------------------------------------------------------------------
-void vtkThreeDViewInteractorStyle::SetModelDisplayableManager(
-    vtkMRMLModelDisplayableManager * modelDisplayableManager)
-{
-  this->ModelDisplayableManager = modelDisplayableManager;
 }
 
 //----------------------------------------------------------------------------
