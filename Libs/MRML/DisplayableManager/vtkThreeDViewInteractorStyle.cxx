@@ -15,35 +15,39 @@
 #include "vtkThreeDViewInteractorStyle.h"
 
 // MRML includes
-#include "vtkMRMLModelDisplayableManager.h"
 #include "vtkMRMLScene.h"
+#include "vtkMRMLSliceNode.h"
 
 // VTK includes
 #include <vtkCamera.h>
+#include <vtkCellPicker.h>
 #include <vtkCallbackCommand.h>
 #include <vtkMath.h>
 #include <vtkObjectFactory.h>
+#include <vtkPoints.h>
 #include <vtkRenderWindowInteractor.h>
 #include <vtkRenderer.h>
+#include <vtkRenderWindow.h>
 #include <vtkMRMLInteractionNode.h>
-
 
 vtkStandardNewMacro(vtkThreeDViewInteractorStyle);
 
 //----------------------------------------------------------------------------
 vtkThreeDViewInteractorStyle::vtkThreeDViewInteractorStyle()
 {
-  this->MotionFactor   = 10.0;
+  this->MotionFactor = 10.0;
   this->CameraNode = 0;
   this->NumberOfPlaces= 0;
   this->NumberOfTransientPlaces = 1;
+  this->CellPicker = vtkSmartPointer<vtkCellPicker>::New();
+  this->CellPicker->SetTolerance( .005 );
 }
 
 //----------------------------------------------------------------------------
 vtkThreeDViewInteractorStyle::~vtkThreeDViewInteractorStyle()
 {
   this->SetCameraNode(0);
-  this->NumberOfPlaces= 0;
+  this->NumberOfPlaces = 0;
 }
 
 //----------------------------------------------------------------------------
@@ -215,7 +219,25 @@ void vtkThreeDViewInteractorStyle::OnMouseMove()
       this->InvokeEvent(vtkCommand::InteractionEvent, 0);
       break;
     default:
-      this->InvokeEvent(vtkCommand::MouseMoveEvent, 0);
+      if (this->Interactor->GetShiftKey() && this->GetCameraNode() != 0 && this->GetCameraNode()->GetScene() != 0 )
+        {
+        double pickedRAS[3]={0,0,0};
+        bool picked = this->Pick(this->Interactor->GetEventPosition()[0], this->Interactor->GetEventPosition()[1], pickedRAS);
+        if (picked)
+          {
+          vtkMRMLScene* scene = this->GetCameraNode()->GetScene();
+          vtkMRMLSliceNode* sliceNode = vtkMRMLSliceNode::SafeDownCast(scene->GetNthNodeByClass(0, "vtkMRMLSliceNode"));
+          if (sliceNode)
+            {
+            sliceNode->JumpSlice(pickedRAS[0], pickedRAS[1], pickedRAS[2]);
+            sliceNode->JumpAllSlices(pickedRAS[0], pickedRAS[1], pickedRAS[2]);
+            }
+          }
+        }
+      else
+        {
+        this->InvokeEvent(vtkCommand::MouseMoveEvent, 0);
+        }
       break;
     }
 
@@ -473,15 +495,6 @@ void vtkThreeDViewInteractorStyle::OnMouseWheelBackward()
 }
 
 //----------------------------------------------------------------------------
-void vtkThreeDViewInteractorStyle::OnExpose()
-{
-  if ( this->GetModelDisplayableManager() != 0 )
-    {
-    this->GetModelDisplayableManager()->RequestRender();
-    }
-}
-
-//----------------------------------------------------------------------------
 void vtkThreeDViewInteractorStyle::Rotate()
 {
   if (this->CurrentRenderer == 0)
@@ -725,13 +738,6 @@ void vtkThreeDViewInteractorStyle::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //----------------------------------------------------------------------------
-void vtkThreeDViewInteractorStyle::SetModelDisplayableManager(
-    vtkMRMLModelDisplayableManager * modelDisplayableManager)
-{
-  this->ModelDisplayableManager = modelDisplayableManager;
-}
-
-//----------------------------------------------------------------------------
 void vtkThreeDViewInteractorStyle::SetInteractor(vtkRenderWindowInteractor *interactor)
 {
   if (interactor)
@@ -741,4 +747,43 @@ void vtkThreeDViewInteractorStyle::SetInteractor(vtkRenderWindowInteractor *inte
     interactor->SetDesiredUpdateRate( 30.);
     }
   this->Superclass::SetInteractor(interactor);
+}
+
+//---------------------------------------------------------------------------
+bool vtkThreeDViewInteractorStyle::Pick(int x, int y, double pickPoint[3])
+{
+  this->FindPokedRenderer(x, y);
+  if (this->CurrentRenderer == 0)
+    {
+    vtkDebugMacro("Pick: couldn't find the poked renderer at event position " << x << ", " << y);
+    return false;
+    }
+
+  if (!this->CellPicker->Pick(x, y, 0, this->CurrentRenderer))
+    {
+    return false;
+    }
+
+  vtkPoints* pickPositions = this->CellPicker->GetPickedPositions();
+  int numberOfPickedPositions = pickPositions->GetNumberOfPoints();
+  if (numberOfPickedPositions<1)
+    {
+    return false;
+    }
+
+  // There may be multiple picked positions, choose the one closest to the camera
+  double cameraPosition[3]={0,0,0};
+  this->CurrentRenderer->GetActiveCamera()->GetPosition(cameraPosition);
+  pickPositions->GetPoint(0, pickPoint);
+  double minDist2 = vtkMath::Distance2BetweenPoints(pickPoint, cameraPosition);
+  for (int i=1; i<numberOfPickedPositions; i++)
+  {
+    double currentMinDist2 = vtkMath::Distance2BetweenPoints(pickPositions->GetPoint(i), cameraPosition);
+    if (currentMinDist2<minDist2)
+    {
+      pickPositions->GetPoint(i, pickPoint);
+      minDist2 = currentMinDist2;
+    }
+  }
+  return true;
 }
