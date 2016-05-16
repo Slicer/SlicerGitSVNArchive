@@ -660,15 +660,17 @@ class ExtensionWizard(object):
       self.describe(args)
       acted = True
 
-    # Publish extension if requested
-    if args.publish:
-      self.publish(args)
-      acted = True
+    # The following arguments are only available if _haveGit is True
+    if _haveGit:
+      # Publish extension if requested
+      if args.publish:
+        self.publish(args)
+        acted = True
 
-    # Contribute extension if requested
-    if args.contribute:
-      self.contribute(args)
-      acted = True
+      # Contribute extension if requested
+      if args.contribute:
+        self.contribute(args)
+        acted = True
 
     # Check that we did something
     if not acted:
