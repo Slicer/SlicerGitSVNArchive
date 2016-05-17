@@ -30,6 +30,9 @@ class vtkMatrix4x4;
 /// \li FieldOfView tells the size of  slice plane
 class VTK_MRML_EXPORT vtkMRMLSliceNode : public vtkMRMLAbstractViewNode
 {
+
+  typedef std::map<std::string, std::string> displayOrientationStringsMap ;
+
   public:
   static vtkMRMLSliceNode *New();
   vtkTypeMacro(vtkMRMLSliceNode,vtkMRMLAbstractViewNode);
@@ -132,6 +135,29 @@ class VTK_MRML_EXPORT vtkMRMLSliceNode : public vtkMRMLAbstractViewNode
   /// SetOrientationToSagittal(), SetOrientationToCoronal() or
   /// SetOrientationToReformat() depending on the value of the string
   void SetOrientation(const char* orientation);
+
+  ///
+  /// map the Axial plane string with a custom displayOrientation string
+  static void SetAxialOrientationDisplayString(const char* displayOrientation);
+
+  ///
+  /// map the Sagittal plane string with a custom displayOrientation string
+  static void SetSagittalOrientationDisplayString(const char* displayOrientation);
+
+  ///
+  /// map the Coronal plane string with a custom displayOrientation string
+  static void SetCoronalOrientationDisplayString(const char* displayOrientation);
+
+  ///
+  /// A description of the current orientation,
+  /// the method return customized names
+  /// for the planes Axial, Sagittal and Coronal.
+  /// The mapping is set using the static map:
+  /// displayOrientationStringsMap.
+  /// SetAxialOrientationDisplayString
+  /// SetSagittalOrientationDisplayString
+  /// SetCoronalOrientationDisplayString
+  std::string GetOrientationDisplayString();
 
   /// Description
   /// A description of the current orientation
@@ -457,6 +483,9 @@ protected:
   int IsUpdatingMatrices;
 
   std::vector< std::string > ThreeDViewIDs;
+
+  static displayOrientationStringsMap createdisplayOrientationStringsMap();
+  static displayOrientationStringsMap DisplayOrientationStringsMap;
 };
 
 //----------------------------------------------------------------------------

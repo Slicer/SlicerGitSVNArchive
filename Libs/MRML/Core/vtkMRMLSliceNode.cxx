@@ -361,6 +361,45 @@ void vtkMRMLSliceNode::SetOrientation(const char* orientation)
 }
 
 //----------------------------------------------------------------------------
+void vtkMRMLSliceNode::SetAxialOrientationDisplayString(const char *displayOrientation)
+{
+  DisplayOrientationStringsMap["Axial"] = displayOrientation;
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLSliceNode::SetSagittalOrientationDisplayString(const char *displayOrientation)
+{
+  DisplayOrientationStringsMap["Sagittal"] = displayOrientation;
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLSliceNode::SetCoronalOrientationDisplayString(const char *displayOrientation)
+{
+  DisplayOrientationStringsMap["Coronal"] = displayOrientation;
+}
+
+//----------------------------------------------------------------------------
+vtkMRMLSliceNode::displayOrientationStringsMap vtkMRMLSliceNode::createdisplayOrientationStringsMap()
+{
+    displayOrientationStringsMap map;
+    map["Axial"] = "Axial";
+    map["Coronal"] = "Coronal";
+    map["Sagittal"] = "Sagittal";
+    return map;
+}
+
+//----------------------------------------------------------------------------
+vtkMRMLSliceNode::displayOrientationStringsMap vtkMRMLSliceNode::DisplayOrientationStringsMap =
+    vtkMRMLSliceNode::createdisplayOrientationStringsMap();
+
+//----------------------------------------------------------------------------
+std::string vtkMRMLSliceNode::GetOrientationDisplayString()
+{
+  std::string orientation = this->GetOrientationString();
+  return DisplayOrientationStringsMap[orientation];
+}
+
+//----------------------------------------------------------------------------
 void vtkMRMLSliceNode::SetOrientationToReformat()
 {
     // Don't need to do anything.  Leave the matrices where they were

@@ -109,7 +109,7 @@ public slots:
   void updateFromMRMLScene();
 
   /// Update widget state using the associated MRML slice node
-  void updateWidgetFromMRMLSliceNode();
+  virtual void updateWidgetFromMRMLSliceNode();
 
   /// Update widget state using the associated MRML slice composite node
   void updateWidgetFromMRMLSliceCompositeNode();

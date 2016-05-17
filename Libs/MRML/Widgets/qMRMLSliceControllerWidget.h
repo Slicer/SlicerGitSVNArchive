@@ -158,7 +158,7 @@ public slots:
 
   /// Set slice orientation.
   /// \note Orientation could be either "Axial, "Sagittal", "Coronal" or "Reformat".
-  void setSliceOrientation(const QString& orientation);
+  virtual void setSliceOrientation(const QString& orientation);
 
   /// Set slice \a offset. Used to set a single value.
   void setSliceOffsetValue(double offset);
