@@ -271,7 +271,7 @@ mark_as_superbuild(Slicer_USE_NUMPY)
 
 CMAKE_DEPENDENT_OPTION(
   Slicer_USE_SciPy "Build Slicer with SciPy" ON
-  "Slicer_USE_NUMPY" OFF)
+  "Slicer_USE_NUMPY;UNIX" OFF)
 
 option(Slicer_USE_OpenIGTLink "Build Slicer with OpenIGTLink support." ON)
 mark_as_superbuild(Slicer_USE_OpenIGTLink)
