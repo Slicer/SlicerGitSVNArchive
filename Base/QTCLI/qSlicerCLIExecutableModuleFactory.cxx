@@ -41,6 +41,13 @@ bool qSlicerCLIExecutableModuleFactoryItem::load()
 }
 
 //-----------------------------------------------------------------------------
+QString qSlicerCLIExecutableModuleFactoryItem::xmlModuleDescriptionFilePath()
+{
+  QFileInfo info = QFileInfo(this->path());
+  return QDir(info.path()).filePath(info.baseName() + ".xml");
+}
+
+//-----------------------------------------------------------------------------
 qSlicerAbstractCoreModule* qSlicerCLIExecutableModuleFactoryItem::instanciator()
 {
   // Using a scoped pointer ensures the memory will be cleaned if instantiator
@@ -49,6 +56,49 @@ qSlicerAbstractCoreModule* qSlicerCLIExecutableModuleFactoryItem::instanciator()
   module->setModuleType("CommandLineModule");
   module->setEntryPoint(this->path());
 
+  QString xmlFilePath = this->xmlModuleDescriptionFilePath();
+
+  //
+  // If the xml file exists, read it and associate it with the module
+  // description. If not, run the CLI executable with "--xml".
+  //
+  QString xmlDescription;
+  if (QFile::exists(xmlFilePath))
+    {
+    QFile xmlFile(xmlFilePath);
+    if (xmlFile.open(QIODevice::ReadOnly))
+      {
+      xmlDescription = QTextStream(&xmlFile).readAll();
+      }
+    else
+      {
+      this->appendInstantiateErrorString(QString("CLI description: %1").arg(xmlFilePath));
+      this->appendInstantiateErrorString("Failed to read Xml Description");
+      }
+    }
+  else
+    {
+    xmlDescription = this->runCLIWithXmlArgument();
+    }
+  if (xmlDescription.isEmpty())
+    {
+    return 0;
+    }
+
+  module->setXmlModuleDescription(xmlDescription.toLatin1());
+  module->setTempDirectory(this->TempDirectory);
+  module->setPath(this->path());
+  module->setInstalled(qSlicerCLIModuleFactoryHelper::isInstalled(this->path()));
+  module->setBuiltIn(qSlicerCLIModuleFactoryHelper::isBuiltIn(this->path()));
+
+  this->CLIModule = module.data();
+
+  return module.take();
+}
+
+//-----------------------------------------------------------------------------
+QString qSlicerCLIExecutableModuleFactoryItem::runCLIWithXmlArgument()
+{
   ctkScopedCurrentDir scopedCurrentDir(QFileInfo(this->path()).path());
 
   int cliProcessTimeoutInMs = 5000;
@@ -112,7 +162,7 @@ qSlicerAbstractCoreModule* qSlicerCLIExecutableModuleFactoryItem::instanciator()
     {
     this->appendInstantiateErrorString(QString("CLI executable: %1").arg(this->path()));
     this->appendInstantiateErrorString("Failed to retrieve Xml Description");
-    return 0;
+    return QString();
     }
   if (!xmlDescription.startsWith("<?xml"))
     {
@@ -122,16 +172,7 @@ qSlicerAbstractCoreModule* qSlicerCLIExecutableModuleFactoryItem::instanciator()
                                            xmlDescription.mid(0, xmlDescription.indexOf("<?xml"))));
     xmlDescription.remove(0, xmlDescription.indexOf("<?xml"));
     }
-
-  module->setXmlModuleDescription(xmlDescription.toLatin1());
-  module->setTempDirectory(this->TempDirectory);
-  module->setPath(this->path());
-  module->setInstalled(qSlicerCLIModuleFactoryHelper::isInstalled(this->path()));
-  module->setBuiltIn(qSlicerCLIModuleFactoryHelper::isBuiltIn(this->path()));
-
-  this->CLIModule = module.data();
-
-  return module.take();
+  return xmlDescription;
 }
 
 //-----------------------------------------------------------------------------

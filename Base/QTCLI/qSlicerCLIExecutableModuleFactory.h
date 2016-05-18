@@ -39,7 +39,11 @@ public:
   virtual bool load();
   virtual void uninstantiate();
 protected:
+  /// Return path of the expected XML file.
+  QString xmlModuleDescriptionFilePath();
+
   virtual qSlicerAbstractCoreModule* instanciator();
+  QString runCLIWithXmlArgument();
 private:
   QString TempDirectory;
   qSlicerCLIModule* CLIModule;

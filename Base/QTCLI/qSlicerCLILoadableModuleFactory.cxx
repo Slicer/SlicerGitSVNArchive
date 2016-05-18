@@ -36,12 +36,113 @@ qSlicerCLILoadableModuleFactoryItem::qSlicerCLILoadableModuleFactoryItem(
 }
 
 //-----------------------------------------------------------------------------
+bool qSlicerCLILoadableModuleFactoryItem::load()
+{
+  // If XML description file exists, skip loading. It will be
+  // lazily done by calling ModuleDescription::GetTarget() method.
+  if (!QFile::exists(this->xmlModuleDescriptionFilePath()))
+    {
+    return this->Superclass::load();
+    }
+  else
+    {
+    return true;
+    }
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerCLILoadableModuleFactoryItem::loadLibraryAndResolveSymbols(
+    void* libraryLoader, ModuleDescription& desc)
+{
+  qSlicerCLILoadableModuleFactoryItem* item =
+      reinterpret_cast<qSlicerCLILoadableModuleFactoryItem*>(libraryLoader);
+  // Load library
+  if (!item->Superclass::load())
+    {
+    qWarning() << "Failed to load" << item->path();
+    return;
+    }
+
+  // Resolve symbols
+  if (!item->resolveSymbols(desc))
+    {
+    return;
+    }
+}
+
+//-----------------------------------------------------------------------------
+QString qSlicerCLILoadableModuleFactoryItem::xmlModuleDescriptionFilePath()const
+{
+  QFileInfo info = QFileInfo(this->path());
+  QString moduleName =
+      qSlicerUtils::extractModuleNameFromLibraryName(info.baseName());
+  return QDir(info.path()).filePath(moduleName + ".xml");
+}
+
+//-----------------------------------------------------------------------------
 qSlicerAbstractCoreModule* qSlicerCLILoadableModuleFactoryItem::instanciator()
 {
   // Using a scoped pointer ensures the memory will be cleaned if instantiator
   // fails before returning the module. See QScopedPointer::take()
   QScopedPointer<qSlicerCLIModule> module(new qSlicerCLIModule());
 
+  QString xmlFilePath = this->xmlModuleDescriptionFilePath();
+
+  //
+  // If the xml file exists, read it and associate it with the module
+  // description. The "ModuleEntryPoint" address will be lazily retrieved
+  // after calling ModuleDescription::GetTarget() method.
+  //
+  // If not, directly resolve the symbols "XMLModuleDescription" and
+  // "ModuleEntryPoint" from the loaded library.
+  //
+  QString xmlDescription;
+  if (QFile::exists(xmlFilePath))
+    {
+    QFile xmlFile(xmlFilePath);
+    if (xmlFile.open(QIODevice::ReadOnly))
+      {
+      xmlDescription = QTextStream(&xmlFile).readAll();
+      }
+    else
+      {
+      this->appendInstantiateErrorString(QString("CLI description: %1").arg(xmlFilePath));
+      this->appendInstantiateErrorString("Failed to read Xml Description");
+      return 0;
+      }
+    // Set callback to allow lazy loading of target symbols.
+    module->moduleDescription().SetTargetCallback(
+          this, qSlicerCLILoadableModuleFactoryItem::loadLibraryAndResolveSymbols);
+    }
+  else
+    {
+    // Library is expected to already be loaded
+    // in qSlicerCLILoadableModuleFactoryItem::load()
+    xmlDescription = this->resolveXMLModuleDescriptionSymbol();
+    if (!this->resolveSymbols(module->moduleDescription()))
+      {
+      return 0;
+      }
+    }
+  if (xmlDescription.isEmpty())
+    {
+    return 0;
+    }
+
+  module->setModuleType("SharedObjectModule");
+
+  module->setXmlModuleDescription(xmlDescription);
+  module->setTempDirectory(this->TempDirectory);
+  module->setPath(this->path());
+  module->setInstalled(qSlicerCLIModuleFactoryHelper::isInstalled(this->path()));
+  module->setBuiltIn(qSlicerCLIModuleFactoryHelper::isBuiltIn(this->path()));
+
+  return module.take();
+}
+
+//-----------------------------------------------------------------------------
+QString qSlicerCLILoadableModuleFactoryItem::resolveXMLModuleDescriptionSymbol()
+{
   // Resolves symbol
   const char* xmlDescription = const_cast<const char *>(reinterpret_cast<char*>(
     this->symbolAddress("XMLModuleDescription")));
@@ -53,9 +154,14 @@ qSlicerAbstractCoreModule* qSlicerCLILoadableModuleFactoryItem::instanciator()
     {
     this->appendInstantiateErrorString(QString("CLI loadable: %1").arg(this->path()));
     this->appendInstantiateErrorString("Failed to retrieve Xml Description");
-    return 0;
+    return QString();
     }
+  return QString(xmlDescription);
+}
 
+//-----------------------------------------------------------------------------
+bool qSlicerCLILoadableModuleFactoryItem::resolveSymbols(ModuleDescription& desc)
+{
   // Resolves symbol
   typedef int (*ModuleEntryPointType)(int argc, char* argv[]);
   ModuleEntryPointType moduleEntryPoint =
@@ -66,29 +172,21 @@ qSlicerAbstractCoreModule* qSlicerCLILoadableModuleFactoryItem::instanciator()
     {
     this->appendInstantiateErrorString(QString("CLI loadable: %1").arg(this->path()));
     this->appendInstantiateErrorString("Failed to retrieve Module Entry Point");
-    return 0;
+    return false;
     }
 
   char buffer[256];
   // The entry point address must be encoded the same way it is decoded. As it
   // is decoded using  sscanf, it must be encoded using sprintf
   sprintf(buffer, "slicer:%p", moduleEntryPoint);
-  module->setEntryPoint(QString(buffer));
-  module->setModuleType("SharedObjectModule");
-
-  module->setXmlModuleDescription(QString(xmlDescription));
-  module->setTempDirectory(this->TempDirectory);
-  module->setPath(this->path());
-  module->setInstalled(qSlicerCLIModuleFactoryHelper::isInstalled(this->path()));
-  module->setBuiltIn(qSlicerCLIModuleFactoryHelper::isBuiltIn(this->path()));
+  desc.SetTarget(std::string(buffer)); // EntryPoint
 
   ModuleLogo logo;
-  if (updateLogo(this, logo))
+  if (this->updateLogo(this, logo))
     {
-    module->setLogo(logo);
+    desc.SetLogo(logo);
     }
-
-  return module.take();
+  return true;
 }
 
 //-----------------------------------------------------------------------------

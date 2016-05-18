@@ -30,16 +30,29 @@
 #include "qSlicerAbstractModule.h"
 #include "qSlicerBaseQTCLIExport.h"
 
+class ModuleDescription;
 class ModuleLogo;
+class qSlicerCLIModule;
 
 //-----------------------------------------------------------------------------
 class qSlicerCLILoadableModuleFactoryItem
   : public ctkFactoryLibraryItem<qSlicerAbstractCoreModule>
 {
 public:
+  typedef ctkFactoryLibraryItem<qSlicerAbstractCoreModule> Superclass;
   qSlicerCLILoadableModuleFactoryItem(const QString& newTempDirectory);
+  virtual bool load();
+
+  static void loadLibraryAndResolveSymbols(
+      void* libraryLoader,  ModuleDescription& desc);
+
 protected:
+  /// Return path of the expected XML file.
+  QString xmlModuleDescriptionFilePath()const;
+
   virtual qSlicerAbstractCoreModule* instanciator();
+  QString resolveXMLModuleDescriptionSymbol();
+  bool resolveSymbols(ModuleDescription& desc);
   static bool updateLogo(qSlicerCLILoadableModuleFactoryItem* item, ModuleLogo& logo);
 private:
   QString TempDirectory;
