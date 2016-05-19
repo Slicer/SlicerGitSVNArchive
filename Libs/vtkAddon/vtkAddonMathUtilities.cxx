@@ -17,7 +17,6 @@
 #include <vtkMath.h>
 #include <vtkNew.h>
 #include <vtkObjectFactory.h>
-#include <math.h>
 
 vtkStandardNewMacro(vtkAddonMathUtilities);
 
@@ -39,16 +38,15 @@ void vtkAddonMathUtilities::PrintSelf(ostream& os, vtkIndent indent)
 
 bool vtkAddonMathUtilities::Matrix4x4AreEqual(const vtkMatrix4x4* m1, const vtkMatrix4x4* m2, double tolerance)
 {
-  int i,j;
-  for (i = 0; i < 4; i++)
+  for (int i = 0; i < 4; i++)
     {
-    for (j = 0; j < 4; j++)
+    for (int j = 0; j < 4; j++)
       {
-      if ( m1->GetElement(i, j) - m2->GetElement(i, j) > tolerance )
+      if ( fabs(m1->GetElement(i, j) - m2->GetElement(i, j)) > tolerance )
         {
-        return 0;
+        return false;
         }
       }
     }
-    return 1;
+    return true;
 }
