@@ -46,7 +46,7 @@ bool vtkAddonMathUtilities::Matrix4x4AreEqual(const vtkMatrix4x4* m1,
     {
     for (int j = 0; j < 4; j++)
       {
-      if ( fabs(m1->GetElement(i, j) - m2->GetElement(i, j)) > tolerance )
+      if ( fabs(m1->GetElement(i, j) - m2->GetElement(i, j)) >= tolerance )
         {
         return false;
         }
