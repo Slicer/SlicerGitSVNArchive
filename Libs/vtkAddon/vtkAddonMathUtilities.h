@@ -31,7 +31,7 @@ public:
   vtkTypeMacro(vtkAddonMathUtilities,vtkObject);
   virtual void PrintSelf(ostream& os, vtkIndent indent);
 
-  bool Matrix4x4AreEqual(vtkMatrix4x4 *m1, vtkMatrix4x4 *m2, double tolerance = 1e-3);
+  static bool Matrix4x4AreEqual(const vtkMatrix4x4* m1, const vtkMatrix4x4* m2, double tolerance = 1e-3);
 
 protected:
   vtkAddonMathUtilities();
