@@ -900,6 +900,7 @@ void vtkMRMLMarkupsFiducialDisplayableManager2D::SetNthSeed(int n, vtkMRMLMarkup
 /// Propagate properties of MRML node to widget.
 void vtkMRMLMarkupsFiducialDisplayableManager2D::PropagateMRMLToWidget(vtkMRMLMarkupsNode* node, vtkAbstractWidget * widget)
 {
+
   if (!widget)
     {
     vtkErrorMacro("PropagateMRMLToWidget: Widget was null!")
@@ -909,6 +910,12 @@ void vtkMRMLMarkupsFiducialDisplayableManager2D::PropagateMRMLToWidget(vtkMRMLMa
   if (!node)
     {
     vtkErrorMacro("PropagateMRMLToWidget: MRML node was null!")
+    return;
+    }
+
+  if (node->GetScene()->IsBatchProcessing())
+    {
+    // compress events
     return;
     }
 
