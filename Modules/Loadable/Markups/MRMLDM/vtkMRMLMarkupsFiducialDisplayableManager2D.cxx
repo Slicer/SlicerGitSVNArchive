@@ -916,6 +916,7 @@ void vtkMRMLMarkupsFiducialDisplayableManager2D::PropagateMRMLToWidget(vtkMRMLMa
   if (node->GetScene()->IsBatchProcessing())
     {
     // compress events
+    this->SetUpdateFromMRMLRequested(1);
     return;
     }
 
