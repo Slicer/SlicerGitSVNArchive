@@ -61,7 +61,7 @@ class VTK_MRML_EXPORT vtkMRMLSliceNode : public vtkMRMLAbstractViewNode
   ///
   /// Mapping from RAS space onto the slice plane
   /// TODO: maybe this should be a quaternion and a translate to avoid shears/scales
-  vtkGetObjectMacro (SliceToRAS, vtkMatrix4x4);
+  vtkMatrix4x4 *GetSliceToRAS();
   virtual void SetSliceToRAS(vtkMatrix4x4* sliceToRAS);
 
   ///
@@ -120,9 +120,9 @@ class VTK_MRML_EXPORT vtkMRMLSliceNode : public vtkMRMLAbstractViewNode
   /// 'standard' radiological convention views of patient space
   /// these calls adjust the SliceToRAS matrix to position the slice
   /// cutting plane
-  void SetOrientationToAxial();
-  void SetOrientationToSagittal();
-  void SetOrientationToCoronal();
+  bool SetOrientationToAxial();
+  bool SetOrientationToSagittal();
+  bool SetOrientationToCoronal();
 
   ///
   /// General 'reformat' view that allows for multiplanar reformat
@@ -131,7 +131,7 @@ class VTK_MRML_EXPORT vtkMRMLSliceNode : public vtkMRMLAbstractViewNode
   /// Convenient function that calls SetOrientationToAxial(),
   /// SetOrientationToSagittal(), SetOrientationToCoronal() or
   /// SetOrientationToReformat() depending on the value of the string
-  void SetOrientation(const char* orientation);
+  bool SetOrientation(const char* orientation);
 
   /// Description
   /// A description of the current orientation
@@ -148,6 +148,28 @@ class VTK_MRML_EXPORT vtkMRMLSliceNode : public vtkMRMLAbstractViewNode
   /// try to match 'Reformat' but would not know what overall orientation to pick).
   vtkGetStringMacro (OrientationReference);
   vtkSetStringMacro (OrientationReference);
+
+
+  /// Return the sliceToRAS matrix
+  vtkMatrix4x4 *GetSliceOrientationPreset(const std::string& name);
+
+  /// Return the orietation string
+  std::string GetSliceOrientationPresetName(vtkMatrix4x4* sliceToRAS);
+
+  /// Return all the orietation strings
+  void GetSliceOrientationPresetNames(vtkStringArray* namedOrientations);
+
+  /// Add an orietaton preset
+  bool AddSliceOrientationPreset(const std::string& name, vtkMatrix4x4* sliceToRAS);
+
+  /// Remove an oritation preset
+  bool RemoveSliceOrientationPreset(const std::string& name);
+
+  /// Rename an oritation preset
+  bool RenameSliceOrientationPreset(const std::string& name, const std::string& updatedName);
+
+  /// Check if an oritation preset is stored
+  bool HasSliceOrientationPreset(const std::string& name);
 
   ///
   /// Size of the slice plane in millimeters
@@ -208,22 +230,22 @@ class VTK_MRML_EXPORT vtkMRMLSliceNode : public vtkMRMLAbstractViewNode
   ///
   /// Matrix mapping from XY pixel coordinates on an image window
   /// into slice coordinates in mm
-  vtkGetObjectMacro (XYToSlice, vtkMatrix4x4);
+  vtkMatrix4x4 *GetXYToSlice();
 
   ///
   /// Matrix mapping from XY pixel coordinates on an image window
   /// into RAS world coordinates
-  vtkGetObjectMacro (XYToRAS, vtkMatrix4x4);
+  vtkMatrix4x4 *GetXYToRAS();
 
   ///
   /// Matrix mapping from UVW texture coordinates
   /// into slice coordinates in mm
-  vtkGetObjectMacro (UVWToSlice, vtkMatrix4x4);
+  vtkMatrix4x4 *GetUVWToSlice();
 
   ///
   /// Matrix mapping from UVW texture coordinates
   /// into RAS world coordinates
-  vtkGetObjectMacro (UVWToRAS, vtkMatrix4x4);
+  vtkMatrix4x4 *GetUVWToRAS();
 
   ///
   /// helper for comparing to matrices
@@ -410,14 +432,15 @@ protected:
   vtkMRMLSliceNode(const vtkMRMLSliceNode&);
   void operator=(const vtkMRMLSliceNode&);
 
-  vtkMatrix4x4 *SliceToRAS;
+  vtkSmartPointer<vtkMatrix4x4> SliceToRAS;
 
-  vtkMatrix4x4 *XYToSlice;
-  vtkMatrix4x4 *XYToRAS;
+  vtkSmartPointer<vtkMatrix4x4> XYToSlice;
+  vtkSmartPointer<vtkMatrix4x4> XYToRAS;
 
-  vtkMatrix4x4 *UVWToSlice;
-  vtkMatrix4x4 *UVWToRAS;
+  vtkSmartPointer<vtkMatrix4x4> UVWToSlice;
+  vtkSmartPointer<vtkMatrix4x4> UVWToRAS;
 
+  std::vector< std::pair <std::string, vtkSmartPointer<vtkMatrix4x4> > > OrientationMatrices;
 
   int JumpMode;
 

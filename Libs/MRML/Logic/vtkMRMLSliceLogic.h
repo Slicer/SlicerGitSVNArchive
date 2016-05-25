@@ -21,8 +21,12 @@
 // STD includes
 #include <vector>
 
+// VTK includes
+#include <vtkSmartPointer.h>
+
 class vtkMRMLDisplayNode;
 class vtkMRMLLinearTransformNode;
+class vtkMatrix4x4;
 class vtkMRMLModelDisplayNode;
 class vtkMRMLModelNode;
 class vtkMRMLSliceCompositeNode;
@@ -384,7 +388,6 @@ protected:
   vtkMRMLSliceLayerLogic *    BackgroundLayer;
   vtkMRMLSliceLayerLogic *    ForegroundLayer;
   vtkMRMLSliceLayerLogic *    LabelLayer;
-
 
   vtkImageBlend *   Blend;
   vtkImageBlend *   BlendUVW;
