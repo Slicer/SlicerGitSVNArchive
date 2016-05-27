@@ -9,15 +9,15 @@ set(Slicer_PYTHON_SCRIPTS
   freesurfer
   mrml
   saferef
-  teem
   vtkAddon
   vtkITK
+  vtkTeem
   )
 
 set(Slicer_PYTHON_MODULES_CONFIG "
 # slicer libs
 'mrml',
-'teem',
+'vtkTeem',
 'qMRMLWidgetsPythonQt',
 # slicer base libs
 'logic',
