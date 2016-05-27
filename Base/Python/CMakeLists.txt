@@ -17,7 +17,6 @@ set(Slicer_PYTHON_SCRIPTS
 set(Slicer_PYTHON_MODULES_CONFIG "
 # slicer libs
 'mrml',
-'vtkTeem',
 'qMRMLWidgetsPythonQt',
 # slicer base libs
 'logic',
