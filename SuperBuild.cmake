@@ -202,8 +202,8 @@ Slicer_Remote_Add(MultiVolumeImporter
 list_conditional_append(Slicer_BUILD_MultiVolumeImporter Slicer_REMOTE_DEPENDENCIES MultiVolumeImporter)
 
 Slicer_Remote_Add(SimpleFilters
-  GIT_REPOSITORY ${git_protocol}://github.com/SimpleITK/SlicerSimpleFilters.git
-  GIT_TAG c58cfe5d5ec868e2a58cb409a53abb14b9e047a3
+  GIT_REPOSITORY ${git_protocol}://github.com/jcfr/SlicerSimpleFilters.git
+  GIT_TAG bcf2739d55829c7566bfb854d7befc0b08504507
   OPTION_NAME Slicer_BUILD_SimpleFilters
   OPTION_DEPENDS "Slicer_BUILD_QTSCRIPTEDMODULES;Slicer_USE_SimpleITK"
   LABELS REMOTE_MODULE
@@ -296,8 +296,8 @@ Slicer_Remote_Add(CompareVolumes
 list_conditional_append(Slicer_BUILD_CompareVolumes Slicer_REMOTE_DEPENDENCIES CompareVolumes)
 
 Slicer_Remote_Add(LandmarkRegistration
-  GIT_REPOSITORY "${git_protocol}://github.com/pieper/LandmarkRegistration"
-  GIT_TAG "e2cc82fea456b2dd71a01f343a02280771b9848e"
+  GIT_REPOSITORY "${git_protocol}://github.com/jcfr/LandmarkRegistration"
+  GIT_TAG "2517f55321050953b0256762ad0e69bd4da20064"
   OPTION_NAME Slicer_BUILD_LandmarkRegistration
   OPTION_DEPENDS "Slicer_BUILD_CompareVolumes;Slicer_USE_PYTHONQT"
   LABELS REMOTE_MODULE
