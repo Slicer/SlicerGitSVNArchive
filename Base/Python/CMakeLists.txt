@@ -7,6 +7,7 @@ set(Slicer_PYTHON_SCRIPTS
   slicer/testing
   slicer/util
   freesurfer
+  lazy
   mrml
   saferef
   teem
