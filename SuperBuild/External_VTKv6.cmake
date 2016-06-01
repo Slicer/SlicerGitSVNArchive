@@ -98,10 +98,25 @@ if((NOT DEFINED VTK_DIR OR NOT DEFINED VTK_SOURCE_DIR) AND NOT ${CMAKE_PROJECT_N
     set(VTK_ENABLE_KITS 1)
   endif()
 
-  set(${CMAKE_PROJECT_NAME}_${proj}_GIT_REPOSITORY "github.com/Slicer/VTK.git" CACHE STRING "Repository from which to get VTK" FORCE)
-  set(${CMAKE_PROJECT_NAME}_${proj}_GIT_TAG "1c30cb0fe5270cf0d812a127e5cc6688b287093c" CACHE STRING "VTK git tag to use" FORCE)
+  # Set default VTK repository and tag.
+  set(${CMAKE_PROJECT_NAME}_${proj}_DEFAULT_GIT_REPOSITORY "github.com/Slicer/VTK.git" CACHE STRING "Default repository from which to get VTK" FORCE)
+  set(${CMAKE_PROJECT_NAME}_${proj}_DEFAULT_GIT_TAG "1c30cb0fe5270cf0d812a127e5cc6688b287093c" CACHE STRING "Default VTK git tag to use" FORCE)
 
-  mark_as_advanced(${CMAKE_PROJECT_NAME}_${proj}_GIT_REPOSITORY ${CMAKE_PROJECT_NAME}_${proj}_GIT_TAG)
+  mark_as_advanced(${CMAKE_PROJECT_NAME}_${proj}_DEFAULT_GIT_REPOSITORY ${CMAKE_PROJECT_NAME}_${proj}_DEFAULT_GIT_TAG)
+
+  # Set active VTK repostory and tag. These values may be overridden by outside
+  # projects.
+  set(${CMAKE_PROJECT_NAME}_${proj}_GIT_REPOSITORY ${${CMAKE_PROJECT_NAME}_DEPENDENCY_${proj}_GIT_REPOSITORY})
+
+  if(NOT ${CMAKE_PROJECT_NAME}_${proj}_GIT_REPOSITORY)
+    set(${CMAKE_PROJECT_NAME}_${proj}_GIT_REPOSITORY ${${CMAKE_PROJECT_NAME}_${proj}_DEFAULT_GIT_REPOSITORY})
+  endif()
+
+  set(${CMAKE_PROJECT_NAME}_${proj}_GIT_TAG ${${CMAKE_PROJECT_NAME}_DEPENDENCY_${proj}_GIT_TAG})
+
+  if(NOT ${CMAKE_PROJECT_NAME}_${proj}_GIT_TAG)
+    set(${CMAKE_PROJECT_NAME}_${proj}_GIT_TAG ${${CMAKE_PROJECT_NAME}_${proj}_DEFAULT_GIT_TAG})
+  endif()
 
   if(NOT DEFINED git_protocol)
     set(git_protocol "git")
