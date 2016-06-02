@@ -51,6 +51,7 @@ class Q_SLICER_BASE_QTCORE_EXPORT qSlicerCoreCommandOptions : public ctkCommandL
   Q_PROPERTY(bool displaySettingsPathAndExit READ displaySettingsPathAndExit CONSTANT)
   Q_PROPERTY(bool displayTemporaryPathAndExit READ displayTemporaryPathAndExit CONSTANT)
   Q_PROPERTY(bool displayMessageAndExit READ displayMessageAndExit STORED false CONSTANT)
+  Q_PROPERTY(bool hideApplicationInformation READ hideApplicationInformation CONSTANT)
   Q_PROPERTY(bool verboseModuleDiscovery READ verboseModuleDiscovery CONSTANT)
   Q_PROPERTY(bool disableMessageHandlers READ disableMessageHandlers CONSTANT)
   Q_PROPERTY(bool testingEnabled READ isTestingEnabled CONSTANT)
@@ -124,19 +125,29 @@ public:
   /// Return True if the loading of built-in Scripted Loadable Modules should be disabled
   bool disableBuiltInScriptedLoadableModules()const;
 
-  /// Return True if slicer should display version and exit
+  /// Return True if slicer should display version and exit.
+  ///
+  /// \note Using this option implies 'hide-application-informations' option.
   bool displayVersionAndExit()const;
 
-  /// Return True if slicer should display program path and exit
+  /// Return True if slicer should display program path and exit.
+  ///
+  /// \note Using this option implies 'hide-application-informations' option.
   bool displayProgramPathAndExit()const;
 
-  /// Return True if slicer should display home path and exit
+  /// Return True if slicer should display home path and exit.
+  ///
+  /// \note Using this option implies 'hide-application-informations' option.
   bool displayHomePathAndExit()const;
 
-  /// Return True if slicer should display settings path and exit
+  /// Return True if slicer should display settings path and exit.
+  ///
+  /// \note Using this option implies 'hide-application-informations' option.
   bool displaySettingsPathAndExit()const;
 
-  /// Return True if slicer should display temporary path and exit
+  /// Return True if slicer should display temporary path and exit.
+  ///
+  /// \note Using this option implies 'hide-application-informations' option.
   bool displayTemporaryPathAndExit()const;
 
   /// Return True if slicer should display a message and exit.
@@ -149,6 +160,10 @@ public:
   /// \sa displaySettingsPathAndExit()
   /// \sa displayTemporaryPathAndExit()
   virtual bool displayMessageAndExit() const;
+
+  /// Return True if slicer should hide application informations displayed
+  /// in the terminal.
+  bool hideApplicationInformation() const;
 
   /// Return True if slicer should display details regarding the module discovery process
   bool verboseModuleDiscovery()const;

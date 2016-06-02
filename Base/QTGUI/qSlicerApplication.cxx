@@ -209,7 +209,7 @@ void qSlicerApplicationPrivate::init()
 
   q->setupFileLogging();
 
-  if (!this->CoreCommandOptions->displayMessageAndExit())
+  if (!this->CoreCommandOptions->hideApplicationInformation())
     {
     q->displayApplicationInformations();
     }

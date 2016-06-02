@@ -290,6 +290,14 @@ bool qSlicerCoreCommandOptions::displayMessageAndExit() const
 }
 
 //-----------------------------------------------------------------------------
+bool qSlicerCoreCommandOptions::hideApplicationInformation() const
+{
+  Q_D(const qSlicerCoreCommandOptions);
+  return d->ParsedArgs.value("hide-application-information").toBool()
+      || this->displayMessageAndExit();
+}
+
+//-----------------------------------------------------------------------------
 bool qSlicerCoreCommandOptions::verboseModuleDiscovery() const
 {
   Q_D(const qSlicerCoreCommandOptions);
@@ -438,6 +446,9 @@ void qSlicerCoreCommandOptions::addArguments()
 
   this->addArgument("temporary-path", "", QVariant::Bool,
                     "Display temporary path and exits.");
+
+  this->addArgument("hide-application-information", "", QVariant::Bool,
+                    "Hide application information displayed in the terminal.");
 
   this->addArgument("verbose-module-discovery", "", QVariant::Bool,
                     "Enable verbose output during module discovery process.");
