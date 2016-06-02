@@ -157,6 +157,9 @@ if(NOT GIT_FOUND)
 endif()
 mark_as_superbuild(GIT_EXECUTABLE)
 
+include(SlicerCheckCMakeHTTPS)
+slicer_check_cmake_https()
+
 #-----------------------------------------------------------------------------
 # Qt requirements
 #-----------------------------------------------------------------------------
