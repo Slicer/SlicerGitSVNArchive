@@ -458,9 +458,12 @@ def resetSliceViews():
 # MRML
 #
 
-def getNodes(pattern = "", scene=None):
+def getNodes(pattern = "", scene=None, useLists=False):
     """Return a dictionary of nodes where the name or id matches the 'pattern'.
-    Providing an empty 'pattern' string will return all nodes.
+    Providing an empty 'pattern' string will return all nodes. If multiple
+    nodes share the same name, using 'useLists=False' (default behavior) will
+    return only the last node with that name. If 'useLists=True', the returned
+    dictionary contains lists of nodes.
     """
     import slicer, fnmatch
     nodes = {}
@@ -474,7 +477,10 @@ def getNodes(pattern = "", scene=None):
       if (pattern == "" or
           fnmatch.fnmatchcase(name, pattern) or
           fnmatch.fnmatchcase(id, pattern)):
-        nodes[node.GetName()] = node
+        if useLists:
+          nodes.setdefault(node.GetName(), []).append(node)
+        else:
+          nodes[node.GetName()] = node
     return nodes
 
 def getNode(pattern = "", index = 0, scene=None):
@@ -503,14 +509,9 @@ def getFirstNodeByName(name, className=None):
   - use a regular expression to match names post-pended with addition characters
   - optionally specify a classname that must match
   """
-  nodes = getNodes(name+'*')
-  for nodeName in nodes.keys():
-    if not className:
-      return (nodes[nodeName]) # return the first one
-    else:
-      if nodes[nodeName].IsA(className):
-        return (nodes[nodeName])
-  return None
+  import slicer
+  scene = slicer.mrmlScene
+  return scene.GetFirstNode(name, className, [0], False)
 
 class NodeModify:
   """Context manager to conveniently compress mrml node modified event.
