@@ -45,6 +45,7 @@
 #include <vtkPlaneSource.h>
 #include <vtkPolyDataCollection.h>
 #include <vtkSmartPointer.h>
+#include <vtkStringArray.h>
 #include <vtkTransform.h>
 #include <vtkVersion.h>
 
@@ -264,17 +265,26 @@ void vtkMRMLSliceLogic::UpdateSliceNodeFromLayout()
     return;
     }
 
+  vtkNew<vtkStringArray> namedOrientations;
+  this->SliceNode->GetSliceOrientationPresetNames(namedOrientations.GetPointer());
+
+  if (namedOrientations->GetNumberOfValues() < 3)
+    {
+    vtkErrorMacro("UpdateSliceNodeFromLayout: "<< this->GetName() <<
+                  "could not set its orietation.")
+    }
+
   if ( !strcmp( this->GetName(), "Red" ) )
     {
-    this->SliceNode->SetOrientationToAxial();
+    this->SliceNode->SetOrientation(namedOrientations->GetValue(0));
     }
   if ( !strcmp( this->GetName(), "Yellow" ) )
     {
-    this->SliceNode->SetOrientationToSagittal();
+    this->SliceNode->SetOrientation(namedOrientations->GetValue(1));
     }
   if ( !strcmp( this->GetName(), "Green" ) )
     {
-    this->SliceNode->SetOrientationToCoronal();
+    this->SliceNode->SetOrientation(namedOrientations->GetValue(2));
     }
 }
 

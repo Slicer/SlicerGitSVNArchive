@@ -26,10 +26,12 @@
 #include <vtkMRMLModelHierarchyNode.h>
 #include <vtkMRMLScene.h>
 #include <vtkMRMLSelectionNode.h>
+#include <vtkMRMLSliceNode.h>
 #include <vtkMRMLTableNode.h>
 #include <vtkMRMLRemoteIOLogic.h>
 
 // VTK includes
+#include <vtkMatrix4x4.h>
 #include <vtkNew.h>
 #include <vtkObjectFactory.h>
 #include <vtkPointData.h>
@@ -295,6 +297,60 @@ void vtkSlicerApplicationLogic::SetMRMLSceneDataIO(vtkMRMLScene* newMRMLScene,
       {
       remoteIOLogic->AddDataIOToScene();
       }
+    }
+
+  // Setting Orientation Matrices presets
+  vtkNew<vtkMatrix4x4> axialSliceToRAS;
+  axialSliceToRAS->SetElement(0, 0, -1.0);
+  axialSliceToRAS->SetElement(1, 0,  0.0);
+  axialSliceToRAS->SetElement(2, 0,  0.0);
+  axialSliceToRAS->SetElement(0, 1,  0.0);
+  axialSliceToRAS->SetElement(1, 1,  1.0);
+  axialSliceToRAS->SetElement(2, 1,  0.0);
+  axialSliceToRAS->SetElement(0, 2,  0.0);
+  axialSliceToRAS->SetElement(1, 2,  0.0);
+  axialSliceToRAS->SetElement(2, 2,  1.0);
+
+  vtkNew<vtkMatrix4x4> sagittalSliceToRAS;
+  sagittalSliceToRAS->SetElement(0, 0,  0.0);
+  sagittalSliceToRAS->SetElement(1, 0,  -1.0);
+  sagittalSliceToRAS->SetElement(2, 0,  0.0);
+  sagittalSliceToRAS->SetElement(0, 1,  0.0);
+  sagittalSliceToRAS->SetElement(1, 1,  0.0);
+  sagittalSliceToRAS->SetElement(2, 1,  1.0);
+  sagittalSliceToRAS->SetElement(0, 2,  1.0);
+  sagittalSliceToRAS->SetElement(1, 2,  0.0);
+  sagittalSliceToRAS->SetElement(2, 2,  0.0);
+
+  vtkNew<vtkMatrix4x4> coronalSliceToRAS;
+  coronalSliceToRAS->SetElement(0, 0, -1.0);
+  coronalSliceToRAS->SetElement(1, 0,  0.0);
+  coronalSliceToRAS->SetElement(2, 0,  0.0);
+  coronalSliceToRAS->SetElement(0, 1,  0.0);
+  coronalSliceToRAS->SetElement(1, 1,  0.0);
+  coronalSliceToRAS->SetElement(2, 1,  1.0);
+  coronalSliceToRAS->SetElement(0, 2,  0.0);
+  coronalSliceToRAS->SetElement(1, 2,  1.0);
+  coronalSliceToRAS->SetElement(2, 2,  0.0);
+
+  // Setting a Slice Default Node
+  vtkSmartPointer<vtkMRMLSliceNode> defaultNode = vtkMRMLSliceNode::SafeDownCast
+      (newMRMLScene->GetDefaultNodeByClass("vtkMRMLSliceNode"));
+  if (defaultNode)
+    {
+    defaultNode->AddSliceOrientationPreset("Axial", axialSliceToRAS.GetPointer());
+    defaultNode->AddSliceOrientationPreset("Sagittal", sagittalSliceToRAS.GetPointer());
+    defaultNode->AddSliceOrientationPreset("Coronal", coronalSliceToRAS.GetPointer());
+    }
+  else
+    {
+    defaultNode = vtkMRMLSliceNode::SafeDownCast
+        (newMRMLScene->CreateNodeByClass("vtkMRMLSliceNode"));
+    defaultNode->AddSliceOrientationPreset("Axial", axialSliceToRAS.GetPointer());
+    defaultNode->AddSliceOrientationPreset("Sagittal", sagittalSliceToRAS.GetPointer());
+    defaultNode->AddSliceOrientationPreset("Coronal", coronalSliceToRAS.GetPointer());
+    newMRMLScene->AddDefaultNode(defaultNode);
+    defaultNode->Delete(); // scene owns it now
     }
 }
 

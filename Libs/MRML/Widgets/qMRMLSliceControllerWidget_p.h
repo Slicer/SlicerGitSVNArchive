@@ -94,6 +94,8 @@ public:
   void setupOrientationMarkerMenu();
   void setupRulerMenu();
 
+  qMRMLOrientation mrmlOrientation(const QString& name);
+
   vtkSmartPointer<vtkCollection> saveNodesForUndo(const QString& nodeTypes);
 
   void enableLayerWidgets();
@@ -139,7 +141,7 @@ public slots:
 
 protected:
   virtual void setupPopupUi();
-  void setMRMLSliceNodeInternal(vtkMRMLSliceNode* sliceNode);
+  virtual void setMRMLSliceNodeInternal(vtkMRMLSliceNode* sliceNode);
   void setMRMLSliceCompositeNodeInternal(vtkMRMLSliceCompositeNode* sliceComposite);
 
 public:

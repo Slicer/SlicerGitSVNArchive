@@ -27,6 +27,10 @@
 // MRML includes
 #include <vtkMRMLSliceNode.h>
 
+// VTK includes
+#include <vtkNew.h>
+#include <vtkStringArray.h>
+
 //--------------------------------------------------------------------------
 // qMRMLSliceViewPrivate methods
 
@@ -96,10 +100,61 @@ void qMRMLSliceInformationWidgetPrivate::updateWidgetFromMRMLSliceNode()
   this->LayoutNameLineEdit->setText(QLatin1String(this->MRMLSliceNode->GetLayoutName()));
 
   // Update orientation selector state
+  vtkNew<vtkStringArray> orientationNames;
+  this->MRMLSliceNode->GetSliceOrientationPresetNames(orientationNames.GetPointer());
+
+  bool wasBlocked = this->SliceOrientationSelector->blockSignals(true);
+  int count = this->SliceOrientationSelector->count();
+  // If last item in the combox box is not "Reformat" remove it.
+  // This will exclude that the user can click on "Reformat" orientation
+  // which actually will not change the orientation of sliceToRAS matrix in
+  // vtkMRMLSliceNode::SetOrientation()
+  if(this->SliceOrientationSelector->itemText(count - 1) != "Reformat")
+    {
+    this->SliceOrientationSelector->removeItem(count - 1);
+    count--;
+    }
+  int names = orientationNames->GetNumberOfValues();
+  // The entries of the ctkComboBox will be updated with the names of the orientation presets.
+  if (count < names)
+    {
+    for (int i = 0; i < count; i++)
+      {
+      this->SliceOrientationSelector->setItemText(i, QString::fromStdString(orientationNames->GetValue(i)));
+      }
+    for (int i = count; i < names; i++)
+      {
+      this->SliceOrientationSelector->insertItem(i, QString::fromStdString(orientationNames->GetValue(i)));
+      }
+    }
+  else
+    {
+    for (int i = 0; i < names; i++)
+      {
+      this->SliceOrientationSelector->setItemText(i, QString::fromStdString(orientationNames->GetValue(i)));
+      }
+    for (int i = names; i < count; i++)
+      {
+      this->SliceOrientationSelector->removeItem(i);
+      }
+    }
+  // In case the orientation matrix (sliceToRAS) is different from any preset,
+  // "Reformat" will be displayed on the ctkComboBox.
+  if(!strcmp(this->MRMLSliceNode->GetOrientationString(), "Reformat"))
+    {
+    this->SliceOrientationSelector->insertItem(count, "Reformat");
+    }
+  this->SliceOrientationSelector->blockSignals(wasBlocked);
+
+  // Update orientation selector state
   int index = this->SliceOrientationSelector->findText(
       QString::fromStdString(this->MRMLSliceNode->GetOrientationString()));
-  Q_ASSERT(index>=0 && index <=4);
+  Q_ASSERT(index>=0);
+
+  // We block the signal to avoid calling setSliceOrientation from the MRMLNode
+  wasBlocked = this->SliceOrientationSelector->blockSignals(true);
   this->SliceOrientationSelector->setCurrentIndex(index);
+  this->SliceOrientationSelector->blockSignals(wasBlocked);
 
   // Update slice visibility toggle
   this->SliceVisibilityToggle->setChecked(this->MRMLSliceNode->GetSliceVisible());
@@ -206,12 +261,6 @@ void qMRMLSliceInformationWidget::setMRMLSliceNode(vtkMRMLSliceNode* newSliceNod
 void qMRMLSliceInformationWidget::setSliceOrientation(const QString& orientation)
 {
   Q_D(qMRMLSliceInformationWidget);
-
-#ifndef QT_NO_DEBUG
-  QStringList expectedOrientation;
-  expectedOrientation << "Axial" << "Sagittal" << "Coronal" << "Reformat";
-  Q_ASSERT(expectedOrientation.contains(orientation));
-#endif
 
   if (!d->MRMLSliceNode)
     {
