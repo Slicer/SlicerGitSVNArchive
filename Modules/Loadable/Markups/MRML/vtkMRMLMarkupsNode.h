@@ -137,6 +137,7 @@ public:
     LockModifiedEvent = 19000,
     LabelFormatModifiedEvent,
     PointModifiedEvent,
+    PointStartInteractionEvent,
     PointEndInteractionEvent,
     NthMarkupModifiedEvent,
     MarkupAddedEvent,

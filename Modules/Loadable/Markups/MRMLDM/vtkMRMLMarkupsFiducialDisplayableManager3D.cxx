@@ -78,7 +78,7 @@ public:
       {
       // std::cout << "Warning: PlacePointEvent not supported" << std::endl;
       }
-    else if ((event == vtkCommand::EndInteractionEvent) || (event == vtkCommand::InteractionEvent))
+    else if ((event == vtkCommand::StartInteractionEvent) || (event == vtkCommand::EndInteractionEvent) || (event == vtkCommand::InteractionEvent))
       {
       // sanity checks
       if (!this->DisplayableManager)
@@ -95,7 +95,12 @@ public:
         }
       // sanity checks end
       }
-
+    if (event == vtkCommand::StartInteractionEvent)
+    {
+      this->Node->InvokeEvent(vtkMRMLMarkupsNode::PointStartInteractionEvent, callData);
+      // no need to propagate to MRML, just notify external observers that the user selected a markup
+      return;
+    }
     if (event == vtkCommand::EndInteractionEvent)
       {
       // save the state of the node when done moving, then call
@@ -224,8 +229,9 @@ void vtkMRMLMarkupsFiducialDisplayableManager3D::OnWidgetCreated(vtkAbstractWidg
   myCallback->SetNode(node);
   myCallback->SetWidget(widget);
   myCallback->SetDisplayableManager(this);
-  widget->AddObserver(vtkCommand::EndInteractionEvent,myCallback);
-  widget->AddObserver(vtkCommand::InteractionEvent,myCallback);
+  widget->AddObserver(vtkCommand::StartInteractionEvent,myCallback);
+  widget->AddObserver(vtkCommand::EndInteractionEvent, myCallback);
+  widget->AddObserver(vtkCommand::InteractionEvent, myCallback);
   myCallback->Delete();
 }
 
@@ -392,13 +398,15 @@ void vtkMRMLMarkupsFiducialDisplayableManager3D::SetNthSeed(int n, vtkMRMLMarkup
       (interactionNode->GetCurrentInteractionMode() == vtkMRMLInteractionNode::Place)
       && (interactionNode->GetPlaceModePersistence() == 1);
     }
-  if (listLocked || seedLocked || persistentPlaceMode)
+  vtkHandleWidget *seed = seedWidget->GetSeed(n);
+  if (listLocked || persistentPlaceMode)
     {
-    seedWidget->GetSeed(n)->ProcessEventsOff();
+    seed->ProcessEventsOff();
     }
   else
     {
-    seedWidget->GetSeed(n)->ProcessEventsOn();
+    seed->ProcessEventsOn();
+    seed->SetEnableTranslation(!seedLocked);
     }
 
   // set the glyph type if a new handle was created, or the glyph type changed
