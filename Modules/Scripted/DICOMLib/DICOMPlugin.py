@@ -165,7 +165,7 @@ class DICOMPlugin(object):
       files: files that will be used to build the volume name using the DICOM tags in a list of DICOM files
     """
     if not files or len(files) == 0:
-      return "UNNAMED VOLUME"
+      return "Unknown"
 
     if not self.volumeNameTagsTemplate:
       # Reset to default template
@@ -191,10 +191,10 @@ class DICOMPlugin(object):
         # Search for the real value in the first image of the series
         codeValue = slicer.dicomDatabase.fileValue(files[0], fixedTag)
       except:
-        codeValue = "UNKNOWN"
+        codeValue = "Unknown"
 
       if codeValue.strip() == "":
-        codeValue = "UNKNOWN"
+        codeValue = "Unknown"
       # Replace the tag with the real value in the DICOM file
       name = name.replace("@{}@".format(dicomTagCode), codeValue)
 
