@@ -2,7 +2,7 @@
 import os, logging
 import unittest
 import qt
-import slicer
+import slicer, ctk
 
 class DICOMBrowserVolumeNaming(unittest.TestCase):
   def setUp(self):
@@ -28,12 +28,23 @@ class DICOMBrowserVolumeNaming(unittest.TestCase):
   def runTest(self):
     self.test_LoadDICOMScalarVolume()
 
+  def switchToDICOMModule(self):
+    self.delayDisplay('Importing DICOM')
+    mainWindow = slicer.util.mainWindow()
+    mainWindow.moduleSelector().selectModule('DICOM')
+    dicomFilesDirectory = slicer.app.temporaryPath + '/DICOMFilesDirectory'
+    indexer = ctk.ctkDICOMIndexer()
+    indexer.addDirectory(slicer.dicomDatabase, dicomFilesDirectory, None)
+    indexer.waitForImportFinished()
+
+
   def test_LoadDICOMScalarVolume(self):
     """
     Load a DICOM file with default and customized volume name template, and check that in both cases the name of
     the volume loaded is ok.
-    The plugin used is DICOMScalarVolumePlugin
+    The DICOM plugin used is DICOMScalarVolumePlugin
     """
+    self.switchToDICOMModule()
     # Get the data
     selfTestDir = slicer.app.temporaryPath + '/DICOMBrowserVolumeNaming'
     if not os.access(selfTestDir, os.F_OK):
@@ -63,9 +74,6 @@ class DICOMBrowserVolumeNaming(unittest.TestCase):
 
     self.delayDisplay("Test passed!")
 
-  def tearDown(self):
-    slicer.mrlmlScene.Clear(0)
-
 #
 # DICOM Browser tests
 #
@@ -77,6 +85,7 @@ class DICOMBrowserTest:
   def __init__(self, parent):
     parent.title = "DICOMBrowserTest"
     parent.categories = ["Testing.TestCases"]
+    parent.dependencies = ['DICOM']
     parent.contributors = ["Jorge Onieva (BWH)"]
     parent.helpText = """Self tests for the DICOM Browser. So far, no GUI is tested"""
 
@@ -96,7 +105,6 @@ class DICOMBrowserTest:
     tester = DICOMBrowserVolumeNaming()
     tester.setUp()
     tester.runTest()
-    tester.tearDown()
 
 
 #
