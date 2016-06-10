@@ -2,6 +2,8 @@ import os
 import qt
 import slicer
 import DICOMLib
+import re
+import logging
 
 
 #########################################################
@@ -79,6 +81,20 @@ class DICOMPlugin(object):
     self.tags['seriesDescription'] = "0008,103E"
     self.tags['seriesNumber'] = "0020,0011"
 
+    self.volumeNameTagsTemplate = self.defaultVolumeNameTagsTemplate  # Used to customize volume name
+
+  @property
+  def defaultVolumeNameTagsTemplate(self):
+    """ Default tags template that will be used to name a volume when it's loaded.
+    Every tag should have the pattern @TAG@, where TAG can be a DICOM code or one of the commonly used DICOM tags
+    included in this class (example: seriesNumber)
+    Default: seriesNumber: seriesDescription (tags 0020,0011 and 0008,1030)"""
+    return "@0020,0011@: @0008,1030@"
+
+  def resetVolumeNameTagsTemplate(self):
+    """ Configure the plugin to use the default tags template """
+    self.volumeNameTagsTemplate = self.defaultVolumeNameTagsTemplate
+
   def hashFiles(self,files):
     """Create a hash key for a list of files"""
     try:
@@ -140,19 +156,48 @@ class DICOMPlugin(object):
     """
     return ""
 
-  def defaultSeriesNodeName(self,seriesUID):
+  def getVolumeName(self, files):
     """Generate a name suitable for use as a mrml node name based
-    on the series level data in the database"""
-    instanceFilePaths = slicer.dicomDatabase.filesForSeries(seriesUID)
-    if len(instanceFilePaths) == 0:
-      return "Unnamed Series"
-    seriesDescription = slicer.dicomDatabase.fileValue(instanceFilePaths[0],self.tags['seriesDescription'])
-    seriesNumber = slicer.dicomDatabase.fileValue(instanceFilePaths[0],self.tags['seriesNumber'])
-    name = seriesDescription
-    if seriesDescription == "":
-      name = "Unnamed Series"
-    if seriesNumber != "":
-      name = seriesNumber + ": " + name
+    on the series level data in the database.
+
+    Arguments
+
+      files: files that will be used to build the volume name using the DICOM tags in a list of DICOM files
+    """
+    if not files or len(files) == 0:
+      return "Unknown"
+
+    if not self.volumeNameTagsTemplate:
+      # Reset to default template
+      self.resetVolumeNameTagsTemplate()
+
+    # Get the volume name based on the current template
+    name = self.volumeNameTagsTemplate
+    # Replace evey tag found in the template, using a regular expression that will search for this pattern: @DICOM_TAG@
+    pattern = ".*?@(.+?)@.*?"
+    for expr in re.finditer(pattern, name):
+      dicomTagCode = expr.groups()[0]
+      try:
+        # Change the first letter to lowercase in order that it matches the internal key (CTK DICOM Editor shows the
+        # tags capitalizing each word)
+        fixedTag = dicomTagCode[0].lower() + dicomTagCode[1:]
+        # Remove the possible parenthesis
+        if fixedTag.startswith("(") and fixedTag.endswith(")"):
+          fixedTag = fixedTag[1:-1]
+        if self.tags.has_key(fixedTag):
+          # Instead of a code, the tag is one of the common well known DICOM tags (ex: seriesNumber)
+          fixedTag = self.tags[fixedTag]
+
+        # Search for the real value in the first image of the series
+        codeValue = slicer.dicomDatabase.fileValue(files[0], fixedTag)
+      except:
+        codeValue = "Unknown"
+
+      if codeValue.strip() == "":
+        codeValue = "Unknown"
+      # Replace the tag with the real value in the DICOM file
+      name = name.replace("@{}@".format(dicomTagCode), codeValue)
+
     return name
 
   def addSeriesInSubjectHierarchy(self,loadable,dataNode):
@@ -214,7 +259,7 @@ class DICOMPlugin(object):
       instanceUIDs += uid + " "
     instanceUIDs = instanceUIDs[:-1]  # strip last space
     seriesNode.AddUID(slicer.vtkMRMLSubjectHierarchyConstants.GetDICOMInstanceUIDName(), instanceUIDs)
-    
+
     # Set referenced instance UIDs from loadable to series
     referencedInstanceUIDs = ""
     if hasattr(loadable,'referencedInstanceUIDs'):

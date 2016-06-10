@@ -47,12 +47,12 @@ class DICOMDetailsPopup(VTKObservationMixin):
   def __init__(self,dicomBrowser=None):
     VTKObservationMixin.__init__(self)
     self.dicomBrowser = dicomBrowser
-    
+
     # initialize the dicomDatabase
     #   - pick a default and let the user know
     if not slicer.dicomDatabase:
       self.promptForDatabaseDirectory()
-    
+
     if self.dicomBrowser is None:
       # This creates a DICOM database in the current working directory if nothing else
       # is specified in the settings, therefore promptForDatabaseDirectory must be called before this.
@@ -63,6 +63,7 @@ class DICOMDetailsPopup(VTKObservationMixin):
     self.popupGeometry = settingsValue('DICOM/detailsPopup.geometry', qt.QRect())
     self.advancedView = settingsValue('DICOM/advancedView', 0, converter=int)
     self.horizontalTables = settingsValue('DICOM/horizontalTables', 0, converter=int)
+    self.volumeNameTemplate = settingsValue('DICOM/volumeNameTemplate', "")
 
     self.create()
     self.popupPositioned = False
@@ -75,10 +76,10 @@ class DICOMDetailsPopup(VTKObservationMixin):
 
     # Update visibility
     for name in [
-        'ActionImport', 'ActionExport', 'ActionQuery', 'ActionSend', 'ActionRemove', 'ActionRepair',
-        'ActionViewMetadata',
-        'AdvancedViewCheckBox', 'HorizontalViewCheckBox', 'BrowserPersistentCheckBox'
-        ]:
+      'ActionImport', 'ActionExport', 'ActionQuery', 'ActionSend', 'ActionRemove', 'ActionRepair',
+      'ActionViewMetadata',
+      'AdvancedViewCheckBox', 'HorizontalViewCheckBox', 'BrowserPersistentCheckBox'
+    ]:
       visible = settingsValue('DICOM/%s.visible' % name, True, converter=toBool)
       control = self._findChildren(name)
       control.visible = visible
@@ -87,7 +88,7 @@ class DICOMDetailsPopup(VTKObservationMixin):
     self.settingsWidgetNames = {
       'DatabaseButton' : ('DatabaseNameLabel', 'DirectoryButton'),
       'TableDensityComboBox' : ('tablesDensityLabel', 'tableDensityComboBox')
-      }
+    }
 
     # Hide the settings button if all associated widgets should be hidden
     settingsButtonHidden = True
@@ -166,8 +167,8 @@ class DICOMDetailsPopup(VTKObservationMixin):
     elif widgetType == 'dock':
       self.dock = qt.QDockWidget(slicer.util.mainWindow())
       self.dock.setFeatures( qt.QDockWidget.DockWidgetFloatable |
-                                qt.QDockWidget.DockWidgetMovable |
-                                qt.QDockWidget.DockWidgetClosable )
+                             qt.QDockWidget.DockWidgetMovable |
+                             qt.QDockWidget.DockWidgetClosable )
       slicer.util.mainWindow().addDockWidget(0x15, self.dock)
       self.window = qt.QFrame()
       self.dock.setWidget(self.window)
@@ -277,7 +278,23 @@ class DICOMDetailsPopup(VTKObservationMixin):
     self.actionButtonLayout.addWidget(self.viewMetadataButton)
     self.viewMetadataButton.connect('clicked()', self.onViewHeaderButton)
     self.viewMetadataButton.connect('clicked()', self.headerPopup.open)
-    self.actionButtonLayout.addStretch(1)
+
+    # Volume name template
+    self.volumeNameTemplateFrame = qt.QWidget()
+    self.layout.addWidget(self.volumeNameTemplateFrame)
+    self.volumeNameTemplateFrame.visible = self.advancedView  # Display only in advanced mode
+
+    self.volumeNameTemplateLayout = qt.QHBoxLayout(self.volumeNameTemplateFrame)
+    self.volumeNameTemplateLayout.addWidget(qt.QLabel("Volume name template"))
+    self.volumeNameLineEdit = qt.QLineEdit()
+    self.volumeNameLineEdit.objectName = "volumeNameLineEdit"
+    self.volumeNameLineEdit.toolTip = "Use Metadata to build the new volume's name. Use tag names (for the most commonly" + \
+                                      " used fields) or tag codes (the secure way) surrounded " + \
+                                      "by '@' symbol. Ex: @seriesName@: @0008,1030@ "
+    self.volumeNameLineEdit.setMinimumWidth(250)
+    self.volumeNameTemplateLayout.addWidget(self.volumeNameLineEdit)
+    self.volumeNameLineEdit.text = self.volumeNameTemplate
+    self.volumeNameLineEdit.connect('textChanged(QString)', self.onVolumeTemplateChanged)
 
     self.examineButton = qt.QPushButton('Examine')
     self.actionButtonLayout.addWidget(self.examineButton)
@@ -361,7 +378,7 @@ class DICOMDetailsPopup(VTKObservationMixin):
       if os.listdir(databaseDirectory) and not os.path.isfile(databaseFilepath):
         # Prevent users from the error of trying to import a DICOM directory by selecting it as DICOM database path
         messages += "Directory is not empty and not an existing DICOM database."
-        
+
     if messages != "":
       slicer.util.warningDisplay('The database file path "%s" cannot be used.  %s\n'
                                  'Please pick a different database directory using the '
@@ -454,13 +471,20 @@ class DICOMDetailsPopup(VTKObservationMixin):
   def onAdvanedViewButton(self):
     self.advancedView = self.advancedViewButton.checked
     advancedWidgets = [self.loadableTableFrame, self.examineButton,
-        self.uncheckAllButton]
+                       self.uncheckAllButton]
     for widget in advancedWidgets:
       widget.visible = self.advancedView
     self.loadButton.enabled = not self.advancedView
+    self.volumeNameTemplateFrame.visible = self.advancedView
 
     settings = qt.QSettings()
     settings.setValue('DICOM/advancedView',int(self.advancedView))
+
+  def onVolumeTemplateChanged(self, text):
+    self.volumeNameTemplate = text
+    # Save setting
+    settings = qt.QSettings()
+    settings.setValue('DICOM/volumeNameTemplate', self.volumeNameTemplate)
 
   def onHorizontalViewCheckBox(self):
     settings = qt.QSettings()
@@ -587,10 +611,10 @@ class DICOMDetailsPopup(VTKObservationMixin):
 
     allFileCount = missingFileCount = 0
     for fileList in self.fileLists:
-        for filePath in fileList:
-          allFileCount += 1
-          if not os.path.exists(filePath):
-            missingFileCount += 1
+      for filePath in fileList:
+        allFileCount += 1
+        if not os.path.exists(filePath):
+          missingFileCount += 1
 
     if missingFileCount > 0:
       slicer.util.warningDisplay("Warning: %d of %d selected files listed in the database cannot be found on disk."
@@ -615,7 +639,13 @@ class DICOMDetailsPopup(VTKObservationMixin):
       slicer.app.processEvents()
       self.progress.setValue(step)
       slicer.app.processEvents()
+
       try:
+        if self.volumeNameTemplate:
+          plugin.volumeNameTagsTemplate = self.volumeNameTemplate
+        else:
+          # Blank template. Reset to default
+          plugin.resetVolumeNameTagsTemplate()
         loadablesByPlugin[plugin] = plugin.examineForImport(fileLists)
         # If regular method is not overridden (so returns empty list), try old function
         # Ensuring backwards compatibility: examineForImport used to be called examine
@@ -693,8 +723,8 @@ class DICOMDetailsPopup(VTKObservationMixin):
       fm = qt.QFontMetrics(qt.QApplication.font(self.referencesDialog))
       self.referencesDialog.setMinimumWidth(fm.width(windowTitle)+50)
       label = qt.QLabel("The loaded DICOM objects contain references to other "
-      "datasets you did not select for loading. Please confirm if you would "
-      "like to load the following referenced datasets.")
+                        "datasets you did not select for loading. Please confirm if you would "
+                        "like to load the following referenced datasets.")
       label.wordWrap = True
       layout.addRow(label)
       for plugin in self.referencedLoadables:

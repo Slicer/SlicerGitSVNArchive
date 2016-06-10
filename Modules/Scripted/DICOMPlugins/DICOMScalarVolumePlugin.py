@@ -36,6 +36,9 @@ class DICOMScalarVolumePluginClass(DICOMPlugin):
     self.tags['instanceUID'] = "0008,0018"
     self.tags['windowCenter'] = "0028,1050"
     self.tags['windowWidth'] = "0028,1051"
+    self.tags['patientName'] = "0010,0010"
+    self.tags['patientID'] = "0010,0020"
+    self.tags['studyDescription'] = "0008,1030"
 
 
   def examineForImport(self,fileLists):
@@ -63,9 +66,7 @@ class DICOMScalarVolumePluginClass(DICOMPlugin):
     corresponding to ways of interpreting the
     files parameter.
     """
-
-    seriesUID = slicer.dicomDatabase.fileValue(files[0],self.tags['seriesUID'])
-    seriesName = self.defaultSeriesNodeName(seriesUID)
+    seriesName = self.getVolumeName(files)
 
     # default loadable includes all files for series
     loadable = DICOMLoadable()
@@ -82,11 +83,11 @@ class DICOMScalarVolumePluginClass(DICOMPlugin):
 
     # make subseries volumes based on tag differences
     subseriesTags = [
-        "seriesInstanceUID",
-        "contentTime",
-        "triggerTime",
-        "diffusionGradientOrientation",
-        "imageOrientationPatient",
+      "seriesInstanceUID",
+      "contentTime",
+      "triggerTime",
+      "diffusionGradientOrientation",
+      "imageOrientationPatient",
     ]
 
     # it will be set to true if pixel data is found in any of the files
@@ -259,7 +260,7 @@ class DICOMScalarVolumePluginClass(DICOMPlugin):
     Works for DICOMLoadable or other objects with name attribute
     """
     if not (hasattr(x,'name') and hasattr(y,'name')):
-        return 0
+      return 0
     xName = slicer.util.unicodeify(x.name)
     yName = slicer.util.unicodeify(y.name)
     try:
@@ -328,7 +329,7 @@ class DICOMScalarVolumePluginClass(DICOMPlugin):
       selNode = appLogic.GetSelectionNode()
       selNode.SetReferenceActiveVolumeID(volumeNode.GetID())
       appLogic.PropagateVolumeSelection()
-      
+
       #
       # apply window/level from DICOM if available (the first pair that is found)
       #   Note: There can be multiple presets (multiplicity 1-n) in the standard [1]. We have
