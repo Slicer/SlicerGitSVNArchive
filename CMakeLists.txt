@@ -359,7 +359,7 @@ mark_as_advanced(ADDITIONAL_CXX_FLAGS)
 #-----------------------------------------------------------------------------
 include(CMakeParseArguments)
 include(Slicer3PluginsMacros)
-include(SlicerMacroExtractRepositoryInfo)
+include(SlicerMacroExtractRepositoryInfo RESULT_VARIABLE SlicerMacroExtractRepositoryInfo_PATH)
 include(SlicerMacroGetOperatingSystemArchitectureBitness)
 if(Slicer_BUILD_I18N_SUPPORT)
   include(SlicerMacroTranslation)
@@ -1056,7 +1056,6 @@ get_property(Slicer_QM_OUTPUT_DIRS GLOBAL PROPERTY Slicer_QM_OUTPUT_DIRS)
 
 set(files
   vtkSlicerConfigure.h
-  vtkSlicerVersionConfigure.h
   )
 foreach(f ${files})
   configure_file(
@@ -1064,6 +1063,26 @@ foreach(f ${files})
     ${CMAKE_CURRENT_BINARY_DIR}/${f}
     )
 endforeach()
+# Configured at build time
+add_custom_target(ConfigurevtkSlicerVersionConfigure
+                  COMMAND ${CMAKE_COMMAND}
+                  -DSlicer_MODULE_PATH:PATH=${CMAKE_CURRENT_SOURCE_DIR}/CMake
+                  -DSlicer_SOURCE_DIR:PATH=${CMAKE_CURRENT_SOURCE_DIR}
+                  -DSlicer_BINARY_DIR:PATH=${CMAKE_CURRENT_BINARY_DIR}
+                  -DSlicer_MAIN_PROJECT_APPLICATION_NAME:STRING=${Slicer_MAIN_PROJECT_APPLICATION_NAME}
+                  -DSlicerMacroExtractRepositoryInfo_PATH:FILEPATH=${SlicerMacroExtractRepositoryInfo_PATH}
+                  -DSlicer_VERSION_MAJOR:STRING=${Slicer_VERSION_MAJOR}
+                  -DSlicer_VERSION_MINOR:STRING=${Slicer_VERSION_MINOR}
+                  -DSlicer_VERSION_PATCH:STRING=${Slicer_VERSION_PATCH}
+                  -DSlicer_OS_LINUX_NAME:STRING=${Slicer_OS_LINUX_NAME}
+                  -DSlicer_OS_MAC_NAME:STRING=${Slicer_OS_MAC_NAME}
+                  -DSlicer_OS_WIN_NAME:STRING=${Slicer_OS_WIN_NAME}
+                  -DSlicer_ARCHITECTURE:STRING=${Slicer_ARCHITECTURE}
+                  -DSlicer_FORCED_WC_REVISION:STRING=${Slicer_FORCED_WC_REVISION}
+                  -DSlicer_OS:STRING=${Slicer_OS}
+                  -P ${CMAKE_CURRENT_SOURCE_DIR}/CMake/SlicerConfigurevtkSlicerVersionConfigure.cmake
+                 )
+list(APPEND files vtkSlicerVersionConfigure.h)
 if(NOT Slicer_INSTALL_NO_DEVELOPMENT)
   install(FILES
     "${CMAKE_CURRENT_BINARY_DIR}/vtkSlicerConfigure.h"
