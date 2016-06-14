@@ -31,7 +31,7 @@
 template<typename MRMLVolumeNodeType>
 MRMLVolumeNodeType*
 vtkSlicerVolumesLogic::
-CloneVolume (vtkMRMLScene *scene, vtkMRMLVolumeNode *volumeNode, const char *name, bool cloneImageData/*=true*/)
+CloneVolume (vtkMRMLScene *scene, MRMLVolumeNodeType *volumeNode, const char *name, bool cloneImageData/*=true*/)
 {
   if ( scene == NULL || volumeNode == NULL )
     {

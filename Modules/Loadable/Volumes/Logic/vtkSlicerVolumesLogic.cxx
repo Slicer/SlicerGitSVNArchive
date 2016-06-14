@@ -1191,7 +1191,7 @@ vtkSlicerVolumesLogic::CompareVolumeGeometry(vtkMRMLScalarVolumeNode *volumeNode
 
 //----------------------------------------------------------------------------
 vtkMRMLScalarVolumeNode*
-vtkSlicerVolumesLogic::CloneVolume(vtkMRMLVolumeNode *volumeNode, const char *name)
+vtkSlicerVolumesLogic::CloneVolume(vtkMRMLScalarVolumeNode *volumeNode, const char *name)
 {
   return Self::CloneVolume(this->GetMRMLScene(), volumeNode, name);
 }
@@ -1199,15 +1199,34 @@ vtkSlicerVolumesLogic::CloneVolume(vtkMRMLVolumeNode *volumeNode, const char *na
 //----------------------------------------------------------------------------
 vtkMRMLScalarVolumeNode*
 vtkSlicerVolumesLogic::
-CloneVolume (vtkMRMLScene *scene, vtkMRMLVolumeNode *volumeNode, const char *name, bool cloneImageData/*=true*/)
+CloneVolume(vtkMRMLScene *scene, vtkMRMLScalarVolumeNode *volumeNode,
+             const char *name, bool cloneImageData/*=true*/)
 {
   return Self::CloneVolume<vtkMRMLScalarVolumeNode>(scene, volumeNode, name, cloneImageData);
 }
 
 //----------------------------------------------------------------------------
+vtkMRMLDiffusionWeightedVolumeNode*
+vtkSlicerVolumesLogic::
+CloneVolume(vtkMRMLScene *scene, vtkMRMLDiffusionWeightedVolumeNode *volumeNode,
+             const char *name, bool cloneImageData/*=true*/)
+{
+  return Self::CloneVolume<vtkMRMLDiffusionWeightedVolumeNode>(scene, volumeNode, name, cloneImageData);
+}
+
+//----------------------------------------------------------------------------
+vtkMRMLVectorVolumeNode*
+vtkSlicerVolumesLogic::
+CloneVolume(vtkMRMLScene *scene, vtkMRMLVectorVolumeNode *volumeNode,
+            const char *name, bool cloneImageData/*=true*/)
+{
+  return Self::CloneVolume<vtkMRMLVectorVolumeNode>(scene, volumeNode, name, cloneImageData);
+}
+
+//----------------------------------------------------------------------------
 vtkMRMLScalarVolumeNode*
 vtkSlicerVolumesLogic::
-CloneVolumeWithoutImageData(vtkMRMLScene *scene, vtkMRMLVolumeNode *volumeNode, const char *name)
+CloneVolumeWithoutImageData(vtkMRMLScene *scene, vtkMRMLScalarVolumeNode* volumeNode, const char *name)
 {
   return vtkSlicerVolumesLogic::CloneVolume(scene, volumeNode, name, /*cloneImageData:*/ false );
 }
@@ -1455,8 +1474,8 @@ vtkSlicerVolumesLogic
 //----------------------------------------------------------------------------
 vtkMRMLScalarVolumeNode*
 vtkSlicerVolumesLogic
-::ResampleVolumeToReferenceVolume(vtkMRMLVolumeNode* inputVolumeNode,
-                                  vtkMRMLVolumeNode* referenceVolumeNode)
+::ResampleVolumeToReferenceVolume(vtkMRMLScalarVolumeNode* inputVolumeNode,
+                                  vtkMRMLScalarVolumeNode* referenceVolumeNode)
 {
   int dimensions[3] = {0, 0, 0};
 

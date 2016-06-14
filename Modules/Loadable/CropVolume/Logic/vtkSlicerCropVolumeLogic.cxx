@@ -163,19 +163,17 @@ int vtkSlicerCropVolumeLogic::Apply(vtkMRMLCropVolumeParametersNode* pnode)
   if(dwvnode)
     {
     outputVolume =
-        vtkSlicerVolumesLogic::CloneVolume<vtkMRMLDiffusionWeightedVolumeNode>(
-          scene, dwvnode, outSS.str().c_str());
+        vtkSlicerVolumesLogic::CloneVolume(scene, dwvnode, outSS.str().c_str());
     }
   else if(vvnode)
     {
     outputVolume =
-        vtkSlicerVolumesLogic::CloneVolume<vtkMRMLVectorVolumeNode>(
-          scene, vvnode, outSS.str().c_str());
+        vtkSlicerVolumesLogic::CloneVolume(scene, vvnode, outSS.str().c_str());
     }
   else if(svnode)
     {
-    outputVolume = vtkSlicerVolumesLogic::CloneVolume(
-          scene, inputVolume, outSS.str().c_str());
+    outputVolume =
+        vtkSlicerVolumesLogic::CloneVolume(scene, inputVolume, outSS.str().c_str());
     }
   else
     {

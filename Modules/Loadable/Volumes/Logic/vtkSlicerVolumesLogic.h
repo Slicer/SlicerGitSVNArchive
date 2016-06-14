@@ -35,9 +35,11 @@
 
 #include "vtkSlicerVolumesModuleLogicExport.h"
 
+class vtkMRMLDiffusionWeightedVolumeNode;
 class vtkMRMLLabelMapVolumeNode;
 class vtkMRMLScalarVolumeNode;
 class vtkMRMLScalarVolumeDisplayNode;
+class vtkMRMLVectorVolumeNode;
 class vtkMRMLVolumeHeaderlessStorageNode;
 class vtkStringArray;
 
@@ -217,24 +219,38 @@ public:
   /// Create a deep copy of a \a volumeNode and add it to the current scene.
   /// If cloneImageData is false then the volume node is created without image data.
   /// \sa GetMRMLScene()
-  vtkMRMLScalarVolumeNode *CloneVolume(vtkMRMLVolumeNode *volumeNode, const char *name);
+  vtkMRMLScalarVolumeNode *CloneVolume(vtkMRMLScalarVolumeNode *volumeNode, const char *name);
 
   /// Create a empty copy of a \a volumeNode without imageData and add it to the current scene
   /// \sa GetMRMLScene()
   static vtkMRMLScalarVolumeNode *CloneVolumeWithoutImageData(vtkMRMLScene *scene,
-                                                              vtkMRMLVolumeNode *volumeNode,
+                                                              vtkMRMLScalarVolumeNode *volumeNode,
                                                               const char *name);
 
   /// Create a deep copy of a \a volumeNode and add it to the \a scene
   static vtkMRMLScalarVolumeNode *CloneVolume(vtkMRMLScene *scene,
-                                              vtkMRMLVolumeNode *volumeNode,
+                                              vtkMRMLScalarVolumeNode *volumeNode,
                                               const char *name,
                                               bool cloneImageData=true);
 
   /// Create a deep copy of a \a volumeNode and add it to the \a scene
+  static vtkMRMLDiffusionWeightedVolumeNode *CloneVolume(
+      vtkMRMLScene *scene,
+      vtkMRMLDiffusionWeightedVolumeNode *volumeNode,
+      const char *name,
+      bool cloneImageData=true);
+
+  /// Create a deep copy of a \a volumeNode and add it to the \a scene
+  static vtkMRMLVectorVolumeNode *CloneVolume(vtkMRMLScene *scene,
+                                              vtkMRMLVectorVolumeNode *volumeNode,
+                                              const char *name,
+                                              bool cloneImageData=true);
+
+
+  /// Create a deep copy of a \a volumeNode and add it to the \a scene
   template<typename MRMLVolumeNodeType>
   static MRMLVolumeNodeType *CloneVolume(vtkMRMLScene *scene,
-                                         vtkMRMLVolumeNode *volumeNode,
+                                         MRMLVolumeNodeType *volumeNode,
                                          const char *name,
                                          bool cloneImageData=true);
 
@@ -259,8 +275,9 @@ public:
 
   ///  Convenience method to resample input volume using reference volume info
   /// \sa CompareVolumeGeometry
-  static vtkMRMLScalarVolumeNode* ResampleVolumeToReferenceVolume(vtkMRMLVolumeNode *inputVolumeNode,
-                                                           vtkMRMLVolumeNode *referenceVolumeNode);
+  static vtkMRMLScalarVolumeNode* ResampleVolumeToReferenceVolume(
+      vtkMRMLScalarVolumeNode *inputVolumeNode,
+      vtkMRMLScalarVolumeNode *referenceVolumeNode);
 
   /// Getting the epsilon value to use when determining if the
   /// elements of the IJK to RAS matrices of two volumes match.
