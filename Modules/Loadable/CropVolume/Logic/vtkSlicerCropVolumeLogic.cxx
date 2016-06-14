@@ -116,6 +116,12 @@ void vtkSlicerCropVolumeLogic::PrintSelf(ostream& os, vtkIndent indent)
 //----------------------------------------------------------------------------
 int vtkSlicerCropVolumeLogic::Apply(vtkMRMLCropVolumeParametersNode* pnode)
 {
+  if(!this->Internal->VolumesLogic)
+    {
+    std::cerr << "CropVolume: ERROR: failed to get hold of Volumes logic" << std::endl;
+    return -2;
+    }
+
   vtkMRMLScene *scene = this->GetMRMLScene();
 
   vtkMRMLVolumeNode *inputVolume =
@@ -140,66 +146,36 @@ int vtkSlicerCropVolumeLogic::Apply(vtkMRMLCropVolumeParametersNode* pnode)
 
   // check the output volume type
   vtkMRMLDiffusionTensorVolumeNode *dtvnode= vtkMRMLDiffusionTensorVolumeNode::SafeDownCast(inputVolume);
-  vtkMRMLDiffusionWeightedVolumeNode *dwvnode= vtkMRMLDiffusionWeightedVolumeNode::SafeDownCast(inputVolume);
-  vtkMRMLVectorVolumeNode *vvnode= vtkMRMLVectorVolumeNode::SafeDownCast(inputVolume);
-  vtkMRMLScalarVolumeNode *svnode = vtkMRMLScalarVolumeNode::SafeDownCast(inputVolume);
-
-  if(!this->Internal->VolumesLogic)
-    {
-      std::cerr << "CropVolume: ERROR: failed to get hold of Volumes logic" << std::endl;
-      return -2;
-    }
-
-  std::ostringstream outSS;
-  double outputSpacing[3], spacingScaleConst = pnode->GetSpacingScalingConst();
-  outSS << inputVolume->GetName() << "-subvolume-scale_" << spacingScaleConst;
-
   if(dtvnode)
     {
     std::cerr << "CropVolume: ERROR: Diffusion tensor volumes are not supported by this module!" << std::endl;
     return -2;
     }
-  // need to create clones and display nodes here, since
-  // VolumesLogic::CloneVolume() handles only ScalarVolumeNode's
-  else if(dwvnode)
+
+  vtkMRMLDiffusionWeightedVolumeNode *dwvnode= vtkMRMLDiffusionWeightedVolumeNode::SafeDownCast(inputVolume);
+  vtkMRMLVectorVolumeNode *vvnode= vtkMRMLVectorVolumeNode::SafeDownCast(inputVolume);
+  vtkMRMLScalarVolumeNode *svnode = vtkMRMLScalarVolumeNode::SafeDownCast(inputVolume);
+
+  std::ostringstream outSS;
+  double outputSpacing[3], spacingScaleConst = pnode->GetSpacingScalingConst();
+  outSS << inputVolume->GetName() << "-subvolume-scale_" << spacingScaleConst;
+
+  if(dwvnode)
     {
-    vtkNew<vtkMRMLDiffusionWeightedVolumeNode> outputDWVNode;
-    outputDWVNode->CopyWithScene(dwvnode);
-    vtkNew<vtkMRMLDiffusionWeightedVolumeDisplayNode> dwiDisplayNode;
-    dwiDisplayNode->CopyWithScene(dwvnode->GetDisplayNode());
-    scene->AddNode(dwiDisplayNode.GetPointer());
-
-    vtkNew<vtkImageData> outputImageData;
-    outputImageData->DeepCopy(dwvnode->GetImageData());
-    outputDWVNode->SetAndObserveImageData(outputImageData.GetPointer());
-
-    outputDWVNode->SetAndObserveDisplayNodeID(dwiDisplayNode->GetID());
-    outputDWVNode->SetAndObserveStorageNodeID(NULL);
-    scene->AddNode(outputDWVNode.GetPointer());
-
-    outputVolume = outputDWVNode.GetPointer();
+    outputVolume =
+        vtkSlicerVolumesLogic::CloneVolume<vtkMRMLDiffusionWeightedVolumeNode>(
+          scene, dwvnode, outSS.str().c_str());
     }
   else if(vvnode)
     {
-    vtkNew<vtkMRMLVectorVolumeNode> outputVVNode;
-    outputVVNode->CopyWithScene(dwvnode);
-    vtkNew<vtkMRMLVectorVolumeDisplayNode> vvDisplayNode;
-    vvDisplayNode->CopyWithScene(vvnode->GetDisplayNode());
-    scene->AddNode(vvDisplayNode.GetPointer());
-
-    vtkNew<vtkImageData> outputImageData;
-    outputImageData->DeepCopy(vvnode->GetImageData());
-    outputVVNode->SetAndObserveImageData(outputImageData.GetPointer());
-
-    outputVVNode->SetAndObserveDisplayNodeID(vvDisplayNode->GetID());
-    outputVVNode->SetAndObserveStorageNodeID(NULL);
-    scene->AddNode(outputVVNode.GetPointer());
-
-    outputVolume = outputVVNode.GetPointer();
+    outputVolume =
+        vtkSlicerVolumesLogic::CloneVolume<vtkMRMLVectorVolumeNode>(
+          scene, vvnode, outSS.str().c_str());
     }
   else if(svnode)
     {
-    outputVolume = this->Internal->VolumesLogic->CloneVolume(this->GetMRMLScene(), inputVolume, outSS.str().c_str());
+    outputVolume = vtkSlicerVolumesLogic::CloneVolume(
+          scene, inputVolume, outSS.str().c_str());
     }
   else
     {
@@ -207,7 +183,7 @@ int vtkSlicerCropVolumeLogic::Apply(vtkMRMLCropVolumeParametersNode* pnode)
     return -1;
     }
 
-  outputVolume->SetName(outSS.str().c_str());
+  //outputVolume->SetName(outSS.str().c_str());
 
   if(pnode->GetVoxelBased()) // voxel based cropping selected
     {
