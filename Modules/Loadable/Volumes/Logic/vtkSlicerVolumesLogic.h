@@ -231,6 +231,13 @@ public:
                                               const char *name,
                                               bool cloneImageData=true);
 
+  /// Create a deep copy of a \a volumeNode and add it to the \a scene
+  template<typename MRMLVolumeNodeType>
+  static MRMLVolumeNodeType *CloneVolume(vtkMRMLScene *scene,
+                                         vtkMRMLVolumeNode *volumeNode,
+                                         const char *name,
+                                         bool cloneImageData=true);
+
   /// Computes matrix we need to register
   /// V1Node to V2Node given the "register.dat" matrix from tkregister2 (FreeSurfer)
   void TranslateFreeSurferRegistrationMatrixIntoSlicerRASToRASMatrix(vtkMRMLVolumeNode *V1Node,
@@ -312,5 +319,7 @@ protected:
   /// defaults to 6
   int CompareVolumeGeometryPrecision;
 };
+
+#include "vtkSlicerVolumesLogic.txx"
 
 #endif
