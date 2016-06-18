@@ -81,4 +81,23 @@ macro(SlicerMacroPythonWrapModuleVTKLibrary)
     KIT_PYTHON_LIBRARIES ${PYTHONWRAPMODULEVTKLIBRARY_Wrapped_LIBRARIES}
     )
 
+  # XXX Check if Slicer_LAUNCHER_EXECUTABLE available at during a clean build
+  # XXX Install .json file. Should be taking care of by ctkMacroCompilePythonScript
+
+  # Get path to real executable
+  get_filename_component(python_bin_dir ${PYTHON_EXECUTABLE} PATH)
+  set(real_python_executable ${python_bin_dir}/python${CMAKE_EXECUTABLE_SUFFIX})
+
+  # Add target to generate module attributes file to allow lazy loading
+  set(module_name "${PYTHONWRAPMODULEVTKLIBRARY_NAME}Python")
+  set(config_dir "${CMAKE_BINARY_DIR}/${Slicer_QTLOADABLEMODULES_LIB_DIR}/")
+  set(code "import sys; sys.path.append('${Slicer_SOURCE_DIR}/Base/Python/');")
+  set(code "${code}import lazy;")
+  set(code "${code}lazy.writeModuleAttributeFile('${module_name}', config_dir='${config_dir}')")
+  add_custom_command(TARGET ${module_name} POST_BUILD
+    COMMAND ${Slicer_LAUNCHER_EXECUTABLE} --launch ${real_python_executable} -c "${code}"
+    COMMENT "Generating ${module_name}.json"
+    VERBATIM
+    )
+
 endmacro()

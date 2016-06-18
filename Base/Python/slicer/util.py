@@ -53,11 +53,11 @@ def sourceDir():
 # Custom Import
 #
 
-def importVTKClassesFromDirectory(directory, dest_module_name, filematch = '*'):
-  importClassesFromDirectory(directory, dest_module_name, 'vtkclass', filematch)
+def importVTKClassesFromDirectory(directory, dest_module_name, filematch = '*', lazy=False):
+  importClassesFromDirectory(directory, dest_module_name, 'vtkclass', filematch, lazy)
 
-def importQtClassesFromDirectory(directory, dest_module_name, filematch = '*'):
-  importClassesFromDirectory(directory, dest_module_name, 'PythonQtClassWrapper', filematch)
+def importQtClassesFromDirectory(directory, dest_module_name, filematch = '*', lazy=False):
+  importClassesFromDirectory(directory, dest_module_name, 'PythonQtClassWrapper', filematch, lazy)
 
 # To avoid globbing multiple times the same directory, successful
 # call to ``importClassesFromDirectory()`` will be indicated by
@@ -66,7 +66,7 @@ def importQtClassesFromDirectory(directory, dest_module_name, filematch = '*'):
 # Each entry is a tuple of form (directory, dest_module_name, type_name, filematch)
 __import_classes_cache = set()
 
-def importClassesFromDirectory(directory, dest_module_name, type_name, filematch = '*'):
+def importClassesFromDirectory(directory, dest_module_name, type_name, filematch = '*', lazy=False):
 
   # Create entry for __import_classes_cache
   cache_key = ",".join([directory, dest_module_name, type_name, filematch])
@@ -74,27 +74,31 @@ def importClassesFromDirectory(directory, dest_module_name, type_name, filematch
   if cache_key in __import_classes_cache:
     return
 
-  import glob, os, re, fnmatch
+  import glob, lazy, os, re, fnmatch
   re_filematch = re.compile(fnmatch.translate(filematch))
   for fname in glob.glob(os.path.join(directory, filematch)):
     if not re_filematch.match(os.path.basename(fname)):
       continue
-    try:
-      from_module_name = os.path.splitext(os.path.basename(fname))[0]
-      importModuleObjects(from_module_name, dest_module_name, type_name)
-    except ImportError as detail:
-      import sys
-      print(detail, file=sys.stderr)
+    from_module_name = os.path.splitext(os.path.basename(fname))[0]
+    if lazy:
+      lazy.updateLazyModule(dest_module_name, from_module_name, os.path.dirname(fname))
+    else:
+      try:
+        importModuleObjects(from_module_name, dest_module_name, type_name)
+      except ImportError as detail:
+        import sys
+        print(detail, file=sys.stderr)
 
   __import_classes_cache.add(cache_key)
 
-def importModuleObjects(from_module_name, dest_module_name, type_name):
+def importModuleObjects(from_module_name, dest_module, type_name='*'):
   """Import object of type 'type_name' from module identified
-  by 'from_module_name' into the module identified by 'dest_module_name'."""
+  by 'from_module_name' into the module identified by 'dest_module'."""
 
-  # Obtain a reference to the module identifed by 'dest_module_name'
+  # Obtain a reference to the module identifed by 'dest_module'
   import sys
-  dest_module = sys.modules[dest_module_name]
+  if isinstance(dest_module, basestring):
+    dest_module = sys.modules[dest_module]
 
   # Skip if module has already been loaded
   if from_module_name in sys.modules:
@@ -112,7 +116,7 @@ def importModuleObjects(from_module_name, dest_module_name, type_name):
     item = getattr(module, item_name)
 
     # Add the object to dest_module_globals_dict if any
-    if type(item).__name__ == type_name:
+    if type(item).__name__ == type_name or (type_name == '*' and not item_name.startswith('_')):
       setattr(dest_module, item_name, item)
 
 #

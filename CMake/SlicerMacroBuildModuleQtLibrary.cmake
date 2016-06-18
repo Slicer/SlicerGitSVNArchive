@@ -240,6 +240,22 @@ macro(SlicerMacroBuildModuleQtLibrary)
     if(NOT "${MODULEQTLIBRARY_FOLDER}" STREQUAL "")
       set_target_properties(${lib_name}PythonQt PROPERTIES FOLDER ${MODULEQTLIBRARY_FOLDER})
     endif()
+
+    # XXX Check if Slicer_LAUNCHER_EXECUTABLE available at during a clean build
+    # XXX Install .json file. Should be taking care of by ctkMacroCompilePythonScript
+
+    # Add target to generate module attributes file to allow lazy loading
+    set(module_name "${lib_name}PythonQt")
+    set(config_dir "${CMAKE_BINARY_DIR}/${Slicer_QTLOADABLEMODULES_LIB_DIR}/")
+    set(code "import sys; sys.path.append('${Slicer_SOURCE_DIR}/Base/Python/');")
+    set(code "${code}import lazy;")
+    set(code "${code}lazy.writeModuleAttributeFile('${module_name}', config_dir='${config_dir}')")
+    add_custom_command(TARGET ${module_name} POST_BUILD
+      COMMAND ${Slicer_LAUNCHER_EXECUTABLE} --no-splash -c "${code}"
+      COMMENT "Generating ${module_name}.json"
+      VERBATIM
+      )
+
   endif()
 
 endmacro()
