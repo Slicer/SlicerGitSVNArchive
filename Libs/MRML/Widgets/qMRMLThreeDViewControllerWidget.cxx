@@ -334,12 +334,12 @@ void qMRMLThreeDViewControllerWidget::updateWidgetFromMRML()
     }
 
   QStringList axesLabels;
-  axesLabels <<  d->ViewNode->GetAxisLabel(0);
   axesLabels <<  d->ViewNode->GetAxisLabel(1);
-  axesLabels <<  d->ViewNode->GetAxisLabel(4);
+  axesLabels <<  d->ViewNode->GetAxisLabel(0);
   axesLabels <<  d->ViewNode->GetAxisLabel(5);
-  axesLabels <<  d->ViewNode->GetAxisLabel(2);
+  axesLabels <<  d->ViewNode->GetAxisLabel(4);
   axesLabels <<  d->ViewNode->GetAxisLabel(3);
+  axesLabels <<  d->ViewNode->GetAxisLabel(2);
   d->AxesWidget->setAxesLabels(axesLabels);
 
   d->actionSet3DAxisVisible->setChecked(d->ViewNode->GetBoxVisible());
