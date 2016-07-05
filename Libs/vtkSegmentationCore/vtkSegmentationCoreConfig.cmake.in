@@ -1,0 +1,3 @@
+set(vtkSegmentationCore_INCLUDE_DIRS "@vtkSegmentationCore_INCLUDE_DIRS@")
+set(vtkSegmentationCore_LIB_DIR "@CMAKE_BINARY_DIR@/bin" "@CMAKE_BINARY_DIR@")
+set(VTK_DIR "@VTK_DIR@")
