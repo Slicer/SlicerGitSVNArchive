@@ -73,7 +73,7 @@ set(vtkSegmentationCore_INCLUDE_DIRS
 # Build the library
 # --------------------------------------------------------------------------
 
-set(vtkSegmentationCore_LIBS ${vtkSegmentationCore_LIBS}
+set(vtkSegmentationCore_LIBS
   ${VTK_LIBRARIES}
   )
 
