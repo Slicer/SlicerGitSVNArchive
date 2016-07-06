@@ -162,9 +162,14 @@ bool vtkAddonMathUtilities::FromString(vtkMatrix4x4* mat, const std::string& str
   int numElements = 0;
   while(itr!=emptyItr)
     {
-    ss << *itr << " "; // Space is a delimiter that stringstream can handle
-    numElements++;
+    std::string valString( *itr );
     itr++;
+    if (valString.empty())
+      {
+      continue; // Ignore empty strings - it just means we have back-to-back delimiters
+      }
+    ss << valString << " "; // Space is a delimiter that stringstream can handle
+    numElements++;
     }
 
   // Ensure the matrix is 1x1, 2x2, 3x3, or 4x4
@@ -174,7 +179,6 @@ bool vtkAddonMathUtilities::FromString(vtkMatrix4x4* mat, const std::string& str
     return false;
     }
   int sizeInt = std::floor(size);
-
 
   // Put into matrix
   for (int i = 0; i < sizeInt; i++)
