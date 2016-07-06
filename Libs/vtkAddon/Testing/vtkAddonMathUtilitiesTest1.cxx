@@ -154,6 +154,7 @@ int ToString_Test()
   vtkNew<vtkMatrix4x4> mat;
   std::stringstream ss;
   std::string delimiter = ",";
+  std::string rowDelimiter = "\n";
   for (int ii = 0; ii < 4; ii++)
     {
     for (int jj = 0; jj < 4; jj++)
@@ -162,9 +163,10 @@ int ToString_Test()
       mat->SetElement(ii, jj, val);
       ss << val << delimiter;
       }
+    ss << rowDelimiter;
     }
 
-  std::string resultStr = vtkAddonMathUtilities::ToString(mat.GetPointer(), delimiter);
+  std::string resultStr = vtkAddonMathUtilities::ToString(mat.GetPointer(), delimiter, rowDelimiter);
 
   CHECK_INT(resultStr.compare(ss.str()), 0);
 

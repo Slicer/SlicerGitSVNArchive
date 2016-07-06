@@ -121,7 +121,7 @@ void vtkAddonMathUtilities::GetOrientationMatrix(vtkMatrix4x4* source,
 }
 
 //----------------------------------------------------------------------------
-std::string vtkAddonMathUtilities::ToString(const vtkMatrix4x4* mat, const std::string delimiter)
+std::string vtkAddonMathUtilities::ToString(const vtkMatrix4x4* mat, const std::string delimiter, const std::string rowDelimiter)
 {
   if (!mat)
     {
@@ -136,6 +136,7 @@ std::string vtkAddonMathUtilities::ToString(const vtkMatrix4x4* mat, const std::
       ss << mat->GetElement(i, j);
       ss << delimiter;
       }
+    ss << rowDelimiter;
     }
 
   return ss.str();
