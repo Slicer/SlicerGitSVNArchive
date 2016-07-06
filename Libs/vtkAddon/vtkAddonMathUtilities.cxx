@@ -13,6 +13,9 @@
 
 ===============================================================================auto=*/
 
+#include <regex>
+#include <sstream>
+
 #include <vtkAddonMathUtilities.h>
 #include <vtkMath.h>
 #include <vtkMatrix3x3.h>
@@ -115,4 +118,76 @@ void vtkAddonMathUtilities::GetOrientationMatrix(vtkMatrix4x4* source,
       dest->SetElement(ii, jj, source->GetElement(ii, jj));
       }
     }
+}
+
+//----------------------------------------------------------------------------
+std::string vtkAddonMathUtilities::ToString(const vtkMatrix4x4* mat, const std::string delimiter)
+{
+  if (!mat)
+    {
+    return "";
+    }
+
+  std::stringstream ss;
+  for (int i = 0; i < 4; i++)
+    {
+    for (int j = 0; j < 4; j++)
+      {
+      ss << mat->GetElement(i, j);
+      ss << delimiter;
+      }
+    }
+
+  return ss.str();
+}
+
+//----------------------------------------------------------------------------
+bool vtkAddonMathUtilities::FromString(vtkMatrix4x4* mat, const std::string& str, const std::string delimiterExp)
+{
+  if (!mat)
+  {
+    return false;
+  }
+
+  // Convert expression into a stringstream to convert and parse into doubles for the matrix
+
+  // Parse the string using the regular expression
+  std::regex delimiterRegex(delimiterExp);
+  std::sregex_token_iterator itr(str.begin(), str.end(), delimiterRegex, -1); // Use matches as delimiters to split the string
+  std::sregex_token_iterator emptyItr;
+
+  // Put into stringstream
+  std::stringstream ss;
+  int numElements = 0;
+  while(itr!=emptyItr)
+    {
+    ss << *itr << " "; // Space is a delimiter that stringstream can handle
+    numElements++;
+    itr++;
+    }
+
+  // Ensure the matrix is 1x1, 2x2, 3x3, or 4x4
+  double size = std::sqrt(numElements);
+  if (std::floor(size)!=size || size>4)
+    {
+    return false;
+    }
+  int sizeInt = std::floor(size);
+
+
+  // Put into matrix
+  for (int i = 0; i < sizeInt; i++)
+    {
+    for (int j = 0; j < sizeInt; j++)
+      {
+        double val;
+        if (!(ss >> val))
+          {
+          return false;
+          }
+        mat->SetElement(i, j, val);
+      }
+    }
+
+  return true;
 }
