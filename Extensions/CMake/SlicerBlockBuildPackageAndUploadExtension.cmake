@@ -39,6 +39,7 @@ set(expected_defined_vars
   )
 if(RUN_CTEST_UPLOAD)
   list(APPEND expected_defined_vars
+    CTEST_DROP_SITE
     EXTENSION_ARCHITECTURE
     EXTENSION_BITNESS
     EXTENSION_OPERATING_SYSTEM
@@ -111,7 +112,7 @@ foreach(ctestconfig_dest_dir
 set(CTEST_NIGHTLY_START_TIME \"3:00:00 UTC\")
 
 set(CTEST_DROP_METHOD \"http\")
-set(CTEST_DROP_SITE \"slicer.cdash.org\")
+set(CTEST_DROP_SITE \"${CTEST_DROP_SITE}\")
 set(CTEST_DROP_LOCATION \"/submit.php?project=Slicer4\")
 set(CTEST_DROP_SITE_CDASH TRUE)")
   endif()
@@ -165,9 +166,9 @@ set(cmakecache_current "")
 if(EXISTS ${EXTENSION_SUPERBUILD_BINARY_DIR}/CMakeCache.txt)
   file(READ ${EXTENSION_SUPERBUILD_BINARY_DIR}/CMakeCache.txt cmakecache_current)
 endif()
-if(NOT ${cmakecache_content} STREQUAL "${cmakecache_current}")
+if(NOT "${cmakecache_content}" STREQUAL "${cmakecache_current}")
   message(STATUS "Writting ${EXTENSION_SUPERBUILD_BINARY_DIR}/CMakeCache.txt")
-  file(WRITE ${EXTENSION_SUPERBUILD_BINARY_DIR}/CMakeCache.txt ${cmakecache_content})
+  file(WRITE ${EXTENSION_SUPERBUILD_BINARY_DIR}/CMakeCache.txt "${cmakecache_content}")
 endif()
 
 # Explicitly set CTEST_BINARY_DIRECTORY so that ctest_submit find

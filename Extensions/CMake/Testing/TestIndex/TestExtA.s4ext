@@ -5,40 +5,39 @@
 #
 
 # This is source code manager (i.e. svn)
-scm ${scm_type}
-scmurl ${scm_url}
-scmrevision ${MY_EXTENSION_WC_REVISION}
+scm local
+scmurl TestExtA
 
 # list dependencies
 # - These should be names of other modules that have .s4ext files
 # - The dependencies will be built first
-depends ${MY_EXTENSION_DEPENDS}
+depends NA
 
 # Inner build directory (default is ".")
-build_subdirectory ${MY_EXTENSION_BUILD_SUBDIRECTORY}
+build_subdirectory .
 
 # homepage
-homepage ${MY_EXTENSION_HOMEPAGE}
+homepage http://slicer.org/slicerWiki/index.php/Documentation/Nightly/Extensions/TestExtA
 
 # Firstname1 Lastname1 ([SubOrg1, ]Org1), Firstname2 Lastname2 ([SubOrg2, ]Org2)
 # For example: Jane Roe (Superware), John Doe (Lab1, Nowhere), Joe Bloggs (Noware)
-contributors ${MY_EXTENSION_CONTRIBUTORS}
+contributors John Doe (AnyWare Corp.)
 
 # Match category in the xml description of the module (where it shows up in Modules menu)
-category ${MY_EXTENSION_CATEGORY}
+category Examples
 
 # url to icon (png, size 128x128 pixels)
-iconurl ${MY_EXTENSION_ICONURL}
+iconurl http://www.example.com/Slicer/Extensions/TestExtA.png
 
 # Give people an idea what to expect from this code
 #  - Is it just a test or something you stand behind?
-status ${MY_EXTENSION_STATUS}
+status 
 
 # One line stating what the module does
-description ${MY_EXTENSION_DESCRIPTION}
+description This is an example of a simple extension
 
 # Space separated list of urls
-screenshoturls ${MY_EXTENSION_SCREENSHOTURLS}
+screenshoturls http://www.example.com/Slicer/Extensions/TestExtA/Screenshots/1.png
 
 # 0 or 1: Define if the extension should be enabled after its installation.
-enabled ${MY_EXTENSION_ENABLED}
+enabled 1
