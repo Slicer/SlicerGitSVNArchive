@@ -150,47 +150,47 @@ bool vtkAddonMathUtilities::FromString(vtkMatrix4x4* mat, const std::string& str
     return false;
   }
 
-  // Convert expression into a stringstream to convert and parse into doubles for the matrix
-
   // Parse the string using the regular expression
   std::regex delimiterRegex(delimiterExp);
   std::sregex_token_iterator itr(str.begin(), str.end(), delimiterRegex, -1); // Use matches as delimiters to split the string
   std::sregex_token_iterator emptyItr;
 
-  // Put into stringstream
-  std::stringstream ss;
-  int numElements = 0;
+  // Convert each string token into a double and put into vector
+  char* end;
+  std::vector<double> elements;
   while(itr!=emptyItr)
     {
     std::string valString( *itr );
-    itr++;
-    if (valString.empty())
+    double val = std::strtod( valString.c_str(), &end );
+    if ( *end != 0 )
       {
-      continue; // Ignore empty strings - it just means we have back-to-back delimiters
+      return false; // Parsing failed due to non-numeric character
       }
-    ss << valString << " "; // Space is a delimiter that stringstream can handle
-    numElements++;
+    if ( valString.length() > 0 ) // Ignore if the length is zero (indicates back-to-back delimiters)
+      {
+      elements.push_back(val);
+      }
+    itr++;
     }
 
   // Ensure the matrix is 1x1, 2x2, 3x3, or 4x4
-  double size = std::sqrt(numElements);
-  if (std::floor(size)!=size || size>4)
+  if (elements.size() != 1
+    && elements.size() != 4
+    && elements.size() != 9
+    && elements.size() != 16)
     {
     return false;
     }
-  int sizeInt = std::floor(size);
+  int dimension = std::sqrt(elements.size()) + 0.5; // Since conversion to int just truncates
 
   // Put into matrix
-  for (int i = 0; i < sizeInt; i++)
+  int linearIndex = 0;
+  for (int i = 0; i < dimension; i++)
     {
-    for (int j = 0; j < sizeInt; j++)
+    for (int j = 0; j < dimension; j++)
       {
-        double val;
-        if (!(ss >> val))
-          {
-          return false;
-          }
-        mat->SetElement(i, j, val);
+      mat->SetElement(i, j, elements.at(linearIndex));
+      linearIndex++;
       }
     }
 

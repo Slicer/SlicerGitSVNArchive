@@ -402,7 +402,7 @@ void qSlicerTransformsModuleWidget::copyTransform()
   if (!linearTransform)
     {
     // Silent fail, no worries!
-    qDebug() << "Unable to cast parent transform as a vtkLinearTransform";
+    qWarning() << "Unable to cast parent transform as a vtkLinearTransform";
     return;
     }
 
@@ -422,10 +422,12 @@ void qSlicerTransformsModuleWidget::pasteTransform()
 
   std::string text = QApplication::clipboard()->text().toStdString();
   bool success = vtkAddonMathUtilities::FromString(tempMatrix.GetPointer(), text);
-  if (success)
+  if (!success)
     {
-    d->MRMLTransformNode->SetMatrixTransformToParent(tempMatrix.GetPointer());
+    qWarning() << "Cannot convert pasted string to matrix.";
+    return;
     }
+  d->MRMLTransformNode->SetMatrixTransformToParent(tempMatrix.GetPointer());
 }
 
 //-----------------------------------------------------------------------------
