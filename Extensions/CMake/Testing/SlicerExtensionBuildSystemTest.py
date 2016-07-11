@@ -222,11 +222,46 @@ class SlicerExtensionBuildSystemTest(unittest.TestCase):
     )
 
     # Create binary directory
-    subprocess.check_call(
-      [config.CMAKE_COMMAND, '-E', 'make_directory', test_binary_dir],
-      cwd=config.CMAKE_CURRENT_BINARY_DIR,
-      env=self.env
-    )
+    os.mkdir(test_binary_dir)
+#    subprocess.check_call(
+#      [config.CMAKE_COMMAND, '-E', 'make_directory', test_binary_dir],
+#      cwd=config.CMAKE_CURRENT_BINARY_DIR,
+#      env=self.env
+#    )
+
+    extension_description_dir = test_binary_dir + '/TestIndex'
+    os.mkdir(extension_description_dir)
+
+    sys.path.append(config.Slicer_SOURCE_DIR + '/Utilities/Scripts')
+    from SlicerWizard import ExtensionProject
+
+    for suffix in ['A', 'B', 'C']:
+      # Generate extension sources
+      subprocess.check_call(
+        [sys.executable,
+        config.Slicer_SOURCE_DIR + '/Utilities/Scripts/ExtensionWizard.py',
+        '--create', 'TestExt%s' % suffix,
+        '--addModule', 'scripted:Mod%s' % suffix,
+        test_binary_dir
+        ],
+        cwd=config.CMAKE_CURRENT_BINARY_DIR,
+        )
+      if suffix == 'C':
+        project = ExtensionProject(test_binary_dir + '/TestExt%s' % suffix)
+        project.setValue('EXTENSION_DEPENDS', 'TestExtA TestExtB')
+        project.save()
+
+      # Generate extension description file
+      description = subprocess.check_output(
+        [sys.executable,
+        config.Slicer_SOURCE_DIR + '/Utilities/Scripts/ExtensionWizard.py',
+        '--localExtensionsDir=%s' % test_binary_dir,
+        '--describe', test_binary_dir + '/TestExt%s' % suffix,
+        ],
+        cwd=config.CMAKE_CURRENT_BINARY_DIR,
+        )
+      with open(extension_description_dir + '/TestExt%s.s4ext' % suffix, 'w') as description_file:
+        description_file.write(description)
 
   def test_index_build_with_upload(self):
     self._test_index_build('build_with_upload', True)
@@ -304,8 +339,8 @@ include({slicer_source_dir}/Extensions/CMake/SlicerExtensionsDashboardDriverScri
       ctest_drop_site=self.ctest_drop_site,
       midas_package_url=self.midas_package_url,
       generator=config.CMAKE_GENERATOR,
-      extension_description_dir=config.CMAKE_CURRENT_SOURCE_DIR + '/TestIndex',
-      local_extensions_dir=config.CMAKE_CURRENT_SOURCE_DIR,
+      extension_description_dir=test_binary_dir + '/TestIndex',
+      local_extensions_dir=test_binary_dir,
       git_executable=config.GIT_EXECUTABLE,
       svn_executable=config.Subversion_SVN_EXECUTABLE,
       slicer_dir=config.Slicer_BINARY_DIR,
@@ -335,13 +370,16 @@ include({slicer_source_dir}/Extensions/CMake/SlicerExtensionsDashboardDriverScri
 
     self._prepare_test_binary_dir(test_binary_dir)
 
+    print("***", test_binary_dir)
+    sys.stdout.flush()
+
     # Prepare configure command
     cmd = [
       config.CMAKE_COMMAND,
       '-G', config.CMAKE_GENERATOR,
       '-DSlicer_DIR:PATH=' + config.Slicer_BINARY_DIR,
-      '-DSlicer_EXTENSION_DESCRIPTION_DIR:PATH=' + config.CMAKE_CURRENT_SOURCE_DIR + '/TestIndex',
-      '-DSlicer_LOCAL_EXTENSIONS_DIR:PATH=' + config.CMAKE_CURRENT_SOURCE_DIR,
+      '-DSlicer_EXTENSION_DESCRIPTION_DIR:PATH=' + test_binary_dir + '/TestIndex',
+      '-DSlicer_LOCAL_EXTENSIONS_DIR:PATH=' + test_binary_dir,
      ' -DBUILD_TESTING:BOOL=0',
       '-DCMAKE_C_COMPILER:PATH=' + config.CMAKE_C_COMPILER,
       '-DCMAKE_CXX_COMPILER:PATH=' + config.CMAKE_CXX_COMPILER
