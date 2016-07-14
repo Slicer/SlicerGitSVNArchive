@@ -224,6 +224,14 @@ set_tests_properties(py_nomainwindow_${testname} PROPERTIES
   WILL_FAIL TRUE
   )
 
+if(Slicer_USE_SimpleITK)
+slicer_add_python_unittest(
+  SCRIPT ${Slicer_SOURCE_DIR}/Base/Python/tests/test_sitkUtils.py
+  SLICER_ARGS --no-main-window
+  TESTNAME_PREFIX nomainwindow_
+  )
+endif()
+
 slicer_add_python_unittest(
   SCRIPT ${Slicer_SOURCE_DIR}/Base/Python/tests/test_saferef.py
   SLICER_ARGS --no-main-window --disable-modules
