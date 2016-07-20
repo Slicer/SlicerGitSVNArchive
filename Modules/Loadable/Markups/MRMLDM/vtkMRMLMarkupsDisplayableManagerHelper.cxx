@@ -231,16 +231,18 @@ void vtkMRMLMarkupsDisplayableManagerHelper::UpdateLocked(vtkMRMLMarkupsNode *no
           continue;
           }
         bool isLockedOnNthMarkup = node->GetNthMarkupLocked(i);
-        bool isLockedOnNthSeed = seedWidget->GetSeed(i)->GetProcessEvents() == 0;
+        bool isLockedOnNthSeed = seedWidget->GetSeed(i)->GetEnableTranslation() == 0;
         if (isLockedOnNthMarkup && !isLockedOnNthSeed)
           {
           // lock it
-          seedWidget->GetSeed(i)->ProcessEventsOff();
+          seedWidget->GetSeed(i)->ProcessEventsOn();
+          seedWidget->GetSeed(i)->EnableTranslationOff();
           }
         else if (!isLockedOnNthMarkup && isLockedOnNthSeed)
           {
           // unlock it
           seedWidget->GetSeed(i)->ProcessEventsOn();
+          seedWidget->GetSeed(i)->EnableTranslationOn();
           }
         }
       }
