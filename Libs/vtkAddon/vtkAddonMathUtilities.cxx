@@ -21,6 +21,8 @@
 #include <vtkMatrix3x3.h>
 #include <vtkMatrix4x4.h>
 #include <vtkObjectFactory.h>
+#include <vtksys/RegularExpression.hxx>
+#include <vtkLoggingMacros.h>
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkAddonMathUtilities);
@@ -151,26 +153,33 @@ bool vtkAddonMathUtilities::FromString(vtkMatrix4x4* mat, const std::string& str
   }
 
   // Parse the string using the regular expression
-  std::regex delimiterRegex(delimiterExp);
-  std::sregex_token_iterator itr(str.begin(), str.end(), delimiterRegex, -1); // Use matches as delimiters to split the string
-  std::sregex_token_iterator emptyItr;
+  vtksys::RegularExpression delimiterRegex( delimiterExp );
 
   // Convert each string token into a double and put into vector
   char* end;
+  std::string remainString = str;
   std::vector<double> elements;
-  while(itr!=emptyItr)
+  while(!remainString.empty())
     {
-    std::string valString( *itr );
-    double val = std::strtod( valString.c_str(), &end );
-    if ( *end != 0 )
+    bool separatorFound = delimiterRegex.find(remainString);
+    std::string::size_type tokenStartIndex = remainString.length();
+    std::string::size_type tokenEndIndex = remainString.length();
+    if (separatorFound)
+      {
+      tokenStartIndex = delimiterRegex.start(0);
+      tokenEndIndex = delimiterRegex.end(0);
+      }
+    std::string valString = remainString.substr(0, tokenStartIndex);
+    double val = std::strtod(valString.c_str(), &end);
+    if (*end != 0)
       {
       return false; // Parsing failed due to non-numeric character
       }
-    if ( valString.length() > 0 ) // Ignore if the length is zero (indicates back-to-back delimiters)
+    if (valString.length() > 0) // Ignore if the length is zero (indicates back-to-back delimiters)
       {
       elements.push_back(val);
       }
-    itr++;
+    remainString = remainString.substr(tokenEndIndex);
     }
 
   // Ensure the matrix is 1x1, 2x2, 3x3, or 4x4
