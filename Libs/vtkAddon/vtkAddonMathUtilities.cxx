@@ -13,8 +13,10 @@
 
 ===============================================================================auto=*/
 
-#include <regex>
 #include <sstream>
+#include <vector>
+#include <stdlib.h>
+#include <math.h>
 
 #include <vtkAddonMathUtilities.h>
 #include <vtkMath.h>
