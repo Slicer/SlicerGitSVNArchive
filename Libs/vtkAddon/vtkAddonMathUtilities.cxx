@@ -15,8 +15,8 @@
 
 #include <sstream>
 #include <vector>
-#include <stdlib.h>
-#include <math.h>
+#include <cstdlib>
+#include <cmath>
 
 #include <vtkAddonMathUtilities.h>
 #include <vtkMath.h>
