@@ -178,7 +178,7 @@ int FromString_Test()
 {
   vtkNew<vtkMatrix4x4> mat;
   std::stringstream ss;
-  std::string delimiter = ",";
+  std::string delimiter = ", ";
   std::string rowDelimiter = "\n";
   for (int ii = 0; ii < 4; ii++)
     {

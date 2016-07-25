@@ -57,7 +57,7 @@ public:
   static std::string ToString(const vtkMatrix4x4* mat, const std::string delimiter = " ", const std::string rowDelimiter = "");
 
   /// Convert a string in row-major order to a matrix
-  static bool FromString(vtkMatrix4x4* mat, const std::string& str, const std::string delimiterExp = "(\\ |\\,|\\:|\\t|\\n|\\[|\\])");
+  static bool FromString(vtkMatrix4x4* mat, const std::string& str, const std::string delimiterExp = "(\\ |\\,|\\:|\\;|\t|\n|\\[|\\])");
 
 protected:
   vtkAddonMathUtilities();

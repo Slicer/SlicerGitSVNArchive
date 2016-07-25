@@ -161,6 +161,7 @@ bool vtkAddonMathUtilities::FromString(vtkMatrix4x4* mat, const std::string& str
   char* end;
   std::string remainString = str;
   std::vector<double> elements;
+  double val;
   while(!remainString.empty())
     {
     bool separatorFound = delimiterRegex.find(remainString);
@@ -171,17 +172,21 @@ bool vtkAddonMathUtilities::FromString(vtkMatrix4x4* mat, const std::string& str
       tokenStartIndex = delimiterRegex.start(0);
       tokenEndIndex = delimiterRegex.end(0);
       }
+
     std::string valString = remainString.substr(0, tokenStartIndex);
-    double val = std::strtod(valString.c_str(), &end);
-    if (*end != 0)
-      {
-      return false; // Parsing failed due to non-numeric character
-      }
-    if (valString.length() > 0) // Ignore if the length is zero (indicates back-to-back delimiters)
-      {
-      elements.push_back(val);
-      }
     remainString = remainString.substr(tokenEndIndex);
+    if (valString.empty()) // Handle back-to-back delimiters
+      {
+      continue;
+      }
+
+    val = std::strtod(valString.c_str(), &end);
+    if (*end != 0) // Parsing failed due to non-numeric character
+      {
+      return false;
+      }
+
+    elements.push_back(val);
     }
 
   // Ensure the matrix is 1x1, 2x2, 3x3, or 4x4
