@@ -15,6 +15,9 @@
 
 ==============================================================================*/
 
+// std includes
+#include <sstream>
+
 // vtkAddon includes
 #include "vtkAddonMathUtilities.h"
 #include "vtkAddonTestingMacros.h"
@@ -33,6 +36,8 @@ int AreMatrixEqual_4x4_3x3_Test();
 int AreMatrixEqual_3x3_4x4_Test();
 int AreMatrixEqual_3x3_3x3_Test();
 int GetOrientationMatrixTest();
+int ToString_Test();
+int FromString_Test();
 
 //----------------------------------------------------------------------------
 int vtkAddonMathUtilitiesTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)[])
@@ -42,6 +47,8 @@ int vtkAddonMathUtilitiesTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)[])
   CHECK_INT(AreMatrixEqual_3x3_4x4_Test(), EXIT_SUCCESS);
   CHECK_INT(AreMatrixEqual_3x3_3x3_Test(), EXIT_SUCCESS);
   CHECK_INT(GetOrientationMatrixTest(), EXIT_SUCCESS);
+  CHECK_INT(ToString_Test(), EXIT_SUCCESS);
+  CHECK_INT(FromString_Test(), EXIT_SUCCESS);
   return EXIT_SUCCESS;
 }
 
@@ -135,6 +142,63 @@ int GetOrientationMatrixTest()
     for (int jj = 0; jj < 3; jj++)
       {
       CHECK_DOUBLE(m33->GetElement(ii, jj), (1 + ii)*(1 + jj));
+      }
+    }
+
+  return EXIT_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+int ToString_Test()
+{
+  vtkNew<vtkMatrix4x4> mat;
+  std::stringstream ss;
+  std::string delimiter = ",";
+  std::string rowDelimiter = "\n";
+  for (int ii = 0; ii < 4; ii++)
+    {
+    for (int jj = 0; jj < 4; jj++)
+      {
+      double val = (1 + ii)*(1 + jj);
+      mat->SetElement(ii, jj, val);
+      ss << val << delimiter;
+      }
+    ss << rowDelimiter;
+    }
+
+  std::string resultStr = vtkAddonMathUtilities::ToString(mat.GetPointer(), delimiter, rowDelimiter);
+
+  CHECK_INT(resultStr.compare(ss.str()), 0);
+
+  return EXIT_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+int FromString_Test()
+{
+  vtkNew<vtkMatrix4x4> mat;
+  std::stringstream ss;
+  std::string delimiter = ", ";
+  std::string rowDelimiter = "\n";
+  for (int ii = 0; ii < 4; ii++)
+    {
+    for (int jj = 0; jj < 4; jj++)
+      {
+      double val = (1 + ii)*(1 + jj);
+      mat->SetElement(ii, jj, val);
+      ss << val << delimiter;
+      }
+    ss << rowDelimiter;
+    }
+
+  vtkNew<vtkMatrix4x4> resMat;
+  vtkAddonMathUtilities::FromString(resMat.GetPointer(),ss.str());
+
+  for (int ii = 0; ii < 4; ii++)
+    {
+    for (int jj = 0; jj < 4; jj++)
+      {
+      CHECK_DOUBLE(resMat->GetElement(ii, jj), mat->GetElement(ii, jj));
       }
     }
 
