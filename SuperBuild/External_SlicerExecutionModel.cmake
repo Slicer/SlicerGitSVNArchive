@@ -4,6 +4,10 @@ set(proj SlicerExecutionModel)
 # Set dependency list
 set(${proj}_DEPENDENCIES ${ITK_EXTERNAL_NAME})
 
+if(Slicer_BUILD_PARAMETERSERIALIZER_SUPPORT)
+  set(${proj}_DEPENDENCIES ${${proj}_DEPENDENCIES} JsonCpp)
+endif()
+
 # Include dependent projects if any
 ExternalProject_Include_Dependencies(${proj} PROJECT_VAR proj DEPENDS_VAR ${proj}_DEPENDENCIES)
 
@@ -50,6 +54,10 @@ if(NOT DEFINED SlicerExecutionModel_DIR AND NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM
     ${Slicer_INSTALL_CLIMODULES_LIB_DIR})
   _set(SlicerExecutionModel_DEFAULT_CLI_INSTALL_ARCHIVE_DESTINATION STRING
     ${Slicer_INSTALL_CLIMODULES_LIB_DIR})
+
+  if(Slicer_BUILD_PARAMETERSERIALIZER_SUPPORT)
+    _set(JsonCpp_DIR PATH ${JsonCpp_DIR})
+  endif()
 
   ExternalProject_Add(${proj}
     ${${proj}_EP_ARGS}
