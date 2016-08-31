@@ -310,6 +310,41 @@ bool vtkITKTransformConverter::IsIdentityMatrix(vtkMatrix4x4 *matrix)
   return true;
 }
 
+namespace
+{
+
+//----------------------------------------------------------------------------
+template<typename BSplineTransformType>
+std::string
+BSplineTransformClassName()
+{
+  return std::string("Unknown");
+}
+
+#define BSplineTransformType_Specialization(TRANSFORMTYPE, DATATYPE) \
+  template<> \
+  std::string \
+  BSplineTransformClassName<itk::TRANSFORMTYPE<DATATYPE, VTKDimension, VTKDimension> >() \
+  { \
+    return std::string(#TRANSFORMTYPE); \
+  }
+
+BSplineTransformType_Specialization(BSplineTransform, double)
+BSplineTransformType_Specialization(BSplineTransform, float)
+
+BSplineTransformType_Specialization(InverseBSplineTransform, double)
+BSplineTransformType_Specialization(InverseBSplineTransform, float)
+
+BSplineTransformType_Specialization(BSplineDeformableTransform, double)
+BSplineTransformType_Specialization(BSplineDeformableTransform, float)
+
+BSplineTransformType_Specialization(InverseBSplineDeformableTransform, double)
+BSplineTransformType_Specialization(InverseBSplineDeformableTransform, float)
+
+#undef BSplineTransformType_Specialization
+
+}
+
 //----------------------------------------------------------------------------
 template <typename BSplineTransformType>
 bool vtkITKTransformConverter::SetVTKBSplineParametersFromITKGeneric(
@@ -341,13 +376,20 @@ bool vtkITKTransformConverter::SetVTKBSplineParametersFromITKGeneric(
     return false;
     }
 
+  if (!warpTransformItk.GetPointer())
+    {
+    return false;
+    }
+
   typename BSplineTransformType::Pointer bsplineItk;
+  std::string expectedWarpTransformItkName = BSplineTransformClassName<BSplineTransformType>();
+  if (expectedWarpTransformItkName == "Unknown")
+    {
+    vtkErrorWithObjectMacro(loggerObject, "Failed to retrieve name of expected transform");
+    return false;
+    }
   std::string warpTransformItkName = warpTransformItk->GetNameOfClass();
-  if (warpTransformItkName == "InverseBSplineTransform" ||
-      warpTransformItkName == "BSplineTransform" ||
-      warpTransformItkName == "BSplineDeformableTransform" ||
-      warpTransformItkName == "InverseBSplineDeformableTransform"
-      )
+  if(warpTransformItkName == expectedWarpTransformItkName)
     {
     bsplineItk = static_cast< BSplineTransformType* >( warpTransformItk.GetPointer() );
     }
