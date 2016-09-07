@@ -6,6 +6,9 @@ set(${proj}_DEPENDENCIES "zlib")
 if (Slicer_USE_PYTHONQT)
   list(APPEND ${proj}_DEPENDENCIES python)
 endif()
+if(Slicer_BUILD_PARAMETERSERIALIZER_SUPPORT)
+  list(APPEND ${proj}_DEPENDENCIES JsonCpp)
+endif()
 
 # Include dependent projects if any
 ExternalProject_Include_Dependencies(${proj} PROJECT_VAR proj DEPENDS_VAR ${proj}_DEPENDENCIES)
@@ -96,6 +99,14 @@ if((NOT DEFINED VTK_DIR OR NOT DEFINED VTK_SOURCE_DIR) AND NOT ${CMAKE_PROJECT_N
   set(VTK_ENABLE_KITS 0)
   if(CMAKE_MAJOR_VERSION EQUAL 3)
     set(VTK_ENABLE_KITS 1)
+  endif()
+
+  if(Slicer_BUILD_PARAMETERSERIALIZER_SUPPORT)
+    list(APPEND EXTERNAL_PROJECT_OPTIONAL_ARGS
+      -DVTK_USE_SYSTEM_JSONCPP:BOOL=ON
+      -DJsonCpp_INCLUDE_DIR:PATH=${JsonCpp_INCLUDE_DIR}
+      -DJsonCpp_LIBRARY:PATH=${JsonCpp_LIBRARY}
+      )
   endif()
 
   set(${CMAKE_PROJECT_NAME}_${proj}_GIT_REPOSITORY "github.com/Slicer/VTK.git" CACHE STRING "Repository from which to get VTK" FORCE)
