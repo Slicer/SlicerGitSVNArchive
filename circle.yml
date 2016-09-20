@@ -3,6 +3,8 @@ machine:
     - curl -sSL https://s3.amazonaws.com/circle-downloads/install-circleci-docker.sh | bash -s -- 1.10.0
   services:
     - docker
+  environment:
+    DISPLAY: 172.17.0.1:99
 
 dependencies:
   cache_directories:
@@ -10,12 +12,16 @@ dependencies:
 
   override:
     - docker info
+    - mkdir -p ~/docker
     - if [[ -e ~/docker/image.tar ]]; then docker load -i ~/docker/image.tar; fi
+    - docker inspect --format='{{.Id}}' slicer/slicer-build-deps > ~/docker/image.id.last
     - docker pull slicer/slicer-build-deps
-    - mkdir -p ~/docker; docker save slicer/slicer-build-deps > ~/docker/image.tar
+    - docker inspect --format='{{.Id}}' slicer/slicer-build-deps > ~/docker/image.id
+    - if [[ `diff ~/docker/image.id ~/docker/image.id.last` ]] ; then docker save slicer/slicer-build-deps > ~/docker/image.tar ; fi
 
 test:
   override:
     - "echo 'Notice: CircleCI does not build changes to Slicer dependencies' && if git diff --name-only master | grep -q SuperBuild > /dev/null; then false; fi"
+    - xhost +172.17.0.2
     - docker run -e "BUILD_TOOL_FLAGS=-j5" --name slicer -v ~/Slicer:/usr/src/Slicer slicer/slicer-build-deps
     - docker cp slicer:$(docker cp slicer:/usr/src/Slicer-build/Slicer-build/PACKAGE_FILE.txt - | tar xO) $CIRCLE_ARTIFACTS
