@@ -184,6 +184,8 @@ protected slots:
   void onMasterVolumeImageDataModified();
   /// Handle layout changes
   void onLayoutChanged(int layoutIndex);
+  /// Handle changes for the Intensity Unit Node
+  void onUnitNodeIntensityChanged(vtkObject* sender);
 
   /// Changed selected editable segment area
   void onMaskModeChanged(int);
