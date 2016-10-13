@@ -1,0 +1,476 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>qSlicerModelsModuleWidget</class>
+ <widget class="qSlicerWidget" name="qSlicerModelsModuleWidget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>615</width>
+    <height>664</height>
+   </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
+  <property name="windowTitle">
+   <string>Models</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="margin">
+    <number>0</number>
+   </property>
+   <item>
+    <widget class="ctkExpandableWidget" name="ResizableFrame">
+     <property name="orientations">
+      <set>Qt::Vertical</set>
+     </property>
+     <property name="sizeGripInside" stdset="0">
+      <bool>false</bool>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_5">
+      <property name="margin">
+       <number>0</number>
+      </property>
+      <item>
+       <layout class="QHBoxLayout" name="allModelsHorizontalLayout">
+        <item>
+         <widget class="QLabel" name="IncludeFiberBundlesLabel">
+          <property name="text">
+           <string>Include Fibers</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="IncludeFiberBundleCheckBox">
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QTabWidget" name="DisplayClassTabWidget">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>200</width>
+            <height>20</height>
+           </size>
+          </property>
+          <property name="currentIndex">
+           <number>0</number>
+          </property>
+          <widget class="QWidget" name="LineTab">
+           <attribute name="title">
+            <string>Line</string>
+           </attribute>
+          </widget>
+          <widget class="QWidget" name="TubeTab">
+           <attribute name="title">
+            <string>Tube</string>
+           </attribute>
+          </widget>
+          <widget class="QWidget" name="GlyphTab">
+           <attribute name="title">
+            <string>Glyph</string>
+           </attribute>
+          </widget>
+         </widget>
+        </item>
+        <item>
+         <spacer name="horizontalSpacer">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>5</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="ctkSearchBox" name="ScrollToModelSearchBox">
+          <property name="placeholderText">
+           <string>Scroll to...</string>
+          </property>
+          <property name="showSearchIcon" stdset="0">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="hideAllModelsButton">
+          <property name="toolTip">
+           <string>Turn the visibility off on all models (does not include hierarchies)</string>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+          <property name="icon">
+           <iconset>
+            <normaloff>:/Icons/Small/SlicerInvisible.png</normaloff>:/Icons/Small/SlicerInvisible.png</iconset>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="showAllModelsButton">
+          <property name="toolTip">
+           <string>Turns visibility on for all models (does not include hierarchies)</string>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+          <property name="icon">
+           <iconset>
+            <normaloff>:/Icons/Small/SlicerVisible.png</normaloff>:/Icons/Small/SlicerVisible.png</iconset>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <widget class="qMRMLTreeView" name="ModelHierarchyTreeView">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="dragDropMode">
+         <enum>QAbstractItemView::InternalMove</enum>
+        </property>
+        <property name="selectionMode">
+         <enum>QAbstractItemView::ExtendedSelection</enum>
+        </property>
+        <property name="headerHidden">
+         <bool>true</bool>
+        </property>
+        <property name="showHidden" stdset="0">
+         <bool>false</bool>
+        </property>
+        <property name="sceneModelType" stdset="0">
+         <string>ModelHierarchy</string>
+        </property>
+        <property name="nodeTypes" stdset="0">
+         <stringlist>
+          <string>vtkMRMLModelHierarchyNode</string>
+          <string>vtkMRMLModelNode</string>
+         </stringlist>
+        </property>
+        <property name="renameMenuActionVisible" stdset="0">
+         <bool>false</bool>
+        </property>
+        <property name="deleteMenuActionVisible" stdset="0">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="ctkCollapsibleButton" name="InformationButton" native="true">
+     <property name="text" stdset="0">
+      <string>Information</string>
+     </property>
+     <property name="collapsed" stdset="0">
+      <bool>true</bool>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_2">
+      <item>
+       <widget class="qMRMLModelInfoWidget" name="MRMLModelInfoWidget" native="true"/>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="ctkCollapsibleButton" name="DisplayButton" native="true">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="text" stdset="0">
+      <string>Display</string>
+     </property>
+     <property name="collapsed" stdset="0">
+      <bool>true</bool>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_3">
+      <item>
+       <widget class="qMRMLModelDisplayNodeWidget" name="ModelDisplayWidget" native="true">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="qMRMLNodeComboBox" name="ClipModelsNodeComboBox" native="true">
+     <property name="nodeTypes" stdset="0">
+      <stringlist>
+       <string>vtkMRMLClipModelsNode</string>
+      </stringlist>
+     </property>
+     <property name="showHidden" stdset="0">
+      <bool>true</bool>
+     </property>
+     <property name="addEnabled" stdset="0">
+      <bool>false</bool>
+     </property>
+     <property name="removeEnabled" stdset="0">
+      <bool>false</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="ctkCollapsibleButton" name="ClippingButton" native="true">
+     <property name="text" stdset="0">
+      <string>Clipping</string>
+     </property>
+     <property name="collapsed" stdset="0">
+      <bool>true</bool>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_4">
+      <item>
+       <widget class="qMRMLClipNodeWidget" name="MRMLClipNodeWidget" native="true"/>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>0</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>qMRMLClipNodeWidget</class>
+   <extends>QWidget</extends>
+   <header>qMRMLClipNodeWidget.h</header>
+  </customwidget>
+  <customwidget>
+   <class>qMRMLModelInfoWidget</class>
+   <extends>QWidget</extends>
+   <header>qMRMLModelInfoWidget.h</header>
+  </customwidget>
+  <customwidget>
+   <class>qMRMLNodeComboBox</class>
+   <extends>QWidget</extends>
+   <header>qMRMLNodeComboBox.h</header>
+  </customwidget>
+  <customwidget>
+   <class>qMRMLTreeView</class>
+   <extends>QTreeView</extends>
+   <header>qMRMLTreeView.h</header>
+   <slots>
+    <slot>setSceneModel(int)</slot>
+   </slots>
+  </customwidget>
+  <customwidget>
+   <class>qSlicerWidget</class>
+   <extends>QWidget</extends>
+   <header>qSlicerWidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>qMRMLModelDisplayNodeWidget</class>
+   <extends>QWidget</extends>
+   <header>qMRMLModelDisplayNodeWidget.h</header>
+  </customwidget>
+  <customwidget>
+   <class>ctkCollapsibleButton</class>
+   <extends>QWidget</extends>
+   <header>ctkCollapsibleButton.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ctkExpandableWidget</class>
+   <extends>QFrame</extends>
+   <header>ctkExpandableWidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ctkSearchBox</class>
+   <extends>QLineEdit</extends>
+   <header>ctkSearchBox.h</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>ModelHierarchyTreeView</sender>
+   <signal>currentNodeChanged(vtkMRMLNode*)</signal>
+   <receiver>MRMLModelInfoWidget</receiver>
+   <slot>setMRMLModelNode(vtkMRMLNode*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>138</x>
+     <y>70</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>166</x>
+     <y>178</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>ModelHierarchyTreeView</sender>
+   <signal>currentNodeChanged(vtkMRMLNode*)</signal>
+   <receiver>ModelDisplayWidget</receiver>
+   <slot>setMRMLModelOrHierarchyNode(vtkMRMLNode*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>200</x>
+     <y>70</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>231</x>
+     <y>234</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>qSlicerModelsModuleWidget</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>ModelHierarchyTreeView</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>414</x>
+     <y>75</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>354</x>
+     <y>70</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>qSlicerModelsModuleWidget</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>ClipModelsNodeComboBox</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>492</x>
+     <y>588</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>465</x>
+     <y>316</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>ClipModelsNodeComboBox</sender>
+   <signal>currentNodeChanged(vtkMRMLNode*)</signal>
+   <receiver>MRMLClipNodeWidget</receiver>
+   <slot>setMRMLClipNode(vtkMRMLNode*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>255</x>
+     <y>316</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>256</x>
+     <y>326</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>hideAllModelsButton</sender>
+   <signal>clicked()</signal>
+   <receiver>qSlicerModelsModuleWidget</receiver>
+   <slot>hideAllModels()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>115</x>
+     <y>10</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>207</x>
+     <y>-9</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>showAllModelsButton</sender>
+   <signal>clicked()</signal>
+   <receiver>qSlicerModelsModuleWidget</receiver>
+   <slot>showAllModels()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>479</x>
+     <y>12</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>528</x>
+     <y>-9</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>ScrollToModelSearchBox</sender>
+   <signal>textChanged(QString)</signal>
+   <receiver>ModelHierarchyTreeView</receiver>
+   <slot>scrollTo(QString)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>311</x>
+     <y>17</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>296</x>
+     <y>84</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>ScrollToModelSearchBox</sender>
+   <signal>returnPressed()</signal>
+   <receiver>ModelHierarchyTreeView</receiver>
+   <slot>scrollToNext()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>335</x>
+     <y>14</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>333</x>
+     <y>71</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>hideAllModels()</slot>
+  <slot>showAllModels()</slot>
+ </slots>
+</ui>

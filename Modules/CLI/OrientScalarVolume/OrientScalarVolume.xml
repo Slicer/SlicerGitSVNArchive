@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<executable>
+  <category>Converters</category>
+  <title>Orient Scalar Volume</title>
+  <description><![CDATA[Orients an output volume. Rearranges the slices in a volume according to the selected orientation. The slices are not interpolated. They are just reordered and/or permuted. The resulting volume will cover the original volume. NOTE: since Slicer takes into account the orientation of a volume, the re-oriented volume will not show any difference from the original volume, To see the difference, save the volume and display it with a system that either ignores the orientation of the image (e.g. Paraview) or displays individual images.]]></description>
+  <version>0.1.0.$Revision$(alpha)</version>
+  <documentation-url>http://wiki.slicer.org/slicerWiki/index.php/Documentation/Nightly/Modules/OrientImage</documentation-url>
+  <license/>
+  <contributor>Bill Lorensen (GE)</contributor>
+  <acknowledgements><![CDATA[This work is part of the National Alliance for Medical Image Computing (NAMIC), funded by the National Institutes of Health through the NIH Roadmap for Medical Research, Grant U54 EB005149.]]></acknowledgements>
+  <parameters>
+    <label>IO</label>
+    <description><![CDATA[Input/output parameters]]></description>
+    <image>
+      <name>inputVolume1</name>
+      <label>Input Volume 1</label>
+      <channel>input</channel>
+      <index>0</index>
+      <description><![CDATA[Input volume 1]]></description>
+    </image>
+    <image reference="inputVolume1">
+      <name>outputVolume</name>
+      <label>Output Volume</label>
+      <channel>output</channel>
+      <index>1</index>
+      <description><![CDATA[The oriented volume]]></description>
+    </image>
+  </parameters>
+  <parameters>
+    <label>Orientation Parameters</label>
+    <description><![CDATA[Orientation of output]]></description>
+    <string-enumeration>
+      <name>orientation</name>
+      <flag>o</flag>
+      <longflag>orientation</longflag>
+      <description><![CDATA[Orientation choices]]></description>
+      <default>LPS</default>
+      <label>Orientation</label>
+      <element>Axial</element>
+      <element>Coronal</element>
+      <element>Sagittal</element>
+      <element>RIP</element>
+      <element>LIP</element>
+      <element>RSP</element>
+      <element>LSP</element>
+      <element>RIA</element>
+      <element>LIA</element>
+      <element>RSA</element>
+      <element>LSA</element>
+      <element>IRP</element>
+      <element>ILP</element>
+      <element>SRP</element>
+      <element>SLP</element>
+      <element>IRA</element>
+      <element>ILA</element>
+      <element>SRA</element>
+      <element>SLA</element>
+      <element>RPI</element>
+      <element>LPI</element>
+      <element>RAI</element>
+      <element>LAI</element>
+      <element>RPS</element>
+      <element>LPS</element>
+      <element>RAS</element>
+      <element>LAS</element>
+      <element>PRI</element>
+      <element>PLI</element>
+      <element>ARI</element>
+      <element>ALI</element>
+      <element>PRS</element>
+      <element>PLS</element>
+      <element>ARS</element>
+      <element>ALS</element>
+      <element>IPR</element>
+      <element>SPR</element>
+      <element>IAR</element>
+      <element>SAR</element>
+      <element>IPL</element>
+      <element>SPL</element>
+      <element>IAL</element>
+      <element>SAL</element>
+      <element>PIR</element>
+      <element>PSR</element>
+      <element>AIR</element>
+      <element>ASR</element>
+      <element>PIL</element>
+      <element>PSL</element>
+      <element>AIL</element>
+      <element>ASL</element>
+    </string-enumeration>
+  </parameters>
+</executable>

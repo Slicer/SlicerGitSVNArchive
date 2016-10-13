@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<executable>
+  <category>Segmentation.Specialized</category>
+  <title>Robust Statistics Segmenter</title>
+  <description><![CDATA[Active contour segmentation using robust statistic.]]></description>
+  <version>1.0</version>
+  <documentation-url>http://wiki.slicer.org/slicerWiki/index.php/Documentation/Nightly/Modules/RobustStatisticsSegmenter</documentation-url>
+  <license/>
+  <contributor>Yi Gao (gatech), Allen Tannenbaum (gatech), Ron Kikinis (SPL, BWH)</contributor>
+  <acknowledgements><![CDATA[This work is part of the National Alliance for Medical Image Computing (NAMIC), funded by the National Institutes of Health]]></acknowledgements>
+  <parameters>
+    <label>Segmentation Parameters</label>
+    <description><![CDATA[Parameters for robust statistics segmentation]]></description>
+    <double>
+      <name>expectedVolume</name>
+      <longflag>expectedVolume</longflag>
+      <flag>v</flag>
+      <description><![CDATA[The approximate volume of the object, in mL.]]></description>
+      <label>Approximate volume(mL)</label>
+      <default>50</default>
+      <constraints>
+        <minimum>0.0</minimum>
+        <maximum>1000000</maximum>
+        <step>100</step>
+      </constraints>
+    </double>
+  </parameters>
+  <parameters>
+    <label>Auxiliary Parameters</label>
+    <description><![CDATA[Some auxillary parameters to control the stop criteria.]]></description>
+    <double>
+      <name>intensityHomogeneity</name>
+      <longflag>intensityHomogeneity</longflag>
+      <description><![CDATA[What is the homogeneity of intensity within the object? Given constant intensity at 1.0 score and extreme fluctuating intensity at 0.]]></description>
+      <label>Intensity Homogeneity[0-1.0]</label>
+      <default>0.6</default>
+      <constraints>
+        <minimum>0.0</minimum>
+        <maximum>1.0</maximum>
+        <step>0.1</step>
+      </constraints>
+    </double>
+    <double>
+      <name>curvatureWeight</name>
+      <longflag>curvatureWeight</longflag>
+      <flag>c</flag>
+      <description><![CDATA[Given sphere 1.0 score and extreme rough bounday/surface 0 score, what is the expected smoothness of the object?]]></description>
+      <label>Boundary Smoothness[0-1.0]</label>
+      <default>0.5</default>
+      <constraints>
+        <minimum>0.0</minimum>
+        <maximum>1.0</maximum>
+        <step>0.1</step>
+      </constraints>
+    </double>
+    <integer>
+      <name>labelValue</name>
+      <longflag>labelValue</longflag>
+      <description><![CDATA[Label value of the output image]]></description>
+      <label>Output Label Value</label>
+      <default>1</default>
+      <constraints>
+        <minimum>1</minimum>
+        <maximum>1000</maximum>
+        <step>1</step>
+      </constraints>
+    </integer>
+    <double>
+      <name>maxRunningTime</name>
+      <longflag>maxRunningTime</longflag>
+      <description><![CDATA[The program will stop if this time is reached.]]></description>
+      <label>Max running time(min)</label>
+      <default>10</default>
+      <constraints>
+        <minimum>0</minimum>
+        <maximum>60</maximum>
+        <step>1</step>
+      </constraints>
+    </double>
+  </parameters>
+  <parameters>
+    <label>IO</label>
+    <description><![CDATA[Input/output parameters]]></description>
+    <image type="scalar">
+      <name>originalImageFileName</name>
+      <label>Original Image</label>
+      <channel>input</channel>
+      <index>0</index>
+      <description><![CDATA[Original image to be segmented]]></description>
+    </image>
+    <image type="label">
+      <name>labelImageFileName</name>
+      <label>Label Image</label>
+      <channel>input</channel>
+      <index>1</index>
+      <description><![CDATA[Label image for initialization]]></description>
+    </image>
+    <image type="label" reference="originalImageFileName">
+      <name>segmentedImageFileName</name>
+      <label>Output Volume</label>
+      <channel>output</channel>
+      <index>2</index>
+      <description><![CDATA[Segmented image]]></description>
+    </image>
+  </parameters>
+</executable>

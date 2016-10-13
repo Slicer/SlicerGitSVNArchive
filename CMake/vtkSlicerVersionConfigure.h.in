@@ -1,0 +1,45 @@
+/*=auto=========================================================================
+
+ Portions (c) Copyright 2005 Brigham and Women's Hospital (BWH)
+ All Rights Reserved.
+
+ See COPYRIGHT.txt
+ or http://www.slicer.org/copyright/copyright.txt for details.
+
+ Program:   3D Slicer
+
+=========================================================================auto=*/
+
+#ifndef __vtkSlicerVersionConfigure_h
+#define __vtkSlicerVersionConfigure_h
+
+/// \file vtkSlicerVersionConfigure.h
+
+#include "vtkSlicerVersionConfigureInternal.h"
+
+/// \def Slicer_VERSION
+/// \brief Slicer version string.
+///
+/// Format is `<Slicer_VERSION_MAJOR>.<Slicer_VERSION_MINOR>`.
+#define Slicer_VERSION "@Slicer_VERSION@"
+
+/// \def Slicer_VERSION_FULL
+/// \brief Slicer long version string.
+///
+/// Format is `<Slicer_VERSION_MAJOR>.<Slicer_VERSION_MINOR>.<Slicer_VERSION_PATCH>[-rc<Slicer_VERSION_RC>][-<Slicer_BUILDDATE>|-<Slicer_VERSION_TWEAK>]`
+#define Slicer_VERSION_FULL "@Slicer_VERSION_FULL@"
+
+/// \def Slicer_BUILDDATE
+/// \brief Build date associated with this project binaries.
+#define Slicer_BUILDDATE "@Slicer_BUILDDATE@"
+
+/// \def Slicer_WC_URL
+/// \brief Source control management URL identifying this project sources.
+#define Slicer_WC_URL "@Slicer_WC_URL@"
+
+/// \def Slicer_WC_REVISION
+/// \brief Revision identifying this project sources.
+/// \sa Slicer_WC_URL
+#define Slicer_WC_REVISION "@Slicer_WC_REVISION@"
+
+#endif // __vtkSlicerVersionConfigure_h

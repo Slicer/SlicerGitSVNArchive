@@ -1,0 +1,710 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>qSlicerSettingsModulesPanel</class>
+ <widget class="ctkSettingsPanel" name="qSlicerSettingsModulesPanel">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>531</width>
+    <height>538</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Module</string>
+  </property>
+  <layout class="QFormLayout" name="formLayout">
+   <property name="fieldGrowthPolicy">
+    <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+   </property>
+   <item row="0" column="0">
+    <widget class="QLabel" name="LoadModulesLabel">
+     <property name="text">
+      <string>Skip loading of any:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="0">
+    <widget class="QLabel" name="LoadBuildInModulesLabel">
+     <property name="text">
+      <string>Skip loading of builtin:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="0">
+    <widget class="QLabel" name="ShowHiddenModulesLabel">
+     <property name="text">
+      <string>Show hidden modules:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="1">
+    <widget class="QCheckBox" name="ShowHiddenModulesCheckBox">
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="0">
+    <widget class="QLabel" name="TemporaryDirectoryLabel">
+     <property name="text">
+      <string>Temporary directory:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="1">
+    <widget class="ctkDirectoryButton" name="TemporaryDirectoryButton"/>
+   </item>
+   <item row="5" column="0">
+    <widget class="QLabel" name="AdditionalModulePathsLabel">
+     <property name="text">
+      <string>Additional module paths:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="1">
+    <widget class="QWidget" name="AdditionalModulePathsWidget" native="true">
+     <layout class="QHBoxLayout" name="horizontalLayout_2">
+      <property name="margin">
+       <number>0</number>
+      </property>
+      <item>
+       <widget class="qSlicerDirectoryListView" name="AdditionalModulePathsView" native="true">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QGroupBox" name="groupBox">
+        <property name="title">
+         <string>Paths</string>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout_2">
+         <item>
+          <widget class="QPushButton" name="AddAdditionalModulePathButton">
+           <property name="text">
+            <string>Add</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="RemoveAdditionalModulePathButton">
+           <property name="text">
+            <string>Remove</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="verticalSpacer">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>40</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="ctkExpandButton" name="AdditionalModulePathMoreButton">
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+        <property name="mirrorOnExpand">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="7" column="0">
+    <widget class="QLabel" name="DisableModulesLabel">
+     <property name="toolTip">
+      <string>when checking/unchecking a module, its dependencies are checked/unchecked accordingly</string>
+     </property>
+     <property name="text">
+      <string>Modules:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="7" column="1">
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="qSlicerModulesListView" name="DisableModulesListView">
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>140</height>
+        </size>
+       </property>
+       <property name="horizontalScrollBarPolicy">
+        <enum>Qt::ScrollBarAlwaysOff</enum>
+       </property>
+       <property name="editTriggers">
+        <set>QAbstractItemView::NoEditTriggers</set>
+       </property>
+       <property name="dragDropMode">
+        <enum>QAbstractItemView::DragOnly</enum>
+       </property>
+       <property name="alternatingRowColors">
+        <bool>false</bool>
+       </property>
+       <property name="checkBoxVisible">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QGroupBox" name="FilterGroupBox">
+       <property name="title">
+        <string>Filter</string>
+       </property>
+       <layout class="QVBoxLayout" name="verticalLayout_3">
+        <property name="sizeConstraint">
+         <enum>QLayout::SetMinimumSize</enum>
+        </property>
+        <item>
+         <widget class="ctkCheckablePushButton" name="FilterToLoadPushButton">
+          <property name="toolTip">
+           <string>Hide modules to load at startup</string>
+          </property>
+          <property name="text">
+           <string>To load</string>
+          </property>
+          <property name="checkable">
+           <bool>true</bool>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+          <property name="buttonTextAlignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+          <property name="indicatorAlignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+          <property name="checkState">
+           <enum>Qt::Checked</enum>
+          </property>
+          <property name="checkBoxControlsButton">
+           <bool>false</bool>
+          </property>
+          <property name="checkBoxUserCheckable">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="ctkCheckablePushButton" name="FilterToIgnorePushButton">
+          <property name="toolTip">
+           <string>Hide modules to ignore at startup</string>
+          </property>
+          <property name="text">
+           <string>To ignore</string>
+          </property>
+          <property name="checkable">
+           <bool>true</bool>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+          <property name="buttonTextAlignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+          <property name="indicatorAlignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+          <property name="checkBoxControlsButton">
+           <bool>false</bool>
+          </property>
+          <property name="checkBoxUserCheckable">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="FilterLoadedPushButton">
+          <property name="toolTip">
+           <string>Hide loaded modules</string>
+          </property>
+          <property name="text">
+           <string>Loaded</string>
+          </property>
+          <property name="checkable">
+           <bool>true</bool>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="FilterIgnoredPushButton">
+          <property name="palette">
+           <palette>
+            <active>
+             <colorrole role="ButtonText">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>106</red>
+                <green>104</green>
+                <blue>100</blue>
+               </color>
+              </brush>
+             </colorrole>
+            </active>
+            <inactive>
+             <colorrole role="ButtonText">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>0</red>
+                <green>0</green>
+                <blue>0</blue>
+               </color>
+              </brush>
+             </colorrole>
+            </inactive>
+            <disabled>
+             <colorrole role="ButtonText">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>106</red>
+                <green>104</green>
+                <blue>100</blue>
+               </color>
+              </brush>
+             </colorrole>
+            </disabled>
+           </palette>
+          </property>
+          <property name="toolTip">
+           <string>Hide ignored modules</string>
+          </property>
+          <property name="text">
+           <string>Ignored</string>
+          </property>
+          <property name="checkable">
+           <bool>true</bool>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="FilterFailedPushButton">
+          <property name="palette">
+           <palette>
+            <active>
+             <colorrole role="ButtonText">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>255</red>
+                <green>0</green>
+                <blue>0</blue>
+               </color>
+              </brush>
+             </colorrole>
+            </active>
+            <inactive>
+             <colorrole role="ButtonText">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>255</red>
+                <green>0</green>
+                <blue>0</blue>
+               </color>
+              </brush>
+             </colorrole>
+            </inactive>
+            <disabled>
+             <colorrole role="ButtonText">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>106</red>
+                <green>104</green>
+                <blue>100</blue>
+               </color>
+              </brush>
+             </colorrole>
+            </disabled>
+           </palette>
+          </property>
+          <property name="toolTip">
+           <string>Hide Failed to load modules</string>
+          </property>
+          <property name="text">
+           <string>Failed</string>
+          </property>
+          <property name="checkable">
+           <bool>true</bool>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="ctkSearchBox" name="FilterTitleSearchBox">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="showSearchIcon">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="verticalSpacer_3">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>0</width>
+            <height>0</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
+      <widget class="ctkExpandButton" name="FilterMoreButton">
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+       <property name="mirrorOnExpand">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item row="8" column="0">
+    <widget class="QLabel" name="HomeModuleLabel">
+     <property name="text">
+      <string>Default startup module:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="8" column="1">
+    <widget class="QPushButton" name="HomeModuleButton">
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+   </item>
+   <item row="9" column="0">
+    <widget class="QLabel" name="FavoritesModulesLabel">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="toolTip">
+      <string>Add to the list by dragging modules from the above &quot;Modules&quot; list. Note: modules with no icons will not appear in the toolbar.</string>
+     </property>
+     <property name="text">
+      <string>Favorite Modules:&lt;br&gt;&lt;small&gt;&lt;i&gt;Drag &amp;amp; drop from &lt;/i&gt;Modules&lt;i&gt; list&lt;/i&gt;&lt;/small&gt;</string>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="9" column="1">
+    <layout class="QHBoxLayout" name="horizontalLayout_3">
+     <item>
+      <widget class="qSlicerModulesListView" name="FavoritesModulesListView">
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>80</height>
+        </size>
+       </property>
+       <property name="verticalScrollBarPolicy">
+        <enum>Qt::ScrollBarAlwaysOff</enum>
+       </property>
+       <property name="editTriggers">
+        <set>QAbstractItemView::NoEditTriggers</set>
+       </property>
+       <property name="dragDropMode">
+        <enum>QAbstractItemView::DragDrop</enum>
+       </property>
+       <property name="defaultDropAction">
+        <enum>Qt::CopyAction</enum>
+       </property>
+       <property name="selectionMode">
+        <enum>QAbstractItemView::SingleSelection</enum>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>32</width>
+         <height>32</height>
+        </size>
+       </property>
+       <property name="flow">
+        <enum>QListView::LeftToRight</enum>
+       </property>
+       <property name="isWrapping" stdset="0">
+        <bool>false</bool>
+       </property>
+       <property name="viewMode">
+        <enum>QListView::IconMode</enum>
+       </property>
+       <property name="uniformItemSizes">
+        <bool>false</bool>
+       </property>
+       <property name="wordWrap">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QGroupBox" name="FavoritesMoreGroupBox">
+       <property name="toolTip">
+        <string>Add to the list by dragging modules from the above &quot;Modules&quot; list</string>
+       </property>
+       <property name="title">
+        <string>Favorite</string>
+       </property>
+       <layout class="QGridLayout" name="gridLayout">
+        <item row="0" column="0" colspan="2">
+         <widget class="QPushButton" name="FavoritesRemoveButton">
+          <property name="toolTip">
+           <string>Remove selected module from favorites</string>
+          </property>
+          <property name="text">
+           <string>Remove</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QToolButton" name="FavoritesMoveLeftButton">
+          <property name="toolTip">
+           <string>Move to the left</string>
+          </property>
+          <property name="text">
+           <string>Move Left</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <widget class="QToolButton" name="FavoritesMoveRightButton">
+          <property name="toolTip">
+           <string>Move to the right</string>
+          </property>
+          <property name="text">
+           <string>Move Right</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
+      <widget class="ctkExpandButton" name="FavoritesMoreButton">
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+       <property name="mirrorOnExpand">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item row="2" column="0">
+    <widget class="QLabel" name="PreferExecutableCLILabel">
+     <property name="toolTip">
+      <string>To limit memory consumption, loading executable CLIs is prefered as they don't load in Slicer's memory</string>
+     </property>
+     <property name="text">
+      <string>Prefer Executable CLIs:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="1">
+    <widget class="QCheckBox" name="PreferExecutableCLICheckBox">
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="1">
+    <layout class="QHBoxLayout" name="horizontalLayout_1">
+     <item>
+      <widget class="QCheckBox" name="LoadLoadableModulesCheckBox">
+       <property name="toolTip">
+        <string>To temporarilly disable, pass --disable-loadable-modules on the command line</string>
+       </property>
+       <property name="text">
+        <string>loadable modules</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QCheckBox" name="LoadCommandLineModulesCheckBox">
+       <property name="toolTip">
+        <string>To temporarily disable, pass --disable-cli-modules on the command line</string>
+       </property>
+       <property name="text">
+        <string>command-line plugins</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QCheckBox" name="LoadScriptedLoadableModulesCheckBox">
+       <property name="toolTip">
+        <string>To temporarily disable, pass  --disable-scripted-loadable-modules on the command line</string>
+       </property>
+       <property name="text">
+        <string>scripted loadable modules</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item row="1" column="1">
+    <layout class="QHBoxLayout" name="horizontalLayout_4">
+     <item>
+      <widget class="QCheckBox" name="LoadBuiltInLoadableModulesCheckBox">
+       <property name="toolTip">
+        <string>To temporarilly disable, pass --disable-builtin-loadable-modules on the command line</string>
+       </property>
+       <property name="text">
+        <string>loadable modules</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QCheckBox" name="LoadBuiltInCommandLineModulesCheckBox">
+       <property name="toolTip">
+        <string>To temporarily disable, pass --disable-builtin-cli-modules on the command line</string>
+       </property>
+       <property name="text">
+        <string>command-line plugins</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QCheckBox" name="LoadBuiltInScriptedLoadableModulesCheckBox">
+       <property name="toolTip">
+        <string>To temporarily disable, pass  --disable-builtin-scripted-loadable-modules on the command line</string>
+       </property>
+       <property name="text">
+        <string>scripted loadable modules</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>qSlicerModulesListView</class>
+   <extends>QListView</extends>
+   <header>qSlicerModulesListView.h</header>
+  </customwidget>
+  <customwidget>
+   <class>ctkCheckablePushButton</class>
+   <extends>QPushButton</extends>
+   <header>ctkCheckablePushButton.h</header>
+  </customwidget>
+  <customwidget>
+   <class>ctkDirectoryButton</class>
+   <extends>QWidget</extends>
+   <header>ctkDirectoryButton.h</header>
+  </customwidget>
+  <customwidget>
+   <class>ctkExpandButton</class>
+   <extends>QToolButton</extends>
+   <header>ctkExpandButton.h</header>
+  </customwidget>
+  <customwidget>
+   <class>ctkSearchBox</class>
+   <extends>QLineEdit</extends>
+   <header>ctkSearchBox.h</header>
+  </customwidget>
+  <customwidget>
+   <class>ctkSettingsPanel</class>
+   <extends>QWidget</extends>
+   <header>ctkSettingsPanel.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>qSlicerDirectoryListView</class>
+   <extends>QWidget</extends>
+   <header>qSlicerDirectoryListView.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>FilterMoreButton</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>FilterGroupBox</receiver>
+   <slot>setVisible(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>646</x>
+     <y>714</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>618</x>
+     <y>715</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>FavoritesMoreButton</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>FavoritesMoreGroupBox</receiver>
+   <slot>setVisible(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>643</x>
+     <y>163</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>613</x>
+     <y>161</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>AdditionalModulePathMoreButton</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>groupBox</receiver>
+   <slot>setVisible(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>640</x>
+     <y>427</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>617</x>
+     <y>471</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>

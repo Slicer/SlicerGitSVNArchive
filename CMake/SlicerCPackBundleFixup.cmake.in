@@ -1,0 +1,332 @@
+
+include(@CMAKE_SOURCE_DIR@/CMake/BundleUtilitiesWithRPath.cmake)
+#include(BundleUtilities)
+
+#
+# Avoid following symlinks encountered during FILE GLOB_RECURSE calls:
+#
+if(COMMAND CMAKE_POLICY)
+  cmake_policy(SET CMP0009 NEW)
+  if(POLICY CMP0011)
+    cmake_policy(SET CMP0011 NEW)
+  endif()
+endif()
+
+#-----------------------------------------------------------------------------
+# gp_log_message - Convenient function allowing to both display and log a message.
+# Log file: $ENV{DESTDIR}/../complete-bundles-log.txt
+#-----------------------------------------------------------------------------
+function(gp_log_message text)
+  message(${text})
+  file(APPEND "@Slicer_BINARY_DIR@/complete-bundles-log.txt" "${text}
+")
+endfunction()
+
+#-----------------------------------------------------------------------------
+# gp_clear_log - Clear the log file
+#-----------------------------------------------------------------------------
+function(gp_clear_log)
+  file(WRITE "@Slicer_BINARY_DIR@/complete-bundles-log.txt" "")
+  gp_log_message("Log file: @Slicer_BINARY_DIR@/complete-bundles-log.txt")
+endfunction()
+
+#-----------------------------------------------------------------------------
+# gp_item_default_embedded_path_override item default_embedded_path_var
+#-----------------------------------------------------------------------------
+# Return the path that others should refer to the item by when the item
+# is embedded inside a bundle.
+#
+# This is a project-specific override of BundleUtilities.cmake's
+# gp_item_default_embedded_path
+#
+function(gp_item_default_embedded_path_override item default_embedded_path_var)
+
+  # By default, embed items as set by gp_item_default_embedded_path:
+  set(path "${${default_embedded_path_var}}")
+
+  if(item MATCHES "Contents/bin/[^/]+")
+    set(path "@fixup_path@/bin")
+  endif()
+
+  if(item MATCHES "[^/]+\\.framework/")
+    set(path "@fixup_path@/Frameworks")
+  endif()
+
+  if(item MATCHES "\\.(dylib|so)$")
+    set(path "@fixup_path@/@Slicer_LIB_DIR@")
+  endif()
+
+  set(Slicer_USE_PYTHONQT "@Slicer_USE_PYTHONQT@")
+  if(Slicer_USE_PYTHONQT)
+    # Python library
+    if(item MATCHES "libpython[^/]+\\.dylib$")
+      set(path "@fixup_path@/lib/Python/lib")
+    endif()
+    # Python extensions
+    if(item MATCHES "lib-dynload/[^/]+\\.so$")
+      set(path "@fixup_path@/lib/Python/lib/python2.7/lib-dynload")
+    endif()
+  endif()
+
+  set(Slicer_USE_PYTHONQT_WITH_TCL "@Slicer_USE_PYTHONQT_WITH_TCL@")
+  if(Slicer_USE_PYTHONQT_WITH_TCL)
+    # Tcl libraries
+    if(item MATCHES "tcl-build/lib/lib[^/]+\\.dylib$")
+      set(path "@fixup_path@/lib/TclTk/lib")
+    endif()
+    # Itcl library
+    if(item MATCHES "libitcl[^/]+\\.dylib$")
+      set(path "@fixup_path@/lib/TclTk/lib/itcl4.0.1")
+    endif()
+  endif()
+
+  set(Slicer_USE_SimpleITK "@Slicer_USE_SimpleITK@")
+  if(Slicer_USE_SimpleITK)
+    if (item MATCHES  "site-packages/(SimpleITK.*)/_SimpleITK\\.so" )
+      # CMAKE_MATCH_1 is the over complicated egg path
+      set(python_sys_site_path "@fixup_path@/lib/Python/lib/python2.7/site-packages")
+      set(path "${python_sys_site_path}/${CMAKE_MATCH_1}/")
+    endif()
+  endif()
+
+  if(item MATCHES "@Slicer_ITKFACTORIES_DIR@/[^/]+Plugin\\.(so|dylib)$")
+    set(path "@fixup_path@/@Slicer_ITKFACTORIES_DIR@")
+  endif()
+
+  foreach(qt_plugin_dir designer iconengines styles imageformats sqldrivers)
+    if(item MATCHES "@Slicer_QtPlugins_DIR@/${qt_plugin_dir}/[^/]+\\.(so|dylib)$")
+      set(path "@fixup_path@/@Slicer_QtPlugins_DIR@/${qt_plugin_dir}")
+    endif()
+  endforeach()
+
+  set(Slicer_BUILD_CLI_SUPPORT "@Slicer_BUILD_CLI_SUPPORT@")
+  if(Slicer_BUILD_CLI_SUPPORT)
+    if(item MATCHES "@Slicer_CLIMODULES_LIB_DIR@/[^/]+") # Matches library and executable
+      set(path "@fixup_path@/@Slicer_CLIMODULES_LIB_DIR@")
+    endif()
+  endif()
+
+  set(Slicer_BUILD_QTLOADABLEMODULES "@Slicer_BUILD_QTLOADABLEMODULES@")
+  if(Slicer_BUILD_QTLOADABLEMODULES)
+    if(item MATCHES "@Slicer_QTLOADABLEMODULES_LIB_DIR@/[^/]+\\.(so|dylib)$")
+      set(path "@fixup_path@/@Slicer_QTLOADABLEMODULES_LIB_DIR@")
+    endif()
+  endif()
+
+  math(EXPR lib_current $ENV{FIXUP_LIB_CURRENT}+1)
+  set(ENV{FIXUP_LIB_CURRENT} ${lib_current})
+  gp_log_message("${lib_current} - fixing item ${item} with ${path}")
+
+  set(${default_embedded_path_var} "${path}" PARENT_SCOPE)
+endfunction()
+
+macro(_fixup_paths_append list var)
+  if(NOT EXISTS "${var}")
+    message(FATAL_ERROR "Path append to list [${list}] failed - Path [${var}:${${var}}] does NOT exist !")
+  endif()
+
+  list(APPEND ${list} ${var})
+endmacro()
+
+#-----------------------------------------------------------------------------
+# Fixup the .app bundles in the install tree:
+#-----------------------------------------------------------------------------
+function(fixup_bundle_with_plugins app)
+  set(app_dir "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/${app}")
+  set(suffix "@CMAKE_SHARED_LIBRARY_SUFFIX@")
+
+  set(Slicer_BUILD_DIR "@Slicer_BINARY_DIR@")
+  set(Slicer_SUPERBUILD_DIR "@Slicer_SUPERBUILD_DIR@")
+
+  # Sanity checks
+  foreach(path Slicer_BUILD_DIR Slicer_SUPERBUILD_DIR)
+    if(NOT EXISTS ${${path}})
+      message(FATAL_ERROR "${path} variable is defined but corresponds to nonexistent directory: ${${path}}")
+    endif()
+  endforeach()
+
+  set(candiates_pattern
+    "${app_dir}/Contents/@Slicer_ITKFACTORIES_DIR@/*Plugin.dylib"
+    "${app_dir}/Contents/@Slicer_QtPlugins_DIR@/designer/*Plugins.so"
+    "${app_dir}/Contents/@Slicer_QtPlugins_DIR@/designer/*.dylib"
+    "${app_dir}/Contents/@Slicer_QtPlugins_DIR@/iconengines/*Plugin.so"
+    "${app_dir}/Contents/@Slicer_QtPlugins_DIR@/styles/*Plugins.so"
+    "${app_dir}/Contents/@Slicer_QtPlugins_DIR@/imageformats/*${suffix}"
+    "${app_dir}/Contents/@Slicer_QtPlugins_DIR@/sqldrivers/*${suffix}"
+    )
+
+  set(Slicer_BUILD_CLI_SUPPORT "@Slicer_BUILD_CLI_SUPPORT@")
+
+  set(Slicer_USE_PYTHONQT "@Slicer_USE_PYTHONQT@")
+
+  set(Slicer_BUILD_QTLOADABLEMODULES "@Slicer_BUILD_QTLOADABLEMODULES@")
+  if(Slicer_BUILD_QTLOADABLEMODULES)
+    list(APPEND candiates_pattern
+      "${app_dir}/Contents/@Slicer_QTLOADABLEMODULES_LIB_DIR@/libq*Module${suffix}"
+      "${app_dir}/Contents/@Slicer_QTLOADABLEMODULES_LIB_DIR@/*Python.so"
+      )
+    if(Slicer_USE_PYTHONQT)
+      list(APPEND candiates_pattern
+        "${app_dir}/Contents/@Slicer_QTLOADABLEMODULES_LIB_DIR@/qSlicer*PythonQt.so"
+        )
+    endif()
+  endif()
+
+  if(Slicer_USE_PYTHONQT)
+    list(APPEND candiates_pattern
+      "${app_dir}/Contents/@Slicer_LIB_DIR@/*Python.so"
+      "${app_dir}/Contents/@Slicer_LIB_DIR@/*PythonQt.so"
+      # Since both core python and numpy module have no dependency beside of
+      # system library, there is no need to fix them.
+      # "${app_dir}/Contents/lib/Python/lib/python2.7/site-packages/*.so"
+      #"${app_dir}/Contents/lib/Python/lib/python2.7/lib-dynload/*.so"
+      )
+  endif()
+
+  set(Slicer_USE_PYTHONQT_WITH_OPENSSL "@Slicer_USE_PYTHONQT_WITH_OPENSSL@")
+  if(Slicer_USE_PYTHONQT_WITH_OPENSSL)
+    list(APPEND candiates_pattern
+      "${app_dir}/Contents/lib/Python/lib/python2.7/lib-dynload/_hashlib.so"
+      "${app_dir}/Contents/lib/Python/lib/python2.7/lib-dynload/_ssl.so"
+      )
+  endif()
+
+  set(Slicer_USE_PYTHONQT_WITH_TCL "@Slicer_USE_PYTHONQT_WITH_TCL@")
+  if(Slicer_USE_PYTHONQT_WITH_TCL)
+    list(APPEND candiates_pattern
+      "${app_dir}/Contents/lib/Python/lib/python2.7/lib-dynload/_tkinter.so"
+      "${app_dir}/Contents/lib/TclTk/lib/lib*${suffix}"
+      )
+  endif()
+
+  set(Slicer_USE_SimpleITK "@Slicer_USE_SimpleITK@")
+  if(Slicer_USE_SimpleITK)
+    list(APPEND candiates_pattern
+      "${app_dir}/Contents/lib/Python/lib/python2.7/site-packages/SimpleITK*/_SimpleITK.so"
+      )
+  endif()
+
+  set(libs "")
+  file(GLOB_RECURSE candidates ${candiates_pattern})
+  foreach(lib ${candidates})
+    if(NOT lib MATCHES "(_debug|d[0-9])${suffix}$")
+      set(libs ${libs} "${lib}")
+    endif()
+  endforeach()
+
+  list(REMOVE_DUPLICATES libs)
+
+  # Additional libs may be found in:
+  set(libs_path )
+  foreach(dir "@VTK_LIBRARY_DIRS@")
+    _fixup_paths_append(libs_path ${dir})
+  endforeach()
+  _fixup_paths_append(libs_path "@ITK_DIR@/lib")
+  foreach(dir "@Teem_LIBRARY_DIRS@")
+    _fixup_paths_append(libs_path ${dir})
+  endforeach()
+  foreach(dir "@CTK_LIBRARY_DIRS@")
+    _fixup_paths_append(libs_path ${dir})
+  endforeach()
+  if(Slicer_BUILD_PARAMETERSERIALIZER_SUPPORT)
+    foreach(dir "@JsonCpp_LIBRARY_DIRS@")
+      _fixup_paths_append(libs_path ${dir})
+    endforeach()
+  endif()
+  if(Slicer_BUILD_CLI_SUPPORT)
+    foreach(dir "@SlicerExecutionModel_LIBRARY_DIRS@")
+      _fixup_paths_append(libs_path ${dir})
+    endforeach()
+  endif()
+  set(Slicer_BUILD_EXTENSIONMANAGER_SUPPORT "@Slicer_BUILD_EXTENSIONMANAGER_SUPPORT@")
+  if(Slicer_BUILD_EXTENSIONMANAGER_SUPPORT)
+    _fixup_paths_append(libs_path "@LibArchive_DIR@/lib")
+  endif()
+  set(Slicer_USE_OpenIGTLink "@Slicer_USE_OpenIGTLink@")
+  if(Slicer_USE_OpenIGTLink)
+    foreach(dir "@OpenIGTLink_LIBRARY_DIRS@")
+      _fixup_paths_append(libs_path ${dir})
+    endforeach()
+  endif()
+  if(Slicer_USE_PYTHONQT)
+    _fixup_paths_append(libs_path "@PYTHON_LIBRARY_PATH@")
+  endif()
+  set(Slicer_USE_PYTHONQT_WITH_OPENSSL "@Slicer_USE_PYTHONQT_WITH_OPENSSL@")
+  if(Slicer_USE_PYTHONQT_WITH_OPENSSL)
+    _fixup_paths_append(libs_path "@OPENSSL_EXPORT_LIBRARY_DIR@")
+  endif()
+  if(Slicer_USE_PYTHONQT_WITH_TCL)
+    _fixup_paths_append(libs_path "@Slicer_TCL_DIR@/lib/")
+  endif()
+  set(Slicer_BUILD_DICOM_SUPPORT "@Slicer_BUILD_DICOM_SUPPORT@")
+  if(Slicer_BUILD_DICOM_SUPPORT)
+    _fixup_paths_append(libs_path "@DCMTK_DIR@/lib/")
+  endif()
+
+  list(APPEND libs_path "${Slicer_BUILD_DIR}/@Slicer_BIN_DIR@")
+  list(APPEND libs_path "${Slicer_BUILD_DIR}/@Slicer_LIB_DIR@")
+  if(Slicer_BUILD_QTLOADABLEMODULES)
+    _fixup_paths_append(libs_path "${Slicer_BUILD_DIR}/@Slicer_QTLOADABLEMODULES_LIB_DIR@")
+  endif()
+  if(Slicer_BUILD_CLI_SUPPORT)
+    _fixup_paths_append(libs_path "${Slicer_BUILD_DIR}/@Slicer_CLIMODULES_LIB_DIR@")
+  endif()
+  _fixup_paths_append(libs_path "${Slicer_BUILD_DIR}/@Slicer_BIN_DIR@/designer")
+  _fixup_paths_append(libs_path "${Slicer_BUILD_DIR}/@Slicer_BIN_DIR@/iconengines")
+  _fixup_paths_append(libs_path "${Slicer_BUILD_DIR}/@Slicer_BIN_DIR@/styles")
+  #_fixup_paths_append(libs_path "${Slicer_BUILD_DIR}/@Slicer_BIN_DIR@/imageformats")
+  #_fixup_paths_append(libs_path "${Slicer_BUILD_DIR}/@Slicer_BIN_DIR@/sqldrivers")
+  if (Slicer_ADDITIONAL_PROJECTS)
+    foreach(additional_project ${Slicer_ADDITIONAL_PROJECTS})
+      find_package(${additional_project})
+      if (${additional_project}_FOUND)
+        include(${${additional_project}_USE_FILE})
+        foreach(dir "${${additional_project}_LIBRARY_DIRS}")
+          _fixup_paths_append(libs_path ${dir})
+        endforeach()
+      endif()
+    endforeach()
+  endif()
+
+  list(REMOVE_DUPLICATES libs_path)
+
+  gp_clear_log()
+
+  gp_log_message("Calling fixup_bundle with")
+  gp_log_message("app=${app_dir}")
+  gp_log_message("<Slicer_SUPERBUILD_DIR>=${Slicer_SUPERBUILD_DIR}")
+  gp_log_message("libs=")
+  foreach(lib ${libs})
+    file(RELATIVE_PATH relative_lib ${Slicer_SUPERBUILD_DIR} ${lib})
+    if(NOT "${relative_lib}" STREQUAL "${lib}")
+      set(lib "<Slicer_SUPERBUILD_DIR>/${relative_lib}")
+    endif()
+    gp_log_message("  ${lib}")
+  endforeach()
+  gp_log_message("libs_path=")
+  foreach(path ${libs_path})
+    file(RELATIVE_PATH relative_path ${Slicer_SUPERBUILD_DIR} ${path})
+    if(NOT "${relative_path}" STREQUAL "${path}")
+      set(path "<Slicer_SUPERBUILD_DIR>/${relative_path}")
+    endif()
+    gp_log_message("  ${path}")
+  endforeach()
+
+  # Keep track of libs count and current lib being fixed
+  set(ENV{FIXUP_LIB_CURRENT} 0)
+
+  set(inner_re "1|a|bat|bmp|c|cc|cfg|cmake|conf|css|ctypes|cxx|dat|def|doc|dylib|egg-info|enc")
+  set(inner_re "${inner_re}|eps|example|f|f90|fits|gif|gz|h|hxx|i|icns|ico|in|ini|itk|log|md5")
+  set(inner_re "${inner_re}|mhd|mrml|mrml_remote|msg|nhdr|nib|nrrd|pkl|plist|png|ps|py|pyc|pyf")
+  set(inner_re "${inner_re}|pyw|pyx|raw|sample|so|supp|tcl|txt|ui|xml|exe|mexw32|mexw64")
+  set(GP_IS_FILE_EXECUTABLE_EXCLUDE_REGEX "\\.(${inner_re})$")
+
+  fixup_bundle(
+    "${app_dir}"
+    "${libs}"
+    "${libs_path}"
+    )
+endfunction()
+
+fixup_bundle_with_plugins("@Slicer_MAIN_PROJECT_APPLICATION_NAME@.app")
+#verify_app("/Users/partyd/Kitware/Slicer4-trunk/build/Slicer-build/_CPack_Packages/Darwin/DragNDrop/Slicer-4.0.gamma-2011-05-10-Darwin/@Slicer_MAIN_PROJECT_APPLICATION_NAME@.app")

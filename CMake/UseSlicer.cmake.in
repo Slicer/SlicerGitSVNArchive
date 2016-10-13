@@ -1,0 +1,423 @@
+#
+# This file has been primarly designed for the purpose of Slicer extension development.
+#
+# It includes the required Slicer macros/functions and sets up compiler
+# settings for a project to use Slicer.
+#
+# Note that the behavior of this file can be further customized by
+# defining variables like:
+#
+#   set(Slicer_SKIP_<DoSomething> TRUE)
+#
+# Such variable has to be set before:
+#
+#   include(${Slicer_USE_FILE})
+#
+# The variable allowing to customize the behavior are:
+#
+#  Slicer_SKIP_USE_FILE_INCLUDE_CHECK
+#  Slicer_SKIP_EXTENSION_NAME_CHECK
+#  Slicer_SKIP_EXTERNAL_PROJECTS_USEFILE
+#  Slicer_SKIP_EXTERNAL_DATA
+#  Slicer_SKIP_SlicerBlockPlatformCheck
+#  Slicer_SKIP_SET_CMAKE_C_CXX_FLAGS
+#  Slicer_SKIP_ITKPlatformSpecificChecks
+#  Slicer_SKIP_SlicerBlockCXXRequiredFlags
+#  Slicer_SKIP_SlicerBlockAdditionalLauncherSettings
+#  Slicer_SKIP_SlicerEnableExtensionTesting
+#
+# By default, if any 'Slicer_SKIP_<DoSomething>' variable is set to TRUE,
+# a message will be displayed.
+#
+# For example:
+#  set(Slicer_SKIP_SlicerBlockPlatformCheck TRUE)
+#  include(${Slicer_USE_FILE})
+#
+# will output:
+#  -- Skipping SlicerBlockPlatformCheck
+#
+# This is can avoided by setting the variable Slicer_VERBOSE_SKIP to TRUE
+#
+
+# --------------------------------------------------------------------------
+# Helper function(s) and macro(s)
+# --------------------------------------------------------------------------
+
+include(UseSlicerMacros)
+
+# If the variable Slicer_VERBOSE_SKIP is FALSE, this function will
+# display the provided text prepended with "Skipping ".
+function(_slicer_skip_message text)
+  if(NOT Slicer_VERBOSE_SKIP)
+    message(STATUS "Skipping ${text}")
+  endif()
+endfunction()
+
+# --------------------------------------------------------------------------
+# Setting and checking EXTENSION_NAME
+# --------------------------------------------------------------------------
+if(NOT Slicer_DONT_USE_EXTENSION)
+  slicer_check_variable(EXTENSION_NAME _EXTENSION_NAME_SET)
+  if(NOT ${_EXTENSION_NAME_SET})
+    slicer_check_variable(MODULE_NAME _MODULE_NAME_SET)
+    if(${_MODULE_NAME_SET})
+      set(EXTENSION_NAME ${MODULE_NAME})
+    else()
+      slicer_check_variable(PROJECT_NAME _PROJECT_NAME_SET)
+      if(${_PROJECT_NAME_SET})
+        set(EXTENSION_NAME ${PROJECT_NAME})
+      endif()
+    endif()
+    slicer_setting_variable_message("EXTENSION_NAME")
+  endif()
+  if(NOT Slicer_SKIP_EXTENSION_NAME_CHECK AND "${EXTENSION_NAME}" MATCHES "^$|^Slicer$|^Project$")
+    message(FATAL_ERROR
+      "error: Make sure to call 'project(<extension_name>)' or "
+      "set EXTENSION_NAME (or MODULE_NAME) prior to call 'include(\${Slicer_USE_FILE})' !")
+  endif()
+endif()
+
+if(Slicer_SOURCE_DIR)
+  return()
+endif()
+
+# --------------------------------------------------------------------------
+# Setup project
+# --------------------------------------------------------------------------
+
+if(DEFINED Slicer_SKIP_PROJECT_COMMAND)
+  message(AUTHOR_WARNING
+    "Setting Slicer_SKIP_PROJECT_COMMAND is not required anymore."
+    "Calling 'project()' along side 'find_package(Slicer)' is not"
+    "restricted anymore.")
+endif()
+
+if(DEFINED Slicer_SKIP_SlicerBlockSetCMakeOSXVariables)
+  message(AUTHOR_WARNING
+    "Setting Slicer_SKIP_SlicerBlockSetCMakeOSXVariables is not required anymore."
+    "Calling 'find_package(Slicer)' does NOT implies the inclusion of "
+    "'SlicerBlockSetCMakeOSXVariables'."
+    "For convenience, if the developer would like to have the CMAKE_OSX_* variable "
+    "automatically set, component 'ConfigurePrerequisites' should be used."
+    "For example:"
+    "  find_package(Slicer COMPONENTS ConfigurePrerequisites)"
+    "  project(Foo)")
+endif()
+
+if(NOT DEFINED ${EXTENSION_NAME}_SOURCE_DIR
+  AND NOT DEFINED ${EXTENSION_NAME}_BINARY_DIR
+  AND NOT Slicer_DONT_USE_EXTENSION)
+  if(POLICY CMP0048)
+    cmake_policy(SET CMP0048 NEW)
+  endif()
+  project(${EXTENSION_NAME})
+endif()
+
+# --------------------------------------------------------------------------
+# Prerequisites
+# --------------------------------------------------------------------------
+
+# Expose mechanism allowing extensions to register ITK IOFactories.
+# For details: http://viewvc.slicer.org/viewvc.cgi/Slicer4?view=revision&revision=21592
+set(ITK_NO_IO_FACTORY_REGISTER_MANAGER 1) # See Libs/ITKFactoryRegistration/CMakeLists.txt
+list(APPEND ITK_LIBRARIES ITKFactoryRegistration)
+list(APPEND ITK_INCLUDE_DIRS ${ITKFactoryRegistration_INCLUDE_DIRS})
+
+# By default, the "<PROJECT>_USE_FILE" of each slicer external project will be included.
+# This can be changed by setting the variable Slicer_SKIP_EXTERNAL_PROJECTS_USEFILE to TRUE
+if(NOT DEFINED Slicer_SKIP_EXTERNAL_PROJECTS_USEFILE)
+  set(Slicer_SKIP_EXTERNAL_PROJECTS_USEFILE FALSE)
+endif()
+if(NOT ${Slicer_SKIP_EXTERNAL_PROJECTS_USEFILE})
+  foreach(proj ${Slicer_EXTERNAL_PROJECTS})
+    set(proj_has_no_usefile -1)
+    list(FIND Slicer_EXTERNAL_PROJECTS_NO_USEFILE ${proj} proj_has_no_usefile)
+    #message("${proj} has_no_usefile: ${proj_has_no_usefile}")
+    if(proj_has_no_usefile EQUAL -1)
+      include(${${proj}_USE_FILE})
+    endif()
+  endforeach()
+else()
+  _slicer_skip_message("Slicer_SKIP_EXTERNAL_PROJECTS_USEFILE")
+endif()
+
+# Set '<PROJECTNAME>_DIR' variable(s) so that find_package(<PROJECTNAME>) works as expected.
+# NA
+
+# Find PythonQt package so that PYTHONQT_USE_RELEASE_PYTHON_FALLBACK is defined
+# See https://github.com/commontk/PythonQt/issues/7
+# and https://github.com/commontk/PythonQt/issues/8
+if(Slicer_USE_PYTHONQT)
+  find_package(PythonQt)
+endif()
+
+# --------------------------------------------------------------------------
+# ExternalData
+# --------------------------------------------------------------------------
+if(NOT DEFINED Slicer_SKIP_EXTERNAL_DATA)
+  set(Slicer_SKIP_EXTERNAL_DATA FALSE)
+endif()
+if(NOT ${Slicer_SKIP_EXTERNAL_DATA})
+  set(ExternalData_OBJECT_STORES ${Slicer_ExternalData_OBJECT_STORES})
+  set(ExternalData_URL_TEMPLATES ${Slicer_ExternalData_URL_TEMPLATES})
+else()
+  _slicer_skip_message("Slicer_ExternalData")
+endif()
+
+# --------------------------------------------------------------------------
+# Platform check
+# --------------------------------------------------------------------------
+if(NOT DEFINED Slicer_SKIP_SlicerBlockPlatformCheck)
+  set(Slicer_SKIP_SlicerBlockPlatformCheck FALSE)
+endif()
+if(NOT ${Slicer_SKIP_SlicerBlockPlatformCheck})
+  include(SlicerBlockPlatformCheck)
+else()
+  _slicer_skip_message("SlicerBlockPlatformCheck")
+endif()
+
+#-----------------------------------------------------------------------------
+# Set CMAKE_{C,CXX}_FLAGS variables
+#-----------------------------------------------------------------------------
+if(NOT DEFINED Slicer_SKIP_SET_CMAKE_C_CXX_FLAGS)
+  set(Slicer_SKIP_SET_CMAKE_C_CXX_FLAGS FALSE)
+endif()
+if(NOT ${Slicer_SKIP_SET_CMAKE_C_CXX_FLAGS})
+  #-----------------------------------------------------------------------------
+  # Set ITK_REQUIRED_{C,CXX}_FLAGS variables
+  #-----------------------------------------------------------------------------
+  if(NOT DEFINED Slicer_SKIP_ITKPlatformSpecificChecks)
+    set(Slicer_SKIP_ITKPlatformSpecificChecks FALSE)
+  endif()
+  if(NOT ${Slicer_SKIP_ITKPlatformSpecificChecks})
+    include(ITKPlatformSpecificChecks)
+  else()
+    _slicer_skip_message("ITKPlatformSpecificChecks")
+  endif()
+
+  #-----------------------------------------------------------------------------
+  # Set Slicer_{C,CXX}_REQUIRED_FLAGS variables
+  #-----------------------------------------------------------------------------
+  if(NOT DEFINED Slicer_SKIP_SlicerBlockCXXRequiredFlags)
+    set(Slicer_SKIP_SlicerBlockCXXRequiredFlags FALSE)
+  endif()
+  if(NOT ${Slicer_SKIP_SlicerBlockCXXRequiredFlags})
+    include(SlicerBlockCXXRequiredFlags)
+  else()
+    _slicer_skip_message("SlicerBlockCXXRequiredFlags")
+  endif()
+
+  #-----------------------------------------------------------------------------
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS_INIT} ${Slicer_REQUIRED_C_FLAGS} ${ITK_REQUIRED_C_FLAGS} ${ADDITIONAL_C_FLAGS}" CACHE STRING "CMake C Flags" FORCE)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS_INIT} ${Slicer_REQUIRED_CXX_FLAGS} ${ITK_REQUIRED_CXX_FLAGS} ${ADDITIONAL_CXX_FLAGS}" CACHE STRING "CMake CXX Flags" FORCE)
+else()
+  _slicer_skip_message("ITKPlatformSpecificChecks")
+  _slicer_skip_message("SlicerBlockCXXRequiredFlags")
+  _slicer_skip_message("SET_CMAKE_C_CXX_FLAGS")
+endif()
+
+#-----------------------------------------------------------------------------
+# Static or Shared library
+#------------------------------------------------------------------------------
+if(NOT DEFINED BUILD_SHARED_LIBS)
+  set(BUILD_SHARED_LIBS ${Slicer_BUILD_SHARED})
+endif()
+
+#-----------------------------------------------------------------------------
+# Include directories - See SlicerMacroBuildQtModule
+#------------------------------------------------------------------------------
+
+#-----------------------------------------------------------------------------
+# CMake Function(s) and Macro(s)
+#-----------------------------------------------------------------------------
+include(CMakeParseArguments)
+include(ctkMacroCompilePythonScript)
+include(ctkMacroWrapPythonQt)
+include(ExternalProjectDependency)
+include(SlicerMacroParseArguments)
+include(SlicerMacroCheckExternalProjectDependency)
+include(SlicerMacroEmptyExternalProject)
+if(Slicer_BUILD_CLI_SUPPORT)
+  include(SlicerMacroBuildCLI)
+endif()
+include(SlicerMacroBuildModuleQtLibrary)
+include(SlicerMacroBuildModuleVTKLibrary)
+include(SlicerMacroPythonWrapModuleVTKLibrary)
+include(SlicerMacroBuildModuleLogic)
+include(SlicerMacroBuildModuleMRML)
+include(SlicerMacroBuildModuleWidgets)
+include(SlicerMacroBuildQtModule)
+include(SlicerMacroBuildScriptedModule)
+include(SlicerFunctionAddPythonQtResources)
+include(SlicerMacroExtractRepositoryInfo)
+include(vtkMacroKitPythonWrap)
+
+include(SlicerMacroConfigureModuleCxxTestDriver)
+include(ExternalData)
+include(SlicerMacroSimpleTest)
+include(SlicerMacroPythonTesting)
+include(SlicerMacroConfigureGenericCxxModuleTests)
+include(SlicerMacroConfigureGenericPythonModuleTests)
+
+#-----------------------------------------------------------------------------
+# Set a default build type if none was specified
+#-----------------------------------------------------------------------------
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+  message(STATUS "Setting build type to 'Debug' as none was specified.")
+  set(CMAKE_BUILD_TYPE Debug CACHE STRING "Choose the type of build." FORCE)
+  # Set the possible values of build type for cmake-gui
+  set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release"
+    "MinSizeRel" "RelWithDebInfo")
+endif()
+
+if(NOT Slicer_DONT_USE_EXTENSION)
+  #-----------------------------------------------------------------------------
+  # Configure additional launcher settings
+  #-----------------------------------------------------------------------------
+  if(NOT DEFINED Slicer_SKIP_SlicerBlockAdditionalLauncherSettings)
+    set(Slicer_SKIP_SlicerBlockAdditionalLauncherSettings FALSE)
+  endif()
+  if(NOT ${Slicer_SKIP_SlicerBlockAdditionalLauncherSettings})
+    include(SlicerBlockAdditionalLauncherSettings)
+  endif()
+
+  #-----------------------------------------------------------------------------
+  # Set Slicer_EXTENSION_CMAKE_GENERATOR and EXTENSION_{COMPILER, ARCHITECTURE, BITNESS, OPERATING_SYSTEM}
+  #-----------------------------------------------------------------------------
+
+  include(SlicerBlockUploadExtensionPrerequisites)
+endif()
+
+#-----------------------------------------------------------------------------
+# Set Slicer_BUNDLE_EXTENSIONS_LOCATION variable
+#-----------------------------------------------------------------------------
+set(Slicer_BUNDLE_EXTENSIONS_LOCATION "")
+if(APPLE)
+  set(Slicer_BUNDLE_EXTENSIONS_LOCATION "${Slicer_EXTENSIONS_DIRNAME}/${EXTENSION_NAME}/")
+  set(CMAKE_INSTALL_NAME_TOOL "" CACHE FILEPATH "" FORCE) # XXX Probably not needed anymore
+  set(CMAKE_MACOSX_RPATH 0 CACHE BOOL "" FORCE)
+endif()
+
+#-----------------------------------------------------------------------------
+# Set Slicer_INSTALL_*MODULE_*_DIR variables
+#-----------------------------------------------------------------------------
+if(Slicer_BUILD_CLI_SUPPORT)
+  set(SlicerExecutionModel_DEFAULT_CLI_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${Slicer_CLIMODULES_BIN_DIR}")
+  set(SlicerExecutionModel_DEFAULT_CLI_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${Slicer_CLIMODULES_LIB_DIR}")
+  set(SlicerExecutionModel_DEFAULT_CLI_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${Slicer_CLIMODULES_LIB_DIR}")
+
+  set(Slicer_INSTALL_CLIMODULES_BIN_DIR "${Slicer_INSTALL_ROOT}${Slicer_BUNDLE_EXTENSIONS_LOCATION}${Slicer_CLIMODULES_BIN_DIR}")
+  set(Slicer_INSTALL_CLIMODULES_LIB_DIR "${Slicer_INSTALL_ROOT}${Slicer_BUNDLE_EXTENSIONS_LOCATION}${Slicer_CLIMODULES_LIB_DIR}")
+  set(Slicer_INSTALL_CLIMODULES_SHARE_DIR "${Slicer_INSTALL_ROOT}${Slicer_BUNDLE_EXTENSIONS_LOCATION}${Slicer_CLIMODULES_SHARE_DIR}")
+  if(APPLE)
+    set(SlicerExecutionModel_DEFAULT_CLI_INSTALL_RUNTIME_DESTINATION "${Slicer_INSTALL_CLIMODULES_BIN_DIR}")
+    set(SlicerExecutionModel_DEFAULT_CLI_INSTALL_LIBRARY_DESTINATION "${Slicer_INSTALL_CLIMODULES_LIB_DIR}")
+    set(SlicerExecutionModel_DEFAULT_CLI_INSTALL_ARCHIVE_DESTINATION "${Slicer_INSTALL_CLIMODULES_LIB_DIR}")
+    set(SlicerExecutionModel_DEFAULT_CLI_EXECUTABLE_LINK_FLAGS
+      "${SlicerExecutionModel_DEFAULT_CLI_EXECUTABLE_LINK_FLAGS} -Wl,-rpath,@loader_path/../../../../../")
+    set(SlicerExecutionModel_DEFAULT_CLI_LIBRARY_LINK_FLAGS
+      "${SlicerExecutionModel_DEFAULT_CLI_LIBRARY_LINK_FLAGS} -Wl,-rpath,@loader_path/../../../../../")
+  endif()
+endif()
+
+set(Slicer_INSTALL_QTLOADABLEMODULES_BIN_DIR "${Slicer_INSTALL_ROOT}${Slicer_BUNDLE_EXTENSIONS_LOCATION}${Slicer_QTLOADABLEMODULES_BIN_DIR}")
+set(Slicer_INSTALL_QTLOADABLEMODULES_LIB_DIR "${Slicer_INSTALL_ROOT}${Slicer_BUNDLE_EXTENSIONS_LOCATION}${Slicer_QTLOADABLEMODULES_LIB_DIR}")
+set(Slicer_INSTALL_QTLOADABLEMODULES_PYTHON_LIB_DIR "${Slicer_INSTALL_ROOT}${Slicer_BUNDLE_EXTENSIONS_LOCATION}${Slicer_QTLOADABLEMODULES_PYTHON_LIB_DIR}")
+set(Slicer_INSTALL_QTLOADABLEMODULES_INCLUDE_DIR "${Slicer_INSTALL_ROOT}${Slicer_BUNDLE_EXTENSIONS_LOCATION}${Slicer_QTLOADABLEMODULES_INCLUDE_DIR}")
+set(Slicer_INSTALL_QTLOADABLEMODULES_SHARE_DIR "${Slicer_INSTALL_ROOT}${Slicer_BUNDLE_EXTENSIONS_LOCATION}${Slicer_QTLOADABLEMODULES_SHARE_DIR}")
+
+if(Slicer_USE_PYTHONQT)
+  set(Slicer_INSTALL_QTSCRIPTEDMODULES_BIN_DIR "${Slicer_INSTALL_ROOT}${Slicer_BUNDLE_EXTENSIONS_LOCATION}${Slicer_QTSCRIPTEDMODULES_BIN_DIR}")
+  set(Slicer_INSTALL_QTSCRIPTEDMODULES_LIB_DIR "${Slicer_INSTALL_ROOT}${Slicer_BUNDLE_EXTENSIONS_LOCATION}${Slicer_QTSCRIPTEDMODULES_LIB_DIR}")
+  set(Slicer_INSTALL_QTSCRIPTEDMODULES_INCLUDE_DIR "${Slicer_INSTALL_ROOT}${Slicer_BUNDLE_EXTENSIONS_LOCATION}${Slicer_QTSCRIPTEDMODULES_INCLUDE_DIR}")
+  set(Slicer_INSTALL_QTSCRIPTEDMODULES_SHARE_DIR "${Slicer_INSTALL_ROOT}${Slicer_BUNDLE_EXTENSIONS_LOCATION}${Slicer_QTSCRIPTEDMODULES_SHARE_DIR}")
+endif()
+
+set(Slicer_INSTALL_THIRDPARTY_BIN_DIR "${Slicer_INSTALL_ROOT}${Slicer_BUNDLE_EXTENSIONS_LOCATION}${Slicer_THIRDPARTY_BIN_DIR}")
+set(Slicer_INSTALL_THIRDPARTY_LIB_DIR "${Slicer_INSTALL_ROOT}${Slicer_BUNDLE_EXTENSIONS_LOCATION}${Slicer_THIRDPARTY_LIB_DIR}")
+set(Slicer_INSTALL_THIRDPARTY_SHARE_DIR "${Slicer_INSTALL_ROOT}${Slicer_BUNDLE_EXTENSIONS_LOCATION}${Slicer_THIRDPARTY_SHARE_DIR}")
+
+#-----------------------------------------------------------------------------
+# Set extension defaults if not already specified
+#-----------------------------------------------------------------------------
+if(NOT Slicer_DONT_USE_EXTENSION)
+  if(NOT DEFINED EXTENSION_DEPENDS)
+    set(EXTENSION_DEPENDS NA) # Specified as a space separated list or 'NA' if any
+  endif()
+  if(NOT DEFINED EXTENSION_LICENSE_FILE)
+    set(EXTENSION_LICENSE_FILE ${Slicer_LICENSE_FILE})
+  endif()
+  if(NOT DEFINED EXTENSION_README_FILE)
+    set(EXTENSION_README_FILE ${Slicer_README_FILE})
+  endif()
+
+  if(NOT DEFINED EXTENSION_SOURCE_DIR)
+    set(EXTENSION_SOURCE_DIR ${CMAKE_SOURCE_DIR})
+  endif()
+  if(NOT DEFINED EXTENSION_SUPERBUILD_BINARY_DIR)
+    set(EXTENSION_SUPERBUILD_BINARY_DIR ${CMAKE_BINARY_DIR})
+  endif()
+  if(NOT DEFINED EXTENSION_BUILD_SUBDIRECTORY)
+    set(EXTENSION_BUILD_SUBDIRECTORY ".")
+  endif()
+  if(NOT DEFINED EXTENSION_ENABLED)
+    set(EXTENSION_ENABLED 1)
+  endif()
+
+  slicer_setting_variable_message("EXTENSION_SOURCE_DIR" SKIP_TRUNCATE)
+  slicer_setting_variable_message("EXTENSION_SUPERBUILD_BINARY_DIR" SKIP_TRUNCATE)
+  slicer_setting_variable_message("EXTENSION_BUILD_SUBDIRECTORY" SKIP_TRUNCATE)
+
+  #-----------------------------------------------------------------------------
+  set(_url $ENV{MIDAS_PACKAGE_URL})
+  if("${_url}" STREQUAL "")
+    set(_url "http://slicer.kitware.com/midas3")
+  endif()
+
+  set(_email $ENV{MIDAS_PACKAGE_EMAIL})
+  if("${_email}" STREQUAL "")
+    set(_email "YOUR-MIDAS-LOGIN-NOTFOUND")
+  endif()
+
+  set(_api_key $ENV{MIDAS_PACKAGE_API_KEY})
+  if("${_api_key}" STREQUAL "")
+    set(_api_key "YOUR-MIDAS-APIKEY-NOTFOUND")
+  endif()
+
+  #-----------------------------------------------------------------------------
+  set(MIDAS_PACKAGE_URL ${_url} CACHE STRING "MIDAS URL where the extension should be uploaded.")
+  set(MIDAS_PACKAGE_EMAIL ${_email} CACHE STRING "Email allowing to authenticate to the MIDAS server.")
+  set(MIDAS_PACKAGE_API_KEY ${_api_key} CACHE STRING "Token allowing to authenticate to the MIDAS server.")
+
+  slicer_setting_variable_message("MIDAS_PACKAGE_URL")
+  slicer_setting_variable_message("MIDAS_PACKAGE_EMAIL" OBFUSCATE)
+  slicer_setting_variable_message("MIDAS_PACKAGE_API_KEY" OBFUSCATE)
+
+  include(SlicerExtensionDescriptionSpec)
+
+  foreach(var IN LISTS Slicer_EXT_OPTIONAL_METADATA_NAMES)
+    slicer_setting_variable_message(EXTENSION_${var})
+  endforeach()
+
+  #
+  # If not defined, initialize optional variables with their default values.
+  #
+  foreach(var IN LISTS Slicer_EXT_OPTIONAL_METADATA_NAMES)
+    if(NOT DEFINED EXTENSION_${var} AND
+        NOT ${var} STREQUAL "SVNUSERNAME" AND
+        NOT ${var} STREQUAL "SVNPASSWORD")
+      set(EXTENSION_${var} "${Slicer_EXT_METADATA_${var}_DEFAULT}")
+      slicer_setting_variable_message(EXTENSION_${var}
+        PRETEXT "Setting default for EXTENSION_${var}")
+    endif()
+  endforeach()
+
+  #-----------------------------------------------------------------------------
+  if(NOT DEFINED Slicer_SKIP_SlicerEnableExtensionTesting)
+    set(Slicer_SKIP_SlicerEnableExtensionTesting FALSE)
+  endif()
+  if(NOT ${Slicer_SKIP_SlicerEnableExtensionTesting}
+     AND NOT "${EXTENSION_NAME}" STREQUAL "")
+    include(SlicerEnableExtensionTesting)
+  endif()
+endif()

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<executable>
+  <category>Quantification</category>
+  <title>PET Standard Uptake Value Computation</title>
+  <description><![CDATA[Computes the standardized uptake value based on body weight. Takes an input PET image in DICOM and NRRD format (DICOM header must contain Radiopharmaceutical parameters). Produces a CSV file that contains patientID, studyDate, dose, labelID, suvmin, suvmax, suvmean, labelName for each volume of interest. It also displays some of the information as output strings in the GUI, the CSV file is optional in that case. The CSV file is appended to on each execution of the CLI.]]></description>
+  <version>0.1.0.$Revision: 8595 $(alpha)</version>
+  <documentation-url>http://www.slicer.org/slicerWiki/index.php/Documentation/Nightly/Modules/ComputeSUVBodyWeight</documentation-url>
+  <license/>
+  <contributor>Wendy Plesniak (SPL, BWH), Nicole Aucoin (SPL, BWH), Ron Kikinis (SPL, BWH)</contributor>
+  <acknowledgements><![CDATA[This work is funded by the Harvard Catalyst, and the National Alliance for Medical Image Computing (NAMIC), funded by the National Institutes of Health through the NIH Roadmap for Medical Research, Grant U54 EB005149.]]></acknowledgements>
+  <parameters>
+    <label>Image and Information</label>
+    <description><![CDATA[Input parameters]]></description>
+    <directory>
+      <name>PETDICOMPath</name>
+      <label>PET DICOM volume path</label>
+      <channel>input</channel>
+      <flag>-p</flag>
+      <longflag>--petDICOMPath</longflag>
+      <description><![CDATA[Input path to a directory containing a PET volume containing DICOM header information for SUV computation]]></description>
+    </directory>
+    <image>
+      <name>PETVolume</name>
+      <label>Input PET Volume</label>
+      <channel>input</channel>
+      <flag>-v</flag>
+      <longflag>--petVolume</longflag>
+      <description><![CDATA[Input PET volume for SUVbw computation (must be the same volume as pointed to by the DICOM path!).]]></description>
+    </image>
+    <image type="label">
+      <name>VOIVolume</name>
+      <label>Input VOI Volume</label>
+      <channel>input</channel>
+      <flag>-l</flag>
+      <longflag>--labelMap</longflag>
+      <description><![CDATA[Input label volume containing the volumes of interest]]></description>
+    </image>
+    <table hidden="true" type="color" reference="VOIVolume">
+      <name>ColorTable</name>
+      <channel>input</channel>
+      <longflag>--color</longflag>
+      <description><![CDATA[Color table to to map labels to colors and names]]></description>
+    </table>
+  </parameters>
+  <parameters>
+    <label>Output</label>
+    <description><![CDATA[The Ouptut file collects the information on disk from the output label, suv max/mean/min output stringsin the gui, plus some extra information from the DICOM header.]]></description>
+    <table fileExtensions=".csv">
+      <name>OutputCSV</name>
+      <description><![CDATA[A table holding the output SUV values in comma separated lines, one per label. Optional.]]></description>
+      <label>Output table</label>
+      <flag>-o</flag>
+      <longflag>--csvFile</longflag>
+      <channel>output</channel>
+    </table>
+    <string>
+      <name>OutputLabel</name>
+      <label>Output Label</label>
+      <channel>output</channel>
+      <description><![CDATA[List of labels for which SUV values were computed]]></description>
+    </string>
+    <string>
+      <name>OutputLabelValue</name>
+      <label>Output Label Value</label>
+      <channel>output</channel>
+      <description><![CDATA[List of label values for which SUV values were computed]]></description>
+    </string>
+    <string>
+      <name>SUVMax</name>
+      <label>SUV Max</label>
+      <channel>output</channel>
+      <description><![CDATA[SUV max for each label]]></description>
+    </string>
+    <string>
+      <name>SUVMean</name>
+      <label>SUV Mean</label>
+      <channel>output</channel>
+      <description><![CDATA[SUV mean for each label]]></description>
+    </string>
+    <string>
+      <name>SUVMin</name>
+      <label>SUV Minimum</label>
+      <channel>output</channel>
+      <description><![CDATA[SUV minimum for each label]]></description>
+    </string>
+  </parameters>
+</executable>
