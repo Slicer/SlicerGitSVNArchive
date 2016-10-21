@@ -11,8 +11,8 @@ dependencies:
   override:
     - docker info
     - if [[ -e ~/docker/image.tar ]]; then docker load -i ~/docker/image.tar; fi
-    - docker pull slicer/slicer-build-deps
-    - mkdir -p ~/docker; docker save slicer/slicer-build-deps > ~/docker/image.tar
+    - docker pull slicer/slicer-dependencies
+    - mkdir -p ~/docker; docker save slicer/slicer-dependencies > ~/docker/image.tar
     - if [[ -e ~/docker/image-test.tar ]]; then docker load -i ~/docker/image-test.tar; fi
     - docker pull slicer/slicer-test
     - mkdir -p ~/docker; docker save slicer/slicer-test > ~/docker/image-test.tar
@@ -23,6 +23,6 @@ dependencies:
 test:
   override:
     - "echo 'Notice: CircleCI does not build changes to Slicer dependencies' && if git diff --name-only master | grep -q SuperBuild > /dev/null; then false; fi"
-    - docker run -e "BUILD_TOOL_FLAGS=-j5" --name slicer -v ~/Slicer:/usr/src/Slicer slicer/slicer-build-deps
+    - docker run -e "BUILD_TOOL_FLAGS=-j5" --name slicer -v ~/Slicer:/usr/src/Slicer slicer/slicer-dependencies
     - docker cp slicer:$(docker cp slicer:/usr/src/Slicer-build/Slicer-build/PACKAGE_FILE.txt - | tar xO) $CIRCLE_ARTIFACTS
     - bash ./CMake/CircleCI/run.sh $CIRCLE_SHA1 $CIRCLE_BRANCH $SITE_BUILD_TYPE
