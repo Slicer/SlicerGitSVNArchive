@@ -1,4 +1,4 @@
-FROM thewtex/opengl:centos-2016.10.20
+FROM thewtex/opengl:centos
 MAINTAINER 3D Slicer Community <slicer-devel@bwh.harvard.edu>
 # Test Slicer
 # Graphic rendering support is required, so we use a base image that support

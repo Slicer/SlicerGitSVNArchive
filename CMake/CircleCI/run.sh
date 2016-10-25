@@ -3,7 +3,7 @@
 script_dir="`cd $(dirname $0); pwd`"
 
 # Run the images which contains the build of slicer (to link with the testing image with mounted volume)
-docker run -d --name slicer-build-with-test slicer/slicer-build:BUILD_TESTING_ON bash
+docker run -d --name slicer-build-with-test slicer/slicer-test bash
 
 # Run the opengl docker image which will run the tests located on the volume shared by slicer/slicer-build
 $script_dir/run_opengl.sh -i slicer/slicer-test:opengl -p 6081 \
