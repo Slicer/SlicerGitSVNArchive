@@ -14,6 +14,12 @@ dependencies:
     - docker info
     - pip install scikit-ci-addons==0.11.0
     - ci_addons docker load-pull-save slicer/slicer-dependencies
+    - if [[ -e ~/docker/image-test.tar ]]; then docker load -i ~/docker/image-test.tar; fi
+    - docker pull slicer/slicer-test
+    - mkdir -p ~/docker; docker save slicer/slicer-test > ~/docker/image-test.tar
+    - if [[ -e ~/docker/image-test-opengl.tar ]]; then docker load -i ~/docker/image-test-opengl.tar; fi
+    - docker pull slicer/slicer-test:opengl
+    - mkdir -p ~/docker; docker save slicer/slicer-test:opengl > ~/docker/image-test-opengl.tar
 
 test:
   override:
