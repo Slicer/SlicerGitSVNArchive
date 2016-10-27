@@ -37,6 +37,8 @@ RUN yum update -y && \
   valgrind \
   python2.7-dev
 
-# Because the sources are mounted, we cannot `chown` on `/usr/src`
-# It authorizes to write in Slicer-build to recover logs of ctest
-ENV APP "sudo chown -R user.user /usr/src/Slicer-build && /usr/src/Slicer/CMake/CircleCI/test.sh"
+COPY test.sh /usr/src/test.sh
+COPY CircleCI_Slicer_Docker.cmake /usr/src/CircleCI_Slicer_Docker.cmake
+
+# Authorize to write in Slicer-build to recover logs of ctest
+ENV APP "sudo chown -R user.user /usr/src/Slicer-build && /usr/src/test.sh"

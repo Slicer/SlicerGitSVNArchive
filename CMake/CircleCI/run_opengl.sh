@@ -114,12 +114,11 @@ if [ -z "$quiet" ]; then
 	fi
 fi
 
-# We do not need the source BUT if we don't mount, we can't launch test.sh
-pwd_dir="`cd $(dirname $0)/../..; pwd`"
+#pwd_dir="`cd $(dirname $0)/../..; pwd`"
 mount_local=""
-if [ "${os}" = "Linux" ] || [ "${os}" = "Darwin" ]; then
-	mount_local=" -v ${pwd_dir}:/usr/src/Slicer "
-fi
+#if [ "${os}" = "Linux" ] || [ "${os}" = "Darwin" ]; then
+#	mount_local=" -v ${pwd_dir}:/usr/src/Slicer "
+#fi
 port_arg=""
 if [ -n "$port" ]; then
 	port_arg="-p $port:6080"

@@ -70,9 +70,15 @@ set( BUILD_TESTING ON )
 #set( RUN_TEST_GUI "qSlicerWidgetTest2" )
 #set( CTEST_TEST_TARGET "${RUN_TEST_GUI}" )
 
-######### Submit ##########
+######### Submit Config ##########
 
-# Done automatically by reading the CTestConfig.cmake file inside /usr/src/Slicer
+set(CTEST_PROJECT_NAME "Slicer")
+set(CTEST_NIGHTLY_START_TIME "3:00:00 UTC")
+
+set(CTEST_DROP_METHOD "http")
+set(CTEST_DROP_SITE "slicer.cdash.org")
+set(CTEST_DROP_LOCATION "/submit.php?project=Slicer4")
+set(CTEST_DROP_SITE_CDASH TRUE)
 
 ########## Run ctest #########
 

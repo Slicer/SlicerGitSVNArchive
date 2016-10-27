@@ -15,5 +15,5 @@ mkdir /usr/src/Slicer-build/Slicer-build
 cd /usr/src/Slicer-build/Slicer-build || die "Could not cd into the build directory"
 
 ctest \
-  -S /usr/src/Slicer/CMake/CircleCI/CircleCI_Slicer_Docker.cmake \
+  -S /usr/src/CircleCI_Slicer_Docker.cmake \
   -VV || die "ctest failed"
