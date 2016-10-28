@@ -202,8 +202,9 @@ void qSlicerTerminologyNavigatorWidgetPrivate::init()
 //-----------------------------------------------------------------------------
 vtkSlicerTerminologiesModuleLogic* qSlicerTerminologyNavigatorWidgetPrivate::terminologyLogic()
 {
+  qSlicerCoreApplication* app = qSlicerCoreApplication::application();
   qSlicerAbstractCoreModule* terminologiesModule =
-    qSlicerCoreApplication::application()->moduleManager()->module("Terminologies");
+    app ? app->moduleManager()->module("Terminologies") : NULL;
   if (terminologiesModule)
   {
     vtkSlicerTerminologiesModuleLogic* terminologyLogic =
