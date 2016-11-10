@@ -1,7 +1,7 @@
-import os, glob, sys, copy
+import os, copy
 import qt
 import vtk
-import ctk
+from ctk import ctkDICOMObjectListWidget, ctkDICOMDatabase, ctkDICOMIndexer, ctkDICOMBrowser, ctkPopupWidget, ctkExpandButton
 import slicer
 from slicer.util import VTKObservationMixin
 
@@ -59,7 +59,7 @@ class DICOMDetailsPopup(VTKObservationMixin):
     if self.dicomBrowser is None:
       # This creates a DICOM database in the current working directory if nothing else
       # is specified in the settings, therefore promptForDatabaseDirectory must be called before this.
-      self.dicomBrowser = ctk.ctkDICOMBrowser()
+      self.dicomBrowser = ctkDICOMBrowser()
 
     self.browserPersistent = settingsValue('DICOM/BrowserPersistent', False, converter=toBool)
     self.tableDensity = settingsValue('DICOM/tableDensity', 'Compact')
@@ -162,7 +162,7 @@ class DICOMDetailsPopup(VTKObservationMixin):
     elif widgetType == 'window':
       self.window = qt.QWidget()
     elif widgetType == 'popup':
-      self.window = ctk.ctkPopupWidget(self.dicomBrowser)
+      self.window = ctkPopupWidget(self.dicomBrowser)
       self.window.orientation = 1
       self.window.horizontalDirection = 0
       self.window.alignment = 0x82
@@ -192,7 +192,7 @@ class DICOMDetailsPopup(VTKObservationMixin):
     self.toolLayout = qt.QHBoxLayout(self.toolFrame)
     self.layout.addWidget(self.toolFrame)
     self.toolLayout.addWidget(self.toolBar)
-    self.settingsButton = ctk.ctkExpandButton()
+    self.settingsButton = ctkExpandButton()
     self.toolLayout.addWidget(self.settingsButton)
     self.toolLayout.addWidget(self.databaseNameLabel)
     self.databaseNameLabel.visible = False
@@ -279,7 +279,7 @@ class DICOMDetailsPopup(VTKObservationMixin):
     self.viewMetadataButton.enabled = False
     self.actionButtonLayout.addWidget(self.viewMetadataButton)
     self.viewMetadataButton.connect('clicked()', self.onViewHeaderButton)
-    self.viewMetadataButton.connect('clicked()', self.headerPopup.open)
+    self.viewMetadataButton.connect('clicked()', self.headerPopup.show)
     self.actionButtonLayout.addStretch(1)
 
     self.examineButton = qt.QPushButton('Examine')
@@ -347,7 +347,7 @@ class DICOMDetailsPopup(VTKObservationMixin):
 
   def onDatabaseDirectoryChanged(self, databaseDirectory):
     if not hasattr(slicer, 'dicomDatabase') or not slicer.dicomDatabase:
-      slicer.dicomDatabase = ctk.ctkDICOMDatabase()
+      slicer.dicomDatabase = ctkDICOMDatabase()
     setDatabasePrecacheTags(self.dicomBrowser)
     databaseFilepath = databaseDirectory + "/ctkDICOM.sql"
     messages = ""
@@ -772,7 +772,7 @@ class DICOMDetailsPopup(VTKObservationMixin):
           slicer.app.processEvents()
         try:
           for derivedItem in loadable.derivedItems:
-            indexer = ctk.ctkDICOMIndexer()
+            indexer = ctkDICOMIndexer()
             progress.labelText = '\nIndexing %s' % derivedItem
             slicer.app.processEvents()
             indexer.addFile(slicer.dicomDatabase, derivedItem)
@@ -1001,7 +1001,7 @@ class DICOMRecentActivityWidget(qt.QWidget):
     self.name = 'recentActivityWidget'
     self.setLayout(qt.QVBoxLayout())
 
-    self.statusLabel = qt.QLabel(self.widget)
+    self.statusLabel = qt.QLabel()
     self.layout().addWidget(self.statusLabel)
     self.statusLabel.text = 'No inserts in the past hour'
 
@@ -1014,7 +1014,7 @@ class DICOMRecentActivityWidget(qt.QWidget):
     self.listWidget.setProperty('SH_ItemView_ActivateItemOnSingleClick', 1)
     self.listWidget.connect('activated(QModelIndex)', self.onActivated)
 
-    self.refreshButton = qt.QPushButton(self.widget)
+    self.refreshButton = qt.QPushButton()
     self.layout().addWidget(self.refreshButton)
     self.refreshButton.text = 'Refresh'
     self.refreshButton.connect('clicked()', self.update)
@@ -1174,22 +1174,22 @@ class DICOMSendDialog(object):
     self.dialog.close()
 
 
-class DICOMHeaderPopup(object):
-  def __init__(self):
+class DICOMHeaderPopup(ctkDICOMObjectListWidget):
 
+  def __init__(self):
+    super(DICOMHeaderPopup, self).__init__()
     self.popupGeometry = qt.QRect()
     settings = qt.QSettings()
     if settings.contains('DICOM/headerPopup.geometry'):
       self.popupGeometry = settings.value('DICOM/headerPopup.geometry')
     self.popupPositioned = False
-    self.window = ctk.ctkDICOMObjectListWidget()
-    self.window.setWindowTitle('DICOM File Metadata')
+    self.setWindowTitle('DICOM File Metadata')
 
-  def open(self):
-    if not self.window.isVisible():
-      self.window.show()
+  def show(self):
+    if not self.isVisible():
+      ctkDICOMObjectListWidget.show(self)
       if self.popupGeometry.isValid():
-        self.window.setGeometry(self.popupGeometry)
+        self.setGeometry(self.popupGeometry)
         self.popupPositioned = True
 
     if not self.popupPositioned:
@@ -1197,22 +1197,22 @@ class DICOMHeaderPopup(object):
       screenMainPos = mainWindow.pos
       x = screenMainPos.x() + 100
       y = screenMainPos.y() + 100
-      self.window.move(qt.QPoint(x, y))
+      self.move(qt.QPoint(x, y))
       self.popupPositioned = True
-    self.window.raise_()
+    self.raise_()
+
+  def hide(self):
+    self.onPopupGeometryChanged()
+    ctkDICOMObjectListWidget.hide(self)
 
   def setFileLists(self, fileLists):
     filePaths = []
     for fileList in fileLists:
       for filePath in fileList:
         filePaths.append(filePath)
-    self.window.setFileList(filePaths)
-
-  def close(self):
-    self.onPopupGeometryChanged()
-    self.window.hide()
+        ctkDICOMObjectListWidget.setFileList(self, filePaths)
 
   def onPopupGeometryChanged(self):
     settings = qt.QSettings()
-    self.popupGeometry = self.window.geometry
-    settings.setValue('DICOM/headerPopup.geometry', self.window.geometry)
+    self.popupGeometry = self.geometry
+    settings.setValue('DICOM/headerPopup.geometry', self.geometry)
