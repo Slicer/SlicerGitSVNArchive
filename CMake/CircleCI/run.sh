@@ -13,4 +13,4 @@ $script_dir/run_opengl.sh \
     -r --volumes-from -r slicer-build-with-test
 
 # Remove the container used to mount volumes from slicer-build
-docker rm slicer-build-with-test
+#docker rm slicer-build-with-test

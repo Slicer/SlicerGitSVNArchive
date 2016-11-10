@@ -92,7 +92,7 @@ url="http://${ip}:$port"
 
 cleanup() {
 	docker stop $container >/dev/null
-	docker rm $container >/dev/null
+	#docker rm $container >/dev/null
 }
 
 running=$(docker ps -a -q --filter "name=${container}")
