@@ -136,23 +136,23 @@ class DICOMDetailsPopup(VTKObservationMixin):
     #
     self.tables = slicer.util.findChildren(self.dicomBrowser, 'dicomTableManager')[0]
     patientTable = slicer.util.findChildren(self.tables, 'patientsTable')[0]
-    patientTableView = slicer.util.findChildren(patientTable, 'tblDicomDatabaseView')[0]
+    self.patientTableView = slicer.util.findChildren(patientTable, 'tblDicomDatabaseView')[0]
     patientSearchBox = slicer.util.findChildren(patientTable, 'leSearchBox')[0]
     studyTable = slicer.util.findChildren(self.tables, 'studiesTable')[0]
-    studyTableView = slicer.util.findChildren(studyTable, 'tblDicomDatabaseView')[0]
+    self.studyTableView = slicer.util.findChildren(studyTable, 'tblDicomDatabaseView')[0]
     studySearchBox = slicer.util.findChildren(studyTable, 'leSearchBox')[0]
     seriesTable = slicer.util.findChildren(self.tables, 'seriesTable')[0]
-    seriesTableView = slicer.util.findChildren(seriesTable, 'tblDicomDatabaseView')[0]
+    self.seriesTableView = slicer.util.findChildren(seriesTable, 'tblDicomDatabaseView')[0]
     seriesSearchBox = slicer.util.findChildren(seriesTable, 'leSearchBox')[0]
     self.tableSplitter = qt.QSplitter()
-    self.tableSplitter.addWidget(patientTableView)
-    self.tableSplitter.addWidget(studyTableView)
-    self.tableSplitter.addWidget(seriesTableView)
+    self.tableSplitter.addWidget(self.patientTableView)
+    self.tableSplitter.addWidget(self.studyTableView)
+    self.tableSplitter.addWidget(self.seriesTableView)
 
     # TODO: Move to this part to CTK
-    patientTableView.resizeColumnsToContents()
-    studyTableView.resizeColumnsToContents()
-    seriesTableView.resizeColumnsToContents()
+    self.patientTableView.resizeColumnsToContents()
+    self.studyTableView.resizeColumnsToContents()
+    self.seriesTableView.resizeColumnsToContents()
 
     self.userFrame = qt.QWidget()
     self.preview = qt.QWidget()
@@ -254,6 +254,7 @@ class DICOMDetailsPopup(VTKObservationMixin):
 
     tableWidth = 350 if showHeader else 600
     self.loadableTable = DICOMLoadableTable(self.userFrame, width=tableWidth)
+    self.loadableTable.itemChanged.connect(self.onLoadableTableItemChanged)
 
     #
     # button row for action column
@@ -267,7 +268,6 @@ class DICOMDetailsPopup(VTKObservationMixin):
     self.actionButtonsFrame.setLayout(self.actionButtonLayout)
 
     self.loadButton = qt.QPushButton('Load')
-    self.loadButton.enabled = True
     self.loadButton.toolTip = 'Load Selection to Slicer'
     self.actionButtonLayout.addWidget(self.loadButton)
     self.loadButton.connect('clicked()', self.loadCheckedLoadables)
@@ -298,7 +298,7 @@ class DICOMDetailsPopup(VTKObservationMixin):
     self.actionButtonLayout.addWidget(self.advancedViewButton)
     self.advancedViewButton.enabled = True
     self.advancedViewButton.checked = self.advancedView
-    self.advancedViewButton.connect('clicked()', self.onAdvancedViewButton)
+    self.advancedViewButton.toggled.connect(self.onAdvancedViewButton)
 
     self.horizontalViewCheckBox = qt.QCheckBox('Horizontal')
     self.horizontalViewCheckBox.objectName = 'HorizontalViewCheckBox'
@@ -345,6 +345,8 @@ class DICOMDetailsPopup(VTKObservationMixin):
       self.checkBox = self.pluginSelector.checkBoxByPlugin[pluginClass]
       self.checkBox.connect('stateChanged(int)', self.onPluginStateChanged)
       self.checkBoxByPlugins.append(self.checkBox)
+
+    self.loadButton.enabled = self.seriesTableView.selectedIndexes()
 
   def onDatabaseDirectoryChanged(self, databaseDirectory):
     if not hasattr(slicer, 'dicomDatabase') or not slicer.dicomDatabase:
@@ -441,13 +443,15 @@ class DICOMDetailsPopup(VTKObservationMixin):
         if visible:
           control.visible = self.settingsButton.checked
 
-  def onAdvancedViewButton(self):
-    self.advancedView = self.advancedViewButton.checked
-    advancedWidgets = [self.loadableTableFrame, self.examineButton,
-                       self.uncheckAllButton]
+  def onAdvancedViewButton(self, checked):
+    self.advancedView = checked
+    advancedWidgets = [self.loadableTableFrame, self.examineButton, self.uncheckAllButton]
     for widget in advancedWidgets:
       widget.visible = self.advancedView
-    self.loadButton.enabled = not self.advancedView
+    if self.advancedView:
+      self.loadButton.enabled = self.loadableTable.getNumberOfCheckedItems() > 0
+    else:
+      self.loadButton.enabled = self.seriesTableView.selectedIndexes()
 
     self.settings.setValue('DICOM/advancedView', int(self.advancedView))
 
@@ -522,6 +526,7 @@ class DICOMDetailsPopup(VTKObservationMixin):
           loadable.selected = False
 
   def onSeriesSelected(self, seriesUIDList):
+    self.loadButton.enabled = self.seriesTableView.selectedIndexes() and not self.advancedView
     self.offerLoadables(seriesUIDList, "SeriesUIDList")
 
   def offerLoadables(self, uidArgument, role):
@@ -553,6 +558,9 @@ class DICOMDetailsPopup(VTKObservationMixin):
 
   def uncheckAllLoadables(self):
     self.loadableTable.uncheckAll()
+
+  def onLoadableTableItemChanged(self, item):
+    self.loadButton.enabled = self.loadableTable.getNumberOfCheckedItems() > 0
 
   def examineForLoading(self):
     """For selected plugins, give user the option
@@ -840,6 +848,10 @@ class DICOMLoadableTable(qt.QTableWidget):
     self.loadables = {}
     self.setLoadables([])
     self.configure()
+    slicer.app.connect('aboutToQuit()', self.deleteLater)
+
+  def getNumberOfCheckedItems(self):
+    return sum(1 for row in xrange(self.rowCount) if self.item(row, 0).checkState() == qt.Qt.Checked)
 
   def configure(self):
     self.setColumnCount(3)
@@ -860,7 +872,7 @@ class DICOMLoadableTable(qt.QTableWidget):
     self.addWarningColumn(item, loadable, row)
 
   def setCheckState(self, item, loadable):
-    item.setCheckState(loadable.selected * 2)
+    item.setCheckState(qt.Qt.Checked if loadable.selected else qt.Qt.Unchecked)
     item.setToolTip(loadable.tooltip)
 
   def addReaderColumn(self, item, reader, row):
