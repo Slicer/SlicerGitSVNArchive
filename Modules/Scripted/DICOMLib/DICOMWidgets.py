@@ -103,7 +103,7 @@ class DICOMDetailsPopup(VTKObservationMixin):
     self.settingsButton.visible = not settingsButtonHidden
 
   def onSendActionTriggered(self, triggered):
-    if self.fileLists:
+    if len(self.fileLists):
       sendDialog = DICOMSendDialog([dcmFile for sublist in self.fileLists for dcmFile in sublist])
 
   def _findChildren(self, name):
@@ -543,11 +543,11 @@ class DICOMDetailsPopup(VTKObservationMixin):
     self.loadableTable.setLoadables([])
     if self.advancedViewButton.checkState() == 2:
       self.loadButton.enabled = False
-    self.fileLists = self.getFileListForRole(uidArgument, role)
+    self.fileLists = self.getFileListsForRole(uidArgument, role)
     self.examineButton.enabled = len(self.fileLists) != 0
     self.viewMetadataButton.enabled = len(self.fileLists) != 0
 
-  def getFileListForRole(self, uidArgument, role):
+  def getFileListsForRole(self, uidArgument, role):
     fileLists = []
     if role == "Series":
       fileLists.append(slicer.dicomDatabase.filesForSeries(uidArgument))
@@ -578,7 +578,7 @@ class DICOMDetailsPopup(VTKObservationMixin):
     """For selected plugins, give user the option
     of what to load"""
 
-    (self.loadablesByPlugin, loadEnabled) = self.getLoadablesFromFileLists(self.fileLists)
+    self.loadablesByPlugin, loadEnabled = self.getLoadablesFromFileLists(self.fileLists)
 
     self.loadButton.enabled = loadEnabled
     # self.viewMetadataButton.enabled = loadEnabled
@@ -1184,8 +1184,10 @@ class DICOMSendDialog(qt.QDialog):
     slicer.app.processEvents()
 
   def centerProgress(self):
-    x = (self.screenSize.width() - self.progress.width)/2
-    y = (self.screenSize.height() - self.progress.height)/2
+    mainWindow = slicer.util.mainWindow()
+    screenMainPos = mainWindow.pos
+    x = screenMainPos.x() + (mainWindow.width - self.progress.width)/2
+    y = screenMainPos.y() + (mainWindow.height - self.progress.height)/2
     self.progress.move(x,y)
 
 
