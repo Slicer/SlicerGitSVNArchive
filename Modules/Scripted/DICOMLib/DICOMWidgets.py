@@ -86,6 +86,9 @@ class DICOMDetailsPopup(VTKObservationMixin):
       control = self._findChildren(name)
       control.visible = visible
 
+    self.sendControl = self._findChildren('ActionSend')
+    self.sendControl.triggered.connect(self.onSendActionTriggered)
+
     # Define set of widgets that should be hidden/shown together
     self.settingsWidgetNames = {
       'DatabaseButton': ('DatabaseNameLabel', 'DirectoryButton'),
@@ -98,6 +101,10 @@ class DICOMDetailsPopup(VTKObservationMixin):
       settingsButtonHidden = settingsButtonHidden and not settingsValue('DICOM/%s.visible' % groupName, True,
                                                                         converter=toBool)
     self.settingsButton.visible = not settingsButtonHidden
+
+  def onSendActionTriggered(self, triggered):
+    if self.fileLists:
+      sendDialog = DICOMSendDialog([dcmFile for sublist in self.fileLists for dcmFile in sublist])
 
   def _findChildren(self, name):
     """Since the ctkDICOMBrowser widgets stolen by the Slicer DICOM browser
@@ -499,7 +506,7 @@ class DICOMDetailsPopup(VTKObservationMixin):
     """Review the selected state and confidence of the loadables
     across plugins so that the options the user is most likely
     to want are listed at the top of the table and are selected
-    by default.  Only offer one pre-selected loadable per series
+    by default. Only offer one pre-selected loadable per series
     unless both plugins mark it as selected and they have equal
     confidence."""
 
@@ -528,6 +535,7 @@ class DICOMDetailsPopup(VTKObservationMixin):
   def onSeriesSelected(self, seriesUIDList):
     self.loadButton.enabled = self.seriesTableView.selectedIndexes() and not self.advancedView
     self.offerLoadables(seriesUIDList, "SeriesUIDList")
+    self.sendControl.enabled = len(self.fileLists)
 
   def offerLoadables(self, uidArgument, role):
     """Get all the loadable options at the currently selected level
@@ -535,26 +543,30 @@ class DICOMDetailsPopup(VTKObservationMixin):
     self.loadableTable.setLoadables([])
     if self.advancedViewButton.checkState() == 2:
       self.loadButton.enabled = False
-    self.fileLists = []
+    self.fileLists = self.getFileListForRole(uidArgument, role)
+    self.examineButton.enabled = len(self.fileLists) != 0
+    self.viewMetadataButton.enabled = len(self.fileLists) != 0
+
+  def getFileListForRole(self, uidArgument, role):
+    fileLists = []
     if role == "Series":
-      self.fileLists.append(slicer.dicomDatabase.filesForSeries(uidArgument))
+      fileLists.append(slicer.dicomDatabase.filesForSeries(uidArgument))
     if role == "SeriesUIDList":
       for uid in uidArgument:
         uid = uid.replace("'", "")
-        self.fileLists.append(slicer.dicomDatabase.filesForSeries(uid))
+        fileLists.append(slicer.dicomDatabase.filesForSeries(uid))
     if role == "Study":
       series = slicer.dicomDatabase.seriesForStudy(uidArgument)
       for serie in series:
-        self.fileLists.append(slicer.dicomDatabase.filesForSeries(serie))
+        fileLists.append(slicer.dicomDatabase.filesForSeries(serie))
     if role == "Patient":
       studies = slicer.dicomDatabase.studiesForPatient(uidArgument)
       for study in studies:
         series = slicer.dicomDatabase.seriesForStudy(study)
         for serie in series:
           fileList = slicer.dicomDatabase.filesForSeries(serie)
-          self.fileLists.append(fileList)
-    self.examineButton.enabled = len(self.fileLists) != 0
-    self.viewMetadataButton.enabled = len(self.fileLists) != 0
+          fileLists.append(fileList)
+    return fileLists
 
   def uncheckAllLoadables(self):
     self.loadableTable.uncheckAll()
@@ -1096,30 +1108,29 @@ class DICOMRecentActivityWidget(qt.QWidget):
       self.detailsPopup.offerLoadables(series.series, "Series")
 
 
-class DICOMSendDialog(object):
+class DICOMSendDialog(qt.QDialog):
   """Implement the Qt dialog for doing a DICOM Send (storage SCU)
   """
 
   def __init__(self, files):
+    super(DICOMSendDialog, self).__init__(slicer.util.mainWindow())
+    self.setWindowTitle('Send DICOM Study')
+    self.setWindowModality(1)
+    self.setLayout(qt.QVBoxLayout())
     self.files = files
     self.settings = qt.QSettings()
     self.sendAddress = self.settings.value('DICOM.sendAddress')
     self.sendPort = self.settings.value('DICOM.sendPort')
+
+    self.screenSize = slicer.app.desktop().screenGeometry()
     self.open()
 
   def open(self):
-    # main dialog
-    self.dialog = qt.QDialog(slicer.util.mainWindow())
-    self.dialog.setWindowTitle('Send DICOM Study')
-    self.dialog.setWindowModality(1)
-    layout = qt.QVBoxLayout()
-    self.dialog.setLayout(layout)
-
     self.studyLabel = qt.QLabel('Send %d items to destination' % len(self.files))
-    layout.addWidget(self.studyLabel)
+    self.layout().addWidget(self.studyLabel)
 
     # Send Parameters
-    self.dicomFrame = qt.QFrame(self.dialog)
+    self.dicomFrame = qt.QFrame(self)
     self.dicomFormLayout = qt.QFormLayout()
     self.dicomFrame.setLayout(self.dicomFormLayout)
     self.dicomEntries = {}
@@ -1131,17 +1142,17 @@ class DICOMSendDialog(object):
       self.dicomEntries[label] = qt.QLineEdit()
       self.dicomEntries[label].text = self.dicomParameters[label]
       self.dicomFormLayout.addRow(label + ": ", self.dicomEntries[label])
-    layout.addWidget(self.dicomFrame)
+    self.layout().addWidget(self.dicomFrame)
 
     # button box
-    bbox = qt.QDialogButtonBox(self.dialog)
+    bbox = qt.QDialogButtonBox(self)
     bbox.addButton(bbox.Ok)
     bbox.addButton(bbox.Cancel)
-    bbox.connect('accepted()', self.onOk)
-    bbox.connect('rejected()', self.onCancel)
-    layout.addWidget(bbox)
+    bbox.accepted.connect(self.onOk)
+    bbox.rejected.connect(self.onCancel)
+    self.layout().addWidget(bbox)
 
-    self.dialog.open()
+    qt.QDialog.open(self)
 
   def onOk(self):
     address = self.dicomEntries['Destination Address'].text
@@ -1151,23 +1162,31 @@ class DICOMSendDialog(object):
     self.progress = slicer.util.createProgressDialog(value=0, maximum=len(self.files))
     self.progressValue = 0
 
-    def onProgress(message):
-      self.progress.show()
-      self.progressValue += 1
-      self.progress.setValue(self.progressValue)
-      self.progress.setLabelText(message)
-
     try:
-      DICOMLib.DICOMSender(self.files, address, port, progressCallback=onProgress)
+      DICOMLib.DICOMSender(self.files, address, port, progressCallback=self.onProgress)
     except Exception as result:
-      slicer.util.warningDisplay('Could not send data: %s' % result, windowTitle='DICOM Send', parent=self.dialog)
+      slicer.util.warningDisplay('Could not send data: %s' % result, windowTitle='DICOM Send', parent=self)
     self.progress.close()
     self.progress = None
     self.progressValue = None
-    self.dialog.close()
+    self.close()
 
   def onCancel(self):
-    self.dialog.close()
+    self.close()
+
+  def onProgress(self, message):
+    self.progress.show()
+    self.progress.activateWindow()
+    self.centerProgress()
+    self.progressValue += 1
+    self.progress.setValue(self.progressValue)
+    self.progress.setLabelText(message)
+    slicer.app.processEvents()
+
+  def centerProgress(self):
+    x = (self.screenSize.width() - self.progress.width)/2
+    y = (self.screenSize.height() - self.progress.height)/2
+    self.progress.move(x,y)
 
 
 class DICOMHeaderPopup(ctkDICOMObjectListWidget):
