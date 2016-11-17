@@ -143,7 +143,14 @@ print_app_output() {
 
 trap "docker stop $container >/dev/null && print_app_output" SIGINT SIGTERM
 
-docker wait $container >/dev/null
+# Avoid CircleCI Timed Out by displaying a dot every minute
+RUNNING=$(docker inspect --format="{{ .State.Running }}" $container)
+while "$RUNNING" == "true"
+do
+  echo -n .
+  sleep 1m
+  RUNNING=$(docker inspect --format="{{ .State.Running }}" $container)
+done
 
 print_app_output
 
