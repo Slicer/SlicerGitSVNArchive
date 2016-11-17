@@ -29,9 +29,12 @@
 #include <vtkNew.h>
 #include <vtkObjectFactory.h>
 #include <vtkPolyDataNormals.h>
-#include <vtkReverseSense.h>
+#include <vtkTransformPolyDataFilter.h>
+#include <vtkTransform.h>
+#include <vtkMatrix4x4.h>
 #include <vtkSmartPointer.h>
 #include <vtkTagTable.h>
+#include <vtkReverseSense.h>
 
 /// ITK includes
 #include <itksys/Directory.hxx>
@@ -459,43 +462,29 @@ void vtkSlicerModelsLogic::MirrorModel(vtkMRMLModelNode *modelNode,
 
   poly->DeepCopy(modelNode->GetPolyData());
 
-  double oldPoint[3];
-  int nPoints = poly->GetNumberOfPoints();
-  vtkSmartPointer<vtkPoints> polyPoints = poly->GetPoints();
+  vtkSmartPointer<vtkMatrix4x4> m = vtkSmartPointer<vtkMatrix4x4>::New();
+  m->Zero();
+  m->SetElement(0, 0, mirrorX ? -1 : 1);
+  m->SetElement(1, 1, mirrorY ? -1 : 1);
+  m->SetElement(2, 2, mirrorZ ? -1 : 1);
+  m->SetElement(3, 3, 1);
 
-  for( int PointId = 0; PointId < nPoints; PointId++ )
-  {
-      polyPoints->GetPoint(PointId, oldPoint);
-      double newPoint[3];
+  vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
+  transform->SetMatrix(m);
+  transform->Update();
 
-      if (mirrorX)
-          newPoint[0] = oldPoint[0] * (-1);
-      else
-          newPoint[0] = oldPoint[0];
+  vtkSmartPointer<vtkTransformPolyDataFilter> transformFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+  transformFilter->SetInputData(poly);
+  transformFilter->SetTransform(transform);
+  transformFilter->Update();
 
-      if (mirrorY)
-          newPoint[1] = oldPoint[1] * (-1);
-      else
-          newPoint[1] = oldPoint[1];
+  vtkSmartPointer<vtkReverseSense> reverse = vtkSmartPointer<vtkReverseSense>::New();
+  reverse->SetInputConnection(transformFilter->GetOutputPort());
+  reverse->ReverseCellsOn();
+  reverse->ReverseNormalsOff();
+  reverse->Update();
 
-      if (mirrorZ)
-          newPoint[2] = oldPoint[2] * (-1);
-      else
-          newPoint[2] = oldPoint[2];
-
-      polyPoints->SetPoint(PointId, newPoint);
-  }
-
-  poly->SetPoints(polyPoints);
-  vtkSmartPointer<vtkPolyDataNormals> normals = vtkSmartPointer<vtkPolyDataNormals>::New();
-  normals->SetInputData(poly);
-  normals->AutoOrientNormalsOn();
-  normals->ConsistencyOn();
-  normals->Update();
-
-  modelOut->SetPolyDataConnection(normals->GetOutputPort());
-
-  //modelOut->SetAndObservePolyData(poly);
+  modelOut->SetPolyDataConnection(reverse->GetOutputPort());
 
   return;
 }
