@@ -29,8 +29,12 @@
 #include <vtkNew.h>
 #include <vtkObjectFactory.h>
 #include <vtkPolyDataNormals.h>
+#include <vtkTransformPolyDataFilter.h>
+#include <vtkTransform.h>
+#include <vtkMatrix4x4.h>
 #include <vtkSmartPointer.h>
 #include <vtkTagTable.h>
+#include <vtkReverseSense.h>
 
 /// ITK includes
 #include <itksys/Directory.hxx>
@@ -438,33 +442,88 @@ void vtkSlicerModelsLogic::TransformModel(vtkMRMLTransformNode *tnode,
 
   vtkAbstractTransform *transform = tnode->GetTransformToParent();
   modelOut->ApplyTransform(transform);
-
-  if (transformNormals)
-    {
-    // fix normals
-    //--- NOTE: This filter recomputes normals for polygons and
-    //--- triangle strips only. Normals are not computed for lines or vertices.
-    //--- Triangle strips are broken up into triangle polygons.
-    //--- Polygons are not automatically re-stripped.
-    vtkNew<vtkPolyDataNormals> normals;
-    normals->SetInputData(poly.GetPointer());
-    //--- NOTE: This assumes a completely closed surface
-    //---(i.e. no boundary edges) and no non-manifold edges.
-    //--- If these constraints do not hold, the AutoOrientNormals
-    //--- is not guaranteed to work.
-    normals->AutoOrientNormalsOn();
-    //--- Flipping modifies both the normal direction
-    //--- and the order of a cell's points.
-    normals->FlipNormalsOn();
-    normals->SplittingOff();
-    //--- enforce consistent polygon ordering.
-    normals->ConsistencyOn();
-
-    normals->Update();
-    modelOut->SetPolyDataConnection(normals->GetOutputPort());
-   }
-
   modelOut->SetAndObserveTransformNodeID(mtnode == NULL ? NULL : mtnode->GetID());
+
+  return;
+}
+
+//----------------------------------------------------------------------------
+void vtkSlicerModelsLogic::MirrorModel(vtkMRMLModelNode *modelNode,
+                                       vtkMRMLModelNode *modelOut,
+                                       bool mirrorX, bool mirrorY, bool mirrorZ)
+{
+  if (!modelNode || !modelOut )
+    {
+    return;
+    }
+
+  vtkSmartPointer<vtkPolyData> poly = vtkSmartPointer<vtkPolyData>::New();
+  modelOut->SetAndObservePolyData(poly);
+
+  poly->DeepCopy(modelNode->GetPolyData());
+
+  vtkSmartPointer<vtkMatrix4x4> m = vtkSmartPointer<vtkMatrix4x4>::New();
+  m->Zero();
+  m->SetElement(0, 0, mirrorX ? -1 : 1);
+  m->SetElement(1, 1, mirrorY ? -1 : 1);
+  m->SetElement(2, 2, mirrorZ ? -1 : 1);
+  m->SetElement(3, 3, 1);
+
+  vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
+  transform->SetMatrix(m);
+  transform->Update();
+
+  vtkSmartPointer<vtkTransformPolyDataFilter> transformFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+  transformFilter->SetInputData(poly);
+  transformFilter->SetTransform(transform);
+  transformFilter->Update();
+
+  vtkSmartPointer<vtkReverseSense> reverse = vtkSmartPointer<vtkReverseSense>::New();
+  reverse->SetInputConnection(transformFilter->GetOutputPort());
+  reverse->ReverseCellsOn();
+  reverse->ReverseNormalsOff();
+  reverse->Update();
+
+  modelOut->SetPolyDataConnection(reverse->GetOutputPort());
+
+  return;
+}
+
+//----------------------------------------------------------------------------
+void vtkSlicerModelsLogic::FlipNormals(vtkMRMLModelNode *modelNode,
+                                       vtkMRMLModelNode *modelOut,
+                                       bool autoOrient, bool flip, bool split,
+                                       double angle)
+{
+  if (!modelNode || !modelOut )
+    {
+    return;
+    }
+
+  vtkSmartPointer<vtkPolyData> poly = vtkSmartPointer<vtkPolyData>::New();
+  modelOut->SetAndObservePolyData(poly);
+
+  poly->DeepCopy(modelNode->GetPolyData());
+
+  vtkSmartPointer<vtkPolyDataNormals> normals = vtkSmartPointer<vtkPolyDataNormals>::New();
+  normals->SetInputData(poly);
+
+  if (autoOrient)
+    {
+    normals->AutoOrientNormalsOn();
+    }
+  else
+    {
+    normals->AutoOrientNormalsOff();
+    }
+
+  normals->SetFlipNormals(flip);
+  normals->SetSplitting(split);
+  normals->SetFeatureAngle(angle);
+  normals->ConsistencyOn();
+  normals->Update();
+
+  modelOut->SetPolyDataConnection(normals->GetOutputPort());
 
   return;
 }
