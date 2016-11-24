@@ -72,7 +72,7 @@
 static const std::string SERIALIZATION_SEPARATOR = "|";
 static const std::string KEY_SEGMENT_ID = "ID";
 static const std::string KEY_SEGMENT_NAME = "Name";
-static const std::string KEY_SEGMENT_COLOR = "Color";
+static const std::string KEY_SEGMENT_DEFAULT_COLOR = "DefaultColor";
 static const std::string KEY_SEGMENT_TAGS = "Tags";
 static const std::string KEY_SEGMENT_EXTENT = "Extent";
 static const std::string KEY_SEGMENTATION_MASTER_REPRESENTATION = "MasterRepresentation";
@@ -269,19 +269,28 @@ int vtkMRMLSegmentationStorageNode::ReadDataInternal(vtkMRMLNode *refNode)
     success = true;
     }
 
-  // Create display node if segmentation there is none
-  if (success && !segmentationNode->GetDisplayNode())
-    {
-    segmentationNode->CreateDefaultDisplayNodes();
-    }
-
   if (!success)
-    {
+  {
     // Failed to read
     vtkErrorMacro("ReadDataInternal: File " << fullName << " could not be read neither as labelmap nor poly data");
     return 0;
-    }
+  }
 
+  // Set display node defaults if there is no display node
+  vtkSegmentation* segmentation = segmentationNode->GetSegmentation();
+  if (segmentation != NULL && segmentationNode->GetDisplayNode() == NULL)
+    {
+    segmentationNode->CreateDefaultDisplayNodes();
+    vtkMRMLSegmentationDisplayNode* displayNode = vtkMRMLSegmentationDisplayNode::SafeDownCast(segmentationNode->GetDisplayNode());
+    std::vector< std::string > segmentIDs;
+    segmentation->GetSegmentIDs(segmentIDs);
+    for (std::vector< std::string >::const_iterator segmentIdIt = segmentIDs.begin(); segmentIdIt != segmentIDs.end(); ++segmentIdIt)
+      {
+      std::string currentSegmentID = *segmentIdIt;
+      vtkSegment* currentSegment = segmentation->GetSegment(*segmentIdIt);
+      displayNode->SetSegmentColor(*segmentIdIt, vtkVector3d(currentSegment->GetDefaultColor()));
+      }
+    }
   return 1;
 }
 
@@ -378,6 +387,15 @@ int vtkMRMLSegmentationStorageNode::ReadBinaryLabelmapRepresentation4DSpatial(vt
           GetSegmentMetaDataKey(segmentIndex, KEY_SEGMENT_NAME),
           currentSegmentName);
     currentSegment->SetName(currentSegmentName.c_str());
+
+    // DefaultColor
+    std::string defaultColorValue;
+    itk::ExposeMetaData<std::string>(
+          metadata,
+          GetSegmentMetaDataKey(segmentIndex, KEY_SEGMENT_DEFAULT_COLOR),
+          defaultColorValue);
+    double currentSegmentDefaultColor[3] = {0.0,0.0,0.0};
+    GetSegmentDefaultColorFromString(currentSegmentDefaultColor, defaultColorValue);
 
     // Extent
     std::string extentValue;
@@ -481,7 +499,8 @@ int vtkMRMLSegmentationStorageNode::ReadBinaryLabelmapRepresentation(vtkMRMLSegm
     return 0;
     }
 
-  // Read the header to see if the NRRD file corresponds to the MRML Node
+  // Read the header to see if the NRRD file corresponds to the
+  // MRML Node
   reader->UpdateInformation();
 
   if (reader->GetPointDataType() != vtkDataSetAttributes::SCALARS)
@@ -560,7 +579,7 @@ int vtkMRMLSegmentationStorageNode::ReadBinaryLabelmapRepresentation(vtkMRMLSegm
   vtkMatrix4x4* rasToFileIjk = reader->GetRasToIjkMatrix();
   // Compensate for the extent shift in the image origin.
   // We change the origin so that if a reader ignores private fields, such as
-  // referenceImageExtentOffset, the image is placed correctly in physical coordinate system.
+  // referenceImageExtentOffset, the image is placed corretly in physical coordinate system.
   vtkNew<vtkMatrix4x4> fileIjkToIjk;
   fileIjkToIjk->SetElement(0, 3, referenceImageExtentOffset[0]);
   fileIjkToIjk->SetElement(1, 3, referenceImageExtentOffset[1]);
@@ -623,6 +642,15 @@ int vtkMRMLSegmentationStorageNode::ReadBinaryLabelmapRepresentation(vtkMRMLSegm
     else
       {
       vtkWarningMacro("Segment name is missing for segment " << segmentIndex);
+      }
+
+    // DefaultColor
+    headerValue = reader->GetHeaderValue(GetSegmentMetaDataKey(segmentIndex, KEY_SEGMENT_DEFAULT_COLOR).c_str());
+    if (headerValue)
+      {
+      double currentSegmentDefaultColor[3] = { 0.0, 0.0, 0.0 };
+      this->GetSegmentDefaultColorFromString(currentSegmentDefaultColor, headerValue);
+      currentSegment->SetDefaultColor(currentSegmentDefaultColor);
       }
 
     // Tags
@@ -730,7 +758,9 @@ int vtkMRMLSegmentationStorageNode::ReadPolyDataRepresentation(vtkMRMLSegmentati
   std::string masterRepresentationName;
   std::string containedRepresentationNames;
   std::string conversionParameters;
-  for (unsigned int blockIndex = 0; blockIndex<multiBlockDataset->GetNumberOfBlocks(); ++blockIndex)
+  for (unsigned int blockIndex = 0;
+       blockIndex<multiBlockDataset->GetNumberOfBlocks();
+       ++blockIndex)
     {
     // Get poly data representation
     vtkPolyData* currentPolyData = vtkPolyData::SafeDownCast(multiBlockDataset->GetBlock(blockIndex));
@@ -801,6 +831,19 @@ int vtkMRMLSegmentationStorageNode::ReadPolyDataRepresentation(vtkMRMLSegmentati
       }
     currentSegment->SetName(currentSegmentName.c_str());
 
+    double defaultColor[3]={1.0, 0.0, 0.0};
+    vtkDoubleArray* defaultColorArray = vtkDoubleArray::SafeDownCast(
+      currentPolyData->GetFieldData()->GetArray(GetSegmentMetaDataKey(SINGLE_SEGMENT_INDEX, KEY_SEGMENT_DEFAULT_COLOR).c_str()) );
+    if (defaultColorArray && defaultColorArray->GetNumberOfTuples() > 0 && defaultColorArray->GetNumberOfComponents() == 3)
+      {
+      defaultColorArray->GetTuple(0, defaultColor);
+      }
+    else
+      {
+      vtkWarningMacro("ReadPolyDataRepresentation: segment DefaultColor property not found when reading segment " << blockIndex << " from file " << path);
+      }
+    currentSegment->SetDefaultColor(defaultColor);
+
     // Tags
     vtkStringArray* tagsArray = vtkStringArray::SafeDownCast(
       currentPolyData->GetFieldData()->GetAbstractArray(GetSegmentMetaDataKey(SINGLE_SEGMENT_INDEX, KEY_SEGMENT_TAGS).c_str()) );
@@ -831,127 +874,6 @@ int vtkMRMLSegmentationStorageNode::ReadPolyDataRepresentation(vtkMRMLSegmentati
   this->CreateRepresentationsBySerializedNames(segmentation, containedRepresentationNames);
 
   segmentationNode->EndModify(segmentationNodeWasModified);
-
-  return 1;
-}
-
-//----------------------------------------------------------------------------
-int vtkMRMLSegmentationStorageNode::ReadColorsFromSegmentationFile(vtkMRMLSegmentationNode* segmentationNode, std::string path)
-{
-  if (!segmentationNode)
-    {
-    vtkGenericWarningMacro("ReadColorsFromSegmentationNrrd: Invalid input segmentation node");
-    return 0;
-    }
-  if (!vtksys::SystemTools::FileExists(path.c_str()))
-    {
-    vtkGenericWarningMacro("ReadColorsFromSegmentationNrrd: Input file " << path << " does not exist!");
-    return 0;
-    }
-
-  vtkMRMLSegmentationDisplayNode* segmentationDisplayNode = vtkMRMLSegmentationDisplayNode::SafeDownCast(
-    segmentationNode->GetDisplayNode() );
-  if (!segmentationDisplayNode)
-    {
-    vtkGenericWarningMacro("ReadColorsFromSegmentationNrrd: No display node to load colors into for segmentation " << segmentationNode->GetName());
-    return 0;
-    }
-
-  // Check first if this is a NRRD file that we can read
-  vtkNew<vtkNRRDReader> reader;
-  reader->SetFileName(path.c_str());
-  if (reader->CanReadFile(path.c_str()))
-    {
-    // Read the header
-    reader->UpdateInformation();
-
-    typedef std::vector<std::string> KeyVector;
-    int numberOfFrames = reader->GetNumberOfScalarComponents();
-
-    // Read color for each segment
-    for (int segmentIndex = 0; segmentIndex < numberOfFrames; ++segmentIndex)
-      {
-      // Get ID
-      const char* segmentId = reader->GetHeaderValue(GetSegmentMetaDataKey(segmentIndex, KEY_SEGMENT_ID).c_str());
-      if (!segmentId)
-        {
-        vtkGenericWarningMacro("ReadColorsFromSegmentationNrrd: Failed to find segment ID for segment " << segmentIndex << " in file " << path);
-        continue;
-        }
-      // Get color
-      const char* colorString = reader->GetHeaderValue(GetSegmentMetaDataKey(segmentIndex, KEY_SEGMENT_COLOR).c_str());
-      if (!colorString)
-        {
-        // Background compatibility
-        colorString = reader->GetHeaderValue(GetSegmentMetaDataKey(segmentIndex, "DefaultColor").c_str());
-        }
-      if (colorString)
-        {
-        double color[3] = {1.0, 0.0, 0.0};
-        this->GetSegmentColorFromString(color, colorString);
-
-        // Set color
-        segmentationDisplayNode->SetSegmentColor(segmentId, color[0], color[1], color[2]);
-        }
-      else
-        {
-        vtkGenericWarningMacro("ReadColorsFromSegmentationNrrd: Failed to find color for segment " << segmentIndex << " in file " << path);
-        }
-      }
-    }
-  // Not NRRD, try as multiblock dataset
-  else
-    {
-    vtkNew<vtkXMLMultiBlockDataReader> reader;
-    reader->SetFileName(path.c_str());
-    reader->Update();
-    vtkMultiBlockDataSet* multiBlockDataset = vtkMultiBlockDataSet::SafeDownCast(reader->GetOutput());
-    if (multiBlockDataset && multiBlockDataset->GetNumberOfBlocks()==0)
-      {
-      vtkGenericWarningMacro("ReadColorsFromSegmentationNrrd: Failed to read file " << path);
-      return 0;
-      }
-
-    // Read color for each segment
-    for (unsigned int blockIndex = 0; blockIndex<multiBlockDataset->GetNumberOfBlocks(); ++blockIndex)
-      {
-      vtkPolyData* currentPolyData = vtkPolyData::SafeDownCast(multiBlockDataset->GetBlock(blockIndex));
-
-      // Get ID
-      std::string segmentId;
-      vtkStringArray* idArray = vtkStringArray::SafeDownCast(
-        currentPolyData->GetFieldData()->GetAbstractArray(GetSegmentMetaDataKey(SINGLE_SEGMENT_INDEX, KEY_SEGMENT_ID).c_str()) );
-      if (idArray && idArray->GetNumberOfValues()>0)
-        {
-        segmentId = idArray->GetValue(0);
-        }
-      else
-        {
-        vtkWarningMacro("ReadColorsFromSegmentationNrrd: Segment ID property not found when reading segment " << blockIndex << " from file " << path);
-        continue;
-        }
-      // Get color
-      double color[3] = {1.0, 0.0, 0.0};
-      vtkDoubleArray* colorArray = vtkDoubleArray::SafeDownCast(
-        currentPolyData->GetFieldData()->GetArray(GetSegmentMetaDataKey(SINGLE_SEGMENT_INDEX, KEY_SEGMENT_COLOR).c_str()) );
-      if (!colorArray || colorArray->GetNumberOfTuples() == 0)
-        {
-        // Background compatibility
-        colorArray = vtkDoubleArray::SafeDownCast(
-        currentPolyData->GetFieldData()->GetArray(GetSegmentMetaDataKey(SINGLE_SEGMENT_INDEX, "DefaultColor").c_str()) );
-        }
-      if (colorArray && colorArray->GetNumberOfTuples() > 0 && colorArray->GetNumberOfComponents() == 3)
-        {
-        colorArray->GetTuple(0, color);
-        }
-      else
-        {
-        vtkWarningMacro("ReadColorsFromSegmentationNrrd: Segment color property not found when reading segment " << blockIndex << " from file " << path);
-        }
-      // Set color
-      segmentationDisplayNode->SetSegmentColor(segmentId, color[0], color[1], color[2]);
-      }
-    }
 
   return 1;
 }
@@ -1082,7 +1004,6 @@ int vtkMRMLSegmentationStorageNode::WriteBinaryLabelmapRepresentation(vtkMRMLSeg
       continue;
       }
 
-    // Set labelmap geometry for saving
     int currentBinaryLabelmapExtent[6] = { 0, -1, 0, -1, 0, -1 };
     currentBinaryLabelmap->GetExtent(currentBinaryLabelmapExtent);
     if (currentBinaryLabelmapExtent[0] <= currentBinaryLabelmapExtent[1]
@@ -1126,14 +1047,15 @@ int vtkMRMLSegmentationStorageNode::WriteBinaryLabelmapRepresentation(vtkMRMLSeg
       }
     else
       {
-      // Empty segment, use the commonGeometryImage (filled with 0)
+      // empty segment, use the commonGeometryImage (filled with 0)
       currentBinaryLabelmap = commonGeometryImage;
       }
 
     // Set metadata for current segment
     writer->SetAttribute(GetSegmentMetaDataKey(segmentIndex, KEY_SEGMENT_ID).c_str(), currentSegmentID);
     writer->SetAttribute(GetSegmentMetaDataKey(segmentIndex, KEY_SEGMENT_NAME).c_str(), currentSegment->GetName());
-    writer->SetAttribute(GetSegmentMetaDataKey(segmentIndex, KEY_SEGMENT_COLOR).c_str(), GetSegmentColorAsString(segmentationNode, currentSegmentID));
+    writer->SetAttribute(GetSegmentMetaDataKey(segmentIndex, KEY_SEGMENT_DEFAULT_COLOR).c_str(),
+      GetSegmentDefaultColorAsString(segmentationNode, currentSegmentID));
     // Save the geometry relative to the current image (so that the extent in the file describe the extent of the segment in the
     // saved image buffer)
     for (int i = 0; i < 3; i++)
@@ -1146,6 +1068,7 @@ int vtkMRMLSegmentationStorageNode::WriteBinaryLabelmapRepresentation(vtkMRMLSeg
 
     appender->AddInputData(currentBinaryLabelmap);
     } // For each segment
+
 
   appender->Update();
 
@@ -1227,13 +1150,13 @@ int vtkMRMLSegmentationStorageNode::WritePolyDataRepresentation(vtkMRMLSegmentat
     nameArray->SetName(GetSegmentMetaDataKey(SINGLE_SEGMENT_INDEX, KEY_SEGMENT_NAME).c_str());
     currentPolyDataCopy->GetFieldData()->AddArray(nameArray);
 
-    // Color
-    vtkSmartPointer<vtkDoubleArray> colorArray = vtkSmartPointer<vtkDoubleArray>::New();
-    colorArray->SetNumberOfComponents(3);
-    colorArray->SetNumberOfTuples(1);
-    colorArray->SetTuple(0, GetSegmentColorAsArray(segmentationNode, currentSegmentID));
-    colorArray->SetName(GetSegmentMetaDataKey(SINGLE_SEGMENT_INDEX, KEY_SEGMENT_COLOR).c_str());
-    currentPolyDataCopy->GetFieldData()->AddArray(colorArray);
+    // DefaultColor
+    vtkSmartPointer<vtkDoubleArray> defaultColorArray = vtkSmartPointer<vtkDoubleArray>::New();
+    defaultColorArray->SetNumberOfComponents(3);
+    defaultColorArray->SetNumberOfTuples(1);
+    defaultColorArray->SetTuple(0, currentSegment->GetDefaultColor());
+    defaultColorArray->SetName(GetSegmentMetaDataKey(SINGLE_SEGMENT_INDEX, KEY_SEGMENT_DEFAULT_COLOR).c_str());
+    currentPolyDataCopy->GetFieldData()->AddArray(defaultColorArray);
 
     // Tags
     std::map<std::string,std::string> tags;
@@ -1365,6 +1288,7 @@ void vtkMRMLSegmentationStorageNode::CreateRepresentationsBySerializedNames(vtkS
     representationNames = representationNames.substr(separatorPosition+1);
     separatorPosition = representationNames.find(SERIALIZATION_SEPARATOR);
     }
+
 }
 
 //----------------------------------------------------------------------------
@@ -1460,54 +1384,40 @@ void vtkMRMLSegmentationStorageNode::GetImageExtentFromString(int extent[6], std
 }
 
 //----------------------------------------------------------------------------
-std::string vtkMRMLSegmentationStorageNode::GetSegmentColorAsString(vtkMRMLSegmentationNode* segmentationNode, const std::string& segmentId)
+std::string vtkMRMLSegmentationStorageNode::GetSegmentDefaultColorAsString(vtkMRMLSegmentationNode* segmentationNode, const std::string& segmentId)
 {
-  if (!segmentationNode)
+  // Instead of saving the default color (that was set when the segment was created)
+  // we try to retrieve the latest color setting from the first segment display node.
+  // TODO: We should not get any information from the display node here but instead store segment description using standard terminologies.
+  // That description could be stored in the segmentation node and could be used to get a default color by using terminology infrastructure.
+  vtkVector3d defaultColor(0.5, 0.5, 0.5);
+  vtkMRMLSegmentationDisplayNode* displayNode = vtkMRMLSegmentationDisplayNode::SafeDownCast(segmentationNode->GetDisplayNode());
+  if (displayNode)
     {
-    return "";
+    defaultColor = displayNode->GetSegmentColor(segmentId);
     }
-
-  // Get segment color (invalid color if there is no display node)
-  vtkVector3d color(vtkSegment::SEGMENT_COLOR_VALUE_INVALID[0], vtkSegment::SEGMENT_COLOR_VALUE_INVALID[1], vtkSegment::SEGMENT_COLOR_VALUE_INVALID[2]);
-  vtkMRMLSegmentationDisplayNode* segmentationDisplayNode = vtkMRMLSegmentationDisplayNode::SafeDownCast(
-    segmentationNode->GetDisplayNode() );
-  if (segmentationDisplayNode)
+  else
     {
-    color = segmentationDisplayNode->GetSegmentColor(segmentId);
+    vtkSegment* segment = segmentationNode->GetSegmentation()->GetSegment(segmentId);
+    if (segment)
+      {
+      double defaultColorVec[3] = { 0.5, 0.5, 0.5 };
+      segment->GetDefaultColor(defaultColorVec);
+      defaultColor = vtkVector3d(defaultColorVec);
+      }
     }
-
-  std::stringstream ssColorValue;
-  ssColorValue << color[0] << " " << color[1] << " " << color[2];
-  std::string colorValue = ssColorValue.str();
-  return colorValue;
+  std::stringstream ssDefaultColorValue;
+  ssDefaultColorValue << defaultColor[0] << " " << defaultColor[1] << " " << defaultColor[2];
+  std::string defaultColorValue = ssDefaultColorValue.str();
+  return defaultColorValue;
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLSegmentationStorageNode::GetSegmentColorFromString(double color[3], std::string colorString)
+void vtkMRMLSegmentationStorageNode::GetSegmentDefaultColorFromString(double defaultColor[3], std::string defaultColorValue)
 {
-  std::stringstream colorStream(colorString);
-  color[0] = 0.5;
-  color[1] = 0.5;
-  color[2] = 0.5;
-  colorStream >> color[0] >> color[1] >> color[2];
-}
-
-//----------------------------------------------------------------------------
-double* vtkMRMLSegmentationStorageNode::GetSegmentColorAsArray(vtkMRMLSegmentationNode* segmentationNode, const std::string& segmentId)
-{
-  static double color[3] = {vtkSegment::SEGMENT_COLOR_VALUE_INVALID[0], vtkSegment::SEGMENT_COLOR_VALUE_INVALID[1], vtkSegment::SEGMENT_COLOR_VALUE_INVALID[2]};
-  if (!segmentationNode)
-    {
-    return color;
-    }
-
-  // Get segment color (invalid color if there is no display node)
-  vtkMRMLSegmentationDisplayNode* segmentationDisplayNode = vtkMRMLSegmentationDisplayNode::SafeDownCast(
-    segmentationNode->GetDisplayNode() );
-  if (segmentationDisplayNode)
-    {
-    segmentationDisplayNode->GetSegmentColor(segmentId, color);
-    }
-
-  return color;
+  std::stringstream ssDefaultColorValue(defaultColorValue);
+  defaultColor[0] = 0.5;
+  defaultColor[1] = 0.5;
+  defaultColor[2] = 0.5;
+  ssDefaultColorValue >> defaultColor[0] >> defaultColor[1] >> defaultColor[2];
 }

@@ -52,6 +52,9 @@ vtkStandardNewMacro(vtkSegment);
 vtkSegment::vtkSegment()
 {
   this->Name = NULL;
+  this->DefaultColor[0] = SEGMENT_COLOR_VALUE_INVALID[0];
+  this->DefaultColor[1] = SEGMENT_COLOR_VALUE_INVALID[1];
+  this->DefaultColor[2] = SEGMENT_COLOR_VALUE_INVALID[2];
 }
 
 //----------------------------------------------------------------------------
@@ -71,6 +74,7 @@ void vtkSegment::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "Modified Time: " << this->GetMTime() << "\n";
 
   os << indent << "Name: " << (this->Name ? this->Name : "NULL") << "\n";
+  os << indent << "DefaultColor: (" << this->DefaultColor[0] << ", " << this->DefaultColor[1] << ", " << this->DefaultColor[2] << ")\n";
 
   RepresentationMap::iterator reprIt;
   os << indent << "Representations:\n";
@@ -120,6 +124,7 @@ void vtkSegment::WriteXML(ostream& of, int nIndent)
   vtkIndent indent(nIndent);
 
   of << indent << "Name=\"" << (this->Name ? this->Name : "NULL") << "\"";
+  of << indent << "DefaultColor:\"(" << this->DefaultColor[0] << ", " << this->DefaultColor[1] << ", " << this->DefaultColor[2] << ")\"";
 
   RepresentationMap::iterator reprIt;
   of << indent << "Representations=\"";
@@ -193,6 +198,7 @@ void vtkSegment::DeepCopyMetadata(vtkSegment* source)
 
   // Copy properties
   this->SetName(source->Name);
+  this->SetDefaultColor(source->DefaultColor);
   this->Tags = source->Tags;
 }
 
@@ -372,4 +378,12 @@ void vtkSegment::ExtendBounds(double partialBounds[6], double globalBounds[6])
     {
     globalBounds[5] = partialBounds[5];
     }
+}
+
+//---------------------------------------------------------------------------
+void vtkSegment::SetDefaultColorWithoutModifiedEvent(double color[3])
+{
+  this->DefaultColor[0] = color[0];
+  this->DefaultColor[1] = color[1];
+  this->DefaultColor[2] = color[2];
 }

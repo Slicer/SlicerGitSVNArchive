@@ -40,7 +40,8 @@ class vtkSlicerTerminologyEntry;
 class vtkSlicerTerminologyCategory;
 class vtkSlicerTerminologyType;
 
-/// \brief Qt widget for browsing a terminology and anatomic region dictionary.
+/// \brief Qt widget for browsing a terminology dictionary.
+///   DICOM properties of the selected entry can also be set if enabled.
 /// \ingroup SlicerRt_QtModules_Terminologies_Widgets
 class Q_SLICER_MODULE_TERMINOLOGIES_WIDGETS_EXPORT qSlicerTerminologyNavigatorWidget : public qMRMLWidget
 {

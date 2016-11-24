@@ -86,9 +86,6 @@ public:
   /// Reset supported write file types. Called when master representation is changed
   void ResetSupportedWriteFileTypes();
 
-  /// Read colors from NRRD file and set segment colors for the given segmentation
-  virtual int ReadColorsFromSegmentationFile(vtkMRMLSegmentationNode* segmentationNode, std::string path);
-
 protected:
   /// Initialize all the supported read file types
   virtual void InitializeSupportedReadFileTypes();
@@ -143,9 +140,8 @@ protected:
   static std::string GetImageExtentAsString(int extent[6]);
   static void GetImageExtentFromString(int extent[6], std::string extentValue);
 
-  static std::string GetSegmentColorAsString(vtkMRMLSegmentationNode* segmentationNode, const std::string& segmentId);
-  static void GetSegmentColorFromString(double color[3], std::string colorString);
-  static double* GetSegmentColorAsArray(vtkMRMLSegmentationNode* segmentationNode, const std::string& segmentId);
+  static std::string GetSegmentDefaultColorAsString(vtkMRMLSegmentationNode* segmentationNode, const std::string& segmentId);
+  static void GetSegmentDefaultColorFromString(double defaultColor[3], std::string defaultColorValue);
 
 protected:
   vtkMRMLSegmentationStorageNode();

@@ -95,9 +95,9 @@ public:
   /// Returns NULL if labelmap contains more than one label. In that case \sa ImportLabelmapToSegmentationNode needs to be used.
   /// NOTE: Need to take ownership of the created object! For example using vtkSmartPointer<vtkSegment>::Take
   /// \param labelmapVolumeNode Model node containing image data that will be the binary labelmap representation in the created segment
-  /// \param segmentationNode Segmentation node that will be the container of the segment. It is used to set color and to get parent
-  ///   transform to make sure the created segment will be located the same place the image was, considering all transforms involved.
-  ///   NULL value means that this consideration is not needed. Default value is NULL.
+  /// \param segmentationNode Segmentation node that will be the container of the segment. It is used to get parent transform to
+  ///   make sure the created segment will be located the same place the image was, considering all transforms involved. NULL value
+  ///   means that this consideration is not needed. Default value is NULL.
   /// \return Created segment that then can be added to the segmentation if needed. Need to take ownership of the created
   ///   object! For example using vtkSmartPointer<vtkSegment>::Take
   static vtkSegment* CreateSegmentFromLabelmapVolumeNode(vtkMRMLLabelMapVolumeNode* labelmapVolumeNode, vtkMRMLSegmentationNode* segmentationNode=NULL);
