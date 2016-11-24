@@ -32,7 +32,6 @@ class vtkSegmentation;
 class vtkStringArray;
 class vtkVector3d;
 
-
 /// \ingroup Segmentations
 /// \brief MRML node for representing segmentation display attributes.
 ///
@@ -183,10 +182,15 @@ public:
   /// Get segment color by segment ID. Convenience function for python compatibility.
   /// \return Segment color if segment found, otherwise the pre-defined invalid color
   vtkVector3d GetSegmentColor(std::string segmentID);
-  /// Set segment color by segment ID
-  void SetSegmentColor(std::string segmentID, double r, double g, double b);
+  /// Get segment color by segment ID
+  void GetSegmentColor(std::string segmentID, double* color);
+  /// Get segment color by segment ID
+  void GetSegmentColor(std::string segmentID, double &r, double &g, double &b);
+
   /// Set segment color by segment ID
   void SetSegmentColor(std::string segmentID, vtkVector3d color);
+  /// Set segment color by segment ID
+  void SetSegmentColor(std::string segmentID, double r, double g, double b);
 
   /// Get overall segment visibility by segment ID. Convenience function for python compatibility.
   /// \return Segment visibility if segment found, otherwise false
@@ -275,9 +279,9 @@ protected:
   /// Maps segment identifier string (segment name by default) to properties.
   SegmentDisplayPropertiesMap SegmentationDisplayProperties;
 
-  /// Number of segments ever added to the segmentation belonging to this display node.
+  /// Number of colors ever generated for new segments in the segmentation belonging to this display node.
   /// Used to generate new color for new segments, taken into account removed segments too.
-  unsigned int NumberOfAddedSegments;
+  unsigned int NumberOfGeneratedColors;
 
   /// For checking if cached segment list in SegmentationDisplayProperties has to be updated
   vtkMTimeType SegmentListUpdateTime;

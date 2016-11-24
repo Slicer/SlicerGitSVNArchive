@@ -135,12 +135,12 @@ class SegmentationsModuleTest1(unittest.TestCase):
 
     self.sphereSegment = vtkSegmentationCore.vtkSegment()
     self.sphereSegment.SetName(self.sphereSegmentName)
-    self.sphereSegment.SetDefaultColor(0.0,0.0,1.0)
     self.sphereSegment.AddRepresentation(self.closedSurfaceReprName, spherePolyData)
 
     # Add segment to segmentation
     self.inputSegmentationNode.GetSegmentation().AddSegment(self.sphereSegment)
     self.assertEqual(self.inputSegmentationNode.GetSegmentation().GetNumberOfSegments(), 3)
+    displayNode.SetSegmentColor(self.sphereSegmentName, 0.0,0.0,1.0)
     sphereColor = displayNode.GetSegmentColor(self.sphereSegmentName)
     self.assertEqual(int(sphereColor[0]*100), 0)
     self.assertEqual(int(sphereColor[1]*100), 0)

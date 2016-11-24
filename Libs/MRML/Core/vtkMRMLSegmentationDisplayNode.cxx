@@ -55,7 +55,7 @@ vtkMRMLNodeNewMacro(vtkMRMLSegmentationDisplayNode);
 vtkMRMLSegmentationDisplayNode::vtkMRMLSegmentationDisplayNode()
   : PreferredDisplayRepresentationName2D(NULL)
   , PreferredDisplayRepresentationName3D(NULL)
-  , NumberOfAddedSegments(0)
+  , NumberOfGeneratedColors(0)
   , SegmentListUpdateTime(0)
   , SegmentListUpdateSource(0)
   , Visibility3D(true)
@@ -365,19 +365,6 @@ void vtkMRMLSegmentationDisplayNode::SetSegmentDisplayProperties(std::string seg
       }
     }
 
-  // Save cached value of color
-  // TODO: remove this when terminology infrastructure is in place
-  vtkMRMLSegmentationNode* segmentationNode = vtkMRMLSegmentationNode::SafeDownCast(this->GetDisplayableNode());
-  if (segmentationNode)
-    {
-    vtkSegmentation* segmentation = segmentationNode->GetSegmentation();
-    vtkSegment* segment = segmentation->GetSegment(segmentId);
-    if (segment)
-      {
-      segment->SetDefaultColorWithoutModifiedEvent(properties.Color);
-      }
-    }
-
   if (modified)
     {
     this->Modified();
@@ -401,15 +388,26 @@ vtkVector3d vtkMRMLSegmentationDisplayNode::GetSegmentColor(std::string segmentI
 }
 
 //---------------------------------------------------------------------------
-void vtkMRMLSegmentationDisplayNode::SetSegmentColor(std::string segmentID, double r, double g, double b)
+void vtkMRMLSegmentationDisplayNode::GetSegmentColor(std::string segmentID, double* color)
 {
-  // Set color in display properties
-  SegmentDisplayProperties properties;
-  this->GetSegmentDisplayProperties(segmentID, properties);
-  properties.Color[0] = r;
-  properties.Color[1] = g;
-  properties.Color[2] = b;
-  this->SetSegmentDisplayProperties(segmentID, properties);
+  if (!color)
+    {
+    vtkErrorMacro("GetSegmentColor: Invalid output color array");
+    return;
+    }
+  vtkVector3d colorVtk = this->GetSegmentColor(segmentID);
+  color[0] = colorVtk.GetX();
+  color[1] = colorVtk.GetY();
+  color[2] = colorVtk.GetZ();
+}
+
+//---------------------------------------------------------------------------
+void vtkMRMLSegmentationDisplayNode::GetSegmentColor(std::string segmentID, double &r, double &g, double &b)
+{
+  vtkVector3d colorVtk = this->GetSegmentColor(segmentID);
+  r = colorVtk.GetX();
+  g = colorVtk.GetY();
+  b = colorVtk.GetZ();
 }
 
 //---------------------------------------------------------------------------
@@ -420,6 +418,18 @@ void vtkMRMLSegmentationDisplayNode::SetSegmentColor(std::string segmentID, vtkV
   properties.Color[0] = color.GetX();
   properties.Color[1] = color.GetY();
   properties.Color[2] = color.GetZ();
+  this->SetSegmentDisplayProperties(segmentID, properties);
+}
+
+//---------------------------------------------------------------------------
+void vtkMRMLSegmentationDisplayNode::SetSegmentColor(std::string segmentID, double r, double g, double b)
+{
+  // Set color in display properties
+  SegmentDisplayProperties properties;
+  this->GetSegmentDisplayProperties(segmentID, properties);
+  properties.Color[0] = r;
+  properties.Color[1] = g;
+  properties.Color[2] = b;
   this->SetSegmentDisplayProperties(segmentID, properties);
 }
 
@@ -697,25 +707,30 @@ void vtkMRMLSegmentationDisplayNode::SetSegmentDisplayPropertiesToDefault(const 
 
   int wasModifyingDisplayNode = this->StartModify();
 
-  // Set segment color for merged labelmap
-  double defaultColor[3] = { 0.0, 0.0, 0.0 };
-  segment->GetDefaultColor(defaultColor);
-  // Generate color if default color is the default gray
-  this->NumberOfAddedSegments += 1;
-  bool generateNewDefaultColor =
-    (defaultColor[0] == vtkSegment::SEGMENT_COLOR_VALUE_INVALID[0]
-    && defaultColor[1] == vtkSegment::SEGMENT_COLOR_VALUE_INVALID[1]
-    && defaultColor[2] == vtkSegment::SEGMENT_COLOR_VALUE_INVALID[2]);
-  if (generateNewDefaultColor)
+  // Generate color
+  double color[3] = { vtkSegment::SEGMENT_COLOR_VALUE_INVALID[0],
+                      vtkSegment::SEGMENT_COLOR_VALUE_INVALID[1],
+                      vtkSegment::SEGMENT_COLOR_VALUE_INVALID[1] };
+  vtkMRMLSegmentationDisplayNode* segmentationDisplayNode = vtkMRMLSegmentationDisplayNode::SafeDownCast(
+    segmentationNode->GetDisplayNode() );
+  if (segmentationDisplayNode)
     {
-    this->GenerateSegmentColor(defaultColor);
+    segmentationDisplayNode->GetSegmentColor(segmentId, color);
+    }
+  // Generate color if default color is the default gray
+  bool generateNewColor = ( color[0] == vtkSegment::SEGMENT_COLOR_VALUE_INVALID[0]
+                         && color[1] == vtkSegment::SEGMENT_COLOR_VALUE_INVALID[1]
+                         && color[2] == vtkSegment::SEGMENT_COLOR_VALUE_INVALID[2] );
+  if (generateNewColor)
+    {
+    this->GenerateSegmentColor(color);
     }
 
   // Add entry in segment display properties
   vtkMRMLSegmentationDisplayNode::SegmentDisplayProperties properties;
-  properties.Color[0] = defaultColor[0];
-  properties.Color[1] = defaultColor[1];
-  properties.Color[2] = defaultColor[2];
+  properties.Color[0] = color[0];
+  properties.Color[1] = color[1];
+  properties.Color[2] = color[2];
   properties.Visible = true;
   properties.Visible3D = true;
   properties.Visible2DFill = true;
@@ -744,7 +759,7 @@ void vtkMRMLSegmentationDisplayNode::RemoveSegmentDisplayProperties(std::string 
 void vtkMRMLSegmentationDisplayNode::ClearSegmentDisplayProperties()
 {
   this->SegmentationDisplayProperties.clear();
-  this->NumberOfAddedSegments = 0;
+  this->NumberOfGeneratedColors = 0;
   this->Modified();
 }
 
@@ -861,7 +876,7 @@ void vtkMRMLSegmentationDisplayNode::GenerateSegmentColor(double color[3])
   // vtkMRMLSegmentationNode::AddSegmentDisplayProperties every time a new segment display
   // properties entry is added
   double currentColor[4] = {0.0, 0.0, 0.0, 0.0};
-  labelsColorNode->GetColor(this->NumberOfAddedSegments, currentColor);
+  labelsColorNode->GetColor(++this->NumberOfGeneratedColors, currentColor);
   color[0] = currentColor[0];
   color[1] = currentColor[1];
   color[2] = currentColor[2];

@@ -1138,18 +1138,9 @@ bool vtkSegmentation::CanAcceptSegment(vtkSegment* segment)
 }
 
 //-----------------------------------------------------------------------------
-std::string vtkSegmentation::AddEmptySegment(std::string segmentId/*=""*/, std::string segmentName/*=""*/, double* defaultColor/*=NULL*/)
+std::string vtkSegmentation::AddEmptySegment(std::string segmentId/*=""*/, std::string segmentName/*=""*/)
 {
   vtkSmartPointer<vtkSegment> segment = vtkSmartPointer<vtkSegment>::New();
-  if (defaultColor)
-    {
-    segment->SetDefaultColor(defaultColor);
-    }
-  else
-    {
-    segment->SetDefaultColor(vtkSegment::SEGMENT_COLOR_VALUE_INVALID[0], vtkSegment::SEGMENT_COLOR_VALUE_INVALID[1],
-      vtkSegment::SEGMENT_COLOR_VALUE_INVALID[2] );
-    }
 
   // Segment ID will be segment name by default
   segmentId = this->GenerateUniqueSegmentID(segmentId);
