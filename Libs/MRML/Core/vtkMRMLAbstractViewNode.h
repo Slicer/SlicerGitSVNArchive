@@ -71,6 +71,16 @@ public:
   inline const char *GetLayoutName();
 
   ///
+  /// An optional identifier to link groups of views. Views that have matching
+  /// ViewGroup value are in the same group.
+  /// By default the value is NULL, which is equivalent with ampty string.
+  /// Empty is a valid value: views that have empty ViewGroup value form a group.
+  /// When changing linked properties in a view then all other views in the group
+  /// are changed accordingly, but other views are not modified.
+  vtkSetStringMacro(ViewGroup);
+  vtkGetStringMacro(ViewGroup);
+
+  ///
   /// Label for the view. Usually a 1 character label, e.g. R, 1, 2, etc.
   /// \sa SetLayoutName()
   vtkSetStringMacro(LayoutLabel);
@@ -218,6 +228,10 @@ protected:
 
   vtkMRMLAbstractViewNode(const vtkMRMLAbstractViewNode&);
   void operator=(const vtkMRMLAbstractViewNode&);
+
+  ///
+  /// Views with the same ViewGroup value are in the same group.
+  char * ViewGroup;
 
   ///
   /// Label to show for the view (shortcut for the name)

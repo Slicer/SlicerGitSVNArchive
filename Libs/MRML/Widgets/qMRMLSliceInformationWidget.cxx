@@ -66,6 +66,9 @@ void qMRMLSliceInformationWidgetPrivate::setupUi(qMRMLWidget* widget)
 
   // Dimension and Field of View are readonly
 
+  this->connect(this->ViewGroupLineEdit, SIGNAL(textEdited(QString)),
+    q, SLOT(setViewGroup(QString)));
+
   // Connect LightBox layout
   this->connect(this->LightboxLayoutRowsSpinBox, SIGNAL(valueChanged(int)),
                 q, SLOT(setLightboxLayoutRows(int)));
@@ -121,6 +124,8 @@ void qMRMLSliceInformationWidgetPrivate::updateWidgetFromMRMLSliceNode()
   coordinatesInDouble[1] = fieldOfView[1];
   coordinatesInDouble[2] = fieldOfView[2];
   this->FieldOfViewWidget->setCoordinates(coordinatesInDouble);
+
+  this->ViewGroupLineEdit->setText(this->MRMLSliceNode->GetViewGroup() ? this->MRMLSliceNode->GetViewGroup() : "");
 
   // Update lightbox rows/columns entries
   this->LightboxLayoutRowsSpinBox->setValue(this->MRMLSliceNode->GetLayoutGridRows());
@@ -224,6 +229,26 @@ void qMRMLSliceInformationWidget::setSliceVisible(bool visible)
     }
 
   d->MRMLSliceNode->SetSliceVisible(visible);
+}
+
+//---------------------------------------------------------------------------
+void qMRMLSliceInformationWidget::setViewGroup(const QString& viewGroup)
+{
+  Q_D(qMRMLSliceInformationWidget);
+
+  if (!d->MRMLSliceNode)
+  {
+    return;
+  }
+
+  if (!viewGroup.isEmpty())
+    {
+    d->MRMLSliceNode->SetViewGroup(viewGroup.toLatin1());
+    }
+  else
+    {
+    d->MRMLSliceNode->SetViewGroup(NULL);
+    }
 }
 
 //---------------------------------------------------------------------------

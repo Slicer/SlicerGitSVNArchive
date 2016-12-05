@@ -37,6 +37,7 @@ static const char* DEFAULT_AXIS_LABELS[vtkMRMLAbstractViewNode::AxisLabelsCount]
 vtkMRMLAbstractViewNode::vtkMRMLAbstractViewNode()
 {
   this->LayoutLabel = NULL;
+  this->ViewGroup = NULL;
   this->Active = 0;
   this->Visibility = 1;
 
@@ -64,11 +65,8 @@ vtkMRMLAbstractViewNode::vtkMRMLAbstractViewNode()
 //----------------------------------------------------------------------------
 vtkMRMLAbstractViewNode::~vtkMRMLAbstractViewNode()
 {
-  if ( this->LayoutLabel )
-    {
-    delete [] this->LayoutLabel;
-    this->LayoutLabel = NULL;
-    }
+  this->SetLayoutLabel(NULL);
+  this->SetViewGroup(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -88,6 +86,10 @@ void vtkMRMLAbstractViewNode::WriteXML(ostream& of, int nIndent)
     {
     of << indent << " layoutName=\"" << this->GetLayoutName() << "\"";
     }
+  if (this->GetViewGroup())
+  {
+    of << indent << " viewGroup=\"" << this->GetViewGroup() << "\"";
+  }
 
   of << indent << " active=\"" << (this->Active ? "true" : "false") << "\"";
   of << indent << " visibility=\"" << (this->Visibility ? "true" : "false") << "\"";
@@ -133,13 +135,17 @@ void vtkMRMLAbstractViewNode::ReadXMLAttributes(const char** atts)
     attName = *(atts++);
     attValue = *(atts++);
     if (!strcmp(attName, "layoutLabel"))
-      {
-      this->SetLayoutLabel( attValue );
-      }
+    {
+      this->SetLayoutLabel(attValue);
+    }
     else if (!strcmp(attName, "layoutName"))
       {
       this->SetLayoutName( attValue );
       }
+    else if (!strcmp(attName, "viewGroup"))
+    {
+      this->SetViewGroup(attValue);
+    }
     else if (!strcmp(attName, "backgroundColor"))
       {
       std::stringstream ss;
@@ -295,7 +301,8 @@ void vtkMRMLAbstractViewNode::Copy(vtkMRMLNode *anode)
   vtkMRMLAbstractViewNode *node = (vtkMRMLAbstractViewNode *) anode;
 
   this->SetLayoutLabel(node->GetLayoutLabel());
-  this->SetBackgroundColor ( node->GetBackgroundColor ( ) );
+  this->SetViewGroup(node->GetViewGroup());
+  this->SetBackgroundColor(node->GetBackgroundColor());
   this->SetBackgroundColor2 ( node->GetBackgroundColor2 ( ) );
   // Important: do not use SetActive or RemoveActiveFlagInScene will be called
   this->Active = node->GetActive();
@@ -328,9 +335,11 @@ void vtkMRMLAbstractViewNode::Reset(vtkMRMLNode* defaultNode)
   // automatically.
   // This require a custom behavior implemented here.
   std::string layoutLabel = this->GetLayoutLabel() ? this->GetLayoutLabel() : "";
+  std::string viewGroup = this->GetViewGroup() ? this->GetViewGroup() : "";
   this->Superclass::Reset(defaultNode);
   this->DisableModifiedEventOn();
   this->SetLayoutLabel(layoutLabel.c_str());
+  this->SetViewGroup(viewGroup.empty() ? NULL : viewGroup.c_str());
   this->AxisLabels->Reset();
   for (int i=0; i<vtkMRMLAbstractViewNode::AxisLabelsCount; i++)
     {
@@ -345,6 +354,7 @@ void vtkMRMLAbstractViewNode::PrintSelf(ostream& os, vtkIndent indent)
   Superclass::PrintSelf(os,indent);
 
   os << indent << "LayoutLabel: " << (this->LayoutLabel ? this->LayoutLabel : "(null)") << std::endl;
+  os << indent << "ViewGroup: " << (this->ViewGroup ? this->ViewGroup : "(null)") << std::endl;
   os << indent << "Active:        " << this->Active << "\n";
   os << indent << "Visibility:        " << this->Visibility << "\n";
   os << indent << "BackgroundColor:       " << this->BackgroundColor[0] << " "
