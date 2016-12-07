@@ -19,6 +19,7 @@
 #include "vtkMRMLModelSliceDisplayableManager.h"
 
 // MRML includes
+#include <vtkMRMLApplicationLogic.h>
 #include <vtkMRMLColorNode.h>
 #include <vtkMRMLDisplayNode.h>
 #include <vtkMRMLDisplayableNode.h>
@@ -171,7 +172,37 @@ bool vtkMRMLModelSliceDisplayableManager::vtkInternal
       visibleOnNode = (displayNode->GetVisibility() == 1 ? true : false);
       }
     }
-  return visibleOnNode && (displayNode->GetSliceIntersectionVisibility() != 0);
+  else
+    {
+    // Only show slice intersection if it is mapped into layout and in the same view group
+    vtkMRMLSliceNode* intersectedSliceNode = NULL;
+    vtkMRMLApplicationLogic *mrmlAppLogic = this->External->GetMRMLApplicationLogic();
+    if (mrmlAppLogic)
+      {
+      vtkMRMLSliceLogic *sliceLogic = mrmlAppLogic->GetSliceLogic(vtkMRMLModelDisplayNode::SafeDownCast(displayNode));
+      if (sliceLogic)
+        {
+        intersectedSliceNode = sliceLogic->GetSliceNode();
+        }
+      }
+    if (intersectedSliceNode)
+      {
+      if (!intersectedSliceNode->IsMappedInLayout())
+        {
+        visibleOnNode = false;
+        }
+      else if (this->SliceNode)
+        {
+        std::string sliceNodeViewGroup = this->SliceNode->GetViewGroup() ? this->SliceNode->GetViewGroup() : "";
+        std::string intersectedSliceNodeViewGroup = intersectedSliceNode->GetViewGroup() ? intersectedSliceNode->GetViewGroup() : "";
+        if (sliceNodeViewGroup != intersectedSliceNodeViewGroup)
+          {
+          visibleOnNode = false;
+          }
+        }
+      }
+    }
+  return visibleOnNode && (displayNode->GetSliceIntersectionVisibility() != 0) ;
 }
 
 //---------------------------------------------------------------------------

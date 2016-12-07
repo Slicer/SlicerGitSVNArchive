@@ -89,9 +89,12 @@ public:
   int AddFiducial(double r=0.0, double a=0.0, double s=0.0);
 
   /// jump the slice windows to the given coordinate
-  void JumpSlicesToLocation(double x, double y, double z, bool centered);
+  /// If viewGroup is "*" then all all slice views are updated, otherwise only those views
+  /// that are in the specified group.
+  void JumpSlicesToLocation(double x, double y, double z, bool centered, const std::string& viewGroup = "*");
   /// jump the slice windows to the nth markup with the mrml id id
-  void JumpSlicesToNthPointInMarkup(const char *id, int n, bool centered = false);
+  /// \sa JumpSlicesToLocation
+  void JumpSlicesToNthPointInMarkup(const char *id, int n, bool centered = false, const std::string& viewGroup = "*");
   /// refocus all of the 3D cameras to the nth markup with the mrml id id
   /// \sa FocusCameraOnNthPointInMarkup
   void FocusCamerasOnNthPointInMarkup(const char *id, int n);

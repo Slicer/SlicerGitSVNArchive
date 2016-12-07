@@ -240,12 +240,17 @@ void vtkThreeDViewInteractorStyle::OnMouseMove()
             crosshairNode->SetCursorPositionRAS(pickedRAS);
             if (crosshairNode->GetCrosshairBehavior() == vtkMRMLCrosshairNode::JumpSlice)
               {
-              vtkMRMLSliceNode* sliceNode = vtkMRMLSliceNode::SafeDownCast(scene->GetNthNodeByClass(0, "vtkMRMLSliceNode"));
-              if (sliceNode)
+              // Try to get view group of the 3D view. If it fails then we'll just use the default (empty) group name.
+              std::string viewGroup;
+              if (this->GetCameraNode() && this->GetCameraNode()->GetActiveTag())
                 {
-                sliceNode->JumpSlice(pickedRAS[0], pickedRAS[1], pickedRAS[2]);
-                sliceNode->JumpAllSlices(pickedRAS[0], pickedRAS[1], pickedRAS[2]);
+                vtkMRMLAbstractViewNode* viewNode = vtkMRMLAbstractViewNode::SafeDownCast(scene->GetNodeByID(this->GetCameraNode()->GetActiveTag()));
+                if (viewNode && viewNode->GetViewGroup())
+                  {
+                  viewGroup = viewNode->GetViewGroup();
+                  }
                 }
+              vtkMRMLSliceNode::JumpAllSlices(scene, pickedRAS[0], pickedRAS[1], pickedRAS[2], -1, viewGroup);
               }
             }
           }
