@@ -47,8 +47,6 @@
 // Logic includes
 #include "vtkArchive.h"
 
-#include <iostream>
-
 
 // --------------------------------------------------------------------------
 namespace
