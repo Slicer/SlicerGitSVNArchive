@@ -269,6 +269,7 @@ void qSlicerExtensionsManagerWidget::setExtensionsManagerModel(qSlicerExtensions
   d->ExtensionsManageWidget->setExtensionsManagerModel(model);
   d->ExtensionsManageBrowser->setExtensionsManagerModel(model);
   d->ExtensionsInstallWidget->setExtensionsManagerModel(model);
+  d->ExtensionsRestoreWidget->setExtensionsManagerModel(model);
 
   if (model)
     {

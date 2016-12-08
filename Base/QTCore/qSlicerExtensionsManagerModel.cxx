@@ -47,6 +47,8 @@
 // Logic includes
 #include "vtkArchive.h"
 
+#include <iostream>
+
 
 // --------------------------------------------------------------------------
 namespace
@@ -197,6 +199,10 @@ public:
 
   QStringList extensionLibraryPaths(const QString& extensionName)const;
   QStringList extensionPaths(const QString& extensionName)const;
+
+  QStringList getPreviousSettingFiles() const;
+  QString getRevisionNumberFromFileName(QString fileName) const;
+  QString getLastRevisionNumber(const QStringList settingFiles) const;
 
 #ifdef Slicer_USE_PYTHONQT
   QStringList extensionPythonPaths(const QString& extensionName)const;
@@ -813,6 +819,45 @@ qSlicerExtensionsManagerModel::ExtensionMetadataType qSlicerExtensionsManagerMod
 }
 
 // --------------------------------------------------------------------------
+QStringList qSlicerExtensionsManagerModelPrivate
+::getPreviousSettingFiles() const
+{
+  Q_Q(const qSlicerExtensionsManagerModel);
+  QFileInfo fileInfo(q->extensionsSettingsFilePath());
+  QStringList nameAndRevision = fileInfo.baseName().split("-");
+  if (nameAndRevision.size() != 2)
+  {
+    return QStringList("");
+  }
+  QString name = nameAndRevision.at(0);
+  QStringList nameFilter(name + "-*." + fileInfo.completeSuffix());
+  QStringList settingsFiles = fileInfo.dir().entryList(nameFilter);
+  settingsFiles.removeOne(fileInfo.fileName());
+  return settingsFiles;
+}
+
+// --------------------------------------------------------------------------
+QString qSlicerExtensionsManagerModelPrivate
+::getRevisionNumberFromFileName(QString fileName) const
+{
+  QStringList nameAndRevision = fileName.split(".").at(0).split("-");
+  if (nameAndRevision.size() != 2)
+  {
+    return QString("");
+  }
+  return nameAndRevision.at(1);
+}
+
+// --------------------------------------------------------------------------
+QString qSlicerExtensionsManagerModelPrivate
+::getLastRevisionNumber(const QStringList settingFiles) const
+{
+  QStringList fileList(settingFiles);
+  fileList.sort();
+  return this->getRevisionNumberFromFileName(fileList.at(fileList.size() - 1));
+}
+
+// --------------------------------------------------------------------------
 // qSlicerExtensionsManagerModel methods
 
 // --------------------------------------------------------------------------
@@ -1085,6 +1130,43 @@ qSlicerExtensionsManagerModel::ExtensionMetadataType qSlicerExtensionsManagerMod
 }
 
 // --------------------------------------------------------------------------
+QMap<QString, QStringList> qSlicerExtensionsManagerModel
+::getExtensionRestoreInformation()
+{
+  QMap<QString, QStringList> restoreInformation;
+  Q_D(const qSlicerExtensionsManagerModel);
+
+  QFileInfo fileInfo(extensionsSettingsFilePath());
+  QStringList settingFiles = d->getPreviousSettingFiles();
+  QString lastRevisionNumber = d->getLastRevisionNumber(settingFiles);
+
+  foreach(QString fileName, settingFiles)
+  {
+    QString fullSettingsFilePath = QDir(fileInfo.absolutePath()).filePath(fileName);
+    QSettings settings(fullSettingsFilePath, QSettings::IniFormat);
+    QStringList installedExtensions = settings.value("Extensions/InstalledExtensions").toStringList();
+    foreach(const QString extensionId, installedExtensions)
+    {
+      if (!restoreInformation[extensionId].contains(extensionId))
+      {
+        ExtensionMetadataType extensionMetadata = retrieveExtensionMetadata(extensionId);
+        QString extensionName = extensionMetadata.value("extensionname").toString();
+        restoreInformation[extensionId] = QStringList(extensionName);
+        restoreInformation[extensionId].append("0");
+        restoreInformation[extensionId].append(QString::number(isExtensionInstalled(extensionName)));
+        restoreInformation[extensionId].append(QString::number(isExtensionCompatible(extensionName).size()==0));
+      }
+      QString currentRevisionNumber = d->getRevisionNumberFromFileName(fileName);
+      if (currentRevisionNumber == lastRevisionNumber)
+      {
+        restoreInformation[extensionId].replace(1, "1");
+      }
+    }
+  }
+  return restoreInformation;
+}
+
+// --------------------------------------------------------------------------
 qSlicerExtensionDownloadTask*
 qSlicerExtensionsManagerModelPrivate::downloadExtension(
   const QString& extensionId)
@@ -1137,7 +1219,22 @@ bool qSlicerExtensionsManagerModel::downloadAndInstallExtension(const QString& e
     }
   connect(task, SIGNAL(finished(qSlicerExtensionDownloadTask*)),
           this, SLOT(onInstallDownloadFinished(qSlicerExtensionDownloadTask*)));
+  connect(task, SIGNAL(progress(qSlicerExtensionDownloadTask*, qint64, qint64)),
+          this, SLOT(onInstallDownloadProgress(qSlicerExtensionDownloadTask*, qint64, qint64)));
   return true;
+}
+
+// --------------------------------------------------------------------------
+void qSlicerExtensionsManagerModel::onInstallDownloadProgress(
+  qSlicerExtensionDownloadTask* task, qint64 received, qint64 total)
+{
+  Q_D(qSlicerExtensionsManagerModel);
+
+  // Look up the update information
+  const QString& extensionName = task->extensionName();
+
+  // Notify observers of download progress
+  emit this->installDownloadProgress(extensionName, received, total);
 }
 
 // --------------------------------------------------------------------------
@@ -1377,6 +1474,13 @@ bool qSlicerExtensionsManagerModel::installExtension(
   d->saveExtensionDescription(extensionDescriptionFile, extensionMetadata);
   d->addExtensionSettings(extensionName);
   d->addExtensionModelRow(Self::parseExtensionDescriptionFile(extensionDescriptionFile));
+
+  // separate functionalty to function d->addExtensionDescriptionSettings
+  QSettings settings(this->extensionsSettingsFilePath(), QSettings::IniFormat);
+  QStringList extensionIDs = settings.value("Extensions/InstalledExtensions").toStringList();
+  extensionIDs << extensionMetadata.value("extension_id").toString();
+  extensionIDs.removeDuplicates();
+  settings.setValue("Extensions/InstalledExtensions", extensionIDs);
 
   emit this->extensionInstalled(extensionName);
 
@@ -1821,6 +1925,14 @@ bool qSlicerExtensionsManagerModel::scheduleExtensionForUninstall(const QString&
   settings.setValue("Extensions/ScheduledForUninstall", scheduled);
 
   d->removeExtensionSettings(extensionName);
+  // new function d->removeExtensionDescriptionSettings
+  const ExtensionMetadataType& extensionMetadata = this->extensionMetadata(extensionName);
+  const QString& extensionID = extensionMetadata.value("extension_id").toString();
+  QSettings settings1(this->extensionsSettingsFilePath(), QSettings::IniFormat);
+  QStringList extensionIDs = settings.value("Extensions/InstalledExtensions").toStringList();
+  extensionIDs.removeOne(extensionMetadata.value("extension_id").toString());
+  extensionIDs.removeDuplicates();
+  settings1.setValue("Extensions/InstalledExtensions", extensionIDs);
 
   emit this->extensionScheduledForUninstall(extensionName);
 
