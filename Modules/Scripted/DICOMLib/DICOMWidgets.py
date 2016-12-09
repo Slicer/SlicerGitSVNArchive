@@ -41,7 +41,7 @@ def setDatabasePrecacheTags(dicomBrowser=None):
     dicomBrowser.tagsToPrecache = tagsToPrecache
 
 
-class DICOMDetailsPopup(VTKObservationMixin):
+class DICOMDetailsBase(VTKObservationMixin):
   """Implement the Qt window showing details and possible
   operations to perform on the selected dicom list item.
   This is a helper used in the DICOMWidget class.
@@ -50,17 +50,15 @@ class DICOMDetailsPopup(VTKObservationMixin):
   def __init__(self, dicomBrowser=None):
     VTKObservationMixin.__init__(self)
     self.settings = qt.QSettings()
-    self.dicomBrowser = dicomBrowser
 
     # initialize the dicomDatabase
     #   - pick a default and let the user know
     if not slicer.dicomDatabase:
       self.promptForDatabaseDirectory()
 
-    if self.dicomBrowser is None:
-      # This creates a DICOM database in the current working directory if nothing else
-      # is specified in the settings, therefore promptForDatabaseDirectory must be called before this.
-      self.dicomBrowser = ctkDICOMBrowser()
+    # This creates a DICOM database in the current working directory if nothing else
+    # is specified in the settings, therefore promptForDatabaseDirectory must be called before this.
+    self.dicomBrowser = dicomBrowser if dicomBrowser is not None else ctkDICOMBrowser()
 
     self.browserPersistent = settingsValue('DICOM/BrowserPersistent', False, converter=toBool)
     self.tableDensity = settingsValue('DICOM/tableDensity', 'Compact')
@@ -68,8 +66,6 @@ class DICOMDetailsPopup(VTKObservationMixin):
     self.advancedView = settingsValue('DICOM/advancedView', 0, converter=int)
     self.horizontalTables = settingsValue('DICOM/horizontalTables', 0, converter=int)
 
-    self.create()
-    self.popupPositioned = False
     self.pluginInstances = {}
     self.fileLists = []
 
@@ -79,31 +75,6 @@ class DICOMDetailsPopup(VTKObservationMixin):
     self.extensionCheckPending = False
     self.dicomBrowser.connect('directoryImported()', self.onDirectoryImported)
 
-    # Update visibility
-    for name in [
-      'ActionImport', 'ActionExport', 'ActionQuery', 'ActionSend', 'ActionRemove', 'ActionRepair', 'ActionViewMetadata',
-      'AdvancedViewCheckBox', 'HorizontalViewCheckBox', 'BrowserPersistentCheckBox'
-    ]:
-      visible = settingsValue('DICOM/%s.visible' % name, True, converter=toBool)
-      control = self._findChildren(name)
-      control.visible = visible
-
-    self.sendControl = self._findChildren('ActionSend')
-    self.sendControl.triggered.connect(self.onSendActionTriggered)
-
-    # Define set of widgets that should be hidden/shown together
-    self.settingsWidgetNames = {
-      'DatabaseButton': ('DatabaseNameLabel', 'DirectoryButton'),
-      'TableDensityComboBox': ('tablesDensityLabel', 'tableDensityComboBox')
-    }
-
-    # Hide the settings button if all associated widgets should be hidden
-    settingsButtonHidden = True
-    for groupName in self.settingsWidgetNames.keys():
-      settingsButtonHidden = settingsButtonHidden and not settingsValue('DICOM/%s.visible' % groupName, True,
-                                                                        converter=toBool)
-    self.settingsButton.visible = not settingsButtonHidden
-
   def onSendActionTriggered(self, triggered):
     if len(self.fileLists):
       sendDialog = DICOMSendDialog([dcmFile for sublist in self.fileLists for dcmFile in sublist])
@@ -111,14 +82,14 @@ class DICOMDetailsPopup(VTKObservationMixin):
   def _findChildren(self, name):
     """Since the ctkDICOMBrowser widgets stolen by the Slicer DICOM browser
     loses their objectName when they are re-parented, this convenience function
-    will search in both the ``self.window`` and ``self.dicomBrowser``.
+    will search in both the ``self`` and ``self.dicomBrowser``.
     """
     try:
-      return slicer.util.findChildren(self.window, name=name)[0]
+      return slicer.util.findChildren(self, name=name)[0]
     except IndexError:
       return slicer.util.findChildren(self.dicomBrowser, name=name)[0]
 
-  def create(self, widgetType='window', showHeader=False, showPreview=False):
+  def setup(self, showHeader=False, showPreview=False):
     """
     main window is a frame with widgets from the app
     widget repacked into it along with slicer-specific
@@ -166,41 +137,18 @@ class DICOMDetailsPopup(VTKObservationMixin):
     self.userFrame = qt.QWidget()
     self.preview = qt.QWidget()
 
-    self.widgetType = widgetType
-    if widgetType == 'dialog':
-      self.window = qt.QDialog(self.dicomBrowser)
-    elif widgetType == 'window':
-      self.window = qt.QWidget()
-    elif widgetType == 'popup':
-      self.window = ctkPopupWidget(self.dicomBrowser)
-      self.window.orientation = 1
-      self.window.horizontalDirection = 0
-      self.window.alignment = 0x82
-    elif widgetType == 'dock':
-      self.dock = qt.QDockWidget(slicer.util.mainWindow())
-      self.dock.setFeatures(qt.QDockWidget.DockWidgetFloatable |
-                            qt.QDockWidget.DockWidgetMovable |
-                            qt.QDockWidget.DockWidgetClosable)
-      slicer.util.mainWindow().addDockWidget(0x15, self.dock)
-      self.window = qt.QFrame()
-      self.dock.setWidget(self.window)
-    else:
-      raise Exception("Unknown widget type - should be dialog, window, dock or popup")
+    self.objectName = 'SlicerDICOMBrowser'
 
-    self.window.objectName = 'SlicerDICOMBrowser'
+    self.setWindowTitle('DICOM Browser')
 
-    self.setModality(not self.browserPersistent)
-
-    self.window.setWindowTitle('DICOM Browser')
-
-    self.layout = qt.QVBoxLayout(self.window)
+    self.setLayout(qt.QVBoxLayout())
 
     # tool row at top, with commands and database
     self.toolFrame = qt.QWidget()
     self.toolFrame.setMaximumHeight(40)
     self.toolFrame.setContentsMargins(-5, -5, -5, -5)
     self.toolLayout = qt.QHBoxLayout(self.toolFrame)
-    self.layout.addWidget(self.toolFrame)
+    self.layout().addWidget(self.toolFrame)
     self.toolLayout.addWidget(self.toolBar)
     self.settingsButton = ctkExpandButton()
     self.toolLayout.addWidget(self.settingsButton)
@@ -223,7 +171,7 @@ class DICOMDetailsPopup(VTKObservationMixin):
     self.searchFrame = qt.QWidget()
     self.searchFrame.setMaximumHeight(40)
     self.searchLayout = qt.QHBoxLayout(self.searchFrame)
-    self.layout.addWidget(self.searchFrame)
+    self.layout().addWidget(self.searchFrame)
     patientsLabel = qt.QLabel('Patients: ')
     self.searchLayout.addWidget(patientsLabel)
     self.searchLayout.addWidget(patientSearchBox)
@@ -239,7 +187,7 @@ class DICOMDetailsPopup(VTKObservationMixin):
       self.tableSplitter.setOrientation(1)
     else:
       self.tableSplitter.setOrientation(0)
-    self.layout.addWidget(self.tableSplitter)
+    self.layout().addWidget(self.tableSplitter)
 
     #
     # preview related column
@@ -256,7 +204,7 @@ class DICOMDetailsPopup(VTKObservationMixin):
     self.loadableTableFrame = qt.QWidget()
     self.loadableTableFrame.setMaximumHeight(200)
     self.loadableTableLayout = qt.QFormLayout(self.loadableTableFrame)
-    self.layout.addWidget(self.loadableTableFrame)
+    self.layout().addWidget(self.loadableTableFrame)
 
     self.loadableTableLayout.addWidget(self.userFrame)
     self.userFrame.hide()
@@ -271,7 +219,7 @@ class DICOMDetailsPopup(VTKObservationMixin):
     self.actionButtonsFrame = qt.QWidget()
     self.actionButtonsFrame.setMaximumHeight(40)
     self.actionButtonsFrame.objectName = 'ActionButtonsFrame'
-    self.layout.addWidget(self.actionButtonsFrame)
+    self.layout().addWidget(self.actionButtonsFrame)
 
     self.actionButtonLayout = qt.QHBoxLayout()
     self.actionButtonsFrame.setLayout(self.actionButtonLayout)
@@ -334,8 +282,8 @@ class DICOMDetailsPopup(VTKObservationMixin):
     #
     if showHeader:
       self.headerLayout = qt.QVBoxLayout()
-      self.layout.addLayout(self.headerLayout)
-      self.header = DICOMHeaderWidget(self.window)
+      self.layout().addLayout(self.headerLayout)
+      self.header = DICOMHeaderWidget(self)
       self.headerLayout.addWidget(self.header)
 
     #
@@ -346,7 +294,7 @@ class DICOMDetailsPopup(VTKObservationMixin):
     #
     # Plugin selection widget
     #
-    self.pluginSelector = DICOMPluginSelector(self.window)
+    self.pluginSelector = DICOMPluginSelector(self)
     self.loadableTableLayout.addRow(self.pluginSelector, self.loadableTable)
     self.checkBoxByPlugins = []
 
@@ -356,6 +304,33 @@ class DICOMDetailsPopup(VTKObservationMixin):
       self.checkBoxByPlugins.append(self.checkBox)
 
     self.loadButton.enabled = self.seriesTableView.selectedIndexes()
+
+    self.updateVisibility()
+
+  def updateVisibility(self):
+    for name in [
+      'ActionImport', 'ActionExport', 'ActionQuery', 'ActionSend', 'ActionRemove', 'ActionRepair', 'ActionViewMetadata',
+      'AdvancedViewCheckBox', 'HorizontalViewCheckBox', 'BrowserPersistentCheckBox'
+    ]:
+      visible = settingsValue('DICOM/%s.visible' % name, True, converter=toBool)
+      control = self._findChildren(name)
+      control.visible = visible
+
+    self.sendControl = self._findChildren('ActionSend')
+    self.sendControl.triggered.connect(self.onSendActionTriggered)
+
+    # Define set of widgets that should be hidden/shown together
+    self.settingsWidgetNames = {
+      'DatabaseButton': ('DatabaseNameLabel', 'DirectoryButton'),
+      'TableDensityComboBox': ('tablesDensityLabel', 'tableDensityComboBox')
+    }
+
+    # Hide the settings button if all associated widgets should be hidden
+    settingsButtonHidden = True
+    for groupName in self.settingsWidgetNames.keys():
+      settingsButtonHidden = settingsButtonHidden and not settingsValue('DICOM/%s.visible' % groupName, True,
+                                                                        converter=toBool)
+    self.settingsButton.visible = not settingsButtonHidden
 
   def onDatabaseDirectoryChanged(self, databaseDirectory):
     if not hasattr(slicer, 'dicomDatabase') or not slicer.dicomDatabase:
@@ -529,7 +504,6 @@ class DICOMDetailsPopup(VTKObservationMixin):
 
   def setBrowserPersistence(self, state):
     self.browserPersistent = state
-    self.setModality(not self.browserPersistent)
     self.settings.setValue('DICOM/BrowserPersistent', bool(self.browserPersistent))
 
   def onSettingsButton(self, status):
@@ -567,31 +541,14 @@ class DICOMDetailsPopup(VTKObservationMixin):
     self.exportDialog.execDialog()
 
   def open(self):
-    if not self.window.isVisible():
-      self.window.show()
-      if self.popupGeometry.isValid():
-        self.window.setGeometry(self.popupGeometry)
-        self.popupPositioned = True
-    if not self.popupPositioned:
-      mainWindow = slicer.util.mainWindow()
-      screenMainPos = mainWindow.pos
-      x = screenMainPos.x() + 100
-      y = screenMainPos.y() + 100
-      self.window.move(qt.QPoint(x, y))
-      self.popupPositioned = True
-    self.window.raise_()
+    self.show()
 
   def close(self):
-    self.onPopupGeometryChanged()
-    self.window.hide()
+    self.hide()
 
   def onPopupGeometryChanged(self):
-    self.popupGeometry = self.window.geometry
-    self.settings.setValue('DICOM/detailsPopup.geometry', self.window.geometry)
-
-  def setModality(self, modality):
-    if self.widgetType == 'dialog':
-      self.window.setModal(modality)
+    self.popupGeometry = self.geometry
+    self.settings.setValue('DICOM/detailsPopup.geometry', self.geometry)
 
   def organizeLoadables(self):
     """Review the selected state and confidence of the loadables
@@ -697,7 +654,7 @@ class DICOMDetailsPopup(VTKObservationMixin):
       return
 
     nDicomPlugins = len(slicer.modules.dicomPlugins)
-    progress = slicer.util.createProgressDialog(parent=self.window, value=0, maximum=nDicomPlugins)
+    progress = slicer.util.createProgressDialog(parent=self, value=0, maximum=nDicomPlugins)
     step = 0
 
     loadEnabled = False
@@ -723,7 +680,7 @@ class DICOMDetailsPopup(VTKObservationMixin):
         import traceback
         traceback.print_exc()
         slicer.util.warningDisplay("Warning: Plugin failed: %s\n\nSee python console for error message." % pluginClass,
-                                   windowTitle="DICOM", parent=self.window)
+                                   windowTitle="DICOM", parent=self)
         print "DICOM Plugin failed: %s" % str(e)
       step += 1
 
@@ -783,7 +740,7 @@ class DICOMDetailsPopup(VTKObservationMixin):
 
     self.referencesDialog = None
     if loadEnabled:
-      self.referencesDialog = qt.QDialog(self.window)
+      self.referencesDialog = qt.QDialog(self)
       self.referencesDialog.modal = True
       layout = qt.QFormLayout()
       layout.setSpacing(9)
@@ -835,7 +792,7 @@ class DICOMDetailsPopup(VTKObservationMixin):
       for loadable in self.loadablesByPlugin[plugin]:
         if loadable.selected:
           loadableCount += 1
-    progress = slicer.util.createProgressDialog(parent=self.window, value=0, maximum=loadableCount)
+    progress = slicer.util.createProgressDialog(parent=self, value=0, maximum=loadableCount)
     step = 0
     loadingResult = ''
 
@@ -887,6 +844,101 @@ class DICOMDetailsPopup(VTKObservationMixin):
       self.close()
 
     return
+
+
+class DICOMDetailsWindow(DICOMDetailsBase, qt.QWidget):
+
+  def __init__(self, dicomBrowser=None):
+    qt.QWidget.__init__(self)
+    DICOMDetailsBase.__init__(self, dicomBrowser)
+    self.setup()
+    self.setWindowFlags(qt.Qt.WindowStaysOnTopHint)
+
+  def open(self):
+    self.popupGeometry = settingsValue('DICOM/detailsPopup.geometry', qt.QRect())
+    if not self.isVisible():
+      if self.popupGeometry.isValid():
+        self.setGeometry(self.popupGeometry)
+      else:
+        mainWindow = slicer.util.mainWindow()
+        screenMainPos = mainWindow.pos
+        x = screenMainPos.x() + 100
+        y = screenMainPos.y() + 100
+        self.move(qt.QPoint(x, y))
+    self.show()
+
+  def closeEvent(self, event):
+    qt.QWidget.closeEvent(self, event)
+
+  def resizeEvent(self, event):
+    self.onPopupGeometryChanged()
+    qt.QWidget.resizeEvent(self, event)
+
+  def moveEvent(self, event):
+    self.onPopupGeometryChanged()
+    qt.QWidget.moveEvent(self, event)
+
+
+class DICOMDetailsDialog(DICOMDetailsBase, qt.QDialog):
+
+  def __init__(self, dicomBrowser=None):
+    DICOMDetailsBase.__init__(self, dicomBrowser)
+    qt.QDialog.__init__(self, slicer.util.mainWindow())
+    self.setup()
+
+  def setup(self, showHeader=False, showPreview=False):
+    DICOMDetailsBase.setup(self, showHeader, showPreview)
+
+  def open(self):
+    qt.QDialog.open(self)
+    if self.popupGeometry.isValid():
+      self.setGeometry(self.x, self.y, self.width, self.height)
+
+  def close(self):
+    qt.QDialog.close(self)
+    self.onPopupGeometryChanged()
+
+  def done(self, result):
+    qt.QDialog.done(self, result)
+    self.onPopupGeometryChanged()
+
+  def centerProgress(self):
+    mainWindow = slicer.util.mainWindow()
+    screenMainPos = mainWindow.pos
+    x = screenMainPos.x() + (mainWindow.width - self.progress.width)/2
+    y = screenMainPos.y() + (mainWindow.height - self.progress.height)/2
+    self.progress.move(x,y)
+
+
+class DICOMDetailsPopup(DICOMDetailsBase, ctkPopupWidget):
+  """
+  TODO: this is probably not usable since it doesn't improve any user experience in comparison to the dialog
+  """
+
+  def __init__(self, dicomBrowser=None):
+    DICOMDetailsBase.__init__(self, dicomBrowser)
+    ctkPopupWidget.__init__(self, self.dicomBrowser)
+    self.orientation = 1
+    self.horizontalDirection = 0
+    self.alignment = 0x82
+    self.setup()
+
+
+class DICOMDetailsDock(DICOMDetailsBase, qt.QFrame):
+  """
+  TODO: this is probably not usable since the dicom browser takes too much space so it wouldn't make sense to dock it
+  """
+
+  def __init__(self, dicomBrowser=None):
+    DICOMDetailsBase.__init__(self, dicomBrowser)
+    qt.QFrame.__init__(self)
+    self.dock = qt.QDockWidget(slicer.util.mainWindow())
+    self.dock.setFeatures(qt.QDockWidget.DockWidgetFloatable |
+                          qt.QDockWidget.DockWidgetMovable |
+                          qt.QDockWidget.DockWidgetClosable)
+    slicer.util.mainWindow().addDockWidget(qt.Qt.TopDockWidgetArea, self.dock)
+    self.dock.setWidget(self)
+    self.setup()
 
 
 class DICOMPluginSelector(qt.QWidget):
