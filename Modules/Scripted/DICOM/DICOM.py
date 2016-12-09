@@ -243,7 +243,7 @@ class DICOMWidget:
     self.dicomFrame.setText("DICOM Database and Networking")
     self.layout.addWidget(self.dicomFrame)
 
-    self.detailsPopup = DICOMLib.DICOMDetailsPopup()
+    self.detailsPopup = DICOMLib.DICOMDetailsWindow()
 
     # XXX Slicer 4.5 - Remove these. Here only for backward compatibility.
     self.dicomBrowser = self.detailsPopup.dicomBrowser
