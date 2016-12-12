@@ -76,7 +76,7 @@ class DICOMDetailsBase(VTKObservationMixin):
 
   def onSendActionTriggered(self, triggered):
     if len(self.fileLists):
-      sendDialog = DICOMSendDialog([dcmFile for sublist in self.fileLists for dcmFile in sublist])
+      sendDialog = DICOMSendDialog([dcmFile for sublist in self.fileLists for dcmFile in sublist], self)
 
   def _findChildren(self, name):
     """Since the ctkDICOMBrowser widgets stolen by the Slicer DICOM browser
@@ -844,13 +844,13 @@ class DICOMDetailsBase(VTKObservationMixin):
     return
 
 
-class DICOMDetailsWindow(DICOMDetailsBase, qt.QWidget):
+class DICOMDetailsModalDialog(DICOMDetailsBase, qt.QDialog):
 
   def __init__(self, dicomBrowser=None):
-    qt.QWidget.__init__(self)
     DICOMDetailsBase.__init__(self, dicomBrowser)
+    qt.QDialog.__init__(self, slicer.util.mainWindow())
+    self.modal = True
     self.setup()
-    # self.setWindowFlags(qt.Qt.WindowStaysOnTopHint)
 
   def open(self):
     popupGeometry = settingsValue('DICOM/detailsPopup.geometry', qt.QRect())
@@ -869,15 +869,22 @@ class DICOMDetailsWindow(DICOMDetailsBase, qt.QWidget):
     self.move(x,screenMainPos.y())
 
   def closeEvent(self, event):
-    qt.QWidget.closeEvent(self, event)
+    qt.QDialog.closeEvent(self, event)
 
   def resizeEvent(self, event):
-    qt.QWidget.resizeEvent(self, event)
+    qt.QDialog.resizeEvent(self, event)
     self.onPopupGeometryChanged()
 
   def moveEvent(self, event):
-    qt.QWidget.moveEvent(self, event)
+    qt.QDialog.moveEvent(self, event)
     self.onPopupGeometryChanged()
+
+
+class DICOMDetailsWindow(DICOMDetailsModalDialog):
+
+  def __init__(self, dicomBrowser=None):
+    super(DICOMDetailsWindow, self).__init__(dicomBrowser)
+    self.modal=False
 
 
 class DICOMDetailsDialog(DICOMDetailsBase, qt.QDialog):
@@ -903,18 +910,6 @@ class DICOMDetailsDialog(DICOMDetailsBase, qt.QDialog):
   def done(self, result):
     qt.QDialog.done(self, result)
     self.onPopupGeometryChanged()
-
-
-class DICOMDetailsPopup(DICOMDetailsBase, ctkPopupWidget):
-  """
-  TODO: this is probably not usable since it doesn't improve any user experience in comparison to the dialog
-  """
-
-  def __init__(self, dicomBrowser=None):
-    DICOMDetailsBase.__init__(self, dicomBrowser)
-    ctkPopupWidget.__init__(self, self.dicomBrowser)
-    self.orientation = qt.Qt.Horizontal
-    self.setup()
 
 
 class DICOMDetailsDock(DICOMDetailsBase, qt.QFrame):
@@ -1260,8 +1255,8 @@ class DICOMSendDialog(qt.QDialog):
   """Implement the Qt dialog for doing a DICOM Send (storage SCU)
   """
 
-  def __init__(self, files):
-    super(DICOMSendDialog, self).__init__(slicer.util.mainWindow())
+  def __init__(self, files, parent="mainWindow"):
+    super(DICOMSendDialog, self).__init__(slicer.util.mainWindow() if parent == "mainWindow" else parent)
     self.setWindowTitle('Send DICOM Study')
     self.setWindowModality(1)
     self.setLayout(qt.QVBoxLayout())
@@ -1339,12 +1334,12 @@ class DICOMSendDialog(qt.QDialog):
     self.progress.move(x,y)
 
 
-class DICOMHeaderPopup(qt.QWidget):
+class DICOMHeaderPopup(qt.QDialog):
 
   def __init__(self, referenceWindow=None):
-    qt.QWidget.__init__(self)
+    qt.QDialog.__init__(self)
+    self.modal = True
     self.referenceWindow = referenceWindow
-    # self.setWindowFlags(qt.Qt.WindowStaysOnTopHint)
     self.settings = qt.QSettings()
     self.setWindowTitle('DICOM File Metadata')
     self.listWidget = ctkDICOMObjectListWidget()
@@ -1375,7 +1370,7 @@ class DICOMHeaderPopup(qt.QWidget):
         self.listWidget.setFileList(filePaths)
 
   def resizeEvent(self, event):
-    qt.QWidget.resizeEvent(self, event)
+    qt.QDialog.resizeEvent(self, event)
     self.onPopupGeometryChanged()
 
   def moveEvent(self, event):
