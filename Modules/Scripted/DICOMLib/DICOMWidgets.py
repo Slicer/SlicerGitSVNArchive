@@ -838,17 +838,19 @@ class DICOMDetailsBase(VTKObservationMixin):
     progress.close()
     if loadingResult:
       slicer.util.warningDisplay(loadingResult, windowTitle='DICOM loading')
+
+    self.onLoadingFinished()
+
+  def onLoadingFinished(self):
     if not self.browserPersistent:
       self.close()
-
-    return
 
 
 class DICOMDetailsModalDialog(DICOMDetailsBase, qt.QDialog):
 
-  def __init__(self, dicomBrowser=None):
+  def __init__(self, dicomBrowser=None, parent="mainWindow"):
     DICOMDetailsBase.__init__(self, dicomBrowser)
-    qt.QDialog.__init__(self, slicer.util.mainWindow())
+    qt.QDialog.__init__(self, slicer.util.mainWindow() if parent == "mainWindow" else parent)
     self.modal = True
     self.setup()
 
@@ -882,16 +884,16 @@ class DICOMDetailsModalDialog(DICOMDetailsBase, qt.QDialog):
 
 class DICOMDetailsWindow(DICOMDetailsModalDialog):
 
-  def __init__(self, dicomBrowser=None):
-    super(DICOMDetailsWindow, self).__init__(dicomBrowser)
+  def __init__(self, dicomBrowser=None, parent="mainWindow"):
+    super(DICOMDetailsWindow, self).__init__(dicomBrowser, parent)
     self.modal=False
 
 
 class DICOMDetailsDialog(DICOMDetailsBase, qt.QDialog):
 
-  def __init__(self, dicomBrowser=None):
+  def __init__(self, dicomBrowser=None, parent="mainWindow"):
     DICOMDetailsBase.__init__(self, dicomBrowser)
-    qt.QDialog.__init__(self, slicer.util.mainWindow())
+    qt.QDialog.__init__(self, slicer.util.mainWindow() if parent == "mainWindow" else parent)
     self.setup()
 
   def setup(self, showHeader=False, showPreview=False):
@@ -939,6 +941,16 @@ class DICOMDetailsDock(DICOMDetailsBase, qt.QFrame):
   def onVisibilityChanged(self, visible):
     if not visible:
       self.close()
+
+
+class DICOMDetailsWidget(DICOMDetailsBase, qt.QWidget):
+
+  def __init__(self, dicomBrowser=None, parent=None):
+    DICOMDetailsBase.__init__(self, dicomBrowser)
+    qt.QWidget.__init__(self, parent)
+    self.setup()
+    self.browserPersistentButton.visible = False
+    self.browserPersistent = True
 
 
 class DICOMPluginSelector(qt.QWidget):
