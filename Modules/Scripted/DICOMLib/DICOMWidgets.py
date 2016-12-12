@@ -850,7 +850,7 @@ class DICOMDetailsWindow(DICOMDetailsBase, qt.QWidget):
     qt.QWidget.__init__(self)
     DICOMDetailsBase.__init__(self, dicomBrowser)
     self.setup()
-    self.setWindowFlags(qt.Qt.WindowStaysOnTopHint)
+    # self.setWindowFlags(qt.Qt.WindowStaysOnTopHint)
 
   def open(self):
     popupGeometry = settingsValue('DICOM/detailsPopup.geometry', qt.QRect())
@@ -1344,7 +1344,7 @@ class DICOMHeaderPopup(qt.QWidget):
   def __init__(self, referenceWindow=None):
     qt.QWidget.__init__(self)
     self.referenceWindow = referenceWindow
-    self.setWindowFlags(qt.Qt.WindowStaysOnTopHint)
+    # self.setWindowFlags(qt.Qt.WindowStaysOnTopHint)
     self.settings = qt.QSettings()
     self.setWindowTitle('DICOM File Metadata')
     self.listWidget = ctkDICOMObjectListWidget()
