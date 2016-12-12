@@ -918,9 +918,6 @@ class DICOMDetailsPopup(DICOMDetailsBase, ctkPopupWidget):
 
 
 class DICOMDetailsDock(DICOMDetailsBase, qt.QFrame):
-  """
-  TODO: this is probably not usable since the dicom browser takes too much space so it wouldn't make sense to dock it
-  """
 
   def __init__(self, dicomBrowser=None):
     DICOMDetailsBase.__init__(self, dicomBrowser)
@@ -931,7 +928,22 @@ class DICOMDetailsDock(DICOMDetailsBase, qt.QFrame):
                           qt.QDockWidget.DockWidgetClosable)
     slicer.util.mainWindow().addDockWidget(qt.Qt.TopDockWidgetArea, self.dock)
     self.dock.setWidget(self)
+    self.dock.visibilityChanged.connect(self.onVisibilityChanged)
     self.setup()
+
+  def __del__(self):
+    self.dock.visibilityChanged.disconnect(self.onVisibilityChanged)
+
+  def open(self):
+    if not self.dock.visible:
+      self.dock.show()
+
+  def close(self):
+    self.dock.hide()
+
+  def onVisibilityChanged(self, visible):
+    if not visible:
+      self.close()
 
 
 class DICOMPluginSelector(qt.QWidget):
