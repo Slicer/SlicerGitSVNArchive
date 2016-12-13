@@ -170,6 +170,11 @@ class DICOMWidget:
     self.updateRecentActivityTimer.interval = 500
     self.updateRecentActivityTimer.connect('timeout()', self.onUpateRecentActivityRequestTimeout)
 
+    self.widgetTypes = {'window': DICOMLib.DICOMDetailsWindow,
+                        'dialog': DICOMLib.DICOMDetailsDialog,
+                        'modal_dialog': DICOMLib.DICOMDetailsModalDialog,
+                        'dock': DICOMLib.DICOMDetailsDock}
+
     if not parent:
       self.parent = slicer.qMRMLWidget()
       self.parent.setLayout(qt.QVBoxLayout())
@@ -234,7 +239,7 @@ class DICOMWidget:
 
     self.runListenerAtStart = qt.QCheckBox("Start Listener when Slicer Starts")
     self.localFrame.layout().addWidget(self.runListenerAtStart)
-    self.runListenerAtStart.checked =  settingsValue('DICOM/RunListenerAtStart', False, converter=toBool)
+    self.runListenerAtStart.checked = settingsValue('DICOM/RunListenerAtStart', False, converter=toBool)
     self.runListenerAtStart.connect('clicked()', self.onRunListenerAtStart)
 
     # the Database frame (home of the ctkDICOM widget)
@@ -243,7 +248,7 @@ class DICOMWidget:
     self.dicomFrame.setText("DICOM Database and Networking")
     self.layout.addWidget(self.dicomFrame)
 
-    self.detailsPopup = DICOMLib.DICOMDetailsWindow()
+    self.detailsPopup = self.getSavedDICOMDetailsWidgetType()()
 
     # XXX Slicer 4.5 - Remove these. Here only for backward compatibility.
     self.dicomBrowser = self.detailsPopup.dicomBrowser
@@ -282,6 +287,22 @@ class DICOMWidget:
 
     # Add spacer to layout
     self.layout.addStretch(1)
+
+  def getSavedDICOMDetailsWidgetType(self, default="window"):
+    widgetType = settingsValue('DICOM/BrowserWidgetType', default)
+    if widgetType in self.widgetTypes.keys():
+      return self.widgetTypes[widgetType]
+    raise ValueError("Widget type %s for DICOMDetails does not exist" %widgetType)
+
+  def setDICOMDetailsWidgetType(self, widgetType):
+    if widgetType in self.widgetTypes.keys():
+      qt.QSettings().setValue('DICOM/BrowserWidgetType', widgetType)
+      self.detailsPopup = self.widgetTypes[widgetType]()
+    else:
+      raise KeyError("Widget type %s for DICOMDetails does not exist" % widgetType)
+
+  def getAvailableWidgetTypes(self):
+    return self.widgetTypes.keys()
 
   def onDatabaseChanged(self):
     """Use this because to update the view in response to things

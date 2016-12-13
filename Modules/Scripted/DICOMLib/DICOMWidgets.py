@@ -47,6 +47,8 @@ class DICOMDetailsBase(VTKObservationMixin):
   This is a helper used in the DICOMWidget class.
   """
 
+  widgetType = None
+
   def __init__(self, dicomBrowser=None):
     VTKObservationMixin.__init__(self)
     self.settings = qt.QSettings()
@@ -848,6 +850,8 @@ class DICOMDetailsBase(VTKObservationMixin):
 
 class DICOMDetailsModalDialog(DICOMDetailsBase, qt.QDialog):
 
+  widgetType = "modal_dialog"
+
   def __init__(self, dicomBrowser=None, parent="mainWindow"):
     DICOMDetailsBase.__init__(self, dicomBrowser)
     qt.QDialog.__init__(self, slicer.util.mainWindow() if parent == "mainWindow" else parent)
@@ -884,12 +888,16 @@ class DICOMDetailsModalDialog(DICOMDetailsBase, qt.QDialog):
 
 class DICOMDetailsWindow(DICOMDetailsModalDialog):
 
+  widgetType = "window"
+
   def __init__(self, dicomBrowser=None, parent="mainWindow"):
     super(DICOMDetailsWindow, self).__init__(dicomBrowser, parent)
     self.modal=False
 
 
 class DICOMDetailsDialog(DICOMDetailsBase, qt.QDialog):
+
+  widgetType = "dialog"
 
   def __init__(self, dicomBrowser=None, parent="mainWindow"):
     DICOMDetailsBase.__init__(self, dicomBrowser)
@@ -915,6 +923,8 @@ class DICOMDetailsDialog(DICOMDetailsBase, qt.QDialog):
 
 
 class DICOMDetailsDock(DICOMDetailsBase, qt.QFrame):
+
+  widgetType = "dock"
 
   def __init__(self, dicomBrowser=None):
     DICOMDetailsBase.__init__(self, dicomBrowser)
@@ -944,6 +954,8 @@ class DICOMDetailsDock(DICOMDetailsBase, qt.QFrame):
 
 
 class DICOMDetailsWidget(DICOMDetailsBase, qt.QWidget):
+
+  widgetType = "widget"
 
   def __init__(self, dicomBrowser=None, parent=None):
     DICOMDetailsBase.__init__(self, dicomBrowser)
