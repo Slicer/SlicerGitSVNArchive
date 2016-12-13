@@ -848,14 +848,15 @@ class DICOMDetailsBase(VTKObservationMixin):
       self.close()
 
 
-class DICOMDetailsModalDialog(DICOMDetailsBase, qt.QDialog):
+class DICOMDetailsDialog(DICOMDetailsBase, qt.QDialog):
 
-  widgetType = "modal_dialog"
+  widgetType = "dialog"
 
   def __init__(self, dicomBrowser=None, parent="mainWindow"):
     DICOMDetailsBase.__init__(self, dicomBrowser)
     qt.QDialog.__init__(self, slicer.util.mainWindow() if parent == "mainWindow" else parent)
     self.modal = True
+    self.setWindowFlags(qt.Qt.WindowMaximizeButtonHint | qt.Qt.Window)
     self.setup()
 
   def open(self):
@@ -865,7 +866,7 @@ class DICOMDetailsModalDialog(DICOMDetailsBase, qt.QDialog):
         self.setGeometry(popupGeometry)
       else:
         self.centerWindow()
-    self.show()
+    self.exec_()
 
   def centerWindow(self):
     mainWindow = slicer.util.mainWindow()
@@ -886,40 +887,13 @@ class DICOMDetailsModalDialog(DICOMDetailsBase, qt.QDialog):
     self.onPopupGeometryChanged()
 
 
-class DICOMDetailsWindow(DICOMDetailsModalDialog):
+class DICOMDetailsWindow(DICOMDetailsDialog):
 
   widgetType = "window"
 
   def __init__(self, dicomBrowser=None, parent="mainWindow"):
     super(DICOMDetailsWindow, self).__init__(dicomBrowser, parent)
     self.modal=False
-
-
-class DICOMDetailsDialog(DICOMDetailsBase, qt.QDialog):
-
-  widgetType = "dialog"
-
-  def __init__(self, dicomBrowser=None, parent="mainWindow"):
-    DICOMDetailsBase.__init__(self, dicomBrowser)
-    qt.QDialog.__init__(self, slicer.util.mainWindow() if parent == "mainWindow" else parent)
-    self.setup()
-
-  def setup(self, showHeader=False, showPreview=False):
-    DICOMDetailsBase.setup(self, showHeader, showPreview)
-
-  def open(self):
-    qt.QDialog.open(self)
-    popupGeometry = settingsValue('DICOM/detailsPopup.geometry', qt.QRect())
-    if popupGeometry.isValid():
-      self.setGeometry(self.x, self.y, self.width, self.height)
-
-  def close(self):
-    qt.QDialog.close(self)
-    self.onPopupGeometryChanged()
-
-  def done(self, result):
-    qt.QDialog.done(self, result)
-    self.onPopupGeometryChanged()
 
 
 class DICOMDetailsDock(DICOMDetailsBase, qt.QFrame):
@@ -961,8 +935,6 @@ class DICOMDetailsWidget(DICOMDetailsBase, qt.QWidget):
     DICOMDetailsBase.__init__(self, dicomBrowser)
     qt.QWidget.__init__(self, parent)
     self.setup()
-    self.browserPersistentButton.visible = False
-    self.browserPersistent = True
 
 
 class DICOMPluginSelector(qt.QWidget):
@@ -1362,6 +1334,7 @@ class DICOMHeaderPopup(qt.QDialog):
 
   def __init__(self, referenceWindow=None):
     qt.QDialog.__init__(self)
+    self.setWindowFlags(qt.Qt.WindowMaximizeButtonHint)
     self.modal = True
     self.referenceWindow = referenceWindow
     self.settings = qt.QSettings()

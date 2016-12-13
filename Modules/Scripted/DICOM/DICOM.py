@@ -158,6 +158,8 @@ class DICOMWidget:
   Slicer module that creates the Qt GUI for interacting with DICOM
   """
 
+  detailWidgetClasses = [DICOMLib.DICOMDetailsWindow, DICOMLib.DICOMDetailsDialog, DICOMLib.DICOMDetailsDock]
+
   def __init__(self, parent=None):
     self.testingServer = None
 
@@ -169,11 +171,6 @@ class DICOMWidget:
     self.updateRecentActivityTimer.singleShot = True
     self.updateRecentActivityTimer.interval = 500
     self.updateRecentActivityTimer.connect('timeout()', self.onUpateRecentActivityRequestTimeout)
-
-    self.widgetTypes = {'window': DICOMLib.DICOMDetailsWindow,
-                        'dialog': DICOMLib.DICOMDetailsDialog,
-                        'modal_dialog': DICOMLib.DICOMDetailsModalDialog,
-                        'dock': DICOMLib.DICOMDetailsDock}
 
     if not parent:
       self.parent = slicer.qMRMLWidget()
@@ -290,19 +287,30 @@ class DICOMWidget:
 
   def getSavedDICOMDetailsWidgetType(self, default="window"):
     widgetType = settingsValue('DICOM/BrowserWidgetType', default)
-    if widgetType in self.widgetTypes.keys():
-      return self.widgetTypes[widgetType]
-    raise ValueError("Widget type %s for DICOMDetails does not exist" %widgetType)
+    widgetClass = self.getDetailsWidgetClassForType(widgetType)
+    if not widgetClass:
+      qt.QSettings().setValue('DICOM/BrowserWidgetType', widgetType)
+      widgetClass = self.getDetailsWidgetClassForType(default)
+    return widgetClass
 
   def setDICOMDetailsWidgetType(self, widgetType):
-    if widgetType in self.widgetTypes.keys():
-      qt.QSettings().setValue('DICOM/BrowserWidgetType', widgetType)
-      self.detailsPopup = self.widgetTypes[widgetType]()
+    if not widgetType in self.getAvailableWidgetTypes():
+      raise ValueError("Widget type '%s' for DICOMDetails does not exist" % widgetType)
     else:
-      raise KeyError("Widget type %s for DICOMDetails does not exist" % widgetType)
+      qt.QSettings().setValue('DICOM/BrowserWidgetType', widgetType)
+      if self.detailsPopup:
+        if self.detailsPopup.isVisible():
+          self.detailsPopup.close()
+        self.detailsPopup = self.getDetailsWidgetClassForType(widgetType)()
 
   def getAvailableWidgetTypes(self):
-    return self.widgetTypes.keys()
+    return [c.widgetType for c in self.detailWidgetClasses]
+
+  def getDetailsWidgetClassForType(self, widgetType):
+    try:
+      return self.detailWidgetClasses[self.getAvailableWidgetTypes().index(widgetType)]
+    except (KeyError, ValueError):
+      return None
 
   def onDatabaseChanged(self):
     """Use this because to update the view in response to things
