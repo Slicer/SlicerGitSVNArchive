@@ -9,3 +9,22 @@ machine:
 test:
   override:
     - bash ./CMake/CircleCI/kill_time_test.sh
+    - bash ./CMake/CircleCI/kill_time_test.sh
+    - bash ./CMake/CircleCI/kill_time_test.sh
+    - bash ./CMake/CircleCI/kill_time_test.sh
+    - bash ./CMake/CircleCI/kill_time_test.sh
+    - bash ./CMake/CircleCI/kill_time_test.sh
+    - bash ./CMake/CircleCI/kill_time_test.sh
+    - bash ./CMake/CircleCI/kill_time_test.sh
+    - bash ./CMake/CircleCI/kill_time_test.sh
+    - bash ./CMake/CircleCI/kill_time_test.sh
+    - bash ./CMake/CircleCI/kill_time_test.sh
+    - bash ./CMake/CircleCI/kill_time_test.sh
+    - bash ./CMake/CircleCI/kill_time_test.sh
+    - bash ./CMake/CircleCI/kill_time_test.sh
+    - bash ./CMake/CircleCI/kill_time_test.sh
+    - bash ./CMake/CircleCI/kill_time_test.sh
+    - bash ./CMake/CircleCI/kill_time_test.sh
+    - bash ./CMake/CircleCI/kill_time_test.sh
+    - bash ./CMake/CircleCI/kill_time_test.sh
+    - bash ./CMake/CircleCI/kill_time_test.sh
