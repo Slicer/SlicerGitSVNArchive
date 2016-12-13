@@ -313,9 +313,7 @@ class DICOMWidget:
     self.layout.addStretch(1)
 
   def onOpenDetailsPopup(self):
-    print "onOpenDetailsPopup"
     if not isinstance(self.detailsPopup, self.getSavedDICOMDetailsWidgetType()):
-      print "is not instance"
       self.detailsPopup = self.getSavedDICOMDetailsWidgetType()()
     self.detailsPopup.open()
 
