@@ -160,6 +160,33 @@ class DICOMWidget:
 
   detailWidgetClasses = [DICOMLib.DICOMDetailsWindow, DICOMLib.DICOMDetailsDialog, DICOMLib.DICOMDetailsDock]
 
+  @staticmethod
+  def getSavedDICOMDetailsWidgetType(default="window"):
+    widgetType = settingsValue('DICOM/BrowserWidgetType', default)
+    widgetClass = DICOMWidget.getDetailsWidgetClassForType(widgetType)
+    if not widgetClass:
+      qt.QSettings().setValue('DICOM/BrowserWidgetType', widgetType)
+      widgetClass = DICOMWidget.getDetailsWidgetClassForType(default)
+    return widgetClass
+
+  @staticmethod
+  def setDICOMDetailsWidgetType(widgetType):
+    if not widgetType in DICOMWidget.getAvailableWidgetTypes():
+      raise ValueError("Widget type '%s' for DICOMDetails does not exist" % widgetType)
+    else:
+      qt.QSettings().setValue('DICOM/BrowserWidgetType', widgetType)
+
+  @staticmethod
+  def getAvailableWidgetTypes():
+    return [c.widgetType for c in DICOMWidget.detailWidgetClasses]
+
+  @staticmethod
+  def getDetailsWidgetClassForType(widgetType):
+    try:
+      return DICOMWidget.detailWidgetClasses[DICOMWidget.getAvailableWidgetTypes().index(widgetType)]
+    except (KeyError, ValueError):
+      return None
+
   def __init__(self, parent=None):
     self.testingServer = None
 
@@ -186,7 +213,7 @@ class DICOMWidget:
     globals()['d'] = self
 
   def enter(self):
-    self.detailsPopup.open()
+    self.onOpenDetailsPopup()
 
   def exit(self):
     if not self.detailsPopup.browserPersistent:
@@ -254,14 +281,14 @@ class DICOMWidget:
     # connect to the 'Show DICOM Browser' button
     self.showBrowserButton = qt.QPushButton('Show DICOM Browser')
     self.dicomFrame.layout().addWidget(self.showBrowserButton)
-    self.showBrowserButton.connect('clicked()', self.detailsPopup.open)
+    self.showBrowserButton.connect('clicked()', self.onOpenDetailsPopup)
 
     # connect to the main window's dicom button
     mw = slicer.util.mainWindow()
     if mw:
       try:
         action = slicer.util.findChildren(mw,name='LoadDICOMAction')[0]
-        action.connect('triggered()',self.detailsPopup.open)
+        action.connect('triggered()',self.onOpenDetailsPopup)
       except IndexError:
         logging.error('Could not connect to the main window DICOM button')
 
@@ -285,32 +312,12 @@ class DICOMWidget:
     # Add spacer to layout
     self.layout.addStretch(1)
 
-  def getSavedDICOMDetailsWidgetType(self, default="window"):
-    widgetType = settingsValue('DICOM/BrowserWidgetType', default)
-    widgetClass = self.getDetailsWidgetClassForType(widgetType)
-    if not widgetClass:
-      qt.QSettings().setValue('DICOM/BrowserWidgetType', widgetType)
-      widgetClass = self.getDetailsWidgetClassForType(default)
-    return widgetClass
-
-  def setDICOMDetailsWidgetType(self, widgetType):
-    if not widgetType in self.getAvailableWidgetTypes():
-      raise ValueError("Widget type '%s' for DICOMDetails does not exist" % widgetType)
-    else:
-      qt.QSettings().setValue('DICOM/BrowserWidgetType', widgetType)
-      if self.detailsPopup:
-        if self.detailsPopup.isVisible():
-          self.detailsPopup.close()
-        self.detailsPopup = self.getDetailsWidgetClassForType(widgetType)()
-
-  def getAvailableWidgetTypes(self):
-    return [c.widgetType for c in self.detailWidgetClasses]
-
-  def getDetailsWidgetClassForType(self, widgetType):
-    try:
-      return self.detailWidgetClasses[self.getAvailableWidgetTypes().index(widgetType)]
-    except (KeyError, ValueError):
-      return None
+  def onOpenDetailsPopup(self):
+    print "onOpenDetailsPopup"
+    if not isinstance(self.detailsPopup, self.getSavedDICOMDetailsWidgetType()):
+      print "is not instance"
+      self.detailsPopup = self.getSavedDICOMDetailsWidgetType()()
+    self.detailsPopup.open()
 
   def onDatabaseChanged(self):
     """Use this because to update the view in response to things

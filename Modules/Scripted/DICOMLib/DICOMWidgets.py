@@ -895,6 +895,16 @@ class DICOMDetailsWindow(DICOMDetailsDialog):
     super(DICOMDetailsWindow, self).__init__(dicomBrowser, parent)
     self.modal=False
 
+  def open(self):
+    popupGeometry = settingsValue('DICOM/detailsPopup.geometry', qt.QRect())
+    if not self.isVisible():
+      if popupGeometry.isValid():
+        self.setGeometry(popupGeometry)
+      else:
+        self.centerWindow()
+    self.show()
+    self.activateWindow()
+
 
 class DICOMDetailsDock(DICOMDetailsBase, qt.QFrame):
 
