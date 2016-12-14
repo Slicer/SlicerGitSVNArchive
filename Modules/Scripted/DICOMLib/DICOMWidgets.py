@@ -41,7 +41,28 @@ def setDatabasePrecacheTags(dicomBrowser=None):
     dicomBrowser.tagsToPrecache = tagsToPrecache
 
 
-class DICOMDetailsBase(VTKObservationMixin):
+class SizePositionSettingsMixin(object):
+
+  def saveSizeAndPosition(self):
+
+    self.settings.beginGroup('DICOM/{}'.format(self.objectName))
+    self.settings.setValue("size", self.size)
+    self.settings.setValue("pos", self.pos)
+    self.settings.endGroup()
+
+  def restoreSizeAndPosition(self):
+    parent = self.parent() if self.parent() else slicer.util.mainWindow()
+    screenPos = parent.pos
+
+    self.settings.beginGroup('DICOM/{}'.format(self.objectName))
+    self.resize(self.settings.value("size",
+                                    qt.QSize(int(parent.width*3/4), int(parent.height*3/4))))
+    self.move(self.settings.value("pos",
+                                  qt.QPoint(screenPos.x() + (parent.width - self.width)/2, screenPos.y())))
+    self.settings.endGroup()
+
+
+class DICOMDetailsBase(VTKObservationMixin, SizePositionSettingsMixin):
   """Implement the Qt window showing details and possible
   operations to perform on the selected dicom list item.
   This is a helper used in the DICOMWidget class.
@@ -230,7 +251,7 @@ class DICOMDetailsBase(VTKObservationMixin):
     self.actionButtonLayout.addWidget(self.loadButton)
     self.loadButton.connect('clicked()', self.loadCheckedLoadables)
 
-    self.headerPopup = DICOMLib.DICOMHeaderPopup(referenceWindow=self)
+    self.headerPopup = DICOMLib.DICOMHeaderPopup(self)
 
     self.viewMetadataButton = qt.QPushButton('Metadata')
     self.viewMetadataButton.objectName = 'ActionViewMetadata'
@@ -547,9 +568,6 @@ class DICOMDetailsBase(VTKObservationMixin):
   def close(self):
     self.hide()
 
-  def onPopupGeometryChanged(self):
-    self.settings.setValue('DICOM/detailsPopup.geometry', self.geometry)
-
   def organizeLoadables(self):
     """Review the selected state and confidence of the loadables
     across plugins so that the options the user is most likely
@@ -860,31 +878,20 @@ class DICOMDetailsDialog(DICOMDetailsBase, qt.QDialog):
     self.setup()
 
   def open(self):
-    popupGeometry = settingsValue('DICOM/detailsPopup.geometry', qt.QRect())
     if not self.isVisible():
-      if popupGeometry.isValid():
-        self.setGeometry(popupGeometry)
-      else:
-        self.centerWindow()
+      self.restoreSizeAndPosition()
     self.exec_()
-
-  def centerWindow(self):
-    mainWindow = slicer.util.mainWindow()
-    screenMainPos = mainWindow.pos
-    self.resize(int(mainWindow.width*3/4), int(mainWindow.height*3/4))
-    x = screenMainPos.x() + (mainWindow.width - self.width)/2
-    self.move(x,screenMainPos.y())
 
   def closeEvent(self, event):
     qt.QDialog.closeEvent(self, event)
 
   def resizeEvent(self, event):
     qt.QDialog.resizeEvent(self, event)
-    self.onPopupGeometryChanged()
+    self.saveSizeAndPosition()
 
   def moveEvent(self, event):
     qt.QDialog.moveEvent(self, event)
-    self.onPopupGeometryChanged()
+    self.saveSizeAndPosition()
 
 
 class DICOMDetailsWindow(DICOMDetailsDialog):
@@ -896,12 +903,8 @@ class DICOMDetailsWindow(DICOMDetailsDialog):
     self.modal=False
 
   def open(self):
-    popupGeometry = settingsValue('DICOM/detailsPopup.geometry', qt.QRect())
     if not self.isVisible():
-      if popupGeometry.isValid():
-        self.setGeometry(popupGeometry)
-      else:
-        self.centerWindow()
+      self.restoreSizeAndPosition()
     self.show()
     self.activateWindow()
 
@@ -1271,7 +1274,6 @@ class DICOMSendDialog(qt.QDialog):
     self.sendAddress = self.settings.value('DICOM.sendAddress')
     self.sendPort = self.settings.value('DICOM.sendPort')
 
-    self.screenSize = slicer.app.desktop().screenGeometry()
     self.open()
 
   def open(self):
@@ -1340,34 +1342,18 @@ class DICOMSendDialog(qt.QDialog):
     self.progress.move(x,y)
 
 
-class DICOMHeaderPopup(qt.QDialog):
+class DICOMHeaderPopup(qt.QDialog, SizePositionSettingsMixin):
 
-  def __init__(self, referenceWindow=None):
-    qt.QDialog.__init__(self)
-    self.setWindowFlags(qt.Qt.WindowMaximizeButtonHint)
+  def __init__(self, parent=None):
+    qt.QDialog.__init__(self, parent)
+    self.setWindowFlags(qt.Qt.WindowMaximizeButtonHint | qt.Qt.Window)
     self.modal = True
-    self.referenceWindow = referenceWindow
     self.settings = qt.QSettings()
+    self.objectName = 'HeaderPopup'
     self.setWindowTitle('DICOM File Metadata')
     self.listWidget = ctkDICOMObjectListWidget()
     self.setLayout(qt.QGridLayout())
     self.layout().addWidget(self.listWidget)
-
-  def show(self):
-    if not self.isVisible():
-      popupGeometry = settingsValue('DICOM/headerPopup.geometry', qt.QRect())
-      if popupGeometry.isValid():
-        self.setGeometry(popupGeometry)
-      else:
-        self.centerWindow()
-    qt.QWidget.show(self)
-
-  def centerWindow(self):
-    mainWindow = self.referenceWindow if self.referenceWindow else slicer.util.mainWindow()
-    screenMainPos = mainWindow.pos
-    self.resize(int(mainWindow.width*3/4), int(mainWindow.height*3/4))
-    x = screenMainPos.x() + (mainWindow.width - self.width)/2
-    self.move(x,screenMainPos.y())
 
   def setFileLists(self, fileLists):
     filePaths = []
@@ -1376,13 +1362,18 @@ class DICOMHeaderPopup(qt.QDialog):
         filePaths.append(filePath)
         self.listWidget.setFileList(filePaths)
 
+  def show(self):
+    if not self.isVisible():
+      self.restoreSizeAndPosition()
+    qt.QDialog.show(self)
+
+  def closeEvent(self, event):
+    qt.QDialog.closeEvent(self, event)
+
   def resizeEvent(self, event):
     qt.QDialog.resizeEvent(self, event)
-    self.onPopupGeometryChanged()
+    self.saveSizeAndPosition()
 
   def moveEvent(self, event):
-    qt.QWidget.moveEvent(self, event)
-    self.onPopupGeometryChanged()
-
-  def onPopupGeometryChanged(self):
-    self.settings.setValue('DICOM/headerPopup.geometry', self.geometry)
+    qt.QDialog.moveEvent(self, event)
+    self.saveSizeAndPosition()
