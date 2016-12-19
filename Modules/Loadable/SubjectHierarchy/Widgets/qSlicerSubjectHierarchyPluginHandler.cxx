@@ -187,7 +187,7 @@ qSlicerSubjectHierarchyAbstractPlugin* qSlicerSubjectHierarchyPluginHandler::plu
 }
 
 //---------------------------------------------------------------------------
-QList<qSlicerSubjectHierarchyAbstractPlugin*> qSlicerSubjectHierarchyPluginHandler::pluginsForAddingToSubjectHierarchyForNode(
+QList<qSlicerSubjectHierarchyAbstractPlugin*> qSlicerSubjectHierarchyPluginHandler::pluginsForAddingNodeToSubjectHierarchy(
   vtkMRMLNode* node, vtkMRMLSubjectHierarchyNode* parent/*=NULL*/)
 {
   QList<qSlicerSubjectHierarchyAbstractPlugin*> mostSuitablePlugins;
@@ -215,8 +215,8 @@ QList<qSlicerSubjectHierarchyAbstractPlugin*> qSlicerSubjectHierarchyPluginHandl
 }
 
 //---------------------------------------------------------------------------
-QList<qSlicerSubjectHierarchyAbstractPlugin*> qSlicerSubjectHierarchyPluginHandler::pluginsForReparentingInsideSubjectHierarchyForNode(
-  vtkMRMLSubjectHierarchyNode* node, vtkMRMLSubjectHierarchyNode* parent/*=NULL*/) //TODO is NULL possible?
+QList<qSlicerSubjectHierarchyAbstractPlugin*> qSlicerSubjectHierarchyPluginHandler::pluginsForReparentingItemInSubjectHierarchy(
+  SubjectHierarchyItemID itemID, vtkMRMLSubjectHierarchyNode* parent/*=NULL*/) //TODO is NULL possible?
 {
   QList<qSlicerSubjectHierarchyAbstractPlugin*> mostSuitablePlugins;
   double bestConfidence = 0.0;
@@ -243,7 +243,7 @@ QList<qSlicerSubjectHierarchyAbstractPlugin*> qSlicerSubjectHierarchyPluginHandl
 }
 
 //---------------------------------------------------------------------------
-qSlicerSubjectHierarchyAbstractPlugin* qSlicerSubjectHierarchyPluginHandler::findOwnerPluginForSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode* node)
+qSlicerSubjectHierarchyAbstractPlugin* qSlicerSubjectHierarchyPluginHandler::findOwnerPluginForSubjectHierarchyNode(SubjectHierarchyItemID itemID)
 {
   QList<qSlicerSubjectHierarchyAbstractPlugin*> mostSuitablePlugins;
   double bestConfidence = 0.0;
@@ -291,7 +291,7 @@ qSlicerSubjectHierarchyAbstractPlugin* qSlicerSubjectHierarchyPluginHandler::fin
 }
 
 //---------------------------------------------------------------------------
-qSlicerSubjectHierarchyAbstractPlugin* qSlicerSubjectHierarchyPluginHandler::findAndSetOwnerPluginForSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode* node)
+qSlicerSubjectHierarchyAbstractPlugin* qSlicerSubjectHierarchyPluginHandler::findAndSetOwnerPluginForSubjectHierarchyNode(SubjectHierarchyItemID itemID)
 {
   qSlicerSubjectHierarchyAbstractPlugin* ownerPlugin = this->findOwnerPluginForSubjectHierarchyNode(node);
   node->SetOwnerPluginName(ownerPlugin->name().toLatin1().constData());
@@ -299,7 +299,7 @@ qSlicerSubjectHierarchyAbstractPlugin* qSlicerSubjectHierarchyPluginHandler::fin
 }
 
 //---------------------------------------------------------------------------
-qSlicerSubjectHierarchyAbstractPlugin* qSlicerSubjectHierarchyPluginHandler::getOwnerPluginForSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode* node)
+qSlicerSubjectHierarchyAbstractPlugin* qSlicerSubjectHierarchyPluginHandler::getOwnerPluginForSubjectHierarchyNode(SubjectHierarchyItemID itemID)
 {
   if (!node->GetOwnerPluginName())
     {
@@ -360,7 +360,7 @@ vtkMRMLScene* qSlicerSubjectHierarchyPluginHandler::scene()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSubjectHierarchyPluginHandler::setCurrentNode(vtkMRMLSubjectHierarchyNode* node)
+void qSlicerSubjectHierarchyPluginHandler::setCurrentNode(SubjectHierarchyItemID itemID)
 {
   this->m_CurrentNodes.clear();
   this->m_CurrentNodes.append(node);

@@ -129,7 +129,7 @@ void qSlicerSubjectHierarchyParseLocalDataPlugin::showContextMenuActionsForNode(
       if ( storableNode && storableNode->GetStorageNode() && !storableNode->GetHideFromEditors() )
         {
         QList<qSlicerSubjectHierarchyAbstractPlugin*> foundPlugins =
-          qSlicerSubjectHierarchyPluginHandler::instance()->pluginsForAddingToSubjectHierarchyForNode(storableNode);
+          qSlicerSubjectHierarchyPluginHandler::instance()->pluginsForAddingNodeToSubjectHierarchy(storableNode);
         if (!foundPlugins.empty())
           {
           d->CreateHierarchyFromLoadedLocalDirectoriesAction->setVisible(true);

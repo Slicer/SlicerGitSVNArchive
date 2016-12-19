@@ -31,6 +31,7 @@
 // MRML includes
 #include <vtkMRMLNode.h>
 
+class vtkCallbackCommand;
 class vtkMRMLTransformNode;
 
 /// \ingroup Slicer_MRML_Core
@@ -56,9 +57,13 @@ public:
 
   enum
   {
+    SubjectHierarchyItemAddedEvent = 62000,
+    SubjectHierarchyItemAboutToBeRemovedEvent,
+    SubjectHierarchyItemRemovedEvent,
+    SubjectHierarchyItemModifiedEvent,
     /// Event fired when UID is added to subject hierarchy item. Useful when using UIDs
     /// to find related nodes, and the nodes are loaded sequentially in unspecified order.
-    SubjectHierarchyUIDAddedEvent = 62000 //TODO: Invoke with itemID
+    SubjectHierarchyItemUIDAddedEvent
   };
 
 public:
@@ -91,11 +96,6 @@ public:
   /// Get name for a subject hierarchy item
   /// \return Name of the associated data node if any, otherwise the name of the item
   std::string GetItemName(SubjectHierarchyItemID itemID);
-  /// Set new parent to a subject hierarchy item
-  void SetItemParent(SubjectHierarchyItemID itemID, vtkMRMLNode* parentNode);
-  /// Get ID of the parent of a subject hierarchy item
-  /// \return Parent item ID, INVALID_ITEM_ID if there is no parent
-  SubjectHierarchyItemID GetItemParent(SubjectHierarchyItemID itemID);
   /// Set level for a subject hierarchy item
   void SetItemLevel(SubjectHierarchyItemID itemID, std::string level);
   /// Get level for a subject hierarchy item
@@ -108,6 +108,23 @@ public:
   void SetItemOwnerPluginAutoSearch(SubjectHierarchyItemID itemID, bool owherPluginAutoSearch);
   /// Get owner plugin auto search flag for a subject hierarchy item
   bool GetItemOwnerPluginAutoSearch(SubjectHierarchyItemID itemID);
+
+  /// Get ID of the parent of a subject hierarchy item
+  /// \return Parent item ID, INVALID_ITEM_ID if there is no parent
+  SubjectHierarchyItemID GetItemParent(SubjectHierarchyItemID itemID);
+  /// Get IDs of the children of a subject hierarchy item
+  /// \param recursive If false then collect direct children, if true then the whole branch. False by default
+  void GetItemChildren(SubjectHierarchyItemID itemID, std::vector<SubjectHierarchyItemID>& childIDs, bool recursive=false);
+  /// Set new parent to a subject hierarchy item
+  /// \return Success flag
+  bool ReparentItem(SubjectHierarchyItemID itemID, vtkMRMLNode* newParentNode);
+  /// Move item within the same branch before given item
+  /// \param beforeItemID Item to move given item before. If INVALID_ITEM_ID then insert to the end
+  /// \return Success flag
+  bool MoveItem(SubjectHierarchyItemID itemID, SubjectHierarchyItemID beforeItemID);
+  /// Get position of item under its parent
+  /// \return Position of item under its parent. -1 on failure.
+  int GetItemPositionUnderParent(SubjectHierarchyItemID itemID);
 
   /// Set UID to the subject hierarchy item
   void SetItemUID(SubjectHierarchyItemID itemID, std::string uidName, std::string uidValue);
@@ -205,6 +222,10 @@ public:
   std::vector<SubjectHierarchyItemID> GetSubjectHierarchyItemsReferencedFromItemByDICOM(SubjectHierarchyItemID itemID);
 
 protected:
+  /// Callback function for all events from the subject hierarchy items
+  static void ItemEventCallback(vtkObject* caller, unsigned long eid, void* clientData, void* callData);
+
+protected:
   vtkMRMLSubjectHierarchyNode();
   ~vtkMRMLSubjectHierarchyNode();
   vtkMRMLSubjectHierarchyNode(const vtkMRMLSubjectHierarchyNode&);
@@ -213,6 +234,9 @@ protected:
   class vtkInternal;
   vtkInternal* Internal;
   friend class vtkInternal;
+
+  /// Command handling events from subject hierarchy items
+  vtkSmartPointer<vtkCallbackCommand> ItemEventCallbackCommand;
 };
 
 #endif

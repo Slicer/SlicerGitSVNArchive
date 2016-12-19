@@ -72,9 +72,9 @@ void qSlicerSubjectHierarchyAbstractPlugin::setName(QString name)
 }
 
 //---------------------------------------------------------------------------
-double qSlicerSubjectHierarchyAbstractPlugin::canOwnSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode* node)const
+double qSlicerSubjectHierarchyAbstractPlugin::canOwnSubjectHierarchyItem(SubjectHierarchyItemID itemID)const
 {
-  Q_UNUSED(node);
+  Q_UNUSED(itemID);
 
   // Default implementation applies to plugins that do not define roles, only functions and/or levels
   return 0.0;
@@ -95,9 +95,9 @@ const QString qSlicerSubjectHierarchyAbstractPlugin::helpText()const
 }
 
 //---------------------------------------------------------------------------
-QIcon qSlicerSubjectHierarchyAbstractPlugin::icon(vtkMRMLSubjectHierarchyNode* node)
+QIcon qSlicerSubjectHierarchyAbstractPlugin::icon(SubjectHierarchyItemID itemID)
 {
-  Q_UNUSED(node);
+  Q_UNUSED(itemID);
 
   // Default implementation applies to plugins that do not define roles, only functions and/or levels
   // If there is no role, then there is no icon to set
@@ -115,13 +115,14 @@ QIcon qSlicerSubjectHierarchyAbstractPlugin::visibilityIcon(int visible)
 }
 
 //---------------------------------------------------------------------------
-void qSlicerSubjectHierarchyAbstractPlugin::editProperties(vtkMRMLSubjectHierarchyNode* node)
+void qSlicerSubjectHierarchyAbstractPlugin::editProperties(SubjectHierarchyItemID itemID)
 {
-  qSlicerApplication::application()->openNodeModule(node->GetAssociatedNode());
+  //TODO:
+  //qSlicerApplication::application()->openNodeModule(node->GetAssociatedNode());
 }
 
 //-----------------------------------------------------------------------------
-QList<QAction*> qSlicerSubjectHierarchyAbstractPlugin::nodeContextMenuActions()const
+QList<QAction*> qSlicerSubjectHierarchyAbstractPlugin::itemContextMenuActions()const
 {
   return QList<QAction*>();
 }
@@ -146,36 +147,38 @@ double qSlicerSubjectHierarchyAbstractPlugin::canAddNodeToSubjectHierarchy(vtkMR
 //----------------------------------------------------------------------------
 bool qSlicerSubjectHierarchyAbstractPlugin::addNodeToSubjectHierarchy(vtkMRMLNode* nodeToAdd, vtkMRMLSubjectHierarchyNode* parentNode, const char* level/*=NULL*/)
 {
-  if (!nodeToAdd)
-    {
-    qCritical() << Q_FUNC_INFO << ": Invalid node to add!";
-    return false;
-    }
-  vtkMRMLScene* scene = qSlicerSubjectHierarchyPluginHandler::instance()->scene();
-  if (!scene)
-    {
-    qCritical() << Q_FUNC_INFO << ": Invalid MRML scene!";
-    return false;
-    }
+//TODO:
+  //if (!nodeToAdd)
+  //  {
+  //  qCritical() << Q_FUNC_INFO << ": Invalid node to add!";
+  //  return false;
+  //  }
+  //vtkMRMLScene* scene = qSlicerSubjectHierarchyPluginHandler::instance()->scene();
+  //if (!scene)
+  //  {
+  //  qCritical() << Q_FUNC_INFO << ": Invalid MRML scene!";
+  //  return false;
+  //  }
 
-  // Associate to a new hierarchy node and put it in the tree under the parent
-  vtkMRMLSubjectHierarchyNode* subjectHierarchyNode = vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(
-    scene, parentNode, level, nodeToAdd->GetName(), nodeToAdd);
-  if (!subjectHierarchyNode)
-    {
-    qCritical() << Q_FUNC_INFO << ": Failed to create subject hierarchy node!";
-    return false;
-    }
+  //// Associate to a new hierarchy node and put it in the tree under the parent
+  //vtkMRMLSubjectHierarchyNode* subjectHierarchyNode = vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(
+  //  scene, parentNode, level, nodeToAdd->GetName(), nodeToAdd);
+  //if (!subjectHierarchyNode)
+  //  {
+  //  qCritical() << Q_FUNC_INFO << ": Failed to create subject hierarchy node!";
+  //  return false;
+  //  }
 
   return true;
 }
 
 //----------------------------------------------------------------------------
-double qSlicerSubjectHierarchyAbstractPlugin::canReparentNodeInsideSubjectHierarchy(vtkMRMLSubjectHierarchyNode* node,
-                                                                                    vtkMRMLSubjectHierarchyNode* parent)const
+double qSlicerSubjectHierarchyAbstractPlugin::canReparentItemInsideSubjectHierarchy(
+  SubjectHierarchyItemID itemID,
+  SubjectHierarchyItemID parentItemID )const
 {
-  Q_UNUSED(node);
-  Q_UNUSED(parent);
+  Q_UNUSED(itemID);
+  Q_UNUSED(parentItemID);
 
   // Many plugins do not perform steps additional to the default
   // when reparenting inside the hierarchy, so return 0 by default
@@ -183,91 +186,98 @@ double qSlicerSubjectHierarchyAbstractPlugin::canReparentNodeInsideSubjectHierar
 }
 
 //---------------------------------------------------------------------------
-bool qSlicerSubjectHierarchyAbstractPlugin::reparentNodeInsideSubjectHierarchy(vtkMRMLSubjectHierarchyNode* nodeToReparent,
-                                                                               vtkMRMLSubjectHierarchyNode* parentNode)
+bool qSlicerSubjectHierarchyAbstractPlugin::reparentItemInsideSubjectHierarchy(
+  SubjectHierarchyItemID itemID,
+  SubjectHierarchyItemID parentItemID )
 {
-  nodeToReparent->SetParentNodeID(parentNode ? parentNode->GetID() : NULL);
+//TODO:
+  //nodeToReparent->SetParentNodeID(parentNode ? parentNode->GetID() : NULL);
   return true;
 }
 
 //-----------------------------------------------------------------------------
-QString qSlicerSubjectHierarchyAbstractPlugin::displayedNodeName(vtkMRMLSubjectHierarchyNode* node)const
+QString qSlicerSubjectHierarchyAbstractPlugin::displayedItemName(SubjectHierarchyItemID itemID)const
 {
-  QString nodeText;
-  vtkMRMLNode* dataNode = node->GetAssociatedNode();
-  if (dataNode)
-  {
-    nodeText = QString(dataNode->GetName());
-  }
-  else
-  {
-    nodeText = QString(node->GetName());
-    if (nodeText.endsWith(QString(vtkMRMLSubjectHierarchyConstants::GetSubjectHierarchyNodeNamePostfix().c_str())))
-      {
-      nodeText = nodeText.left( nodeText.size() - vtkMRMLSubjectHierarchyConstants::GetSubjectHierarchyNodeNamePostfix().size() );
-      }
-  }
-  return nodeText;
+//TODO:
+  //QString nodeText;
+  //vtkMRMLNode* dataNode = node->GetAssociatedNode();
+  //if (dataNode)
+  //{
+  //  nodeText = QString(dataNode->GetName());
+  //}
+  //else
+  //{
+  //  nodeText = QString(node->GetName());
+  //  if (nodeText.endsWith(QString(vtkMRMLSubjectHierarchyConstants::GetSubjectHierarchyNodeNamePostfix().c_str())))
+  //    {
+  //    nodeText = nodeText.left( nodeText.size() - vtkMRMLSubjectHierarchyConstants::GetSubjectHierarchyNodeNamePostfix().size() );
+  //    }
+  //}
+  //return nodeText;
 }
 
 //-----------------------------------------------------------------------------
-QString qSlicerSubjectHierarchyAbstractPlugin::tooltip(vtkMRMLSubjectHierarchyNode* node)const
+QString qSlicerSubjectHierarchyAbstractPlugin::tooltip(SubjectHierarchyItemID itemID)const
 {
-  if (!node)
-    {
-    qCritical() << Q_FUNC_INFO << ": Subject hierarchy node is NULL!";
-    return QString("Invalid!");
-    }
+//TODO:
+  //if (!node)
+  //  {
+  //  qCritical() << Q_FUNC_INFO << ": Subject hierarchy node is NULL!";
+  //  return QString("Invalid!");
+  //  }
 
-  // Display node type and level in the tooltip
-  QString tooltipString("");
-  vtkMRMLNode* associatedNode = node->GetAssociatedNode();
-  if (associatedNode)
-    {
-    tooltipString.append(associatedNode->GetNodeTagName());
-    tooltipString.append(" (");
-    }
+  //// Display node type and level in the tooltip
+  //QString tooltipString("");
+  //vtkMRMLNode* associatedNode = node->GetAssociatedNode();
+  //if (associatedNode)
+  //  {
+  //  tooltipString.append(associatedNode->GetNodeTagName());
+  //  tooltipString.append(" (");
+  //  }
 
-  tooltipString.append("Level:");
-  tooltipString.append(node->GetLevel());
-  tooltipString.append(" Plugin:");
-  tooltipString.append(node->GetOwnerPluginName() ? node->GetOwnerPluginName() : "None");
+  //tooltipString.append("Level:");
+  //tooltipString.append(node->GetLevel());
+  //tooltipString.append(" Plugin:");
+  //tooltipString.append(node->GetOwnerPluginName() ? node->GetOwnerPluginName() : "None");
 
-  if (associatedNode)
-    {
-    tooltipString.append(")");
-    }
+  //if (associatedNode)
+  //  {
+  //  tooltipString.append(")");
+  //  }
 
-  return tooltipString;
+  //return tooltipString;
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSubjectHierarchyAbstractPlugin::setDisplayVisibility(vtkMRMLSubjectHierarchyNode* node, int visible)
+void qSlicerSubjectHierarchyAbstractPlugin::setDisplayVisibility(SubjectHierarchyItemID itemID, int visible)
 {
-  Q_UNUSED(node);
+//TODO:
+  //Q_UNUSED(node);
 
-  // Default behavior is to call SetDisplayVisibility on all displayable
-  // associated nodes in the whole branch
-  node->SetDisplayVisibilityForBranch(visible);
+  //// Default behavior is to call SetDisplayVisibility on all displayable
+  //// associated nodes in the whole branch
+  //node->SetDisplayVisibilityForBranch(visible);
 }
 
 //-----------------------------------------------------------------------------
-int qSlicerSubjectHierarchyAbstractPlugin::getDisplayVisibility(vtkMRMLSubjectHierarchyNode* node)const
+int qSlicerSubjectHierarchyAbstractPlugin::getDisplayVisibility(SubjectHierarchyItemID itemID)const
 {
-  Q_UNUSED(node);
+//TODO:
+  //Q_UNUSED(node);
 
-  return node->GetDisplayVisibilityForBranch();
+  //return node->GetDisplayVisibilityForBranch();
 }
 
 //--------------------------------------------------------------------------
-bool qSlicerSubjectHierarchyAbstractPlugin::isThisPluginOwnerOfNode(vtkMRMLSubjectHierarchyNode* node)const
+bool qSlicerSubjectHierarchyAbstractPlugin::isThisPluginOwnerOfItem(SubjectHierarchyItemID itemID)const
 {
-  if (!node)
-    {
-    return false;
-    }
+//TODO:
+  //if (!node)
+  //  {
+  //  return false;
+  //  }
 
-  return !strcmp(node->GetOwnerPluginName(), this->m_Name.toLatin1().constData());
+  //return !strcmp(node->GetOwnerPluginName(), this->m_Name.toLatin1().constData());
 }
 
 //--------------------------------------------------------------------------
@@ -294,8 +304,8 @@ qSlicerAbstractModuleWidget* qSlicerSubjectHierarchyAbstractPlugin::switchToModu
 void qSlicerSubjectHierarchyAbstractPlugin::hideAllContextMenuActions()const
 {
   QList<QAction*> allActions;
-  allActions << this->sceneContextMenuActions();
-  allActions << this->nodeContextMenuActions();
+  allActions << this->rootContextMenuActions();
+  allActions << this->itemContextMenuActions();
 
   foreach (QAction* action, allActions)
     {

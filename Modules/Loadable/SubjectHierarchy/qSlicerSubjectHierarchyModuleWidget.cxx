@@ -143,7 +143,8 @@ void qSlicerSubjectHierarchyModuleWidget::onEnter()
 
   this->updateWidgetFromMRML();
 
-  this->pluginLogic()->checkSupportedNodesInScene();
+  //TODO: Similar call for importing model hierarchy?
+  //this->pluginLogic()->checkSupportedNodesInScene();
 }
 
 //-----------------------------------------------------------------------------

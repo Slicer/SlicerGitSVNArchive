@@ -63,10 +63,6 @@ public:
   /// Helper flag ensuring consistency when deleting branches
   bool DeleteBranchInProgress;
 
-  /// Flag determining whether subject hierarchy nodes are automatically created upon
-  /// adding a supported data node in the scene, or just when entering the module.
-  bool AutoCreateSubjectHierarchy;
-
   /// Flag determining whether subject hierarchy children nodes are automatically
   /// deleted upon deleting a parent subject hierarchy node.
   bool AutoDeleteSubjectHierarchyChildren;
@@ -79,7 +75,6 @@ public:
 qSlicerSubjectHierarchyPluginLogicPrivate::qSlicerSubjectHierarchyPluginLogicPrivate(qSlicerSubjectHierarchyPluginLogic& object)
   : q_ptr(&object)
   , DeleteBranchInProgress(false)
-  , AutoCreateSubjectHierarchy(false)
   , AutoDeleteSubjectHierarchyChildren(false)
 {
 }
@@ -100,10 +95,6 @@ void qSlicerSubjectHierarchyPluginLogicPrivate::loadApplicationSettings()
     }
   else
     {
-    if (settings->contains("SubjectHierarchy/AutoCreateSubjectHierarchy"))
-      {
-      this->AutoCreateSubjectHierarchy = (settings->value("SubjectHierarchy/AutoCreateSubjectHierarchy").toString().compare("true") == 0);
-      }
     if (settings->contains("SubjectHierarchy/AutoDeleteSubjectHierarchyChildren"))
       {
       this->AutoDeleteSubjectHierarchyChildren = (settings->value("SubjectHierarchy/AutoDeleteSubjectHierarchyChildren").toString().compare("true") == 0);
@@ -148,20 +139,6 @@ void qSlicerSubjectHierarchyPluginLogic::registerCorePlugins()
     new qSlicerSubjectHierarchySegmentPlugin());
 }
 
-//------------------------------------------------------------------------------
-bool qSlicerSubjectHierarchyPluginLogic::autoCreateSubjectHierarchy()const
-{
-  Q_D(const qSlicerSubjectHierarchyPluginLogic);
-  return d->AutoCreateSubjectHierarchy;
-}
-
-//------------------------------------------------------------------------------
-void qSlicerSubjectHierarchyPluginLogic::setAutoCreateSubjectHierarchy(bool flag)
-{
-  Q_D(qSlicerSubjectHierarchyPluginLogic);
-  d->AutoCreateSubjectHierarchy = flag;
-}
-
 //-----------------------------------------------------------------------------
 bool qSlicerSubjectHierarchyPluginLogic::autoDeleteSubjectHierarchyChildren()const
 {
@@ -200,34 +177,11 @@ void qSlicerSubjectHierarchyPluginLogic::checkSupportedNodesInScene()
   Q_D(qSlicerSubjectHierarchyPluginLogic);
 
   // Check if there are supported data nodes in the scene that are not in subject hierarchy
-  if (this->isThereSupportedNodeOutsideSubjectHierarchy())
-    {
-    // This should only happen if auto-creation is off. Report error in this case, because it's a bug
-    if (d->AutoCreateSubjectHierarchy)
-      {
-      qCritical() << Q_FUNC_INFO << ": Subject hierarchy auto-creation is on, still there are supported data nodes outside the hierarchy. This is a bug, please report with reproducible steps. Thanks!";
-      return;
-      }
-
-    // Ask the user if they want subject hierarchy to be created, otherwise it's unusable
-    QMessageBox::StandardButton answer =
-      QMessageBox::question(NULL, tr("Do you want to create subject hierarchy?"),
-      tr("Supported nodes have been found outside the hierarchy. Do you want to create subject hierarchy?\n\nIf you choose No, subject hierarchy will not be usable.\nIf you choose yes, then this question will appear every time you enter this module and not all supported nodes are in the hierarchy\nIf you choose Yes to All, this question never appears again, and all supported data nodes are automatically added to the hierarchy. This can be later changed in Application Settings."),
-      QMessageBox::Yes | QMessageBox::No | QMessageBox::YesToAll,
-      QMessageBox::Yes);
-    // Create subject hierarchy if the user some form of yes
-    if (answer == QMessageBox::Yes || answer == QMessageBox::YesToAll)
-      {
-      this->addSupportedNodesToSubjectHierarchy();
-      }
-    // Save auto-creation flag in settings
-    if (answer == QMessageBox::YesToAll)
-      {
-      d->AutoCreateSubjectHierarchy = true;
-      QSettings *settings = qSlicerApplication::application()->settingsDialog()->settings();
-      settings->setValue("SubjectHierarchy/AutoCreateSubjectHierarchy", "true");
-      }
-    }
+  //TODO: Do something similar for importing model hierarchies
+  //if (this->isThereSupportedNodeOutsideSubjectHierarchy())
+  //  {
+  //    this->addSupportedNodesToSubjectHierarchy();
+  //  }
 }
 
 //-----------------------------------------------------------------------------
@@ -293,7 +247,7 @@ void qSlicerSubjectHierarchyPluginLogic::onNodeAdded(vtkObject* sceneObject, vtk
 
     // If there is a plugin that can add the data node to subject hierarchy, then add
     QList<qSlicerSubjectHierarchyAbstractPlugin*> foundPlugins =
-      qSlicerSubjectHierarchyPluginHandler::instance()->pluginsForAddingToSubjectHierarchyForNode(node, NULL);
+      qSlicerSubjectHierarchyPluginHandler::instance()->pluginsForAddingNodeToSubjectHierarchy(node, NULL);
     qSlicerSubjectHierarchyAbstractPlugin* selectedPlugin = NULL;
     if (foundPlugins.size() > 1)
       {
@@ -449,11 +403,8 @@ void qSlicerSubjectHierarchyPluginLogic::onSceneImportEnded(vtkObject* sceneObje
     return;
     }
 
-  if (d->AutoCreateSubjectHierarchy)
-    {
-    // Only auto-create subject hierarchy if it's enabled
-    this->addSupportedNodesToSubjectHierarchy();
-    }
+  // Auto-create subject hierarchy
+  this->addSupportedNodesToSubjectHierarchy();
 }
 
 //-----------------------------------------------------------------------------
@@ -527,67 +478,71 @@ void qSlicerSubjectHierarchyPluginLogic::onMRMLNodeHierarchyModified(vtkObject* 
 //-----------------------------------------------------------------------------
 void qSlicerSubjectHierarchyPluginLogic::addSupportedNodesToSubjectHierarchy()
 {
-  // Traverse all storable nodes in the scene (only storable nodes can be saved to the scene and thus
-  // imported, so it does not make sense to go through non-storable ones)
-  vtkMRMLScene* scene = this->mrmlScene();
-  std::vector<vtkMRMLNode*> storableNodes;
-  scene->GetNodesByClass("vtkMRMLStorableNode", storableNodes);
-  for (std::vector<vtkMRMLNode*>::iterator storableNodeIt = storableNodes.begin(); storableNodeIt != storableNodes.end(); ++storableNodeIt)
-    {
-    vtkMRMLNode* node = (*storableNodeIt);
-    // Do not add into subject hierarchy if hidden or already added
-    if ( node->GetHideFromEditors()
-      || vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(node, scene) )
-      {
-      continue;
-      }
+  //TODO: Do something similar for importing model hierarchies too
+  // (but keep this function to auto-create SH if scene is imported)
+  //// Traverse all storable nodes in the scene (only storable nodes can be saved to the scene and thus
+  //// imported, so it does not make sense to go through non-storable ones)
+  //vtkMRMLScene* scene = this->mrmlScene();
+  //std::vector<vtkMRMLNode*> storableNodes;
+  //scene->GetNodesByClass("vtkMRMLStorableNode", storableNodes);
+  //for (std::vector<vtkMRMLNode*>::iterator storableNodeIt = storableNodes.begin(); storableNodeIt != storableNodes.end(); ++storableNodeIt)
+  //  {
+  //  vtkMRMLNode* node = (*storableNodeIt);
+  //  // Do not add into subject hierarchy if hidden or already added
+  //  if ( node->GetHideFromEditors()
+  //    || vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(node, scene) )
+  //    {
+  //    continue;
+  //    }
 
-    // If there is a plugin that can add the data node to subject hierarchy, then add
-    QList<qSlicerSubjectHierarchyAbstractPlugin*> foundPlugins =
-      qSlicerSubjectHierarchyPluginHandler::instance()->pluginsForAddingToSubjectHierarchyForNode(node, NULL);
-    qSlicerSubjectHierarchyAbstractPlugin* selectedPlugin = NULL;
-    if (foundPlugins.size() > 0)
-      {
-      // Choose first plugin in case of confidence equality not to annoy user (it can be changed later in subject hierarchy)
-      selectedPlugin = foundPlugins[0];
-      }
-    // Have the selected plugin add the new node to subject hierarchy
-    if (selectedPlugin)
-      {
-      bool successfullyAddedByPlugin = selectedPlugin->addNodeToSubjectHierarchy(node, NULL);
-      if (!successfullyAddedByPlugin)
-        {
-        // Should never happen! If a plugin answers positively to the canOwn question (condition of
-        // reaching this point), then it has to be able to add it.
-        qCritical() << Q_FUNC_INFO << ": Failed to add node " << node->GetName()
-          << " through plugin '" << selectedPlugin->name().toLatin1().constData() << "'";
-        }
-      }
-    }
+  //  // If there is a plugin that can add the data node to subject hierarchy, then add
+  //  QList<qSlicerSubjectHierarchyAbstractPlugin*> foundPlugins =
+  //    qSlicerSubjectHierarchyPluginHandler::instance()->pluginsForAddingNodeToSubjectHierarchy(node, NULL);
+  //  qSlicerSubjectHierarchyAbstractPlugin* selectedPlugin = NULL;
+  //  if (foundPlugins.size() > 0)
+  //    {
+  //    // Choose first plugin in case of confidence equality not to annoy user (it can be changed later in subject hierarchy)
+  //    selectedPlugin = foundPlugins[0];
+  //    }
+  //  // Have the selected plugin add the new node to subject hierarchy
+  //  if (selectedPlugin)
+  //    {
+  //    bool successfullyAddedByPlugin = selectedPlugin->addNodeToSubjectHierarchy(node, NULL);
+  //    if (!successfullyAddedByPlugin)
+  //      {
+  //      // Should never happen! If a plugin answers positively to the canOwn question (condition of
+  //      // reaching this point), then it has to be able to add it.
+  //      qCritical() << Q_FUNC_INFO << ": Failed to add node " << node->GetName()
+  //        << " through plugin '" << selectedPlugin->name().toLatin1().constData() << "'";
+  //      }
+  //    }
+  //  }
 }
 
 //-----------------------------------------------------------------------------
 bool qSlicerSubjectHierarchyPluginLogic::isThereSupportedNodeOutsideSubjectHierarchy()
 {
-  vtkMRMLScene* scene = this->mrmlScene();
-  std::vector<vtkMRMLNode*> storableNodes;
-  scene->GetNodesByClass("vtkMRMLStorableNode", storableNodes);
-  for (std::vector<vtkMRMLNode*>::iterator storableNodeIt = storableNodes.begin(); storableNodeIt != storableNodes.end(); ++storableNodeIt)
-    {
-    vtkMRMLNode* node = (*storableNodeIt);
-    // Non-hidden and not in subject hierarchy, let's see if it's supported
-    if ( !node->GetHideFromEditors()
-      && !vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(node, scene) )
-      {
-      QList<qSlicerSubjectHierarchyAbstractPlugin*> foundPlugins =
-        qSlicerSubjectHierarchyPluginHandler::instance()->pluginsForAddingToSubjectHierarchyForNode(node, NULL);
-      if (foundPlugins.size() > 0)
-        {
-        // It is supported, should be in subject hierarchy in order for it to be usable
-        return true;
-        }
-      }
-    }
+  //TODO: Do something similar for importing model hierarchies
+  // (not any supported nodes in general, because it's taken care of automatically)
+  //vtkMRMLScene* scene = this->mrmlScene();
+  //std::vector<vtkMRMLNode*> storableNodes;
+  //scene->GetNodesByClass("vtkMRMLStorableNode", storableNodes);
+  //for (std::vector<vtkMRMLNode*>::iterator storableNodeIt = storableNodes.begin(); storableNodeIt != storableNodes.end(); ++storableNodeIt)
+  //  {
+  //  vtkMRMLNode* node = (*storableNodeIt);
+  //  // Non-hidden and not in subject hierarchy, let's see if it's supported
+  //  if ( !node->GetHideFromEditors()
+  //    && !vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(node, scene) )
+  //    {
+  //    QList<qSlicerSubjectHierarchyAbstractPlugin*> foundPlugins =
+  //      qSlicerSubjectHierarchyPluginHandler::instance()->pluginsForAddingNodeToSubjectHierarchy(node, NULL);
+  //    if (foundPlugins.size() > 0)
+  //      {
+  //      // It is supported, should be in subject hierarchy in order for it to be usable
+  //      return true;
+  //      }
+  //    }
+  //  }
 
   return false;
 }
