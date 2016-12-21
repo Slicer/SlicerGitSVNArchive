@@ -177,6 +177,7 @@ void qSlicerSubjectHierarchyPluginLogic::checkSupportedNodesInScene()
   Q_D(qSlicerSubjectHierarchyPluginLogic);
 
   // Check if there are supported data nodes in the scene that are not in subject hierarchy
+  //TODO: Call this function when scene is imported (and also refresh when closed, but check if this function can remove items or not)
   //TODO: Do something similar for importing model hierarchies
   //if (this->isThereSupportedNodeOutsideSubjectHierarchy())
   //  {
@@ -190,7 +191,7 @@ void qSlicerSubjectHierarchyPluginLogic::setMRMLScene(vtkMRMLScene* scene)
   this->qSlicerObject::setMRMLScene(scene);
 
   // Set the new scene to the plugin handler
-  qSlicerSubjectHierarchyPluginHandler::instance()->setScene(scene);
+  qSlicerSubjectHierarchyPluginHandler::instance()->setMRMLScene(scene);
 
   // Connect scene node added event so that the new subject hierarchy nodes can be claimed by a plugin
   qvtkReconnect( scene, vtkMRMLScene::NodeAddedEvent, this, SLOT( onNodeAdded(vtkObject*,vtkObject*) ) );

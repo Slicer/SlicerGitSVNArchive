@@ -38,7 +38,7 @@
 
 class qMRMLSubjectHierarchyModelPrivate;
 
-/// TODO
+/// TODO:
 class QMRML_WIDGETS_EXPORT qMRMLSubjectHierarchyModel : public QStandardItemModel
 {
   Q_OBJECT
@@ -63,12 +63,12 @@ class QMRML_WIDGETS_EXPORT qMRMLSubjectHierarchyModel : public QStandardItemMode
   /// A value of -1 (default) hides the column
   Q_PROPERTY (int transformColumn READ transformColumn WRITE setTransformColumn)
 
+  typedef vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID SubjectHierarchyItemID;
+
 public:
   typedef QStandardItemModel Superclass;
   qMRMLSubjectHierarchyModel(QObject *parent=0);
   virtual ~qMRMLSubjectHierarchyModel();
-
-  typedef vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID SubjectHierarchyItemID;
 
   enum ItemDataRole
     {
@@ -97,6 +97,8 @@ public:
 
   Q_INVOKABLE virtual void setSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode* shNode);
   Q_INVOKABLE vtkMRMLSubjectHierarchyNode* subjectHierarchyNode()const;
+  Q_INVOKABLE virtual void setMRMLScene(vtkMRMLScene* scene);
+  Q_INVOKABLE vtkMRMLScene* mrmlScene()const;
 
   /// NULL until a valid scene is set
   QStandardItem* subjectHierarchyRootItem()const;
@@ -129,6 +131,7 @@ protected slots:
   virtual void onMRMLSceneClosed(vtkMRMLScene* scene);
   virtual void onMRMLSceneStartBatchProcess(vtkMRMLScene* scene);
   virtual void onMRMLSceneEndBatchProcess(vtkMRMLScene* scene);
+  virtual void onSubjectHierarchyNodeRemoved();
 
   virtual void onItemChanged(QStandardItem* item);
 

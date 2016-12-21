@@ -42,20 +42,18 @@
 #include <qSlicerSubjectHierarchyPluginHandler.h>
 #include <qSlicerSubjectHierarchyAbstractPlugin.h>
 
-// VTK includes
-#include <vtkCollection.h> //TODO: Needed?
-
 //------------------------------------------------------------------------------
 qMRMLSubjectHierarchyModelPrivate::qMRMLSubjectHierarchyModelPrivate(qMRMLSubjectHierarchyModel& object)
   : q_ptr(&object)
+  , NameColumn(-1)
+  , IDColumn(-1)
+  , VisibilityColumn(-1)
+  , TransformColumn(-1)
+  , SubjectHierarchyNode(NULL)
+  , MRMLScene(NULL)
 {
   this->CallBack = vtkSmartPointer<vtkCallbackCommand>::New();
   this->PendingItemModified = -1; // -1 means not updating
-
-  this->NameColumn = -1;
-  this->IDColumn = -1;
-  this->VisibilityColumn = -1;
-  this->TransformColumn = -1;
 
   this->HiddenIcon = QIcon(":Icons/VisibleOff.png");
   this->VisibleIcon = QIcon(":Icons/VisibleOn.png");
@@ -64,8 +62,7 @@ qMRMLSubjectHierarchyModelPrivate::qMRMLSubjectHierarchyModelPrivate(qMRMLSubjec
   this->UnknownIcon = QIcon(":Icons/Unknown.png");
   this->WarningIcon = QIcon(":Icons/Warning.png");
 
-  this->SubjectHierarchyNode = NULL; //TODO: Not consistent that we have this as member but use the singleton in plugins
-  this->DraggedItem = NULL;
+  this->DelayedItemChangedInvoked = false;
 
   qRegisterMetaType<QStandardItem*>("QStandardItem*"); //TODO: Needed?
 }
@@ -196,25 +193,17 @@ void qMRMLSubjectHierarchyModel::setSubjectHierarchyNode(vtkMRMLSubjectHierarchy
     }
 
   d->SubjectHierarchyNode = shNode;
-  d->MRMLScene = shNode->GetScene();
-  if (!d->MRMLScene)
-    {
-    qWarning() << Q_FUNC_INFO << ": Subject hierarchy node '" << shNode->GetName() << "' is not in a MRML scene";
-    }
+  this->setMRMLScene(shNode->GetScene());
 
   this->updateFromSubjectHierarchy();
 
   if (shNode)
     {
     shNode->AddObserver(vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemAddedEvent, d->CallBack);
+    shNode->AddObserver(vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemAboutToBeRemovedEvent, d->CallBack);
     shNode->AddObserver(vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemRemovedEvent, d->CallBack);
     shNode->AddObserver(vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemModifiedEvent, d->CallBack);
     shNode->AddObserver(vtkCommand::DeleteEvent, d->CallBack);
-
-    if (shNode->GetScene())
-      {
-      shNode->GetScene()->AddObserver(vtkMRMLScene::EndImportEvent, d->CallBack);
-      }
     }
 }
 
@@ -223,6 +212,41 @@ vtkMRMLSubjectHierarchyNode* qMRMLSubjectHierarchyModel::subjectHierarchyNode()c
 {
   Q_D(const qMRMLSubjectHierarchyModel);
   return d->SubjectHierarchyNode;
+}
+
+//------------------------------------------------------------------------------
+void qMRMLSubjectHierarchyModel::setMRMLScene(vtkMRMLScene* scene)
+{
+  Q_D(qMRMLSubjectHierarchyModel);
+  if (scene == d->MRMLScene)
+    {
+    return;
+    }
+
+  if (d->MRMLScene)
+    {
+    d->MRMLScene->RemoveObserver(d->CallBack);
+    }
+  d->MRMLScene = scene;
+
+  if (scene)
+    {
+    scene->AddObserver(vtkMRMLScene::EndCloseEvent, d->CallBack, );
+    scene->AddObserver(vtkMRMLScene::EndImportEvent, d->CallBack);
+    scene->AddObserver(vtkMRMLScene::StartBatchProcessEvent, d->CallBack);
+    scene->AddObserver(vtkMRMLScene::EndBatchProcessEvent, d->CallBack);
+    }
+  else
+    {
+    qWarning() << Q_FUNC_INFO << ": Invalid MRML scene set";
+    }
+}
+
+//------------------------------------------------------------------------------
+vtkMRMLScene* qMRMLSubjectHierarchyModel::mrmlScene()const
+{
+  Q_D(const qMRMLSceneModel);
+  return d->MRMLScene;
 }
 
 //------------------------------------------------------------------------------
@@ -262,7 +286,7 @@ QModelIndex qMRMLSubjectHierarchyModel::subjectHierarchyRootIndex()const
 }
 
 // -----------------------------------------------------------------------------
-SubjectHierarchyItemID qMRMLSceneModel::subjectHierarchyItemFromIndex(const QModelIndex &index)const
+SubjectHierarchyItemID qMRMLSubjectHierarchyModel::subjectHierarchyItemFromIndex(const QModelIndex &index)const
 {
   return this->subjectHierarchyItemFromItem(this->itemFromIndex(index));
 }
@@ -852,10 +876,10 @@ void qMRMLSubjectHierarchyModel::updateItemDataFromSubjectHierarchyItem(
     // It should be fine to set the icon even if it is the same, but due
     // to a bug in Qt (http://bugreports.qt.nokia.com/browse/QTBUG-20248),
     // it would fire a superflous itemChanged() signal.
-    if ( item->data(qMRMLSceneModel::VisibilityRole).isNull()
-      || item->data(qMRMLSceneModel::VisibilityRole).toInt() != visible )
+    if ( item->data(VisibilityRole).isNull()
+      || item->data(VisibilityRole).toInt() != visible )
       {
-      item->setData(visible, qMRMLSceneModel::VisibilityRole);
+      item->setData(visible, VisibilityRole);
       if (!visibilityIcon.isNull())
         {
         item->setIcon(visibilityIcon);
@@ -880,8 +904,8 @@ void qMRMLSubjectHierarchyModel::updateItemDataFromSubjectHierarchyItem(
       // Only change item if the transform itself changed
       if (item->text().compare(transformNodeName))
         {
-        item->setData( transformNodeId, qMRMLSceneSubjectHierarchyModel::TransformIDRole );
-        item->setText( transformNodeName );
+        item->setData(transformNodeId, TransformIDRole);
+        item->setText(transformNodeName);
         item->setToolTip( parentTransformNode ? tr("%1 (%2)").arg(parentTransformNode->GetName()).arg(parentTransformNode->GetID()) : "" );
         }
       }
@@ -979,10 +1003,10 @@ void qMRMLSubjectHierarchyModel::updateSubjectHierarchyItemFromItemData(SubjectH
   // Transform column
   if (item->column() == this->transformColumn())
     {
-    QVariant transformIdData = item->data(qMRMLSceneSubjectHierarchyModel::TransformIDRole);
+    QVariant transformIdData = item->data(TransformIDRole);
     std::string newParentTransformNodeIdStr = transformIdData.toString().toLatin1().constData();
     vtkMRMLTransformNode* newParentTransformNode =
-      vtkMRMLTransformNode::SafeDownCast( this->mrmlScene()->GetNodeByID(newParentTransformNodeIdStr) );
+      vtkMRMLTransformNode::SafeDownCast( d->MRMLScene->GetNodeByID(newParentTransformNodeIdStr) );
 
     // No checks and questions when the transform is being removed
     if (!newParentTransformNode)
@@ -1091,6 +1115,9 @@ void qMRMLSubjectHierarchyModel::onEvent(
     case vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemAddedEvent:
       sceneModel->onSubjectHierarchyItemAdded(itemID);
       break;
+    case vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemAboutToBeRemovedEvent:
+      sceneModel->onSubjectHierarchyItemAboutToBeRemoved(itemID);
+      break;
     case vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemRemovedEvent:
       sceneModel->onSubjectHierarchyItemRemoved(itemID);
       break;
@@ -1110,7 +1137,7 @@ void qMRMLSubjectHierarchyModel::onEvent(
       sceneModel->onMRMLSceneEndBatchProcess(scene);
       break;
     case vtkCommand::DeleteEvent:
-      //TODO: Invalidate subject hierarchy node, and look for replacement node in the scene
+      sceneModel->onSubjectHierarchyNodeRemoved();
       break;
     }
 }
@@ -1221,6 +1248,19 @@ void qMRMLSubjectHierarchyModel::onMRMLSceneEndBatchProcess(vtkMRMLScene* scene)
 }
 
 //------------------------------------------------------------------------------
+void qMRMLSubjectHierarchyModel::onSubjectHierarchyNodeRemoved()
+{
+  Q_D(qMRMLSubjectHierarchyModel);
+  vtkMRMLSubjectHierarchyNode* newSubjectHierarchyNode = vtkSlicerSubjectHierarchyModuleLogic::GetSubjectHierarchyNode(d->MRMLScene);
+  if (!newSubjectHierarchyNode)
+    {
+    qCritical() << Q_FUNC_INFO << ": No subject hierarchy node could be retrieved from the scene";
+    }
+
+  this->setSubjectHierarchyNode(newSubjectHierarchyNode);
+}
+
+//------------------------------------------------------------------------------
 void qMRMLSubjectHierarchyModel::onItemChanged(QStandardItem* item)
 {
   Q_D(qMRMLSubjectHierarchyModel);
@@ -1235,7 +1275,13 @@ void qMRMLSubjectHierarchyModel::onItemChanged(QStandardItem* item)
     {
     if (item->column() == 0)
       {
-      d->DraggedItem = item;
+      d->DraggedItems.insert(item);
+      }
+    if (d->DraggedItems.count() > 0 && !d->DelayedItemChangedInvoked)
+      {
+      // Item changed will be triggered multiple times in course of the drag&drop event. Setting this flag
+      // makes sure the final onItemChanged with the collected DraggedItems is called only once.
+      d->DelayedItemChangedInvoked = true;
       QTimer::singleShot(200, this, SLOT(delayedItemChanged()));
       }
     return;
@@ -1247,10 +1293,13 @@ void qMRMLSubjectHierarchyModel::onItemChanged(QStandardItem* item)
 //------------------------------------------------------------------------------
 void qMRMLSubjectHierarchyModel::delayedItemChanged()
 {
-  //TODO: Needed?
   Q_D(qMRMLSubjectHierarchyModel);
-  this->onItemChanged(d->DraggedItem);
-  d->DraggedItem = 0;
+  foreach(QStandardItem* item, d->DraggedItems)
+    {
+    this->onItemChanged(item);
+    }
+  d->DraggedItems.clear();
+  d->DelayedItemChangedInvoked = false;
 }
 
 //------------------------------------------------------------------------------
@@ -1358,6 +1407,32 @@ int qMRMLSubjectHierarchyModel::maxColumnId()const
   maxId = qMax(maxId, d->VisibilityColumn);
   maxId = qMax(maxId, d->TransformColumn);
   return maxId;
+}
+
+//------------------------------------------------------------------------------
+void qMRMLSubjectHierarchyModel::onHardenTransformOnBranchOfCurrentNode()
+{
+  Q_D(const qMRMLSubjectHierarchyModel);
+  QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
+
+  SubjectHierarchyItemID currentItemID = qSlicerSubjectHierarchyPluginHandler::instance()->currentItem();
+  if (currentItemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+    {
+    vtkSlicerSubjectHierarchyModuleLogic::HardenTransformOnBranch(d->SubjectHierarchyNode, currentItemID);
+    }
+
+  QApplication::restoreOverrideCursor();
+}
+
+//------------------------------------------------------------------------------
+void qMRMLSubjectHierarchyModel::onRemoveTransformsFromBranchOfCurrentNode()
+{
+  Q_D(const qMRMLSubjectHierarchyModel);
+  SubjectHierarchyItemID currentItemID = qSlicerSubjectHierarchyPluginHandler::instance()->currentItem();
+  if (currentItemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+    {
+    vtkSlicerSubjectHierarchyModuleLogic::TransformBranch(d->SubjectHierarchyNode, currentItemID, NULL, false);
+    }
 }
 
 //------------------------------------------------------------------------------

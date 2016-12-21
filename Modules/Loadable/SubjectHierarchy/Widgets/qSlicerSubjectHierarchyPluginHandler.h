@@ -26,15 +26,20 @@
 // SubjectHierarchy includes
 #include "qSlicerSubjectHierarchyModuleWidgetsExport.h"
 
+// MRML includes
+#include <vtkMRMLSubjectHierarchyNode.h>
+
+// VTK includes
+#include <vtkSmartPointer.h>
+#include <vtkWeakPointer.h>
+
 // Qt includes
 #include <QObject>
 #include <QList>
 #include <QString>
 
-class vtkObject;
-class vtkMRMLNode;
-class vtkMRMLSubjectHierarchyNode;
 class vtkMRMLScene;
+class vtkCallbackCommand;
 class qSlicerSubjectHierarchyAbstractPlugin;
 class qSlicerSubjectHierarchyDefaultPlugin;
 class qSlicerSubjectHierarchyPluginHandlerCleanup;
@@ -47,6 +52,9 @@ class qSlicerSubjectHierarchyPluginHandlerCleanup;
 class Q_SLICER_MODULE_SUBJECTHIERARCHY_WIDGETS_EXPORT qSlicerSubjectHierarchyPluginHandler : public QObject
 {
   Q_OBJECT
+  QVTK_OBJECT
+
+  typedef vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID SubjectHierarchyItemID;
 
 public:
   /// Instance getter for the singleton class
@@ -56,11 +64,14 @@ public:
   /// Allows cleanup of the singleton at application exit
   static void setInstance(qSlicerSubjectHierarchyPluginHandler* instance);
 
+  /// Set subject hierarchy node
+  void setSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode* shNode);
+  /// Get subject hierarchy node
+  vtkMRMLSubjectHierarchyNode* subjectHierarchyNode()const;
   /// Set MRML scene
-  void setScene(vtkMRMLScene* scene);
-
+  void setMRMLScene(vtkMRMLScene* scene);
   /// Get MRML scene
-  vtkMRMLScene* scene();
+  vtkMRMLScene* mrmlScene()const;
 
   /// Set current subject hierarchy item (single selection only)
   void setCurrentItem(SubjectHierarchyItemID itemID);
@@ -137,6 +148,9 @@ public:
   qSlicerSubjectHierarchyAbstractPlugin* selectPluginFromDialog(QString textToDisplay, QList<qSlicerSubjectHierarchyAbstractPlugin*> candidatePlugins);
 
 protected:
+  static void onSubjectHierarchyNodeEvent(vtkObject* caller, unsigned long event, void* clientData, void* callData);
+
+protected:
   /// List of registered plugin instances
   QList<qSlicerSubjectHierarchyAbstractPlugin*> m_RegisteredPlugins;
 
@@ -148,9 +162,13 @@ protected:
   /// (selected items in the tree view e.g. for context menu request)
   QList<SubjectHierarchyItemID> m_CurrentItems;
 
-  //TODO: Needed?
-  /// MRML scene
-  vtkMRMLScene* m_Scene;
+  /// Subject hierarchy node
+  vtkWeakPointer<vtkMRMLSubjectHierarchyNode> m_SubjectHierarchyNode;
+  /// MRML scene (to get new subject hierarchy node if the stored one is deleted)
+  vtkWeakPointer<vtkMRMLScene> m_MRMLScene;
+
+  /// Callback handling deletion of the subject hierarchy node
+  vtkSmartPointer<vtkCallbackCommand> m_CallBack;
 
 public:
   /// Private constructor made public to enable python wrapping

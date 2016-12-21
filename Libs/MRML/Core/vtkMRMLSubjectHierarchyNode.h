@@ -109,15 +109,18 @@ public:
   /// Get owner plugin auto search flag for a subject hierarchy item
   bool GetItemOwnerPluginAutoSearch(SubjectHierarchyItemID itemID);
 
+  /// Set the parent of a subject hierarchy item
+  void SetItemParent(SubjectHierarchyItemID itemID, SubjectHierarchyItemID parentItemID);
   /// Get ID of the parent of a subject hierarchy item
   /// \return Parent item ID, INVALID_ITEM_ID if there is no parent
   SubjectHierarchyItemID GetItemParent(SubjectHierarchyItemID itemID);
   /// Get IDs of the children of a subject hierarchy item
+  /// \param childIDs Output vector containing the children. It will not contain the given item itself
   /// \param recursive If false then collect direct children, if true then the whole branch. False by default
   void GetItemChildren(SubjectHierarchyItemID itemID, std::vector<SubjectHierarchyItemID>& childIDs, bool recursive=false);
-  /// Set new parent to a subject hierarchy item
+  /// Set new parent to a subject hierarchy item under item associated to specified data node
   /// \return Success flag
-  bool ReparentItem(SubjectHierarchyItemID itemID, vtkMRMLNode* newParentNode);
+  bool ReparentItemByDataNode(SubjectHierarchyItemID itemID, vtkMRMLNode* newParentNode);
   /// Move item within the same branch before given item
   /// \param beforeItemID Item to move given item before. If INVALID_ITEM_ID then insert to the end
   /// \return Success flag
@@ -137,6 +140,10 @@ public:
   /// Get an attribute with a given name
   /// \return The attribute value if exists, empty string if does not
   std::string GetItemAttribute(SubjectHierarchyItemID itemID, std::string attributeName);
+
+  /// Invoke item modified event (that triggers per-item update in the views). Useful if a property of the item
+  /// changes that does not originate in the subject hierarchy item (such as visibility or transform of data node)
+  void ItemModified(SubjectHierarchyItemID itemID);
 
 // Item finder methods
 public:

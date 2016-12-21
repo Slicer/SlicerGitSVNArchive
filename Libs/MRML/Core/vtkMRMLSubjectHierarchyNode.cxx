@@ -422,7 +422,7 @@ void vtkSubjectHierarchyItem::FindChildIDsByName(
   std::string name, std::vector<vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID> &foundItemIDs,
   bool contains=false, bool recursive/*=true*/)
 {
-  if (contains)
+  if (contains && !name.empty())
     {
     std::transform(name.begin(), name.end(), name.begin(), ::tolower); // Make it lowercase for case-insensitive comparison
     }
@@ -432,7 +432,12 @@ void vtkSubjectHierarchyItem::FindChildIDsByName(
     {
     vtkSubjectHierarchyItem* currentItem = childIt->GetPointer();
     std::string currentName = currentItem->GetName();
-    if (contains)
+    if (name.empty())
+      {
+      // If given name is empty (e.g. GetAllChildrenIDs is called), then it is quicker not to do the unnecessary string operations
+      foundItemIDs.push_back(currentItem->ID);
+      }
+    else if (contains)
       {
       std::transform(currentName.begin(), currentName.end(), currentName.begin(), ::tolower); // Make it lowercase for case-insensitive comparison
       if (currentName.find(name) != std::string::npos)
@@ -509,8 +514,15 @@ bool vtkSubjectHierarchyItem::Reparent(vtkSubjectHierarchyItem* newParentItem)
     return false;
     }
 
-  // Remove item from former parent
   vtkSubjectHierarchyItem* formerParent = this->Parent;
+
+  // Nothing to do if given parent item is the same as current parent
+  if (formerParent == newParentItem)
+    {
+    return true;
+    }
+
+  // Remove item from former parent
   vtkSubjectHierarchyItem::ChildVector::iterator childIt;
   for (childIt=formerParent->Children.begin(); childIt!=formerParent->Children.end(); ++childIt)
     {
@@ -1040,7 +1052,7 @@ void vtkMRMLSubjectHierarchyNode::SetItemName(SubjectHierarchyItemID itemID, std
     }
 
   this->InvokeCustomModifiedEvent(SubjectHierarchyItemModifiedEvent, (void*)&itemID);
-  this->Modified();
+  //this->Modified(); //TODO: Needed? SH node modified event should be used for updating the whole view (every item)
 }
 
 //----------------------------------------------------------------------------
@@ -1057,45 +1069,6 @@ std::string vtkMRMLSubjectHierarchyNode::GetItemName(SubjectHierarchyItemID item
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID vtkMRMLSubjectHierarchyNode::GetItemParent(SubjectHierarchyItemID itemID)
-{
-  vtkSubjectHierarchyItem* item = this->Internal->Root->FindChildByID(itemID);
-  if (!item)
-    {
-    vtkErrorMacro("GetItemParent: Failed to find subject hierarchy item by ID " << itemID);
-    return INVALID_ITEM_ID;
-    }
-  if (!item->Parent)
-    {
-    return INVALID_ITEM_ID;
-    }
-
-  return item->Parent->ID;
-}
-
-//----------------------------------------------------------------------------
-void vtkMRMLSubjectHierarchyNode::GetItemChildren(SubjectHierarchyItemID itemID, std::vector<SubjectHierarchyItemID>& childIDs, bool recursive/*=false*/)
-{
-  childIDs.clear();
-
-  vtkSubjectHierarchyItem* item = this->Internal->Root->FindChildByID(itemID);
-  if (!item)
-    {
-    vtkErrorMacro("GetItemChildren: Failed to find subject hierarchy item by ID " << itemID);
-    return;
-    }
-
-  if (recursive)
-    {
-    item->GetAllChildrenIDs(childIDs);
-    }
-  else
-    {
-    item->GetDirectChildrenIDs(childIDs);
-    }
-}
-
-//----------------------------------------------------------------------------
 void vtkMRMLSubjectHierarchyNode::SetItemLevel(SubjectHierarchyItemID itemID, std::string level)
 {
   vtkSubjectHierarchyItem* item = this->Internal->Root->FindChildByID(itemID);
@@ -1107,7 +1080,7 @@ void vtkMRMLSubjectHierarchyNode::SetItemLevel(SubjectHierarchyItemID itemID, st
 
   item->Level = level;
   this->InvokeCustomModifiedEvent(SubjectHierarchyItemModifiedEvent, (void*)&itemID);
-  this->Modified();
+  //this->Modified(); //TODO: Needed? SH node modified event should be used for updating the whole view (every item)
 }
 
 //----------------------------------------------------------------------------
@@ -1135,7 +1108,7 @@ void vtkMRMLSubjectHierarchyNode::SetItemOwnerPluginName(SubjectHierarchyItemID 
 
   item->OwnerPluginName = owherPluginName;
   this->InvokeCustomModifiedEvent(SubjectHierarchyItemModifiedEvent, (void*)&itemID);
-  this->Modified();
+  //this->Modified(); //TODO: Needed? SH node modified event should be used for updating the whole view (every item)
 }
 
 //----------------------------------------------------------------------------
@@ -1179,7 +1152,70 @@ bool vtkMRMLSubjectHierarchyNode::GetItemOwnerPluginAutoSearch(SubjectHierarchyI
 }
 
 //----------------------------------------------------------------------------
-bool vtkMRMLSubjectHierarchyNode::ReparentItem(SubjectHierarchyItemID itemID, vtkMRMLNode* newParentNode)
+void vtkMRMLSubjectHierarchyNode::SetItemParent(
+  vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID itemID, vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID parentItemID )
+{
+  vtkSubjectHierarchyItem* item = this->Internal->Root->FindChildByID(itemID);
+  if (!item)
+    {
+    vtkErrorMacro("SetItemParent: Failed to find subject hierarchy item by ID " << itemID);
+    return;
+    }
+  vtkSubjectHierarchyItem* parentItem = this->Internal->Root->FindChildByID(parentItemID);
+  if (!parentItem)
+    {
+    vtkErrorMacro("SetItemParent: Failed to find subject hierarchy item by ID " << parentItemID);
+    return;
+    }
+
+  // Perform reparenting
+  if (item->Reparent(parentItem))
+    {
+    //this->Modified(); //TODO: Needed? SH node modified event should be used for updating the whole view (every item)
+    }
+}
+
+//----------------------------------------------------------------------------
+vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID vtkMRMLSubjectHierarchyNode::GetItemParent(SubjectHierarchyItemID itemID)
+{
+  vtkSubjectHierarchyItem* item = this->Internal->Root->FindChildByID(itemID);
+  if (!item)
+    {
+    vtkErrorMacro("GetItemParent: Failed to find subject hierarchy item by ID " << itemID);
+    return INVALID_ITEM_ID;
+    }
+  if (!item->Parent)
+    {
+    return INVALID_ITEM_ID;
+    }
+
+  return item->Parent->ID;
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLSubjectHierarchyNode::GetItemChildren(SubjectHierarchyItemID itemID, std::vector<SubjectHierarchyItemID>& childIDs, bool recursive/*=false*/)
+{
+  childIDs.clear();
+
+  vtkSubjectHierarchyItem* item = this->Internal->Root->FindChildByID(itemID);
+  if (!item)
+    {
+    vtkErrorMacro("GetItemChildren: Failed to find subject hierarchy item by ID " << itemID);
+    return;
+    }
+
+  if (recursive)
+    {
+    item->GetAllChildrenIDs(childIDs);
+    }
+  else
+    {
+    item->GetDirectChildrenIDs(childIDs);
+    }
+}
+
+//----------------------------------------------------------------------------
+bool vtkMRMLSubjectHierarchyNode::ReparentItemByDataNode(SubjectHierarchyItemID itemID, vtkMRMLNode* newParentNode)
 {
   vtkSubjectHierarchyItem* item = this->Internal->Root->FindChildByID(itemID);
   if (!item)
@@ -1211,7 +1247,7 @@ bool vtkMRMLSubjectHierarchyNode::ReparentItem(SubjectHierarchyItemID itemID, vt
   // Perform reparenting
   if (item->Reparent(newParentItem))
     {
-    this->Modified();
+    //this->Modified(); //TODO: Needed? SH node modified event should be used for updating the whole view (every item)
     return true;
     }
   return false;
@@ -1236,7 +1272,7 @@ bool vtkMRMLSubjectHierarchyNode::MoveItem(SubjectHierarchyItemID itemID, Subjec
   // Perform move
   if (item->Move(beforeItem))
     {
-    this->Modified();
+    //this->Modified(); //TODO: Needed? SH node modified event should be used for updating the whole view (every item)
     return true;
     }
   return false;
@@ -1265,7 +1301,7 @@ void vtkMRMLSubjectHierarchyNode::SetItemUID(SubjectHierarchyItemID itemID, std:
     }
 
   item->SetUID(uidName, uidValue); // Events are invoked within this call
-  this->Modified();
+  //this->Modified(); //TODO: Needed? SH node modified event should be used for updating the whole view (every item)
 }
 
 //----------------------------------------------------------------------------
@@ -1293,7 +1329,7 @@ void vtkMRMLSubjectHierarchyNode::SetItemAttribute(SubjectHierarchyItemID itemID
     }
 
   item->SetAttribute(attributeName, attributeValue); // Events are invoked within this call
-  this->Modified();
+  //this->Modified(); //TODO: Needed? SH node modified event should be used for updating the whole view (every item)
 }
 
 //----------------------------------------------------------------------------
@@ -1307,6 +1343,21 @@ std::string vtkMRMLSubjectHierarchyNode::GetItemAttribute(SubjectHierarchyItemID
     }
 
   return item->GetAttribute(attributeName);
+}
+
+//---------------------------------------------------------------------------
+void vtkMRMLSubjectHierarchyNode::ItemModified(vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID itemID)
+{
+  // Not used, but we need to make sure that the item exists
+  vtkSubjectHierarchyItem* item = this->Internal->Root->FindChildByID(itemID);
+  if (!item)
+    {
+    vtkErrorMacro("ItemModified: Failed to find subject hierarchy item by ID " << itemID);
+    return;
+    }
+
+  // Invoke the node event directly, thus saving an extra callback round
+  this->InvokeCustomModifiedEvent(SubjectHierarchyItemModifiedEvent, (void*)&itemID);
 }
 
 //---------------------------------------------------------------------------

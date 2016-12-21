@@ -97,10 +97,14 @@ public:
   QIcon UnknownIcon;
   QIcon WarningIcon;
 
+  /// Subject hierarchy node
   vtkWeakPointer<vtkMRMLSubjectHierarchyNode> SubjectHierarchyNode;
+  /// MRML scene (to get new subject hierarchy node if the stored one is deleted)
   vtkWeakPointer<vtkMRMLScene> MRMLScene;
-  mutable QStandardItem* DraggedItem;
+
+  mutable QSet<QStandardItem*>  DraggedItems;
   mutable QList<vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID> DraggedSubjectHierarchyItems;
+  bool DelayedItemChangedInvoked;
 
   // Keep a list of QStandardItem instead of subject hierarchy item because they are likely to be
   // unreachable when browsing the model
