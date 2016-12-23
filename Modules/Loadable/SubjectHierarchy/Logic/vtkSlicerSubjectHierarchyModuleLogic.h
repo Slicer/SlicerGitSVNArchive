@@ -107,12 +107,6 @@ public:
     vtkMRMLSubjectHierarchyNode* shNode, SubjectHierarchyItemID itemID, const char* name=NULL );
 
 protected:
-  /// Merge subject hierarchy nodes
-  /// \param shNodeMerged First subject hierarchy node. It is the one into which the second is merged
-  /// \param shNodeRemoved Second subject hierarchy node. It is removed after merging.
-  /// \return Success flag
-  static bool MergeSubjectHierarchyNodes(vtkMRMLSubjectHierarchyNode* shNodeMerged, vtkMRMLSubjectHierarchyNode* shNodeRemoved);
-
   /// Called each time a new scene is set
   virtual void SetMRMLSceneInternal(vtkMRMLScene* newScene);
 

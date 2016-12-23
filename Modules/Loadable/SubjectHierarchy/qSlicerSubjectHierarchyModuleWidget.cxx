@@ -158,12 +158,6 @@ void qSlicerSubjectHierarchyModuleWidget::setup()
   connect( d->DisplayMRMLIDsCheckBox, SIGNAL(toggled(bool)), this, SLOT(setMRMLIDsVisible(bool)) );
   connect( d->DisplayTransformsCheckBox, SIGNAL(toggled(bool)), this, SLOT(setTransformsVisible(bool)) );
 
-  // Make MRML connections
-  // Connect scene node added event so that the new subject hierarchy nodes can be claimed by a plugin
-  qvtkConnect( this->mrmlScene(), vtkMRMLScene::NodeAddedEvent, this, SLOT( onNodeAdded(vtkObject*,vtkObject*) ) );
-  // Connect scene node added event so that the associated subject hierarchy node can be deleted too
-  qvtkConnect( this->mrmlScene(), vtkMRMLScene::NodeAboutToBeRemovedEvent, this, SLOT( onNodeAboutToBeRemoved(vtkObject*,vtkObject*) ) );
-
   // Set up tree view
   qMRMLSceneSubjectHierarchyModel* sceneModel = (qMRMLSceneSubjectHierarchyModel*)d->SubjectHierarchyTreeView->sceneModel();
   d->SubjectHierarchyTreeView->expandToDepth(4);

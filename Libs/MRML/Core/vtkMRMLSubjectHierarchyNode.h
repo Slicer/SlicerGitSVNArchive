@@ -37,11 +37,19 @@ class vtkMRMLTransformNode;
 /// \ingroup Slicer_MRML_Core
 /// \brief MRML node to represent a complete subject hierarchy tree
 ///
-///   There can be only one such node in the scene, as subject hierarchy is to contain all the
-///   supported data nodes in the scene, so that the user can navigate the data loaded throughout
-///   the session.
+///   There can be only one such node in the scene, as subject hierarchy is to contain all the supported
+///   data nodes in the scene, so that the user can navigate the data loaded throughout the session.
+///   It is not singleton in either the common or the MRML sense, instead, the subject hierarchy logic
+///   makes sure that any added subject hierarchy nodes are merged in the first one, and if the last one
+///   is removed, a new one is created. The used subject hierarchy node can be accessed using the static
+///   function vtkSlicerSubjectHierarchyModuleLogic::GetSubjectHierarchyNode.
+///
 ///   The node entries are encapsulated in SubjectHierarchyItem classes, which contain the hierarchy
-///   information for the contained nodes, and represent the non-leaf nodes of the tree.
+///   information for the contained nodes, and represent the non-leaf nodes of the tree. Accessor functions
+///   can be used to get/set the properties of the individual items.
+///
+///   The node's Modified event triggers re-building the views from scratch, while the per-item events
+///   are used for more granular updates.
 ///
 class VTK_MRML_EXPORT vtkMRMLSubjectHierarchyNode : public vtkMRMLNode
 {
@@ -90,6 +98,9 @@ public:
   /// Get ID of root subject hierarchy item
   SubjectHierarchyItemID GetRootItemID();
   /// Get data node for a subject hierarchy item
+  /// Note: There is no setter function because a subject hierarchy item can be associated to only one data node during
+  ///   its lifetime. This is due to simplicity reasons so that plugin search does not need to re-run when item is modified.
+  ///   It is very easy to create a new item for a new data node if needed using \sa CreateSubjectHierarchyItem
   vtkMRMLNode* GetItemDataNode(SubjectHierarchyItemID itemID);
   /// Set name for a subject hierarchy item
   void SetItemName(SubjectHierarchyItemID itemID, std::string name);
@@ -104,30 +115,6 @@ public:
   void SetItemOwnerPluginName(SubjectHierarchyItemID itemID, std::string owherPluginName);
   /// Get owner plugin name (role) for a subject hierarchy item
   std::string GetItemOwnerPluginName(SubjectHierarchyItemID itemID);
-  /// Set owner plugin auto search flag for a subject hierarchy item
-  void SetItemOwnerPluginAutoSearch(SubjectHierarchyItemID itemID, bool owherPluginAutoSearch);
-  /// Get owner plugin auto search flag for a subject hierarchy item
-  bool GetItemOwnerPluginAutoSearch(SubjectHierarchyItemID itemID);
-
-  /// Set the parent of a subject hierarchy item
-  void SetItemParent(SubjectHierarchyItemID itemID, SubjectHierarchyItemID parentItemID);
-  /// Get ID of the parent of a subject hierarchy item
-  /// \return Parent item ID, INVALID_ITEM_ID if there is no parent
-  SubjectHierarchyItemID GetItemParent(SubjectHierarchyItemID itemID);
-  /// Get IDs of the children of a subject hierarchy item
-  /// \param childIDs Output vector containing the children. It will not contain the given item itself
-  /// \param recursive If false then collect direct children, if true then the whole branch. False by default
-  void GetItemChildren(SubjectHierarchyItemID itemID, std::vector<SubjectHierarchyItemID>& childIDs, bool recursive=false);
-  /// Set new parent to a subject hierarchy item under item associated to specified data node
-  /// \return Success flag
-  bool ReparentItemByDataNode(SubjectHierarchyItemID itemID, vtkMRMLNode* newParentNode);
-  /// Move item within the same branch before given item
-  /// \param beforeItemID Item to move given item before. If INVALID_ITEM_ID then insert to the end
-  /// \return Success flag
-  bool MoveItem(SubjectHierarchyItemID itemID, SubjectHierarchyItemID beforeItemID);
-  /// Get position of item under its parent
-  /// \return Position of item under its parent. -1 on failure.
-  int GetItemPositionUnderParent(SubjectHierarchyItemID itemID);
 
   /// Set UID to the subject hierarchy item
   void SetItemUID(SubjectHierarchyItemID itemID, std::string uidName, std::string uidValue);
@@ -144,6 +131,53 @@ public:
   /// Invoke item modified event (that triggers per-item update in the views). Useful if a property of the item
   /// changes that does not originate in the subject hierarchy item (such as visibility or transform of data node)
   void ItemModified(SubjectHierarchyItemID itemID);
+
+// Hierarchy related methods
+public:
+  /// Create subject hierarchy item in the hierarchy under a specified parent. If the item existed then use that and
+  /// set it up with the supplied parameters. Used mostly for creating hierarchy items (folder, patient, study, etc.)
+  /// \param parentItemID Parent item under which the created item is inserted. If top-level then use \sa GetRootItemID
+  /// \param dataNode Associated data MRML node
+  /// \param level Level string of the created item (\sa vtkMRMLSubjectHierarchyConstants)
+  /// \param name Name of the item. Only used if there is no data node associated (in which case the name of that MRML node is used)
+  /// \return ID of the item in the hierarchy that was assigned automatically when adding
+  SubjectHierarchyItemID CreateSubjectHierarchyItem( SubjectHierarchyItemID parentItemID,
+                                                     vtkMRMLNode* dataNode=NULL,
+                                                     std::string level=vtkMRMLSubjectHierarchyConstants::GetSubjectHierarchyLevelFolder(),
+                                                     std::string name="" );
+  /// Remove subject hierarchy item or branch from the tree
+  /// \param itemID Item to remove
+  /// \param removeDataNode Flag determining whether to remove associated data node from the scene if any. On by default
+  /// \param recursive Flag determining whether to remove children recursively (the whole branch). On by default
+  bool RemoveSubjectHierarchyItem(SubjectHierarchyItemID itemID, bool removeDataNode=true, bool recursive=true);
+  /// Remove all items from hierarchy
+  /// \param removeDataNode Flag determining whether to remove associated data node from the scene if any. False by default,
+  ///   because as opposed to the method \sa RemoveSubjectHierarchyItem that is usually initiated by the user, this method is
+  ///   called when subject hierarchy is re-built from the scene
+  void RemoveAllSubjectHierarchyItems(bool removeDataNode=false);
+
+  /// Set the parent of a subject hierarchy item
+  void SetItemParent(SubjectHierarchyItemID itemID, SubjectHierarchyItemID parentItemID);
+  /// Get ID of the parent of a subject hierarchy item
+  /// \return Parent item ID, INVALID_ITEM_ID if there is no parent
+  SubjectHierarchyItemID GetItemParent(SubjectHierarchyItemID itemID);
+  /// Get position of item under its parent
+  /// \return Position of item under its parent. -1 on failure.
+  int GetItemPositionUnderParent(SubjectHierarchyItemID itemID);
+
+  /// Get IDs of the children of a subject hierarchy item
+  /// \param childIDs Output vector containing the children. It will not contain the given item itself.
+  ///   The order of the items is depth-first, in a way that the child of an item in the vector always comes after the item.
+  /// \param recursive If false then collect direct children, if true then the whole branch. False by default
+  void GetItemChildren(SubjectHierarchyItemID itemID, std::vector<SubjectHierarchyItemID>& childIDs, bool recursive=false);
+
+  /// Set new parent to a subject hierarchy item under item associated to specified data node
+  /// \return Success flag
+  bool ReparentItemByDataNode(SubjectHierarchyItemID itemID, vtkMRMLNode* newParentNode);
+  /// Move item within the same branch before given item
+  /// \param beforeItemID Item to move given item before. If INVALID_ITEM_ID then insert to the end
+  /// \return Success flag
+  bool MoveItem(SubjectHierarchyItemID itemID, SubjectHierarchyItemID beforeItemID);
 
 // Item finder methods
 public:
@@ -164,18 +198,6 @@ public:
   /// \param dataNode The node for which we want the associated hierarchy node
   /// \return The first subject hierarchy item ID to which the given node is associated to.
   SubjectHierarchyItemID GetSubjectHierarchyItemByDataNode(vtkMRMLNode* dataNode);
-
-  /// Create subject hierarchy item in the hierarchy under a specified parent. If the item existed then use that and
-  /// set it up with the supplied parameters. Used mostly for creating hierarchy items (folder, patient, study, etc.)
-  /// \param parentItemID Parent item under which the created item is inserted. If top-level then use \sa GetRootItemID
-  /// \param dataNode Associated data MRML node
-  /// \param level Level string of the created item (\sa vtkMRMLSubjectHierarchyConstants)
-  /// \param name Name of the item. Only used if there is no data node associated (in which case the name of that MRML node is used)
-  /// \return ID of the item in the hierarchy that was assigned automatically when adding
-  SubjectHierarchyItemID CreateSubjectHierarchyItem( SubjectHierarchyItemID parentItemID,
-                                                     vtkMRMLNode* dataNode=NULL,
-                                                     std::string level=vtkMRMLSubjectHierarchyConstants::GetSubjectHierarchyLevelFolder(),
-                                                     std::string name="" );
 
   /// Get child subject hierarchy item with specific name
   /// \param parent Parent subject hierarchy item to start from
@@ -227,6 +249,11 @@ public:
   /// the attribute of this item containing the referenced SOP instance UIDs
   /// \sa vtkMRMLSubjectHierarchyConstants::GetDICOMReferencedInstanceUIDsAttributeName()
   std::vector<SubjectHierarchyItemID> GetSubjectHierarchyItemsReferencedFromItemByDICOM(SubjectHierarchyItemID itemID);
+
+  /// Merge given subject hierarchy into this one. Should not be called manually, as it is automatically handled by the logic
+  /// \param otherShNode Subject hierarchy node to merge into this one. It is removed after merging.
+  /// \return Success flag
+  bool MergeSubjectHierarchy(vtkMRMLSubjectHierarchyNode* otherShNode);
 
 protected:
   /// Callback function for all events from the subject hierarchy items

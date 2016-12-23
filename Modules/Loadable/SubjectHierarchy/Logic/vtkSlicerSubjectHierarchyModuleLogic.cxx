@@ -134,13 +134,16 @@ vtkMRMLSubjectHierarchyNode* vtkSlicerSubjectHierarchyModuleLogic::GetSubjectHie
     vtkMRMLSubjectHierarchyNode* currentShNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(node);
     if (currentShNode)
       {
-      if (!vtkSlicerSubjectHierarchyModuleLogic::MergeSubjectHierarchyNodes(firstShNode, currentShNode))
+      if (!firstShNode->MergeSubjectHierarchy(currentShNode))
         {
+        //TODO: The node will probably be invalid, so it needs to be completely re-built
         vtkErrorWithObjectMacro(scene, "vtkSlicerSubjectHierarchyModuleLogic::GetSubjectHierarchyNode: Failed to merge subject hierarchy nodes");
         return firstShNode;
         }
       }
     }
+  // Return the first (and now only) subject hierarchy node into which the others were merged
+  return firstShNode;
 }
 
 //---------------------------------------------------------------------------
