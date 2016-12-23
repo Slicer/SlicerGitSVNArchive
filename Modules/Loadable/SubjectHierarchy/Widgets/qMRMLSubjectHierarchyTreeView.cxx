@@ -32,7 +32,8 @@
 
 // SubjectHierarchy includes
 #include "qMRMLSubjectHierarchyTreeView.h"
-#include "qMRMLSceneSubjectHierarchyModel.h"
+
+#include "qMRMLSubjectHierarchyModel.h"
 #include "qMRMLSortFilterSubjectHierarchyProxyModel.h"
 #include "qMRMLTransformItemDelegate.h"
 
@@ -45,9 +46,6 @@
 // MRML includes
 #include <vtkMRMLScene.h>
 
-// MRML Widgets includes
-#include "qMRMLTreeView_p.h"
-
 //------------------------------------------------------------------------------
 /// \ingroup Slicer_QtModules_SubjectHierarchy
 class qMRMLSubjectHierarchyTreeViewPrivate : public qMRMLTreeViewPrivate
@@ -57,21 +55,28 @@ public:
   typedef qMRMLTreeViewPrivate Superclass;
   qMRMLSubjectHierarchyTreeViewPrivate(qMRMLSubjectHierarchyTreeView& object);
 
-  /// Different initializer method is needed, because when qMRMLTreeView
-  /// calls its init(), then the instance has not been constructed as a
-  /// qMRMLSubjectHierarchyTreeView, only as a qMRMLTreeView, so the subject
-  /// hierarchy related initializations have to be done from within the
-  /// constructor of qMRMLSubjectHierarchyTreeView
-  virtual void init2();
+  virtual void init();
 
   /// Setup all actions for tree view
   void setupActions();
 
+  /// Save the current expansion state of child items
+  void saveChildrenExpandState(QModelIndex& parentIndex);
+
+public:
+  qMRMLSubjectHierarchyModel* Model;
+  qMRMLSortFilterSubjectHierarchyProxyModel* SortFilterModel;
+
+  QMenu* NodeMenu;
+  QAction* RenameAction;
+  QAction* DeleteAction;
+  QAction* EditAction;
   QList<QAction*> SelectPluginActions;
   QMenu* SelectPluginSubMenu;
   QActionGroup* SelectPluginActionGroup;
-  QAction* RemoveFromSubjectHierarchyAction;
   QAction* ExpandToDepthAction;
+  QMenu* SceneMenu;
+
   qMRMLTransformItemDelegate* TransformItemDelegate;
 
   /// Flag determining whether to highlight nodes referenced by DICOM. Storing DICOM references:
@@ -87,24 +92,40 @@ public:
 qMRMLSubjectHierarchyTreeViewPrivate::qMRMLSubjectHierarchyTreeViewPrivate(qMRMLSubjectHierarchyTreeView& object)
   : qMRMLTreeViewPrivate(object)
 {
-  this->RemoveFromSubjectHierarchyAction = NULL;
+  this->Model = NULL;
+  this->SortFilterModel = NULL;
+
+  this->RenameAction = NULL;
+  this->DeleteAction = NULL;
+  this->EditAction = NULL;
   this->ExpandToDepthAction = NULL;
   this->SelectPluginSubMenu = NULL;
   this->HighlightReferencedNodes = true;
 }
 
 //------------------------------------------------------------------------------
-void qMRMLSubjectHierarchyTreeViewPrivate::init2()
+void qMRMLSubjectHierarchyTreeViewPrivate::init()
 {
   Q_Q(qMRMLSubjectHierarchyTreeView);
 
   // Set up scene model and sort and proxy model
-  qMRMLSceneSubjectHierarchyModel* sceneModel = new qMRMLSceneSubjectHierarchyModel(q);
-  QObject::connect( sceneModel, SIGNAL(saveTreeExpandState()), q, SLOT(saveTreeExpandState()) );
-  QObject::connect( sceneModel, SIGNAL(loadTreeExpandState()), q, SLOT(loadTreeExpandState()) );
-  q->setSceneModel(sceneModel, "SubjectHierarchy");
+  this->Model = new qMRMLSubjectHierarchyModel(q);
+  QObject::connect( this->Model, SIGNAL(saveTreeExpandState()), q, SLOT(saveTreeExpandState()) );
+  QObject::connect( this->Model, SIGNAL(loadTreeExpandState()), q, SLOT(loadTreeExpandState()) );
 
-  q->setSortFilterProxyModel(new qMRMLSortFilterSubjectHierarchyProxyModel(q));
+  this->SortFilterModel = new qMRMLSortFilterSubjectHierarchyProxyModel(q);
+  q->QTreeView::setModel(this->SortFilterModel);
+  QObject::connect( q->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
+                    q, SLOT(onSelectionChanged(QItemSelection,QItemSelection)) );
+  this->SortFilterModel->setParent(q);
+  this->SortFilterModel->setSourceModel(this->Model);
+  //TODO: Needed?
+  // Resize the view if new rows are added/removed
+  //QObject::connect( this->SortFilterModel, SIGNAL(rowsAboutToBeRemoved(QModelIndex,int,int)),
+  //                  q, SLOT(onNumberOfVisibleIndexChanged()) );
+  //QObject::connect( this->SortFilterModel, SIGNAL(rowsInserted(QModelIndex,int,int)),
+  //                  q, SLOT(onNumberOfVisibleIndexChanged()) );
+  //q->onNumberOfVisibleIndexChanged();
 
   // Change item visibility
   q->setShowScene(true);
@@ -114,31 +135,42 @@ void qMRMLSubjectHierarchyTreeViewPrivate::init2()
 
   // Set up headers
   q->header()->setStretchLastSection(false);
-  q->header()->setResizeMode(sceneModel->nameColumn(), QHeaderView::Stretch);
-  q->header()->setResizeMode(sceneModel->visibilityColumn(), QHeaderView::ResizeToContents);
-  q->header()->setResizeMode(sceneModel->transformColumn(), QHeaderView::Interactive);
-  q->header()->setResizeMode(sceneModel->idColumn(), QHeaderView::ResizeToContents);
+  q->header()->setResizeMode(d->Model->nameColumn(), QHeaderView::Stretch);
+  q->header()->setResizeMode(d->Model->visibilityColumn(), QHeaderView::ResizeToContents);
+  q->header()->setResizeMode(d->Model->transformColumn(), QHeaderView::Interactive);
+  q->header()->setResizeMode(d->Model->idColumn(), QHeaderView::ResizeToContents);
+
+  // Create default menu actions
+  this->NodeMenu = new QMenu(q);
+  this->NodeMenu->setObjectName("nodeMenuTreeView");
+
+  this->RenameAction = new QAction(tr("Rename"), this->NodeMenu);
+  this->NodeMenu->addAction(this->RenameAction);
+  QObject::connect(this->RenameAction, SIGNAL(triggered()), q, SLOT(renameCurrentNode()));
+
+  this->DeleteAction = new QAction(tr("Delete"), this->NodeMenu);
+  this->NodeMenu->addAction(this->DeleteAction);
+  QObject::connect(this->DeleteAction, SIGNAL(triggered()), q, SLOT(deleteSelectedNodes()));
+
+  this->EditAction = new QAction(tr("Edit properties..."), this->NodeMenu);
+  this->NodeMenu->addAction(this->EditAction);
+  QObject::connect(this->EditAction, SIGNAL(triggered()), q, SLOT(editCurrentSubjectHierarchyNode()));
+
+  this->SceneMenu = new QMenu(q);
+  this->SceneMenu->setObjectName("sceneMenuTreeView");
 
   // Set item delegate (that creates widgets for certain types of data)
   this->TransformItemDelegate = new qMRMLTransformItemDelegate(q);
   this->TransformItemDelegate->setFixedRowHeight(16);
   this->TransformItemDelegate->setMRMLScene(q->mrmlScene());
-  q->setItemDelegateForColumn(sceneModel->transformColumn(), this->TransformItemDelegate);
+  q->setItemDelegateForColumn(d->Model->transformColumn(), this->TransformItemDelegate);
   QObject::connect(this->TransformItemDelegate, SIGNAL(removeTransformsFromBranchOfCurrentNode()),
-    sceneModel, SLOT(onRemoveTransformsFromBranchOfCurrentNode()));
+    d->Model, SLOT(onRemoveTransformsFromBranchOfCurrentNode()));
   QObject::connect(this->TransformItemDelegate, SIGNAL(hardenTransformOnBranchOfCurrentNode()),
-    sceneModel, SLOT(onHardenTransformOnBranchOfCurrentNode()));
-
-  // Connect Edit properties... action to a different slot than in the base class
-  QObject::disconnect(this->EditAction, SIGNAL(triggered()), (qMRMLTreeView*)q, SLOT(editCurrentNode()));
-  QObject::connect(this->EditAction, SIGNAL(triggered()), q, SLOT(editCurrentSubjectHierarchyNode()));
-
-  // Connect Delete action to a different slot than in the base class
-  QObject::disconnect(this->DeleteAction, SIGNAL(triggered()), q, SLOT(deleteCurrentNode()));
-  QObject::connect(this->DeleteAction, SIGNAL(triggered()), q, SLOT(deleteSelectedNodes()));
+    d->Model, SLOT(onHardenTransformOnBranchOfCurrentNode()));
 
   // Connect invalidate filters
-  QObject::connect( q->sceneModel(), SIGNAL(invalidateFilter()), q->model(), SLOT(invalidate()) );
+  QObject::connect( d->Model, SIGNAL(invalidateFilter()), d->SortFilterModel, SLOT(invalidate()) );
 
   // Set up scene and node actions for the tree view
   this->setupActions();
@@ -148,12 +180,6 @@ void qMRMLSubjectHierarchyTreeViewPrivate::init2()
 void qMRMLSubjectHierarchyTreeViewPrivate::setupActions()
 {
   Q_Q(qMRMLSubjectHierarchyTreeView);
-
-  // Set up Remove from subject hierarchy action (hidden by default)
-  this->RemoveFromSubjectHierarchyAction = new QAction(qMRMLTreeView::tr("Remove from subject hierarchy"), this->NodeMenu);
-  this->NodeMenu->addAction(this->RemoveFromSubjectHierarchyAction);
-  this->RemoveFromSubjectHierarchyAction->setVisible(false);
-  QObject::connect(this->RemoveFromSubjectHierarchyAction, SIGNAL(triggered()), q, SLOT(removeCurrentNodeFromSubjectHierarchy()));
 
   // Set up expand to level action and its menu
   this->ExpandToDepthAction = new QAction(qMRMLTreeView::tr("Expand tree to level..."), this->NodeMenu);
@@ -218,11 +244,45 @@ void qMRMLSubjectHierarchyTreeViewPrivate::setupActions()
 }
 
 //------------------------------------------------------------------------------
+void qMRMLSubjectHierarchyTreeViewPrivate::saveChildrenExpandState(QModelIndex &parentIndex)
+{
+//TODO:
+  //Q_Q(qMRMLTreeView);
+  //vtkMRMLNode* parentNode = q->sortFilterProxyModel()->mrmlNodeFromIndex(parentIndex);
+
+  //// Check if the node is currently present in the scene.
+  //// When a node/hierarchy is being deleted from the vtkMRMLScene, there is
+  //// some reference of the deleted node left dangling in the qMRMLSceneModel.
+  //// As a result, mrmlNodeFromIndex returns a reference to a non-existent node.
+  //// We do not need to save the tree hierarchy in such cases.
+  //if (!parentNode ||
+  //    !q->sortFilterProxyModel()->mrmlScene()->IsNodePresent(parentNode))
+  //  {
+  //  return;
+  //  }
+
+  //  if (q->isExpanded(parentIndex))
+  //    {
+  //    this->ExpandedNodes->AddItem(parentNode);
+  //    }
+  //  // Iterate over children nodes recursively to save their expansion state
+  //  unsigned int numChildrenRows = q->sortFilterProxyModel()->rowCount(parentIndex);
+  //  for(unsigned int row = 0; row < numChildrenRows; ++row)
+  //    {
+  //    QModelIndex childIndex = q->sortFilterProxyModel()->index(row, 0, parentIndex);
+  //    this->saveChildrenExpandState(childIndex);
+  //    }
+}
+
+
+//------------------------------------------------------------------------------
+// qMRMLSubjectHierarchyTreeView
+//------------------------------------------------------------------------------
 qMRMLSubjectHierarchyTreeView::qMRMLSubjectHierarchyTreeView(QWidget *parent)
   : qMRMLTreeView(new qMRMLSubjectHierarchyTreeViewPrivate(*this), parent)
 {
   Q_D(qMRMLSubjectHierarchyTreeView);
-  d->init2();
+  d->init();
 }
 
 //------------------------------------------------------------------------------
@@ -231,15 +291,125 @@ qMRMLSubjectHierarchyTreeView::~qMRMLSubjectHierarchyTreeView()
 }
 
 //------------------------------------------------------------------------------
+vtkMRMLScene* qMRMLSubjectHierarchyTreeView::mrmlScene()const
+{
+  Q_D(const qMRMLSubjectHierarchyTreeView);
+  return d->SceneModel ? d->SceneModel->mrmlScene() : 0;
+}
+
+//------------------------------------------------------------------------------
 void qMRMLSubjectHierarchyTreeView::setMRMLScene(vtkMRMLScene* scene)
 {
-  Q_D(qMRMLSubjectHierarchyTreeView);
-  Q_ASSERT(d->SortFilterModel);
-  vtkMRMLNode* rootNode = this->rootNode();
-  d->SceneModel->setMRMLScene(scene);
-  d->TransformItemDelegate->setMRMLScene(scene);
-  this->setRootNode(rootNode);
-  this->expandToDepth(4);
+//TODO:
+  //Q_D(qMRMLSubjectHierarchyTreeView);
+  //Q_ASSERT(d->SortFilterModel);
+  //vtkMRMLNode* rootNode = this->rootNode();
+  //d->SceneModel->setMRMLScene(scene);
+  //d->TransformItemDelegate->setMRMLScene(scene);
+  //this->setRootNode(rootNode);
+  //this->expandToDepth(4);
+}
+
+//--------------------------------------------------------------------------
+void qMRMLSubjectHierarchyTreeView::setShowScene(bool show)
+{
+//TODO:
+  //Q_D(qMRMLSubjectHierarchyTreeView);
+  //if (d->ShowScene == show)
+  //  {
+  //  return;
+  //  }
+  //vtkMRMLNode* oldRootNode = this->rootNode();
+  //d->ShowScene = show;
+  //this->setRootNode(oldRootNode);
+}
+
+//--------------------------------------------------------------------------
+bool qMRMLSubjectHierarchyTreeView::showScene()const
+{
+  Q_D(const qMRMLSubjectHierarchyTreeView);
+  return d->ShowScene;
+}
+
+//--------------------------------------------------------------------------
+void qMRMLSubjectHierarchyTreeView::setShowRootNode(bool show)
+{
+//TODO:
+  //Q_D(qMRMLSubjectHierarchyTreeView);
+  //if (d->ShowRootNode == show)
+  //  {
+  //  return;
+  //  }
+  //vtkMRMLNode* oldRootNode = this->rootNode();
+  //d->ShowRootNode = show;
+  //this->setRootNode(oldRootNode);
+}
+
+//--------------------------------------------------------------------------
+bool qMRMLSubjectHierarchyTreeView::showRootNode()const
+{
+  Q_D(const qMRMLSubjectHierarchyTreeView);
+  return d->ShowRootNode;
+}
+
+//--------------------------------------------------------------------------
+void qMRMLSubjectHierarchyTreeView::setRootNode(vtkMRMLNode* rootNode)
+{
+//TODO:
+  //Q_D(qMRMLSubjectHierarchyTreeView);
+  //// Need to reset the filter to be able to find indexes from nodes that
+  //// could potentially be filtered out.
+  //this->sortFilterProxyModel()->setHideNodesUnaffiliatedWithNodeID(QString());
+  //QModelIndex treeRootIndex;
+  //if (rootNode == 0)
+  //  {
+  //  if (!d->ShowScene)
+  //    {
+  //    treeRootIndex = this->sortFilterProxyModel()->mrmlSceneIndex();
+  //    }
+  //  }
+  //else
+  //  {
+  //  treeRootIndex = this->sortFilterProxyModel()->indexFromMRMLNode(rootNode);
+  //  if (d->ShowRootNode)
+  //    {
+  //    // Hide the siblings of the root node.
+  //    this->sortFilterProxyModel()->setHideNodesUnaffiliatedWithNodeID(
+  //      rootNode->GetID());
+  //    // The parent of the root node becomes the root for QTreeView.
+  //    treeRootIndex = treeRootIndex.parent();
+  //    rootNode = this->sortFilterProxyModel()->mrmlNodeFromIndex(treeRootIndex);
+  //    }
+  //  }
+  //qvtkReconnect(this->rootNode(), rootNode, vtkCommand::ModifiedEvent,
+  //              this, SLOT(updateRootNode(vtkObject*)));
+  //this->setRootIndex(treeRootIndex);
+}
+
+//--------------------------------------------------------------------------
+vtkMRMLNode* qMRMLSubjectHierarchyTreeView::rootNode()const
+{
+//TODO:
+  //Q_D(const qMRMLSubjectHierarchyTreeView);
+  //vtkMRMLNode* treeRootNode =
+  //  this->sortFilterProxyModel()->mrmlNodeFromIndex(this->rootIndex());
+  //if (d->ShowRootNode &&
+  //    this->mrmlScene() &&
+  //    this->sortFilterProxyModel()->hideNodesUnaffiliatedWithNodeID()
+  //      .isEmpty())
+  //  {
+  //  return this->mrmlScene()->GetNodeByID(
+  //    this->sortFilterProxyModel()->hideNodesUnaffiliatedWithNodeID().toLatin1());
+  //  }
+  //return treeRootNode;
+}
+
+//--------------------------------------------------------------------------
+void qMRMLSubjectHierarchyTreeView::updateRootNode(vtkObject* node)
+{
+//TODO:
+  //// Maybe the node has changed of QModelIndex, need to resync
+  //this->setRootNode(vtkMRMLNode::SafeDownCast(node));
 }
 
 //--------------------------------------------------------------------------
@@ -254,6 +424,28 @@ void qMRMLSubjectHierarchyTreeView::setHighlightReferencedNodes(bool highlightOn
 {
   Q_D(qMRMLSubjectHierarchyTreeView);
   d->HighlightReferencedNodes = highlightOn;
+}
+
+//------------------------------------------------------------------------------
+bool qMRMLSubjectHierarchyTreeView::clickDecoration(const QModelIndex& index)
+{
+  //bool res = false;
+  //QModelIndex sourceIndex = this->sortFilterProxyModel()->mapToSource(index);
+  //if (!(sourceIndex.flags() & Qt::ItemIsEnabled))
+  //  {
+  //  res = false;
+  //  }
+  //else if (sourceIndex.column() == this->sceneModel()->visibilityColumn())
+  //  {
+  //  this->toggleVisibility(index);
+  //  res = true;
+  //  }
+
+  //if (res)
+  //  {
+  //  emit decorationClicked(index);
+  //  }
+  //return res;
 }
 
 //------------------------------------------------------------------------------
@@ -277,6 +469,18 @@ void qMRMLSubjectHierarchyTreeView::toggleVisibility(const QModelIndex& index)
 
   int visible = (ownerPlugin->getDisplayVisibility(subjectHierarchyNode) > 0 ? 0 : 1);
   ownerPlugin->setDisplayVisibility(subjectHierarchyNode, visible);
+}
+
+//--------------------------------------------------------------------------
+void qMRMLSubjectHierarchyTreeView::updateGeometries()
+{
+  // Don't update the geometries if it's not visible on screen
+  // UpdateGeometries is for tree child widgets geometry
+  if (!this->isVisible())
+    {
+    return;
+    }
+  this->QTreeView::updateGeometries();
 }
 
 //------------------------------------------------------------------------------
@@ -322,6 +526,105 @@ void qMRMLSubjectHierarchyTreeView::mousePressEvent(QMouseEvent* e)
     // Show context menu
     this->qMRMLTreeView::mousePressEvent(e);
     }
+}
+
+//------------------------------------------------------------------------------
+void qMRMLSubjectHierarchyTreeView::mouseReleaseEvent(QMouseEvent* e)
+{
+//TODO:
+  //if (e->button() == Qt::LeftButton)
+  //  {
+  //  // get the index of the current column
+  //  QModelIndex index = this->indexAt(e->pos());
+  //  QStyleOptionViewItemV4 opt = this->viewOptions();
+  //  opt.rect = this->visualRect(index);
+  //  qobject_cast<qMRMLItemDelegate*>(this->itemDelegate())->initStyleOption(&opt,index);
+  //  QRect decorationElement =
+  //    this->style()->subElementRect(QStyle::SE_ItemViewItemDecoration, &opt, this);
+  //  //decorationElement.translate(this->visualRect(index).topLeft());
+  //  if (decorationElement.contains(e->pos()))
+  //    {
+  //    if (this->clickDecoration(index))
+  //      {
+  //      return;
+  //      }
+  //    }
+  //  }
+
+  //this->QTreeView::mouseReleaseEvent(e);
+}
+
+//------------------------------------------------------------------------------
+void qMRMLSubjectHierarchyTreeView::onSelectionChanged(const QItemSelection& selected, const QItemSelection& deselected)
+{
+//TODO:
+  //Q_UNUSED(deselected);
+  //Q_D(qMRMLTreeView);
+  //vtkMRMLNode* newCurrentNode = 0;
+  //if (selected.indexes().count() > 0)
+  //  {
+  //  newCurrentNode = d->SortFilterModel->mrmlNodeFromIndex(selected.indexes()[0]);
+  //  }
+  //emit currentNodeChanged(newCurrentNode);
+}
+
+//------------------------------------------------------------------------------
+void qMRMLSubjectHierarchyTreeView::saveTreeExpandState()
+{
+//TODO:
+  //Q_D(qMRMLSubjectHierarchyTreeView);
+  //// Check if there is a scene loaded
+  //QStandardItem* sceneItem = this->sceneModel()->mrmlSceneItem();
+  //if (!sceneItem)
+  //  {
+  //  return;
+  //  }
+  //// Erase previous tree expand state
+  //d->ExpandedNodes->RemoveAllItems();
+  //QModelIndex sceneIndex = this->sortFilterProxyModel()->mrmlSceneIndex();
+
+  //// First pass for the scene node
+  //vtkMRMLNode* sceneNode = this->sortFilterProxyModel()->mrmlNodeFromIndex(sceneIndex);
+  //if (this->isExpanded(sceneIndex))
+  //  {
+  //  if (sceneNode && this->sortFilterProxyModel()->mrmlScene()->IsNodePresent(sceneNode))
+  //    d->ExpandedNodes->AddItem(sceneNode);
+  //  }
+  //unsigned int numChildrenRows = this->sortFilterProxyModel()->rowCount(sceneIndex);
+  //for(unsigned int row = 0; row < numChildrenRows; ++row)
+  //  {
+  //  QModelIndex childIndex = this->sortFilterProxyModel()->index(row, 0, sceneIndex);
+  //  d->saveChildrenExpandState(childIndex);
+  //  }
+}
+
+//------------------------------------------------------------------------------
+void qMRMLSubjectHierarchyTreeView::loadTreeExpandState()
+{
+//TODO:
+  //Q_D(qMRMLSubjectHierarchyTreeView);
+  //// Check if there is a scene loaded
+  //QStandardItem* sceneItem = this->sceneModel()->mrmlSceneItem();
+  //if (!sceneItem)
+  //  {
+  //  return;
+  //  }
+  //// Iterate over the vtkCollection of expanded nodes
+  //vtkCollectionIterator* iter = d->ExpandedNodes->NewIterator();
+  //for(iter->InitTraversal(); !iter->IsDoneWithTraversal(); iter->GoToNextItem())
+  //  {
+  //  vtkMRMLNode* node = vtkMRMLNode::SafeDownCast(iter->GetCurrentObject());
+  //  // Check if the node is currently present in the scene.
+  //  if (node && this->sortFilterProxyModel()->mrmlScene()->IsNodePresent(node))
+  //    {
+  //    // Expand the node
+  //    QModelIndex nodeIndex = this->sortFilterProxyModel()->indexFromMRMLNode(node);
+  //    this->expand(nodeIndex);
+  //    }
+  //  }
+  //// Clear the vtkCollection now
+  //d->ExpandedNodes->RemoveAllItems();
+  //iter->Delete();
 }
 
 //--------------------------------------------------------------------------
@@ -457,18 +760,28 @@ void qMRMLSubjectHierarchyTreeView::updateSelectPluginActions()
     }
 }
 
-//--------------------------------------------------------------------------
-void qMRMLSubjectHierarchyTreeView::removeCurrentNodeFromSubjectHierarchy()
+//------------------------------------------------------------------------------
+void qMRMLSubjectHierarchyTreeView::renameCurrentNode()
 {
-  vtkMRMLSubjectHierarchyNode* currentNode = qSlicerSubjectHierarchyPluginHandler::instance()->currentNode();
-  if (!currentNode)
-    {
-    qCritical() << Q_FUNC_INFO << ": Invalid current node!";
-    return;
-    }
+//TODO:
+  //if (!this->currentNode())
+  //  {
+  //  Q_ASSERT(this->currentNode());
+  //  return;
+  //  }
+  //// pop up an entry box for the new name, with the old name as default
+  //QString oldName = this->currentNode()->GetName();
 
-  currentNode->DisableModifiedEventOn();
-  qSlicerSubjectHierarchyPluginHandler::instance()->scene()->RemoveNode(currentNode);
+  //bool ok = false;
+  //QString newName = QInputDialog::getText(
+  //  this, "Rename " + oldName, "New name:",
+  //  QLineEdit::Normal, oldName, &ok);
+  //if (!ok)
+  //  {
+  //  return;
+  //  }
+  //this->currentNode()->SetName(newName.toLatin1());
+  //emit currentNodeRenamed(newName);
 }
 
 //--------------------------------------------------------------------------
@@ -516,7 +829,7 @@ void qMRMLSubjectHierarchyTreeView::applyReferenceHighlightForNode(QList<vtkMRML
   Q_D(qMRMLSubjectHierarchyTreeView);
 
   // Get scene model and column to highlight
-  qMRMLSceneSubjectHierarchyModel* sceneModel = qobject_cast<qMRMLSceneSubjectHierarchyModel*>(this->sceneModel());
+  qMRMLSubjectHierarchyModel* sceneModel = qobject_cast<qMRMLSubjectHierarchyModel*>(this->sceneModel());
   int nameColumn = sceneModel->nameColumn();
 
   // Clear highlight for previously highlighted nodes

@@ -176,6 +176,8 @@ set(MRMLWidgets_SRCS
   qMRMLSortFilterHierarchyProxyModel.h
   qMRMLSortFilterProxyModel.cxx
   qMRMLSortFilterProxyModel.h
+  qMRMLSortFilterSubjectHierarchyProxyModel.cxx
+  qMRMLSortFilterSubjectHierarchyProxyModel.h
   qMRMLSpinBox.cxx
   qMRMLSpinBox.h
   qMRMLTableModel.cxx

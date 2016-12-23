@@ -23,27 +23,46 @@
 #ifndef __qMRMLSortFilterSubjectHierarchyProxyModel_h
 #define __qMRMLSortFilterSubjectHierarchyProxyModel_h
 
-// SubjectHierarchy Widgets includes
-#include "qSlicerSubjectHierarchyModuleWidgetsExport.h"
+// qMRML includes
+#include "qMRMLWidgetsExport.h"
 
-// MRMLWidgets includes
-#include "qMRMLSortFilterProxyModel.h"
+// Qt includes
+#include <QSortFilterProxyModel>
+
+// CTK includes
+#include <ctkVTKObject.h>
+
+// MRML includes
+#include <vtkMRMLSubjectHierarchyNode.h>
 
 class qMRMLSortFilterSubjectHierarchyProxyModelPrivate;
 
 /// \ingroup Slicer_QtModules_SubjectHierarchy
-class Q_SLICER_MODULE_SUBJECTHIERARCHY_WIDGETS_EXPORT qMRMLSortFilterSubjectHierarchyProxyModel
-  : public qMRMLSortFilterProxyModel
+class QMRML_WIDGETS_EXPORT qMRMLSortFilterSubjectHierarchyProxyModel : public qMRMLSortFilterProxyModel
 {
   Q_OBJECT
+  QVTK_OBJECT
+
 public:
   typedef qMRMLSortFilterProxyModel Superclass;
   qMRMLSortFilterSubjectHierarchyProxyModel(QObject *parent=0);
   virtual ~qMRMLSortFilterSubjectHierarchyProxyModel();
 
+  Q_INVOKABLE vtkMRMLSubjectHierarchyNode* subjectHierarchyNode()const;
+  Q_INVOKABLE vtkMRMLScene* mrmlScene()const;
+
+  void Q_INVOKABLE setNameFilterString(QString nameFilter);
+
 protected:
-  /// Filters nodes to decide which to display in the view
-  virtual AcceptType filterAcceptsNode(vtkMRMLNode* node)const;
+  /// Returns true if the item in the row indicated by the given sourceRow and
+  /// sourceParent should be included in the model; otherwise returns false.
+  /// This method test each item via \a filterAcceptsItem
+  virtual bool filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent)const;
+
+  /// Filters items to decide which to display in the view
+  virtual bool filterAcceptsItem(vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID itemID)const;
+
+  QStandardItem* sourceItem(const QModelIndex& index)const;
 
 protected:
   QScopedPointer<qMRMLSortFilterSubjectHierarchyProxyModelPrivate> d_ptr;

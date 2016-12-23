@@ -101,9 +101,9 @@ public:
   Q_INVOKABLE vtkMRMLScene* mrmlScene()const;
 
   /// NULL until a valid scene is set
-  QStandardItem* subjectHierarchyRootItem()const;
+  QStandardItem* subjectHierarchySceneItem()const;
   /// Invalid until a valid scene is set
-  QModelIndex subjectHierarchyRootIndex()const;
+  QModelIndex subjectHierarchySceneIndex()const;
   virtual bool canBeAChild(SubjectHierarchyItemID itemID)const;
   virtual bool canBeAParent(SubjectHierarchyItemID itemID)const;
 

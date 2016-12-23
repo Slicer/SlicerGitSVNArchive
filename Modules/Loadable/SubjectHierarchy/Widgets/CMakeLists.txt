@@ -19,8 +19,6 @@ set(${KIT}_SRCS
   qMRMLSubjectHierarchyTreeView.h
   qSlicerSubjectHierarchyPluginLogic.cxx
   qSlicerSubjectHierarchyPluginLogic.h
-  qMRMLSortFilterSubjectHierarchyProxyModel.cxx
-  qMRMLSortFilterSubjectHierarchyProxyModel.h
   qMRMLTransformItemDelegate.cxx
   qMRMLTransformItemDelegate.h
   qSlicerSubjectHierarchyAbstractPlugin.cxx

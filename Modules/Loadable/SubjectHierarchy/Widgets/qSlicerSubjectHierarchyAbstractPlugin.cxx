@@ -165,10 +165,10 @@ bool qSlicerSubjectHierarchyAbstractPlugin::addNodeToSubjectHierarchy(
     return false;
     }
 
-  // If parent is invalid, then add it under root
+  // If parent is invalid, then add it under the scene
   if (parentItemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
     {
-    parentItemID = shNode->GetRootItemID();
+    parentItemID = shNode->GetSceneItemID();
     }
   // If level is undefined, then add as series
   if (level.empty())
@@ -324,7 +324,7 @@ qSlicerAbstractModuleWidget* qSlicerSubjectHierarchyAbstractPlugin::switchToModu
 void qSlicerSubjectHierarchyAbstractPlugin::hideAllContextMenuActions()const
 {
   QList<QAction*> allActions;
-  allActions << this->rootContextMenuActions();
+  allActions << this->sceneContextMenuActions();
   allActions << this->itemContextMenuActions();
 
   foreach (QAction* action, allActions)

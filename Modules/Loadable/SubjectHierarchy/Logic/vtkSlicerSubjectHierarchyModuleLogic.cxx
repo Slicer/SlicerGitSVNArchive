@@ -162,7 +162,7 @@ vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID vtkSlicerSubjectHierarchyMod
 
   // Find referenced items
   std::vector<SubjectHierarchyItemID> allItemIDs;
-  shNode->GetItemChildren(shNode->GetRootItemID(), allItemIDs, true);
+  shNode->GetItemChildren(shNode->GetSceneItemID(), allItemIDs, true);
   for (std::vector<SubjectHierarchyItemID>::iterator itemIt=allItemIDs.begin(); itemIt!=allItemIDs.end(); ++itemIt)
     {
     SubjectHierarchyItemID currentItemID = (*itemIt);
@@ -199,7 +199,7 @@ vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID vtkSlicerSubjectHierarchyMod
   if (patientItemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
     {
     patientItemID = shNode->CreateSubjectHierarchyItem(
-      shNode->GetRootItemID(), NULL, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelPatient() );
+      shNode->GetSceneItemID(), NULL, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelPatient() );
     shNode->SetItemUID(patientItemID, vtkMRMLSubjectHierarchyConstants::GetDICOMUIDName(), patientId);
     shNode->SetItemOwnerPluginName(patientItemID, "DICOM");
     }
@@ -258,7 +258,7 @@ vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID vtkSlicerSubjectHierarchyMod
   while (true)
     {
     ancestor1 = shNode->GetItemParent(ancestor1);
-    if (ancestor1 == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID || ancestor1 == shNode->GetRootItemID())
+    if (ancestor1 == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID || ancestor1 == shNode->GetSceneItemID())
       {
       vtkDebugWithObjectMacro(shNode, "Item ('" << shNode->GetItemName(item1) << "') has no ancestor with level '" << lowestCommonLevel << "'");
       ancestor1 = vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID;
@@ -280,7 +280,7 @@ vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID vtkSlicerSubjectHierarchyMod
   while (true)
     {
     ancestor2 = shNode->GetItemParent(ancestor2);
-    if (ancestor2 == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID || ancestor2 == shNode->GetRootItemID())
+    if (ancestor2 == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID || ancestor2 == shNode->GetSceneItemID())
       {
       vtkDebugWithObjectMacro(shNode, "Item ('" << shNode->GetItemName(item2) << "') has no ancestor with level '" << lowestCommonLevel << "'");
       ancestor2 = vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID;

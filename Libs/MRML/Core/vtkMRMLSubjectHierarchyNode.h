@@ -95,8 +95,8 @@ public:
 
 // Get/Set methods
 public:
-  /// Get ID of root subject hierarchy item
-  SubjectHierarchyItemID GetRootItemID();
+  /// Get ID of root subject hierarchy item (which can be interpreted as the scene in terms of hierarchy)
+  SubjectHierarchyItemID GetSceneItemID();
   /// Get data node for a subject hierarchy item
   /// Note: There is no setter function because a subject hierarchy item can be associated to only one data node during
   ///   its lifetime. This is due to simplicity reasons so that plugin search does not need to re-run when item is modified.
@@ -136,7 +136,7 @@ public:
 public:
   /// Create subject hierarchy item in the hierarchy under a specified parent. If the item existed then use that and
   /// set it up with the supplied parameters. Used mostly for creating hierarchy items (folder, patient, study, etc.)
-  /// \param parentItemID Parent item under which the created item is inserted. If top-level then use \sa GetRootItemID
+  /// \param parentItemID Parent item under which the created item is inserted. If top-level then use \sa GetSceneItemID
   /// \param dataNode Associated data MRML node
   /// \param level Level string of the created item (\sa vtkMRMLSubjectHierarchyConstants)
   /// \param name Name of the item. Only used if there is no data node associated (in which case the name of that MRML node is used)

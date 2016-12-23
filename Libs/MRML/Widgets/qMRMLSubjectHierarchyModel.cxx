@@ -110,15 +110,15 @@ void qMRMLSubjectHierarchyModelPrivate::init()
 QModelIndexList qMRMLSubjectHierarchyModelPrivate::indexes(const SubjectHierarchyItemID itemID)const
 {
   Q_Q(const qMRMLSubjectHierarchyModel);
-  QModelIndex root = q->subjectHierarchyRootIndex();
-  if (root == QModelIndex())
+  QModelIndex scene = q->subjectHierarchySceneIndex();
+  if (scene == QModelIndex())
     {
     return QModelIndexList();
     }
   // QAbstractItemModel::match doesn't browse through columns
   // we need to do it manually
   QModelIndexList nodeIndexes = q->match(
-    root, qMRMLSubjectHierarchyModel::SubjectHierarchyItemIDRole, itemID, 1, Qt::MatchExactly | Qt::MatchRecursive);
+    scene, qMRMLSubjectHierarchyModel::SubjectHierarchyItemIDRole, itemID, 1, Qt::MatchExactly | Qt::MatchRecursive);
   if (nodeIndexes.size() != 1)
     {
     return QModelIndexList(); // If 0 it's empty, if >1 it's invalid (one item for each UID)
@@ -250,7 +250,7 @@ vtkMRMLScene* qMRMLSubjectHierarchyModel::mrmlScene()const
 }
 
 //------------------------------------------------------------------------------
-QStandardItem* qMRMLSubjectHierarchyModel::subjectHierarchyRootItem()const
+QStandardItem* qMRMLSubjectHierarchyModel::subjectHierarchySceneItem()const
 {
   Q_D(const qMRMLSubjectHierarchyModel);
   if (!d->SubjectHierarchyNode || this->maxColumnId() == -1)
@@ -266,7 +266,7 @@ QStandardItem* qMRMLSubjectHierarchyModel::subjectHierarchyRootItem()const
       continue;
       }
     QVariant uid = child->data(qMRMLSubjectHierarchyModel::SubjectHierarchyItemIDRole);
-    if (uid.type() == QVariant::ULongLong && uid.toString() == "root")
+    if (uid.type() == QVariant::ULongLong && uid == d->SubjectHierarchyNode->GetSceneItemID())
       {
       return child;
       }
@@ -275,14 +275,14 @@ QStandardItem* qMRMLSubjectHierarchyModel::subjectHierarchyRootItem()const
 }
 
 //------------------------------------------------------------------------------
-QModelIndex qMRMLSubjectHierarchyModel::subjectHierarchyRootIndex()const
+QModelIndex qMRMLSubjectHierarchyModel::subjectHierarchySceneIndex()const
 {
-  QStandardItem* shRoot = this->subjectHierarchyRootItem();
-  if (shRoot == 0)
+  QStandardItem* shSceneItem = this->subjectHierarchySceneItem();
+  if (shSceneItem == 0)
     {
     return QModelIndex();
     }
-  return shRoot ? shRoot->index() : QModelIndex();
+  return shSceneItem ? shSceneItem->index() : QModelIndex();
 }
 
 // -----------------------------------------------------------------------------
@@ -301,7 +301,7 @@ SubjectHierarchyItemID qMRMLSubjectHierarchyModel::subjectHierarchyItemFromItem(
     }
   QVariant nodePointer = item->data(qMRMLSubjectHierarchyModel::PointerRole);
   if ( !nodePointer.isValid()
-    || item->data(qMRMLSubjectHierarchyModel::SubjectHierarchyItemIDRole).toULongLong() == "root" )
+    || item->data(qMRMLSubjectHierarchyModel::SubjectHierarchyItemIDRole).toULongLong() == d->SubjectHierarchyNode->GetSceneItemID() )
     {
     return vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID;
     }
@@ -350,7 +350,7 @@ QModelIndex qMRMLSubjectHierarchyModel::indexFromSubjectHierarchyItem(SubjectHie
     {
     // QAbstractItemModel::match doesn't browse through columns, we need to do it manually
     QModelIndexList itemIndexes = this->match(
-      this->subjectHierarchyRootIndex(), SubjectHierarchyItemIDRole, itemID, 1, Qt::MatchExactly | Qt::MatchRecursive);
+      this->subjectHierarchySceneIndex(), SubjectHierarchyItemIDRole, itemID, 1, Qt::MatchExactly | Qt::MatchRecursive);
     if (itemIndexes.size() == 0)
       {
       d->RowCache.remove(itemID);
@@ -417,8 +417,7 @@ bool qMRMLSubjectHierarchyModel::canBeAChild(SubjectHierarchyItemID itemID)const
     return false;
     }
   // Only the root and invalid item cannot be child
-  return ( itemID != d->SubjectHierarchyNode->GetRootItemID()
-        && itemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID );
+  return (itemID != d->SubjectHierarchyNode->GetSceneItemID() && itemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID);
 }
 
 //------------------------------------------------------------------------------
@@ -500,7 +499,7 @@ bool qMRMLSubjectHierarchyModel::reparent(SubjectHierarchyItemID itemID, Subject
     && selectedPlugin == qSlicerSubjectHierarchyPluginHandler::instance()->defaultPlugin() )
   {
     qCritical() << Q_FUNC_INFO << ": Failed to reparent virtual node "
-      << subjectHierarchyNode->GetName() << " under parent " << (newParent ? newParent->GetName() : "root");
+      << subjectHierarchyNode->GetName() << " under parent " << (newParent ? newParent->GetName() : "Scene");
     return false;
   }
 
@@ -575,44 +574,44 @@ void qMRMLSubjectHierarchyModel::updateFromSubjectHierarchy()
     this->setColumnCount(oldColumnCount);
     return;
     }
-  else if (!this->subjectHierarchyRootItem())
+  else if (!this->subjectHierarchySceneItem())
     {
     // No subject hierarchy root item has been created yet, but the subject hierarchy
-    // node is valid, so we need to create a root item
-    QList<QStandardItem*> rootItems;
-    QStandardItem* rootItem = new QStandardItem;
-    rootItem->setFlags(Qt::ItemIsDropEnabled | Qt::ItemIsEnabled);
-    rootItem->setText("Root");
-    rootItem->setData(d->SubjectHierarchyNode->GetRootItemID(), qMRMLSubjectHierarchyModel::SubjectHierarchyItemIDRole);
-    rootItems << rootItem;
+    // node is valid, so we need to create a scene item
+    QList<QStandardItem*> sceneItems;
+    QStandardItem* sceneItem = new QStandardItem;
+    sceneItem->setFlags(Qt::ItemIsDropEnabled | Qt::ItemIsEnabled);
+    sceneItem->setText("Scene");
+    sceneItem->setData(d->SubjectHierarchyNode->GetSceneItemID(), qMRMLSubjectHierarchyModel::SubjectHierarchyItemIDRole);
+    sceneItems << sceneItem;
     for (int i = 1; i < this->columnCount(); ++i)
       {
-      QStandardItem* rootOtherColumn = new QStandardItem;
-      rootOtherColumn->setFlags(0);
-      rootItems << rootOtherColumn;
+      QStandardItem* sceneOtherColumn = new QStandardItem;
+      sceneOtherColumn->setFlags(0);
+      sceneItems << sceneOtherColumn;
       }
-    rootItem->setColumnCount(this->columnCount());
-    this->insertRow(0, rootItems);
+    sceneItem->setColumnCount(this->columnCount());
+    this->insertRow(0, sceneItems);
     }
   else
     {
-    // Update the root item index in case subject hierarchy node has changed
-    this->subjectHierarchyRootItem()->setData(
-      QVariant::fromValue(d->SubjectHierarchyNode->GetRootItemID()), qMRMLSubjectHierarchyModel::SubjectHierarchyItemIDRole );
+    // Update the scene item index in case subject hierarchy node has changed
+    this->subjectHierarchySceneItem()->setData(
+      QVariant::fromValue(d->SubjectHierarchyNode->GetSceneItemID()), qMRMLSubjectHierarchyModel::SubjectHierarchyItemIDRole );
     }
 
-  if (!this->subjectHierarchyRootItem())
+  if (!this->subjectHierarchySceneItem())
     {
-    qCritical() << Q_FUNC_INFO << ": Failed to create subject hierarchy root item";
+    qCritical() << Q_FUNC_INFO << ": Failed to create subject hierarchy scene item";
     return;
     }
 
   // Remove rows before populating
-  this->subjectHierarchyRootItem()->removeRows(0, this->subjectHierarchyRootItem()->rowCount());
+  this->subjectHierarchySceneItem()->removeRows(0, this->subjectHierarchySceneItem()->rowCount());
 
   // Populate subject hierarchy with the items
   std::vector<SubjectHierarchyItemID> allItemIDs;
-  d->SubjectHierarchyNode->GetItemChildren(d->SubjectHierarchyNode->GetRootItemID(), allItemIDs, true);
+  d->SubjectHierarchyNode->GetItemChildren(d->SubjectHierarchyNode->GetSceneItemID(), allItemIDs, true);
   int index = 0;
   for (std::vector<SubjectHierarchyItemID>::iterator itemIt=allItemIDs.begin(); itemIt!=allItemIDs.end(); ++itemIt, ++index)
     {
@@ -761,7 +760,7 @@ void qMRMLSubjectHierarchyModel::updateItemFromSubjectHierarchyItem(
     QStandardItem* newParentItem = this->itemFromSubjectHierarchyItem(this->parentSubjectHierarchyItem(shItemID));
     if (!newParentItem)
       {
-      newParentItem = this->subjectHierarchyRootItem();
+      newParentItem = this->subjectHierarchySceneItem();
       }
     // If the item has no parent, then it means it hasn't been put into the hierarchy yet and it will do it automatically
     if (parentItem && parentItem != newParentItem)
@@ -1158,7 +1157,7 @@ void qMRMLSubjectHierarchyModel::onSubjectHierarchyItemAboutToBeRemoved(SubjectH
     }
 
   QModelIndexList itemIndexes = this->match(
-    this->subjectHierarchyRootIndex(), SubjectHierarchyItemIDRole, itemID, 1, Qt::MatchExactly | Qt::MatchRecursive );
+    this->subjectHierarchySceneIndex(), SubjectHierarchyItemIDRole, itemID, 1, Qt::MatchExactly | Qt::MatchRecursive );
   if (itemIndexes.count() > 0)
     {
     QStandardItem* item = this->itemFromIndex(itemIndexes[0].sibling(itemIndexes[0].row(),0));
@@ -1205,7 +1204,7 @@ void qMRMLSubjectHierarchyModel::onSubjectHierarchyItemRemoved(SubjectHierarchyI
       this->parentSubjectHierarchyItem(itemID) );
     if (!newParentItem)
       {
-      newParentItem = this->subjectHierarchyRootItem();
+      newParentItem = this->subjectHierarchySceneItem();
       }
     d->reparentItems(orphans, newIndex, newParentItem);
     }
@@ -1389,7 +1388,7 @@ void qMRMLSubjectHierarchyModel::updateColumnCount()
       return;
       }
     std::vector<SubjectHierarchyItemID> allItemIDs;
-    d->SubjectHierarchyNode->GetItemChildren(d->SubjectHierarchyNode->GetRootItemID(), allItemIDs, true);
+    d->SubjectHierarchyNode->GetItemChildren(d->SubjectHierarchyNode->GetSceneItemID(), allItemIDs, true);
     for (std::vector<SubjectHierarchyItemID>::iterator itemIt=allItemIDs.begin(); itemIt!=allItemIDs.end(); ++itemIt)
       {
       this->updateModelItems(*itemID);

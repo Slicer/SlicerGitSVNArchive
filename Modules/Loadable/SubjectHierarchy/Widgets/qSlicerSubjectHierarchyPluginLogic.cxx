@@ -246,8 +246,8 @@ void qSlicerSubjectHierarchyPluginLogic::onNodeAdded(vtkObject* sceneObject, vtk
         qCritical() << Q_FUNC_INFO << ": Failed to access subject hierarchy node";
         return;
         }
-      // Add under subject hierarchy root
-      bool successfullyAddedByPlugin = selectedPlugin->addNodeToSubjectHierarchy(node, shNode->GetRootItemID());
+      // Add under subject hierarchy scene item
+      bool successfullyAddedByPlugin = selectedPlugin->addNodeToSubjectHierarchy(node, shNode->GetSceneItemID());
       if (!successfullyAddedByPlugin)
         {
         qWarning() << Q_FUNC_INFO << ": Failed to add node " << node->GetName() <<
@@ -398,7 +398,7 @@ void qSlicerSubjectHierarchyPluginLogic::addSupportedNodesToSubjectHierarchy()
     // Have the selected plugin add the new node to subject hierarchy
     if (selectedPlugin)
       {
-      bool successfullyAddedByPlugin = selectedPlugin->addNodeToSubjectHierarchy(node, shNode->GetRootItemID());
+      bool successfullyAddedByPlugin = selectedPlugin->addNodeToSubjectHierarchy(node, shNode->GetSceneItemID());
       if (!successfullyAddedByPlugin)
         {
         // Should never happen! If a plugin answers positively to the canOwn question (condition of

@@ -125,10 +125,10 @@ public:
   /// Get item context menu item actions to add to tree view
   Q_INVOKABLE virtual QList<QAction*> itemContextMenuActions()const;
 
-  /// Get root context menu item actions to add to tree view. Also provides actions for right-click on empty area
-  /// Separate method is needed for the root, as its actions are set to the
+  /// Get scene context menu item actions to add to tree view. Also provides actions for right-click on empty area
+  /// Separate method is needed for the scene, as its actions are set to the
   /// tree by a different method \sa itemContextMenuActions
-  Q_INVOKABLE virtual QList<QAction*> rootContextMenuActions()const;
+  Q_INVOKABLE virtual QList<QAction*> sceneContextMenuActions()const;
 
   /// Show context menu actions valid for a given subject hierarchy item.
   /// \param itemID Subject Hierarchy item to show the context menu items for

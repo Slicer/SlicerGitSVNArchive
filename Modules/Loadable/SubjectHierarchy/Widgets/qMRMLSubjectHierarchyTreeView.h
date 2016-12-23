@@ -38,6 +38,14 @@ class Q_SLICER_MODULE_SUBJECTHIERARCHY_WIDGETS_EXPORT qMRMLSubjectHierarchyTreeV
 {
   Q_OBJECT
 
+  /// This property controls whether the scene is visible (is a top-level item).
+  /// It doesn't have any effect if \a rootNode() is not null. Visible by default.
+  /// \sa setShowScene(), showScene(), showRootNode, setRootNode(), setRootIndex()
+  Q_PROPERTY(bool showScene READ showScene WRITE setShowScene)
+  /// This property controls whether the root node if any is visible. When the root node is visible, it appears as a top-level item, if it is
+  /// hidden only its children are top-level items. It doesn't have any effect if \a rootNode() is null. Hidden by default.
+  /// \sa setShowRootNode(), showRootNode(), showScene, setRootNode(), setRootIndex()
+  Q_PROPERTY(bool showRootNode READ showRootNode WRITE setShowRootNode)
   /// Flag determining whether to highlight nodes referenced by DICOM. Storing DICOM references:
   ///   Referenced SOP instance UIDs (in attribute named vtkMRMLSubjectHierarchyConstants::GetDICOMReferencedInstanceUIDsAttributeName())
   ///   -> SH node instance UIDs (serialized string lists in subject hierarchy UID vtkMRMLSubjectHierarchyConstants::GetDICOMInstanceUIDName())
@@ -49,8 +57,18 @@ public:
   virtual ~qMRMLSubjectHierarchyTreeView();
 
 public:
+  vtkMRMLScene* mrmlScene()const;
+
+  void setShowScene(bool show);
+  bool showScene()const;
+
+  void setShowRootNode(bool show);
+  bool showRootNode()const;
+
   bool highlightReferencedNodes()const;
   void setHighlightReferencedNodes(bool highlightOn);
+
+  virtual bool clickDecoration(const QModelIndex& index);
 
 protected:
   /// Toggle visibility
@@ -59,8 +77,13 @@ protected:
   /// Populate context menu for current node
   virtual void populateContextMenuForCurrentNode();
 
+  /// Reimplemented to increase performance
+  virtual void updateGeometries();
+
   /// Handle mouse press event (facilitates timely update of context menu)
   virtual void mousePressEvent(QMouseEvent* event);
+  /// Handle mouse release event
+  virtual void mouseReleaseEvent(QMouseEvent* event);
 
   /// Apply highlight for nodes referenced by argument nodes by DICOM
   /// \sa highlightReferencedNodes
