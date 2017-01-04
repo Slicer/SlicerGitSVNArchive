@@ -9,7 +9,7 @@ docker run -d --name slicer-build-with-test slicer/slicer-test bash
 $script_dir/run_opengl.sh \
     -i slicer/slicer-test:opengl \
     -p 6081 \
-    -r --env="CIRCLE_SHA1=$1" -r --env="CIRCLE_BRANCH=$2" -r --env="SITE_BUILD_TYPE=$3" \
+    -r --env="CIRCLE_SHA1=$1" -r --env="CIRCLE_BRANCH=$2" \
     -r --volumes-from -r slicer-build-with-test
 
 # Remove the container used to mount volumes from slicer-build
