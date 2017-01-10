@@ -30,16 +30,16 @@
 #include <ctkPimpl.h>
 #include <ctkVTKObject.h>
 
-// qMRML includes
-#include "qMRMLWidgetsExport.h"
-
 // MRML includes
 #include <vtkMRMLSubjectHierarchyNode.h>
+
+// SubjectHierarchy includes
+#include "qSlicerSubjectHierarchyModuleWidgetsExport.h"
 
 class qMRMLSubjectHierarchyModelPrivate;
 
 /// TODO:
-class QMRML_WIDGETS_EXPORT qMRMLSubjectHierarchyModel : public QStandardItemModel
+class Q_SLICER_MODULE_SUBJECTHIERARCHY_WIDGETS_EXPORT qMRMLSubjectHierarchyModel : public QStandardItemModel
 {
   Q_OBJECT
   QVTK_OBJECT
@@ -90,15 +90,18 @@ public:
   int visibilityColumn()const;
   void setVisibilityColumn(int column);
 
+  int transformColumn()const;
+  void setTransformColumn(int column);
+
   virtual Qt::DropActions supportedDropActions()const;
   virtual QMimeData* mimeData(const QModelIndexList& indexes)const;
   virtual bool dropMimeData(const QMimeData *data, Qt::DropAction action,
                             int row, int column, const QModelIndex &parent);
 
-  Q_INVOKABLE virtual void setSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode* shNode);
-  Q_INVOKABLE vtkMRMLSubjectHierarchyNode* subjectHierarchyNode()const;
   Q_INVOKABLE virtual void setMRMLScene(vtkMRMLScene* scene);
   Q_INVOKABLE vtkMRMLScene* mrmlScene()const;
+
+  vtkMRMLSubjectHierarchyNode* subjectHierarchyNode()const;
 
   /// NULL until a valid scene is set
   QStandardItem* subjectHierarchySceneItem()const;
@@ -120,6 +123,12 @@ public:
   virtual int subjectHierarchyItemIndex(SubjectHierarchyItemID itemID)const;
   /// Insert/move node in subject hierarchy under new parent
   virtual bool reparent(SubjectHierarchyItemID itemID, SubjectHierarchyItemID newParentID);
+  /// Utility method that returns true if \a child has \a parent as ancestor (parent, grandparent, etc.)
+  /// \sa isAffiliatedNode()
+  bool isAncestorItem(SubjectHierarchyItemID child, SubjectHierarchyItemID ancestor)const;
+  /// Utility method that returns true if 2 nodes are child/parent (or any ancestor) for each other
+  /// \sa isAncestorItem()
+  bool isAffiliatedItem(SubjectHierarchyItemID itemA, SubjectHierarchyItemID itemB)const;
 
 protected slots:
   virtual void onSubjectHierarchyItemAdded(SubjectHierarchyItemID itemID);
@@ -155,6 +164,9 @@ signals:
 
 protected:
   qMRMLSubjectHierarchyModel(qMRMLSubjectHierarchyModelPrivate* pimpl, QObject *parent=0);
+
+  /// Set the subject hierarchy node found in the given scene. Called only internally.
+  virtual void setSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode* shNode);
 
   virtual void updateFromSubjectHierarchy();
   virtual QStandardItem* insertSubjectHierarchyItem(SubjectHierarchyItemID itemID);

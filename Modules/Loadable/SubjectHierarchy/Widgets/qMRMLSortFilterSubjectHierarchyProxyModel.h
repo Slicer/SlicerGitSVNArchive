@@ -23,8 +23,8 @@
 #ifndef __qMRMLSortFilterSubjectHierarchyProxyModel_h
 #define __qMRMLSortFilterSubjectHierarchyProxyModel_h
 
-// qMRML includes
-#include "qMRMLWidgetsExport.h"
+// SubjectHierarchy includes
+#include "qSlicerSubjectHierarchyModuleWidgetsExport.h"
 
 // Qt includes
 #include <QSortFilterProxyModel>
@@ -38,20 +38,41 @@
 class qMRMLSortFilterSubjectHierarchyProxyModelPrivate;
 
 /// \ingroup Slicer_QtModules_SubjectHierarchy
-class QMRML_WIDGETS_EXPORT qMRMLSortFilterSubjectHierarchyProxyModel : public qMRMLSortFilterProxyModel
+class Q_SLICER_MODULE_SUBJECTHIERARCHY_WIDGETS_EXPORT qMRMLSortFilterSubjectHierarchyProxyModel : public QSortFilterProxyModel
 {
   Q_OBJECT
   QVTK_OBJECT
 
+  /// Search string showing only items that contain the string in their names. Empty by default
+  Q_PROPERTY(QString nameFilter READ nameFilter WRITE setNameFilter)
+  /// This property controls whether items unaffiliated with a given subject hierarchy item are hidden or not.
+  /// All the nodes are visible (invalid item ID - vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID) by default.
+  Q_PROPERTY(SubjectHierarchyItemID hideItemsUnaffiliatedWithItemID READ hideItemsUnaffiliatedWithItemID WRITE setHideItemsUnaffiliatedWithItemID)
+
 public:
-  typedef qMRMLSortFilterProxyModel Superclass;
+  typedef QSortFilterProxyModel Superclass;
   qMRMLSortFilterSubjectHierarchyProxyModel(QObject *parent=0);
   virtual ~qMRMLSortFilterSubjectHierarchyProxyModel();
+
+  typedef vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID SubjectHierarchyItemID;
 
   Q_INVOKABLE vtkMRMLSubjectHierarchyNode* subjectHierarchyNode()const;
   Q_INVOKABLE vtkMRMLScene* mrmlScene()const;
 
-  void Q_INVOKABLE setNameFilterString(QString nameFilter);
+  QString nameFilter();
+  void setNameFilter(QString filter);
+
+  SubjectHierarchyItemID hideItemsUnaffiliatedWithItemID();
+  void setHideItemsUnaffiliatedWithItemID(SubjectHierarchyItemID itemID);
+
+  /// Retrieve the index of the MRML scene (the root item) in the subject hierarchy tree
+  Q_INVOKABLE QModelIndex subjectHierarchySceneIndex()const;
+
+  /// Retrieve the associated subject hierarchy item ID from a model index
+  Q_INVOKABLE SubjectHierarchyItemID subjectHierarchyItemFromIndex(const QModelIndex& index)const;
+
+  /// Retrieve an index for a given a subject hierarchy item ID
+  Q_INVOKABLE QModelIndex indexFromSubjectHierarchyItem(SubjectHierarchyItemID itemID, int column=0)const;
 
 protected:
   /// Returns true if the item in the row indicated by the given sourceRow and

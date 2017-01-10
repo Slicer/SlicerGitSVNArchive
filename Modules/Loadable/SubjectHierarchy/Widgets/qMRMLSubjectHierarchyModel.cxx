@@ -107,7 +107,7 @@ void qMRMLSubjectHierarchyModelPrivate::init()
 }
 
 //------------------------------------------------------------------------------
-QModelIndexList qMRMLSubjectHierarchyModelPrivate::indexes(const SubjectHierarchyItemID itemID)const
+QModelIndexList qMRMLSubjectHierarchyModelPrivate::indexes(const vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID itemID)const
 {
   Q_Q(const qMRMLSubjectHierarchyModel);
   QModelIndex scene = q->subjectHierarchySceneIndex();
@@ -118,7 +118,7 @@ QModelIndexList qMRMLSubjectHierarchyModelPrivate::indexes(const SubjectHierarch
   // QAbstractItemModel::match doesn't browse through columns
   // we need to do it manually
   QModelIndexList nodeIndexes = q->match(
-    scene, qMRMLSubjectHierarchyModel::SubjectHierarchyItemIDRole, itemID, 1, Qt::MatchExactly | Qt::MatchRecursive);
+    scene, qMRMLSubjectHierarchyModel::SubjectHierarchyItemIDRole, QVariant(qulonglong(itemID)), 1, Qt::MatchExactly | Qt::MatchRecursive);
   if (nodeIndexes.size() != 1)
     {
     return QModelIndexList(); // If 0 it's empty, if >1 it's invalid (one item for each UID)
@@ -179,42 +179,6 @@ qMRMLSubjectHierarchyModel::~qMRMLSubjectHierarchyModel()
 }
 
 //------------------------------------------------------------------------------
-void qMRMLSubjectHierarchyModel::setSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode* shNode)
-{
-  Q_D(qMRMLSubjectHierarchyModel);
-  if (shNode == d->SubjectHierarchyNode)
-    {
-    return;
-    }
-
-  if (d->SubjectHierarchyNode)
-    {
-    d->SubjectHierarchyNode->RemoveObserver(d->CallBack);
-    }
-
-  d->SubjectHierarchyNode = shNode;
-  this->setMRMLScene(shNode->GetScene());
-
-  this->updateFromSubjectHierarchy();
-
-  if (shNode)
-    {
-    shNode->AddObserver(vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemAddedEvent, d->CallBack);
-    shNode->AddObserver(vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemAboutToBeRemovedEvent, d->CallBack);
-    shNode->AddObserver(vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemRemovedEvent, d->CallBack);
-    shNode->AddObserver(vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemModifiedEvent, d->CallBack);
-    shNode->AddObserver(vtkCommand::DeleteEvent, d->CallBack);
-    }
-}
-
-//------------------------------------------------------------------------------
-vtkMRMLSubjectHierarchyNode* qMRMLSubjectHierarchyModel::subjectHierarchyNode()const
-{
-  Q_D(const qMRMLSubjectHierarchyModel);
-  return d->SubjectHierarchyNode;
-}
-
-//------------------------------------------------------------------------------
 void qMRMLSubjectHierarchyModel::setMRMLScene(vtkMRMLScene* scene)
 {
   Q_D(qMRMLSubjectHierarchyModel);
@@ -227,7 +191,9 @@ void qMRMLSubjectHierarchyModel::setMRMLScene(vtkMRMLScene* scene)
     {
     d->MRMLScene->RemoveObserver(d->CallBack);
     }
+
   d->MRMLScene = scene;
+  this->setSubjectHierarchyNode(vtkSlicerSubjectHierarchyModuleLogic::GetSubjectHierarchyNode(scene));
 
   if (scene)
     {
@@ -247,6 +213,41 @@ vtkMRMLScene* qMRMLSubjectHierarchyModel::mrmlScene()const
 {
   Q_D(const qMRMLSceneModel);
   return d->MRMLScene;
+}
+
+//------------------------------------------------------------------------------
+void qMRMLSubjectHierarchyModel::setSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode* shNode)
+{
+  Q_D(qMRMLSubjectHierarchyModel);
+  if (shNode == d->SubjectHierarchyNode)
+    {
+    return;
+    }
+
+  if (d->SubjectHierarchyNode)
+    {
+    d->SubjectHierarchyNode->RemoveObserver(d->CallBack);
+    }
+
+  d->SubjectHierarchyNode = shNode;
+
+  this->updateFromSubjectHierarchy();
+
+  if (shNode)
+    {
+    shNode->AddObserver(vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemAddedEvent, d->CallBack);
+    shNode->AddObserver(vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemAboutToBeRemovedEvent, d->CallBack);
+    shNode->AddObserver(vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemRemovedEvent, d->CallBack);
+    shNode->AddObserver(vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemModifiedEvent, d->CallBack);
+    shNode->AddObserver(vtkCommand::DeleteEvent, d->CallBack);
+    }
+}
+
+//------------------------------------------------------------------------------
+vtkMRMLSubjectHierarchyNode* qMRMLSubjectHierarchyModel::subjectHierarchyNode()const
+{
+  Q_D(const qMRMLSubjectHierarchyModel);
+  return d->SubjectHierarchyNode;
 }
 
 //------------------------------------------------------------------------------
@@ -432,6 +433,34 @@ bool qMRMLSubjectHierarchyModel::canBeAParent(SubjectHierarchyItemID itemID)cons
   // Only invalid item cannot be parent
   return (itemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID);
 }
+
+//------------------------------------------------------------------------------
+bool qMRMLSubjectHierarchyModel::isAncestorItem(
+  vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID child, vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID ancestor)const
+{
+  Q_D(const qMRMLSubjectHierarchyModel);
+  if (!d->SubjectHierarchyNode)
+    {
+    qCritical() << Q_FUNC_INFO << ": Invalid subject hierarchy";
+    return false;
+    }
+
+  for (; child != d->SubjectHierarchyNode->GetSceneItemID(); child = d->SubjectHierarchyNode->GetItemParent(child))
+    {
+    if (child == ancestor)
+      {
+      return true;
+      }
+    }
+  return false;
+}
+
+//------------------------------------------------------------------------------
+bool qMRMLSubjectHierarchyModel::isAffiliatedNode(
+  vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID itemA, vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID itemB)const
+  {
+  return this->isAncestorItem(itemA, itemB) || this->isAncestorItem(itemB, itemA);
+  }
 
 //------------------------------------------------------------------------------
 bool qMRMLSubjectHierarchyModel::reparent(SubjectHierarchyItemID itemID, SubjectHierarchyItemID newParentID)

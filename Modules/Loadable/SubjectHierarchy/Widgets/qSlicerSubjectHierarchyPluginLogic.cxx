@@ -23,7 +23,7 @@
 // Subject Hierarchy includes
 #include "qSlicerSubjectHierarchyPluginLogic.h"
 
-#include "vtkMRMLSubjectHierarchyNode.h"
+#include "vtkSlicerSubjectHierarchyModuleLogic.h"
 
 // SubjectHierarchy Plugins includes
 #include "qSlicerSubjectHierarchyPluginHandler.h"
@@ -156,15 +156,15 @@ qSlicerSubjectHierarchyAbstractPlugin* qSlicerSubjectHierarchyPluginLogic::subje
 }
 
 //-----------------------------------------------------------------------------
-vtkMRMLSubjectHierarchyNode* qSlicerSubjectHierarchyPluginLogic::currentSubjectHierarchyNode()const
+vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID qSlicerSubjectHierarchyPluginLogic::currentSubjectHierarchyItem()const
 {
-  return qSlicerSubjectHierarchyPluginHandler::instance()->currentNode();
+  return qSlicerSubjectHierarchyPluginHandler::instance()->currentItem();
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSubjectHierarchyPluginLogic::setCurrentSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode* node)
+void qSlicerSubjectHierarchyPluginLogic::setCurrentSubjectHierarchyItem(vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID itemID)
 {
-  qSlicerSubjectHierarchyPluginHandler::instance()->setCurrentNode(node);
+  qSlicerSubjectHierarchyPluginHandler::instance()->setCurrentItem(itemID);
 }
 
 //-----------------------------------------------------------------------------
@@ -276,7 +276,7 @@ void qSlicerSubjectHierarchyPluginLogic::onNodeAboutToBeRemoved(vtkObject* scene
     }
 
   // Get subject hierarchy node
-  vtkMRMLSubjectHierarchyNode* shNode = vtkSlicerSubjectHierarchyModuleLogic::GetSubjectHierarchyNode(node->GetScene());
+  vtkMRMLSubjectHierarchyNode* shNode = vtkSlicerSubjectHierarchyModuleLogic::GetSubjectHierarchyNode(dataNode->GetScene());
   if (!shNode)
     {
     qCritical() << Q_FUNC_INFO << ": Failed to access subject hierarchy node";

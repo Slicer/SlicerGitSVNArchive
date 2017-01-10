@@ -126,9 +126,6 @@ set(MRMLWidgets_SRCS
   qMRMLNodeComboBox_p.h
   qMRMLNodeFactory.cxx
   qMRMLNodeFactory.h
-  qMRMLSubjectHierarchyModel.cxx
-  qMRMLSubjectHierarchyModel.h
-  qMRMLSubjectHierarchyModel_p.h
   qMRMLRangeWidget.cxx
   qMRMLRangeWidget.h
   qMRMLROIWidget.cxx
@@ -176,8 +173,6 @@ set(MRMLWidgets_SRCS
   qMRMLSortFilterHierarchyProxyModel.h
   qMRMLSortFilterProxyModel.cxx
   qMRMLSortFilterProxyModel.h
-  qMRMLSortFilterSubjectHierarchyProxyModel.cxx
-  qMRMLSortFilterSubjectHierarchyProxyModel.h
   qMRMLSpinBox.cxx
   qMRMLSpinBox.h
   qMRMLTableModel.cxx

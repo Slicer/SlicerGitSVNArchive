@@ -39,7 +39,9 @@ class QStandardItemModel;
 #include <QFlags>
 #include <QMap>
 
-// qMRML includes
+// SubjectHierarchy includes
+#include "qSlicerSubjectHierarchyModuleWidgetsExport.h"
+
 #include "qMRMLSubjectHierarchyModel.h"
 
 // MRML includes
@@ -52,9 +54,12 @@ class QStandardItemModel;
 //------------------------------------------------------------------------------
 // qMRMLSubjectHierarchyModelPrivate
 //------------------------------------------------------------------------------
-class QMRML_WIDGETS_EXPORT qMRMLSubjectHierarchyModelPrivate
+class Q_SLICER_MODULE_SUBJECTHIERARCHY_WIDGETS_EXPORT qMRMLSubjectHierarchyModelPrivate
 {
   Q_DECLARE_PUBLIC(qMRMLSubjectHierarchyModel);
+
+  typedef vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID SubjectHierarchyItemID;
+
 protected:
   qMRMLSubjectHierarchyModel* const q_ptr;
 public:

@@ -35,10 +35,10 @@
 
 // MRML includes
 #include <vtkMRMLScene.h>
+#include <vtkMRMLSubjectHierarchyNode.h>
 
 #include "qSlicerSubjectHierarchyModuleWidgetsExport.h"
 
-class vtkMRMLSubjectHierarchyNode;
 class qSlicerSubjectHierarchyPluginLogicPrivate; 
 class qSlicerSubjectHierarchyAbstractPlugin;
 
@@ -62,19 +62,21 @@ public:
   qSlicerSubjectHierarchyPluginLogic(QWidget *parent=0);
   virtual ~qSlicerSubjectHierarchyPluginLogic();
 
+  typedef vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID SubjectHierarchyItemID;
+
 public:
-  /// Set the current MRML scene to the widget
+  /// Set the current MRML scene to the logic
   virtual void setMRMLScene(vtkMRMLScene* scene);
 
   /// Assessor function for getting subject hierarchy plugin by name (for python)
   Q_INVOKABLE qSlicerSubjectHierarchyAbstractPlugin* subjectHierarchyPluginByName(QString name)const;
 
-  /// Assessor function for getting currently selected subject hierarchy node (for python)
-  Q_INVOKABLE vtkMRMLSubjectHierarchyNode* currentSubjectHierarchyNode()const;
+  /// Assessor function for getting currently selected subject hierarchy item (for python)
+  Q_INVOKABLE SubjectHierarchyItemID currentSubjectHierarchyItem()const;
 
   /// Utility test function to be able to set currently selected subject hierarchy node from python
   /// Only used in python tests!
-  Q_INVOKABLE void setCurrentSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode* node);
+  Q_INVOKABLE void setCurrentSubjectHierarchyItem(SubjectHierarchyItemID itemID);
 
   /// Register subject hierarchy core plugins
   /// Note: Registering plugins provided by other modules is the responsibility

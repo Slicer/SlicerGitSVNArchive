@@ -1366,7 +1366,7 @@ bool vtkMRMLSubjectHierarchyNode::RemoveSubjectHierarchyItem(
   // (the scene item must always exist, and it doesn't have the parent that can perform the removal)
   if (itemID != this->Internal->SceneID)
     {
-    item->Parent->RemoveChild(*childIt);
+    item->Parent->RemoveChild(item);
     }
   return true;
 }
@@ -1943,7 +1943,7 @@ void vtkMRMLSubjectHierarchyNode::ItemEventCallback(vtkObject* caller, unsigned 
       else if (dataNode)
         {
         // Trigger view update also if data node was modified
-        SubjectHierarchyItemID itemID = this->GetSubjectHierarchyItemByDataNode(dataNode);
+        SubjectHierarchyItemID itemID = self->GetSubjectHierarchyItemByDataNode(dataNode);
         if (itemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
           {
           self->InvokeCustomModifiedEvent(vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemModifiedEvent, (void*)&itemID);
@@ -1956,7 +1956,7 @@ void vtkMRMLSubjectHierarchyNode::ItemEventCallback(vtkObject* caller, unsigned 
       if (dataNode)
         {
         // Trigger view update if data node's transform or display was modified
-        SubjectHierarchyItemID itemID = this->GetSubjectHierarchyItemByDataNode(dataNode);
+        SubjectHierarchyItemID itemID = self->GetSubjectHierarchyItemByDataNode(dataNode);
         if (itemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
           {
           self->InvokeCustomModifiedEvent(vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemModifiedEvent, (void*)&itemID);
