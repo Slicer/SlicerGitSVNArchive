@@ -55,6 +55,7 @@ int vtkSlicerDoubleArraysLogicAddFileTest( int argc, char * argv[] )
 //-----------------------------------------------------------------------------
 bool testAddEmptyFile(const char * filePath)
 {
+  std::cout << "\n************************" << std::endl;
   vtkNew<vtkSlicerDoubleArraysLogic> doubleArraysLogic;
   vtkMRMLDoubleArrayNode* doubleArray = doubleArraysLogic->AddDoubleArray(filePath);
   if (doubleArray != 0)
@@ -63,6 +64,7 @@ bool testAddEmptyFile(const char * filePath)
               << ": Adding an invalid file (" << (filePath ? filePath : 0)
               << ") shall not return a valid doubleArray"
               << std::endl;
+    std::cout << "testAddEmptyFile(" << (filePath ? filePath : "0") << "): false" << std::endl;
     return false;
     }
 
@@ -80,9 +82,10 @@ bool testAddEmptyFile(const char * filePath)
               << ") shall not add nodes in scene. "
               << scene->GetNumberOfNodes() << " vs " << nodeCount
               << std::endl;
+    std::cout << "testAddEmptyFile(" << (filePath ? filePath : "0") << "): false" << std::endl;
     return false;
     }
-
+  std::cout << "testAddEmptyFile(" << (filePath ? filePath : "0") << "): true" << std::endl;
   return true;
 }
 
