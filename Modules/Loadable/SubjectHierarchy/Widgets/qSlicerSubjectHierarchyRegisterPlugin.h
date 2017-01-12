@@ -51,16 +51,16 @@ public:
   virtual ~qSlicerSubjectHierarchyRegisterPlugin();
 
 public:
-  /// Get node context menu item actions to add to tree view
-  Q_INVOKABLE virtual QList<QAction*> nodeContextMenuActions()const;
+  /// Get item context menu item actions to add to tree view
+  virtual QList<QAction*> itemContextMenuActions()const;
 
-  /// Show context menu actions valid for  given subject hierarchy node.
-  /// \param node Subject Hierarchy node to show the context menu items for. If NULL, then shows menu items for the scene
-  virtual void showContextMenuActionsForNode(vtkMRMLSubjectHierarchyNode* node);
+  /// Show context menu actions valid for a given subject hierarchy item.
+  /// \param itemID Subject Hierarchy item to show the context menu items for
+  virtual void showContextMenuActionsForItem(SubjectHierarchyItemID itemID);
 
 protected slots:
   /// Start registration process by selecting the current node as the 'from' node.
-  /// Saves node in \sa m_RegisterFromNode and shows "Register * to this using..."
+  /// Saves node in \sa m_RegisterFromItem and shows "Register * to this using..."
   /// context menu option offering the possible registration methods,
   void registerCurrentNodeTo();
 
@@ -80,7 +80,7 @@ protected slots:
   void registerInteractiveLandmark();
 
 protected:
-  vtkMRMLSubjectHierarchyNode* m_RegisterFromNode;
+  SubjectHierarchyItemID m_RegisterFromItem;
 
 protected:
   QScopedPointer<qSlicerSubjectHierarchyRegisterPluginPrivate> d_ptr;

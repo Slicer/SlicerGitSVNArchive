@@ -29,6 +29,9 @@
 #ifndef __vtkSlicerSubjectHierarchyModuleLogic_h
 #define __vtkSlicerSubjectHierarchyModuleLogic_h
 
+// MRML includes
+#include <vtkMRMLSubjectHierarchyNode.h>
+
 // Slicer includes
 #include "vtkSlicerModuleLogic.h"
 
@@ -53,10 +56,6 @@ public:
   typedef vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID SubjectHierarchyItemID;
 
 public:
-  /// Get (practically) singleton subject hierarchy node from MRML scene.
-  /// Merges subject hierarchy nodes if multiple found, and returns the merged one.
-  static vtkMRMLSubjectHierarchyNode* GetSubjectHierarchyNode(vtkMRMLScene* scene);
-
   /// Place series in subject hierarchy. Create subject and study node if needed
   /// \return Series subject hierarchy node of the inserted series
   static SubjectHierarchyItemID InsertDicomSeriesInHierarchy(

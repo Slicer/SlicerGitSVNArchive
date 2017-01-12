@@ -143,7 +143,7 @@ void vtkSlicerSegmentationsModuleLogic::OnMRMLSceneNodeAdded(vtkMRMLNode* node)
   if (node->IsA("vtkMRMLSubjectHierarchyNode"))
     {
     vtkEventBroker::GetInstance()->AddObservation(
-      node, vtkMRMLSubjectHierarchyNode::SubjectHierarchyUIDAddedEvent, this, this->SubjectHierarchyUIDCallbackCommand );
+      node, vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemUIDAddedEvent, this, this->SubjectHierarchyUIDCallbackCommand );
     }
 }
 
@@ -159,7 +159,7 @@ void vtkSlicerSegmentationsModuleLogic::OnMRMLSceneNodeRemoved(vtkMRMLNode* node
   if (node->IsA("vtkMRMLSegmentationNode"))
     {
     vtkEventBroker::GetInstance()->RemoveObservations(
-      node, vtkMRMLSubjectHierarchyNode::SubjectHierarchyUIDAddedEvent, this, this->SubjectHierarchyUIDCallbackCommand );
+      node, vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemUIDAddedEvent, this, this->SubjectHierarchyUIDCallbackCommand );
     }
 }
 
@@ -167,15 +167,13 @@ void vtkSlicerSegmentationsModuleLogic::OnMRMLSceneNodeRemoved(vtkMRMLNode* node
 void vtkSlicerSegmentationsModuleLogic::OnSubjectHierarchyUIDAdded(vtkObject* caller,
                                                                    unsigned long vtkNotUsed(eid),
                                                                    void* clientData,
-                                                                   void* vtkNotUsed(callData))
+                                                                   void* callData)
 {
   vtkSlicerSegmentationsModuleLogic* self = reinterpret_cast<vtkSlicerSegmentationsModuleLogic*>(clientData);
-  if (!self)
-    {
-    return;
-    }
-  vtkMRMLSubjectHierarchyNode* shNodeWithNewUID = reinterpret_cast<vtkMRMLSubjectHierarchyNode*>(caller);
-  if (!shNodeWithNewUID)
+  vtkMRMLSubjectHierarchyNode* shNode = reinterpret_cast<vtkMRMLSubjectHierarchyNode*>(caller);
+  vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID* itemWithNewUID =
+    reinterpret_cast<vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID*>(callData);
+  if (!self || !shNode || itemWithNewUID)
     {
     return;
     }
@@ -189,7 +187,7 @@ void vtkSlicerSegmentationsModuleLogic::OnSubjectHierarchyUIDAdded(vtkObject* ca
     vtkMRMLSegmentationNode* node = vtkMRMLSegmentationNode::SafeDownCast(segmentationNodes[nodeIndex]);
     if (node)
       {
-      node->OnSubjectHierarchyUIDAdded(shNodeWithNewUID);
+      node->OnSubjectHierarchyUIDAdded(shNode, itemWithNewUID);
       }
     }
 }

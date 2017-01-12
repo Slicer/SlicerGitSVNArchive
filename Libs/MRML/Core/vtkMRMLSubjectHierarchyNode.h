@@ -30,6 +30,7 @@
 
 // MRML includes
 #include <vtkMRMLNode.h>
+#include <vtkMRMLSubjectHierarchyConstants.h>
 
 class vtkCallbackCommand;
 class vtkMRMLTransformNode;
@@ -42,7 +43,7 @@ class vtkMRMLTransformNode;
 ///   It is not singleton in either the common or the MRML sense, instead, the subject hierarchy logic
 ///   makes sure that any added subject hierarchy nodes are merged in the first one, and if the last one
 ///   is removed, a new one is created. The used subject hierarchy node can be accessed using the static
-///   function vtkSlicerSubjectHierarchyModuleLogic::GetSubjectHierarchyNode.
+///   function \sa GetSubjectHierarchyNode().
 ///
 ///   The node entries are encapsulated in SubjectHierarchyItem classes, which contain the hierarchy
 ///   information for the contained nodes, and represent the non-leaf nodes of the tree. Accessor functions
@@ -55,7 +56,7 @@ class VTK_MRML_EXPORT vtkMRMLSubjectHierarchyNode : public vtkMRMLNode
 {
 public:
   /// Subject hierarchy item identifier
-  typedef unsigned long SubjectHierarchyItemID;
+  typedef vtkIdType SubjectHierarchyItemID;
 
   static const SubjectHierarchyItemID INVALID_ITEM_ID;
 
@@ -95,6 +96,10 @@ public:
 
 // Get/Set methods
 public:
+  /// Get the (practically) singleton subject hierarchy node from MRML scene.
+  /// Merges subject hierarchy nodes if multiple found, and returns the merged one.
+  static vtkMRMLSubjectHierarchyNode* GetSubjectHierarchyNode(vtkMRMLScene* scene);
+
   /// Get ID of root subject hierarchy item (which can be interpreted as the scene in terms of hierarchy)
   SubjectHierarchyItemID GetSceneItemID();
   /// Get data node for a subject hierarchy item
@@ -203,7 +208,7 @@ public:
   /// \param parent Parent subject hierarchy item to start from
   /// \param name Name to find
   /// \return Child node whose name without postfix is the same as the given attribute
-  SubjectHierarchyItemID GetChildWithName(SubjectHierarchyItemID parentItemID, std::string name);
+  SubjectHierarchyItemID GetItemChildWithName(SubjectHierarchyItemID parentItemID, std::string name);
 
   /// Find all associated data nodes of a specified class in a branch of the hierarchy.
   /// Re-implemented to handle nested associations \sa GetAssociatedNode

@@ -29,7 +29,8 @@
 #include <QStringList>
 #include <QIcon>
 
-// SubjectHierarchy includes
+// MRML includes
+#include "vtkMRMLSubjectHierarchyNode.h"
 #include "vtkMRMLSubjectHierarchyConstants.h"
 
 #include "qSlicerSubjectHierarchyModuleWidgetsExport.h"

@@ -64,7 +64,7 @@ protected slots:
   void setTransformsVisible(bool visible);
 
   /// Set data node associated to the selected subject hierarchy node to the data node inspector
-  void setDataNodeFromSubjectHierarchyNode(vtkMRMLNode* node);
+  void setDataNodeFromSubjectHierarchyItem(vtkMRMLNode* node);
 
 public:
   /// Assessor function for subject hierarchy scene model (for python)

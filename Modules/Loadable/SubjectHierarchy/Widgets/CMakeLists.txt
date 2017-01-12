@@ -15,14 +15,6 @@ if(Slicer_BUILD_CLI_SUPPORT)
 endif()
 
 set(${KIT}_SRCS
-  qMRMLSubjectHierarchyModel.cxx
-  qMRMLSubjectHierarchyModel_p.h
-  qMRMLSortFilterSubjectHierarchyProxyModel.cxx
-  qMRMLSortFilterSubjectHierarchyProxyModel.h
-  qMRMLSubjectHierarchyTreeView.cxx
-  qMRMLSubjectHierarchyTreeView.h
-  qMRMLTransformItemDelegate.cxx
-  qMRMLTransformItemDelegate.h
   qSlicerSubjectHierarchyPluginLogic.cxx
   qSlicerSubjectHierarchyPluginLogic.h
   qSlicerSubjectHierarchyAbstractPlugin.cxx
@@ -45,13 +37,17 @@ set(${KIT}_SRCS
   qSlicerSubjectHierarchySegmentPlugin.h
   qSlicerSubjectHierarchyFolderPlugin.cxx
   qSlicerSubjectHierarchyFolderPlugin.h
+  qMRMLTransformItemDelegate.cxx
+  qMRMLTransformItemDelegate.h
+  qMRMLSubjectHierarchyModel.cxx
+  qMRMLSubjectHierarchyModel_p.h
+  qMRMLSortFilterSubjectHierarchyProxyModel.cxx
+  qMRMLSortFilterSubjectHierarchyProxyModel.h
+  qMRMLSubjectHierarchyTreeView.cxx
+  qMRMLSubjectHierarchyTreeView.h
   )
 
 set(${KIT}_MOC_SRCS
-  qMRMLSubjectHierarchyTreeView.h
-  qMRMLSubjectHierarchyModel.h
-  qMRMLSortFilterSubjectHierarchyProxyModel.h
-  qMRMLTransformItemDelegate.h
   qSlicerSubjectHierarchyPluginLogic.h
   qSlicerSubjectHierarchyAbstractPlugin.h
   qSlicerSubjectHierarchyPluginHandler.h
@@ -63,6 +59,10 @@ set(${KIT}_MOC_SRCS
   qSlicerSubjectHierarchyRegisterPlugin.h
   qSlicerSubjectHierarchySegmentPlugin.h
   qSlicerSubjectHierarchyFolderPlugin.h
+  qMRMLTransformItemDelegate.h
+  qMRMLSubjectHierarchyTreeView.h
+  qMRMLSubjectHierarchyModel.h
+  qMRMLSortFilterSubjectHierarchyProxyModel.h
   )
 
 set(${KIT}_UI_SRCS

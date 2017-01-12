@@ -1,4 +1,4 @@
-/*==============================================================================
+w/*==============================================================================
 
   Program: 3D Slicer
 
@@ -74,7 +74,7 @@ public:
   void setHighlightReferencedItems(bool highlightOn);
 
   Q_INVOKABLE qMRMLSortFilterSubjectHierarchyProxyModel* sortFilterProxyModel()const;
-  Q_INVOKABLE qMRMLSubjectHierarchyModel* sceneModel()const;
+  Q_INVOKABLE qMRMLSubjectHierarchyModel* model()const;
 
   virtual bool clickDecoration(const QModelIndex& index);
 
@@ -126,9 +126,6 @@ public slots:
   /// and update confidence values in the select plugin actions in the node context menu
   /// for the currently selected node.
   virtual void updateSelectPluginActions();
-
-  /// Remove current node from subject hierarchy on context menu choice
-  virtual void removeCurrentNodeFromSubjectHierarchy();
 
   /// Set multi-selection
   virtual void setMultiSelection(bool multiSelectionOn);

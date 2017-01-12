@@ -45,6 +45,7 @@ class QStandardItemModel;
 #include "qMRMLSubjectHierarchyModel.h"
 
 // MRML includes
+#include <vtkMRMLScene.h>
 #include <vtkMRMLSubjectHierarchyNode.h>
 
 // VTK includes

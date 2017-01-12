@@ -77,6 +77,8 @@ public:
     /// Integer that contains the visibility property of an item.
     /// It is closely related to the item icon.
     VisibilityRole,
+    /// MRML node ID of the parent transform
+    TransformIDRole,
     /// Must stay the last enum in the list.
     LastRole
     };
@@ -124,11 +126,18 @@ public:
   /// Insert/move node in subject hierarchy under new parent
   virtual bool reparent(SubjectHierarchyItemID itemID, SubjectHierarchyItemID newParentID);
   /// Utility method that returns true if \a child has \a parent as ancestor (parent, grandparent, etc.)
-  /// \sa isAffiliatedNode()
+  /// \sa isAffiliatedItem()
   bool isAncestorItem(SubjectHierarchyItemID child, SubjectHierarchyItemID ancestor)const;
   /// Utility method that returns true if 2 nodes are child/parent (or any ancestor) for each other
   /// \sa isAncestorItem()
   bool isAffiliatedItem(SubjectHierarchyItemID itemA, SubjectHierarchyItemID itemB)const;
+
+public slots:
+  /// Remove transforms from nodes in branch of current item
+  void onRemoveTransformsFromBranchOfCurrentItem();
+
+  /// Harden transform on branch of current item
+  void onHardenTransformOnBranchOfCurrentItem();
 
 protected slots:
   virtual void onSubjectHierarchyItemAdded(SubjectHierarchyItemID itemID);

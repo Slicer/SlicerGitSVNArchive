@@ -22,7 +22,6 @@
 
 // SubjectHierarchy includes
 #include "qSlicerSubjectHierarchyAbstractPlugin.h"
-#include "vtkMRMLSubjectHierarchyNode.h"
 #include "qSlicerSubjectHierarchyPluginHandler.h"
 
 // Qt includes
@@ -225,7 +224,7 @@ QString qSlicerSubjectHierarchyAbstractPlugin::displayedItemName(SubjectHierarch
     return QString();
     }
 
-  return QString(shNode->GetItemName().c_str());
+  return QString(shNode->GetItemName(itemID).c_str());
 }
 
 //-----------------------------------------------------------------------------
@@ -297,7 +296,7 @@ bool qSlicerSubjectHierarchyAbstractPlugin::isThisPluginOwnerOfItem(SubjectHiera
     return false;
     }
 
-  return !shNode->GetItemOwnerPluginName(itemID).compare(this->m_Name.toLatin1().constData())
+  return !shNode->GetItemOwnerPluginName(itemID).compare(this->m_Name.toLatin1().constData());
 }
 
 //--------------------------------------------------------------------------

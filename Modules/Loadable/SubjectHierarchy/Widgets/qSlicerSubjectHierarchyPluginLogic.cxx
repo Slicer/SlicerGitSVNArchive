@@ -201,7 +201,7 @@ void qSlicerSubjectHierarchyPluginLogic::onNodeAdded(vtkObject* sceneObject, vtk
   if (subjectHierarchyNode)
     {
     // Calling this function makes sure that there is exactly one subject hierarchy node in the scene (performs the merge if more found)
-    vtkSlicerSubjectHierarchyModuleLogic::GetSubjectHierarchyNode(scene);
+    vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(scene);
     }
   // If data node, then add it to subject hierarchy
   else
@@ -240,7 +240,7 @@ void qSlicerSubjectHierarchyPluginLogic::onNodeAdded(vtkObject* sceneObject, vtk
     if (selectedPlugin)
       {
       // Get subject hierarchy node
-      vtkMRMLSubjectHierarchyNode* shNode = vtkSlicerSubjectHierarchyModuleLogic::GetSubjectHierarchyNode(node->GetScene());
+      vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(node->GetScene());
       if (!shNode)
         {
         qCritical() << Q_FUNC_INFO << ": Failed to access subject hierarchy node";
@@ -276,7 +276,7 @@ void qSlicerSubjectHierarchyPluginLogic::onNodeAboutToBeRemoved(vtkObject* scene
     }
 
   // Get subject hierarchy node
-  vtkMRMLSubjectHierarchyNode* shNode = vtkSlicerSubjectHierarchyModuleLogic::GetSubjectHierarchyNode(dataNode->GetScene());
+  vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(dataNode->GetScene());
   if (!shNode)
     {
     qCritical() << Q_FUNC_INFO << ": Failed to access subject hierarchy node";
@@ -313,7 +313,7 @@ void qSlicerSubjectHierarchyPluginLogic::onSceneCloseEnded(vtkObject* sceneObjec
     return;
     }
 
-  vtkMRMLSubjectHierarchyNode* shNode = vtkSlicerSubjectHierarchyModuleLogic::GetSubjectHierarchyNode(scene);
+  vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(scene);
   if (!shNode)
     {
     qCritical() << Q_FUNC_INFO << ": There must be a subject hierarchy node in the scene";
@@ -363,7 +363,7 @@ void qSlicerSubjectHierarchyPluginLogic::addSupportedNodesToSubjectHierarchy()
 {
   // Get subject hierarchy node
   vtkMRMLScene* scene = this->mrmlScene();
-  vtkMRMLSubjectHierarchyNode* shNode = vtkSlicerSubjectHierarchyModuleLogic::GetSubjectHierarchyNode(scene);
+  vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(scene);
   if (!shNode)
     {
     qCritical() << Q_FUNC_INFO << ": Failed to access subject hierarchy node";

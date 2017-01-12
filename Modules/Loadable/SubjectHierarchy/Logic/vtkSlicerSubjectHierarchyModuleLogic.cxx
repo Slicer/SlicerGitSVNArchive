@@ -23,7 +23,6 @@
 // SubjectHierarchy includes
 #include <vtkSlicerSubjectHierarchyModuleLogic.h>
 #include <vtkMRMLSubjectHierarchyConstants.h>
-#include <vtkMRMLSubjectHierarchyNode.h>
 
 // MRML includes
 #include <vtkMRMLScene.h>
@@ -31,6 +30,7 @@
 #include <vtkMRMLDisplayNode.h>
 #include <vtkMRMLDisplayableNode.h>
 #include <vtkMRMLStorageNode.h>
+#include <vtkMRMLHierarchyNode.h>
 
 // VTK includes
 #include <vtkNew.h>
@@ -90,60 +90,6 @@ void vtkSlicerSubjectHierarchyModuleLogic::UpdateFromMRMLScene()
     }
 
   this->Modified();
-}
-
-//---------------------------------------------------------------------------
-vtkMRMLSubjectHierarchyNode* vtkSlicerSubjectHierarchyModuleLogic::GetSubjectHierarchyNode(vtkMRMLScene* scene)
-{
-  if (!scene)
-    {
-    vtkGenericWarningMacro("vtkSlicerSubjectHierarchyModuleLogic::GetSubjectHierarchyNode: Invalid scene given");
-    return NULL;
-    }
-  if (scene->GetNumberOfNodesByClass("vtkMRMLSubjectHierarchyNode") == 0)
-    {
-    vtkSmartPointer<vtkMRMLSubjectHierarchyNode> newShNode = vtkSmartPointer<vtkMRMLSubjectHierarchyNode>::New();
-    newShNode->SetName("SubjectHierarchy");
-    scene->AddNode(newShNode);
-
-    vtkDebugWithObjectMacro( newShNode, "vtkSlicerSubjectHierarchyModuleLogic::GetSubjectHierarchyNode: "
-      "New subject hierarchy node created as none was found in the scene" );
-    return newShNode;
-    }
-
-  // Return subject hierarchy node if there is only one
-  scene->InitTraversal();
-  vtkMRMLSubjectHierarchyNode* firstShNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(
-    scene->GetNextNodeByClass("vtkMRMLSubjectHierarchyNode") );
-  if (scene->GetNumberOfNodesByClass("vtkMRMLSubjectHierarchyNode") == 1)
-    {
-    return firstShNode;
-    }
-
-  // Do not perform merge operations while the scene is processing
-  if (scene->IsBatchProcessing() || scene->IsImporting() || scene->IsClosing())
-    {
-    vtkWarningWithObjectMacro(scene, "vtkSlicerSubjectHierarchyModuleLogic::GetSubjectHierarchyNode: "
-      "Scene is processing, merging subject hierarchies is not possible" );
-    return NULL;
-    }
-
-  // Merge subject hierarchy nodes into the first one found
-  for (vtkMRMLNode* node=NULL; (node=scene->GetNextNodeByClass("vtkMRMLSubjectHierarchyNode")); )
-    {
-    vtkMRMLSubjectHierarchyNode* currentShNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(node);
-    if (currentShNode)
-      {
-      if (!firstShNode->MergeSubjectHierarchy(currentShNode))
-        {
-        //TODO: The node will probably be invalid, so it needs to be completely re-built
-        vtkErrorWithObjectMacro(scene, "vtkSlicerSubjectHierarchyModuleLogic::GetSubjectHierarchyNode: Failed to merge subject hierarchy nodes");
-        return firstShNode;
-        }
-      }
-    }
-  // Return the first (and now only) subject hierarchy node into which the others were merged
-  return firstShNode;
 }
 
 //---------------------------------------------------------------------------
@@ -311,7 +257,7 @@ vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID vtkSlicerSubjectHierarchyMod
     return vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID;
     }
 
-  vtkMRMLSubjectHierarchyNode* shNode = vtkSlicerSubjectHierarchyModuleLogic::GetSubjectHierarchyNode(node1->GetScene());
+  vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(node1->GetScene());
   SubjectHierarchyItemID item1 = shNode->GetSubjectHierarchyItemByDataNode(node1);
   SubjectHierarchyItemID item2 = shNode->GetSubjectHierarchyItemByDataNode(node2);
 
@@ -530,12 +476,10 @@ vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID vtkSlicerSubjectHierarchyMod
       transformableClonedNode->GetParentTransformNode()->Modified();
     }
 
-    // Get hierarchy nodes
+    // Put data node in the same non-subject hierarchy if any
     vtkMRMLHierarchyNode* genericHierarchyNode =
       vtkMRMLHierarchyNode::GetAssociatedHierarchyNode(scene, associatedDataNode->GetID());
-
-    // Put data node in the same non-subject hierarchy if any
-    if (genericHierarchyNode != node)
+    if (genericHierarchyNode)
       {
       vtkSmartPointer<vtkMRMLHierarchyNode> clonedHierarchyNode;
       clonedHierarchyNode.TakeReference( vtkMRMLHierarchyNode::SafeDownCast(
@@ -548,7 +492,7 @@ vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID vtkSlicerSubjectHierarchyMod
       }
 
     // Put data node in the same subject hierarchy branch as current node
-    clonedSubjectHierarchyItemID = vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyItem(
+    clonedSubjectHierarchyItemID = shNode->CreateSubjectHierarchyItem(
       shNode->GetItemParent(itemID), clonedDataNode, shNode->GetItemLevel(itemID) );
 
     // Trigger update by invoking the modified event for the subject hierarchy item
@@ -558,18 +502,9 @@ vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID vtkSlicerSubjectHierarchyMod
     {
     std::string clonedItemName = ( name ? std::string(name) : std::string(shNode->GetItemName(itemID)) + std::string(CLONED_NODE_NAME_POSTFIX) );
 
-    clonedSubjectHierarchyItemID = vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyItem(
+    clonedSubjectHierarchyItemID = shNode->CreateSubjectHierarchyItem(
       shNode->GetItemParent(itemID), NULL, shNode->GetItemLevel(itemID), clonedItemName );
     }
 
   return clonedSubjectHierarchyItemID;
-}
-
-//---------------------------------------------------------------------------
-bool vtkSlicerSubjectHierarchyModuleLogic::MergeSubjectHierarchyNodes(
-  vtkMRMLSubjectHierarchyNode* shNodeMerged, vtkMRMLSubjectHierarchyNode* shNodeRemoved)
-{
-  //TODO:
-  vtkGenericWarningMacro("vtkSlicerSubjectHierarchyModuleLogic::MergeSubjectHierarchyNodes: Not implemented!");
-  return false;
 }

@@ -22,12 +22,17 @@
 
 #include "qMRMLSortFilterSubjectHierarchyProxyModel.h"
 
-// Subject Hierarchy includes
+// MRML include
 #include "vtkMRMLSubjectHierarchyNode.h"
 #include "vtkMRMLSubjectHierarchyConstants.h"
+
+// Subject Hierarchy includes
 #include "qSlicerSubjectHierarchyPluginHandler.h"
 #include "qSlicerSubjectHierarchyAbstractPlugin.h"
 #include "qMRMLSubjectHierarchyModel.h"
+
+// Qt includes
+#include <QStandardItem>
 
 // -----------------------------------------------------------------------------
 // qMRMLSortFilterSubjectHierarchyProxyModelPrivate
@@ -130,7 +135,7 @@ vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID
 qMRMLSortFilterSubjectHierarchyProxyModel::subjectHierarchyItemFromIndex(const QModelIndex& index)const
 {
   qMRMLSubjectHierarchyModel* sceneModel = qobject_cast<qMRMLSubjectHierarchyModel*>(this->sourceModel());
-  sceneModel->subjectHierarchyItemFromIndex( this->mapToSource(index) );
+  return sceneModel->subjectHierarchyItemFromIndex( this->mapToSource(index) );
 }
 
 //-----------------------------------------------------------------------------
@@ -184,7 +189,7 @@ bool qMRMLSortFilterSubjectHierarchyProxyModel::filterAcceptsRow(int sourceRow, 
 bool qMRMLSortFilterSubjectHierarchyProxyModel::filterAcceptsItem(
   vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID itemID )const
 {
-  Q_D(qMRMLSortFilterSubjectHierarchyProxyModel);
+  Q_D(const qMRMLSortFilterSubjectHierarchyProxyModel);
 
   if (itemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
     {
@@ -207,7 +212,7 @@ bool qMRMLSortFilterSubjectHierarchyProxyModel::filterAcceptsItem(
       }
 
     // Filter by exclude attribute
-    if (dataNode->GetAttribute(itemID, vtkMRMLSubjectHierarchyConstants::GetSubjectHierarchyExcludeFromTreeAttributeName().c_str()))
+    if (dataNode->GetAttribute(vtkMRMLSubjectHierarchyConstants::GetSubjectHierarchyExcludeFromTreeAttributeName().c_str()))
       {
       return false;
       }

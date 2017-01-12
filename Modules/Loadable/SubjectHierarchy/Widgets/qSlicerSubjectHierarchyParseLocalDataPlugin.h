@@ -55,13 +55,13 @@ public:
   /// tree by a different method \sa nodeContextMenuActions
   virtual QList<QAction*> sceneContextMenuActions()const;
 
-  /// Show context menu actions valid for  given subject hierarchy node.
-  /// \param node Subject Hierarchy node to show the context menu items for. If NULL, then shows menu items for the scene
-  virtual void showContextMenuActionsForNode(vtkMRMLSubjectHierarchyNode* node);
+  /// Show context menu actions valid for a given subject hierarchy item.
+  /// \param itemID Subject Hierarchy item to show the context menu items for
+  virtual void showContextMenuActionsForItem(SubjectHierarchyItemID itemID);
 
 protected slots:
-  /// Create subject hierarchy from loaded loacl directories.
-  /// Adds all nodes in the potential subject hierarchy nodes list that is storable and has a valid storage node with a file
+  /// Create subject hierarchy from loaded local directories.
+  /// Organizes all items in subject hierarchy that have storable data nodes and has a valid storage node with a file
   /// name (meaning it has been loaded from local disk). Creates patient/study/series/subseries hierarchies according to the
   /// paths of the loaded files, ignoring the part that is identical (if everything has been loaded from the same directory,
   /// then only creates subject hierarchy nodes for the directories within that directory).

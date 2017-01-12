@@ -27,6 +27,7 @@
 #include "qSlicerSubjectHierarchyModuleWidgetsExport.h"
 
 // MRML includes
+#include <vtkMRMLScene.h>
 #include <vtkMRMLSubjectHierarchyNode.h>
 
 // VTK includes
@@ -52,7 +53,6 @@ class qSlicerSubjectHierarchyPluginHandlerCleanup;
 class Q_SLICER_MODULE_SUBJECTHIERARCHY_WIDGETS_EXPORT qSlicerSubjectHierarchyPluginHandler : public QObject
 {
   Q_OBJECT
-  QVTK_OBJECT
 
   typedef vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID SubjectHierarchyItemID;
 

@@ -63,7 +63,7 @@ public:
 
 protected slots:
   /// Clone currently selected subject hierarchy entry and associated data node
-  void cloneCurrentNode();
+  void cloneCurrentItem();
 
 protected:
   QScopedPointer<qSlicerSubjectHierarchyCloneNodePluginPrivate> d_ptr;
