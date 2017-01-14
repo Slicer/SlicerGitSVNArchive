@@ -166,7 +166,7 @@ void qMRMLSubjectHierarchyTreeViewPrivate::init()
 
   this->EditAction = new QAction("Edit properties...", this->NodeMenu);
   this->NodeMenu->addAction(this->EditAction);
-  QObject::connect(this->EditAction, SIGNAL(triggered()), q, SLOT(editCurrentSubjectHierarchyNode()));
+  QObject::connect(this->EditAction, SIGNAL(triggered()), q, SLOT(editCurrentItem()));
 
   this->SceneMenu = new QMenu(q);
   this->SceneMenu->setObjectName("sceneMenuTreeView");
@@ -340,6 +340,19 @@ vtkMRMLScene* qMRMLSubjectHierarchyTreeView::mrmlScene()const
 void qMRMLSubjectHierarchyTreeView::setMRMLScene(vtkMRMLScene* scene)
 {
   this->setSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(scene));
+}
+
+//------------------------------------------------------------------------------
+vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID qMRMLSubjectHierarchyTreeView::currentItem()const
+{
+  return qSlicerSubjectHierarchyPluginHandler::instance()->currentItem();
+}
+
+//------------------------------------------------------------------------------
+void qMRMLSubjectHierarchyTreeView::setCurrentItem(vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID itemID)
+{
+  qSlicerSubjectHierarchyPluginHandler::instance()->setCurrentItem(itemID);
+  emit currentItemChanged(itemID);
 }
 
 //--------------------------------------------------------------------------
@@ -591,7 +604,7 @@ void qMRMLSubjectHierarchyTreeView::onSelectionChanged(const QItemSelection& sel
 {
   Q_UNUSED(deselected);
   Q_D(qMRMLSubjectHierarchyTreeView);
-  if (!d->SubjectHierarchyNode)
+  if (!d->SubjectHierarchyNode || !d->Model)
     {
     return;
     }
@@ -599,9 +612,26 @@ void qMRMLSubjectHierarchyTreeView::onSelectionChanged(const QItemSelection& sel
   vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID newCurrentItemID = vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID;
   if (selected.indexes().count() > 0)
     {
-    newCurrentItemID = d->SortFilterModel->subjectHierarchyItemFromIndex(selected.indexes()[0]);
+    newCurrentItemID = d->Model->subjectHierarchyItemFromIndex(selected.indexes()[0]);
     }
   emit currentItemChanged(newCurrentItemID);
+}
+
+//------------------------------------------------------------------------------
+void qMRMLSubjectHierarchyTreeView::onItemExpanded(const QModelIndex &expandedItemIndex)
+{
+  Q_D(qMRMLSubjectHierarchyTreeView);
+  if (!d->SubjectHierarchyNode || !d->Model)
+    {
+    return;
+    }
+
+  vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID expandedShItemID =
+    d->Model->subjectHierarchyItemFromIndex(expandedItemIndex);
+  if (expandedShItemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+    {
+    d->SubjectHierarchyNode->SetItemExpanded(expandedShItemID, true);
+    }
 }
 
 //------------------------------------------------------------------------------

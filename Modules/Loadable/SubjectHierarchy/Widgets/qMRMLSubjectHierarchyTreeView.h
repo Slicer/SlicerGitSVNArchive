@@ -1,4 +1,4 @@
-w/*==============================================================================
+/*==============================================================================
 
   Program: 3D Slicer
 
@@ -64,7 +64,9 @@ public:
 
 public:
   vtkMRMLScene* mrmlScene()const;
+  vtkMRMLSubjectHierarchyNode* subjectHierarchyNode()const;
 
+  SubjectHierarchyItemID currentItem()const;
   SubjectHierarchyItemID rootItem()const;
 
   void setShowRootItem(bool show);
@@ -81,7 +83,6 @@ public:
 protected:
   /// Set the subject hierarchy node found in the given scene. Called only internally.
   virtual void setSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode* shNode);
-  vtkMRMLSubjectHierarchyNode* subjectHierarchyNode()const;
 
   /// Toggle visibility
   virtual void toggleVisibility(const QModelIndex& index);
@@ -104,6 +105,9 @@ protected:
 public slots:
   /// Set MRML scene
   virtual void setMRMLScene(vtkMRMLScene* scene);
+
+  /// Set current (=selected) subject hierarchy item
+  virtual void setCurrentItem(SubjectHierarchyItemID itemID);
 
   /// Set subject hierarchy item to be the root in the shown tree
   virtual void setRootItem(SubjectHierarchyItemID itemID);
@@ -135,6 +139,8 @@ signals:
 
 protected slots:
   virtual void onSelectionChanged(const QItemSelection &selected, const QItemSelection &deselected);
+
+  virtual void onItemExpanded(const QModelIndex &expandedItemIndex);
 
   /// Expand tree to depth specified by the clicked context menu action
   virtual void expandToDepthFromContextMenu();

@@ -98,7 +98,7 @@ public:
   virtual const QString helpText()const;
 
   /// Get icon of an owned subject hierarchy item
-  /// \return Icon to set, NULL if nothing to set
+  /// \return Icon to set, empty icon if nothing to set
   virtual QIcon icon(SubjectHierarchyItemID itemID);
 
   /// Get visibility icon for a visibility state

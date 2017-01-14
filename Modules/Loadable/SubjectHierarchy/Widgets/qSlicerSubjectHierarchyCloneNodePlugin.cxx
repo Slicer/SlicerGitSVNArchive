@@ -20,10 +20,6 @@
 
 ==============================================================================*/
 
-// SubjectHierarchy MRML includes
-#include "vtkMRMLSubjectHierarchyNode.h"
-#include "vtkMRMLSubjectHierarchyConstants.h"
-
 // SubjectHierarchy Plugins includes
 #include "qSlicerSubjectHierarchyPluginHandler.h"
 #include "qSlicerSubjectHierarchyCloneNodePlugin.h"
@@ -34,9 +30,6 @@
 // Slicer includes
 #include "qSlicerCoreApplication.h"
 #include "vtkSlicerApplicationLogic.h"
-
-// MRML includes
-#include <vtkMRMLNode.h>
 
 // VTK includes
 #include <vtkObjectFactory.h>
@@ -106,7 +99,7 @@ qSlicerSubjectHierarchyCloneNodePlugin::~qSlicerSubjectHierarchyCloneNodePlugin(
 }
 
 //---------------------------------------------------------------------------
-QList<QAction*> qSlicerSubjectHierarchyCloneNodePlugin::nodeContextMenuActions()const
+QList<QAction*> qSlicerSubjectHierarchyCloneNodePlugin::itemContextMenuActions()const
 {
   Q_D(const qSlicerSubjectHierarchyCloneNodePlugin);
 
@@ -116,18 +109,26 @@ QList<QAction*> qSlicerSubjectHierarchyCloneNodePlugin::nodeContextMenuActions()
 }
 
 //---------------------------------------------------------------------------
-void qSlicerSubjectHierarchyCloneNodePlugin::showContextMenuActionsForNode(vtkMRMLSubjectHierarchyNode* node)
+void qSlicerSubjectHierarchyCloneNodePlugin::showContextMenuActionsForItem(SubjectHierarchyItemID itemID)
 {
   Q_D(qSlicerSubjectHierarchyCloneNodePlugin);
   this->hideAllContextMenuActions();
 
-  if (!node)
+  vtkMRMLSubjectHierarchyNode* shNode = qSlicerSubjectHierarchyPluginHandler::instance()->subjectHierarchyNode();
+  if (!shNode)
+    {
+    qCritical() << Q_FUNC_INFO << ": Failed to access subject hierarchy node";
+    return;
+    }
+
+  if ( itemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID
+    || itemID == shNode->GetSceneItemID() )
     {
     // There are no scene actions in this plugin
     return;
     }
 
-  // Show clone node for every non-scene nodes
+  // Show clone node for every non-scene items
   d->CloneItemAction->setVisible(true);
 }
 

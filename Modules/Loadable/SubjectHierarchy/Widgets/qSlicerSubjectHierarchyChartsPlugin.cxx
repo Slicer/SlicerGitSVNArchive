@@ -20,16 +20,11 @@
 
 ==============================================================================*/
 
-// SubjectHierarchy MRML includes
-#include "vtkMRMLSubjectHierarchyNode.h"
-#include "vtkMRMLSubjectHierarchyConstants.h"
-
 // SubjectHierarchy Plugins includes
 #include "qSlicerSubjectHierarchyPluginHandler.h"
 #include "qSlicerSubjectHierarchyChartsPlugin.h"
 
 // MRML includes
-#include <vtkMRMLNode.h>
 #include <vtkMRMLScene.h>
 #include <vtkMRMLChartNode.h>
 #include <vtkMRMLLayoutNode.h>
@@ -174,7 +169,7 @@ QIcon qSlicerSubjectHierarchyChartsPlugin::icon(
     return d->ChartIcon;
     }
 
-  // Node unknown by plugin
+  // Item unknown by plugin
   return QIcon();
 }
 
@@ -214,6 +209,7 @@ void qSlicerSubjectHierarchyChartsPlugin::setDisplayVisibility(
     qCritical() << Q_FUNC_INFO << ": Invalid MRML scene!";
     return;
     }
+
   if (this->getDisplayVisibility(itemID) == visible)
     {
     return;

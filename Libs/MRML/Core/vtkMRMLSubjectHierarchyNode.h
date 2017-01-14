@@ -120,6 +120,10 @@ public:
   void SetItemOwnerPluginName(SubjectHierarchyItemID itemID, std::string owherPluginName);
   /// Get owner plugin name (role) for a subject hierarchy item
   std::string GetItemOwnerPluginName(SubjectHierarchyItemID itemID);
+  /// Set expanded flag for a subject hierarchy item (only for internal use, do not set explicitly)
+  void SetItemExpanded(SubjectHierarchyItemID itemID, bool expanded);
+  /// Get expanded flag for a subject hierarchy item
+  bool GetItemExpanded(SubjectHierarchyItemID itemID);
 
   /// Set UID to the subject hierarchy item
   void SetItemUID(SubjectHierarchyItemID itemID, std::string uidName, std::string uidValue);
@@ -129,9 +133,19 @@ public:
 
   /// Add attribute to the subject hierarchy item
   void SetItemAttribute(SubjectHierarchyItemID itemID, std::string attributeName, std::string attributeValue);
-  /// Get an attribute with a given name
-  /// \return The attribute value if exists, empty string if does not
+  /// Remove attribute from subject hierarchy item
+  /// \return True if attribute was removed, false if item or attribute is not found
+  bool RemoveItemAttribute(SubjectHierarchyItemID itemID, std::string attributeName);
+  /// Get an attribute with a given name for a subject hierarchy item
+  /// \return The attribute value if exists, empty string if does not (also if attribute value is empty! \sa HasItemAttribute)
   std::string GetItemAttribute(SubjectHierarchyItemID itemID, std::string attributeName);
+  /// Get attribute names for a subject hierarchy item
+  /// \return List of attribute names
+  std::vector<std::string> GetItemAttributeNames(SubjectHierarchyItemID itemID);
+  /// Determine if a given attribute is present in an item.
+  /// Especially useful if need to determine whether an attribute value is empty string or the attribute is missing
+  /// \return True if attribute exists, false if item or attribute is not found
+  bool HasItemAttribute(SubjectHierarchyItemID itemID, std::string attributeName);
 
   /// Invoke item modified event (that triggers per-item update in the views). Useful if a property of the item
   /// changes that does not originate in the subject hierarchy item (such as visibility or transform of data node)
@@ -212,6 +226,7 @@ public:
 
   /// Find all associated data nodes of a specified class in a branch of the hierarchy.
   /// Re-implemented to handle nested associations \sa GetAssociatedNode
+  /// \param itemID Parent item of the branch
   /// \param dataNodeCollection Collection updated with the list of data nodes
   /// \param childClass Name of the class we are looking for. NULL returns associated data nodes of any kind
   void GetDataNodesInBranch(SubjectHierarchyItemID itemID, vtkCollection* dataNodeCollection, const char* childClass=NULL);

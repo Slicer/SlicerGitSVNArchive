@@ -29,8 +29,6 @@
 #include "qSlicerSubjectHierarchyModuleWidgetsExport.h"
 
 class qSlicerSubjectHierarchySegmentPluginPrivate;
-class vtkMRMLNode;
-class vtkMRMLSubjectHierarchyNode;
 class QMenu;
 
 // Due to some reason the Python wrapping of this class fails, therefore

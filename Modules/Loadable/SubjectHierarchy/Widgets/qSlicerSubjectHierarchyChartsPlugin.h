@@ -29,8 +29,6 @@
 #include "qSlicerSubjectHierarchyModuleWidgetsExport.h"
 
 class qSlicerSubjectHierarchyChartsPluginPrivate;
-class vtkMRMLNode;
-class vtkMRMLSubjectHierarchyNode;
 class vtkMRMLChartViewNode;
 
 // Due to some reason the Python wrapping of this class fails, therefore
@@ -70,12 +68,12 @@ public:
   ///   item, and 1 means that the plugin is the only one that can handle the item (by node type or identifier attribute)
   virtual double canOwnSubjectHierarchyItem(SubjectHierarchyItemID itemID)const;
 
-  /// Get role that the plugin assigns to the subject hierarchy node.
+  /// Get role that the plugin assigns to the subject hierarchy item.
   ///   Each plugin should provide only one role.
   Q_INVOKABLE virtual const QString roleForPlugin()const;
 
   /// Get icon of an owned subject hierarchy item
-  /// \return Icon to set, NULL if nothing to set
+  /// \return Icon to set, empty icon if nothing to set
   virtual QIcon icon(SubjectHierarchyItemID itemID);
 
   /// Get visibility icon for a visibility state

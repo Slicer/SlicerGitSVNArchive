@@ -55,16 +55,16 @@ public:
     IconMethod,
     VisibilityIconMethod,
     EditPropertiesMethod,
-    DisplayedNodeNameMethod,
+    DisplayedItemNameMethod,
     TooltipMethod,
     SetDisplayVisibilityMethod,
     GetDisplayVisibilityMethod,
-    NodeContextMenuActionsMethod,
+    ItemContextMenuActionsMethod,
     SceneContextMenuActionsMethod,
-    ShowContextMenuActionsForNodeMethod,
+    ShowContextMenuActionsForItemMethod,
     CanAddNodeToSubjectHierarchyMethod,
-    CanReparentNodeInsideSubjectHierarchyMethod,
-    ReparentNodeInsideSubjectHierarchyMethod
+    CanReparentItemInsideSubjectHierarchyMethod,
+    ReparentItemInsideSubjectHierarchyMethod
     };
 
   mutable qSlicerPythonCppAPI PythonCppAPI;
@@ -85,18 +85,18 @@ qSlicerSubjectHierarchyScriptedPluginPrivate::qSlicerSubjectHierarchyScriptedPlu
   this->PythonCppAPI.declareMethod(Self::IconMethod, "icon");
   this->PythonCppAPI.declareMethod(Self::VisibilityIconMethod, "visibilityIcon");
   this->PythonCppAPI.declareMethod(Self::EditPropertiesMethod, "editProperties");
-  this->PythonCppAPI.declareMethod(Self::DisplayedNodeNameMethod, "displayedNodeName");
+  this->PythonCppAPI.declareMethod(Self::DisplayedItemNameMethod, "displayedItemName");
   this->PythonCppAPI.declareMethod(Self::TooltipMethod, "tooltip");
   this->PythonCppAPI.declareMethod(Self::SetDisplayVisibilityMethod, "setDisplayVisibility");
   this->PythonCppAPI.declareMethod(Self::GetDisplayVisibilityMethod, "getDisplayVisibility");
   // Function related methods
-  this->PythonCppAPI.declareMethod(Self::NodeContextMenuActionsMethod, "nodeContextMenuActions");
+  this->PythonCppAPI.declareMethod(Self::ItemContextMenuActionsMethod, "itemContextMenuActions");
   this->PythonCppAPI.declareMethod(Self::SceneContextMenuActionsMethod, "sceneContextMenuActions");
-  this->PythonCppAPI.declareMethod(Self::ShowContextMenuActionsForNodeMethod, "showContextMenuActionsForNode");
+  this->PythonCppAPI.declareMethod(Self::ShowContextMenuActionsForItemMethod, "showContextMenuActionsForItem");
   // Parenting related methods (with default implementation)
   this->PythonCppAPI.declareMethod(Self::CanAddNodeToSubjectHierarchyMethod, "canAddNodeToSubjectHierarchy");
-  this->PythonCppAPI.declareMethod(Self::CanReparentNodeInsideSubjectHierarchyMethod, "canReparentNodeInsideSubjectHierarchy");
-  this->PythonCppAPI.declareMethod(Self::ReparentNodeInsideSubjectHierarchyMethod, "reparentNodeInsideSubjectHierarchy");
+  this->PythonCppAPI.declareMethod(Self::CanReparentItemInsideSubjectHierarchyMethod, "canReparentItemInsideSubjectHierarchy");
+  this->PythonCppAPI.declareMethod(Self::ReparentItemInsideSubjectHierarchyMethod, "reparentItemInsideSubjectHierarchy");
 }
 
 //-----------------------------------------------------------------------------
@@ -358,7 +358,7 @@ void qSlicerSubjectHierarchyScriptedPlugin::editProperties(
 QList<QAction*> qSlicerSubjectHierarchyScriptedPlugin::itemContextMenuActions()const
 {
   Q_D(const qSlicerSubjectHierarchyScriptedPlugin);
-  PyObject* result = d->PythonCppAPI.callMethod(d->NodeContextMenuActionsMethod);
+  PyObject* result = d->PythonCppAPI.callMethod(d->ItemContextMenuActionsMethod);
   if (!result)
     {
     // Method call failed (probably an omitted function), call default implementation
@@ -414,12 +414,12 @@ void qSlicerSubjectHierarchyScriptedPlugin::showContextMenuActionsForItem(
 {
   Q_D(qSlicerSubjectHierarchyScriptedPlugin);
 
-  // Hide all actions before showing them based on node
+  // Hide all actions before showing them based on item
   this->hideAllContextMenuActions();
 
   PyObject* arguments = PyTuple_New(1);
   PyTuple_SET_ITEM(arguments, 0, PyLong_FromLongLong(itemID));
-  PyObject* result = d->PythonCppAPI.callMethod(d->ShowContextMenuActionsForNodeMethod, arguments);
+  PyObject* result = d->PythonCppAPI.callMethod(d->ShowContextMenuActionsForItemMethod, arguments);
   Py_DECREF(arguments);
   if (!result)
     {
@@ -464,7 +464,7 @@ double qSlicerSubjectHierarchyScriptedPlugin::canReparentItemInsideSubjectHierar
   PyObject* arguments = PyTuple_New(2);
   PyTuple_SET_ITEM(arguments, 0, PyLong_FromLongLong(itemID));
   PyTuple_SET_ITEM(arguments, 1, PyLong_FromLongLong(parentItemID));
-  PyObject* result = d->PythonCppAPI.callMethod(d->CanReparentNodeInsideSubjectHierarchyMethod, arguments);
+  PyObject* result = d->PythonCppAPI.callMethod(d->CanReparentItemInsideSubjectHierarchyMethod, arguments);
   Py_DECREF(arguments);
   if (!result)
     {
@@ -475,7 +475,7 @@ double qSlicerSubjectHierarchyScriptedPlugin::canReparentItemInsideSubjectHierar
   // Parse result
   if (!PyFloat_Check(result))
     {
-    qWarning() << d->PythonSource << ": " << Q_FUNC_INFO << ": Function 'canReparentNodeInsideSubjectHierarchy' is expected to return a floating point number!";
+    qWarning() << d->PythonSource << ": " << Q_FUNC_INFO << ": Function 'canReparentItemInsideSubjectHierarchy' is expected to return a floating point number!";
     return this->Superclass::canReparentItemInsideSubjectHierarchy(itemID, parentItemID);
     }
 
@@ -491,7 +491,7 @@ bool qSlicerSubjectHierarchyScriptedPlugin::reparentItemInsideSubjectHierarchy(
   PyObject* arguments = PyTuple_New(2);
   PyTuple_SET_ITEM(arguments, 0, PyLong_FromLongLong(itemID));
   PyTuple_SET_ITEM(arguments, 1, PyLong_FromLongLong(parentItemID));
-  PyObject* result = d->PythonCppAPI.callMethod(d->ReparentNodeInsideSubjectHierarchyMethod, arguments);
+  PyObject* result = d->PythonCppAPI.callMethod(d->ReparentItemInsideSubjectHierarchyMethod, arguments);
   Py_DECREF(arguments);
   if (!result)
     {
@@ -502,7 +502,7 @@ bool qSlicerSubjectHierarchyScriptedPlugin::reparentItemInsideSubjectHierarchy(
   // Parse result
   if (!PyBool_Check(result))
     {
-    qWarning() << d->PythonSource << ": " << Q_FUNC_INFO << ": Function 'reparentNodeInsideSubjectHierarchy' is expected to return a boolean!";
+    qWarning() << d->PythonSource << ": " << Q_FUNC_INFO << ": Function 'reparentItemInsideSubjectHierarchy' is expected to return a boolean!";
     return this->Superclass::reparentItemInsideSubjectHierarchy(itemID, parentItemID);
     }
 
@@ -516,7 +516,7 @@ QString qSlicerSubjectHierarchyScriptedPlugin::displayedItemName(
   Q_D(const qSlicerSubjectHierarchyScriptedPlugin);
   PyObject* arguments = PyTuple_New(1);
   PyTuple_SET_ITEM(arguments, 0, PyLong_FromLongLong(itemID));
-  PyObject* result = d->PythonCppAPI.callMethod(d->DisplayedNodeNameMethod, arguments);
+  PyObject* result = d->PythonCppAPI.callMethod(d->DisplayedItemNameMethod, arguments);
   Py_DECREF(arguments);
   if (!result)
     {
@@ -527,7 +527,7 @@ QString qSlicerSubjectHierarchyScriptedPlugin::displayedItemName(
   // Parse result
   if (!PyString_Check(result))
     {
-    qWarning() << d->PythonSource << ": " << Q_FUNC_INFO << ": Function 'displayedNodeName' is expected to return a string!";
+    qWarning() << d->PythonSource << ": " << Q_FUNC_INFO << ": Function 'displayedItemName' is expected to return a string!";
     return this->Superclass::displayedItemName(itemID);
     }
 

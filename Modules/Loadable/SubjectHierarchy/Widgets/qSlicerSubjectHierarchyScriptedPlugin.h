@@ -28,9 +28,6 @@
 
 #include "qSlicerSubjectHierarchyModuleWidgetsExport.h"
 
-// MRML includes
-#include <vtkMRMLSubjectHierarchyNode.h>
-
 // Forward Declare PyObject*
 #ifndef PyObject_HEAD
 struct _object;
@@ -39,8 +36,6 @@ typedef _object PyObject;
 class qSlicerSubjectHierarchyScriptedPluginPrivate;
 
 class vtkObject;
-class vtkMRMLNode;
-class vtkMRMLSubjectHierarchyNode;
 class QStandardItem;
 class QAction;
 class qSlicerAbstractModuleWidget;
@@ -97,7 +92,7 @@ public:
   ///   item, and 1 means that the plugin is the only one that can handle the item (by node type or identifier attribute)
   virtual double canOwnSubjectHierarchyItem(SubjectHierarchyItemID itemID)const;
 
-  /// Get role that the plugin assigns to the subject hierarchy node.
+  /// Get role that the plugin assigns to the subject hierarchy item.
   ///   Each plugin should provide only one role.
   virtual const QString roleForPlugin()const;
 
@@ -135,7 +130,7 @@ public:
 
   /// Get scene context menu item actions to add to tree view
   /// Separate method is needed for the scene, as its actions are set to the
-  /// tree by a different method \sa nodeContextMenuActions
+  /// tree by a different method \sa itemContextMenuActions
   virtual QList<QAction*> sceneContextMenuActions()const;
 
   /// Show context menu actions valid for a given subject hierarchy item.

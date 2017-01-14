@@ -29,8 +29,6 @@
 #include "qSlicerSubjectHierarchyModuleWidgetsExport.h"
 
 class qSlicerSubjectHierarchyFolderPluginPrivate;
-class vtkMRMLNode;
-class vtkMRMLSubjectHierarchyNode;
 
 // Due to some reason the Python wrapping of this class fails, therefore
 // put everything between BTX/ETX to exclude from wrapping.
@@ -58,7 +56,7 @@ public:
   ///   item, and 1 means that the plugin is the only one that can handle the item (by node type or identifier attribute)
   virtual double canOwnSubjectHierarchyItem(SubjectHierarchyItemID itemID)const;
 
-  /// Get role that the plugin assigns to the subject hierarchy node.
+  /// Get role that the plugin assigns to the subject hierarchy item.
   ///   Each plugin should provide only one role.
   Q_INVOKABLE virtual const QString roleForPlugin()const;
 
@@ -77,7 +75,7 @@ public:
 
   /// Get scene context menu item actions to add to tree view
   /// Separate method is needed for the scene, as its actions are set to the
-  /// tree by a different method \sa nodeContextMenuActions
+  /// tree by a different method \sa itemContextMenuActions
   virtual QList<QAction*> sceneContextMenuActions()const;
 
   /// Show context menu actions valid for a given subject hierarchy item.

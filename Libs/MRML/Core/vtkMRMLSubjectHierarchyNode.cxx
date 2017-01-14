@@ -120,9 +120,18 @@ public:
   /// Set attribute to item
   /// \parameter attributeValue Value of attribute. If empty string, then attribute is removed
   void SetAttribute(std::string attributeName, std::string attributeValue);
+  /// Remove attribute from item
+  /// \return True if attribute was removed, false if not found
+  bool RemoveAttribute(std::string attributeName);
   /// Get an attribute with a given name
   /// \return The attribute value if exists, empty string if does not
   std::string GetAttribute(std::string attributeName);
+  /// Get attribute names
+  /// \return List of attribute names
+  std::vector<std::string> GetAttributeNames();
+  /// Determine if a given attribute is present in an item.
+  /// Especially useful if need to determine whether an attribute value is empty string or the attribute is missing
+  bool HasAttribute(std::string attributeName);
 
 // Child related functions
 public:
@@ -727,7 +736,7 @@ void vtkSubjectHierarchyItem::RemoveAllChildren()
 //---------------------------------------------------------------------------
 void vtkSubjectHierarchyItem::SetUID(std::string uidName, std::string uidValue)
 {
-  // Use the find function to prevent adding an empty UID to the list
+  // Use the find function to prevent adding an empty UID to the map
   if (this->UIDs.find(uidName) != this->UIDs.end())
     {
     // Log warning if the new UID value is different than the one already set
@@ -749,7 +758,7 @@ void vtkSubjectHierarchyItem::SetUID(std::string uidName, std::string uidValue)
 //---------------------------------------------------------------------------
 std::string vtkSubjectHierarchyItem::GetUID(std::string uidName)
 {
-  // Use the find function to prevent adding an empty UID to the list
+  // Use the find function to prevent adding an empty UID to the map
   if (this->UIDs.find(uidName) != this->UIDs.end())
     {
     return this->UIDs[uidName];
@@ -765,32 +774,55 @@ void vtkSubjectHierarchyItem::SetAttribute(std::string attributeName, std::strin
     vtkErrorMacro("SetAttribute: Name parameter is expected to have at least one character.");
     return;
     }
-  // Use the find function to prevent adding an empty UID to the list
+  // Use the find function to prevent adding an empty attribute to the map
   if ( this->Attributes.find(attributeName) != this->Attributes.end()
     && !attributeValue.compare(this->Attributes[attributeName]) )
     {
     return; // Attribute to set is same as original value, nothing to do
     }
-  if (attributeValue.empty())
+  this->Attributes[attributeName] = attributeValue;
+  this->Modified();
+}
+
+//---------------------------------------------------------------------------
+bool vtkSubjectHierarchyItem::RemoveAttribute(std::string attributeName)
+{
+  // Use the find function to prevent adding an empty attribute to the map
+  if (this->Attributes.find(attributeName) != this->Attributes.end())
     {
     this->Attributes.erase(attributeName);
+    return true;
     }
-  else
-    {
-    this->Attributes[attributeName] = attributeValue;
-    }
-  this->Modified();
+  return false;
 }
 
 //---------------------------------------------------------------------------
 std::string vtkSubjectHierarchyItem::GetAttribute(std::string attributeName)
 {
-  // Use the find function to prevent adding an empty UID to the list
+  // Use the find function to prevent adding an empty attribute to the map
   if (this->Attributes.find(attributeName) != this->Attributes.end())
     {
     return this->Attributes[attributeName];
     }
   return std::string();
+}
+
+//---------------------------------------------------------------------------
+std::vector<std::string> vtkSubjectHierarchyItem::GetAttributeNames()
+{
+  std::vector<std::string> attributeNameList;
+  std::map<std::string, std::string>::iterator attributeIt;
+  for (attributeIt=this->Attributes.begin(); attributeIt!=this->Attributes.end(); ++attributeIt)
+    {
+    attributeNameList.push_back(attributeIt->first);
+    }
+  return attributeNameList;
+}
+
+//---------------------------------------------------------------------------
+bool vtkSubjectHierarchyItem::HasAttribute(std::string attributeName)
+{
+  return (this->Attributes.find(attributeName) != this->Attributes.end());
 }
 
 //---------------------------------------------------------------------------
@@ -1146,6 +1178,32 @@ std::string vtkMRMLSubjectHierarchyNode::GetItemOwnerPluginName(SubjectHierarchy
 }
 
 //----------------------------------------------------------------------------
+void vtkMRMLSubjectHierarchyNode::SetItemExpanded(SubjectHierarchyItemID itemID, bool expanded)
+{
+  vtkSubjectHierarchyItem* item = this->Internal->SceneItem->FindChildByID(itemID);
+  if (!item)
+    {
+    vtkErrorMacro("SetItemExpanded: Failed to find subject hierarchy item by ID " << itemID);
+    return;
+    }
+
+  item->Expanded = expanded;
+}
+
+//----------------------------------------------------------------------------
+bool vtkMRMLSubjectHierarchyNode::GetItemExpanded(SubjectHierarchyItemID itemID)
+{
+  vtkSubjectHierarchyItem* item = this->Internal->SceneItem->FindChildByID(itemID);
+  if (!item)
+    {
+    vtkErrorMacro("GetItemExpanded: Failed to find subject hierarchy item by ID " << itemID);
+    return false;
+    }
+
+  return item->Expanded;
+}
+
+//----------------------------------------------------------------------------
 int vtkMRMLSubjectHierarchyNode::GetItemPositionUnderParent(SubjectHierarchyItemID itemID)
 {
   vtkSubjectHierarchyItem* item = this->Internal->SceneItem->FindChildByID(itemID);
@@ -1199,6 +1257,21 @@ void vtkMRMLSubjectHierarchyNode::SetItemAttribute(SubjectHierarchyItemID itemID
   //this->Modified(); //TODO: Needed? SH node modified event should be used for updating the whole view (every item)
 }
 
+//---------------------------------------------------------------------------
+bool vtkMRMLSubjectHierarchyNode::RemoveItemAttribute(vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID itemID, std::string attributeName)
+{
+  vtkSubjectHierarchyItem* item = this->Internal->SceneItem->FindChildByID(itemID);
+  if (!item)
+    {
+    vtkErrorMacro("RemoveItemAttribute: Failed to find subject hierarchy item by ID " << itemID);
+    return false;
+    }
+
+  bool result = item->RemoveAttribute(attributeName); // Events are invoked within this call
+  //this->Modified(); //TODO: Needed? SH node modified event should be used for updating the whole view (every item)
+  return result;
+}
+
 //----------------------------------------------------------------------------
 std::string vtkMRMLSubjectHierarchyNode::GetItemAttribute(SubjectHierarchyItemID itemID, std::string attributeName)
 {
@@ -1210,6 +1283,33 @@ std::string vtkMRMLSubjectHierarchyNode::GetItemAttribute(SubjectHierarchyItemID
     }
 
   return item->GetAttribute(attributeName);
+}
+
+//---------------------------------------------------------------------------
+std::vector<std::string> vtkMRMLSubjectHierarchyNode::GetItemAttributeNames(vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID itemID)
+{
+  vtkSubjectHierarchyItem* item = this->Internal->SceneItem->FindChildByID(itemID);
+  if (!item)
+    {
+    vtkErrorMacro("GetItemAttributeNames: Failed to find subject hierarchy item by ID " << itemID);
+    return std::vector<std::string>();
+    }
+
+  return item->GetAttributeNames();
+}
+
+//---------------------------------------------------------------------------
+bool vtkMRMLSubjectHierarchyNode::HasItemAttribute(
+  vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID itemID, std::string attributeName)
+{
+  vtkSubjectHierarchyItem* item = this->Internal->SceneItem->FindChildByID(itemID);
+  if (!item)
+    {
+    vtkErrorMacro("HasItemAttribute: Failed to find subject hierarchy item by ID " << itemID);
+    return false;
+    }
+
+  return item->HasAttribute(attributeName);
 }
 
 //---------------------------------------------------------------------------

@@ -35,9 +35,6 @@
      <property name="indentation">
       <number>12</number>
      </property>
-     <property name="editMenuActionVisible">
-      <bool>true</bool>
-     </property>
     </widget>
    </item>
    <item>
