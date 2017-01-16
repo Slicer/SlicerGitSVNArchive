@@ -126,7 +126,7 @@ set(Slicer_EP_COMPONENT_VARS_CONFIG
   "set(Slicer_VTK_COMPONENTS \"${Slicer_VTK_COMPONENTS}\")")
 
 # List all required external project
-set(Slicer_EXTERNAL_PROJECTS_CONFIG CTK ITK CURL Teem VTK)
+set(Slicer_EXTERNAL_PROJECTS_CONFIG CTK ITK CURL Teem VTK RapidJSON)
 set(Slicer_EXTERNAL_PROJECTS_NO_USEFILE_CONFIG CURL)
 if(Slicer_USE_QtTesting)
   list(APPEND Slicer_EXTERNAL_PROJECTS_CONFIG QtTesting)
