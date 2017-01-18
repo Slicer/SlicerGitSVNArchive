@@ -91,8 +91,8 @@ class DICOMExportScene(object):
 
     # get the screen image
     self.progress('Saving Image...')
-    pixmap = qt.QPixmap.grabWidget(slicer.util.mainWindow())
-    pixmap.save(self.imageFile)
+    image = ctk.grabWidget(slicer.util.mainWindow())
+    image.save(self.imageFile)
     imageReader = vtk.vtkJPEGReader()
     imageReader.SetFileName(self.imageFile)
     imageReader.Update()
