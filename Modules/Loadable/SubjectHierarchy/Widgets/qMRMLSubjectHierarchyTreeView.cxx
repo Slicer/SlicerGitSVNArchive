@@ -114,10 +114,17 @@ void qMRMLSubjectHierarchyTreeViewPrivate::init2()
 
   // Set up headers
   q->header()->setStretchLastSection(false);
+#if (QT_VERSION < QT_VERSION_CHECK(5, 0, 0))
   q->header()->setResizeMode(sceneModel->nameColumn(), QHeaderView::Stretch);
   q->header()->setResizeMode(sceneModel->visibilityColumn(), QHeaderView::ResizeToContents);
   q->header()->setResizeMode(sceneModel->transformColumn(), QHeaderView::Interactive);
   q->header()->setResizeMode(sceneModel->idColumn(), QHeaderView::ResizeToContents);
+#else
+  q->header()->setSectionResizeMode(sceneModel->nameColumn(), QHeaderView::Stretch);
+  q->header()->setSectionResizeMode(sceneModel->visibilityColumn(), QHeaderView::ResizeToContents);
+  q->header()->setSectionResizeMode(sceneModel->transformColumn(), QHeaderView::Interactive);
+  q->header()->setSectionResizeMode(sceneModel->idColumn(), QHeaderView::ResizeToContents);
+#endif
 
   // Set item delegate (that creates widgets for certain types of data)
   this->TransformItemDelegate = new qMRMLTransformItemDelegate(q);

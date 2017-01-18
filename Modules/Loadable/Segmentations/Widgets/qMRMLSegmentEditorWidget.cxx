@@ -80,6 +80,7 @@
 #include <QPushButton>
 #include <QButtonGroup>
 #include <QMessageBox>
+#include <QPointer>
 #include <QVBoxLayout>
 
 // CTK includes
@@ -99,10 +100,17 @@ public:
     {
     return new vtkSegmentEditorEventCallbackCommand;
     }
+#if (QT_VERSION < QT_VERSION_CHECK(5, 0, 0))
   /// Segment editor widget observing the event
   QWeakPointer<qMRMLSegmentEditorWidget> EditorWidget;
   /// Slice widget or 3D widget
   QWeakPointer<qMRMLWidget> ViewWidget;
+#else
+  /// Segment editor widget observing the event
+  QPointer<qMRMLSegmentEditorWidget> EditorWidget;
+  /// Slice widget or 3D widget
+  QPointer<qMRMLWidget> ViewWidget;
+#endif
 };
 
 //-----------------------------------------------------------------------------
