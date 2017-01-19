@@ -961,7 +961,7 @@ class DICOMPluginSelector(qt.QWidget):
   """
 
   def __init__(self, parent, width=50, height=100):
-    super(DICOMPluginSelector, self).__init__(parent, width=width, height=height)
+    super(DICOMPluginSelector, self).__init__(parent)
     self.setMinimumHeight(height)
     self.setMinimumWidth(width)
     self.setLayout(qt.QVBoxLayout())
