@@ -26,6 +26,10 @@
 #include <QLabel>
 #include <QProgressBar>
 
+// CTK includes
+#include <ctkExpandButton.h>
+#include <ctkFittedTextBrowser.h>
+
 // Slicer includes
 #include "qSlicerCLIProgressBar.h"
 
@@ -59,6 +63,8 @@ private:
   QLabel *       NameLabel;
   QLabel *       StatusLabelLabel;
   QLabel *       StatusLabel;
+  ctkExpandButton * DetailsTextExpandButton;
+  ctkFittedTextBrowser * DetailsTextBrowser;
   QProgressBar * ProgressBar;
   QProgressBar * StageProgressBar;
 
@@ -113,21 +119,37 @@ void qSlicerCLIProgressBarPrivate::init()
 
   this->GridLayout->addWidget(StatusLabel, 1, 1, 1, 1);
 
+  this->DetailsTextExpandButton = new ctkExpandButton();
+  this->DetailsTextExpandButton->setObjectName(QString::fromUtf8("DetailsTextExpandButton"));
+  this->DetailsTextExpandButton->setToolTip(QObject::tr("Show details"));
+  this->DetailsTextExpandButton->setOrientation(Qt::Vertical);
+
+  this->GridLayout->addWidget(DetailsTextExpandButton, 1, 2, 1, 1);
+
+  this->DetailsTextBrowser = new ctkFittedTextBrowser();
+  this->DetailsTextBrowser->setObjectName(QString::fromUtf8("DetailsTextBrowser"));
+  this->DetailsTextBrowser->setVisible(false);
+
+  this->GridLayout->addWidget(DetailsTextBrowser, 2, 0, 1, 3);
+
   this->ProgressBar = new QProgressBar();
   this->ProgressBar->setObjectName(QString::fromUtf8("ProgressBar"));
   this->ProgressBar->setMaximum(100);
   this->ProgressBar->setValue(0);
 
-  this->GridLayout->addWidget(ProgressBar, 2, 0, 1, 2);
+  this->GridLayout->addWidget(ProgressBar, 3, 0, 1, 3);
 
   this->StageProgressBar = new QProgressBar();
   this->StageProgressBar->setObjectName(QString::fromUtf8("StageProgressBar"));
   this->StageProgressBar->setValue(0);
-  this->GridLayout->addWidget(StageProgressBar, 3, 0, 1, 2);
+  this->GridLayout->addWidget(StageProgressBar, 4, 0, 1, 3);
 
   this->NameLabel->setText(QObject::tr(""));
   this->StatusLabelLabel->setText(QObject::tr("Status:"));
   this->StatusLabel->setText(QObject::tr("Idle"));
+
+  QObject::connect(this->DetailsTextExpandButton, SIGNAL(toggled(bool)),
+    this->DetailsTextBrowser, SLOT(setVisible(bool)));
 
   q->updateUiFromCommandLineModuleNode(this->CommandLineModuleNode);
 }
@@ -319,4 +341,25 @@ void qSlicerCLIProgressBar::updateUiFromCommandLineModuleNode(
     case vtkMRMLCommandLineModuleNode::Idle:
       break;
     }
+
+  QString detailsText;
+  detailsText = "<pre>";
+  std::string errorText = node->GetErrorText();
+  std::string outputText = node->GetOutputText();
+  if (!errorText.empty())
+    {
+    detailsText += "<span style = \"color:#FF0000;\">";
+    detailsText += errorText.c_str();
+    detailsText += "</span>";
+    }
+  if (!errorText.empty() && !outputText.empty())
+    {
+    detailsText += "\n";
+    }
+  if (!outputText.empty())
+    {
+    detailsText += node->GetOutputText().c_str();
+    }
+  detailsText += "</pre>";
+  d->DetailsTextBrowser->setText(detailsText);
 }
