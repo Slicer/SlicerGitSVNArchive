@@ -119,6 +119,12 @@ public:
   /// \sa GetStatus(), IsBusy()
   const char* GetStatusString() const;
 
+  void SetOutputText(const std::string& text, bool modify = true);
+  const std::string GetOutputText() const;
+
+  void SetErrorText(const std::string& text, bool modify = true);
+  const std::string GetErrorText() const;
+
   /// Return true if the module is in a busy state: Scheduled, Running,
   /// Cancelling, Completing.
   /// \sa SetStatus(), GetStatus(), BusyMask, Cancel()
