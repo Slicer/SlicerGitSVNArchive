@@ -265,9 +265,19 @@ void qSlicerModuleSelectorToolBar::onModuleSelected(const QString& name)
 void qSlicerModuleSelectorToolBar::actionSelected(QAction* action)
 {
   Q_D(qSlicerModuleSelectorToolBar);
+  if (action == 0)
+    {
+    // Because the NoModuleAction is not observed by ctkMenuComboBox, the
+    // toolbar shall clear the text of the current action manually.
+    d->ModulesComboBox->clearActiveAction();
+    }
   QAction* lastAction = d->lastSelectedAction();
   if (action == lastAction)
     {
+    // In case the previous action was the NoModuleAction, it would not
+    // have been added into the history, however it shall still trigger
+    // the moduleSelected signal to show in the module panel.
+    emit moduleSelected(action ? action->data().toString() : QString());
     return;
     }
   QList<QAction*> previousActions = d->PreviousHistoryMenu->actions();
