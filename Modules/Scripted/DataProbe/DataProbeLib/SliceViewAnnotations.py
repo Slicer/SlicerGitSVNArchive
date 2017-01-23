@@ -150,8 +150,8 @@ class SliceAnnotations(VTKObservationMixin):
     self.annotationsAmountGroupBox = find(window,'annotationsAmountGroupBox')[0]
 
     self.scalarBarCollapsibleButton = find(window,'scalarBarCollapsibleButton')[0]
-    self.scalarBarEnalbeCheckBox = find(window,'scalarBarEnableCheckBox')[0]
-    self.scalarBarEnalbeCheckBox.checked = self.scalarBarEnabled
+    self.scalarBarEnableCheckBox = find(window,'scalarBarEnableCheckBox')[0]
+    self.scalarBarEnableCheckBox.checked = self.scalarBarEnabled
     self.scalarBarLayerSelectionGroupBox = find(window,'scalarBarLayerSelectionGroupBox')[0]
 
     self.backgroundRadioButton = find(window, 'backgroundRadioButton')[0]
