@@ -166,14 +166,14 @@ public:
   ///   (case insensitive), false means that the name needs to match exactly (case sensitive)
   /// \param recursive Flag whether to find only direct children (false) or in the whole branch (true). True by default
   /// \return Item if found, NULL otherwise
-  void FindChildIDsByName( std::string name, std::vector<vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID> &foundItemIDs,
+  void FindChildrenByName( std::string name, std::vector<vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID> &foundItemIDs,
                            bool contains=false, bool recursive=true );
   /// Get data nodes (of a certain type) associated to items in the branch of this item
   void GetDataNodesInBranch(vtkCollection *children, const char* childClass=NULL);
   /// Get all children in the branch recursively
-  void GetAllChildrenIDs(std::vector<vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID> &childIDs);
+  void GetAllChildren(std::vector<vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID> &childIDs);
   /// Get list of IDs of all direct children of this item
-  void GetDirectChildrenIDs(std::vector<vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID> &childIDs);
+  void GetDirectChildren(std::vector<vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID> &childIDs);
 
   /// Reparent item under new parent
   bool Reparent(vtkSubjectHierarchyItem* newParentItem);
@@ -430,7 +430,7 @@ vtkSubjectHierarchyItem* vtkSubjectHierarchyItem::FindChildByUIDList(std::string
 }
 
 //---------------------------------------------------------------------------
-void vtkSubjectHierarchyItem::FindChildIDsByName(
+void vtkSubjectHierarchyItem::FindChildrenByName(
   std::string name, std::vector<vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID> &foundItemIDs,
   bool contains/*=false*/, bool recursive/*=true*/)
 {
@@ -463,7 +463,7 @@ void vtkSubjectHierarchyItem::FindChildIDsByName(
       }
     if (recursive)
       {
-      currentItem->FindChildIDsByName(name, foundItemIDs, contains);
+      currentItem->FindChildrenByName(name, foundItemIDs, contains);
       }
     }
 }
@@ -501,14 +501,14 @@ void vtkSubjectHierarchyItem::GetDataNodesInBranch(vtkCollection* dataNodeCollec
 }
 
 //---------------------------------------------------------------------------
-void vtkSubjectHierarchyItem::GetAllChildrenIDs(std::vector<vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID> &childIDs)
+void vtkSubjectHierarchyItem::GetAllChildren(std::vector<vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID> &childIDs)
 {
   childIDs.clear();
-  this->FindChildIDsByName("", childIDs, true);
+  this->FindChildrenByName("", childIDs, true);
 }
 
 //---------------------------------------------------------------------------
-void vtkSubjectHierarchyItem::GetDirectChildrenIDs(std::vector<vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID> &childIDs)
+void vtkSubjectHierarchyItem::GetDirectChildren(std::vector<vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID> &childIDs)
 {
   childIDs.clear();
   for (ChildVector::iterator childIt=this->Children.begin(); childIt!=this->Children.end(); ++childIt)
@@ -713,7 +713,7 @@ bool vtkSubjectHierarchyItem::RemoveChild(vtkMRMLSubjectHierarchyNode::SubjectHi
 void vtkSubjectHierarchyItem::RemoveAllChildren()
 {
   std::vector<vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID> childIDs;
-  this->GetDirectChildrenIDs(childIDs);
+  this->GetDirectChildren(childIDs);
 
   std::vector<vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID>::iterator childIt;
   for (childIt=childIDs.begin(); childIt!=childIDs.end(); ++childIt)
@@ -1328,7 +1328,7 @@ void vtkMRMLSubjectHierarchyNode::ItemModified(vtkMRMLSubjectHierarchyNode::Subj
 }
 
 //---------------------------------------------------------------------------
-vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyItem(
+vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID vtkMRMLSubjectHierarchyNode::CreateItem(
   vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID parentItemID,
   vtkMRMLNode* dataNode/*=NULL*/,
   std::string level/*=vtkMRMLSubjectHierarchyConstants::GetSubjectHierarchyLevelFolder()*/,
@@ -1338,7 +1338,7 @@ vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID vtkMRMLSubjectHierarchyNode:
   SubjectHierarchyItemID itemID = INVALID_ITEM_ID;
   if (dataNode)
     {
-    itemID = this->GetSubjectHierarchyItemByDataNode(dataNode);
+    itemID = this->GetItemByDataNode(dataNode);
     }
   if (itemID != INVALID_ITEM_ID)
     {
@@ -1355,7 +1355,7 @@ vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID vtkMRMLSubjectHierarchyNode:
       vtkSubjectHierarchyItem* parentItem = this->Internal->SceneItem->FindChildByID(parentItemID);
       if (!parentItem)
         {
-        vtkErrorMacro("CreateSubjectHierarchyItem: Failed to find subject hierarchy item (to be the parent) by ID " << parentItemID);
+        vtkErrorMacro("CreateItem: Failed to find subject hierarchy item (to be the parent) by ID " << parentItemID);
         return INVALID_ITEM_ID;
         }
       item->Reparent(parentItem);
@@ -1381,7 +1381,7 @@ vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID vtkMRMLSubjectHierarchyNode:
       }
     if (!parentItem)
       {
-      vtkErrorMacro("CreateSubjectHierarchyItem: Failed to find parent subject hierarchy item by ID " << parentItemID);
+      vtkErrorMacro("CreateItem: Failed to find parent subject hierarchy item by ID " << parentItemID);
       return INVALID_ITEM_ID;
       }
 
@@ -1407,22 +1407,22 @@ vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID vtkMRMLSubjectHierarchyNode:
 }
 
 //----------------------------------------------------------------------------
-bool vtkMRMLSubjectHierarchyNode::RemoveSubjectHierarchyItem(
+bool vtkMRMLSubjectHierarchyNode::RemoveItem(
   vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID itemID, bool removeDataNode/*=true*/, bool recursive/*=true*/)
 {
   vtkSubjectHierarchyItem* item = this->Internal->SceneItem->FindChildByID(itemID);
   if (!item)
     {
-    vtkErrorMacro("RemoveSubjectHierarchyItem: Failed to find subject hierarchy item by ID " << itemID);
+    vtkErrorMacro("RemoveItem: Failed to find subject hierarchy item by ID " << itemID);
     return false;
     }
 
-  // Remove all children if recursive deletion is requested
+  // Remove all children if recursive deletion is requested or if it's the parent of a virtual branch
   // Start with the leaf nodes so that triggered updates are faster (no reparenting done after deleting intermediate items)
-  if (recursive)
+  if (recursive || item->IsVirtualBranchParent())
     {
     std::vector<SubjectHierarchyItemID> childIDs;
-    item->GetAllChildrenIDs(childIDs);
+    item->GetAllChildren(childIDs);
     while (childIDs.size())
       {
       // Remove first leaf node found
@@ -1470,9 +1470,9 @@ bool vtkMRMLSubjectHierarchyNode::RemoveSubjectHierarchyItem(
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLSubjectHierarchyNode::RemoveAllSubjectHierarchyItems(bool removeDataNode/*=false*/)
+void vtkMRMLSubjectHierarchyNode::RemoveAllItems(bool removeDataNode/*=false*/)
 {
-  this->RemoveSubjectHierarchyItem(this->Internal->SceneItemID, removeDataNode, true);
+  this->RemoveItem(this->Internal->SceneItemID, removeDataNode, true);
 }
 
 //----------------------------------------------------------------------------
@@ -1530,11 +1530,11 @@ void vtkMRMLSubjectHierarchyNode::GetItemChildren(SubjectHierarchyItemID itemID,
 
   if (recursive)
     {
-    item->GetAllChildrenIDs(childIDs);
+    item->GetAllChildren(childIDs);
     }
   else
     {
-    item->GetDirectChildrenIDs(childIDs);
+    item->GetDirectChildren(childIDs);
     }
 }
 
@@ -1603,7 +1603,7 @@ bool vtkMRMLSubjectHierarchyNode::MoveItem(SubjectHierarchyItemID itemID, Subjec
 }
 
 //---------------------------------------------------------------------------
-vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyItemByUID(const char* uidName, const char* uidValue)
+vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID vtkMRMLSubjectHierarchyNode::GetItemByUID(const char* uidName, const char* uidValue)
 {
   if (!uidName || !uidValue)
     {
@@ -1615,7 +1615,7 @@ vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID vtkMRMLSubjectHierarchyNode:
 }
 
 //---------------------------------------------------------------------------
-vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyItemByUIDList(const char* uidName, const char* uidValue)
+vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID vtkMRMLSubjectHierarchyNode::GetItemByUIDList(const char* uidName, const char* uidValue)
 {
   if (!uidName || !uidValue)
     {
@@ -1627,7 +1627,7 @@ vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID vtkMRMLSubjectHierarchyNode:
 }
 
 //---------------------------------------------------------------------------
-vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyItemByDataNode(vtkMRMLNode* dataNode)
+vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID vtkMRMLSubjectHierarchyNode::GetItemByDataNode(vtkMRMLNode* dataNode)
 {
   if (!dataNode)
     {
@@ -1651,7 +1651,7 @@ vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID vtkMRMLSubjectHierarchyNode:
 
   // Search only one level (not recursive)
   std::vector<vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID> foundItemIDs;
-  parentItem->FindChildIDsByName(name, foundItemIDs, false, false);
+  parentItem->FindChildrenByName(name, foundItemIDs, false, false);
   if (foundItemIDs.size() == 0)
     {
     vtkErrorMacro("GetItemChildWithName: Failed to find subject hierarchy item with name '" << name
@@ -1889,14 +1889,14 @@ void vtkMRMLSubjectHierarchyNode::DeserializeUIDList(std::string uidListString, 
 }
 
 //---------------------------------------------------------------------------
-std::vector<vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID> vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyItemsReferencedFromItemByDICOM(
+std::vector<vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID> vtkMRMLSubjectHierarchyNode::GetItemsReferencedFromItemByDICOM(
   SubjectHierarchyItemID itemID )
 {
   std::vector<vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID> referencedItemIDs;
   vtkSubjectHierarchyItem* item = this->Internal->SceneItem->FindChildByID(itemID);
   if (!item)
     {
-    vtkErrorMacro("GetSubjectHierarchyItemsReferencedFromItemByDICOM: Failed to find subject hierarchy item by ID " << itemID);
+    vtkErrorMacro("GetItemsReferencedFromItemByDICOM: Failed to find subject hierarchy item by ID " << itemID);
     return referencedItemIDs;
     }
 
@@ -1991,7 +1991,7 @@ bool vtkMRMLSubjectHierarchyNode::MergeSubjectHierarchy(vtkMRMLSubjectHierarchyN
     SubjectHierarchyItemID otherID = (*itemIt);
 
     // Copy subject hierarchy item into this hierarchy
-    SubjectHierarchyItemID copiedID = this->CreateSubjectHierarchyItem(
+    SubjectHierarchyItemID copiedID = this->CreateItem(
       idMap[otherShNode->GetItemParent(otherID)],
       otherShNode->GetItemDataNode(otherID),
       otherShNode->GetItemLevel(otherID),
@@ -2004,6 +2004,56 @@ bool vtkMRMLSubjectHierarchyNode::MergeSubjectHierarchy(vtkMRMLSubjectHierarchyN
   // Remove other subject hierarchy node
   scene->RemoveNode(otherShNode);
   return true;
+}
+
+//---------------------------------------------------------------------------
+std::string vtkMRMLSubjectHierarchyNode::GenerateUniqueItemName(std::string name)
+{
+  std::vector<vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID> foundItemIDs;
+  this->Internal->SceneItem->FindChildrenByName(name, foundItemIDs, false, true);
+  if (foundItemIDs.size() == 0)
+    {
+    // If no item found with that name then return input name as it's unique already
+    return name;
+    }
+
+  // If name found in the hierarchy, then get items that contain that name to determine postfix
+  int postfixNumber = 1;
+  this->Internal->SceneItem->FindChildrenByName(name, foundItemIDs, true, true);
+  std::vector<vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID>::iterator itemIt;
+  for (itemIt=foundItemIDs.begin(); itemIt!=foundItemIDs.end(); ++itemIt)
+    {
+    // Get current item
+    vtkSubjectHierarchyItem* currentItem = this->Internal->SceneItem->FindChildByID(*itemIt);
+    if (!currentItem)
+      {
+      vtkErrorMacro("GenerateUniqueItemName: Failed to find subject hierarchy item by ID " << (*itemIt));
+      break;
+      }
+    // Only consider item if its name starts with the given name
+    std::string currentPrefix = currentItem->Name.substr(0, name.size());
+    if (currentPrefix.compare(name))
+      {
+      continue;
+      }
+    // Further, the next character needs to be an underscore
+    if (currentItem->Name.substr(name.size(), 1).compare("_"))
+      {
+      continue;
+      }
+    // Get postfix number from the current name
+    int currentPostfixNumber = vtkVariant(currentItem->Name.substr(name.size()+1)).ToInt();
+
+    // Make postfix number one larger than the maximum of the postfix numbers found so far
+    if (currentPostfixNumber >= postfixNumber)
+      {
+      postfixNumber = currentPostfixNumber + 1;
+      }
+    }
+
+  std::stringstream uniqueNameStream;
+  uniqueNameStream << name << "_" << postfixNumber;
+  return uniqueNameStream.str();
 }
 
 //---------------------------------------------------------------------------
@@ -2044,7 +2094,7 @@ void vtkMRMLSubjectHierarchyNode::ItemEventCallback(vtkObject* caller, unsigned 
       else if (dataNode)
         {
         // Trigger view update also if data node was modified
-        SubjectHierarchyItemID itemID = self->GetSubjectHierarchyItemByDataNode(dataNode);
+        SubjectHierarchyItemID itemID = self->GetItemByDataNode(dataNode);
         if (itemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
           {
           self->InvokeCustomModifiedEvent(vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemModifiedEvent, (void*)&itemID);
@@ -2059,7 +2109,7 @@ void vtkMRMLSubjectHierarchyNode::ItemEventCallback(vtkObject* caller, unsigned 
       if (dataNode)
         {
         // Trigger view update if data node's transform or display was modified
-        SubjectHierarchyItemID itemID = self->GetSubjectHierarchyItemByDataNode(dataNode);
+        SubjectHierarchyItemID itemID = self->GetItemByDataNode(dataNode);
         if (itemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
           {
           self->InvokeCustomModifiedEvent(vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemModifiedEvent, (void*)&itemID);

@@ -144,7 +144,7 @@ vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID vtkSlicerSubjectHierarchyMod
   // Create patient and study nodes if they do not exist yet
   if (patientItemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
     {
-    patientItemID = shNode->CreateSubjectHierarchyItem(
+    patientItemID = shNode->CreateItem(
       shNode->GetSceneItemID(), NULL, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelPatient() );
     shNode->SetItemUID(patientItemID, vtkMRMLSubjectHierarchyConstants::GetDICOMUIDName(), patientId);
     shNode->SetItemOwnerPluginName(patientItemID, "DICOM");
@@ -152,7 +152,7 @@ vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID vtkSlicerSubjectHierarchyMod
 
   if (studyItemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
     {
-    studyItemID = shNode->CreateSubjectHierarchyItem(
+    studyItemID = shNode->CreateItem(
       patientItemID, NULL, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy() );
     shNode->SetItemUID(studyItemID, vtkMRMLSubjectHierarchyConstants::GetDICOMUIDName(), studyInstanceUID);
     shNode->SetItemOwnerPluginName(studyItemID, "DICOM");
@@ -258,8 +258,8 @@ vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID vtkSlicerSubjectHierarchyMod
     }
 
   vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(node1->GetScene());
-  SubjectHierarchyItemID item1 = shNode->GetSubjectHierarchyItemByDataNode(node1);
-  SubjectHierarchyItemID item2 = shNode->GetSubjectHierarchyItemByDataNode(node2);
+  SubjectHierarchyItemID item1 = shNode->GetItemByDataNode(node1);
+  SubjectHierarchyItemID item2 = shNode->GetItemByDataNode(node2);
 
   return vtkSlicerSubjectHierarchyModuleLogic::AreItemsInSameBranch(shNode, item1, item2, lowestCommonLevel);
 }
@@ -397,7 +397,7 @@ vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID vtkSlicerSubjectHierarchyMod
     return vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID;
     }
 
-  SubjectHierarchyItemID clonedSubjectHierarchyItemID = vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID;
+  SubjectHierarchyItemID clonedShItemID = vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID;
   vtkMRMLNode* associatedDataNode = shNode->GetItemDataNode(itemID);
   if (associatedDataNode)
     {
@@ -492,19 +492,19 @@ vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID vtkSlicerSubjectHierarchyMod
       }
 
     // Put data node in the same subject hierarchy branch as current node
-    clonedSubjectHierarchyItemID = shNode->CreateSubjectHierarchyItem(
+    clonedShItemID = shNode->CreateItem(
       shNode->GetItemParent(itemID), clonedDataNode, shNode->GetItemLevel(itemID) );
 
     // Trigger update by invoking the modified event for the subject hierarchy item
-    shNode->ItemModified(clonedSubjectHierarchyItemID);
+    shNode->ItemModified(clonedShItemID);
     }
   else // No associated node
     {
     std::string clonedItemName = ( name ? std::string(name) : std::string(shNode->GetItemName(itemID)) + std::string(CLONED_NODE_NAME_POSTFIX) );
 
-    clonedSubjectHierarchyItemID = shNode->CreateSubjectHierarchyItem(
+    clonedShItemID = shNode->CreateItem(
       shNode->GetItemParent(itemID), NULL, shNode->GetItemLevel(itemID), clonedItemName );
     }
 
-  return clonedSubjectHierarchyItemID;
+  return clonedShItemID;
 }

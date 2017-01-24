@@ -266,7 +266,7 @@ public:
   {
     vtkMRMLNode *nd = this->CLIModuleLogic->GetMRMLScene()->GetNodeByID(this->ReferenceNodeID.c_str());
     vtkMRMLSubjectHierarchyNode *shnd = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(this->CLIModuleLogic->GetMRMLScene());
-    vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID shItemID = shnd->GetSubjectHierarchyItemByDataNode(nd);
+    vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID shItemID = shnd->GetItemByDataNode(nd);
 
     if (shItemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
     {
@@ -275,7 +275,7 @@ public:
 
       // This function call only creates a new subject hierarchy item if it does not yet exist.
       // Otherwise only change properties, in this case the parent.
-      shnd->CreateSubjectHierarchyItem(parentItemID, ond, shnd->GetItemLevel(shItemID));
+      shnd->CreateItem(parentItemID, ond, shnd->GetItemLevel(shItemID));
     }
   }
 

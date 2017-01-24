@@ -420,7 +420,7 @@ void qSlicerSubjectHierarchyVolumesPlugin::showVolume(vtkMRMLScalarVolumeNode* n
     qCritical() << Q_FUNC_INFO << ": Failed to access subject hierarchy node";
     return;
     }
-  vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID volumeItemID = shNode->GetSubjectHierarchyItemByDataNode(volumeNode);
+  vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID volumeItemID = shNode->GetItemByDataNode(volumeNode);
   if (volumeItemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
     {
     //subjectHierarchyNode->Modified(); //TODO:
@@ -593,10 +593,10 @@ void qSlicerSubjectHierarchyVolumesPlugin::showVolumesInBranch()
 
   // Collect subject hierarchy items of currently shown volumes to be able to update them in the scene model
   vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID activeVolumeShItemID =
-    shNode->GetSubjectHierarchyItemByDataNode( scene->GetNodeByID(selectionNode->GetActiveVolumeID()) );
+    shNode->GetItemByDataNode( scene->GetNodeByID(selectionNode->GetActiveVolumeID()) );
   subjectHierarchyItemsToUpdate.insert(activeVolumeShItemID);
   vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID secondaryVolumeShItemID =
-    shNode->GetSubjectHierarchyItemByDataNode( scene->GetNodeByID(selectionNode->GetSecondaryVolumeID()) );
+    shNode->GetItemByDataNode( scene->GetNodeByID(selectionNode->GetSecondaryVolumeID()) );
   subjectHierarchyItemsToUpdate.insert(secondaryVolumeShItemID);
 
   // Hide all volumes before showing the ones from the study
@@ -613,7 +613,7 @@ void qSlicerSubjectHierarchyVolumesPlugin::showVolumesInBranch()
     if (volumeNode)
       {
       // Get subject hierarchy item for the volume node
-      vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID volumeShItemID = shNode->GetSubjectHierarchyItemByDataNode(volumeNode);
+      vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID volumeShItemID = shNode->GetItemByDataNode(volumeNode);
       if (volumeShItemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
         {
         qCritical() << Q_FUNC_INFO << ": Unable to get subject hierarchy item";

@@ -284,10 +284,10 @@ void qSlicerSubjectHierarchyPluginLogic::onNodeAboutToBeRemoved(vtkObject* scene
     }
 
   // Remove associated subject hierarchy item if any
-  vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID itemID = shNode->GetSubjectHierarchyItemByDataNode(dataNode);
+  vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID itemID = shNode->GetItemByDataNode(dataNode);
   if (itemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
     {
-    shNode->RemoveSubjectHierarchyItem(itemID, false, false);
+    shNode->RemoveItem(itemID, false, false);
     }
 }
 
@@ -321,7 +321,7 @@ void qSlicerSubjectHierarchyPluginLogic::onSceneCloseEnded(vtkObject* sceneObjec
     }
 
   // Clear subject hierarchy
-  shNode->RemoveAllSubjectHierarchyItems();
+  shNode->RemoveAllItems();
 }
 
 //-----------------------------------------------------------------------------
@@ -381,7 +381,7 @@ void qSlicerSubjectHierarchyPluginLogic::addSupportedNodesToSubjectHierarchy()
     // Do not add into subject hierarchy if hidden, excluded, or already added
     if ( node->GetHideFromEditors()
       || node->GetAttribute(vtkMRMLSubjectHierarchyConstants::GetSubjectHierarchyExcludeFromTreeAttributeName().c_str())
-      || shNode->GetSubjectHierarchyItemByDataNode(node) == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID )
+      || shNode->GetItemByDataNode(node) == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID )
       {
       continue;
       }

@@ -29,7 +29,8 @@
 #include <QMap>
 
 // MRML includes
-#include <vtkMRMLSubjectHierarchyNode.h>
+//#include <vtkMRMLSubjectHierarchyNode.h>
+#include <vtkType.h> //TODO: vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID cannot be used in a Q_PROPERTY
 
 // DICOMLib includes
 #include "qSlicerDICOMLibModuleWidgetsExport.h"
@@ -50,7 +51,8 @@ class Q_SLICER_MODULE_DICOMLIB_WIDGETS_EXPORT qSlicerDICOMExportable : public QO
   /// Extra information the user sees on mouse over of the export option
   Q_PROPERTY(QString tooltip READ tooltip WRITE setTooltip)
   /// ID of the subject hierarchy item to be exported
-  Q_PROPERTY(vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID subjectHierarchyItemID READ subjectHierarchyItemID WRITE setSubjectHierarchyItemID)
+  //TODO: vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID cannot be used in a Q_PROPERTY
+  Q_PROPERTY(vtkIdType subjectHierarchyItemID READ subjectHierarchyItemID WRITE setSubjectHierarchyItemID)
   /// Class of the plugin that created this exportable
   Q_PROPERTY(QString pluginClass READ pluginClass WRITE setPluginClass)
   /// Target directory to export this exportable
@@ -78,8 +80,8 @@ public:
   virtual QString tooltip()const;
   void setTooltip(const QString& newTooltip);
 
-  virtual vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID subjectHierarchyItemID()const;
-  void setSubjectHierarchyItemID(const vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID& newItemID);
+  virtual vtkIdType subjectHierarchyItemID()const;
+  void setSubjectHierarchyItemID(const vtkIdType& newItemID);
 
   virtual QString directory()const;
   void setDirectory(const QString& newDirectory);

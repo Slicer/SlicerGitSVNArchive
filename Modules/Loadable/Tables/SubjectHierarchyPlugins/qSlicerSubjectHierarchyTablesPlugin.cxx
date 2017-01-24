@@ -251,7 +251,7 @@ void qSlicerSubjectHierarchyTablesPlugin::setDisplayVisibility(
       && strcmp(tableViewNode->GetTableNodeID(), associatedTableNode->GetID()) )
       {
       vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID tableItemID =
-        shNode->GetSubjectHierarchyItemByDataNode(scene->GetNodeByID(tableViewNode->GetTableNodeID()));
+        shNode->GetItemByDataNode(scene->GetNodeByID(tableViewNode->GetTableNodeID()));
       if (tableItemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
         {
         tableViewNode->SetTableNodeID(NULL);

@@ -175,7 +175,7 @@ bool qSlicerSubjectHierarchyAbstractPlugin::addNodeToSubjectHierarchy(
     level = vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSeries();
     }
 
-  SubjectHierarchyItemID addedItemID = shNode->CreateSubjectHierarchyItem(parentItemID, nodeToAdd, level);
+  SubjectHierarchyItemID addedItemID = shNode->CreateItem(parentItemID, nodeToAdd, level);
   if (addedItemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
     {
     qCritical() << Q_FUNC_INFO << ": Failed to add subject hierarchy item for data node " << nodeToAdd->GetName();

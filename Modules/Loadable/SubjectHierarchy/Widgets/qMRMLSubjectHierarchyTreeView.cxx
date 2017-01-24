@@ -913,7 +913,7 @@ void qMRMLSubjectHierarchyTreeView::deleteSelectedItems()
     // Remove the subject hierarchy item and all its children
     //TODO: Ask the user whether to delete all children (snippet on the bottom of this file)
     // If it has an associated data node then remove that too
-    if (!d->SubjectHierarchyNode->RemoveSubjectHierarchyItem(itemID))
+    if (!d->SubjectHierarchyNode->RemoveItem(itemID))
       {
       qWarning() << Q_FUNC_INFO << ": Failed to remove subject hierarchy item (ID:"
         << itemID << ", name:" << d->SubjectHierarchyNode->GetItemName(itemID).c_str() << ")";
@@ -965,7 +965,7 @@ void qMRMLSubjectHierarchyTreeView::applyReferenceHighlightForItems(QList<vtkMRM
     {
     // Get items referenced by argument node by DICOM
     std::vector<vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID> referencedItems =
-      d->SubjectHierarchyNode->GetSubjectHierarchyItemsReferencedFromItemByDICOM(itemID);
+      d->SubjectHierarchyNode->GetItemsReferencedFromItemByDICOM(itemID);
 
     // Highlight referenced items
     std::vector<vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID>::iterator itemIt;

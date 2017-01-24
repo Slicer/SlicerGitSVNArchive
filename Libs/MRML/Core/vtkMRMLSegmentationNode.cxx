@@ -318,7 +318,7 @@ void vtkMRMLSegmentationNode::OnSubjectHierarchyUIDAdded(
     }
 
   // Get associated subject hierarchy item
-  vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID segmentationShItemID = shNode->GetSubjectHierarchyItemByDataNode(this);
+  vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID segmentationShItemID = shNode->GetItemByDataNode(this);
   if (segmentationShItemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
     {
     // If segmentation is not in subject hierarchy, then we cannot find its DICOM references
@@ -658,7 +658,7 @@ vtkMRMLSegmentationNode::GetSegmentSubjectHierarchyItem(std::string segmentID, v
     }
 
   vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID segmentationSubjectHierarchyItemID =
-    shNode->GetSubjectHierarchyItemByDataNode(this);
+    shNode->GetItemByDataNode(this);
   if (segmentationSubjectHierarchyItemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
     {
     return vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID;

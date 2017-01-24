@@ -39,7 +39,8 @@ public:
   /// Extra information the user sees on mouse over of the export option
   QString Tooltip;
   /// ID of the subject hierarchy item to be exported
-  vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID SubjectHierarchyItemID;
+  //TODO: vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID cannot be used in a Q_PROPERTY
+  vtkIdType SubjectHierarchyItemID;
   /// Class of the plugin that created this exportable
   QString PluginClass;
   /// Target directory to export this exportable
@@ -97,8 +98,8 @@ CTK_SET_CPP(qSlicerDICOMExportable, const QString&, setTooltip, Tooltip)
 CTK_GET_CPP(qSlicerDICOMExportable, QString, tooltip, Tooltip)
 
 //-----------------------------------------------------------------------------
-CTK_SET_CPP(qSlicerDICOMExportable, const vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID&, setSubjectHierarchyItemID, SubjectHierarchyItemID)
-CTK_GET_CPP(qSlicerDICOMExportable, vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID, subjectHierarchyItemID, SubjectHierarchyItemID)
+CTK_SET_CPP(qSlicerDICOMExportable, const vtkIdType&, setSubjectHierarchyItemID, SubjectHierarchyItemID)
+CTK_GET_CPP(qSlicerDICOMExportable, vtkIdType, subjectHierarchyItemID, SubjectHierarchyItemID)
 
 //-----------------------------------------------------------------------------
 CTK_SET_CPP(qSlicerDICOMExportable, const QString&, setPluginClass, PluginClass)

@@ -27,7 +27,6 @@
 #include "qSlicerSegmentationsSubjectHierarchyPluginsExport.h"
 
 class qSlicerSubjectHierarchySegmentationsPluginPrivate;
-class vtkMRMLNode;
 class vtkMRMLSegmentationNode;
 
 /// \ingroup SlicerRt_QtModules_Segmentations
@@ -107,6 +106,14 @@ public slots:
   /// Called when segment is modified in an observed segmentation node.
   /// Renames per-segment subject hierarchy node if necessary
   void onSegmentModified(vtkObject* caller, void* callData);
+
+  /// Called when a subject hierarchy item is modified.
+  /// Renames segment if the modified item belongs to a segment
+  void onSubjectHierarchyItemModified(vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID itemID);
+
+  /// Called when a subject hierarchy item is about to be removed.
+  /// Removes segment from parent segmentation if the removed item belongs to a segment
+  void onSubjectHierarchyItemAboutToBeRemoved(vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID itemID);
 
 protected slots:
   /// Create binary labelmap representation

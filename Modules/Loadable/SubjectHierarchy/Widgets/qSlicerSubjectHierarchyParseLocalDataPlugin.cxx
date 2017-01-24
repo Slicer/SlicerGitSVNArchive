@@ -175,7 +175,7 @@ void qSlicerSubjectHierarchyParseLocalDataPlugin::createHierarchyFromLoadedDirec
     if ( storableNode && storableNode->GetStorageNode() && !storableNode->GetHideFromEditors() )
       {
       vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID shItemID =
-        shNode->GetSubjectHierarchyItemByDataNode(storableNode);
+        shNode->GetItemByDataNode(storableNode);
       if (shItemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
         {
         qCritical() << Q_FUNC_INFO << ": Data node " << storableNode->GetName() << " is not in subject hierarchy!";
