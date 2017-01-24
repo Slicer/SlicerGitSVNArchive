@@ -470,7 +470,7 @@ void qSlicerSubjectHierarchyPluginHandler::onSubjectHierarchyNodeEvent(
     return;
     }
 
-  if (event == vtkCommand::DeleteEvent)
+  if (event == vtkCommand::DeleteEvent && !pluginHandler->mrmlScene()->IsClosing())
     {
     pluginHandler->setSubjectHierarchyNode(
       vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(pluginHandler->mrmlScene()) );

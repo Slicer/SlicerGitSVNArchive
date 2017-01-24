@@ -274,7 +274,8 @@ vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID vtkSubjectHierarchyItem::Add
   this->Parent = parent;
   if (parent)
     {
-    this->Parent->Children.push_back(this);
+    vtkSmartPointer<vtkSubjectHierarchyItem> childPointer = vtkSmartPointer<vtkSubjectHierarchyItem>::Take(this);
+    this->Parent->Children.push_back(childPointer);
     this->Parent->Modified(); //TODO: Needed?
     }
   else if (name.compare("Scene") || level.compare("Scene")) // Only the scene item can have NULL parent
@@ -700,17 +701,20 @@ bool vtkSubjectHierarchyItem::RemoveChild(vtkMRMLSubjectHierarchyNode::SubjectHi
     return false;
     }
 
+  // Prevent deletion of the item from memory until the events are processed
+  vtkSmartPointer<vtkSubjectHierarchyItem> removedItem = (*childIt);
+
   // If child is a virtual branch (meaning that its children are invalid without the item,
   // as they represent the item's data node's content), then remove virtual branch
-  if ((*childIt)->IsVirtualBranchParent())
+  if (removedItem->IsVirtualBranchParent())
     {
-    (*childIt)->RemoveAllChildren();
+    removedItem->RemoveAllChildren();
     }
 
   // Remove child
-  this->InvokeEvent(vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemAboutToBeRemovedEvent, childIt->GetPointer());
+  this->InvokeEvent(vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemAboutToBeRemovedEvent, removedItem.GetPointer());
   this->Children.erase(childIt);
-  this->InvokeEvent(vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemRemovedEvent, childIt->GetPointer());
+  this->InvokeEvent(vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemRemovedEvent, removedItem.GetPointer());
   this->Modified();
 
   return true;
