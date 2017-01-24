@@ -124,9 +124,6 @@ void qSlicerSubjectHierarchyModuleWidget::enter()
 void qSlicerSubjectHierarchyModuleWidget::exit()
 {
   this->Superclass::exit();
-
-  Q_D(qSlicerSubjectHierarchyModuleWidget);
-  d->SubjectHierarchyTreeView->setMRMLScene(NULL);
 }
 
 //-----------------------------------------------------------------------------
@@ -164,7 +161,6 @@ void qSlicerSubjectHierarchyModuleWidget::setup()
   d->SubjectHierarchyTreeView->setEditTriggers(QAbstractItemView::DoubleClicked | QAbstractItemView::EditKeyPressed);
   d->SubjectHierarchyTreeView->header()->resizeSection(sceneModel->transformColumn(), 60);
 
-  connect( d->SubjectHierarchyTreeView->model(), SIGNAL(invalidateFilter()), d->SubjectHierarchyTreeView->model(), SLOT(invalidate()) );
   connect(d->SubjectHierarchyTreeView, SIGNAL(currentItemChanged(vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID)),
     this, SLOT(setDataNodeFromSubjectHierarchyItem(vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID)));
 

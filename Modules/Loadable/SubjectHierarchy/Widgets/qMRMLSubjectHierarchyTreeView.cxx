@@ -124,8 +124,9 @@ void qMRMLSubjectHierarchyTreeViewPrivate::init()
 
   // Set up scene model and sort and proxy model
   this->Model = new qMRMLSubjectHierarchyModel(q);
-  QObject::connect( this->Model, SIGNAL(saveTreeExpandState()), q, SLOT(saveTreeExpandState()) );
-  QObject::connect( this->Model, SIGNAL(loadTreeExpandState()), q, SLOT(loadTreeExpandState()) );
+  //TODO: Needed?
+  //QObject::connect( this->Model, SIGNAL(saveTreeExpandState()), q, SLOT(saveTreeExpandState()) );
+  //QObject::connect( this->Model, SIGNAL(loadTreeExpandState()), q, SLOT(loadTreeExpandState()) );
 
   this->SortFilterModel = new qMRMLSortFilterSubjectHierarchyProxyModel(q);
   q->QTreeView::setModel(this->SortFilterModel);
@@ -294,6 +295,7 @@ void qMRMLSubjectHierarchyTreeViewPrivate::saveChildrenExpandState(QModelIndex &
 //------------------------------------------------------------------------------
 qMRMLSubjectHierarchyTreeView::qMRMLSubjectHierarchyTreeView(QWidget *parent)
   : QTreeView(parent)
+  , d_ptr(new qMRMLSubjectHierarchyTreeViewPrivate(*this))
 {
   Q_D(qMRMLSubjectHierarchyTreeView);
   d->init();
@@ -308,6 +310,11 @@ qMRMLSubjectHierarchyTreeView::~qMRMLSubjectHierarchyTreeView()
 void qMRMLSubjectHierarchyTreeView::setSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode* shNode)
 {
   Q_D(qMRMLSubjectHierarchyTreeView);
+
+  if (!shNode)
+    {
+    qCritical() << Q_FUNC_INFO << ": Invalid subject hierarchy node";
+    }
 
   vtkMRMLScene* scene = shNode->GetScene();
   if (!scene)

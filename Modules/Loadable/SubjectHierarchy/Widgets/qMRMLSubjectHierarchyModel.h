@@ -170,6 +170,8 @@ signals:
   void subjectHierarchyAboutToBeUpdated();
   /// This signal is sent after the whole subject hierarchy is updated
   void subjectHierarchyUpdated();
+  /// Triggers invalidating the sort filter proxy model
+  void invalidateFilter();
 
 protected:
   qMRMLSubjectHierarchyModel(qMRMLSubjectHierarchyModelPrivate* pimpl, QObject *parent=0);

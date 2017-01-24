@@ -191,7 +191,8 @@ public:
 
 signals:
   /// Signal requesting expanding of the subject hierarchy tree item belonging to an item
-  void requestExpandItem(SubjectHierarchyItemID itemID);
+  /// Note: vtkMRMLSubjectHierarchyNode namespace needed in order to be able to make connection
+  void requestExpandItem(vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID itemID);
 
   /// Signal requesting invalidating the filter model for the tree view
   /// (e.g. when an item is added or removed by the plugin)

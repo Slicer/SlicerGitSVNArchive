@@ -77,6 +77,7 @@ void vtkSlicerSubjectHierarchyModuleLogic::RegisterNodes()
     return;
     }
 
+  // Register node class. This call increments next subject hierarchy item ID
   this->GetMRMLScene()->RegisterNodeClass(vtkSmartPointer<vtkMRMLSubjectHierarchyNode>::New());
 }
 

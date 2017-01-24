@@ -119,7 +119,7 @@ QModelIndexList qMRMLSubjectHierarchyModelPrivate::indexes(const vtkMRMLSubjectH
   // QAbstractItemModel::match doesn't browse through columns
   // we need to do it manually
   QModelIndexList nodeIndexes = q->match(
-    scene, qMRMLSubjectHierarchyModel::SubjectHierarchyItemIDRole, QVariant(qulonglong(itemID)), 1, Qt::MatchExactly | Qt::MatchRecursive);
+    scene, qMRMLSubjectHierarchyModel::SubjectHierarchyItemIDRole, QVariant(qlonglong(itemID)), 1, Qt::MatchExactly | Qt::MatchRecursive);
   if (nodeIndexes.size() != 1)
     {
     return QModelIndexList(); // If 0 it's empty, if >1 it's invalid (one item for each UID)
@@ -268,19 +268,19 @@ QStandardItem* qMRMLSubjectHierarchyModel::subjectHierarchySceneItem()const
       continue;
       }
     QVariant uid = child->data(qMRMLSubjectHierarchyModel::SubjectHierarchyItemIDRole);
-    if (uid.type() == QVariant::ULongLong && uid == d->SubjectHierarchyNode->GetSceneItemID())
+    if (uid.type() == QVariant::LongLong && uid == d->SubjectHierarchyNode->GetSceneItemID())
       {
       return child;
       }
     }
-  return 0;
+  return NULL;
 }
 
 //------------------------------------------------------------------------------
 QModelIndex qMRMLSubjectHierarchyModel::subjectHierarchySceneIndex()const
 {
   QStandardItem* shSceneItem = this->subjectHierarchySceneItem();
-  if (shSceneItem == 0)
+  if (shSceneItem == NULL)
     {
     return QModelIndex();
     }
@@ -305,11 +305,11 @@ vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID qMRMLSubjectHierarchyModel::
     }
   QVariant shItemID = item->data(qMRMLSubjectHierarchyModel::SubjectHierarchyItemIDRole);
   if ( !shItemID.isValid()
-    || item->data(qMRMLSubjectHierarchyModel::SubjectHierarchyItemIDRole).toULongLong() == d->SubjectHierarchyNode->GetSceneItemID() )
+    || item->data(qMRMLSubjectHierarchyModel::SubjectHierarchyItemIDRole).toLongLong() == d->SubjectHierarchyNode->GetSceneItemID() )
     {
     return vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID;
     }
-  return item->data(qMRMLSubjectHierarchyModel::SubjectHierarchyItemIDRole).toULongLong();
+  return item->data(qMRMLSubjectHierarchyModel::SubjectHierarchyItemIDRole).toLongLong();
 }
 //------------------------------------------------------------------------------
 QStandardItem* qMRMLSubjectHierarchyModel::itemFromSubjectHierarchyItem(SubjectHierarchyItemID itemID, int column/*=0*/)const
@@ -342,7 +342,7 @@ QModelIndex qMRMLSubjectHierarchyModel::indexFromSubjectHierarchyItem(SubjectHie
     {
     // An entry found in the cache. If the item at the cached index matches the requested item ID then we use it.
     QStandardItem* item = this->itemFromIndex(rowCacheIt.value());
-    if (item && item->data(qMRMLSubjectHierarchyModel::SubjectHierarchyItemIDRole).toULongLong() == itemID)
+    if (item && item->data(qMRMLSubjectHierarchyModel::SubjectHierarchyItemIDRole).toLongLong() == itemID)
       {
       // ID matched
       itemIndex = rowCacheIt.value();
@@ -610,20 +610,24 @@ void qMRMLSubjectHierarchyModel::updateFromSubjectHierarchy()
     {
     // No subject hierarchy root item has been created yet, but the subject hierarchy
     // node is valid, so we need to create a scene item
+    vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID sceneItemID = d->SubjectHierarchyNode->GetSceneItemID();
     QList<QStandardItem*> sceneItems;
-    QStandardItem* sceneItem = new QStandardItem;
+    QStandardItem* sceneItem = new QStandardItem();
     sceneItem->setFlags(Qt::ItemIsDropEnabled | Qt::ItemIsEnabled);
     sceneItem->setText("Scene");
-    sceneItem->setData(d->SubjectHierarchyNode->GetSceneItemID(), qMRMLSubjectHierarchyModel::SubjectHierarchyItemIDRole);
+    sceneItem->setData(sceneItemID, qMRMLSubjectHierarchyModel::SubjectHierarchyItemIDRole);
     sceneItems << sceneItem;
     for (int i = 1; i < this->columnCount(); ++i)
       {
-      QStandardItem* sceneOtherColumn = new QStandardItem;
+      QStandardItem* sceneOtherColumn = new QStandardItem();
       sceneOtherColumn->setFlags(0);
       sceneItems << sceneOtherColumn;
       }
     sceneItem->setColumnCount(this->columnCount());
+
+    d->RowCache[sceneItemID] = QModelIndex(); // Insert invalid item in cache to indicate that item is in the model but its index is unknown
     this->insertRow(0, sceneItems);
+    d->RowCache[sceneItemID] = sceneItem->index();
     }
   else
     {
@@ -700,6 +704,13 @@ QStandardItem* qMRMLSubjectHierarchyModel::insertSubjectHierarchyItem(
 {
   Q_D(qMRMLSubjectHierarchyModel);
 
+  if (!parent)
+    {
+    // The scene is inserted individually, and the other items must always have a valid parent (if not other then the scene)
+    qCritical() << Q_FUNC_INFO << ": Invalid parent to inserted subject hierarchy item with ID " << itemID;
+    return NULL;
+    }
+
   QList<QStandardItem*> items;
   for (int col=0; col<this->columnCount(); ++col)
     {
@@ -712,16 +723,9 @@ QStandardItem* qMRMLSubjectHierarchyModel::insertSubjectHierarchyItem(
   // model but we don't know its index yet. This is needed because a custom widget may be notified
   // abot row insertion before insertRow() returns (and the RowCache entry is added).
   d->RowCache[itemID] = QModelIndex();
-
-  if (parent)
-    {
-    parent->insertRow(row, items);
-    }
-  else
-    {
-    this->insertRow(row,items);
-    }
+  parent->insertRow(row, items);
   d->RowCache[itemID] = items[0]->index();
+
   return items[0];
 }
 
@@ -735,31 +739,31 @@ QFlags<Qt::ItemFlag> qMRMLSubjectHierarchyModel::subjectHierarchyItemFlags(Subje
   // Name and transform columns are editable
   if (column == this->nameColumn() || column == this->transformColumn())
     {
-    flags = flags | Qt::ItemIsEditable;
+    flags |= Qt::ItemIsEditable;
     }
 
   if (this->canBeAChild(itemID))
     {
-    flags = flags | Qt::ItemIsDragEnabled;
+    flags |= Qt::ItemIsDragEnabled;
     }
   if (this->canBeAParent(itemID))
     {
-    flags = flags | Qt::ItemIsDropEnabled;
+    flags |= Qt::ItemIsDropEnabled;
     }
 
   // Drop is also enabled for virtual branches.
   // (a virtual branch is a branch where the children items do not correspond to actual MRML data nodes,
   // but to implicit items contained by the parent MRML node, e.g. in case of Markups or Segmentations)
-  if ( !d->SubjectHierarchyNode->GetItemAttribute( itemID,
-    vtkMRMLSubjectHierarchyConstants::GetVirtualBranchSubjectHierarchyNodeAttributeName()).empty() );
+  if ( d->SubjectHierarchyNode->HasItemAttribute( itemID,
+    vtkMRMLSubjectHierarchyConstants::GetVirtualBranchSubjectHierarchyNodeAttributeName()) )
     {
     flags |= Qt::ItemIsDropEnabled;
     }
   // Along the same logic, drop is not enabled to children nodes in virtual branches
   SubjectHierarchyItemID parentItemID = d->SubjectHierarchyNode->GetItemParent(itemID);
   if ( parentItemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID
-    && !d->SubjectHierarchyNode->GetItemAttribute(
-         parentItemID, vtkMRMLSubjectHierarchyConstants::GetVirtualBranchSubjectHierarchyNodeAttributeName()).empty() );
+    && d->SubjectHierarchyNode->HasItemAttribute(
+         parentItemID, vtkMRMLSubjectHierarchyConstants::GetVirtualBranchSubjectHierarchyNodeAttributeName()) )
     {
     flags &= ~Qt::ItemIsDropEnabled;
     }
@@ -828,17 +832,14 @@ void qMRMLSubjectHierarchyModel::updateItemDataFromSubjectHierarchyItem(
     ownerPlugin = qSlicerSubjectHierarchyPluginHandler::instance()->getOwnerPluginForSubjectHierarchyItem(shItemID);
     if (!ownerPlugin)
       {
-      // Set warning icon if the column is the node type column
-      //TODO:
-      //if ( column == this->nodeTypeColumn()
-      //  && item->icon().cacheKey() != d->WarningIcon.cacheKey() ) // Only set if it changed (https://bugreports.qt-project.org/browse/QTBUG-20248)
-      //  {
-      //  item->setIcon(d->WarningIcon);
-      //  }
       if (column == this->nameColumn())
         {
-          item->setText(d->subjectHierarchyItemName(shItemID));
-          item->setToolTip(tr("No subject hierarchy role assigned! Please report error"));
+        item->setText(d->subjectHierarchyItemName(shItemID));
+        item->setToolTip(tr("No subject hierarchy role assigned! Please report error"));
+        if (item->icon().cacheKey() != d->WarningIcon.cacheKey()) // Only set if it changed (https://bugreports.qt-project.org/browse/QTBUG-20248)
+          {
+          item->setIcon(d->WarningIcon);
+          }
         }
         return;
       }
@@ -1418,7 +1419,6 @@ void qMRMLSubjectHierarchyModel::updateColumnCount()
     // Update all items
     if (!d->SubjectHierarchyNode)
       {
-      qCritical() << Q_FUNC_INFO << ": Invalid subject hierarchy";
       return;
       }
     std::vector<SubjectHierarchyItemID> allItemIDs;

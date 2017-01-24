@@ -120,7 +120,8 @@ public slots:
   virtual void editCurrentItem();
 
   /// Handle expand item requests in the subject hierarchy tree
-  virtual void expandItem(SubjectHierarchyItemID itemID);
+  /// Note: vtkMRMLSubjectHierarchyNode namespace needed in order to be able to make connection
+  virtual void expandItem(vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID itemID);
 
   /// Handle manual selection of a plugin as the new owner of a subject hierarchy node
   virtual void selectPluginForCurrentItem();
@@ -135,7 +136,8 @@ public slots:
   virtual void setMultiSelection(bool multiSelectionOn);
 
 signals:
-  void currentItemChanged(SubjectHierarchyItemID);
+  /// Note: vtkMRMLSubjectHierarchyNode namespace needed in order to be able to make connection
+  void currentItemChanged(vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID);
 
 protected slots:
   virtual void onSelectionChanged(const QItemSelection &selected, const QItemSelection &deselected);
@@ -144,6 +146,9 @@ protected slots:
 
   /// Expand tree to depth specified by the clicked context menu action
   virtual void expandToDepthFromContextMenu();
+
+protected:
+  QScopedPointer<qMRMLSubjectHierarchyTreeViewPrivate> d_ptr;
 
 private:
   Q_DECLARE_PRIVATE(qMRMLSubjectHierarchyTreeView);
