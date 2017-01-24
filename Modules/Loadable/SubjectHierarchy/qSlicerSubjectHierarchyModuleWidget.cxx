@@ -124,9 +124,6 @@ void qSlicerSubjectHierarchyModuleWidget::enter()
 void qSlicerSubjectHierarchyModuleWidget::exit()
 {
   this->Superclass::exit();
-
-  Q_D(qSlicerSubjectHierarchyModuleWidget);
-  d->SubjectHierarchyTreeView->setMRMLScene(NULL);
 }
 
 //-----------------------------------------------------------------------------
@@ -139,9 +136,11 @@ void qSlicerSubjectHierarchyModuleWidget::onEnter()
 
   Q_D(qSlicerSubjectHierarchyModuleWidget);
 
-  d->SubjectHierarchyTreeView->setMRMLScene(this->mrmlScene());
+  //TODO: Remove
+  //d->SubjectHierarchyTreeView->setMRMLScene(this->mrmlScene());
 
-  this->updateWidgetFromMRML();
+  //TODO:
+  //this->updateWidgetFromMRML();
 
   //TODO: Similar call for importing model hierarchy?
   //this->pluginLogic()->checkSupportedNodesInScene();
@@ -164,9 +163,8 @@ void qSlicerSubjectHierarchyModuleWidget::setup()
   d->SubjectHierarchyTreeView->setEditTriggers(QAbstractItemView::DoubleClicked | QAbstractItemView::EditKeyPressed);
   d->SubjectHierarchyTreeView->header()->resizeSection(sceneModel->transformColumn(), 60);
 
-  connect( d->SubjectHierarchyTreeView->model(), SIGNAL(invalidateFilter()), d->SubjectHierarchyTreeView->model(), SLOT(invalidate()) );
-  connect(d->SubjectHierarchyTreeView, SIGNAL(currentItemChanged(vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID)),
-    this, SLOT(setDataNodeFromSubjectHierarchyItem(vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID)));
+  connect(d->SubjectHierarchyTreeView, SIGNAL(currentItemChanged(vtkIdType)),
+    this, SLOT(setDataNodeFromSubjectHierarchyItem(vtkIdType)));
 
   this->setMRMLIDsVisible(d->DisplayMRMLIDsCheckBox->isChecked());
   this->setTransformsVisible(d->DisplayTransformsCheckBox->isChecked());
@@ -191,8 +189,9 @@ void qSlicerSubjectHierarchyModuleWidget::updateWidgetFromMRML()
 {
   Q_D(qSlicerSubjectHierarchyModuleWidget);
 
+  //TODO:
   // Expand to depth 4
-  d->SubjectHierarchyTreeView->expandToDepth(4);
+  //d->SubjectHierarchyTreeView->expandToDepth(4);
 }
 
 //-----------------------------------------------------------------------------
@@ -222,8 +221,7 @@ void qSlicerSubjectHierarchyModuleWidget::setTransformsVisible(bool visible)
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSubjectHierarchyModuleWidget::setDataNodeFromSubjectHierarchyItem(
-  vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID itemID)
+void qSlicerSubjectHierarchyModuleWidget::setDataNodeFromSubjectHierarchyItem(vtkIdType itemID)
 {
   Q_D(qSlicerSubjectHierarchyModuleWidget);
 
@@ -234,8 +232,12 @@ void qSlicerSubjectHierarchyModuleWidget::setDataNodeFromSubjectHierarchyItem(
     return;
     }
 
-  vtkMRMLNode* dataNode = shNode->GetItemDataNode(itemID);
-  d->DataNodeInspectorGroupBox->setVisible(dataNode!=NULL);
+  vtkMRMLNode* dataNode = NULL;
+  if (itemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+    {
+    dataNode = shNode->GetItemDataNode(itemID);
+    }
+  d->DataNodeInspectorGroupBox->setVisible(dataNode);
   d->DataNodeAttributeTableWidget->setMRMLNode(dataNode);
 }
 
