@@ -24,7 +24,6 @@
 
 // MRML include
 #include "vtkMRMLSubjectHierarchyNode.h"
-#include "vtkMRMLSubjectHierarchyConstants.h"
 
 // Subject Hierarchy includes
 #include "qSlicerSubjectHierarchyPluginHandler.h"
@@ -45,7 +44,7 @@ public:
   qMRMLSortFilterSubjectHierarchyProxyModelPrivate();
 
   QString NameFilter;
-  vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID HideItemsUnaffiliatedWithItemID;
+  vtkIdType HideItemsUnaffiliatedWithItemID;
 };
 
 // -----------------------------------------------------------------------------
@@ -108,16 +107,14 @@ void qMRMLSortFilterSubjectHierarchyProxyModel::setNameFilter(QString filter)
 }
 
 //-----------------------------------------------------------------------------
-vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID
-qMRMLSortFilterSubjectHierarchyProxyModel::hideItemsUnaffiliatedWithItemID()
+vtkIdType qMRMLSortFilterSubjectHierarchyProxyModel::hideItemsUnaffiliatedWithItemID()
 {
   Q_D(qMRMLSortFilterSubjectHierarchyProxyModel);
   return d->HideItemsUnaffiliatedWithItemID;
 }
 
 //-----------------------------------------------------------------------------
-void qMRMLSortFilterSubjectHierarchyProxyModel::setHideItemsUnaffiliatedWithItemID(
-  vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID itemID)
+void qMRMLSortFilterSubjectHierarchyProxyModel::setHideItemsUnaffiliatedWithItemID(vtkIdType itemID)
 {
   Q_D(qMRMLSortFilterSubjectHierarchyProxyModel);
   d->HideItemsUnaffiliatedWithItemID = itemID;
@@ -131,16 +128,14 @@ QModelIndex qMRMLSortFilterSubjectHierarchyProxyModel::subjectHierarchySceneInde
 }
 
 //-----------------------------------------------------------------------------
-vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID
-qMRMLSortFilterSubjectHierarchyProxyModel::subjectHierarchyItemFromIndex(const QModelIndex& index)const
+vtkIdType qMRMLSortFilterSubjectHierarchyProxyModel::subjectHierarchyItemFromIndex(const QModelIndex& index)const
 {
   qMRMLSubjectHierarchyModel* sceneModel = qobject_cast<qMRMLSubjectHierarchyModel*>(this->sourceModel());
   return sceneModel->subjectHierarchyItemFromIndex( this->mapToSource(index) );
 }
 
 //-----------------------------------------------------------------------------
-QModelIndex qMRMLSortFilterSubjectHierarchyProxyModel::indexFromSubjectHierarchyItem(
-  vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID itemID, int column)const
+QModelIndex qMRMLSortFilterSubjectHierarchyProxyModel::indexFromSubjectHierarchyItem(vtkIdType itemID, int column)const
 {
   qMRMLSubjectHierarchyModel* sceneModel = qobject_cast<qMRMLSubjectHierarchyModel*>(this->sourceModel());
   return this->mapFromSource(sceneModel->indexFromSubjectHierarchyItem(itemID, column));
@@ -181,13 +176,12 @@ bool qMRMLSortFilterSubjectHierarchyProxyModel::filterAcceptsRow(int sourceRow, 
     return false;
     }
   qMRMLSubjectHierarchyModel* model = qobject_cast<qMRMLSubjectHierarchyModel*>(this->sourceModel());
-  vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID itemID = model->subjectHierarchyItemFromItem(item);
+  vtkIdType itemID = model->subjectHierarchyItemFromItem(item);
   return this->filterAcceptsItem(itemID);
 }
 
 //------------------------------------------------------------------------------
-bool qMRMLSortFilterSubjectHierarchyProxyModel::filterAcceptsItem(
-  vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID itemID )const
+bool qMRMLSortFilterSubjectHierarchyProxyModel::filterAcceptsItem(vtkIdType itemID )const
 {
   Q_D(const qMRMLSortFilterSubjectHierarchyProxyModel);
 
