@@ -263,10 +263,11 @@ vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID qSlicerSubjectHierarchyFolde
     }
 
   // Create folder subject hierarchy node
-  std::string nodeName = vtkMRMLSubjectHierarchyConstants::GetSubjectHierarchyNewNodeNamePrefix() + vtkMRMLSubjectHierarchyConstants::GetSubjectHierarchyLevelFolder();
-  nodeName = scene->GenerateUniqueName(nodeName);
+  std::string name = vtkMRMLSubjectHierarchyConstants::GetSubjectHierarchyNewNodeNamePrefix()
+    + vtkMRMLSubjectHierarchyConstants::GetSubjectHierarchyLevelFolder();
+  name = shNode->GenerateUniqueItemName(name);
   vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID childItemID = shNode->CreateItem(
-    parentItemID, NULL, vtkMRMLSubjectHierarchyConstants::GetSubjectHierarchyLevelFolder(), nodeName );
+    parentItemID, NULL, vtkMRMLSubjectHierarchyConstants::GetSubjectHierarchyLevelFolder(), name );
   emit requestExpandItem(childItemID);
 
   return childItemID;

@@ -145,7 +145,7 @@ double qSlicerSubjectHierarchyDICOMPlugin::canOwnSubjectHierarchyItem(
     {
     return 0.7;
     }
-  // Study level (so that creation of a generic series is possible)
+  // Study level
   if (shNode->IsItemLevel(itemID, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy()))
     {
     return 0.3;
@@ -178,7 +178,7 @@ const QString qSlicerSubjectHierarchyDICOMPlugin::roleForPlugin()const
     {
     return "Subject"; // Show the role Subject to the user, while internally it is used for the patient notation defined in DICOM
     }
-  // Study level (so that creation of a generic series is possible)
+  // Study level
   if (shNode->IsItemLevel(currentItemID, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy()))
     {
     return "Study";

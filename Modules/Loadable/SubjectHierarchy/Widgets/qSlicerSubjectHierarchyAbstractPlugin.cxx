@@ -182,7 +182,7 @@ bool qSlicerSubjectHierarchyAbstractPlugin::addNodeToSubjectHierarchy(
     return false;
     }
 
-  // Set owner plugin
+  // Set owner plugin to make sure the plugin that adds the item is the owner
   shNode->SetItemOwnerPluginName(addedItemID, this->m_Name.toLatin1().constData());
 
   return true;

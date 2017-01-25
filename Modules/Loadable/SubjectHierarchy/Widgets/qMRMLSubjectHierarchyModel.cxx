@@ -75,6 +75,10 @@ qMRMLSubjectHierarchyModelPrivate::~qMRMLSubjectHierarchyModelPrivate()
     {
     this->SubjectHierarchyNode->RemoveObserver(this->CallBack);
     }
+  if (this->MRMLScene)
+    {
+    this->MRMLScene->RemoveObserver(this->CallBack);
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -1114,13 +1118,12 @@ void qMRMLSubjectHierarchyModel::updateModelItems(SubjectHierarchyItemID itemID)
     // If the item was reparented, then we need to rescan the indexes again as they may be wrong
     if (item->row() != oldRow || item->parent() != oldParent)
       {
-      //TODO: Does this ever occur? If yes, then double check that this technique works (i.e. the for loop handles the change)
       int oldSize = itemIndexes.size();
       itemIndexes = this->indexes(itemID);
       int newSize = itemIndexes.size();
       if (oldSize != newSize)
         {
-        qCritical() << Q_FUNC_INFO << ": Index mismatch"; //TODO: Check needed?
+        qCritical() << Q_FUNC_INFO << ": Index mismatch";
         return;
         }
       }
@@ -1140,6 +1143,7 @@ void qMRMLSubjectHierarchyModel::onEvent(
     return;
     }
 
+  // Get item ID
   SubjectHierarchyItemID itemID = vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID;
   if (callData)
     {

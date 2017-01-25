@@ -556,16 +556,21 @@ bool vtkSubjectHierarchyItem::Reparent(vtkSubjectHierarchyItem* newParentItem)
     vtkErrorMacro("Reparent: Subject hierarchy item '" << this->GetName() << "' not found under item '" << formerParent->GetName() << "'");
     return false;
     }
+
+  // Prevent deletion of the item from memory until the events are processed
+  vtkSmartPointer<vtkSubjectHierarchyItem> removedItem = (*childIt);
+  // Remove item from former parent
   formerParent->Children.erase(childIt);
 
   // Add item to new parent
   this->Parent = newParentItem;
-  newParentItem->Children.push_back(this);
+  vtkSmartPointer<vtkSubjectHierarchyItem> childPointer = this;
+  newParentItem->Children.push_back(childPointer);
 
   // Invoke modified events on all affected items
-  this->Modified();
-  newParentItem->Modified();
   formerParent->Modified();
+  newParentItem->Modified();
+  this->Modified();
 
   return true;
 }
@@ -594,12 +599,17 @@ bool vtkSubjectHierarchyItem::Move(vtkSubjectHierarchyItem* beforeItem)
       << "' in its parent '" << this->Parent->GetName() << "'");
     return false;
     }
+
+  // Prevent deletion of the item from memory until the events are processed
+  vtkSmartPointer<vtkSubjectHierarchyItem> removedItem = (*childIt);
+  // Remove item from former parent
   this->Parent->Children.erase(childIt);
 
   // Re-insert item to the requested position (before beforeItem)
   if (!beforeItem)
     {
-    this->Parent->Children.push_back(this);
+    vtkSmartPointer<vtkSubjectHierarchyItem> childPointer = vtkSmartPointer<vtkSubjectHierarchyItem>::Take(this);
+    this->Parent->Children.push_back(childPointer);
     return true;
     }
 
@@ -1419,10 +1429,14 @@ vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID vtkMRMLSubjectHierarchyNode:
     item->AddObserver(vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemRemovedEvent, this->ItemEventCallbackCommand);
     item->AddObserver(vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemUIDAddedEvent, this->ItemEventCallbackCommand);
     item->AddObserver(vtkCommand::ModifiedEvent, this->ItemEventCallbackCommand);
+
     // Observe data node events
-    dataNode->AddObserver(vtkCommand::ModifiedEvent, this->ItemEventCallbackCommand);
-    dataNode->AddObserver(vtkMRMLTransformableNode::TransformModifiedEvent, this->ItemEventCallbackCommand);
-    dataNode->AddObserver(vtkMRMLDisplayableNode::DisplayModifiedEvent, this->ItemEventCallbackCommand);
+    if (dataNode)
+      {
+      dataNode->AddObserver(vtkCommand::ModifiedEvent, this->ItemEventCallbackCommand);
+      dataNode->AddObserver(vtkMRMLTransformableNode::TransformModifiedEvent, this->ItemEventCallbackCommand);
+      dataNode->AddObserver(vtkMRMLDisplayableNode::DisplayModifiedEvent, this->ItemEventCallbackCommand);
+      }
 
     // Add item to the tree
     itemID = item->AddItemToTree( parentItem, dataNode, level, (dataNode ? "" : name) ); // Name is not used if valid data node is given

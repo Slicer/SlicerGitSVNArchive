@@ -322,10 +322,11 @@ void qMRMLSubjectHierarchyTreeView::setSubjectHierarchyNode(vtkMRMLSubjectHierar
     qCritical() << Q_FUNC_INFO << ": Given subject hierarchy node is not in a MRML scene";
     }
 
-  vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID rootItemID = this->rootItem();
+  d->SubjectHierarchyNode = shNode;
+
   d->Model->setMRMLScene(scene);
   d->TransformItemDelegate->setMRMLScene(scene);
-  this->setRootItem(rootItemID);
+  this->setRootItem(shNode->GetSceneItemID());
   this->expandToDepth(4);
 }
 
@@ -408,8 +409,18 @@ bool qMRMLSubjectHierarchyTreeView::showRootItem()const
 void qMRMLSubjectHierarchyTreeView::setRootItem(vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID rootItemID)
 {
   Q_D(qMRMLSubjectHierarchyTreeView);
+  if (!d->SubjectHierarchyNode)
+    {
+    return;
+    }
+
   QModelIndex treeRootIndex;
   if (rootItemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+    {
+    qMRMLSubjectHierarchyModel* sceneModel = qobject_cast<qMRMLSubjectHierarchyModel*>(this->model());
+    treeRootIndex = sceneModel->invisibleRootItem()->index();
+    }
+  if (rootItemID == d->SubjectHierarchyNode->GetSceneItemID())
     {
     treeRootIndex = this->sortFilterProxyModel()->subjectHierarchySceneIndex();
     }
@@ -546,8 +557,13 @@ void qMRMLSubjectHierarchyTreeView::mousePressEvent(QMouseEvent* e)
       this->sortFilterProxyModel()->subjectHierarchyItemFromIndex(index);
     if (itemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
       {
-      selectedShItems.append(itemID);
+      selectedShItems << itemID;
       }
+    }
+  // If no item was selected, then the scene is considered to be selected
+  if (selectedShItems.count() == 0)
+    {
+    selectedShItems << d->SubjectHierarchyNode->GetSceneItemID();
     }
 
   // Set current item(s) to plugin handler
@@ -564,19 +580,20 @@ void qMRMLSubjectHierarchyTreeView::mousePressEvent(QMouseEvent* e)
   // Not the right button clicked, handle events the default way
   if (e->button() == Qt::RightButton)
     {
-    // Make sure the shown context menu is up-to-date
-    this->populateContextMenuForCurrentItem();
-
-    // Show context menu
     QModelIndex index = this->indexAt(e->pos()); // Get the index of the current column
     vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID itemID = this->sortFilterProxyModel()->subjectHierarchyItemFromIndex(index);
-    if (itemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
-      {
-      d->NodeMenu->exec(e->globalPos());
-      }
-    else if (itemID == d->SubjectHierarchyNode->GetSceneItemID())
+
+    // Make sure the shown context menu is up-to-date
+    this->populateContextMenuForItem(itemID);
+
+    // Show context menu
+    if (itemID == d->SubjectHierarchyNode->GetSceneItemID() || itemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
       {
       d->SceneMenu->exec(e->globalPos());
+      }
+    else
+      {
+      d->NodeMenu->exec(e->globalPos());
       }
     }
 }
@@ -611,7 +628,7 @@ void qMRMLSubjectHierarchyTreeView::onSelectionChanged(const QItemSelection& sel
 {
   Q_UNUSED(deselected);
   Q_D(qMRMLSubjectHierarchyTreeView);
-  if (!d->SubjectHierarchyNode || !d->Model)
+  if (!d->SortFilterModel)
     {
     return;
     }
@@ -619,7 +636,7 @@ void qMRMLSubjectHierarchyTreeView::onSelectionChanged(const QItemSelection& sel
   vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID newCurrentItemID = vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID;
   if (selected.indexes().count() > 0)
     {
-    newCurrentItemID = d->Model->subjectHierarchyItemFromIndex(selected.indexes()[0]);
+    newCurrentItemID = d->SortFilterModel->subjectHierarchyItemFromIndex(selected.indexes()[0]);
     }
   emit currentItemChanged(newCurrentItemID);
 }
@@ -701,14 +718,23 @@ void qMRMLSubjectHierarchyTreeView::onItemExpanded(const QModelIndex &expandedIt
 //}
 
 //--------------------------------------------------------------------------
-void qMRMLSubjectHierarchyTreeView::populateContextMenuForCurrentItem()
+void qMRMLSubjectHierarchyTreeView::populateContextMenuForItem(vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID itemID)
 {
   Q_D(qMRMLSubjectHierarchyTreeView);
+
+  if (!d->SubjectHierarchyNode)
+    {
+    qCritical() << Q_FUNC_INFO << ": Invalid subject hierarchy";
+    return;
+    }
 
   // Get current item(s)
   QList<vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID> currentItemIDs =
     qSlicerSubjectHierarchyPluginHandler::instance()->currentItems();
-  if (currentItemIDs.size() > 1)
+  // Show multi-selection context menu if there are more than one selected items,
+  // and right-click didn't happen on the scene or the empty area
+  if ( currentItemIDs.size() > 1
+    && itemID != d->SubjectHierarchyNode->GetSceneItemID() && itemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID )
     {
     // Multi-selection: only show delete action
     d->EditAction->setVisible(false);
@@ -725,22 +751,28 @@ void qMRMLSubjectHierarchyTreeView::populateContextMenuForCurrentItem()
     }
 
   // Single selection
-  vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID currentItemID =
-    qSlicerSubjectHierarchyPluginHandler::instance()->currentItem();
-  if (currentItemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+  vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemID currentItemID = qSlicerSubjectHierarchyPluginHandler::instance()->currentItem();
+  // If clicked item is the scene or the empty area, then show scene menu regardless the selection
+  if ( itemID == d->SubjectHierarchyNode->GetSceneItemID()
+    || itemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID )
     {
-    // Don't show certain actions for non-subject hierarchy nodes (i.e. filtering is turned off)
+      currentItemID = d->SubjectHierarchyNode->GetSceneItemID();
+    }
+
+  // Do not show certain actions for the scene or empty area
+  if ( currentItemID == d->SubjectHierarchyNode->GetSceneItemID()
+    || currentItemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID )
+    {
     d->EditAction->setVisible(false);
     d->SelectPluginSubMenu->menuAction()->setVisible(false);
     }
   else
     {
-    // Show basic actions for all subject hierarchy nodes
     d->EditAction->setVisible(true);
     d->SelectPluginSubMenu->menuAction()->setVisible(true);
     }
 
-  // Have all plugins show context menu items for current node
+  // Have all plugins show context menu items for current item
   foreach (qSlicerSubjectHierarchyAbstractPlugin* plugin, qSlicerSubjectHierarchyPluginHandler::instance()->allPlugins())
     {
     plugin->showContextMenuActionsForItem(currentItemID);
