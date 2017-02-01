@@ -1191,7 +1191,7 @@ vtkSlicerVolumesLogic::CompareVolumeGeometry(vtkMRMLScalarVolumeNode *volumeNode
 
 //----------------------------------------------------------------------------
 vtkMRMLScalarVolumeNode*
-vtkSlicerVolumesLogic::CloneVolume(vtkMRMLVolumeNode *volumeNode, const char *name)
+vtkSlicerVolumesLogic::CloneVolume(vtkMRMLScalarVolumeNode *volumeNode, const char *name)
 {
   return Self::CloneVolume(this->GetMRMLScene(), volumeNode, name);
 }
@@ -1199,85 +1199,34 @@ vtkSlicerVolumesLogic::CloneVolume(vtkMRMLVolumeNode *volumeNode, const char *na
 //----------------------------------------------------------------------------
 vtkMRMLScalarVolumeNode*
 vtkSlicerVolumesLogic::
-CloneVolume (vtkMRMLScene *scene, vtkMRMLVolumeNode *volumeNode, const char *name, bool cloneImageData/*=true*/)
+CloneVolume(vtkMRMLScene *scene, vtkMRMLScalarVolumeNode *volumeNode,
+             const char *name, bool cloneImageData/*=true*/)
 {
-  if ( scene == NULL || volumeNode == NULL )
-    {
-    // no valid object is available, so we cannot log error
-    return NULL;
-    }
+  return Self::CloneVolume<vtkMRMLScalarVolumeNode>(scene, volumeNode, name, cloneImageData);
+}
 
-  // clone the volume node
-  vtkSmartPointer<vtkMRMLScalarVolumeNode> clonedVolumeNode;
-  clonedVolumeNode.TakeReference((vtkMRMLScalarVolumeNode*)scene->CreateNodeByClass(volumeNode->GetClassName()));
-  if ( !clonedVolumeNode.GetPointer() )
-    {
-    vtkErrorWithObjectMacro(volumeNode, "Could not clone volume!");
-    return NULL;
-    }
-  clonedVolumeNode->CopyWithScene(volumeNode);
+//----------------------------------------------------------------------------
+vtkMRMLDiffusionWeightedVolumeNode*
+vtkSlicerVolumesLogic::
+CloneVolume(vtkMRMLScene *scene, vtkMRMLDiffusionWeightedVolumeNode *volumeNode,
+             const char *name, bool cloneImageData/*=true*/)
+{
+  return Self::CloneVolume<vtkMRMLDiffusionWeightedVolumeNode>(scene, volumeNode, name, cloneImageData);
+}
 
-  // remove storage nodes
-  clonedVolumeNode->SetAndObserveStorageNodeID(NULL);
-
-  // remove display nodes (but not the first one)
-  while (clonedVolumeNode->GetNumberOfDisplayNodes() > 1)
-    {
-    clonedVolumeNode->RemoveNthDisplayNodeID(1); // always remove at index 1 since they will shift
-    }
-
-  // clone the 1st display node if possible
-  vtkMRMLDisplayNode* originalDisplayNode = volumeNode->GetDisplayNode();
-  vtkSmartPointer<vtkMRMLDisplayNode> clonedDisplayNode;
-  if (originalDisplayNode)
-    {
-    clonedDisplayNode.TakeReference((vtkMRMLDisplayNode*)scene->CreateNodeByClass(originalDisplayNode->GetClassName()));
-    }
-  if (clonedDisplayNode.GetPointer())
-    {
-    clonedDisplayNode->CopyWithScene(originalDisplayNode);
-    scene->AddNode(clonedDisplayNode);
-    clonedVolumeNode->SetAndObserveDisplayNodeID(clonedDisplayNode->GetID());
-    }
-  else
-    {
-    clonedVolumeNode->SetAndObserveDisplayNodeID(NULL);
-    }
-
-  // update name
-  std::string uname = scene->GetUniqueNameByString(name);
-  clonedVolumeNode->SetName(uname.c_str());
-
-  if (cloneImageData)
-    {
-    // copy over the volume's data
-    if (volumeNode->GetImageData())
-      {
-      vtkNew<vtkImageData> clonedVolumeData;
-      clonedVolumeData->DeepCopy(volumeNode->GetImageData());
-      clonedVolumeNode->SetAndObserveImageData( clonedVolumeData.GetPointer() );
-      }
-    else
-      {
-      vtkErrorWithObjectMacro(scene, "CloneVolume: The ImageData of VolumeNode with ID "
-                              << volumeNode->GetID() << " is null !");
-      }
-    }
-  else
-    {
-    clonedVolumeNode->SetAndObserveImageData(NULL);
-    }
-
-  // add the cloned volume to the scene
-  scene->AddNode(clonedVolumeNode.GetPointer());
-
-  return clonedVolumeNode.GetPointer();
+//----------------------------------------------------------------------------
+vtkMRMLVectorVolumeNode*
+vtkSlicerVolumesLogic::
+CloneVolume(vtkMRMLScene *scene, vtkMRMLVectorVolumeNode *volumeNode,
+            const char *name, bool cloneImageData/*=true*/)
+{
+  return Self::CloneVolume<vtkMRMLVectorVolumeNode>(scene, volumeNode, name, cloneImageData);
 }
 
 //----------------------------------------------------------------------------
 vtkMRMLScalarVolumeNode*
 vtkSlicerVolumesLogic::
-CloneVolumeWithoutImageData(vtkMRMLScene *scene, vtkMRMLVolumeNode *volumeNode, const char *name)
+CloneVolumeWithoutImageData(vtkMRMLScene *scene, vtkMRMLScalarVolumeNode* volumeNode, const char *name)
 {
   return vtkSlicerVolumesLogic::CloneVolume(scene, volumeNode, name, /*cloneImageData:*/ false );
 }
@@ -1525,8 +1474,8 @@ vtkSlicerVolumesLogic
 //----------------------------------------------------------------------------
 vtkMRMLScalarVolumeNode*
 vtkSlicerVolumesLogic
-::ResampleVolumeToReferenceVolume(vtkMRMLVolumeNode* inputVolumeNode,
-                                  vtkMRMLVolumeNode* referenceVolumeNode)
+::ResampleVolumeToReferenceVolume(vtkMRMLScalarVolumeNode* inputVolumeNode,
+                                  vtkMRMLScalarVolumeNode* referenceVolumeNode)
 {
   int dimensions[3] = {0, 0, 0};
 
