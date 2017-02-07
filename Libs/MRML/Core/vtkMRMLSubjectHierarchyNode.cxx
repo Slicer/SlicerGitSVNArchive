@@ -45,8 +45,8 @@
 
 //----------------------------------------------------------------------------
 const vtkIdType vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID = VTK_UNSIGNED_LONG_MAX;
-const std::string vtkMRMLSubjectHierarchyNode::SUBJECTHIERARCHY_UID_ITEM_SEPARATOR = std::string(":");
-const std::string vtkMRMLSubjectHierarchyNode::SUBJECTHIERARCHY_UID_NAME_VALUE_SEPARATOR = std::string("; ");
+const std::string vtkMRMLSubjectHierarchyNode::SUBJECTHIERARCHY_SEPARATOR = std::string("; ");
+const std::string vtkMRMLSubjectHierarchyNode::SUBJECTHIERARCHY_NAME_VALUE_SEPARATOR = std::string(":");
 
 //----------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLSubjectHierarchyNode);
@@ -58,8 +58,8 @@ public:
   static vtkSubjectHierarchyItem *New();
   vtkTypeMacro(vtkSubjectHierarchyItem, vtkObject);
   void PrintSelf(ostream& os, vtkIndent indent);
-
-  //TODO: Read/WriteXML !!!
+  void ReadXMLAttributes(const char** atts);
+  void WriteXML(ostream& of, int indent);
 
   typedef std::vector<vtkSmartPointer<vtkSubjectHierarchyItem> > ChildVector;
 
@@ -76,7 +76,7 @@ public:
   /// Parent
   vtkSubjectHierarchyItem* Parent;
   /// Ordered list of children
-  std::vector<vtkSmartPointer<vtkSubjectHierarchyItem> > Children;
+  ChildVector Children;
 
   /// Level identifier (default levels are Subject and Study)
   std::string Level;
@@ -93,6 +93,16 @@ public:
 
   /// Attributes (metadata, referenced IDs, etc.)
   std::map<std::string, std::string> Attributes;
+
+  /// Member to temporarily store data node ID in case of scene import.
+  /// The ID is first updated then resolved to pointers after import ends, and the string is emptied.
+  std::string DataNodeID;
+  /// Member to temporarily store parent item ID in case of scene import.
+  /// The ID is resolved to pointer after import ends, and the ID is set to INVALID_ITEM_ID.
+  vtkIdType ParentItemID;
+  /// Member to temporarily store children item IDs in case of scene import.
+  /// The IDs are resolved to pointers after import ends, and the vector is emptied.
+  std::vector<vtkIdType> ChildrenItemIDs;
 
 // Get/set functions
 public:
@@ -174,6 +184,8 @@ public:
   void GetAllChildren(std::vector<vtkIdType> &childIDs);
   /// Get list of IDs of all direct children of this item
   void GetDirectChildren(std::vector<vtkIdType> &childIDs);
+  /// Print all children with correct indentation
+  void PrintAllChildren(ostream& os, vtkIndent indent);
 
   /// Reparent item under new parent
   bool Reparent(vtkSubjectHierarchyItem* newParentItem);
@@ -238,10 +250,13 @@ vtkSubjectHierarchyItem::vtkSubjectHierarchyItem()
   , Parent(NULL)
   , OwnerPluginName("")
   , Expanded(true)
+  , DataNodeID("")
+  , ParentItemID(vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
 {
   this->Children.clear();
   this->Attributes.clear();
   this->UIDs.clear();
+  this->ChildrenItemIDs.clear();
 }
 
 //---------------------------------------------------------------------------
@@ -251,6 +266,7 @@ vtkSubjectHierarchyItem::~vtkSubjectHierarchyItem()
 
   this->Attributes.clear();
   this->UIDs.clear();
+  this->ChildrenItemIDs.clear();
 }
 
 //---------------------------------------------------------------------------
@@ -291,22 +307,100 @@ vtkIdType vtkSubjectHierarchyItem::AddItemToTree(
 //----------------------------------------------------------------------------
 void vtkSubjectHierarchyItem::PrintSelf(ostream& os, vtkIndent indent)
 {
-  Superclass::PrintSelf(os,indent);
+  os << indent << "ID: " << this->ID << "\n";
 
-  //TODO:
-  //os << indent << " Level=\""
-  //  << (this->Level ? this->Level : "NULL" ) << "\n";
+  os << indent << "DataNode: " << (this->DataNode.GetPointer() ? this->DataNode->GetID() : "(none)") << "\n";
+  os << indent << "Name: " <<
+    ( this->DataNode.GetPointer() ? std::string(this->DataNode->GetName()) + " (from data node)" : this->Name ) << "\n";
 
-  //os << indent << " OwnerPluginName=\""
-  //  << (this->OwnerPluginName ? this->OwnerPluginName : "NULL" ) << "\n";
+  os << indent << "Parent: " << (this->Parent ? this->Parent->ID : vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID) << "\n";
+  os << indent << "Children: ";
+  for (ChildVector::iterator childIt=this->Children.begin(); childIt!=this->Children.end(); ++childIt)
+    {
+    os << childIt->GetPointer()->ID << " ";
+    }
+  os << "\n";
 
-  //os << indent << " UIDs=\"";
-  //for (std::map<std::string, std::string>::iterator uidsIt = this->UIDs.begin(); uidsIt != this->UIDs.end(); ++uidsIt)
-  //  {
-  //  os << uidsIt->first << vtkMRMLSubjectHierarchyNode::SUBJECTHIERARCHY_UID_NAME_VALUE_SEPARATOR.c_str()
-  //    << uidsIt->second << vtkMRMLSubjectHierarchyNode::SUBJECTHIERARCHY_UID_ITEM_SEPARATOR.c_str();
-  //  }
-  //os << "\"";
+  os << indent << "Level: " << this->Level << "\n";
+
+  os << indent << "OwnerPluginName: " << this->OwnerPluginName << "\n";
+
+  os << indent << "Expanded: " << (this->Expanded ? "true" : "false") << "\n";
+
+  if (!this->UIDs.empty())
+    {
+    os << indent << "UIDs:\n";
+    for (std::map<std::string, std::string>::iterator uidIt = this->UIDs.begin(); uidIt != this->UIDs.end(); ++uidIt)
+      {
+      os << indent.GetNextIndent() << uidIt->first << ":" << uidIt->second << "\n";
+      }
+    }
+
+  if (!this->Attributes.empty())
+    {
+    os << indent << "Attributes:\n";
+    for (std::map<std::string, std::string>::iterator attIt = this->Attributes.begin(); attIt != this->Attributes.end(); ++attIt)
+      {
+      os << indent.GetNextIndent() << attIt->first << ":" << attIt->second << "\n";
+      }
+    }
+}
+
+//---------------------------------------------------------------------------
+void vtkSubjectHierarchyItem::ReadXMLAttributes(const char** atts)
+{
+  const char* attName = NULL;
+  const char* attValue = NULL;
+
+  while (*atts != NULL)
+    {
+    attName = *(atts++);
+    attValue = *(atts++);
+    //TODO:
+    }
+
+  vtkErrorMacro("ReadXMLAttributes: Not yet implemented");
+}
+
+//---------------------------------------------------------------------------
+void vtkSubjectHierarchyItem::WriteXML(ostream& of, int nIndent)
+{
+  vtkIndent indent(nIndent);
+
+  of << indent << " ID=\"" << this->ID << "\"";
+
+  of << indent << " DataNode=\"" << (this->DataNode.GetPointer() ? this->DataNode->GetID() : "NULL") << "\"";
+  of << indent << " Name=\"" << this->Name << "\"";
+
+  of << indent << " Parent=\"" << (this->Parent ? this->Parent->ID : vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID) << "\"";
+  of << indent << " Children=\"";
+  for (ChildVector::iterator childIt=this->Children.begin(); childIt!=this->Children.end(); ++childIt)
+    {
+    of << childIt->GetPointer()->ID << vtkMRMLSubjectHierarchyNode::SUBJECTHIERARCHY_SEPARATOR;
+    }
+  of << "\"";
+
+  of << indent << " Level=\"" << this->Level << "\"";
+
+  of << indent << " OwnerPluginName=\"" << this->OwnerPluginName << "\"";
+
+  of << indent << " Expanded=\"" << (this->Expanded ? "true" : "false") << "\"";
+
+  of << indent << " UIDs=\"";
+  for (std::map<std::string, std::string>::iterator uidIt = this->UIDs.begin(); uidIt != this->UIDs.end(); ++uidIt)
+    {
+    of << uidIt->first << vtkMRMLSubjectHierarchyNode::SUBJECTHIERARCHY_NAME_VALUE_SEPARATOR
+       << uidIt->second << vtkMRMLSubjectHierarchyNode::SUBJECTHIERARCHY_SEPARATOR;
+    }
+  of << "\"";
+
+  of << indent << " Attributes=\"";
+  for (std::map<std::string, std::string>::iterator attIt = this->Attributes.begin(); attIt != this->Attributes.end(); ++attIt)
+    {
+    of << attIt->first << vtkMRMLSubjectHierarchyNode::SUBJECTHIERARCHY_NAME_VALUE_SEPARATOR
+       << attIt->second << vtkMRMLSubjectHierarchyNode::SUBJECTHIERARCHY_SEPARATOR;
+    }
+  of << "\"";
 }
 
 //---------------------------------------------------------------------------
@@ -520,6 +614,20 @@ void vtkSubjectHierarchyItem::GetDirectChildren(std::vector<vtkIdType> &childIDs
   for (ChildVector::iterator childIt=this->Children.begin(); childIt!=this->Children.end(); ++childIt)
     {
     childIDs.push_back((*childIt)->ID);
+    }
+}
+
+//---------------------------------------------------------------------------
+void vtkSubjectHierarchyItem::PrintAllChildren(ostream& os, vtkIndent indent)
+{
+  ChildVector::iterator childIt;
+  for (childIt=this->Children.begin(); childIt!=this->Children.end(); ++childIt)
+    {
+    vtkSubjectHierarchyItem* currentItem = childIt->GetPointer();
+    currentItem->PrintSelf(os, indent);
+    os << indent << "----\n"; // Add separator for readability
+
+    currentItem->PrintAllChildren(os, indent.GetNextIndent());
     }
 }
 
@@ -990,14 +1098,15 @@ void vtkMRMLSubjectHierarchyNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   Superclass::PrintSelf(os,indent);
 
-  //TODO:
-  //os << indent << " UIDs=\"";
-  //for (std::map<std::string, std::string>::iterator uidsIt = this->UIDs.begin(); uidsIt != this->UIDs.end(); ++uidsIt)
-  //  {
-  //  os << uidsIt->first << vtkMRMLSubjectHierarchyNode::SUBJECTHIERARCHY_UID_NAME_VALUE_SEPARATOR.c_str()
-  //    << uidsIt->second << vtkMRMLSubjectHierarchyNode::SUBJECTHIERARCHY_UID_ITEM_SEPARATOR.c_str();
-  //  }
-  //os << "\"";
+  if (this->Internal->SceneItem == NULL)
+    {
+    os << indent << " No items in the tree" << "\n";
+    }
+  else
+    {
+    os << indent << "Items:\n";
+    this->Internal->SceneItem->PrintAllChildren(os, indent.GetNextIndent());
+    }
 }
 
 //----------------------------------------------------------------------------
@@ -1007,7 +1116,7 @@ const char* vtkMRMLSubjectHierarchyNode::GetNodeTagName()
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLSubjectHierarchyNode::ReadXMLAttributes( const char** atts)
+void vtkMRMLSubjectHierarchyNode::ReadXMLAttributes(const char** atts)
 {
   int disabledModify = this->StartModify();
 
@@ -1135,18 +1244,31 @@ void vtkMRMLSubjectHierarchyNode::SetItemName(vtkIdType itemID, std::string name
 
   // Set data node name if there is a data node
   // (because it is used when data node exists, so this is how it's consistent)
+  bool nameChanged = false;
   if (item->DataNode)
     {
-    item->Name = "";
-    item->DataNode->SetName(name.c_str());
+    if ( !item->DataNode->GetName()
+      || (item->DataNode->GetName() && name.compare(item->DataNode->GetName())) )
+      {
+      item->Name = "";
+      item->DataNode->SetName(name.c_str());
+      nameChanged = true;
+      }
     }
   else
     {
-    item->Name = name;
+    if (name.compare(item->Name))
+      {
+      item->Name = name;
+      nameChanged = true;
+      }
     }
 
-  this->InvokeCustomModifiedEvent(SubjectHierarchyItemModifiedEvent, (void*)&itemID);
-  //this->Modified(); //TODO: Needed? SH node modified event should be used for updating the whole view (every item)
+  if (nameChanged)
+    {
+    this->InvokeCustomModifiedEvent(SubjectHierarchyItemModifiedEvent, (void*)&itemID);
+    //this->Modified(); //TODO: Needed? SH node modified event should be used for updating the whole view (every item)
+    }
 }
 
 //----------------------------------------------------------------------------

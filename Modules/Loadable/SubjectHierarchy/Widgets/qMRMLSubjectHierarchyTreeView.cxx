@@ -312,6 +312,7 @@ void qMRMLSubjectHierarchyTreeView::setSubjectHierarchyNode(vtkMRMLSubjectHierar
   if (!shNode)
     {
     qCritical() << Q_FUNC_INFO << ": Invalid subject hierarchy node";
+    return;
     }
 
   vtkMRMLScene* scene = shNode->GetScene();
@@ -991,6 +992,11 @@ void qMRMLSubjectHierarchyTreeView::applyReferenceHighlightForItems(QList<vtkIdT
   // Go through all given items
   foreach(vtkIdType itemID, itemIDs)
     {
+    if (itemID == d->SubjectHierarchyNode->GetSceneItemID())
+      {
+      continue;
+      }
+
     // Get items referenced by argument node by DICOM
     std::vector<vtkIdType> referencedItems = d->SubjectHierarchyNode->GetItemsReferencedFromItemByDICOM(itemID);
 

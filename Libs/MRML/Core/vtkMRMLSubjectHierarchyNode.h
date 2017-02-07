@@ -57,9 +57,9 @@ class VTK_MRML_EXPORT vtkMRMLSubjectHierarchyNode : public vtkMRMLNode
 public:
   static const vtkIdType INVALID_ITEM_ID;
 
-  // Separator characters for (de)serializing the UID map
-  static const std::string SUBJECTHIERARCHY_UID_ITEM_SEPARATOR;
-  static const std::string SUBJECTHIERARCHY_UID_NAME_VALUE_SEPARATOR;
+  // Separator characters for (de)serializing the UID and the attributes map
+  static const std::string SUBJECTHIERARCHY_SEPARATOR;
+  static const std::string SUBJECTHIERARCHY_NAME_VALUE_SEPARATOR;
 
   enum
   {

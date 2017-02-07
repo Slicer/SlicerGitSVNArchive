@@ -159,6 +159,41 @@ QString qMRMLSubjectHierarchyModelPrivate::subjectHierarchyItemName(vtkIdType it
 }
 
 //------------------------------------------------------------------------------
+QStandardItem* qMRMLSubjectHierarchyModelPrivate::insertSubjectHierarchyItem(vtkIdType itemID, int index)
+{
+  Q_Q(qMRMLSubjectHierarchyModel);
+  QStandardItem* item = q->itemFromSubjectHierarchyItem(itemID);
+  if (item)
+    {
+    // It is possible that the item has been already added if it is the parent of a child item already inserted
+    return item;
+    }
+  vtkIdType parentItemID = q->parentSubjectHierarchyItem(itemID);
+  QStandardItem* parentItem = q->itemFromSubjectHierarchyItem(parentItemID);
+  if (!parentItem)
+    {
+    if (parentItemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+      {
+      qCritical() << Q_FUNC_INFO << ": Unable to get parent for subject hierarchy item with ID " << itemID;
+      return NULL;
+      }
+    parentItem = q->insertSubjectHierarchyItem(parentItemID);
+    if (!parentItem)
+      {
+      qCritical() << Q_FUNC_INFO << ": Failed to insert parent subject hierarchy item with ID " << parentItemID;
+      return NULL;
+      }
+    }
+  item = q->insertSubjectHierarchyItem(itemID, parentItem, index);
+  if (q->itemFromSubjectHierarchyItem(itemID) != item)
+    {
+    qCritical() << Q_FUNC_INFO << ": Item mismatch when inserting subject hierarchy item with ID " << itemID;
+    return NULL;
+    }
+  return item;
+}
+
+//------------------------------------------------------------------------------
 // qMRMLSubjectHierarchyModel
 //------------------------------------------------------------------------------
 qMRMLSubjectHierarchyModel::qMRMLSubjectHierarchyModel(QObject *_parent)
@@ -246,11 +281,11 @@ void qMRMLSubjectHierarchyModel::setSubjectHierarchyNode(vtkMRMLSubjectHierarchy
 
   if (shNode)
     {
-    shNode->AddObserver(vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemAddedEvent, d->CallBack);
-    shNode->AddObserver(vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemAboutToBeRemovedEvent, d->CallBack);
-    shNode->AddObserver(vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemRemovedEvent, d->CallBack);
-    shNode->AddObserver(vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemModifiedEvent, d->CallBack);
-    shNode->AddObserver(vtkCommand::DeleteEvent, d->CallBack);
+    shNode->AddObserver(vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemAddedEvent, d->CallBack, -10.0);
+    shNode->AddObserver(vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemAboutToBeRemovedEvent, d->CallBack, 10.0);
+    shNode->AddObserver(vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemRemovedEvent, d->CallBack, -10.0);
+    shNode->AddObserver(vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemModifiedEvent, d->CallBack, -10.0);
+    shNode->AddObserver(vtkCommand::DeleteEvent, d->CallBack, -10.0);
     }
 }
 
@@ -652,10 +687,11 @@ void qMRMLSubjectHierarchyModel::updateFromSubjectHierarchy()
   // Populate subject hierarchy with the items
   std::vector<vtkIdType> allItemIDs;
   d->SubjectHierarchyNode->GetItemChildren(d->SubjectHierarchyNode->GetSceneItemID(), allItemIDs, true);
-  int index = 0;
-  for (std::vector<vtkIdType>::iterator itemIt=allItemIDs.begin(); itemIt!=allItemIDs.end(); ++itemIt, ++index)
+  for (std::vector<vtkIdType>::iterator itemIt=allItemIDs.begin(); itemIt!=allItemIDs.end(); ++itemIt)
     {
-    d->insertSubjectHierarchyItem(*itemIt, index);
+    vtkIdType itemID = (*itemIt);
+    int index = d->SubjectHierarchyNode->GetItemPositionUnderParent(itemID);
+    d->insertSubjectHierarchyItem(itemID, index);
     }
 }
 
@@ -664,41 +700,6 @@ QStandardItem* qMRMLSubjectHierarchyModel::insertSubjectHierarchyItem(vtkIdType 
 {
   Q_D(qMRMLSubjectHierarchyModel);
   return d->insertSubjectHierarchyItem(itemID, this->subjectHierarchyItemIndex(itemID));
-}
-
-//------------------------------------------------------------------------------
-QStandardItem* qMRMLSubjectHierarchyModelPrivate::insertSubjectHierarchyItem(vtkIdType itemID, int index)
-{
-  Q_Q(qMRMLSubjectHierarchyModel);
-  QStandardItem* item = q->itemFromSubjectHierarchyItem(itemID);
-  if (item)
-    {
-    // It is possible that the item has been already added if it is the parent of a child item already inserted
-    return item;
-    }
-  vtkIdType parentItemID = q->parentSubjectHierarchyItem(itemID);
-  QStandardItem* parentItem = q->itemFromSubjectHierarchyItem(parentItemID);
-  if (!parentItem)
-    {
-    if (parentItemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
-      {
-      qCritical() << Q_FUNC_INFO << ": Unable to get parent for subject hierarchy item with ID " << itemID;
-      return NULL;
-      }
-    parentItem = q->insertSubjectHierarchyItem(parentItemID);
-    if (!parentItem)
-      {
-      qCritical() << Q_FUNC_INFO << ": Failed to insert parent subject hierarchy item with ID " << parentItemID;
-      return NULL;
-      }
-    }
-  item = q->insertSubjectHierarchyItem(itemID, parentItem, index);
-  if (q->itemFromSubjectHierarchyItem(itemID) != item)
-    {
-    qCritical() << Q_FUNC_INFO << ": Item mismatch when inserting subject hierarchy item with ID " << itemID;
-    return NULL;
-    }
-  return item;
 }
 
 //------------------------------------------------------------------------------
@@ -1317,7 +1318,7 @@ void qMRMLSubjectHierarchyModel::onItemChanged(QStandardItem* item)
     }
   // When a drag&drop occurs, the order of the items called with onItemChanged is
   // random, it could be the item in column 1 then the item in column 0
-  if (d->DraggedItems.count())
+  if (d->DraggedSubjectHierarchyItems.count())
     {
     if (item->column() == 0)
       {
