@@ -291,6 +291,10 @@ int qSlicerStyle::styleHint(StyleHint hint, const QStyleOption *opt, const QWidg
 bool qSlicerStyle::eventFilter(QObject* obj, QEvent* event)
 {
   QWidget* widget = qobject_cast<QWidget*>(obj);
+  if (!widget)
+    {
+    return this->Superclass::eventFilter(obj, event);
+    }
   switch (event->type())
     {
     case QEvent::Wheel:

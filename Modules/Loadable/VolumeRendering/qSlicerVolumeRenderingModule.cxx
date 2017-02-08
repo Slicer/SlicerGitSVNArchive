@@ -18,9 +18,6 @@
 
 ==============================================================================*/
 
-// Qt includes
-#include <QtPlugin>
-
 // QtGUI includes
 #include <qSlicerApplication.h>
 #include <qSlicerCoreIOManager.h>
@@ -38,7 +35,10 @@
 #include "VolumeRenderingInstantiator.h"
 
 //-----------------------------------------------------------------------------
+#if (QT_VERSION < QT_VERSION_CHECK(5, 0, 0))
+#include <QtPlugin>
 Q_EXPORT_PLUGIN2(qSlicerVolumeRenderingModule, qSlicerVolumeRenderingModule);
+#endif
 
 //-----------------------------------------------------------------------------
 /// \ingroup Slicer_QtModules_VolumeRendering

@@ -178,8 +178,8 @@ Slicer_Remote_Add(jqPlot
 list(APPEND Slicer_REMOTE_DEPENDENCIES jqPlot)
 
 Slicer_Remote_Add(OpenIGTLinkIF
-  GIT_REPOSITORY ${git_protocol}://github.com/openigtlink/OpenIGTLinkIF.git
-  GIT_TAG f0d539cfa47398b70d4e4561ecb52940411aa006
+  GIT_REPOSITORY ${git_protocol}://github.com/jcfr/OpenIGTLinkIF.git
+  GIT_TAG d6c5ef36f26f48e9d4d97a4fd9ddb78251ae0d47
   OPTION_NAME Slicer_BUILD_OpenIGTLinkIF
   OPTION_DEPENDS "Slicer_BUILD_QTLOADABLEMODULES;Slicer_USE_OpenIGTLink"
   LABELS REMOTE_MODULE
@@ -191,7 +191,7 @@ mark_as_advanced(Slicer_BUILD_MULTIVOLUME_SUPPORT)
 
 Slicer_Remote_Add(MultiVolumeExplorer
   GIT_REPOSITORY ${git_protocol}://github.com/fedorov/MultiVolumeExplorer.git
-  GIT_TAG 7e4425257c8e8e9ad637ccca99249b1b36b12296
+  GIT_TAG 62102496e78db08ff266b2c8e3ffe906ded1df73
   OPTION_NAME Slicer_BUILD_MultiVolumeExplorer
   OPTION_DEPENDS "Slicer_BUILD_QTLOADABLEMODULES;Slicer_BUILD_MULTIVOLUME_SUPPORT;Slicer_USE_PYTHONQT"
   LABELS REMOTE_MODULE
@@ -268,7 +268,7 @@ list_conditional_append(Slicer_BUILD_BRAINSTOOLS Slicer_REMOTE_DEPENDENCIES BRAI
 
 Slicer_Remote_Add(EMSegment
   SVN_REPOSITORY "http://svn.slicer.org/Slicer3/branches/Slicer4-EMSegment"
-  SVN_REVISION -r "17123"
+  SVN_REVISION -r "17124"
   OPTION_NAME Slicer_BUILD_EMSegment
   OPTION_DEPENDS "Slicer_BUILD_BRAINSTOOLS;Slicer_BUILD_QTLOADABLEMODULES;Slicer_USE_PYTHONQT_WITH_TCL"
   LABELS REMOTE_MODULE

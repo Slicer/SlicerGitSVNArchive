@@ -17,7 +17,11 @@
 #include <QPushButton>
 #include <QVBoxLayout>
 #include <QProcessEnvironment>
+#if (QT_VERSION < QT_VERSION_CHECK(5, 6, 0))
 #include <QWebView>
+#else
+#include <QWebEngineView>
+#endif
 
 // SlicerQt includes
 #include "qSlicerWidget.h"
@@ -153,7 +157,11 @@ int qSlicerWidgetTest2(int argc, char * argv[] )
   vbox.addWidget(vtkWidget);
   vtkWidget->GetRenderWindow()->Render();
 
+#if (QT_VERSION < QT_VERSION_CHECK(5, 6, 0))
   QWebView webView;
+#else
+  QWebEngineView webView;
+#endif
   webView.setParent(&parentWidget);
   webView.setUrl(QUrl("http://pyjs.org/examples"));
   vbox.addWidget(&webView);
@@ -171,7 +179,7 @@ int qSlicerWidgetTest2(int argc, char * argv[] )
   QProcessEnvironment env;
   QString qarchetype = env.value("SLICER_HOME", "");
   qarchetype.append("share/MRML/Testing/TestData/fixed.nrrd");
-  QByteArray archetype = qarchetype.toAscii();
+  QByteArray archetype = qarchetype.toLatin1();
 
   vtkMRMLSliceLogic *sliceLogic = setupSliceDisplay(
           scene, vtkWidget->GetRenderWindow(), archetype.data() );

@@ -26,15 +26,17 @@
 #include "vtkSlicerTerminologiesModuleLogic.h"
 
 // Qt includes
-#include <QDebug> 
-#include <QtPlugin>
+#include <QDebug>
 
 // Slicer includes
 #include <qSlicerCoreApplication.h>
 #include <qSlicerModuleManager.h>
 
 //-----------------------------------------------------------------------------
+#if (QT_VERSION < QT_VERSION_CHECK(5, 0, 0))
+#include <QtPlugin>
 Q_EXPORT_PLUGIN2(qSlicerTerminologiesModule, qSlicerTerminologiesModule);
+#endif
 
 //-----------------------------------------------------------------------------
 /// \ingroup SlicerRt_QtModules_Terminologies

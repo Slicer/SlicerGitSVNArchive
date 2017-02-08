@@ -28,7 +28,7 @@ class SegmentEditorAutoCompleteEffect(AbstractScriptedSegmentEditorEffect):
     # Wait this much after the last modified event before starting aut-update:
     autoUpdateDelaySec = 1.0
     self.delayedAutoUpdateTimer = qt.QTimer()
-    self.delayedAutoUpdateTimer.singleShot = True
+    self.delayedAutoUpdateTimer.setSingleShot(True)
     self.delayedAutoUpdateTimer.interval = autoUpdateDelaySec * 1000
     self.delayedAutoUpdateTimer.connect('timeout()', self.onPreview)
 
