@@ -120,31 +120,22 @@ QModelIndexList qMRMLSubjectHierarchyModelPrivate::indexes(const vtkIdType itemI
     {
     return QModelIndexList();
     }
-  // QAbstractItemModel::match doesn't browse through columns
-  // we need to do it manually
-  QModelIndexList nodeIndexes = q->match(
+  // QAbstractItemModel::match doesn't browse through columns, we need to do it manually
+  QModelIndexList shItemIndexes = q->match(
     scene, qMRMLSubjectHierarchyModel::SubjectHierarchyItemIDRole, QVariant(qlonglong(itemID)), 1, Qt::MatchExactly | Qt::MatchRecursive);
-  if (nodeIndexes.size() != 1)
+  if (shItemIndexes.size() != 1)
     {
     return QModelIndexList(); // If 0 it's empty, if >1 it's invalid (one item for each UID)
     }
   // Add the QModelIndexes from the other columns
-  const int row = nodeIndexes[0].row();
-  QModelIndex nodeParentIndex = nodeIndexes[0].parent();
-  const int sceneColumnCount = q->columnCount(nodeParentIndex);
+  const int row = shItemIndexes[0].row();
+  QModelIndex shItemParentIndex = shItemIndexes[0].parent();
+  const int sceneColumnCount = q->columnCount(shItemParentIndex);
   for (int col=1; col<sceneColumnCount; ++col)
     {
-    nodeIndexes << q->index(row, col, nodeParentIndex);
+    shItemIndexes << q->index(row, col, shItemParentIndex);
     }
-  return nodeIndexes;
-}
-
-//------------------------------------------------------------------------------
-void qMRMLSubjectHierarchyModelPrivate::reparentItems(
-  QList<QStandardItem*>& children, int newIndex, QStandardItem* newParentItem)
-{
-  //TODO: Remove this function and replace with this one-liner
-  newParentItem->insertRow(newIndex, children);
+  return shItemIndexes;
 }
 
 //------------------------------------------------------------------------------
@@ -281,10 +272,15 @@ void qMRMLSubjectHierarchyModel::setSubjectHierarchyNode(vtkMRMLSubjectHierarchy
 
   if (shNode)
     {
+    // Using priority value of -10 in certain observations results in those callbacks being called after
+    // those with neutral priorities. Useful to have the plugin handler deal with new items before allowing
+    // them to be handled by the model.
+    // Same idea for +10, in which case the callback is called first.
     shNode->AddObserver(vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemAddedEvent, d->CallBack, -10.0);
-    shNode->AddObserver(vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemAboutToBeRemovedEvent, d->CallBack, 10.0);
+    shNode->AddObserver(vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemAboutToBeRemovedEvent, d->CallBack, +10.0);
     shNode->AddObserver(vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemRemovedEvent, d->CallBack, -10.0);
     shNode->AddObserver(vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemModifiedEvent, d->CallBack, -10.0);
+    shNode->AddObserver(vtkCommand::ModifiedEvent, d->CallBack, -10.0);
     shNode->AddObserver(vtkCommand::DeleteEvent, d->CallBack, -10.0);
     }
 }
@@ -589,6 +585,37 @@ bool qMRMLSubjectHierarchyModel::reparent(vtkIdType itemID, vtkIdType newParentI
 }
 
 //------------------------------------------------------------------------------
+bool qMRMLSubjectHierarchyModel::moveToRow(vtkIdType itemID, int newRow)
+{
+  Q_D(const qMRMLSubjectHierarchyModel);
+  if (!d->SubjectHierarchyNode)
+    {
+    qCritical() << Q_FUNC_INFO << ": Invalid subject hierarchy";
+    return false;
+    }
+
+  if ( itemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID
+    || itemID == d->SubjectHierarchyNode->GetSceneItemID() )
+    {
+    qCritical() << Q_FUNC_INFO << ": Invalid input item ID";
+    return false;
+    }
+
+  vtkIdType parentItemID = this->parentSubjectHierarchyItem(itemID);
+  if (parentItemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+    {
+    qCritical() << Q_FUNC_INFO << ": No parent found for item " << itemID;
+    return false;
+    }
+
+  // Get item currently next to desired position
+  vtkIdType beforeItemID = d->SubjectHierarchyNode->GetItemByPositionUnderParent(parentItemID, newRow+1);
+
+  // Move item to position
+  return d->SubjectHierarchyNode->MoveItem(itemID, beforeItemID);
+}
+
+//------------------------------------------------------------------------------
 QMimeData* qMRMLSubjectHierarchyModel::mimeData(const QModelIndexList& indexes)const
 {
   Q_D(const qMRMLSubjectHierarchyModel);
@@ -784,9 +811,11 @@ void qMRMLSubjectHierarchyModel::updateItemFromSubjectHierarchyItem(QStandardIte
   item->setFlags(this->subjectHierarchyItemFlags(shItemID, column));
 
   // Set ID
-  bool blocked  = this->blockSignals(true);
+  bool blocked = this->blockSignals(true);
   item->setData(shItemID, qMRMLSubjectHierarchyModel::SubjectHierarchyItemIDRole);
   this->blockSignals(blocked);
+
+  // Update item data for the current column
   this->updateItemDataFromSubjectHierarchyItem(item, shItemID, column);
 
   bool itemChanged = (d->PendingItemModified > 0);
@@ -806,8 +835,9 @@ void qMRMLSubjectHierarchyModel::updateItemFromSubjectHierarchyItem(QStandardIte
       int newIndex = this->subjectHierarchyItemIndex(shItemID);
       if (parentItem != newParentItem || newIndex != item->row())
         {
+        // Reparent items
         QList<QStandardItem*> children = parentItem->takeRow(item->row());
-        d->reparentItems(children, newIndex, newParentItem);
+        newParentItem->insertRow(newIndex, children);
         }
       }
     }
@@ -981,9 +1011,9 @@ void qMRMLSubjectHierarchyModel::updateSubjectHierarchyItemFromItem(vtkIdType sh
     }
 
   vtkIdType parentItemID = this->subjectHierarchyItemFromItem(parentItem);
-  int desiredNodeIndex = -1;
   if (this->parentSubjectHierarchyItem(shItemID) != parentItemID)
     {
+    // Parent changed, need to reparent the subject hierarchy item in the node
     emit aboutToReparentByDragAndDrop(shItemID, parentItemID);
     if (this->reparent(shItemID, parentItemID))
       {
@@ -994,10 +1024,10 @@ void qMRMLSubjectHierarchyModel::updateSubjectHierarchyItemFromItem(vtkIdType sh
       this->updateItemFromSubjectHierarchyItem(item, shItemID, item->column());
       }
     }
-  else if ( (desiredNodeIndex = this->subjectHierarchyItemIndex(shItemID)) != item->row() )
+  else if (this->subjectHierarchyItemIndex(shItemID) != item->row())
     {
-    QStandardItem* parentItem = item->parent();
-    if (parentItem && desiredNodeIndex < parentItem->rowCount())
+    // Moved within parent, need to re-order subject hierarchy item in the node
+    if (!this->moveToRow(shItemID, item->row()))
       {
       this->updateItemFromSubjectHierarchyItem(item, shItemID, item->column());
       }
@@ -1042,18 +1072,18 @@ void qMRMLSubjectHierarchyModel::updateSubjectHierarchyItemFromItemData(vtkIdTyp
     vtkMRMLTransformNode* newParentTransformNode =
       vtkMRMLTransformNode::SafeDownCast( d->MRMLScene->GetNodeByID(newParentTransformNodeIdStr) );
 
-    // No checks and questions when the transform is being removed
-    if (!newParentTransformNode)
-      {
-      vtkSlicerSubjectHierarchyModuleLogic::TransformBranch(d->SubjectHierarchyNode, shItemID, NULL, false);
-      return;
-      }
-
     // No action if the chosen transform is the same as the applied one
     vtkMRMLTransformableNode* dataNode = vtkMRMLTransformableNode::SafeDownCast(
       d->SubjectHierarchyNode->GetItemDataNode(shItemID) );
     if (dataNode && dataNode->GetParentTransformNode() == newParentTransformNode)
       {
+      return;
+      }
+
+    // No checks and questions when the transform is being removed
+    if (!newParentTransformNode)
+      {
+      vtkSlicerSubjectHierarchyModuleLogic::TransformBranch(d->SubjectHierarchyNode, shItemID, NULL, false);
       return;
       }
 
@@ -1095,11 +1125,20 @@ void qMRMLSubjectHierarchyModel::updateModelItems(vtkIdType itemID)
   QModelIndexList itemIndexes = d->indexes(itemID);
   if (!itemIndexes.count())
     {
-    qCritical() << Q_FUNC_INFO << ": No indices found for subject hierarchy with item ID " << itemID;
+    // Can happen while the item is added, the plugin handler sets the owner plugin, which triggers
+    // item modified before it can be inserted to the model
     return;
     }
-  foreach (QModelIndex index, itemIndexes)
+
+  for (int currentIndex=0; currentIndex<itemIndexes.size(); ++currentIndex)
     {
+    // Note: If this loop is changed to foreach update after reparenting stops working.
+    //   Apparently foreach makes a deep copy of itemIndexes, and as the indices change after the
+    //   first reparenting in the updateItemFromSubjectHierarchyItem for column 0, the old indices
+    //   are being used for the subsequent columns, which yield new items, and reparenting is
+    //   performed on those too. With regular for and [] operator, the updated indices are got,
+    //   so reparenting is only performed once, which is the desired behavior.
+    QModelIndex index = itemIndexes[currentIndex];
     QStandardItem* item = this->itemFromIndex(index);
     int oldRow = item->row();
     QStandardItem* oldParent = item->parent();
@@ -1170,6 +1209,12 @@ void qMRMLSubjectHierarchyModel::onEvent(
       break;
     case vtkMRMLScene::EndBatchProcessEvent:
       sceneModel->onMRMLSceneEndBatchProcess(scene);
+      break;
+    case vtkCommand::ModifiedEvent:
+      if (shNode)
+        {
+        sceneModel->onSubjectHierarchyNodeModified();
+        }
       break;
     case vtkCommand::DeleteEvent:
       sceneModel->onSubjectHierarchyNodeRemoved();
@@ -1242,7 +1287,8 @@ void qMRMLSubjectHierarchyModel::onSubjectHierarchyItemRemoved(vtkIdType removed
       {
       newParentItem = this->subjectHierarchySceneItem();
       }
-    d->reparentItems(orphans, newIndex, newParentItem);
+    // Reparent orphans
+    newParentItem->insertRow(newIndex, orphans);
     }
   d->Orphans.clear();
 }
@@ -1284,6 +1330,13 @@ void qMRMLSubjectHierarchyModel::onMRMLSceneStartBatchProcess(vtkMRMLScene* scen
 void qMRMLSubjectHierarchyModel::onMRMLSceneEndBatchProcess(vtkMRMLScene* scene)
 {
   Q_UNUSED(scene);
+  this->updateFromSubjectHierarchy();
+  emit subjectHierarchyUpdated();
+}
+
+//------------------------------------------------------------------------------
+void qMRMLSubjectHierarchyModel::onSubjectHierarchyNodeModified()
+{
   this->updateFromSubjectHierarchy();
   emit subjectHierarchyUpdated();
 }

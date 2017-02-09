@@ -120,8 +120,10 @@ public:
   /// Returns the row model index relative to its parent independently of any filtering or proxy model
   /// Must be reimplemented in derived classes
   virtual int subjectHierarchyItemIndex(vtkIdType itemID)const;
-  /// Insert/move node in subject hierarchy under new parent
+  /// Insert/move item in subject hierarchy under new parent
   virtual bool reparent(vtkIdType itemID, vtkIdType newParentID);
+  /// Move item in subject hierarchy branch to a new row (re-order)
+  virtual bool qMRMLSubjectHierarchyModel::moveToRow(vtkIdType itemID, int newRow);
   /// Utility method that returns true if \a child has \a parent as ancestor (parent, grandparent, etc.)
   /// \sa isAffiliatedItem()
   bool isAncestorItem(vtkIdType child, vtkIdType ancestor)const;
@@ -146,6 +148,7 @@ protected slots:
   virtual void onMRMLSceneClosed(vtkMRMLScene* scene);
   virtual void onMRMLSceneStartBatchProcess(vtkMRMLScene* scene);
   virtual void onMRMLSceneEndBatchProcess(vtkMRMLScene* scene);
+  virtual void onSubjectHierarchyNodeModified();
   virtual void onSubjectHierarchyNodeRemoved();
 
   virtual void onItemChanged(QStandardItem* item);
@@ -153,8 +156,7 @@ protected slots:
   //TODO: Needed?
   virtual void delayedItemChanged();
 
-  /// Recompute the number of columns in the model.
-  /// To be called when a XXXColumn is set.
+  /// Recompute the number of columns in the model. Called when a [some]Column property is set.
   /// Needs maxColumnId() to be reimplemented in subclasses
   void updateColumnCount();
 

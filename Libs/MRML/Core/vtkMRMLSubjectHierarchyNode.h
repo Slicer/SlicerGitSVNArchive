@@ -181,8 +181,11 @@ public:
   /// \return Parent item ID, INVALID_ITEM_ID if there is no parent
   vtkIdType GetItemParent(vtkIdType itemID);
   /// Get position of item under its parent
-  /// \return Position of item under its parent. -1 on failure.
+  /// \return Position of item under its parent. -1 on failure
   int GetItemPositionUnderParent(vtkIdType itemID);
+  /// Get item under parent by position
+  /// \return ID of item found in given position. Invalid if no item found at that position
+  vtkIdType GetItemByPositionUnderParent(vtkIdType parentItemID, int position);
 
   /// Get IDs of the children of a subject hierarchy item
   /// \param childIDs Output vector containing the children. It will not contain the given item itself.
