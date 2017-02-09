@@ -40,6 +40,7 @@
 // Qt includes
 #include <QSettings>
 #include <QMessageBox>
+#include <QDebug>
 
 // MRML includes
 #include <vtkMRMLScene.h>

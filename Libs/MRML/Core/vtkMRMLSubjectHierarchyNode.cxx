@@ -1672,10 +1672,10 @@ void vtkMRMLSubjectHierarchyNode::SetItemParent(vtkIdType itemID, vtkIdType pare
     vtkErrorMacro("SetItemParent: Failed to find non-scene subject hierarchy item by ID " << itemID);
     return;
     }
-  vtkSubjectHierarchyItem* parentItem = this->Internal->SceneItem->FindChildByID(parentItemID);
+  vtkSubjectHierarchyItem* parentItem = this->Internal->FindItemByID(parentItemID);
   if (!parentItem)
     {
-    vtkErrorMacro("SetItemParent: Failed to find non-scene subject hierarchy item by ID " << parentItemID);
+    vtkErrorMacro("SetItemParent: Failed to find subject hierarchy item by ID " << parentItemID);
     return;
     }
 
