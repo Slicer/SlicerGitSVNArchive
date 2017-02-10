@@ -1287,7 +1287,6 @@ void vtkMRMLSubjectHierarchyNode::SetItemName(vtkIdType itemID, std::string name
   if (nameChanged)
     {
     this->InvokeCustomModifiedEvent(SubjectHierarchyItemModifiedEvent, (void*)&itemID);
-    //this->Modified(); //TODO: Needed? SH node modified event should be used for updating the whole view (every item)
     }
 }
 
@@ -1314,9 +1313,11 @@ void vtkMRMLSubjectHierarchyNode::SetItemLevel(vtkIdType itemID, std::string lev
     return;
     }
 
-  item->Level = level;
-  this->InvokeCustomModifiedEvent(SubjectHierarchyItemModifiedEvent, (void*)&itemID);
-  //this->Modified(); //TODO: Needed? SH node modified event should be used for updating the whole view (every item)
+  if (item->Level.compare(level))
+    {
+    item->Level = level;
+    this->InvokeCustomModifiedEvent(SubjectHierarchyItemModifiedEvent, (void*)&itemID);
+    }
 }
 
 //----------------------------------------------------------------------------
@@ -1342,9 +1343,11 @@ void vtkMRMLSubjectHierarchyNode::SetItemOwnerPluginName(vtkIdType itemID, std::
     return;
     }
 
-  item->OwnerPluginName = owherPluginName;
-  this->InvokeCustomModifiedEvent(SubjectHierarchyItemModifiedEvent, (void*)&itemID);
-  //this->Modified(); //TODO: Needed? SH node modified event should be used for updating the whole view (every item)
+  if (item->OwnerPluginName.compare(owherPluginName))
+    {
+    item->OwnerPluginName = owherPluginName;
+    this->InvokeCustomModifiedEvent(SubjectHierarchyItemModifiedEvent, (void*)&itemID);
+    }
 }
 
 //----------------------------------------------------------------------------
@@ -1370,7 +1373,11 @@ void vtkMRMLSubjectHierarchyNode::SetItemExpanded(vtkIdType itemID, bool expande
     return;
     }
 
-  item->Expanded = expanded;
+  if (item->Expanded != expanded)
+    {
+    item->Expanded = expanded;
+    this->InvokeCustomModifiedEvent(SubjectHierarchyItemModifiedEvent, (void*)&itemID);
+    }
 }
 
 //----------------------------------------------------------------------------
@@ -1421,7 +1428,6 @@ void vtkMRMLSubjectHierarchyNode::SetItemUID(vtkIdType itemID, std::string uidNa
     }
 
   item->SetUID(uidName, uidValue); // Events are invoked within this call
-  //this->Modified(); //TODO: Needed? SH node modified event should be used for updating the whole view (every item)
 }
 
 //----------------------------------------------------------------------------
@@ -1449,7 +1455,6 @@ void vtkMRMLSubjectHierarchyNode::SetItemAttribute(vtkIdType itemID, std::string
     }
 
   item->SetAttribute(attributeName, attributeValue); // Events are invoked within this call
-  //this->Modified(); //TODO: Needed? SH node modified event should be used for updating the whole view (every item)
 }
 
 //---------------------------------------------------------------------------
@@ -1463,7 +1468,6 @@ bool vtkMRMLSubjectHierarchyNode::RemoveItemAttribute(vtkIdType itemID, std::str
     }
 
   bool result = item->RemoveAttribute(attributeName); // Events are invoked within this call
-  //this->Modified(); //TODO: Needed? SH node modified event should be used for updating the whole view (every item)
   return result;
 }
 
