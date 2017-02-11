@@ -720,6 +720,16 @@ void qMRMLSubjectHierarchyModel::updateFromSubjectHierarchy()
     int index = d->SubjectHierarchyNode->GetItemPositionUnderParent(itemID);
     d->insertSubjectHierarchyItem(itemID, index);
     }
+
+  // Update expanded states (during inserting the update calls did not find valid indices, so
+  // expand and collapse statuses were not set in the tree view)
+  for (std::vector<vtkIdType>::iterator itemIt=allItemIDs.begin(); itemIt!=allItemIDs.end(); ++itemIt)
+    {
+    vtkIdType itemID = (*itemIt);
+    // Expanded states are handled with the name column
+    QStandardItem* item = this->itemFromSubjectHierarchyItem(itemID, this->nameColumn());
+    this->updateItemDataFromSubjectHierarchyItem(item, itemID, this->nameColumn());
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -920,6 +930,16 @@ void qMRMLSubjectHierarchyModel::updateItemDataFromSubjectHierarchyItem(QStandar
       {
       item->setIcon(d->UnknownIcon);
       }
+
+    // Set expanded state (in the name column so that it is only processed once for each item)
+    if (d->SubjectHierarchyNode->GetItemExpanded(shItemID))
+      {
+      emit requestExpandItem(shItemID);
+      }
+    else
+      {
+      emit requestCollapseItem(shItemID);
+      }
     }
   // ID column
   if (column == this->idColumn())
@@ -1018,6 +1038,7 @@ void qMRMLSubjectHierarchyModel::updateSubjectHierarchyItemFromItem(vtkIdType sh
     if (this->reparent(shItemID, parentItemID))
       {
       emit reparentedByDragAndDrop(shItemID, parentItemID);
+      emit requestExpandItem(parentItemID);
       }
     else
       {

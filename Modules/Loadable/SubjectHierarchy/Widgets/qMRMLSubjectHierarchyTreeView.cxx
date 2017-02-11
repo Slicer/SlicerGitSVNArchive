@@ -123,6 +123,8 @@ void qMRMLSubjectHierarchyTreeViewPrivate::init()
 
   // Set up scene model and sort and proxy model
   this->Model = new qMRMLSubjectHierarchyModel(q);
+  QObject::connect( this->Model, SIGNAL(requestExpandItem(vtkIdType)), q, SLOT(expandItem(vtkIdType)) );
+  QObject::connect( this->Model, SIGNAL(requestCollapseItem(vtkIdType)), q, SLOT(collapseItem(vtkIdType)) );
   //TODO: Needed?
   //QObject::connect( this->Model, SIGNAL(saveTreeExpandState()), q, SLOT(saveTreeExpandState()) );
   //QObject::connect( this->Model, SIGNAL(loadTreeExpandState()), q, SLOT(loadTreeExpandState()) );
@@ -183,8 +185,8 @@ void qMRMLSubjectHierarchyTreeViewPrivate::init()
 
   // Make connections
   QObject::connect( this->Model, SIGNAL(invalidateFilter()), this->SortFilterModel, SLOT(invalidate()) );
-  //TODO:
   QObject::connect( q, SIGNAL(expanded(const QModelIndex&)), q, SLOT(onItemExpanded(const QModelIndex&)) );
+  QObject::connect( q, SIGNAL(collapsed(const QModelIndex&)), q, SLOT(onItemCollapsed(const QModelIndex&)) );
 
   // Set up scene and node actions for the tree view
   this->setupActions();
@@ -642,15 +644,31 @@ void qMRMLSubjectHierarchyTreeView::onSelectionChanged(const QItemSelection& sel
 void qMRMLSubjectHierarchyTreeView::onItemExpanded(const QModelIndex &expandedItemIndex)
 {
   Q_D(qMRMLSubjectHierarchyTreeView);
-  if (!d->SubjectHierarchyNode || !d->Model)
+  if (!d->SubjectHierarchyNode || !d->SortFilterModel)
     {
     return;
     }
 
-  vtkIdType expandedShItemID = d->Model->subjectHierarchyItemFromIndex(expandedItemIndex);
+  vtkIdType expandedShItemID = d->SortFilterModel->subjectHierarchyItemFromIndex(expandedItemIndex);
   if (expandedShItemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
     {
     d->SubjectHierarchyNode->SetItemExpanded(expandedShItemID, true);
+    }
+}
+
+//------------------------------------------------------------------------------
+void qMRMLSubjectHierarchyTreeView::onItemCollapsed(const QModelIndex &collapsedItemIndex)
+{
+  Q_D(qMRMLSubjectHierarchyTreeView);
+  if (!d->SubjectHierarchyNode || !d->SortFilterModel)
+    {
+    return;
+    }
+
+  vtkIdType collapsedShItemID = d->SortFilterModel->subjectHierarchyItemFromIndex(collapsedItemIndex);
+  if (collapsedShItemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+    {
+    d->SubjectHierarchyNode->SetItemExpanded(collapsedShItemID, false);
     }
 }
 
@@ -780,8 +798,25 @@ void qMRMLSubjectHierarchyTreeView::expandItem(vtkIdType itemID)
   Q_D(qMRMLSubjectHierarchyTreeView);
   if (itemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
     {
-    QModelIndex nodeIndex = d->SortFilterModel->indexFromSubjectHierarchyItem(itemID);
-    this->expand(nodeIndex);
+    QModelIndex itemIndex = d->SortFilterModel->indexFromSubjectHierarchyItem(itemID);
+    if (itemIndex.isValid())
+      {
+      this->expand(itemIndex);
+      }
+    }
+}
+
+//--------------------------------------------------------------------------
+void qMRMLSubjectHierarchyTreeView::collapseItem(vtkIdType itemID)
+{
+  Q_D(qMRMLSubjectHierarchyTreeView);
+  if (itemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+    {
+    QModelIndex itemIndex = d->SortFilterModel->indexFromSubjectHierarchyItem(itemID);
+    if (itemIndex.isValid())
+      {
+      this->collapse(itemIndex);
+      }
     }
 }
 

@@ -131,6 +131,22 @@ public:
   /// \sa isAncestorItem()
   bool isAffiliatedItem(vtkIdType itemA, vtkIdType itemB)const;
 
+signals:
+  /// This signal is sent when a user is about to reparent an item by drag and drop
+  void aboutToReparentByDragAndDrop(vtkIdType itemID, vtkIdType newParentID);
+  ///  This signal is sent after a user dragged and dropped an item in the tree view
+  void reparentedByDragAndDrop(vtkIdType itemID, vtkIdType newParentID);
+  /// This signal is sent when the whole subject hierarchy is about to be updated
+  void subjectHierarchyAboutToBeUpdated();
+  /// This signal is sent after the whole subject hierarchy is updated
+  void subjectHierarchyUpdated();
+  /// Signal requesting expanding of the subject hierarchy tree item belonging to an item
+  void requestExpandItem(vtkIdType itemID);
+  /// Signal requesting collapsing of the subject hierarchy tree item belonging to an item
+  void requestCollapseItem(vtkIdType itemID);
+  /// Triggers invalidating the sort filter proxy model
+  void invalidateFilter();
+
 public slots:
   /// Remove transforms from nodes in branch of current item
   void onRemoveTransformsFromBranchOfCurrentItem();
@@ -159,18 +175,6 @@ protected slots:
   /// Recompute the number of columns in the model. Called when a [some]Column property is set.
   /// Needs maxColumnId() to be reimplemented in subclasses
   void updateColumnCount();
-
-signals:
-  /// This signal is sent when a user is about to reparent an item by drag and drop
-  void aboutToReparentByDragAndDrop(vtkIdType itemID, vtkIdType newParentID);
-  ///  This signal is sent after a user dragged and dropped an item in the tree view
-  void reparentedByDragAndDrop(vtkIdType itemID, vtkIdType newParentID);
-  /// This signal is sent when the whole subject hierarchy is about to be updated
-  void subjectHierarchyAboutToBeUpdated();
-  /// This signal is sent after the whole subject hierarchy is updated
-  void subjectHierarchyUpdated();
-  /// Triggers invalidating the sort filter proxy model
-  void invalidateFilter();
 
 protected:
   qMRMLSubjectHierarchyModel(qMRMLSubjectHierarchyModelPrivate* pimpl, QObject *parent=0);
