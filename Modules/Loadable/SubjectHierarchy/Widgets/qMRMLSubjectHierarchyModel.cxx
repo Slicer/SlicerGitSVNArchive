@@ -730,6 +730,8 @@ void qMRMLSubjectHierarchyModel::updateFromSubjectHierarchy()
     QStandardItem* item = this->itemFromSubjectHierarchyItem(itemID, this->nameColumn());
     this->updateItemDataFromSubjectHierarchyItem(item, itemID, this->nameColumn());
     }
+
+  emit subjectHierarchyUpdated();
 }
 
 //------------------------------------------------------------------------------
@@ -1352,14 +1354,12 @@ void qMRMLSubjectHierarchyModel::onMRMLSceneEndBatchProcess(vtkMRMLScene* scene)
 {
   Q_UNUSED(scene);
   this->updateFromSubjectHierarchy();
-  emit subjectHierarchyUpdated();
 }
 
 //------------------------------------------------------------------------------
 void qMRMLSubjectHierarchyModel::onSubjectHierarchyNodeModified()
 {
   this->updateFromSubjectHierarchy();
-  emit subjectHierarchyUpdated();
 }
 
 //------------------------------------------------------------------------------

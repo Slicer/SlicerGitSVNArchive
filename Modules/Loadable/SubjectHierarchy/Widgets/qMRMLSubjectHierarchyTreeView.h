@@ -150,6 +150,10 @@ protected slots:
   /// Expand tree to depth specified by the clicked context menu action
   virtual void expandToDepthFromContextMenu();
 
+  /// Update root item to restore view
+  /// (e.g. after tree was updated in the model from the subject hierarchy)
+  virtual void updateRootItem();
+
 protected:
   QScopedPointer<qMRMLSubjectHierarchyTreeViewPrivate> d_ptr;
 
