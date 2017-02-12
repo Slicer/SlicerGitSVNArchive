@@ -1130,6 +1130,19 @@ void vtkMRMLSubjectHierarchyNode::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //----------------------------------------------------------------------------
+void vtkMRMLSubjectHierarchyNode::PrintItem(vtkIdType itemID, ostream& os, vtkIndent indent)
+{
+  vtkSubjectHierarchyItem* item = this->Internal->FindItemByID(itemID);
+  if (!item)
+    {
+    vtkErrorMacro("PrintItem: Failed to find subject hierarchy item by ID " << itemID);
+    return;
+    }
+
+  item->PrintSelf(os, indent);
+}
+
+//----------------------------------------------------------------------------
 const char* vtkMRMLSubjectHierarchyNode::GetNodeTagName()
 {
   return "SubjectHierarchy";

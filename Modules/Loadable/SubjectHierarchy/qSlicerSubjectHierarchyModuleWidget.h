@@ -63,6 +63,8 @@ protected slots:
 
   /// Set data node associated to the selected subject hierarchy item to the data node inspector
   void setDataNodeFromSubjectHierarchyItem(vtkIdType itemID);
+  /// Set subject hierarchy item information to the label
+  void setInfoLabelFromSubjectHierarchyItem(vtkIdType itemID);
 
 public:
   /// Assessor function for subject hierarchy model (for python)

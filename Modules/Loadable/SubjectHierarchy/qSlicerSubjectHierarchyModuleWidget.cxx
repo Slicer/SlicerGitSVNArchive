@@ -165,7 +165,9 @@ void qSlicerSubjectHierarchyModuleWidget::setup()
   d->SubjectHierarchyTreeView->header()->resizeSection(sceneModel->transformColumn(), 60);
 
   connect(d->SubjectHierarchyTreeView, SIGNAL(currentItemChanged(vtkIdType)),
-    this, SLOT(setDataNodeFromSubjectHierarchyItem(vtkIdType)));
+    this, SLOT(setDataNodeFromSubjectHierarchyItem(vtkIdType)) );
+  connect(d->SubjectHierarchyTreeView, SIGNAL(currentItemChanged(vtkIdType)),
+    this, SLOT(setInfoLabelFromSubjectHierarchyItem(vtkIdType)) );
 
   this->setMRMLIDsVisible(d->DisplayMRMLIDsCheckBox->isChecked());
   this->setTransformsVisible(d->DisplayTransformsCheckBox->isChecked());
@@ -240,6 +242,30 @@ void qSlicerSubjectHierarchyModuleWidget::setDataNodeFromSubjectHierarchyItem(vt
     }
   d->DataNodeInspectorGroupBox->setVisible(dataNode);
   d->DataNodeAttributeTableWidget->setMRMLNode(dataNode);
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerSubjectHierarchyModuleWidget::setInfoLabelFromSubjectHierarchyItem(vtkIdType itemID)
+{
+  Q_D(qSlicerSubjectHierarchyModuleWidget);
+
+  vtkMRMLSubjectHierarchyNode* shNode = d->SubjectHierarchyTreeView->subjectHierarchyNode();
+  if (!shNode)
+    {
+    qCritical() << Q_FUNC_INFO << ": Invalid subject hierarchy";
+    return;
+    }
+
+  if (itemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+    {
+    std::stringstream infoStream;
+    shNode->PrintItem(itemID, infoStream, vtkIndent(0));
+    d->SubjectHierarchyItemInfoLabel->setText(QLatin1String(infoStream.str().c_str()));
+    }
+  else
+    {
+    d->SubjectHierarchyItemInfoLabel->setText("No item selected");
+    }
 }
 
 //-----------------------------------------------------------------------------

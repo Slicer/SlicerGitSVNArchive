@@ -281,6 +281,9 @@ public:
   /// Generate unique item name
   std::string GenerateUniqueItemName(std::string name);
 
+  /// Print subject hierarchy item info on stream
+  void PrintItem(vtkIdType itemID, ostream& os, vtkIndent indent);
+
 protected:
   /// Callback function for all events from the subject hierarchy items
   static void ItemEventCallback(vtkObject* caller, unsigned long eid, void* clientData, void* callData);
