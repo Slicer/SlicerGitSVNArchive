@@ -3,7 +3,7 @@ import unittest
 import vtk, qt, ctk, slicer
 from slicer.ScriptedLoadableModule import *
 from slicer.util import VTKObservationMixin
-from SegmentEditorSubjectHierarchyPlugins import *
+from SubjectHierarchyPlugins import SegmentEditorSubjectHierarchyPlugin
 
 #
 # SegmentEditor

@@ -1,7 +1,7 @@
 #-----------------------------------------------------------------------------
 set(MODULE_NAME SegmentEditor)
 
-add_subdirectory(${MODULE_NAME}SubjectHierarchyPlugins)
+add_subdirectory(SubjectHierarchyPlugins)
 
 #-----------------------------------------------------------------------------
 set(MODULE_PYTHON_SCRIPTS

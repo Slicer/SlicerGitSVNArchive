@@ -3,7 +3,7 @@ import unittest
 import vtk, qt, ctk, slicer
 from slicer.ScriptedLoadableModule import *
 import logging
-from SegmentStatisticsSubjectHierarchyPlugins import *
+from SubjectHierarchyPlugins import SegmentStatisticsSubjectHierarchyPlugin
 
 #
 # SegmentStatistics
