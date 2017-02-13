@@ -417,8 +417,9 @@ void qSlicerSubjectHierarchySegmentationsPlugin::onSegmentAdded(vtkObject* calle
 
   // Add the segment in subject hierarchy to allow individual handling (e.g. visibility)
   vtkIdType segmentShItemID = shNode->CreateItem(
-    segmentationShItemID, NULL, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSubseries(), segment->GetName() );
+    segmentationShItemID, segment->GetName(), vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSubseries() );
   shNode->SetItemAttribute(segmentShItemID, vtkMRMLSegmentationNode::GetSegmentIDAttributeName(), segmentId);
+  qSlicerSubjectHierarchyPluginHandler::instance()->findAndSetOwnerPluginForSubjectHierarchyItem(segmentShItemID);
 }
 
 //---------------------------------------------------------------------------

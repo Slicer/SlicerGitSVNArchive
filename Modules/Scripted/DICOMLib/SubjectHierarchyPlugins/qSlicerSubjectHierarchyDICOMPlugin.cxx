@@ -343,7 +343,7 @@ void qSlicerSubjectHierarchyDICOMPlugin::createPatientItem()
 
   // Create patient subject hierarchy item
   vtkIdType patientItemID =
-    shNode->CreateItem(shNode->GetSceneItemID(), NULL, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelPatient(), name);
+    shNode->CreateItem(shNode->GetSceneItemID(), name, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelPatient());
 
   emit requestExpandItem(patientItemID);
 }
@@ -369,7 +369,7 @@ void qSlicerSubjectHierarchyDICOMPlugin::createChildStudyUnderCurrentItem()
 
   // Create study subject hierarchy item
   vtkIdType studyItemID =
-    shNode->CreateItem(currentItemID, NULL, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy(), name);
+    shNode->CreateItem(currentItemID, name, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy());
 
   emit requestExpandItem(studyItemID);
 }
