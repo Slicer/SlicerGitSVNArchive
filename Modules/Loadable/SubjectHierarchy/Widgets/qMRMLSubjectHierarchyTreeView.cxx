@@ -47,6 +47,9 @@
 // MRML includes
 #include <vtkMRMLScene.h>
 
+// qMRML includes
+#include "qMRMLItemDelegate.h"
+
 //------------------------------------------------------------------------------
 /// \ingroup Slicer_QtModules_SubjectHierarchy
 class qMRMLSubjectHierarchyTreeViewPrivate
@@ -69,7 +72,7 @@ public:
   qMRMLSortFilterSubjectHierarchyProxyModel* SortFilterModel;
 
   bool ShowRootItem;
-  bool RootItemID;
+  vtkIdType RootItemID;
 
   QMenu* NodeMenu;
   QAction* RenameAction;
@@ -150,6 +153,9 @@ void qMRMLSubjectHierarchyTreeViewPrivate::init()
   q->header()->setResizeMode(this->Model->visibilityColumn(), QHeaderView::ResizeToContents);
   q->header()->setResizeMode(this->Model->transformColumn(), QHeaderView::Interactive);
   q->header()->setResizeMode(this->Model->idColumn(), QHeaderView::ResizeToContents);
+
+  // Set generic MRML item delegate
+  q->setItemDelegate(new qMRMLItemDelegate(q));
 
   // Create default menu actions
   this->NodeMenu = new QMenu(q);
@@ -582,10 +588,8 @@ void qMRMLSubjectHierarchyTreeView::mouseReleaseEvent(QMouseEvent* e)
     QModelIndex index = this->indexAt(e->pos());
     QStyleOptionViewItemV4 opt = this->viewOptions();
     opt.rect = this->visualRect(index);
-    //TODO: Needed? (Here only transform item delegate is used)
-    //qobject_cast<qMRMLItemDelegate*>(this->itemDelegate())->initStyleOption(&opt,index);
+    qobject_cast<qMRMLItemDelegate*>(this->itemDelegate())->initStyleOption(&opt,index);
     QRect decorationElement = this->style()->subElementRect(QStyle::SE_ItemViewItemDecoration, &opt, this);
-    //decorationElement.translate(this->visualRect(index).topLeft());
     if (decorationElement.contains(e->pos()))
       {
       if (this->clickDecoration(index))

@@ -627,20 +627,21 @@ void vtkSubjectHierarchyItem::GetDataNodesInBranch(vtkCollection* dataNodeCollec
     nodeClass = childClass;
     }
 
+  // Add data node of item if it's of the requested type
+  vtkMRMLNode* currentDataNode = this->DataNode.GetPointer();
+  if (currentDataNode)
+    {
+    if (currentDataNode->IsA(nodeClass.c_str()))
+      {
+      dataNodeCollection->AddItem(currentDataNode);
+      }
+    }
+
+  // Traverse children recursively
   ChildVector::iterator childIt;
   for (childIt=this->Children.begin(); childIt!=this->Children.end(); ++childIt)
     {
     vtkSubjectHierarchyItem* currentItem = childIt->GetPointer();
-    vtkMRMLNode* currentDataNode = currentItem->DataNode.GetPointer();
-    if (currentDataNode)
-      {
-      if (currentDataNode->IsA(nodeClass.c_str()))
-        {
-        dataNodeCollection->AddItem(currentDataNode);
-        }
-      }
-
-    // Find associated data nodes recursively
     currentItem->GetDataNodesInBranch(dataNodeCollection, childClass);
     }
 }
@@ -1983,7 +1984,7 @@ void vtkMRMLSubjectHierarchyNode::SetDisplayVisibilityForBranch(vtkIdType itemID
        ++childNodeIndex)
     {
     vtkMRMLDisplayableNode* displayableNode =
-        vtkMRMLDisplayableNode::SafeDownCast(childDisplayableNodes->GetItemAsObject(childNodeIndex));
+      vtkMRMLDisplayableNode::SafeDownCast(childDisplayableNodes->GetItemAsObject(childNodeIndex));
     if (displayableNode)
       {
       // Create default display node is there is no display node associated
