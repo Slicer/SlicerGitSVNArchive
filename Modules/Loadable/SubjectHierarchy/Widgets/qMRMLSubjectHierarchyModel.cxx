@@ -609,7 +609,7 @@ bool qMRMLSubjectHierarchyModel::moveToRow(vtkIdType itemID, int newRow)
     }
 
   // Get item currently next to desired position
-  vtkIdType beforeItemID = d->SubjectHierarchyNode->GetItemByPositionUnderParent(parentItemID, newRow+1);
+  vtkIdType beforeItemID = d->SubjectHierarchyNode->GetItemByPositionUnderParent(parentItemID, newRow);
 
   // Move item to position
   return d->SubjectHierarchyNode->MoveItem(itemID, beforeItemID);
@@ -1050,7 +1050,10 @@ void qMRMLSubjectHierarchyModel::updateSubjectHierarchyItemFromItem(vtkIdType sh
   else if (this->subjectHierarchyItemIndex(shItemID) != item->row())
     {
     // Moved within parent, need to re-order subject hierarchy item in the node
-    if (!this->moveToRow(shItemID, item->row()))
+    int oldRow = this->subjectHierarchyItemIndex(shItemID);
+    int newRow = item->row();
+    // When moving down, the item before which this item needs to be inserted was one row down
+    if (!this->moveToRow(shItemID, (newRow>oldRow ? newRow+1 : newRow) ))
       {
       this->updateItemFromSubjectHierarchyItem(item, shItemID, item->column());
       }
@@ -1403,7 +1406,7 @@ void qMRMLSubjectHierarchyModel::onItemChanged(QStandardItem* item)
       // Item changed will be triggered multiple times in course of the drag&drop event. Setting this flag
       // makes sure the final onItemChanged with the collected DraggedItems is called only once.
       d->DelayedItemChangedInvoked = true;
-      QTimer::singleShot(200, this, SLOT(delayedItemChanged()));
+      QTimer::singleShot(100, this, SLOT(delayedItemChanged()));
       }
     return;
     }

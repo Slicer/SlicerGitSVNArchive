@@ -735,6 +735,11 @@ bool vtkSubjectHierarchyItem::Move(vtkSubjectHierarchyItem* beforeItem)
     vtkErrorMacro("Move: Scene item cannot be moved");
     return false;
     }
+  if (beforeItem == this)
+    {
+    vtkErrorMacro("Move: Item cannot be moved before itself");
+    return false;
+    }
 
   // Remove item from parent
   ChildVector::iterator removedIt;
@@ -1880,12 +1885,7 @@ bool vtkMRMLSubjectHierarchyNode::MoveItem(vtkIdType itemID, vtkIdType beforeIte
   vtkSubjectHierarchyItem* beforeItem = this->Internal->SceneItem->FindChildByID(beforeItemID);
 
   // Perform move
-  if (item->Move(beforeItem))
-    {
-    this->Modified();
-    return true;
-    }
-  return false;
+  return item->Move(beforeItem);
 }
 
 //---------------------------------------------------------------------------
