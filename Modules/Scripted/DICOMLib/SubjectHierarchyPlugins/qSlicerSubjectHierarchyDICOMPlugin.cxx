@@ -390,7 +390,10 @@ void qSlicerSubjectHierarchyDICOMPlugin::convertCurrentItemToPatient()
     return;
     }
 
+  // Set level to patient to indicate new role
   shNode->SetItemLevel(currentItemID, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelPatient());
+  // Set plugin for the new item (automatically selects the DICOM plugin based on confidence values)
+  qSlicerSubjectHierarchyPluginHandler::instance()->findAndSetOwnerPluginForSubjectHierarchyItem(currentItemID);
 }
 
 //---------------------------------------------------------------------------
@@ -409,7 +412,10 @@ void qSlicerSubjectHierarchyDICOMPlugin::convertCurrentItemToStudy()
     return;
     }
 
+  // Set level to patient to indicate new role
   shNode->SetItemLevel(currentItemID, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy());
+  // Set plugin for the new item (automatically selects the DICOM plugin based on confidence values)
+  qSlicerSubjectHierarchyPluginHandler::instance()->findAndSetOwnerPluginForSubjectHierarchyItem(currentItemID);
 }
 
 //---------------------------------------------------------------------------

@@ -1107,6 +1107,7 @@ private:
 vtkMRMLSubjectHierarchyNode::vtkInternal::vtkInternal(vtkMRMLSubjectHierarchyNode* external)
 : External(external)
 {
+  // Create scene item
   this->SceneItem = vtkSubjectHierarchyItem::New();
   this->SceneItemID = this->SceneItem->AddItemToTree(NULL, "Scene", "Scene");
 }
@@ -1141,9 +1142,14 @@ vtkMRMLSubjectHierarchyNode::vtkMRMLSubjectHierarchyNode()
 {
   this->Internal = new vtkInternal(this);
 
+  // Create subject hierarchy item callback
   this->ItemEventCallbackCommand = vtkSmartPointer<vtkCallbackCommand>::New();
   this->ItemEventCallbackCommand->SetClientData(reinterpret_cast<void*>(this));
   this->ItemEventCallbackCommand->SetCallback(vtkMRMLSubjectHierarchyNode::ItemEventCallback);
+
+  // Connect scene item to events related to removal (the parent item invokes these events, not the removed item itself)
+  this->Internal->SceneItem->AddObserver(vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemAboutToBeRemovedEvent, this->ItemEventCallbackCommand);
+  this->Internal->SceneItem->AddObserver(vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemRemovedEvent, this->ItemEventCallbackCommand);
 }
 
 //----------------------------------------------------------------------------
@@ -1716,15 +1722,15 @@ bool vtkMRMLSubjectHierarchyNode::RemoveItem(vtkIdType itemID, bool removeDataNo
         vtkSubjectHierarchyItem* currentItem = this->Internal->SceneItem->FindChildByID(*childIt);
         if ( !currentItem->HasChildren() || currentItem->IsVirtualBranchParent() )
           {
-          // Remove data node from scene if requested
+          // Remove data node from scene if requested.. In that case removing the item explicitly
+          // is not necessary because removing the node triggers removing the item automatically
           if (removeDataNode && currentItem->DataNode && this->Scene)
             {
             this->Scene->RemoveNode(currentItem->DataNode.GetPointer());
             }
-
           // Remove leaf item from its parent if not in virtual branch (if in virtual branch, then they will be removed
           // automatically when their parent is removed)
-          if (!currentItem->Parent->IsVirtualBranchParent())
+          else if (!currentItem->Parent->IsVirtualBranchParent())
             {
             currentItem->Parent->RemoveChild(*childIt);
             }
@@ -1737,18 +1743,19 @@ bool vtkMRMLSubjectHierarchyNode::RemoveItem(vtkIdType itemID, bool removeDataNo
       }
     }
 
-  // Remove data node of given item from scene if requested
+  // Remove data node of given item from scene if requested. In that case removing the item explicitly
+  // is not necessary because removing the node triggers removing the item automatically
   if (removeDataNode && item->DataNode && this->Scene)
     {
     this->Scene->RemoveNode(item->DataNode.GetPointer());
     }
-
   // Remove given item itself if it's not the scene
   // (the scene item must always exist, and it doesn't have the parent that can perform the removal)
-  if (itemID != this->Internal->SceneItemID)
+  else if (itemID != this->Internal->SceneItemID)
     {
     item->Parent->RemoveChild(item);
     }
+
   return true;
 }
 

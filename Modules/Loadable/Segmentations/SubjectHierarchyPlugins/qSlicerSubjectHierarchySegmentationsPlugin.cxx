@@ -419,6 +419,7 @@ void qSlicerSubjectHierarchySegmentationsPlugin::onSegmentAdded(vtkObject* calle
   vtkIdType segmentShItemID = shNode->CreateItem(
     segmentationShItemID, segment->GetName(), vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSubseries() );
   shNode->SetItemAttribute(segmentShItemID, vtkMRMLSegmentationNode::GetSegmentIDAttributeName(), segmentId);
+  // Set plugin for the new item (automatically selects the segment plugin based on confidence values)
   qSlicerSubjectHierarchyPluginHandler::instance()->findAndSetOwnerPluginForSubjectHierarchyItem(segmentShItemID);
 }
 
