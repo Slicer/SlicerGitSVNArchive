@@ -560,7 +560,7 @@ bool qMRMLSubjectHierarchyModel::reparent(vtkIdType itemID, vtkIdType newParentI
   // cannot be reparented).
   if ( ( ( !d->SubjectHierarchyNode->GetItemAttribute(newParentID,
              vtkMRMLSubjectHierarchyConstants::GetVirtualBranchSubjectHierarchyNodeAttributeName().c_str()).empty() )
-      || ( !d->SubjectHierarchyNode->GetItemAttribute(itemID,
+      || ( !d->SubjectHierarchyNode->GetItemAttribute(oldParentID,
              vtkMRMLSubjectHierarchyConstants::GetVirtualBranchSubjectHierarchyNodeAttributeName().c_str()).empty() ) )
     && selectedPlugin == qSlicerSubjectHierarchyPluginHandler::instance()->defaultPlugin() )
   {
