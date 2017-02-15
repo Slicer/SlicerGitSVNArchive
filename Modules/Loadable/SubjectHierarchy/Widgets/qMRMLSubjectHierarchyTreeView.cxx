@@ -388,6 +388,9 @@ void qMRMLSubjectHierarchyTreeView::setRootItem(vtkIdType rootItemID)
     return;
     }
 
+  // Reset item in unaffiliated filter (that hides all siblings and their children)
+  this->sortFilterProxyModel()->setHideItemsUnaffiliatedWithItemID(vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID);
+
   QModelIndex treeRootIndex;
   if (rootItemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
     {
@@ -403,7 +406,7 @@ void qMRMLSubjectHierarchyTreeView::setRootItem(vtkIdType rootItemID)
     treeRootIndex = this->sortFilterProxyModel()->indexFromSubjectHierarchyItem(rootItemID);
     if (d->ShowRootItem)
       {
-      // Hide the siblings of the root item
+      // Hide the siblings of the root item and their children
       this->sortFilterProxyModel()->setHideItemsUnaffiliatedWithItemID(rootItemID);
       // The parent of the root node becomes the root for QTreeView.
       treeRootIndex = treeRootIndex.parent();

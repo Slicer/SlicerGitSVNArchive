@@ -484,7 +484,7 @@ bool qMRMLSubjectHierarchyModel::isAncestorItem(vtkIdType child, vtkIdType ances
     return false;
     }
 
-  for (; child != d->SubjectHierarchyNode->GetSceneItemID(); child = d->SubjectHierarchyNode->GetItemParent(child))
+  for (; child != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID; child = d->SubjectHierarchyNode->GetItemParent(child))
     {
     if (child == ancestor)
       {
