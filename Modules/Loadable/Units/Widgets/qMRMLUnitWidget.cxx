@@ -85,6 +85,14 @@ void qMRMLUnitWidgetPrivate::setupUi(qMRMLUnitWidget* q)
     q, SLOT(setSuffix(QString)));
   QObject::connect(this->SuffixLineEdit, SIGNAL(textChanged(QString)),
     q, SIGNAL(suffixChanged(QString)));
+  QObject::connect(this->SecondSuffixLineEdit, SIGNAL(textChanged(QString)),
+    q, SLOT(setSecondSuffix(QString)));
+  QObject::connect(this->SecondSuffixLineEdit, SIGNAL(textChanged(QString)),
+    q, SIGNAL(secondSuffixChanged(QString)));
+  QObject::connect(this->ThirdSuffixLineEdit, SIGNAL(textChanged(QString)),
+    q, SLOT(setThirdSuffix(QString)));
+  QObject::connect(this->ThirdSuffixLineEdit, SIGNAL(textChanged(QString)),
+    q, SIGNAL(thirdSuffixChanged(QString)));
 
   QObject::connect(this->PrecisionSpinBox, SIGNAL(valueChanged(int)),
     q, SLOT(setPrecision(int)));
@@ -122,6 +130,8 @@ void qMRMLUnitWidgetPrivate::clear()
   this->QuantityLineEdit->clear();
   this->PrefixLineEdit->clear();
   this->SuffixLineEdit->clear();
+  this->SecondSuffixLineEdit->clear();
+  this->ThirdSuffixLineEdit->clear();
   this->PrecisionSpinBox->setValue(3);
   this->MinimumSpinBox->setValue(-1000);
   this->MaximumSpinBox->setValue(1000);
@@ -180,6 +190,24 @@ void qMRMLUnitWidgetPrivate::updatePropertyWidgets()
     this->DisplayFlags.testFlag(qMRMLUnitWidget::Suffix));
   this->SuffixLabel->setEnabled(
     this->EditableProperties.testFlag(qMRMLUnitWidget::Suffix));
+
+  this->SecondSuffixLineEdit->setVisible(
+    this->DisplayFlags.testFlag(qMRMLUnitWidget::SecondSuffix));
+  this->SecondSuffixLineEdit->setEnabled(
+    this->EditableProperties.testFlag(qMRMLUnitWidget::SecondSuffix));
+  this->SecondSuffixLabel->setVisible(
+    this->DisplayFlags.testFlag(qMRMLUnitWidget::SecondSuffix));
+  this->SecondSuffixLabel->setEnabled(
+    this->EditableProperties.testFlag(qMRMLUnitWidget::SecondSuffix));
+
+  this->ThirdSuffixLineEdit->setVisible(
+    this->DisplayFlags.testFlag(qMRMLUnitWidget::ThirdSuffix));
+  this->ThirdSuffixLineEdit->setEnabled(
+    this->EditableProperties.testFlag(qMRMLUnitWidget::ThirdSuffix));
+  this->ThirdSuffixLabel->setVisible(
+    this->DisplayFlags.testFlag(qMRMLUnitWidget::ThirdSuffix));
+  this->ThirdSuffixLabel->setEnabled(
+    this->EditableProperties.testFlag(qMRMLUnitWidget::ThirdSuffix));
 
   this->PrecisionSpinBox->setVisible(
     this->DisplayFlags.testFlag(qMRMLUnitWidget::Precision));
@@ -293,6 +321,8 @@ void qMRMLUnitWidget::updateWidgetFromNode()
   d->NameLineEdit->setEnabled(d->CurrentUnitNode != 0);
   d->PrefixLineEdit->setEnabled(d->CurrentUnitNode != 0);
   d->SuffixLineEdit->setEnabled(d->CurrentUnitNode != 0);
+  d->SecondSuffixLineEdit->setEnabled(d->CurrentUnitNode != 0);
+  d->ThirdSuffixLineEdit->setEnabled(d->CurrentUnitNode != 0);
   d->PrecisionSpinBox->setEnabled(d->CurrentUnitNode != 0);
   d->MinimumSpinBox->setEnabled(d->CurrentUnitNode != 0);
   d->MaximumSpinBox->setEnabled(d->CurrentUnitNode != 0);
@@ -316,6 +346,8 @@ void qMRMLUnitWidget::updateWidgetFromNode()
   d->NameLineEdit->setText(d->CurrentUnitNode->GetName());
   d->QuantityLineEdit->setText(d->CurrentUnitNode->GetQuantity());
   d->SuffixLineEdit->setText(d->CurrentUnitNode->GetSuffix());
+  d->SecondSuffixLineEdit->setText(d->CurrentUnitNode->GetSecondSuffix());
+  d->ThirdSuffixLineEdit->setText(d->CurrentUnitNode->GetThirdSuffix());
   d->PrefixLineEdit->setText(QString(d->CurrentUnitNode->GetPrefix()));
   d->PrecisionSpinBox->setValue(d->CurrentUnitNode->GetPrecision());
   d->MinimumSpinBox->setValue(d->CurrentUnitNode->GetMinimumValue());
@@ -388,6 +420,20 @@ QString qMRMLUnitWidget::suffix() const
 }
 
 //-----------------------------------------------------------------------------
+QString qMRMLUnitWidget::secondSuffix() const
+{
+  Q_D(const qMRMLUnitWidget);
+  return d->SecondSuffixLineEdit->text();
+}
+
+//-----------------------------------------------------------------------------
+QString qMRMLUnitWidget::thirdSuffix() const
+{
+  Q_D(const qMRMLUnitWidget);
+  return d->ThirdSuffixLineEdit->text();
+}
+
+//-----------------------------------------------------------------------------
 void qMRMLUnitWidget::setSuffix(const QString& newSuffix)
 {
   Q_D(qMRMLUnitWidget);
@@ -398,6 +444,28 @@ void qMRMLUnitWidget::setSuffix(const QString& newSuffix)
     }
   d->MaximumSpinBox->setSuffix(newSuffix);
   d->MinimumSpinBox->setSuffix(newSuffix);
+}
+
+//-----------------------------------------------------------------------------
+void qMRMLUnitWidget::setSecondSuffix(const QString& newSuffix)
+{
+  Q_D(qMRMLUnitWidget);
+
+  if (d->CurrentUnitNode)
+    {
+    d->CurrentUnitNode->SetSecondSuffix(newSuffix.toLatin1());
+    }
+}
+
+//-----------------------------------------------------------------------------
+void qMRMLUnitWidget::setThirdSuffix(const QString& newSuffix)
+{
+  Q_D(qMRMLUnitWidget);
+
+  if (d->CurrentUnitNode)
+    {
+    d->CurrentUnitNode->SetThirdSuffix(newSuffix.toLatin1());
+    }
 }
 
 //-----------------------------------------------------------------------------
@@ -518,11 +586,12 @@ void qMRMLUnitWidget::setUnitFromPreset(vtkMRMLNode* presetNode)
   d->CurrentUnitNode->SetQuantity(presetUnitNode->GetQuantity());
   d->CurrentUnitNode->SetPrefix(presetUnitNode->GetPrefix());
   d->CurrentUnitNode->SetSuffix(presetUnitNode->GetSuffix());
+  d->CurrentUnitNode->SetSecondSuffix(presetUnitNode->GetSecondSuffix());
+  d->CurrentUnitNode->SetThirdSuffix(presetUnitNode->GetThirdSuffix());
   d->CurrentUnitNode->SetPrecision(presetUnitNode->GetPrecision());
   d->CurrentUnitNode->SetMinimumValue(presetUnitNode->GetMinimumValue());
   d->CurrentUnitNode->SetMaximumValue(presetUnitNode->GetMaximumValue());
-  d->CurrentUnitNode->SetDisplayCoefficient(
-    presetUnitNode->GetDisplayCoefficient());
+  d->CurrentUnitNode->SetDisplayCoefficient(presetUnitNode->GetDisplayCoefficient());
   d->CurrentUnitNode->SetDisplayOffset(presetUnitNode->GetDisplayOffset());
   d->CurrentUnitNode->EndModify(disabledModify);
 }

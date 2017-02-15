@@ -39,6 +39,8 @@ vtkMRMLUnitNode::vtkMRMLUnitNode()
 
   this->Prefix = 0;
   this->Suffix = 0;
+  this->SecondSuffix = 0;
+  this->ThirdSuffix = 0;
   this->Precision = 3;
   this->MinimumValue = VTK_DOUBLE_MIN;
   this->MaximumValue = VTK_DOUBLE_MAX;
@@ -49,6 +51,8 @@ vtkMRMLUnitNode::vtkMRMLUnitNode()
   this->SetQuantity("");
   this->SetPrefix("");
   this->SetSuffix("");
+  this->SetSecondSuffix("");
+  this->SetThirdSuffix("");
 }
 
 //----------------------------------------------------------------------------
@@ -62,7 +66,35 @@ vtkMRMLUnitNode::~vtkMRMLUnitNode()
     {
     delete [] this->Suffix;
     }
+  if (this->SecondSuffix)
+    {
+    delete [] this->SecondSuffix;
+    }
+  if (this->ThirdSuffix)
+    {
+    delete [] this->ThirdSuffix;
+    }
 }
+
+namespace
+{
+//----------------------------------------------------------------------------
+template <typename T> std::string NumberToString(T V)
+{
+  std::string stringValue;
+  std::stringstream strstream;
+  strstream << V;
+  strstream >> stringValue;
+  return stringValue;
+}
+
+//----------------------------------------------------------------------------
+std::string DoubleToString(double Value)
+{
+  return NumberToString<double>(Value);
+}
+}// end namespace
+
 
 //----------------------------------------------------------------------------
 void vtkMRMLUnitNode::WriteXML(ostream& of, int nIndent)
@@ -75,6 +107,8 @@ void vtkMRMLUnitNode::WriteXML(ostream& of, int nIndent)
     << (this->GetQuantity() ? this->GetQuantity() : "") << "\"";
   of << indent << " Prefix=\"" << (this->Prefix ? this->Prefix : "") << "\"";
   of << indent << " Suffix=\"" << (this->Suffix ? this->Suffix : "") << "\"";
+  of << indent << " SecondSuffix=\"" << (this->SecondSuffix ? this->SecondSuffix : "") << "\"";
+  of << indent << " ThirdSuffix=\"" << (this->ThirdSuffix ? this->ThirdSuffix : "") << "\"";
   of << indent << " Precision=\"" << this->Precision << "\"";
   of << indent << " MinimumValue=\"" << this->MinimumValue << "\"";
   of << indent << " MaximumValue=\"" << this->MaximumValue << "\"";
@@ -128,6 +162,14 @@ void vtkMRMLUnitNode::ReadXMLAttributes(const char** atts)
     else if (!strcmp(attName, "Suffix"))
       {
       this->SetSuffix(attValue);
+      }
+    else if (!strcmp(attName, "SecondSuffix"))
+      {
+      this->SetSecondSuffix(attValue);
+      }
+    else if (!strcmp(attName, "ThirdSuffix"))
+      {
+      this->SetThirdSuffix(attValue);
       }
     else if (!strcmp(attName, "Precision"))
       {
@@ -198,8 +240,23 @@ const char* vtkMRMLUnitNode::GetDisplayStringFromValue(double value)
 }
 
 //----------------------------------------------------------------------------
-const char* vtkMRMLUnitNode
-::GetDisplayValueStringFromDisplayValue(double displayValue)
+const char *vtkMRMLUnitNode::GetDisplayStringFromValue(double value[3])
+{
+  const double firstDisplayValue = this->GetDisplayValueFromValue(value[0]);
+  const double secondDisplayValue = value[1];
+  const double thirdDisplayValue = value[2];
+
+  std::string firstDisplayValueString = DoubleToString(firstDisplayValue);
+  std::string secondDisplayValueString = DoubleToString(secondDisplayValue);
+  std::string thirdDisplayValueString = this->GetDisplayValueStringFromDisplayValue(thirdDisplayValue);
+
+  return this->GetDisplayStringFromDisplayValueString(firstDisplayValueString.c_str(),
+                                                      secondDisplayValueString.c_str(),
+                                                      thirdDisplayValueString.c_str());
+}
+
+//----------------------------------------------------------------------------
+const char* vtkMRMLUnitNode::GetDisplayValueStringFromDisplayValue(double displayValue)
 {
   std::stringstream strstream;
   strstream.setf(ios::fixed,ios::floatfield);
@@ -218,6 +275,18 @@ const char* vtkMRMLUnitNode::GetDisplayStringFromDisplayValueString(const char* 
 }
 
 //----------------------------------------------------------------------------
+const char* vtkMRMLUnitNode::GetDisplayStringFromDisplayValueString(const char* firstDisplayValueString,
+                                                                    const char* secondDisplayValueString,
+                                                                    const char* thirdDisplayValueString)
+{
+  this->LastDisplayString =
+    this->WrapValueWithPrefixAndSuffix(std::string(firstDisplayValueString),
+                                       std::string(secondDisplayValueString),
+                                       std::string(thirdDisplayValueString));
+  return this->LastDisplayString.c_str();
+}
+
+//----------------------------------------------------------------------------
 const char* vtkMRMLUnitNode::GetDisplayStringFormat()
 {
   std::stringstream strstream;
@@ -229,6 +298,16 @@ const char* vtkMRMLUnitNode::GetDisplayStringFormat()
   strstream << "." << this->GetPrecision(); // decimals
   strstream << "g";
   strstream << this->Suffix;
+  if(strcmp(this->SecondSuffix, "") != 0)
+    {
+    strstream << "0";
+    strstream << this->SecondSuffix;
+    }
+  if(strcmp(this->ThirdSuffix, "") != 0)
+    {
+    strstream << "0";
+    strstream << this->ThirdSuffix;
+    }
   strstream >> this->LastDisplayString;
   return this->LastDisplayString.c_str();
 }
@@ -262,6 +341,32 @@ std::string vtkMRMLUnitNode::WrapValueWithPrefixAndSuffix(const std::string& val
 }
 
 //----------------------------------------------------------------------------
+std::string vtkMRMLUnitNode::WrapValueWithSuffix(const std::string &firstValue,
+                                                 const std::string &secondValue,
+                                                 const std::string &thirdValue) const
+{
+  std::string firstWrappedString = "";
+  std::string secondWrappedString = "";
+  std::string thirdWrappedString = "";
+  if (this->Suffix and this->SecondSuffix and this->ThirdSuffix)
+    {
+    firstWrappedString = std::string(this->Suffix) + " ";
+    secondWrappedString = std::string(this->SecondSuffix) + " ";
+    thirdWrappedString = std::string(this->ThirdSuffix);
+    }
+  return firstValue + firstWrappedString + secondValue + secondWrappedString + thirdValue + thirdWrappedString;
+}
+
+//----------------------------------------------------------------------------
+std::string vtkMRMLUnitNode::WrapValueWithPrefixAndSuffix(const std::string &firstValue,
+                                                          const std::string &secondValue,
+                                                          const std::string &thirdValue) const
+{
+  return this->WrapValueWithPrefix(this->WrapValueWithSuffix(firstValue, secondValue, thirdValue));
+}
+
+
+//----------------------------------------------------------------------------
 void vtkMRMLUnitNode::SetName(const char* name)
 {
   this->Superclass::SetName(name);
@@ -285,6 +390,8 @@ void vtkMRMLUnitNode::Copy(vtkMRMLNode *anode)
   this->SetQuantity(node->GetQuantity());
   this->SetPrefix(node->GetPrefix());
   this->SetSuffix(node->GetSuffix());
+  this->SetSecondSuffix(node->GetSecondSuffix());
+  this->SetThirdSuffix(node->GetThirdSuffix());
   this->SetPrecision(node->GetPrecision());
   this->SetMinimumValue(node->GetMinimumValue());
   this->SetMaximumValue(node->GetMaximumValue());
@@ -315,6 +422,10 @@ void vtkMRMLUnitNode::PrintSelf(ostream& os, vtkIndent indent)
     (this->Prefix ? this->Prefix : "(none)") << "\n";
   os << indent << "Suffix: " <<
     (this->Suffix ? this->Suffix : "(none)") << "\n";
+  os << indent << "SecondSuffix: " <<
+    (this->SecondSuffix ? this->SecondSuffix : "(none)") << "\n";
+  os << indent << "ThirdSuffix: " <<
+    (this->ThirdSuffix ? this->ThirdSuffix : "(none)") << "\n";
   os << indent << "Precision: " << this->Precision << "\n";
   os << indent << "MinimumValue: " << this->MinimumValue << "\n";
   os << indent << "MaximumValue: " << this->MaximumValue << "\n";
