@@ -90,6 +90,24 @@ public:
       ClipNegativeSpace = 2,
     };
 
+  ///
+  ///Indicates what clipping method should be used
+  ///Straight cut, whole cell extraction, or whole cell extraction with boundary cells
+  typedef enum
+  {
+    Straight = 0,
+    WholeCells,
+    WholeCellsWithBoundary,
+    ClippingMethod_Last,
+  } ClippingMethodType;
+
+  vtkGetMacro(ClippingMethod, ClippingMethodType);
+  vtkSetMacro(ClippingMethod, ClippingMethodType);
+
+  //Convert between enum and string
+  static ClippingMethodType GetClippingMethodFromString(const char* name);
+  static const char* GetClippingMethodAsString(ClippingMethodType id);
+
 protected:
   vtkMRMLClipModelsNode();
   ~vtkMRMLClipModelsNode();
@@ -101,6 +119,8 @@ protected:
   int RedSliceClipState;
   int YellowSliceClipState;
   int GreenSliceClipState;
+
+  ClippingMethodType ClippingMethod;
 
 
 };
