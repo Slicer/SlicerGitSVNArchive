@@ -1418,10 +1418,19 @@ void qMRMLSubjectHierarchyModel::onItemChanged(QStandardItem* item)
 void qMRMLSubjectHierarchyModel::delayedItemChanged()
 {
   Q_D(qMRMLSubjectHierarchyModel);
+
+  // Update each dropped item
+  QList<vtkIdType> draggedItemIDs;
   foreach(QStandardItem* item, d->DraggedItems)
     {
+    draggedItemIDs << this->subjectHierarchyItemFromItem(item);
     this->onItemChanged(item);
     }
+
+  // Re-select dropped items
+  emit requestSelectItems(draggedItemIDs);
+
+  // Reset state
   d->DraggedItems.clear();
   d->DelayedItemChangedInvoked = false;
 }

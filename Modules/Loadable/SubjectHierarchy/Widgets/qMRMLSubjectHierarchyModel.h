@@ -144,6 +144,8 @@ signals:
   void requestExpandItem(vtkIdType itemID);
   /// Signal requesting collapsing of the subject hierarchy tree item belonging to an item
   void requestCollapseItem(vtkIdType itemID);
+  /// Signal requesting selecting items in the tree
+  void requestSelectItems(QList<vtkIdType> itemIDs);
   /// Triggers invalidating the sort filter proxy model
   void invalidateFilter();
 

@@ -123,6 +123,9 @@ public slots:
   /// Handle collapse item requests in the subject hierarchy tree. Collapses branch
   virtual void collapseItem(vtkIdType itemID);
 
+  /// Select items in the subject hierarchy tree
+  virtual void selectItems(QList<vtkIdType> itemIDs);
+
   /// Handle manual selection of a plugin as the new owner of a subject hierarchy node
   virtual void selectPluginForCurrentItem();
 

@@ -74,6 +74,7 @@ qSlicerSubjectHierarchyPluginLogicPrivate::qSlicerSubjectHierarchyPluginLogicPri
 {
   // Register vtkIdType for use in python for subject hierarchy item IDs
   qRegisterMetaType<vtkIdType>("vtkIdType");
+  //qRegisterMetaType<QList<vtkIdType> >("QList<vtkIdType>"); //TODO: Allows returning it but cannot be used (e.g. pluginHandler->currentItems())
 }
 
 //-----------------------------------------------------------------------------

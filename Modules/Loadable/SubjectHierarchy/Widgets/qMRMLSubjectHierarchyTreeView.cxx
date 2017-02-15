@@ -127,6 +127,7 @@ void qMRMLSubjectHierarchyTreeViewPrivate::init()
   this->Model = new qMRMLSubjectHierarchyModel(q);
   QObject::connect( this->Model, SIGNAL(requestExpandItem(vtkIdType)), q, SLOT(expandItem(vtkIdType)) );
   QObject::connect( this->Model, SIGNAL(requestCollapseItem(vtkIdType)), q, SLOT(collapseItem(vtkIdType)) );
+  QObject::connect( this->Model, SIGNAL(requestSelectItems(QList<vtkIdType>)), q, SLOT(selectItems(QList<vtkIdType>)) );
   QObject::connect( this->Model, SIGNAL(subjectHierarchyUpdated()), q, SLOT(updateRootItem()) );
 
   this->SortFilterModel = new qMRMLSortFilterSubjectHierarchyProxyModel(q);
@@ -524,8 +525,8 @@ void qMRMLSubjectHierarchyTreeView::mousePressEvent(QMouseEvent* e)
   // Perform default mouse press event (make selections etc.)
   this->QTreeView::mousePressEvent(e);
 
-//TODO: Move to selection changed?
   // Collect selected subject hierarchy items
+  //TODO: Move to selection changed?
   QList<vtkIdType> selectedShItems;
   QList<QModelIndex> selectedIndices = this->selectedIndexes();
   foreach(QModelIndex index, selectedIndices)
@@ -737,6 +738,21 @@ void qMRMLSubjectHierarchyTreeView::collapseItem(vtkIdType itemID)
     if (itemIndex.isValid())
       {
       this->collapse(itemIndex);
+      }
+    }
+}
+
+//--------------------------------------------------------------------------
+void qMRMLSubjectHierarchyTreeView::selectItems(QList<vtkIdType> itemIDs)
+{
+  Q_D(qMRMLSubjectHierarchyTreeView);
+  this->selectionModel()->clearSelection();
+  foreach (vtkIdType itemID, itemIDs)
+    {
+    QModelIndex itemIndex = d->SortFilterModel->indexFromSubjectHierarchyItem(itemID);
+    if (itemIndex.isValid())
+      {
+      this->selectionModel()->select(itemIndex, QItemSelectionModel::Select | QItemSelectionModel::Rows);
       }
     }
 }
