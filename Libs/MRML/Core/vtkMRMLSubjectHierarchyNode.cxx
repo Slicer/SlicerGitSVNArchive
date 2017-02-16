@@ -45,7 +45,7 @@
 
 //----------------------------------------------------------------------------
 const vtkIdType vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID = VTK_UNSIGNED_LONG_MAX;
-const std::string vtkMRMLSubjectHierarchyNode::SUBJECTHIERARCHY_SEPARATOR = std::string("; ");
+const std::string vtkMRMLSubjectHierarchyNode::SUBJECTHIERARCHY_SEPARATOR = std::string(";");
 const std::string vtkMRMLSubjectHierarchyNode::SUBJECTHIERARCHY_NAME_VALUE_SEPARATOR = std::string(":");
 
 //----------------------------------------------------------------------------
@@ -401,6 +401,10 @@ void vtkSubjectHierarchyItem::ReadXMLAttributes(const char** atts)
     {
     attName = *(atts++);
     attValue = *(atts++);
+
+    if (!strcmp(attName, "id"))
+      {
+      }
     //TODO:
     }
 
@@ -412,40 +416,71 @@ void vtkSubjectHierarchyItem::WriteXML(ostream& of, int nIndent)
 {
   vtkIndent indent(nIndent);
 
-  of << indent << " ID=\"" << this->ID << "\"";
+  // Start item element
+  of << "\n" << indent << "<SubjectHierarchyItem";
 
-  of << indent << " DataNode=\"" << (this->DataNode.GetPointer() ? this->DataNode->GetID() : "NULL") << "\"";
-  of << indent << " Name=\"" << this->Name << "\"";
+  // Write item attributes
+  of << " id=\"" << this->ID << "\"";
 
-  of << indent << " Parent=\"" << (this->Parent ? this->Parent->ID : vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID) << "\"";
-  of << indent << " Children=\"";
-  for (ChildVector::iterator childIt=this->Children.begin(); childIt!=this->Children.end(); ++childIt)
+  if (this->DataNode.GetPointer())
     {
-    of << childIt->GetPointer()->ID << vtkMRMLSubjectHierarchyNode::SUBJECTHIERARCHY_SEPARATOR;
+    of << " dataNode=\"" << this->DataNode->GetID() << "\"";
     }
-  of << "\"";
-
-  of << indent << " Level=\"" << this->Level << "\"";
-
-  of << indent << " OwnerPluginName=\"" << this->OwnerPluginName << "\"";
-
-  of << indent << " Expanded=\"" << (this->Expanded ? "true" : "false") << "\"";
-
-  of << indent << " UIDs=\"";
-  for (std::map<std::string, std::string>::iterator uidIt = this->UIDs.begin(); uidIt != this->UIDs.end(); ++uidIt)
+  else
     {
-    of << uidIt->first << vtkMRMLSubjectHierarchyNode::SUBJECTHIERARCHY_NAME_VALUE_SEPARATOR
-       << uidIt->second << vtkMRMLSubjectHierarchyNode::SUBJECTHIERARCHY_SEPARATOR;
+    of << " name=\"" << this->Name << "\"";
     }
-  of << "\"";
 
-  of << indent << " Attributes=\"";
-  for (std::map<std::string, std::string>::iterator attIt = this->Attributes.begin(); attIt != this->Attributes.end(); ++attIt)
+  of << " parent=\"" << (this->Parent ? this->Parent->ID : vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID) << "\"";
+
+  //of << " children=\"";
+  //for (ChildVector::iterator childIt=this->Children.begin(); childIt!=this->Children.end(); ++childIt)
+  //  {
+  //  of << childIt->GetPointer()->ID << vtkMRMLSubjectHierarchyNode::SUBJECTHIERARCHY_SEPARATOR;
+  //  }
+  //of << "\"";
+
+  of << " level=\"" << this->Level << "\"";
+
+  of << " type=\"" << this->OwnerPluginName << "\"";
+
+  of << " expanded=\"" << (this->Expanded ? "true" : "false") << "\"";
+
+  if (this->UIDs.size() > 0)
     {
-    of << attIt->first << vtkMRMLSubjectHierarchyNode::SUBJECTHIERARCHY_NAME_VALUE_SEPARATOR
-       << attIt->second << vtkMRMLSubjectHierarchyNode::SUBJECTHIERARCHY_SEPARATOR;
+    of << " uids=\"";
+    for (std::map<std::string, std::string>::iterator uidIt = this->UIDs.begin(); uidIt != this->UIDs.end(); ++uidIt)
+      {
+      of << uidIt->first << vtkMRMLSubjectHierarchyNode::SUBJECTHIERARCHY_NAME_VALUE_SEPARATOR
+         << uidIt->second << vtkMRMLSubjectHierarchyNode::SUBJECTHIERARCHY_SEPARATOR;
+      }
+    of << "\"";
     }
-  of << "\"";
+
+  if (this->UIDs.size() > 0)
+    {
+    of << " attributes=\"";
+    for (std::map<std::string, std::string>::iterator attIt = this->Attributes.begin(); attIt != this->Attributes.end(); ++attIt)
+      {
+      of << attIt->first << vtkMRMLSubjectHierarchyNode::SUBJECTHIERARCHY_NAME_VALUE_SEPARATOR
+         << attIt->second << vtkMRMLSubjectHierarchyNode::SUBJECTHIERARCHY_SEPARATOR;
+      }
+    of << "\"";
+    }
+
+  // Close item element opening tag
+  of << ">";
+
+  // Write elements for all children
+  ChildVector::iterator childIt;
+  for (childIt=this->Children.begin(); childIt!=this->Children.end(); ++childIt)
+    {
+    vtkSubjectHierarchyItem* childItem = childIt->GetPointer();
+    childItem->WriteXML(of, nIndent + 2);
+    }
+
+  // Close item element (in same line)
+  of << "</SubjectHierarchyItem>";
 }
 
 //---------------------------------------------------------------------------
@@ -1263,31 +1298,16 @@ void vtkMRMLSubjectHierarchyNode::ReadXMLAttributes(const char** atts)
 void vtkMRMLSubjectHierarchyNode::WriteXML(ostream& of, int nIndent)
 {
   Superclass::WriteXML(of,nIndent);
-
-  vtkIndent indent(nIndent);
-
-  //TODO:
-  //of << indent << " Level=\""
-  //  << (this->Level ? this->Level : "NULL" ) << "\"";
-
-  //of << indent << " OwnerPluginName=\""
-  //  << (this->OwnerPluginName ? this->OwnerPluginName : "NULL" ) << "\"";
-
-  //of << indent << " UIDs=\"";
-  //for (std::map<std::string, std::string>::iterator uidsIt = this->UIDs.begin(); uidsIt != this->UIDs.end(); ++uidsIt)
-  //  {
-  //  of << uidsIt->first << vtkMRMLSubjectHierarchyNode::SUBJECTHIERARCHY_UID_NAME_VALUE_SEPARATOR
-  //    << uidsIt->second << vtkMRMLSubjectHierarchyNode::SUBJECTHIERARCHY_UID_ITEM_SEPARATOR;
-  //  }
-  //of << "\"";
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLSubjectHierarchyNode::WriteNodeBodyXML(ostream& of, int indent)
 {
-  //TODO:
-  // Write item information in node XML element body
-  vtkErrorMacro("Not implemented!");
+  if (this->Internal->SceneItem)
+    {
+    // Have the scene item write the whole tree
+    this->Internal->SceneItem->WriteXML(of, indent+2);
+    }
 }
 
 //----------------------------------------------------------------------------
@@ -1298,12 +1318,7 @@ void vtkMRMLSubjectHierarchyNode::Copy(vtkMRMLNode *anode)
   Superclass::Copy(anode);
   vtkMRMLSubjectHierarchyNode *node = (vtkMRMLSubjectHierarchyNode*)anode;
 
-  //TODO:
-  //this->SetLevel(node->Level);
-  //this->SetOwnerPluginName(node->OwnerPluginName);
-
-  //this->UIDs = node->GetUIDs();
-  vtkErrorMacro("Not implemented!");
+  vtkErrorMacro("Copy: Not implemented - subject hierarchy node should not be copied");
 
   this->EndModify(disabledModify);
 }
