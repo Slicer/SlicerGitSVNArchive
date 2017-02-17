@@ -270,7 +270,7 @@ void qSlicerSubjectHierarchyPluginLogic::onNodeAboutToBeRemoved(vtkObject* scene
   Q_D(qSlicerSubjectHierarchyPluginLogic);
 
   vtkMRMLNode* dataNode = vtkMRMLNode::SafeDownCast(nodeObject);
-  if (!dataNode)
+  if (!dataNode || dataNode->IsA("vtkMRMLSubjectHierarchyNode"))
     {
     return;
     }
@@ -300,8 +300,16 @@ void qSlicerSubjectHierarchyPluginLogic::onSceneImportEnded(vtkObject* sceneObje
     return;
     }
 
-  // Add nodes that are supported (i.e. there is a plugin that can claim it) to subject hierarchy
-  this->addSupportedNodesToSubjectHierarchy();
+  // Trigger merging the imported subject hierarchy node containing the unresolved items
+  // into the singleton subject hierarchy node in the current scene. This would be done
+  // when first accessing the subject hierarchy node, but it needs to be done so that the
+  // addSupportedDataNodesToSubjectHierarchy call below only adds the nodes that were not
+  // in the hierarchy stored by the imported scene
+  vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(scene);
+
+  // Add data nodes that are supported (i.e. there is a plugin that can claim it) and were not
+  // in the imported subject hierarchy node to subject hierarchy
+  this->addSupportedDataNodesToSubjectHierarchy();
 }
 
 //-----------------------------------------------------------------------------
@@ -359,7 +367,7 @@ void qSlicerSubjectHierarchyPluginLogic::onMRMLNodeHierarchyModified(vtkObject* 
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSubjectHierarchyPluginLogic::addSupportedNodesToSubjectHierarchy()
+void qSlicerSubjectHierarchyPluginLogic::addSupportedDataNodesToSubjectHierarchy()
 {
   // Get subject hierarchy node
   vtkMRMLScene* scene = this->mrmlScene();
@@ -381,7 +389,7 @@ void qSlicerSubjectHierarchyPluginLogic::addSupportedNodesToSubjectHierarchy()
     // Do not add into subject hierarchy if hidden, excluded, or already added
     if ( node->GetHideFromEditors()
       || node->GetAttribute(vtkMRMLSubjectHierarchyConstants::GetSubjectHierarchyExcludeFromTreeAttributeName().c_str())
-      || shNode->GetItemByDataNode(node) == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID )
+      || shNode->GetItemByDataNode(node) != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID )
       {
       continue;
       }
