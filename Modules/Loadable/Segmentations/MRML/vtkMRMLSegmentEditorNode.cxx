@@ -57,6 +57,10 @@ vtkMRMLSegmentEditorNode::vtkMRMLSegmentEditorNode()
   this->SetHideFromEditors(true);
   this->MasterVolumeIntensityMaskRange[0] = 0.0;
   this->MasterVolumeIntensityMaskRange[1] = 0.0;
+  this->MasterVolumeIntensityMaskRangeLimits[0] = 0.0;
+  this->MasterVolumeIntensityMaskRangeLimits[1] = 0.0;
+  this->MasterVolumeIntensitySingleStep = 0.01;
+  this->MasterVolumeIntensityDecimals = 2.;
 }
 
 //----------------------------------------------------------------------------
@@ -66,6 +70,26 @@ vtkMRMLSegmentEditorNode::~vtkMRMLSegmentEditorNode()
   this->SetActiveEffectName(NULL);
   this->SetMaskSegmentID(NULL);
 }
+
+namespace
+{
+//----------------------------------------------------------------------------
+template <typename T> T StringToNumber(const char* num)
+{
+  std::stringstream ss;
+  ss << num;
+  T result;
+  return ss >> result ? result : 0;
+}
+
+//----------------------------------------------------------------------------
+double StringToDouble(const char* str)
+{
+  return StringToNumber<double>(str);
+}
+
+}// end namespace
+
 
 //----------------------------------------------------------------------------
 void vtkMRMLSegmentEditorNode::WriteXML(ostream& of, int nIndent)
@@ -81,6 +105,10 @@ void vtkMRMLSegmentEditorNode::WriteXML(ostream& of, int nIndent)
   of << indent << " maskSegmentID=\"" << (this->MaskSegmentID?this->MaskSegmentID:"") << "\"";
   of << indent << " masterVolumeIntensityMask=\"" << (this->MasterVolumeIntensityMask ? "true" : "false") << "\"";
   of << indent << " masterVolumeIntensityMaskRange=\"" << this->MasterVolumeIntensityMaskRange[0] << " " << this->MasterVolumeIntensityMaskRange[1] << "\"";
+  of << indent << " masterVolumeIntensityMaskRangeLimits=\"" << this->MasterVolumeIntensityMaskRangeLimits[0]
+    << " " << this->MasterVolumeIntensityMaskRangeLimits[1] << "\"";
+  of << indent << " masterVolumeIntensitySingleStep=\"" << this->MasterVolumeIntensitySingleStep << "\"";
+  of << indent << " masterVolumeIntensityDecimals=\"" << this->MasterVolumeIntensityDecimals << "\"";
   of << indent << " overwriteMode=\"" << vtkMRMLSegmentEditorNode::ConvertOverwriteModeToString(this->OverwriteMode) << "\"";
 }
 
@@ -129,6 +157,23 @@ void vtkMRMLSegmentEditorNode::ReadXMLAttributes(const char** atts)
       ss >> range[1];
       this->SetMasterVolumeIntensityMaskRange(range);
       }
+    else if (!strcmp(attName, "masterVolumeIntensityMaskRangeLimits"))
+      {
+      std::stringstream ss;
+      ss << attValue;
+      double range[2]={0};
+      ss >> range[0];
+      ss >> range[1];
+      this->SetMasterVolumeIntensityMaskRangeLimits(range);
+      }
+    else if (!strcmp(attName, "masterVolumeIntensitySingleStep"))
+      {
+      this->SetMasterVolumeIntensitySingleStep(StringToDouble(attValue));
+      }
+    else if (!strcmp(attName, "masterVolumeIntensityDecimals"))
+      {
+      this->SetMasterVolumeIntensityDecimals(StringToDouble(attValue));
+      }
     else if (!strcmp(attName, "overwriteMode"))
       {
       this->SetOverwriteMode(vtkMRMLSegmentEditorNode::ConvertOverwriteModeFromString(attValue));
@@ -154,6 +199,9 @@ void vtkMRMLSegmentEditorNode::Copy(vtkMRMLNode *anode)
   this->SetMaskSegmentID(otherNode->GetMaskSegmentID());
   this->SetMasterVolumeIntensityMask(otherNode->GetMasterVolumeIntensityMask());
   this->SetMasterVolumeIntensityMaskRange(otherNode->GetMasterVolumeIntensityMaskRange());
+  this->SetMasterVolumeIntensityMaskRangeLimits(otherNode->GetMasterVolumeIntensityMaskRangeLimits());
+  this->SetMasterVolumeIntensitySingleStep(otherNode->GetMasterVolumeIntensitySingleStep());
+  this->SetMasterVolumeIntensityDecimals(otherNode->GetMasterVolumeIntensityDecimals());
   this->SetOverwriteMode(otherNode->GetOverwriteMode());
 
   this->DisableModifiedEventOff();
@@ -172,6 +220,10 @@ void vtkMRMLSegmentEditorNode::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "OverwriteMode: " << vtkMRMLSegmentEditorNode::ConvertOverwriteModeToString(this->OverwriteMode) << "\n";
   os << indent << "MasterVolumeIntensityMask: " << (this->MasterVolumeIntensityMask ? "true" : "false") << "\n";
   os << indent << "MasterVolumeIntensityMaskRange: " << this->MasterVolumeIntensityMaskRange[0] << " " << this->MasterVolumeIntensityMaskRange[1] << "\n";
+  os << indent << "MasterVolumeIntensityMaskRangeLimits: " << this->MasterVolumeIntensityMaskRangeLimits[0]
+    << " " << this->MasterVolumeIntensityMaskRangeLimits[1] << "\n";
+  os << indent << "MasterVolumeIntensitySingleStep: " << this->MasterVolumeIntensitySingleStep << "\n";
+  os << indent << "MasterVolumeIntensityDecimals: " << this->MasterVolumeIntensityDecimals << "\n";
 }
 
 //----------------------------------------------------------------------------

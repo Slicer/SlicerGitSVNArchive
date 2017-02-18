@@ -129,6 +129,8 @@ class SegmentEditorThresholdEffect(AbstractScriptedSegmentEditorEffect):
     self.thresholdSlider.blockSignals(True)
     self.thresholdSlider.setMinimumValue(self.scriptedEffect.doubleParameter("MinimumThreshold"))
     self.thresholdSlider.setMaximumValue(self.scriptedEffect.doubleParameter("MaximumThreshold"))
+    unitNodeIntensity = slicer.app.applicationLogic().GetSelectionNode().GetUnitNode("intensity");
+    self.thresholdSlider.decimals = unitNodeIntensity.GetPrecision()
     self.thresholdSlider.blockSignals(False)
 
   def updateMRMLFromGUI(self):

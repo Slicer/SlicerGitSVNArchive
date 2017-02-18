@@ -232,7 +232,8 @@ public:
   /// \param selectEffectSlot called from the active effect to initiate switching to another effect (or de-select).
   /// \param updateVolumeSlot called to request update of a volume (modifierLabelmap, alignedMasterVolume, maskLabelmap).
   /// \param saveStateForUndoSlot called to request saving of segmentation state for undo operation
-  void setCallbackSlots(QObject* receiver, const char* selectEffectSlot, const char* updateVolumeSlot, const char* saveStateForUndoSlot);
+  void setCallbackSlots(QObject* receiver, const char* selectEffectSlot, const char* updateVolumeSlot,
+                        const char* saveStateForUndoSlot);
 
   /// Called by the editor widget.
   void setVolumes(vtkOrientedImageData* alignedMasterVolume, vtkOrientedImageData* modifierLabelmap,

@@ -153,6 +153,21 @@ public:
   /// \sa SetMasterVolumeIntensityMask()
   vtkGetVector2Macro(MasterVolumeIntensityMaskRange, double);
 
+  /// Set mask volume intensity range widget limits for masking.
+  /// \sa SetMasterVolumeIntensityMask()
+  vtkSetVector2Macro(MasterVolumeIntensityMaskRangeLimits, double);
+  /// Get mask volume intensity range widget limits for masking.
+  /// \sa SetMasterVolumeIntensityMask()
+  vtkGetVector2Macro(MasterVolumeIntensityMaskRangeLimits, double);
+
+  /// Defines single step of mask volume intensity range for masking.
+  vtkSetMacro(MasterVolumeIntensitySingleStep, double);
+  vtkGetMacro(MasterVolumeIntensitySingleStep, double);
+
+  /// Defines decimals of mask volume intensity range for masking.
+  vtkSetMacro(MasterVolumeIntensityDecimals, double);
+  vtkGetMacro(MasterVolumeIntensityDecimals, double);
+
   /// Defines which areas are overwritten in other segments.
   /// Uses OVERWRITE_... constants.
   vtkSetMacro(OverwriteMode, int);
@@ -177,6 +192,9 @@ protected:
 
   bool MasterVolumeIntensityMask;
   double MasterVolumeIntensityMaskRange[2];
+  double MasterVolumeIntensityMaskRangeLimits[2];
+  double MasterVolumeIntensitySingleStep;
+  double MasterVolumeIntensityDecimals;
 };
 
 #endif // __vtkMRMLSegmentEditorNode_h

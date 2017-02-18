@@ -73,6 +73,7 @@
 #include <vtkMRMLScene.h>
 #include <vtkMRMLSliceNode.h>
 #include <vtkMRMLTransformNode.h>
+#include <vtkMRMLUnitNode.h>
 #include <vtkMRMLViewNode.h>
 
 // Qt includes
@@ -820,7 +821,9 @@ void qMRMLSegmentEditorWidgetPrivate::updateEffectsEnabled()
       // NULL effect
       continue;
       }
-    effectButton->setEnabled(segmentAvailable && (segmentSelected || !effect->perSegment()));
+    bool Enabling = segmentAvailable && (segmentSelected || !effect->perSegment());
+    effectButton->setEnabled(Enabling);
+    this->EffectsOptionsFrame->setEnabled(Enabling);
     }
 }
 
@@ -953,8 +956,12 @@ void qMRMLSegmentEditorWidget::updateWidgetFromMRML()
 
   wasBlocked = d->MasterVolumeIntensityMaskRangeWidget->blockSignals(true);
   d->MasterVolumeIntensityMaskRangeWidget->setVisible(d->ParameterSetNode->GetMasterVolumeIntensityMask());
-  d->MasterVolumeIntensityMaskRangeWidget->setMinimumValue(d->ParameterSetNode->GetMasterVolumeIntensityMaskRange()[0]);
-  d->MasterVolumeIntensityMaskRangeWidget->setMaximumValue(d->ParameterSetNode->GetMasterVolumeIntensityMaskRange()[1]);
+  d->MasterVolumeIntensityMaskRangeWidget->setMinimum(d->ParameterSetNode->GetMasterVolumeIntensityMaskRangeLimits()[0]);
+  d->MasterVolumeIntensityMaskRangeWidget->setMaximum(d->ParameterSetNode->GetMasterVolumeIntensityMaskRangeLimits()[1]);
+  d->MasterVolumeIntensityMaskRangeWidget->setDecimals(d->ParameterSetNode->GetMasterVolumeIntensityDecimals());
+  d->MasterVolumeIntensityMaskRangeWidget->setSingleStep(d->ParameterSetNode->GetMasterVolumeIntensitySingleStep());
+  d->MasterVolumeIntensityMaskRangeWidget->setValues(d->ParameterSetNode->GetMasterVolumeIntensityMaskRange()[0],
+                                                     d->ParameterSetNode->GetMasterVolumeIntensityMaskRange()[1]);
   d->MasterVolumeIntensityMaskRangeWidget->blockSignals(wasBlocked);
 
   wasBlocked = d->OverwriteModeComboBox->blockSignals(true);
@@ -1283,8 +1290,9 @@ void qMRMLSegmentEditorWidget::onMasterVolumeImageDataModified()
     {
     double range[2] = { 0.0, 0.0 };
     d->MasterVolumeNode->GetImageData()->GetScalarRange(range);
-    d->MasterVolumeIntensityMaskRangeWidget->setMinimum(range[0]);
-    d->MasterVolumeIntensityMaskRangeWidget->setMaximum(range[1]);
+    d->ParameterSetNode->SetMasterVolumeIntensityMaskRangeLimits(range);
+    d->ParameterSetNode->SetMasterVolumeIntensityMaskRange(range);
+    d->ParameterSetNode->SetMasterVolumeIntensitySingleStep((range[1] - range[0]) / 1000.);
     d->MasterVolumeIntensityMaskRangeWidget->setEnabled(true);
     }
   else
@@ -1416,6 +1424,12 @@ void qMRMLSegmentEditorWidget::setMRMLScene(vtkMRMLScene* newScene)
 
   // Make connections that depend on the Slicer application
   QObject::connect( qSlicerApplication::application()->layoutManager(), SIGNAL(layoutChanged(int)), this, SLOT(onLayoutChanged(int)) );
+
+  // Make connection with Unit node Intensity
+  vtkMRMLUnitNode* unitNodeIntensity = qSlicerCoreApplication::application()->applicationLogic()->GetSelectionNode()->GetUnitNode("intensity");
+  this->qvtkConnect( unitNodeIntensity, vtkCommand::ModifiedEvent, this, SLOT(onUnitNodeIntensityChanged(vtkObject*)));
+
+  this->onUnitNodeIntensityChanged(unitNodeIntensity);
 
   // Update UI
   this->updateWidgetFromMRML();
@@ -1944,6 +1958,21 @@ void qMRMLSegmentEditorWidget::onLayoutChanged(int layoutIndex)
 }
 
 //---------------------------------------------------------------------------
+void qMRMLSegmentEditorWidget::onUnitNodeIntensityChanged(vtkObject *sender)
+{
+  Q_D(qMRMLSegmentEditorWidget);
+
+  if (!sender)
+    {
+    return;
+    }
+
+  vtkMRMLUnitNode* unitNodeIntensity = vtkMRMLUnitNode::SafeDownCast(sender);
+
+  d->ParameterSetNode->SetMasterVolumeIntensityDecimals(unitNodeIntensity->GetPrecision());
+}
+
+//---------------------------------------------------------------------------
 qSlicerSegmentEditorAbstractEffect* qMRMLSegmentEditorWidget::effectByName(QString name)
 {
   Q_D(qMRMLSegmentEditorWidget);
@@ -2183,11 +2212,6 @@ void qMRMLSegmentEditorWidget::onMasterVolumeIntensityMaskChecked(bool checked)
     return;
     }
   d->ParameterSetNode->SetMasterVolumeIntensityMask(checked);
-  /*
-  this->ThresholdRangeWidget->blockSignals(true);
-  this->ThresholdRangeWidget->setVisible(checked);
-  this->ThresholdRangeWidget->blockSignals(false);
-  */
 }
 
 //-----------------------------------------------------------------------------
