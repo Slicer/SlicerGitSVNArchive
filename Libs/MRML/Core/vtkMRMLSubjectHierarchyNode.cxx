@@ -1482,6 +1482,10 @@ void vtkMRMLSubjectHierarchyNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   Superclass::PrintSelf(os,indent);
 
+  os << indent << "SceneItemID: " << this->Internal->SceneItemID << "\n";
+  os << indent << "UnresolvedItemsID: "
+    << (this->Internal->UnresolvedItems ? this->Internal->UnresolvedItems->ID : vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID) << "\n";
+
   if (this->Internal->SceneItem == NULL)
     {
     os << indent << " No items in the tree" << "\n";
@@ -1946,10 +1950,10 @@ vtkIdType vtkMRMLSubjectHierarchyNode::CreateItem(
 //----------------------------------------------------------------------------
 bool vtkMRMLSubjectHierarchyNode::RemoveItem(vtkIdType itemID, bool removeDataNode/*=true*/, bool recursive/*=true*/)
 {
-  vtkSubjectHierarchyItem* item = this->Internal->SceneItem->FindChildByID(itemID);
+  vtkSubjectHierarchyItem* item = this->Internal->FindItemByID(itemID);
   if (!item)
     {
-    vtkErrorMacro("RemoveItem: Failed to find non-scene subject hierarchy item by ID " << itemID);
+    vtkErrorMacro("RemoveItem: Failed to find subject hierarchy item by ID " << itemID);
     return false;
     }
 

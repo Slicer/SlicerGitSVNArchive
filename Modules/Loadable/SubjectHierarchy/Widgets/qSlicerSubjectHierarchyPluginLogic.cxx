@@ -305,7 +305,7 @@ void qSlicerSubjectHierarchyPluginLogic::onSceneImportEnded(vtkObject* sceneObje
   // when first accessing the subject hierarchy node, but it needs to be done so that the
   // addSupportedDataNodesToSubjectHierarchy call below only adds the nodes that were not
   // in the hierarchy stored by the imported scene
-  vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(scene);
+  vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(scene);
 
   // Add data nodes that are supported (i.e. there is a plugin that can claim it) and were not
   // in the imported subject hierarchy node to subject hierarchy
@@ -321,6 +321,8 @@ void qSlicerSubjectHierarchyPluginLogic::onSceneCloseEnded(vtkObject* sceneObjec
     return;
     }
 
+  // Trigger creating new subject hierarchy node
+  // (scene close removed the pseudo-singleton subject hierarchy node)
   vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(scene);
   if (!shNode)
     {
@@ -328,8 +330,8 @@ void qSlicerSubjectHierarchyPluginLogic::onSceneCloseEnded(vtkObject* sceneObjec
     return;
     }
 
-  // Clear subject hierarchy
-  shNode->RemoveAllItems();
+  // Set subject hierarchy node to plugin handler
+  qSlicerSubjectHierarchyPluginHandler::instance()->setSubjectHierarchyNode(shNode);
 }
 
 //-----------------------------------------------------------------------------

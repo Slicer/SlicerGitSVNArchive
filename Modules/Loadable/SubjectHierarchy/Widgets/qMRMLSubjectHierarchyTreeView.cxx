@@ -322,6 +322,9 @@ vtkMRMLScene* qMRMLSubjectHierarchyTreeView::mrmlScene()const
 void qMRMLSubjectHierarchyTreeView::setMRMLScene(vtkMRMLScene* scene)
 {
   this->setSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(scene));
+
+  // Connect scene close ended event so that subject hierarchy can be cleared
+  qvtkReconnect( scene, vtkMRMLScene::EndCloseEvent, this, SLOT( onSceneCloseEnded(vtkObject*) ) );
 }
 
 //------------------------------------------------------------------------------
@@ -1001,6 +1004,20 @@ void qMRMLSubjectHierarchyTreeView::setMultiSelection(bool multiSelectionOn)
     {
     this->setSelectionMode(QAbstractItemView::SingleSelection);
     }
+}
+
+//-----------------------------------------------------------------------------
+void qMRMLSubjectHierarchyTreeView::onSceneCloseEnded(vtkObject* sceneObject)
+{
+  vtkMRMLScene* scene = vtkMRMLScene::SafeDownCast(sceneObject);
+  if (!scene)
+    {
+    return;
+    }
+
+  // Get new subject hierarchy node (or if not created yet then trigger creating it, because
+  // scene close removed the pseudo-singleton subject hierarchy node), and set it to the tree view
+  this->setSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(scene));
 }
 
 //TODO: Snippet for asking whether whole branch is to be deleted
