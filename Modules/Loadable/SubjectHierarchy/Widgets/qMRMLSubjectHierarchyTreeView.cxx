@@ -136,13 +136,6 @@ void qMRMLSubjectHierarchyTreeViewPrivate::init()
                     q, SLOT(onSelectionChanged(QItemSelection,QItemSelection)) );
   this->SortFilterModel->setParent(q);
   this->SortFilterModel->setSourceModel(this->Model);
-  //TODO: Needed?
-  // Resize the view if new rows are added/removed
-  //QObject::connect( this->SortFilterModel, SIGNAL(rowsAboutToBeRemoved(QModelIndex,int,int)),
-  //                  q, SLOT(onNumberOfVisibleIndexChanged()) );
-  //QObject::connect( this->SortFilterModel, SIGNAL(rowsInserted(QModelIndex,int,int)),
-  //                  q, SLOT(onNumberOfVisibleIndexChanged()) );
-  //q->onNumberOfVisibleIndexChanged();
 
   //TODO: this would be desirable to set, but results in showing the scrollbar, which makes
   //      subject hierarchy much less usable (because there will be two scrollbars)
@@ -482,11 +475,6 @@ bool qMRMLSubjectHierarchyTreeView::clickDecoration(const QModelIndex& index)
     result = true;
     }
 
-  //TODO: Used by event translator, which seems to only be used for QtTesting test cases
-  //if (result)
-  //  {
-  //  emit decorationClicked(index);
-  //  }
   return result;
 }
 
