@@ -2607,6 +2607,14 @@ std::string vtkMRMLSubjectHierarchyNode::GenerateUniqueItemName(std::string name
 }
 
 //---------------------------------------------------------------------------
+int vtkMRMLSubjectHierarchyNode::GetNumberOfItems()
+{
+  std::vector<vtkIdType> allItems;
+  this->Internal->SceneItem->GetAllChildren(allItems);
+  return allItems.size();
+}
+
+//---------------------------------------------------------------------------
 void vtkMRMLSubjectHierarchyNode::ItemEventCallback(vtkObject* caller, unsigned long eid, void* clientData, void* callData)
 {
   vtkMRMLSubjectHierarchyNode* self = reinterpret_cast<vtkMRMLSubjectHierarchyNode*>(clientData);
