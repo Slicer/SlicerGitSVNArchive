@@ -98,14 +98,13 @@ public:
     Straight = 0,
     WholeCells,
     WholeCellsWithBoundary,
-    ClippingMethod_Last,
   } ClippingMethodType;
 
   vtkGetMacro(ClippingMethod, ClippingMethodType);
   vtkSetMacro(ClippingMethod, ClippingMethodType);
 
   //Convert between enum and string
-  static ClippingMethodType GetClippingMethodFromString(const char* name);
+  static int GetClippingMethodFromString(const char* name);
   static const char* GetClippingMethodAsString(ClippingMethodType id);
 
 protected:

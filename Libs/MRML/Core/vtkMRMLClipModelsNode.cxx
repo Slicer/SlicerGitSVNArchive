@@ -99,14 +99,14 @@ void vtkMRMLClipModelsNode::ReadXMLAttributes(const char** atts)
       {
       std::stringstream ss;
       ss << attValue;
-      ClippingMethodType id = this->GetClippingMethodFromString(attValue);
-      if (id == ClippingMethod_Last)
+      int id = this->GetClippingMethodFromString(attValue);
+      if (id < 0)
         {
         vtkWarningMacro("Invalid Clipping Methods: "<<(attValue?attValue:"(none)"));
         }
       else
         {
-        this->ClippingMethod = id;
+        this->ClippingMethod = static_cast<ClippingMethodType>(id);
         }
       }
     }
@@ -148,24 +148,27 @@ void vtkMRMLClipModelsNode::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //-----------------------------------------------------------------------------
-vtkMRMLClipModelsNode::ClippingMethodType vtkMRMLClipModelsNode::GetClippingMethodFromString(const char* name)
+int vtkMRMLClipModelsNode::GetClippingMethodFromString(const char* name)
 {
   if (name == NULL)
     {
     // invalid name
-    return ClippingMethod_Last;
+    return -1;
     }
-  for (int i=0; i<ClippingMethod_Last; i++)
+  if (strcmp(name, "Straight"))
     {
-    ClippingMethodType id = static_cast<ClippingMethodType>(i);
-    if (strcmp(name, GetClippingMethodAsString(id))==0)
-      {
-      // found a matching name
-      return id;
-      }
+    return (int)Straight;
+    }
+  else if (strcmp(name, "Whole Cells"))
+    {
+    return (int)WholeCells;
+    }
+  else if (strcmp(name, "Whole Cells With Boundary"))
+    {
+    return (int)WholeCellsWithBoundary;
     }
   // unknown name
-  return ClippingMethod_Last;
+  return -1;
 }
 
 //-----------------------------------------------------------------------------
