@@ -949,6 +949,7 @@ bool vtkSubjectHierarchyItem::Move(vtkSubjectHierarchyItem* beforeItem)
     return false;
     }
   this->Parent->Children.insert(beforeIt, thisPointer);
+  this->Parent->Modified();
 
   return true;
 }
@@ -2033,10 +2034,7 @@ void vtkMRMLSubjectHierarchyNode::SetItemParent(vtkIdType itemID, vtkIdType pare
     }
 
   // Perform reparenting
-  if (item->Reparent(parentItem))
-    {
-    //this->Modified(); //TODO: Needed? SH node modified event should be used for updating the whole view (every item)
-    }
+  item->Reparent(parentItem);
 }
 
 //----------------------------------------------------------------------------
@@ -2109,12 +2107,7 @@ bool vtkMRMLSubjectHierarchyNode::ReparentItemByDataNode(vtkIdType itemID, vtkMR
     }
 
   // Perform reparenting
-  if (item->Reparent(newParentItem))
-    {
-    //this->Modified(); //TODO: Needed? SH node modified event should be used for updating the whole view (every item)
-    return true;
-    }
-  return false;
+  return item->Reparent(newParentItem);
 }
 
 //----------------------------------------------------------------------------
@@ -2243,7 +2236,6 @@ void vtkMRMLSubjectHierarchyNode::SetDisplayVisibilityForBranch(vtkIdType itemID
     }
   if (this->Scene->IsBatchProcessing())
     {
-    //vtkDebugMacro("SetDisplayVisibilityForBranch: Batch processing is on, returning");
     return;
     }
 
@@ -2252,7 +2244,7 @@ void vtkMRMLSubjectHierarchyNode::SetDisplayVisibilityForBranch(vtkIdType itemID
   this->GetDataNodesInBranch(itemID, childDisplayableNodes.GetPointer(), "vtkMRMLDisplayableNode");
 
   childDisplayableNodes->InitTraversal();
-  std::set<vtkMRMLSubjectHierarchyNode*> parentNodes;
+  std::set<vtkIdType> parentItems;
   for (int childNodeIndex = 0;
        childNodeIndex < childDisplayableNodes->GetNumberOfItems();
        ++childNodeIndex)
@@ -2269,7 +2261,9 @@ void vtkMRMLSubjectHierarchyNode::SetDisplayVisibilityForBranch(vtkIdType itemID
         }
 
       // Set display visibility
+      this->Internal->EventsDisabled = true; // Prevent the views from updating before all the display nodes are modified
       displayableNode->SetDisplayVisibility(visible);
+      this->Internal->EventsDisabled = false;
 
       // Set slice intersection visibility through display node
       displayNode = displayableNode->GetDisplayNode();
@@ -2278,10 +2272,28 @@ void vtkMRMLSubjectHierarchyNode::SetDisplayVisibilityForBranch(vtkIdType itemID
         displayNode->SetSliceIntersectionVisibility(visible);
         }
       displayableNode->Modified();
+
+      // Collect all parents
+      vtkIdType itemForDisplayableNode = this->GetItemByDataNode(displayableNode);
+      if (itemForDisplayableNode == INVALID_ITEM_ID)
+        {
+        vtkErrorMacro("SetDisplayVisibilityForBranch: Failed to find subject hierarchy item for node " << displayableNode->GetName())
+        continue;
+        }
+      this->ItemModified(itemID);
+      vtkIdType parentItemID = itemID;
+      while ( (parentItemID = this->GetItemParent(parentItemID)) != this->Internal->SceneItemID ) // The double parentheses avoids a Linux build warning
+        {
+        parentItems.insert(parentItemID);
+        }
       }
     }
 
-  this->Modified();
+  // Invoke modified event for all parent items so that their icons are refreshed in the view
+  for (std::set<vtkIdType>::iterator parentIt = parentItems.begin(); parentIt != parentItems.end(); ++ parentIt)
+    {
+    this->ItemModified((*parentIt));
+    }
 }
 
 //---------------------------------------------------------------------------
@@ -2637,6 +2649,7 @@ void vtkMRMLSubjectHierarchyNode::ItemEventCallback(vtkObject* caller, unsigned 
         {
         // Invoke event of same type with item ID
         self->InvokeCustomModifiedEvent(eid, (void*)&item->ID);
+        self->Modified(); // Indicate that the content of the subject hierarchy node has changed, so it needs to be saved
         }
       }
       break;
@@ -2648,6 +2661,7 @@ void vtkMRMLSubjectHierarchyNode::ItemEventCallback(vtkObject* caller, unsigned 
         {
         // Propagate item modified event
         self->InvokeCustomModifiedEvent(vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemModifiedEvent, (void*)&item->ID);
+        self->Modified(); // Indicate that the content of the subject hierarchy node has changed, so it needs to be saved
         }
       else if (dataNode)
         {
