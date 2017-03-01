@@ -288,7 +288,7 @@ vtkIdType vtkSubjectHierarchyItem::AddToTree(
   if (vtkSubjectHierarchyItem::NextSubjectHierarchyItemID == VTK_UNSIGNED_LONG_MAX)
     {
     // There is a negligible chance that it reaches maximum, report error in that case
-    vtkErrorMacro("AddItemToTree: Next subject hierarchy item ID reached its maximum value! Item is not added to the tree");
+    vtkErrorMacro("AddToTree: Next subject hierarchy item ID reached its maximum value! Item is not added to the tree");
     return vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID;
     }
 
@@ -308,7 +308,7 @@ vtkIdType vtkSubjectHierarchyItem::AddToTree(
             || (!name.compare("UnresolvedItems") && !level.compare("UnresolvedItems")) ) )
     {
     // Only the scene item or the unresolved items parent can have NULL parent
-    vtkErrorMacro("AddItemToTree: Invalid parent of non-scene item to add");
+    vtkErrorMacro("AddToTree: Invalid parent of non-scene item to add");
     }
 
   this->InvokeEvent(vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemAddedEvent, this);
@@ -325,7 +325,7 @@ vtkIdType vtkSubjectHierarchyItem::AddToTree(
   if (vtkSubjectHierarchyItem::NextSubjectHierarchyItemID == VTK_UNSIGNED_LONG_MAX)
     {
     // There is a negligible chance that it reaches maximum, but if it happens then report error
-    vtkErrorMacro("AddItemToTree: Next subject hierarchy item ID reached its maximum value! Item is not added to the tree");
+    vtkErrorMacro("AddToTree: Next subject hierarchy item ID reached its maximum value! Item is not added to the tree");
     return vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID;
     }
 
@@ -343,7 +343,7 @@ vtkIdType vtkSubjectHierarchyItem::AddToTree(
     }
   else
     {
-    vtkErrorMacro("AddItemToTree: Invalid parent of non-scene item to add");
+    vtkErrorMacro("AddToTree: Invalid parent of non-scene item to add");
     }
 
   this->InvokeEvent(vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemAddedEvent, this);
@@ -589,7 +589,7 @@ void vtkSubjectHierarchyItem::DeepCopy(vtkSubjectHierarchyItem* item)
   // Skip copying ID. Duplicate IDs potentially cause problems
   // Usually copying is related to scene or scene view operations, so the copied items will end up
   // in UnresolvedItems and need to be resolved. Otherwise they need to be added to the tree
-  // explicitly using AddItemToTree
+  // explicitly using AddToTree
   this->DataNode = item->DataNode;
   this->Name = item->Name;
   this->Level = item->Level;
@@ -1434,6 +1434,14 @@ bool vtkMRMLSubjectHierarchyNode::vtkInternal::ResolveUnresolvedItems()
         {
         idMap[item->TemporaryID] = item->AddToTree(parentItem, item->Name, item->Level);
         }
+      // Create observations for added item
+      item->AddObserver(vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemAddedEvent, this->External->ItemEventCallbackCommand);
+      item->AddObserver(vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemAboutToBeRemovedEvent, this->External->ItemEventCallbackCommand);
+      item->AddObserver(vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemRemovedEvent, this->External->ItemEventCallbackCommand);
+      item->AddObserver(vtkMRMLSubjectHierarchyNode::SubjectHierarchyItemUIDAddedEvent, this->External->ItemEventCallbackCommand);
+      item->AddObserver(vtkCommand::ModifiedEvent, this->External->ItemEventCallbackCommand);
+
+      // Clear temporary ID now that it is resolved
       item->TemporaryID = vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID;
 
       // Item successfully resolved and added. Remove it from unresolved items and restart search for resolvable item
