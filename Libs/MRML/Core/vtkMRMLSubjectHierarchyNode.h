@@ -118,7 +118,7 @@ public:
   /// Get level for a subject hierarchy item
   std::string GetItemLevel(vtkIdType itemID);
   /// Set owner plugin name (role) for a subject hierarchy item
-  void SetItemOwnerPluginName(vtkIdType itemID, std::string owherPluginName);
+  void SetItemOwnerPluginName(vtkIdType itemID, std::string ownerPluginName);
   /// Get owner plugin name (role) for a subject hierarchy item
   std::string GetItemOwnerPluginName(vtkIdType itemID);
   /// Set expanded flag for a subject hierarchy item (only for internal use, do not set explicitly)
