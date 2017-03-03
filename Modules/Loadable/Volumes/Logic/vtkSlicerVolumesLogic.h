@@ -138,7 +138,7 @@ public:
   vtkMRMLScalarVolumeNode* AddArchetypeScalarVolume(const char* filename, const char* volname, int loadingOptions, vtkStringArray *fileList);
 
   /// Write volume's image data to a specified file
-  int SaveArchetypeVolume (const char* filename, vtkMRMLVolumeNode *volumeNode);
+  virtual int SaveArchetypeVolume (const char* filename, vtkMRMLVolumeNode *volumeNode);
 
   /// Create a label map volume to match the given \a volumeNode and add it to the current scene
   /// \sa GetMRMLScene()
