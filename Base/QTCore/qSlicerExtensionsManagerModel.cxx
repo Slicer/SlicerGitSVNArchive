@@ -116,7 +116,8 @@ public:
     ScreenshotsColumn,
     EnabledColumn,
     ArchiveNameColumn,
-    MD5Column
+    MD5Column,
+    BuildOnlyColumn
     };
 
   enum ItemDataRole{
@@ -272,6 +273,7 @@ void qSlicerExtensionsManagerModelPrivate::init()
   this->initializeColumnIdToNameMap(Self::EnabledColumn, "enabled");
   this->initializeColumnIdToNameMap(Self::ArchiveNameColumn, "archivename");
   this->initializeColumnIdToNameMap(Self::MD5Column, "md5");
+  this->initializeColumnIdToNameMap(Self::BuildOnlyColumn, "build_only");
 
   // See http://www.developer.nokia.com/Community/Wiki/Using_QStandardItemModel_in_QML
   QHash<int, QByteArray> roleNames;
@@ -1343,7 +1345,8 @@ bool qSlicerExtensionsManagerModel::installExtension(
     {
     if (!dependencyName.isEmpty() && dependencyName != "NA")
       {
-      if (this->isExtensionInstalled(dependencyName))
+      if (this->isExtensionInstalled(dependencyName) ||
+          this->extensionMetadata(dependencyName).value("build_only").toBool() == true)
         {
         // Dependency is already installed
         continue;
