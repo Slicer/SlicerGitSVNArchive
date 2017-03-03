@@ -1945,12 +1945,14 @@ vtkIdType vtkMRMLSubjectHierarchyNode::CreateItem(
   vtkMRMLNode* dataNode,
   std::string level/*=vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSeries()*/ )
 {
-  // Use existing subject hierarchy item if found (only one subject hierarchy item can be associated with a data node)
-  vtkIdType itemID = INVALID_ITEM_ID;
-  if (dataNode)
+  if (!dataNode)
     {
-    itemID = this->GetItemByDataNode(dataNode);
+    vtkErrorMacro("CreateItem: Valid data node must be given to this function. Call CreateItem with name argument to create item without data node");
+    return INVALID_ITEM_ID;
     }
+
+  // Use existing subject hierarchy item if found (only one subject hierarchy item can be associated with a data node)
+  vtkIdType itemID = this->GetItemByDataNode(dataNode);
   if (itemID != INVALID_ITEM_ID)
     {
     // Set properties if item already existed for data node
@@ -2077,6 +2079,32 @@ bool vtkMRMLSubjectHierarchyNode::RemoveItem(vtkIdType itemID, bool removeDataNo
 }
 
 //----------------------------------------------------------------------------
+bool vtkMRMLSubjectHierarchyNode::RemoveItemChildren(vtkIdType itemID, bool removeDataNodes/*=true*/, bool recursive/*=true*/)
+{
+  vtkSubjectHierarchyItem* item = this->Internal->FindItemByID(itemID);
+  if (!item)
+    {
+    vtkErrorMacro("RemoveItem: Failed to find subject hierarchy item by ID " << itemID);
+    return false;
+    }
+
+  // Remove all direct children
+  bool success = true;
+  std::vector<vtkIdType> childIDs;
+  item->GetDirectChildren(childIDs);
+  std::vector<vtkIdType>::iterator childIt;
+  for (childIt=childIDs.begin(); childIt!=childIDs.end(); ++childIt)
+    {
+    if (!this->RemoveItem((*childIt), removeDataNodes, recursive))
+      {
+      success = false;
+      }
+    }
+
+  return success;
+}
+
+//----------------------------------------------------------------------------
 void vtkMRMLSubjectHierarchyNode::RemoveAllItems(bool removeDataNode/*=false*/)
 {
   this->RemoveItem(this->Internal->SceneItemID, removeDataNode, true);
@@ -2138,6 +2166,26 @@ void vtkMRMLSubjectHierarchyNode::GetItemChildren(vtkIdType itemID, std::vector<
   else
     {
     item->GetDirectChildren(childIDs);
+    }
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLSubjectHierarchyNode::GetItemChildren(vtkIdType itemID, vtkIdList* childIDs, bool recursive/*=false*/)
+{
+  if (!childIDs)
+    {
+    vtkErrorMacro("GetItemChildren: Invalid output child list");
+    return;
+    }
+  childIDs->Initialize();
+
+  std::vector<vtkIdType> childIdVector;
+  this->GetItemChildren(itemID, childIdVector, recursive);
+
+  std::vector<vtkIdType>::iterator childIt;
+  for (childIt=childIdVector.begin(); childIt!=childIdVector.end(); ++childIt)
+    {
+    childIDs->InsertNextId(*childIt);
     }
 }
 
@@ -2689,6 +2737,28 @@ int vtkMRMLSubjectHierarchyNode::GetNumberOfItems()
   std::vector<vtkIdType> allItems;
   this->Internal->SceneItem->GetAllChildren(allItems);
   return allItems.size();
+}
+
+//---------------------------------------------------------------------------
+int vtkMRMLSubjectHierarchyNode::GetNumberOfItemChildren(vtkIdType itemID, bool recursive/*=false*/)
+{
+  vtkSubjectHierarchyItem* item = this->Internal->FindItemByID(itemID);
+  if (!item)
+    {
+    vtkErrorMacro("GetNumberOfItemChildren: Failed to find subject hierarchy item by ID " << itemID);
+    return -1;
+    }
+
+  std::vector<vtkIdType> childIDs;
+  if (recursive)
+    {
+    item->GetAllChildren(childIDs);
+    }
+  else
+    {
+    item->GetDirectChildren(childIDs);
+    }
+  return childIDs.size();
 }
 
 //---------------------------------------------------------------------------
