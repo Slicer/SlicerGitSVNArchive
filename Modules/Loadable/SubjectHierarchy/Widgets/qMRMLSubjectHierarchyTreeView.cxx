@@ -518,6 +518,12 @@ void qMRMLSubjectHierarchyTreeView::removeAttributeFilter()
   this->sortFilterProxyModel()->setAttributeValueFilter(QString());
 }
 
+//--------------------------------------------------------------------------
+void qMRMLSubjectHierarchyTreeView::setLevelFilter(QString &levelFilter)
+{
+  this->sortFilterProxyModel()->setLevelFilter(levelFilter);
+}
+
 //------------------------------------------------------------------------------
 bool qMRMLSubjectHierarchyTreeView::clickDecoration(const QModelIndex& index)
 {
