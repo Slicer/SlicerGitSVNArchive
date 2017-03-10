@@ -76,6 +76,10 @@ include(ExternalProject)
 find_package(Slicer REQUIRED)
 find_package(Git REQUIRED)
 find_package(Subversion REQUIRED)
+# force in to CACHE to work around https://gitlab.kitware.com/cmake/cmake/issues/15448
+if (DEFINED Subversion_SVN_EXECUTABLE)
+  set(Subversion_SVN_EXECUTABLE ${Subversion_SVN_EXECUTABLE} CACHE FILEPATH "SVN command line client")
+endif()
 
 #-----------------------------------------------------------------------------
 # Options
