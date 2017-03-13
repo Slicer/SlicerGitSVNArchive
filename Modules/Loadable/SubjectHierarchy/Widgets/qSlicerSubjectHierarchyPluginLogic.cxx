@@ -288,13 +288,6 @@ void qSlicerSubjectHierarchyPluginLogic::onSceneImportEnded(vtkObject* sceneObje
     return;
     }
 
-  // Trigger merging the imported subject hierarchy node containing the unresolved items
-  // into the singleton subject hierarchy node in the current scene. This would be done
-  // when first accessing the subject hierarchy node, but it needs to be done so that the
-  // addSupportedDataNodesToSubjectHierarchy call below only adds the nodes that were not
-  // in the hierarchy stored by the imported scene
-  vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(scene);
-
   // Add data nodes that are supported (i.e. there is a plugin that can claim it) and were not
   // in the imported subject hierarchy node to subject hierarchy
   this->addSupportedDataNodesToSubjectHierarchy();
