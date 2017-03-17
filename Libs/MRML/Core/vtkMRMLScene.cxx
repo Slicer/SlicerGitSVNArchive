@@ -1098,7 +1098,7 @@ inline bool IsNodeWithoutName(vtkMRMLNode* node)
 }
 
 //------------------------------------------------------------------------------
-vtkMRMLNode*  vtkMRMLScene::AddNodeNoNotify(vtkMRMLNode *n)
+vtkMRMLNode* vtkMRMLScene::AddNodeNoNotify(vtkMRMLNode *n)
 {
   if (!n)
     {
@@ -1137,7 +1137,7 @@ vtkMRMLNode*  vtkMRMLScene::AddNodeNoNotify(vtkMRMLNode *n)
       // their references.
       std::string newId(sn->GetID());
       std::string oldId(n->GetID() ? n->GetID() : sn->GetID());
-      if (oldId != newId)
+      if (oldId != newId && n->GetID())
         {
         this->ReferencedIDChanges[oldId] = newId;
         }
@@ -1158,11 +1158,7 @@ vtkMRMLNode*  vtkMRMLScene::AddNodeNoNotify(vtkMRMLNode *n)
   // the node must be updated with the new ID.
   if (IsNodeWithoutID(n) || this->GetNodeByID(n->GetID()) != NULL)
     {
-    std::string oldID;
-    if (n->GetID())
-      {
-      oldID = n->GetID();
-      }
+    std::string oldID(n->GetID() ? n->GetID() : "");
     n->SetID(this->GenerateUniqueID(n).c_str());
     if (n->GetScene())
       {
@@ -1171,8 +1167,8 @@ vtkMRMLNode*  vtkMRMLScene::AddNodeNoNotify(vtkMRMLNode *n)
       }
 
     vtkDebugMacro("AddNodeNoNotify: got unique id for new " << n->GetClassName() << " node: " << n->GetID() << endl);
-    std::string newID(n->GetID());
-    if (oldID != newID)
+    std::string newID(n->GetID() ? n->GetID() : "");
+    if (oldID != newID && !oldID.empty())
       {
       this->ReferencedIDChanges[oldID] = newID;
       }
@@ -1350,6 +1346,7 @@ void vtkMRMLScene::RemoveNode(vtkMRMLNode *n)
     this->RemoveReferencesToNode(n);
     }
 
+  n->SetID(NULL);
   n->UnRegister(this);
   n=NULL;
 
@@ -2606,7 +2603,9 @@ void vtkMRMLScene::Undo()
     // node removal.
     if (this->IsNodePresent(nodeToRemove))
       {
+      char* removedNodeID = nodeToRemove->GetID();
       this->RemoveNode(nodeToRemove);
+      nodeToRemove->SetID(removedNodeID); // RemoveNode unsets the ID, but it is needed for redo
       }
     }
 
@@ -2722,7 +2721,9 @@ void vtkMRMLScene::Redo()
     }
   for (nn=0; nn<removeNodes.size(); nn++)
     {
+    char* removedNodeID = removeNodes[nn]->GetID();
     this->RemoveNode(removeNodes[nn]);
+    removeNodes[nn]->SetID(removedNodeID); // RemoveNode unsets the ID, but it is needed for undo
     }
 
   if (undoScene)
