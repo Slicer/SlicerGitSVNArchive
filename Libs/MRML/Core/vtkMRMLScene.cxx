@@ -846,10 +846,10 @@ int vtkMRMLScene::Import()
     }
 #ifdef MRMLSCENE_VERBOSE
   timer->StopTimer();
-  std::cerr<<"vtkMRMLScene::Import()::AddNodes:" << addNodesTimer->GetElapsedTime() << "\n";
-  std::cerr<< "vtkMRMLScene::Import()::UpdateScene" << updateSceneTimer->GetElapsedTime() << "\n";
-  std::cerr<<"vtkMRMLScene::Import()::SceneImported:" << importingTimer->GetElapsedTime() << "\n";
-  std::cerr<<"vtkMRMLScene::Import():" << timer->GetElapsedTime() << "\n";
+  std::cerr << "vtkMRMLScene::Import()::AddNodes:" << addNodesTimer->GetElapsedTime() << std::endl;
+  std::cerr << "vtkMRMLScene::Import()::UpdateScene" << updateSceneTimer->GetElapsedTime() << std::endl;
+  std::cerr << "vtkMRMLScene::Import()::SceneImported:" << importingTimer->GetElapsedTime() << std::endl;
+  std::cerr << "vtkMRMLScene::Import():" << timer->GetElapsedTime() << std::endl;
   addNodesTimer->Delete();
   updateSceneTimer->Delete();
   importingTimer->Delete();
@@ -1194,7 +1194,7 @@ vtkMRMLNode* vtkMRMLScene::AddNodeNoNotify(vtkMRMLNode *n)
 }
 
 //------------------------------------------------------------------------------
-vtkMRMLNode*  vtkMRMLScene::AddNode(vtkMRMLNode *n)
+vtkMRMLNode* vtkMRMLScene::AddNode(vtkMRMLNode *n)
 {
   if (!n)
     {
