@@ -86,23 +86,22 @@ vtkMRMLSegmentationDisplayNode::~vtkMRMLSegmentationDisplayNode()
 void vtkMRMLSegmentationDisplayNode::WriteXML(ostream& of, int nIndent)
 {
   Superclass::WriteXML(of, nIndent);
-  vtkIndent indent(nIndent);
 
-  of << indent << " PreferredDisplayRepresentationName2D=\""
+  of << " PreferredDisplayRepresentationName2D=\""
     << (this->PreferredDisplayRepresentationName2D ? this->PreferredDisplayRepresentationName2D : "NULL") << "\"";
-  of << indent << " PreferredDisplayRepresentationName3D=\""
+  of << " PreferredDisplayRepresentationName3D=\""
     << (this->PreferredDisplayRepresentationName3D ? this->PreferredDisplayRepresentationName3D : "NULL") << "\"";
 
-  of << indent << " Visibility3D=\"" << (this->Visibility3D ? "true" : "false") << "\"";
-  of << indent << " Visibility2DFill=\"" << (this->Visibility2DFill ? "true" : "false") << "\"";
-  of << indent << " Visibility2DOutline=\"" << (this->Visibility2DOutline ? "true" : "false") << "\"";
-  of << indent << " Opacity3D=\"" << this->Opacity3D << "\"";
-  of << indent << " Opacity2DFill=\"" << this->Opacity2DFill << "\"";
-  of << indent << " Opacity2DOutline=\"" << this->Opacity2DOutline << "\"";
+  of << " Visibility3D=\"" << (this->Visibility3D ? "true" : "false") << "\"";
+  of << " Visibility2DFill=\"" << (this->Visibility2DFill ? "true" : "false") << "\"";
+  of << " Visibility2DOutline=\"" << (this->Visibility2DOutline ? "true" : "false") << "\"";
+  of << " Opacity3D=\"" << this->Opacity3D << "\"";
+  of << " Opacity2DFill=\"" << this->Opacity2DFill << "\"";
+  of << " Opacity2DOutline=\"" << this->Opacity2DOutline << "\"";
 
   this->UpdateSegmentList();
 
-  of << indent << " SegmentationDisplayProperties=\"";
+  of << " SegmentationDisplayProperties=\"";
   for (SegmentDisplayPropertiesMap::iterator propIt = this->SegmentationDisplayProperties.begin();
     propIt != this->SegmentationDisplayProperties.end(); ++propIt)
     {
