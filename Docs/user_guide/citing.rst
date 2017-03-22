@@ -40,7 +40,7 @@ To acknowledge individual modules:
   Each module has an acknowledgment tab in the top section. Information about contributors and funding source can be 
   found there.
 
-.. figure:: https://www.slicer.org/w/images/thumb/5/54/Help-tab.png/280px-Help-tab.png
+.. figure:: images/Help-tab.png
 
   Additional information (including information about the underlying publications) can be typically found on the
   manual pages accessible through the help tab in the top section 
