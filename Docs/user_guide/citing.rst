@@ -35,7 +35,7 @@ Individual Module
 
 To acknowledge individual modules:
 
-.. figure:: https://www.slicer.org/w/images/thumb/0/01/Acknowledgement-tab.png/280px-Acknowledgement-tab.png
+.. figure:: images/Acknowledgement-tab.png
 
   Each module has an acknowledgment tab in the top section. Information about contributors and funding source can be 
   found there.
