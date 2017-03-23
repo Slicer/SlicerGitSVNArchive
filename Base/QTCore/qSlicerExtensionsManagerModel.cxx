@@ -219,6 +219,8 @@ public:
       const QString& slicerOs, const QString& slicerArch);
 
   void saveExtensionDescription(const QString& extensionDescriptionFile, const ExtensionMetadataType &allExtensionMetadata);
+  void writeExtensionsHistoryToSettingsFile(const QString& extensionsHistorySettingsFile, const ExtensionMetadataType &allExtensionMetadata);
+
 
   qSlicerExtensionsManagerModel::ExtensionMetadataType retrieveExtensionMetadata(
     const qMidasAPI::ParametersType& parameters);
@@ -812,6 +814,17 @@ void qSlicerExtensionsManagerModelPrivate::saveExtensionDescription(
 //    }
 
   qSlicerExtensionsManagerModel::writeExtensionDescriptionFile(extensionDescriptionFile, allExtensionMetadata);
+}
+
+// --------------------------------------------------------------------------
+void qSlicerExtensionsManagerModelPrivate::writeExtensionsHistoryToSettingsFile(
+	const QString& extensionsHistorySettingsFile, const ExtensionMetadataType &extensionMetadata)
+{
+	QSettings settings(extensionsHistorySettingsFile, QSettings::IniFormat);
+	QStringList extensionIDs = settings.value("ExtensionsHistory/" + this->SlicerRevision).toStringList();
+	extensionIDs << extensionMetadata.value("extension_id").toString();
+	extensionIDs.removeDuplicates();
+	settings.setValue("ExtensionsHistory/" + this->SlicerRevision, extensionIDs);
 }
 
 // --------------------------------------------------------------------------
@@ -1424,6 +1437,7 @@ bool qSlicerExtensionsManagerModel::installExtension(
 
   // Finish installing the extension
   d->saveExtensionDescription(extensionDescriptionFile, extensionMetadata);
+  d->writeExtensionsHistoryToSettingsFile(this->extensionsHistorySettingsFilePath(), extensionMetadata);
   d->addExtensionSettings(extensionName);
   d->addExtensionModelRow(Self::parseExtensionDescriptionFile(extensionDescriptionFile));
 
