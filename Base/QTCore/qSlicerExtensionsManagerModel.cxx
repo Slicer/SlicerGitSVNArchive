@@ -236,6 +236,8 @@ public:
   QHash<QString, UpdateDownloadInformation> AvailableUpdates;
 
   QString ExtensionsSettingsFilePath;
+  QString ExtensionsHistorySettingsFilePath;
+
 
   QString SlicerRevision;
   QString SlicerOs;
@@ -2036,6 +2038,10 @@ void qSlicerExtensionsManagerModel::updateModel()
 // --------------------------------------------------------------------------
 CTK_GET_CPP(qSlicerExtensionsManagerModel, QString, extensionsSettingsFilePath, ExtensionsSettingsFilePath)
 CTK_SET_CPP(qSlicerExtensionsManagerModel, const QString&, setExtensionsSettingsFilePath, ExtensionsSettingsFilePath)
+
+// --------------------------------------------------------------------------
+CTK_GET_CPP(qSlicerExtensionsManagerModel, QString, extensionsHistorySettingsFilePath, ExtensionsHistorySettingsFilePath)
+CTK_SET_CPP(qSlicerExtensionsManagerModel, const QString&, setExtensionsHistorySettingsFilePath, ExtensionsHistorySettingsFilePath)
 
 // --------------------------------------------------------------------------
 CTK_GET_CPP(qSlicerExtensionsManagerModel, QString, slicerRevision, SlicerRevision)
