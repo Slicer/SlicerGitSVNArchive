@@ -148,6 +148,7 @@ public:
   QString extensionsHistorySettingsFilePath()const;
   void setExtensionsHistorySettingsFilePath(const QString& extensionsHistorySettingsFilePath);
 
+
   QString slicerRevision()const;
   void setSlicerRevision(const QString& revision);
 
