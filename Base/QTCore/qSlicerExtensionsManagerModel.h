@@ -52,6 +52,7 @@ class Q_SLICER_BASE_QTCORE_EXPORT qSlicerExtensionsManagerModel : public QObject
   Q_PROPERTY(QString extensionsInstallPath READ extensionsInstallPath)
   Q_PROPERTY(bool newExtensionEnabledByDefault READ newExtensionEnabledByDefault WRITE setNewExtensionEnabledByDefault)
   Q_PROPERTY(QString extensionsSettingsFilePath READ extensionsSettingsFilePath WRITE setExtensionsSettingsFilePath)
+  Q_PROPERTY(QString extensionsHistorySettingsFilePath READ extensionsHistorySettingsFilePath WRITE setExtensionsHistorySettingsFilePath)
   Q_PROPERTY(QString slicerRevision READ slicerRevision WRITE setSlicerRevision)
   Q_PROPERTY(QString slicerOs READ slicerOs WRITE setSlicerOs)
   Q_PROPERTY(QString slicerArch READ slicerArch WRITE setSlicerArch)
@@ -143,6 +144,9 @@ public:
 
   QString extensionsSettingsFilePath()const;
   void setExtensionsSettingsFilePath(const QString& extensionsSettingsFilePath);
+
+  QString extensionsHistorySettingsFilePath()const;
+  void setExtensionsHistorySettingsFilePath(const QString& extensionsHistorySettingsFilePath);
 
   QString slicerRevision()const;
   void setSlicerRevision(const QString& revision);
