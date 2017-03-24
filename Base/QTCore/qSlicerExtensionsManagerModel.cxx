@@ -219,8 +219,11 @@ public:
       const QString& slicerOs, const QString& slicerArch);
 
   void saveExtensionDescription(const QString& extensionDescriptionFile, const ExtensionMetadataType &allExtensionMetadata);
-  void writeExtensionsHistoryToSettingsFile(const QString& extensionsHistorySettingsFile, const ExtensionMetadataType &allExtensionMetadata);
-
+  void saveExtensionToHistorySettings(const QString& extensionsHistorySettingsFile, const ExtensionMetadataType &extensionMetadata);
+  void scheduleExtensionHistorySettingRemoval(const QString& extensionsHistorySettingsFile, const ExtensionMetadataType &extensionMetadata);
+  void addExtensionHistorySetting(const QString& extensionsHistorySettingsFile, const ExtensionMetadataType &extensionMetadata, const QString& settingsPath);
+  void cancelExtensionHistorySettingRemoval(const QString& extensionsHistorySettingsFile, const QString& extensionName);
+  void removeScheduledExtensionHistorySettings(const QString& extensionsHistorySettingsFile);
 
   qSlicerExtensionsManagerModel::ExtensionMetadataType retrieveExtensionMetadata(
     const qMidasAPI::ParametersType& parameters);
@@ -816,16 +819,73 @@ void qSlicerExtensionsManagerModelPrivate::saveExtensionDescription(
   qSlicerExtensionsManagerModel::writeExtensionDescriptionFile(extensionDescriptionFile, allExtensionMetadata);
 }
 
+
 // --------------------------------------------------------------------------
-void qSlicerExtensionsManagerModelPrivate::writeExtensionsHistoryToSettingsFile(
+void qSlicerExtensionsManagerModelPrivate::saveExtensionToHistorySettings(
 	const QString& extensionsHistorySettingsFile, const ExtensionMetadataType &extensionMetadata)
 {
-	QSettings settings(extensionsHistorySettingsFile, QSettings::IniFormat);
-	QStringList extensionIDs = settings.value("ExtensionsHistory/" + this->SlicerRevision).toStringList();
-	extensionIDs << extensionMetadata.value("extension_id").toString();
-	extensionIDs.removeDuplicates();
-	settings.setValue("ExtensionsHistory/" + this->SlicerRevision, extensionIDs);
+	this->addExtensionHistorySetting(extensionsHistorySettingsFile, extensionMetadata, "ExtensionsHistory/" + this->SlicerRevision);
 }
+
+// --------------------------------------------------------------------------
+void qSlicerExtensionsManagerModelPrivate::scheduleExtensionHistorySettingRemoval(
+	const QString& extensionsHistorySettingsFile, const ExtensionMetadataType &extensionMetadata)
+{
+	this->addExtensionHistorySetting(extensionsHistorySettingsFile, extensionMetadata, "ExtensionsHistory/ScheduledForRemoval");
+}
+
+// --------------------------------------------------------------------------
+void qSlicerExtensionsManagerModelPrivate::addExtensionHistorySetting(
+	const QString& extensionsHistorySettingsFile, const ExtensionMetadataType &extensionMetadata, const QString& settingsPath)
+{
+	QSettings settings(extensionsHistorySettingsFile, QSettings::IniFormat);
+	QStringList settingsInfoList = settings.value(settingsPath).toStringList();
+	QString extensionIdAndName = extensionMetadata.value("extension_id").toString() + ":" + extensionMetadata.value("extensionname").toString();
+	settingsInfoList << extensionIdAndName;
+	settingsInfoList.removeDuplicates();
+	settings.setValue(settingsPath, settingsInfoList);
+}
+
+// --------------------------------------------------------------------------
+void qSlicerExtensionsManagerModelPrivate::cancelExtensionHistorySettingRemoval(
+	const QString& extensionsHistorySettingsFile, const QString& extensionName)
+{
+	QSettings settings(extensionsHistorySettingsFile, QSettings::IniFormat);
+	QStringList settingsInfoList = settings.value("ExtensionsHistory/ScheduledForRemoval").toStringList();
+	QString extensionIdAndName = "";
+	for (unsigned int i = 0; i < settingsInfoList.length(); i++)
+	{
+		QString currentInfoString = settingsInfoList.at(i);
+		if (currentInfoString.contains(extensionName)) {
+			extensionIdAndName = currentInfoString;
+			break;
+		}
+	}
+	if (!extensionIdAndName.isEmpty())
+	{
+		settingsInfoList.removeOne(extensionIdAndName);
+		settingsInfoList.removeDuplicates();
+		settings.setValue("ExtensionsHistory/ScheduledForRemoval", settingsInfoList);
+	}
+}
+
+// --------------------------------------------------------------------------
+void qSlicerExtensionsManagerModelPrivate::removeScheduledExtensionHistorySettings(
+	const QString& extensionsHistorySettingsFile)
+{
+	QSettings settings(extensionsHistorySettingsFile, QSettings::IniFormat);
+	QStringList scheduledForRemovalList = settings.value("ExtensionsHistory/ScheduledForRemoval").toStringList();
+	QStringList historyList = settings.value("ExtensionsHistory/" + this->SlicerRevision).toStringList();
+	for (unsigned int i = 0; i < scheduledForRemovalList.length(); i++)
+	{
+		historyList.removeOne(scheduledForRemovalList.at(i));
+	}
+	historyList.removeDuplicates();
+	settings.setValue("ExtensionsHistory/" + this->SlicerRevision, historyList);
+	settings.setValue("ExtensionsHistory/ScheduledForRemoval", "");
+}
+
+
 
 // --------------------------------------------------------------------------
 void qSlicerExtensionsManagerModelPrivate::initializeColumnIdToNameMap(int columnIdx, const char* columnName)
@@ -1437,10 +1497,10 @@ bool qSlicerExtensionsManagerModel::installExtension(
 
   // Finish installing the extension
   d->saveExtensionDescription(extensionDescriptionFile, extensionMetadata);
-  d->writeExtensionsHistoryToSettingsFile(this->extensionsHistorySettingsFilePath(), extensionMetadata);
   d->addExtensionSettings(extensionName);
   d->addExtensionModelRow(Self::parseExtensionDescriptionFile(extensionDescriptionFile));
 
+  d->saveExtensionToHistorySettings(this->extensionsHistorySettingsFilePath(), extensionMetadata);
   emit this->extensionInstalled(extensionName);
 
   // Log notice that extension was installed
@@ -1886,9 +1946,8 @@ bool qSlicerExtensionsManagerModel::scheduleExtensionForUninstall(const QString&
   // Add to scheduled uninstalls
   scheduled.append(extensionName);
   settings.setValue("Extensions/ScheduledForUninstall", scheduled);
-
-  d->removeExtensionSettings(extensionName);
-
+  const ExtensionMetadataType& extensionMetadata = this->extensionMetadata(extensionName);
+  d->scheduleExtensionHistorySettingRemoval(this->extensionsHistorySettingsFilePath(), extensionMetadata);
   emit this->extensionScheduledForUninstall(extensionName);
 
   return true;
@@ -1911,7 +1970,7 @@ bool qSlicerExtensionsManagerModel::cancelExtensionScheduledForUninstall(const Q
     }
   d->removeExtensionFromScheduledForUninstallList(extensionName);
   d->addExtensionSettings(extensionName);
-
+  d->cancelExtensionHistorySettingRemoval(this->extensionsHistorySettingsFilePath(), extensionName);
   emit this->extensionCancelledScheduleForUninstall(extensionName);
 
   return true;
@@ -2018,6 +2077,7 @@ bool qSlicerExtensionsManagerModel::uninstallScheduledExtensions()
 bool qSlicerExtensionsManagerModel::uninstallScheduledExtensions(QStringList& uninstalledExtensions)
 {
   Q_D(qSlicerExtensionsManagerModel);
+  d->removeScheduledExtensionHistorySettings(this->extensionsHistorySettingsFilePath());
   bool result = true;
   foreach(const QString& extensionName, this->scheduledForUninstallExtensions())
     {
