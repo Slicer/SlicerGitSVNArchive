@@ -1247,6 +1247,12 @@ void qSlicerCoreApplication::setExtensionsInstallPath(const QString& path)
 }
 
 //-----------------------------------------------------------------------------
+void qSlicerCoreApplication::checkExtensionHistory()
+{
+	this->extensionsManagerModel()->checkExtensionHistory();
+}
+
+//-----------------------------------------------------------------------------
 #ifdef Slicer_USE_PYTHONQT
 
 //-----------------------------------------------------------------------------
