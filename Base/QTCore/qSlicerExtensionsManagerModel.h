@@ -305,6 +305,8 @@ public slots:
   /// \sa scheduleExtensionForUninstall, isExtensionScheduledForUninstall,
   bool uninstallScheduledExtensions();
 
+  void checkExtensionHistory();
+
   void identifyIncompatibleExtensions();
 
   bool exportExtensionList(QString& exportFilePath);
