@@ -81,7 +81,7 @@ macro(_append_extension_template_generator_commands module_type)
 endmacro()
 
 # Loop over module type and add template generators
-foreach(type IN ITEMS CLI Loadable ScriptedLoadable)
+foreach(type IN ITEMS CLI PythonCLI Loadable ScriptedLoadable)
   _append_extension_template_generator_commands(${type})
 endforeach()
 
