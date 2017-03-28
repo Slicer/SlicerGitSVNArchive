@@ -6,6 +6,9 @@
 #include <QFileInfo>
 #include <QDir>
 #include <QListWidget>
+#include <QDebug>
+#include <QProgressdialog>
+#include <QMessagebox>
 
 // QtGUI includes
 #include "qSlicerExtensionsRestoreWidget.h"
@@ -24,16 +27,18 @@ public:
   void setupUi();
   void setupList();
   QStringList getSelectedExtensions();
-  void startDownloadAndInstallExtensions();
+  void startDownloadAndInstallExtensions(QStringList extensionIds);
   void downloadAndInstallNextExtension();
   void downloadProgress(const QString& extensionName, qint64 received, qint64 total);
 
   qSlicerExtensionsManagerModel *ExtensionsManagerModel;
   QProgressBar *progressBar;
+  QProgressDialog *progressDialog;
   QListWidget *extensionList;
   QStringList extensionsToInstall;
   unsigned int nrOfExtensionsToInstall;
   int currentExtensionToInstall;
+  bool headlessMode;
   unsigned int maxProgress;
 };
 
@@ -48,6 +53,7 @@ qSlicerExtensionsRestoreWidgetPrivate::qSlicerExtensionsRestoreWidgetPrivate(qSl
 void qSlicerExtensionsRestoreWidgetPrivate::init()
 {
   nrOfExtensionsToInstall = 0;
+  headlessMode = false;
   setupUi();
 }
 
@@ -60,17 +66,20 @@ void qSlicerExtensionsRestoreWidgetPrivate
   QVBoxLayout *mainLayout = new QVBoxLayout;
   QHBoxLayout *layoutForProgressAndButton = new QHBoxLayout;
   QPushButton *installButton = new QPushButton;
+  progressDialog = new QProgressDialog;
   extensionList = new QListWidget;
   progressBar = new QProgressBar;
-
   installButton->setText("Install Selected");
   maxProgress = 1000;
   progressBar->setValue(0);
   progressBar->setMaximum(maxProgress);
+  progressDialog->setMinimum(0);
+  progressDialog->setMaximum(maxProgress);
   layoutForProgressAndButton->addWidget(progressBar);
   layoutForProgressAndButton->addWidget(installButton);
   mainLayout->addWidget(extensionList);
   mainLayout->addLayout(layoutForProgressAndButton);
+  progressDialog->setWindowFlags(Qt::WindowStaysOnTopHint | Qt::WindowTitleHint | Qt::CustomizeWindowHint);
   q->setLayout(mainLayout);
 
   //Setup Handling
@@ -125,9 +134,9 @@ QStringList qSlicerExtensionsRestoreWidgetPrivate
 
 // --------------------------------------------------------------------------
 void qSlicerExtensionsRestoreWidgetPrivate
-::startDownloadAndInstallExtensions()
+::startDownloadAndInstallExtensions(QStringList extensionIds)
 {
-  extensionsToInstall = getSelectedExtensions();
+  extensionsToInstall = extensionIds;
   nrOfExtensionsToInstall = extensionsToInstall.size();
   currentExtensionToInstall = -1;
   downloadAndInstallNextExtension();
@@ -141,10 +150,20 @@ void qSlicerExtensionsRestoreWidgetPrivate
   currentExtensionToInstall++;
   if (currentExtensionToInstall < nrOfExtensionsToInstall)
   {
+    if (headlessMode) {
+      progressDialog->setLabelText("Installing Extension (ID):" + extensionsToInstall.at(currentExtensionToInstall));
+    }
     q->extensionsManagerModel()->downloadAndInstallExtension(extensionsToInstall.at(currentExtensionToInstall));
   }
   else {
-    setupList();
+	  if (headlessMode) {
+		  progressDialog->close();
+      headlessMode = false;
+	  }
+    else
+    {
+      setupList();
+    }
   }
 }
 // --------------------------------------------------------------------------
@@ -153,7 +172,14 @@ void qSlicerExtensionsRestoreWidgetPrivate
 {
   int value = (((float(maxProgress) / float(nrOfExtensionsToInstall))*float(currentExtensionToInstall)) +
     ((float(received) / float(total)) * (float(maxProgress) / float(nrOfExtensionsToInstall))));
-  progressBar->setValue(value);
+  qDebug() << value;
+  if (headlessMode) {
+	  progressDialog->setValue(value);
+  }
+  else
+  {
+	  progressBar->setValue(value);
+  }
 }
 
 // qSlicerExtensionsRestoreWidget methods
@@ -196,7 +222,8 @@ void qSlicerExtensionsRestoreWidget
   }
 
   disconnect(this, SLOT(onProgressChanged(QString, qint64, qint64)));
-  disconnect(this, SLOT(onDownloadFinished(QNetworkReply*)));
+  disconnect(this, SLOT(onInstallationFinished(QString)));
+  disconnect(this, SLOT(onExtensionRestoreTriggered(QStringList &)));
   d->ExtensionsManagerModel = model;
   d->setupList();
 
@@ -206,6 +233,8 @@ void qSlicerExtensionsRestoreWidget
       this, SLOT(onProgressChanged(QString, qint64, qint64)));
     connect(model, SIGNAL(extensionInstalled(QString)),
       this, SLOT(onInstallationFinished(QString)));
+	  connect(model, SIGNAL(extensionRestoreTriggered(QStringList &)),
+	    this, SLOT(onExtensionRestoreTriggered(QStringList &)));
   }
 }
 
@@ -214,7 +243,7 @@ void qSlicerExtensionsRestoreWidget
 ::onInstallSelectedExtensionsTriggered()
 {
   Q_D(qSlicerExtensionsRestoreWidget);
-  d->startDownloadAndInstallExtensions();
+  d->startDownloadAndInstallExtensions(d->getSelectedExtensions());
 }
 
 // --------------------------------------------------------------------------
@@ -230,6 +259,17 @@ void qSlicerExtensionsRestoreWidget
 {
   Q_D(qSlicerExtensionsRestoreWidget);
   d->downloadAndInstallNextExtension();
+}
+
+void qSlicerExtensionsRestoreWidget
+::onExtensionRestoreTriggered(QStringList &extensionIds)
+{
+	Q_D(qSlicerExtensionsRestoreWidget);
+	qDebug() << "Hey, I was triggered with following info: " << extensionIds;
+	d->headlessMode = true;
+	d->extensionsToInstall = extensionIds;
+  d->progressDialog->show();
+	d->startDownloadAndInstallExtensions(extensionIds);
 }
 
 // --------------------------------------------------------------------------
