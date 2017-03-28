@@ -350,7 +350,13 @@ signals:
 
   void messageLogged(const QString& text, ctkErrorLogLevel::LogLevels level) const;
 
+  void extensionRestoreTriggered(QStringList& extensions);
+
+  void installDownloadProgress(QString, qint64, qint64);
+
 protected slots:
+
+  void onInstallDownloadProgress(qSlicerExtensionDownloadTask* task, qint64 received, qint64 total);
 
   /// \sa downloadAndInstallExtension
   void onInstallDownloadFinished(qSlicerExtensionDownloadTask* task);

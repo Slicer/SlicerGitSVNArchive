@@ -35,6 +35,7 @@ public:
   void onInstallSelectedExtensionsTriggered();
   void onProgressChanged(const QString& extensionName, qint64 received, qint64 total);
   void onInstallationFinished(QString extensionName);
+  void onExtensionRestoreTriggered(QStringList &extensionIds);
   void onMessageLogged(const QString& text, ctkErrorLogLevel::LogLevels level);
 
 protected:
