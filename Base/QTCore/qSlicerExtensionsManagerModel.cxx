@@ -919,7 +919,6 @@ QVariantMap qSlicerExtensionsManagerModelPrivate::getExtensionsInfoFromPreviousI
 		QStringList extensions = settings.value(revisions.at(i)).toStringList();
 		for (unsigned int j = 0; j < extensions.length(); j++)
 		{
-			qDebug() << extensions.at(j);
 			QStringList extensionIdAndName = extensions.at(j).split(":");
 			const QString extensionId = extensionIdAndName.at(0);
 			const QString extensionName = extensionIdAndName.at(1);
@@ -937,12 +936,9 @@ QVariantMap qSlicerExtensionsManagerModelPrivate::getExtensionsInfoFromPreviousI
 			curExtensionInfo.insert("IsInstalled", q->isExtensionInstalled(extensionName));
 			bool isCompatible = true;
 			if (!q->isExtensionInstalled(extensionName)) {
-				qDebug() << "retrieve Info";
 				ExtensionMetadataType metaData = q->retrieveExtensionMetadata(extensionId);
-				qDebug() << "have infi";
 				isCompatible = (this->isExtensionCompatible(metaData,
 				this->SlicerRevision, this->SlicerOs, this->SlicerArch).length() == 0);
-				qDebug() << "retrieve: "<<isCompatible;
 			}
 			else
 			{
@@ -979,9 +975,6 @@ void qSlicerExtensionsManagerModelPrivate::checkExtensionsHistory()
 		msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
 		if (msgBox.exec() == QMessageBox::Yes)
 		{
-			qDebug() << "Extension installation triggered";
-			qDebug() << candidateIds;
-			qDebug() << "Emitting event";
 			emit q->extensionRestoreTriggered(candidateIds);
 		}
 	}
@@ -1373,7 +1366,6 @@ void qSlicerExtensionsManagerModel::onInstallDownloadProgress(
 
   // Look up the update information
   const QString& extensionName = task->extensionName();
-  qDebug() << extensionName << received << "," << total;
 
   // Notify observers of download progress
   emit this->installDownloadProgress(extensionName, received, total);

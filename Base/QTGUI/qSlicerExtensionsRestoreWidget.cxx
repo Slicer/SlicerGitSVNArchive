@@ -150,15 +150,17 @@ void qSlicerExtensionsRestoreWidgetPrivate
   currentExtensionToInstall++;
   if (currentExtensionToInstall < nrOfExtensionsToInstall)
   {
-    if (headlessMode) {
-      progressDialog->setLabelText("Installing Extension (ID):" + extensionsToInstall.at(currentExtensionToInstall));
-    }
     q->extensionsManagerModel()->downloadAndInstallExtension(extensionsToInstall.at(currentExtensionToInstall));
   }
   else {
 	  if (headlessMode) {
 		  progressDialog->close();
       headlessMode = false;
+      QMessageBox msgBox;
+      msgBox.setText("Restart required.");
+      msgBox.setInformativeText("All extensions restored. Please restart Slicer.");
+      msgBox.setStandardButtons(QMessageBox::Ok);
+      msgBox.exec();
 	  }
     else
     {
@@ -172,9 +174,9 @@ void qSlicerExtensionsRestoreWidgetPrivate
 {
   int value = (((float(maxProgress) / float(nrOfExtensionsToInstall))*float(currentExtensionToInstall)) +
     ((float(received) / float(total)) * (float(maxProgress) / float(nrOfExtensionsToInstall))));
-  qDebug() << value;
   if (headlessMode) {
 	  progressDialog->setValue(value);
+    progressDialog->setLabelText("Installing " + extensionName + " (" + QString::number(received) + "/" + QString::number(total) + ")");
   }
   else
   {
@@ -265,7 +267,6 @@ void qSlicerExtensionsRestoreWidget
 ::onExtensionRestoreTriggered(QStringList &extensionIds)
 {
 	Q_D(qSlicerExtensionsRestoreWidget);
-	qDebug() << "Hey, I was triggered with following info: " << extensionIds;
 	d->headlessMode = true;
 	d->extensionsToInstall = extensionIds;
   d->progressDialog->show();
