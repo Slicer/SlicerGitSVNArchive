@@ -1255,9 +1255,9 @@ void qSlicerCoreApplication::setExtensionsInstallPath(const QString& path)
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerCoreApplication::checkExtensionHistory()
+void qSlicerCoreApplication::gatherExtensionsHistoryInformationOnStartup()
 {
-	this->extensionsManagerModel()->checkExtensionHistory();
+  this->extensionsManagerModel()->gatherExtensionsHistoryInformationOnStartup();
 }
 
 //-----------------------------------------------------------------------------

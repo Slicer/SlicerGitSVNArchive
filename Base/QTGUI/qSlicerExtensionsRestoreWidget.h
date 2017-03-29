@@ -7,6 +7,7 @@
 
 // Qt includes
 #include <QWidget>
+#include <Qvariant>
 
 // QtGUI includes
 #include "qSlicerBaseQTGUIExport.h"
@@ -35,7 +36,7 @@ public:
   void onInstallSelectedExtensionsTriggered();
   void onProgressChanged(const QString& extensionName, qint64 received, qint64 total);
   void onInstallationFinished(QString extensionName);
-  void onExtensionRestoreTriggered(QStringList &extensionIds);
+  void onExtensionHistoryGatheredOnStartup(const QVariantMap&);
   void onMessageLogged(const QString& text, ctkErrorLogLevel::LogLevels level);
 
 protected:
