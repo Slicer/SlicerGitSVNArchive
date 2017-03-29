@@ -137,13 +137,31 @@ void qSlicerExtensionsRestoreWidgetPrivate
 {
   Q_Q(qSlicerExtensionsRestoreWidget);
 
-  /*extensionList->clear();
+  extensionList->clear();
+  QVariantMap extensionInfo = q->extensionsManagerModel()->getExtensionHistoryInformation();
 
-  QMap<QString, QStringList> extensionRestoreInfo = q->extensionsManagerModel()->getExtensionRestoreInformation();
-  foreach(QString extensionId, extensionRestoreInfo.keys())
+  foreach(QString extensionId, extensionInfo.keys())
   {
     QListWidgetItem* extensionItem = new QListWidgetItem;
     extensionItem->setData(Qt::UserRole, extensionId);
+    QVariantMap currentInfo = extensionInfo.value(extensionId).toMap();
+    QString itemText = currentInfo.value("Name").toString() + "(" + currentInfo.value("UsedLastInRevision").toString() + ")";
+
+    bool isItemEnabled = currentInfo.value("IsCompatible").toBool() && !currentInfo.value("IsInstalled").toBool();
+    if (currentInfo.value("WasInstalledInLastRevision").toBool() && isItemEnabled)
+    {
+      extensionItem->setForeground(QBrush(Qt::darkGreen));
+    }
+    extensionItem->setText(itemText);
+    Qt::ItemFlags flags = isItemEnabled ? Qt::ItemIsUserCheckable | Qt::ItemIsEnabled : Qt::ItemIsUserCheckable;
+    extensionItem->setFlags(flags);
+    extensionItem->setCheckState((!isItemEnabled) ? Qt::Unchecked : Qt::Checked);
+    extensionList->addItem(extensionItem);
+  }
+  /*
+      QListWidgetItem* extensionItem = new QListWidgetItem;
+    extensionItem->setData(Qt::UserRole, extensionId);
+    QVariantMap currentInfo = extensionInfo.value(extensionId).toMap();
     QString itemText = extensionRestoreInfo[extensionId][0];
     bool isItemEnabled = (extensionRestoreInfo[extensionId][2] == "0");
     //&& extensionRestoreInfo[extensionId][3] == "1");
@@ -156,8 +174,7 @@ void qSlicerExtensionsRestoreWidgetPrivate
     Qt::ItemFlags flags = isItemEnabled ? Qt::ItemIsUserCheckable | Qt::ItemIsEnabled : Qt::ItemIsUserCheckable;
     extensionItem->setFlags(flags);
     extensionItem->setCheckState((extensionRestoreInfo[extensionId][1] == "0" || !isItemEnabled) ? Qt::Unchecked : Qt::Checked);
-    extensionList->addItem(extensionItem);
-  }*/
+    extensionList->addItem(extensionItem);*/
 }
 
 // --------------------------------------------------------------------------
