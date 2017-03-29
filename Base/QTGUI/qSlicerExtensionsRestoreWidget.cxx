@@ -30,12 +30,15 @@ public:
   void startDownloadAndInstallExtensions(QStringList extensionIds);
   void downloadAndInstallNextExtension();
   void downloadProgress(const QString& extensionName, qint64 received, qint64 total);
+  QStringList extractInstallationCandidates(QVariantMap extensionHistoryInformation);
+  void processExtensionsHistoryInformationOnStartup(QVariantMap extensionHistoryInformation);
 
   qSlicerExtensionsManagerModel *ExtensionsManagerModel;
   QProgressBar *progressBar;
   QProgressDialog *progressDialog;
   QListWidget *extensionList;
   QStringList extensionsToInstall;
+  QVariantMap extensionRestoreInformation;
   unsigned int nrOfExtensionsToInstall;
   int currentExtensionToInstall;
   bool headlessMode;
@@ -85,6 +88,47 @@ void qSlicerExtensionsRestoreWidgetPrivate
   //Setup Handling
   QObject::connect(installButton, SIGNAL(clicked()),
     q, SLOT(onInstallSelectedExtensionsTriggered()));
+}
+
+// --------------------------------------------------------------------------
+QStringList qSlicerExtensionsRestoreWidgetPrivate
+::extractInstallationCandidates(QVariantMap extensionHistoryInformation)
+{
+  QStringList candidateIds;
+  for (unsigned int i = 0; i < extensionHistoryInformation.size(); i++)
+  {
+    QVariantMap currentInfo = extensionHistoryInformation.value(extensionHistoryInformation.keys().at(i)).toMap();
+    if (currentInfo.value("WasInstalledInLastRevision").toBool() && currentInfo.value("IsCompatible").toBool() && !currentInfo.value("IsInstalled").toBool())
+    {
+      candidateIds.append(extensionHistoryInformation.keys().at(i));
+    }
+  }
+  return candidateIds;
+}
+
+// --------------------------------------------------------------------------
+void qSlicerExtensionsRestoreWidgetPrivate
+::processExtensionsHistoryInformationOnStartup(QVariantMap extensionHistoryInformation)
+{
+  QStringList candidateIds = extractInstallationCandidates(extensionHistoryInformation);
+  if (candidateIds.length() > 0)
+  {
+    QMessageBox msgBox;
+    msgBox.setText("Previously installed extensions identified.");
+    QString text = QString("%1 compatible extension(s) from a previous Slicer installation found. Do you want to install?"
+    "(For details see: Extension Manager > Restore Extensions)").arg(candidateIds.length());
+    msgBox.setInformativeText(text);
+    msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+    if (msgBox.exec() == QMessageBox::Yes)
+    {
+      this->headlessMode = true;
+      this->progressDialog->show();
+      this->startDownloadAndInstallExtensions(candidateIds);
+    }
+  }
+
+
+
 }
 
 // --------------------------------------------------------------------------
@@ -225,7 +269,7 @@ void qSlicerExtensionsRestoreWidget
 
   disconnect(this, SLOT(onProgressChanged(QString, qint64, qint64)));
   disconnect(this, SLOT(onInstallationFinished(QString)));
-  disconnect(this, SLOT(onExtensionRestoreTriggered(QStringList &)));
+  disconnect(this, SLOT(onExtensionHistoryGatheredOnStartup(QVariantMap)));
   d->ExtensionsManagerModel = model;
   d->setupList();
 
@@ -235,8 +279,8 @@ void qSlicerExtensionsRestoreWidget
       this, SLOT(onProgressChanged(QString, qint64, qint64)));
     connect(model, SIGNAL(extensionInstalled(QString)),
       this, SLOT(onInstallationFinished(QString)));
-	  connect(model, SIGNAL(extensionRestoreTriggered(QStringList &)),
-	    this, SLOT(onExtensionRestoreTriggered(QStringList &)));
+    connect(model, SIGNAL(extensionHistoryGatheredOnStartup(QVariantMap)),
+      this, SLOT(onExtensionHistoryGatheredOnStartup(QVariantMap)));
   }
 }
 
@@ -264,13 +308,16 @@ void qSlicerExtensionsRestoreWidget
 }
 
 void qSlicerExtensionsRestoreWidget
-::onExtensionRestoreTriggered(QStringList &extensionIds)
+::onExtensionHistoryGatheredOnStartup(const QVariantMap& extensionInfo)
 {
 	Q_D(qSlicerExtensionsRestoreWidget);
-	d->headlessMode = true;
-	d->extensionsToInstall = extensionIds;
-  d->progressDialog->show();
-	d->startDownloadAndInstallExtensions(extensionIds);
+
+  qDebug() << "got triggered:" << extensionInfo;
+  d->processExtensionsHistoryInformationOnStartup(extensionInfo);
+
+
+
+
 }
 
 // --------------------------------------------------------------------------

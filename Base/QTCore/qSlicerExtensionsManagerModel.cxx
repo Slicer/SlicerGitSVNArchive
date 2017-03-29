@@ -225,8 +225,9 @@ public:
   void addExtensionHistorySetting(const QString& extensionsHistorySettingsFile, const ExtensionMetadataType &extensionMetadata, const QString& settingsPath);
   void cancelExtensionHistorySettingRemoval(const QString& extensionsHistorySettingsFile, const QString& extensionName);
   void removeScheduledExtensionHistorySettings(const QString& extensionsHistorySettingsFile);
-  void checkExtensionsHistory();
   QVariantMap getExtensionsInfoFromPreviousInstallations(const QString& extensionsHistorySettingsFile);
+  void gatherExtensionsHistoryInformationOnStartup();
+
 
   qSlicerExtensionsManagerModel::ExtensionMetadataType retrieveExtensionMetadata(
     const qMidasAPI::ParametersType& parameters);
@@ -245,7 +246,6 @@ public:
 
   QString ExtensionsSettingsFilePath;
   QString ExtensionsHistorySettingsFilePath;
-
 
   QString SlicerRevision;
   QString SlicerOs;
@@ -952,35 +952,38 @@ QVariantMap qSlicerExtensionsManagerModelPrivate::getExtensionsInfoFromPreviousI
 }
 
 // --------------------------------------------------------------------------
-void qSlicerExtensionsManagerModelPrivate::checkExtensionsHistory()
+void qSlicerExtensionsManagerModelPrivate::gatherExtensionsHistoryInformationOnStartup()
 {
 	Q_Q(qSlicerExtensionsManagerModel);
-	QVariantMap extensionInfo = this->getExtensionsInfoFromPreviousInstallations(q->extensionsHistorySettingsFilePath());
-	QStringList candidateIds;
-	for (unsigned int i = 0; i < extensionInfo.size(); i++)
-	{
-		QVariantMap currentInfo = extensionInfo.value(extensionInfo.keys().at(i)).toMap();
-		if (currentInfo.value("WasInstalledInLastRevision").toBool() && currentInfo.value("IsCompatible").toBool() && !currentInfo.value("IsInstalled").toBool())
-		{
-			candidateIds.append(extensionInfo.keys().at(i));
-		}
-	}
-	if (candidateIds.length() > 0)
-	{
-		QMessageBox msgBox;
-		msgBox.setText("Previously installed extensions identified.");
-		QString text = QString("%1 compatible extension(s) from a previous Slicer installation found. Do you want to install?"
-							   "(For details see: Extension Manager > Restore Extensions)").arg(candidateIds.length());
-		msgBox.setInformativeText(text);
-		msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
-		if (msgBox.exec() == QMessageBox::Yes)
-		{
-			emit q->extensionRestoreTriggered(candidateIds);
-		}
-	}
+  //q->getExtensionHistoryInformation();
+  //q->extensionsHistoryInformation = this->getExtensionsInfoFromPreviousInstallations(q->extensionsHistorySettingsFilePath());
+  emit q->extensionHistoryGatheredOnStartup(q->getExtensionHistoryInformation());
+  /*
+  QStringList candidateIds;
+  for (unsigned int i = 0; i < extensionInfo.size(); i++)
+  {
+  QVariantMap currentInfo = extensionInfo.value(extensionInfo.keys().at(i)).toMap();
+  if (currentInfo.value("WasInstalledInLastRevision").toBool() && currentInfo.value("IsCompatible").toBool() && !currentInfo.value("IsInstalled").toBool())
+  {
+  candidateIds.append(extensionInfo.keys().at(i));
+  }
+  }
+  if (candidateIds.length() > 0)
+  {
+  QMessageBox msgBox;
+  msgBox.setText("Previously installed extensions identified.");
+  QString text = QString("%1 compatible extension(s) from a previous Slicer installation found. Do you want to install?"
+  "(For details see: Extension Manager > Restore Extensions)").arg(candidateIds.length());
+  msgBox.setInformativeText(text);
+  msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+  if (msgBox.exec() == QMessageBox::Yes)
+  {
+  emit q->extensionRestoreTriggered(candidateIds);
+  }
+  }
+  */
+
 }
-
-
 
 // --------------------------------------------------------------------------
 void qSlicerExtensionsManagerModelPrivate::initializeColumnIdToNameMap(int columnIdx, const char* columnName)
@@ -2201,11 +2204,17 @@ bool qSlicerExtensionsManagerModel::uninstallScheduledExtensions(QStringList& un
 }
 
 // --------------------------------------------------------------------------
-void qSlicerExtensionsManagerModel::checkExtensionHistory()
+void qSlicerExtensionsManagerModel::gatherExtensionsHistoryInformationOnStartup()
 {
 	Q_D(qSlicerExtensionsManagerModel);
-	qDebug() << "Gatering";
-	d->checkExtensionsHistory();
+  d->gatherExtensionsHistoryInformationOnStartup();
+}
+
+// --------------------------------------------------------------------------
+QVariantMap  qSlicerExtensionsManagerModel::getExtensionHistoryInformation()
+{
+  Q_D(qSlicerExtensionsManagerModel);
+  return d->getExtensionsInfoFromPreviousInstallations(extensionsHistorySettingsFilePath());
 }
 
 

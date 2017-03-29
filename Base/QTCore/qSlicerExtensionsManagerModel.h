@@ -148,6 +148,7 @@ public:
   QString extensionsHistorySettingsFilePath()const;
   void setExtensionsHistorySettingsFilePath(const QString& extensionsHistorySettingsFilePath);
 
+  QVariantMap extensionsHistoryInformation()const;
 
   QString slicerRevision()const;
   void setSlicerRevision(const QString& revision);
@@ -305,7 +306,9 @@ public slots:
   /// \sa scheduleExtensionForUninstall, isExtensionScheduledForUninstall,
   bool uninstallScheduledExtensions();
 
-  void checkExtensionHistory();
+  void gatherExtensionsHistoryInformationOnStartup();
+
+  QVariantMap getExtensionHistoryInformation();
 
   void identifyIncompatibleExtensions();
 
@@ -350,9 +353,9 @@ signals:
 
   void messageLogged(const QString& text, ctkErrorLogLevel::LogLevels level) const;
 
-  void extensionRestoreTriggered(QStringList& extensions);
+  void extensionHistoryGatheredOnStartup(const QVariantMap&);
 
-  void installDownloadProgress(QString, qint64, qint64);
+  void installDownloadProgress(const QString& extensionName, qint64 received, qint64 total);
 
 protected slots:
 
