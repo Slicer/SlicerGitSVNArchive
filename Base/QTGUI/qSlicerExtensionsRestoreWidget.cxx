@@ -9,6 +9,7 @@
 #include <QDebug>
 #include <QProgressdialog>
 #include <QMessagebox>
+#include <ctkMessageBox.h>
 #include <QStyledItemDelegate>
 #include <QPainter>
 #include <QEvent>
@@ -187,25 +188,34 @@ QStringList qSlicerExtensionsRestoreWidgetPrivate
 void qSlicerExtensionsRestoreWidgetPrivate
 ::processExtensionsHistoryInformationOnStartup(QVariantMap extensionHistoryInformation)
 {
-  QStringList candidateIds = extractInstallationCandidates(extensionHistoryInformation);
-  if (candidateIds.length() > 0)
+  QSettings settings(this->ExtensionsManagerModel->extensionsSettingsFilePath(), QSettings::IniFormat);
+  QString settingsKey = "ExtensionCheckOnStartup/DontShowDialog";
+  bool checkOnStartup = !settings.value(settingsKey).toBool();
+  if (checkOnStartup)
   {
-    QMessageBox msgBox;
-    msgBox.setText("Previously installed extensions identified.");
-    QString text = QString("%1 compatible extension(s) from a previous Slicer installation found. Do you want to install?"
-    "(For details see: Extension Manager > Restore Extensions)").arg(candidateIds.length());
-    msgBox.setInformativeText(text);
-    msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
-    if (msgBox.exec() == QMessageBox::Yes)
+    QStringList candidateIds = extractInstallationCandidates(extensionHistoryInformation);
+
+    if (candidateIds.length() > 0)
     {
-      this->headlessMode = true;
-      this->progressDialog->show();
-      this->startDownloadAndInstallExtensions(candidateIds);
+      QString text = QString("%1 compatible extension(s) from a previous Slicer installation found. Do you want to install?"
+        "(For details see: Extension Manager > Restore Extensions)").arg(candidateIds.length());
+
+      ctkMessageBox checkHistoryMessage;
+      checkHistoryMessage.setText(text);
+      checkHistoryMessage.setIcon(QMessageBox::Information);
+      checkHistoryMessage.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+      checkHistoryMessage.setDontShowAgainVisible(true);
+
+      if (checkHistoryMessage.exec() == QMessageBox::Yes)
+      {
+        this->headlessMode = true;
+        this->progressDialog->show();
+        this->startDownloadAndInstallExtensions(candidateIds);
+      }
+      settings.setValue(settingsKey, checkHistoryMessage.dontShowAgain());
+
     }
   }
-
-
-
 }
 
 // --------------------------------------------------------------------------
@@ -399,13 +409,7 @@ void qSlicerExtensionsRestoreWidget
 ::onExtensionHistoryGatheredOnStartup(const QVariantMap& extensionInfo)
 {
 	Q_D(qSlicerExtensionsRestoreWidget);
-
-  qDebug() << "got triggered:" << extensionInfo;
   d->processExtensionsHistoryInformationOnStartup(extensionInfo);
-
-
-
-
 }
 
 // --------------------------------------------------------------------------
