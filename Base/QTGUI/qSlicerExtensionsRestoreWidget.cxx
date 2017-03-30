@@ -298,11 +298,13 @@ void qSlicerExtensionsRestoreWidgetPrivate
 	  if (headlessMode) {
 		  progressDialog->close();
       headlessMode = false;
-      QMessageBox msgBox;
-      msgBox.setText("Restart required.");
-      msgBox.setInformativeText("All extensions restored. Please restart Slicer.");
-      msgBox.setStandardButtons(QMessageBox::Ok);
-      msgBox.exec();
+
+      ctkMessageBox checkHistoryMessage;
+      checkHistoryMessage.setText("All extensions restored. Please restart Slicer.");
+      checkHistoryMessage.setIcon(QMessageBox::Information);
+      checkHistoryMessage.setStandardButtons(QMessageBox::Ok);
+      checkHistoryMessage.setDontShowAgainVisible(false);
+      checkHistoryMessage.exec();
 	  }
     else
     {
