@@ -9,10 +9,85 @@
 #include <QDebug>
 #include <QProgressdialog>
 #include <QMessagebox>
+#include <QStyledItemDelegate>
+#include <QPainter>
+#include <QEvent>
+#include <QApplication>
 
 // QtGUI includes
 #include "qSlicerExtensionsRestoreWidget.h"
 #include "qSlicerExtensionsManagerModel.h"
+
+// --------------------------------------------------------------------------
+class qSlicerRestoreExtensionsItemDelegate : public QStyledItemDelegate
+{
+public:
+  qSlicerRestoreExtensionsItemDelegate(QObject * parent = 0)
+    : QStyledItemDelegate(parent) {};
+
+  bool editorEvent(QEvent *event,
+    QAbstractItemModel *model,
+    const QStyleOptionViewItem &option,
+    const QModelIndex &index)
+  {
+    bool isEnabled = index.data(Qt::UserRole + 3).toBool();
+
+    if (event->type() == QEvent::MouseButtonRelease && isEnabled)
+    {
+      bool value = index.data(Qt::UserRole + 1).toBool();
+      model->setData(index, !value, Qt::UserRole + 1);
+      return true;
+    }
+
+    return QStyledItemDelegate::editorEvent(event, model, option, index);
+  }
+
+  // --------------------------------------------------------------------------
+  void paint(QPainter * painter, const QStyleOptionViewItem & option, const QModelIndex & index) const{
+    QRect r = option.rect;
+
+    QPen enabledPen(QColor::fromRgb(0, 0, 0), 1, Qt::SolidLine);
+    QPen disabledPen(QColor::fromRgb(125, 125, 125), 1, Qt::SolidLine);
+    QPen candidatePen(QColor::fromRgb(0, 200, 50), 1, Qt::SolidLine);
+
+    //GET DATA
+    QString title           = index.data(Qt::DisplayRole).toString();
+    bool isChecked          = index.data(Qt::UserRole + 1).toBool();
+    QString description     = index.data(Qt::UserRole + 2).toString();
+    bool isEnabled          = index.data(Qt::UserRole + 3).toBool();
+    bool isRestoreCandidate = index.data(Qt::UserRole + 4).toBool();
+
+    //TITLE
+    painter->setPen((isEnabled ? enabledPen : disabledPen));
+    r = option.rect.adjusted(55, 10, 0, 0);
+    painter->setFont(QFont("Arial", 13, QFont::Bold));
+    painter->drawText(r.left(), r.top(), r.width(), r.height(), Qt::AlignTop | Qt::AlignLeft, title, &r);
+    //DESCRIPTION
+    painter->setPen((isEnabled ? ( isRestoreCandidate ? candidatePen : enabledPen ) : disabledPen));
+    r = option.rect.adjusted(55, 30, -10, 0);
+    painter->setFont(QFont("Arial", 9, QFont::Normal));
+    painter->drawText(r.left(), r.top(), r.width(), r.height(), Qt::AlignLeft, description, &r);
+    //CHECKBOX
+    QStyleOptionButton cbOpt;
+    cbOpt.rect = option.rect.adjusted(20, 0, 0, 0);
+
+    if (isChecked)
+    {
+      cbOpt.state |= QStyle::State_On;
+    }
+    else
+    {
+      cbOpt.state |= QStyle::State_Off;
+    }
+
+    QApplication::style()->drawControl(QStyle::CE_CheckBox, &cbOpt, painter);
+  }
+  QSize sizeHint(const QStyleOptionViewItem & option, const QModelIndex & index) const{
+    return QSize(200, 60); // very dumb value
+  }
+
+};
+
 
 //-----------------------------------------------------------------------------
 class qSlicerExtensionsRestoreWidgetPrivate
@@ -72,6 +147,8 @@ void qSlicerExtensionsRestoreWidgetPrivate
   progressDialog = new QProgressDialog;
   extensionList = new QListWidget;
   progressBar = new QProgressBar;
+  extensionList->setAlternatingRowColors(true);
+  extensionList->setItemDelegate(new qSlicerRestoreExtensionsItemDelegate(q));
   installButton->setText("Install Selected");
   maxProgress = 1000;
   progressBar->setValue(0);
@@ -140,41 +217,35 @@ void qSlicerExtensionsRestoreWidgetPrivate
   extensionList->clear();
   QVariantMap extensionInfo = q->extensionsManagerModel()->getExtensionHistoryInformation();
 
+
   foreach(QString extensionId, extensionInfo.keys())
   {
     QListWidgetItem* extensionItem = new QListWidgetItem;
-    extensionItem->setData(Qt::UserRole, extensionId);
-    QVariantMap currentInfo = extensionInfo.value(extensionId).toMap();
-    QString itemText = currentInfo.value("Name").toString() + "(" + currentInfo.value("UsedLastInRevision").toString() + ")";
 
-    bool isItemEnabled = currentInfo.value("IsCompatible").toBool() && !currentInfo.value("IsInstalled").toBool();
-    if (currentInfo.value("WasInstalledInLastRevision").toBool() && isItemEnabled)
-    {
-      extensionItem->setForeground(QBrush(Qt::darkGreen));
-    }
-    extensionItem->setText(itemText);
-    Qt::ItemFlags flags = isItemEnabled ? Qt::ItemIsUserCheckable | Qt::ItemIsEnabled : Qt::ItemIsUserCheckable;
-    extensionItem->setFlags(flags);
-    extensionItem->setCheckState((!isItemEnabled) ? Qt::Unchecked : Qt::Checked);
+    QVariantMap currentInfo = extensionInfo.value(extensionId).toMap();
+
+    QString title                   = currentInfo.value("Name").toString();
+    bool isCompatible               = currentInfo.value("IsCompatible").toBool();
+    bool isInstalled                = currentInfo.value("IsInstalled").toBool();
+    QString usedLastInRevision      = currentInfo.value("UsedLastInRevision").toString();
+    bool wasInstalledInLastRevision = currentInfo.value("WasInstalledInLastRevision").toBool();
+    bool isItemEnabled              = isCompatible && !isInstalled;
+    bool isItemChecked              = isItemEnabled && wasInstalledInLastRevision;
+    QString description =
+      (isInstalled ? "currently installed" :
+      (isCompatible ? ( wasInstalledInLastRevision ? "was used in previously installed Slicer version (" + usedLastInRevision + ") " :
+      "was last used in Slicer version " + usedLastInRevision) :
+      "not compatible with current Slicer version (was last used in Slicer version " + usedLastInRevision + ")"));
+
+    extensionItem->setData(Qt::UserRole, extensionId);
+    extensionItem->setData(Qt::UserRole + 1, isItemChecked);
+    extensionItem->setData(Qt::UserRole + 2, description);
+    extensionItem->setData(Qt::UserRole + 3, isItemEnabled);
+    extensionItem->setData(Qt::UserRole + 4, wasInstalledInLastRevision);
+    extensionItem->setText(title);
+
     extensionList->addItem(extensionItem);
   }
-  /*
-      QListWidgetItem* extensionItem = new QListWidgetItem;
-    extensionItem->setData(Qt::UserRole, extensionId);
-    QVariantMap currentInfo = extensionInfo.value(extensionId).toMap();
-    QString itemText = extensionRestoreInfo[extensionId][0];
-    bool isItemEnabled = (extensionRestoreInfo[extensionId][2] == "0");
-    //&& extensionRestoreInfo[extensionId][3] == "1");
-
-    if (extensionRestoreInfo[extensionId][1] == "1" && isItemEnabled)
-    {
-      extensionItem->setForeground(QBrush(Qt::darkGreen));
-    }
-    extensionItem->setText(extensionRestoreInfo[extensionId][0]);
-    Qt::ItemFlags flags = isItemEnabled ? Qt::ItemIsUserCheckable | Qt::ItemIsEnabled : Qt::ItemIsUserCheckable;
-    extensionItem->setFlags(flags);
-    extensionItem->setCheckState((extensionRestoreInfo[extensionId][1] == "0" || !isItemEnabled) ? Qt::Unchecked : Qt::Checked);
-    extensionList->addItem(extensionItem);*/
 }
 
 // --------------------------------------------------------------------------
@@ -185,7 +256,7 @@ QStringList qSlicerExtensionsRestoreWidgetPrivate
   for (int i = 0; i < extensionList->count(); i++)
   {
     QListWidgetItem* currentItem = extensionList->item(i);
-    if (currentItem->checkState() && (currentItem->flags() & Qt::ItemIsEnabled))
+    if (currentItem->data(Qt::UserRole + 1).toBool())
     {
       selectedExtensions.append(currentItem->data(Qt::UserRole).toString());
     }
