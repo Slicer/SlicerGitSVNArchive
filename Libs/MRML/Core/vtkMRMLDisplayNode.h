@@ -434,7 +434,7 @@ public:
   void AddViewNodeID(const char* viewNodeID);
   /// Remove View Node ID for the view to display this node in.
   /// \sa ViewNodeIDs, AddViewNodeID(), RemoveAllViewNodeIDs()
-  void RemoveViewNodeID(char* viewNodeID);
+  void RemoveViewNodeID(const char* viewNodeID);
   /// Remove All View Node IDs for the views to display this node in.
   /// \sa ViewNodeIDs, AddViewNodeID(), RemoveViewNodeID()
   void RemoveAllViewNodeIDs();
