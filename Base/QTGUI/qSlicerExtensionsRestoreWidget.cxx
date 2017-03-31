@@ -14,6 +14,8 @@
 #include <QPainter>
 #include <QEvent>
 #include <QApplication>
+#include <qSlicerApplication.h>
+#include <QCheckbox>
 
 // QtGUI includes
 #include "qSlicerExtensionsRestoreWidget.h"
@@ -100,25 +102,35 @@ protected:
 public:
   qSlicerExtensionsRestoreWidgetPrivate(qSlicerExtensionsRestoreWidget& object);
   void init();
+  void onShow();
   void setupUi();
   void setupList();
   QStringList getSelectedExtensions();
   void startDownloadAndInstallExtensions(QStringList extensionIds);
+  void startDownloadAndInstallExtensionsHeadless(QStringList extensionIds);
+
   void downloadAndInstallNextExtension();
   void downloadProgress(const QString& extensionName, qint64 received, qint64 total);
   QStringList extractInstallationCandidates(QVariantMap extensionHistoryInformation);
   void processExtensionsHistoryInformationOnStartup(QVariantMap extensionHistoryInformation);
+  void setCheckOnStartup(int state);
+  void setSilentInstallOnStartup(int state);
 
   qSlicerExtensionsManagerModel *ExtensionsManagerModel;
   QProgressBar *progressBar;
   QProgressDialog *progressDialog;
+  QCheckBox *checkOnStartup;
+  QCheckBox *silentInstallOnStartup;
   QListWidget *extensionList;
   QStringList extensionsToInstall;
   QVariantMap extensionRestoreInformation;
+  QString checkOnStartupSettingsKey;
+  QString silentInstallOnStartUpSettingsKey;
   unsigned int nrOfExtensionsToInstall;
   int currentExtensionToInstall;
   bool headlessMode;
   unsigned int maxProgress;
+
 };
 
 // --------------------------------------------------------------------------
@@ -137,6 +149,16 @@ void qSlicerExtensionsRestoreWidgetPrivate::init()
 }
 
 // --------------------------------------------------------------------------
+void qSlicerExtensionsRestoreWidgetPrivate::onShow()
+{
+  qDebug() << "on show";
+  QSettings settings; // (this->ExtensionsManagerModel->extensionsSettingsFilePath(), QSettings::IniFormat);
+  checkOnStartup->setChecked(!settings.value(checkOnStartupSettingsKey).toBool());
+  silentInstallOnStartup->setChecked(settings.value(silentInstallOnStartUpSettingsKey).toBool());
+  silentInstallOnStartup->setEnabled(checkOnStartup->isChecked());
+}
+
+// --------------------------------------------------------------------------
 void qSlicerExtensionsRestoreWidgetPrivate
 ::setupUi()
 {
@@ -144,13 +166,20 @@ void qSlicerExtensionsRestoreWidgetPrivate
 
   QVBoxLayout *mainLayout = new QVBoxLayout;
   QHBoxLayout *layoutForProgressAndButton = new QHBoxLayout;
+  QHBoxLayout *layoutForSettings= new QHBoxLayout;
   QPushButton *installButton = new QPushButton;
+  checkOnStartup = new QCheckBox;
+  silentInstallOnStartup = new QCheckBox;
   progressDialog = new QProgressDialog;
   extensionList = new QListWidget;
   progressBar = new QProgressBar;
+
   extensionList->setAlternatingRowColors(true);
   extensionList->setItemDelegate(new qSlicerRestoreExtensionsItemDelegate(q));
   installButton->setText("Install Selected");
+  checkOnStartup->setText("Check previous extensions on startup");
+  silentInstallOnStartup->setText("Install previous extensions without request");
+
   maxProgress = 1000;
   progressBar->setValue(0);
   progressBar->setMaximum(maxProgress);
@@ -158,15 +187,26 @@ void qSlicerExtensionsRestoreWidgetPrivate
   progressDialog->setMaximum(maxProgress);
   layoutForProgressAndButton->addWidget(progressBar);
   layoutForProgressAndButton->addWidget(installButton);
+  layoutForSettings->addWidget(checkOnStartup);
+  layoutForSettings->addWidget(silentInstallOnStartup);
   mainLayout->addWidget(extensionList);
   mainLayout->addLayout(layoutForProgressAndButton);
+  mainLayout->addLayout(layoutForSettings);
   progressDialog->setWindowFlags(Qt::WindowStaysOnTopHint | Qt::WindowTitleHint | Qt::CustomizeWindowHint);
   q->setLayout(mainLayout);
+  checkOnStartupSettingsKey = "ExtensionCheckOnStartup/dontCheck";
+  silentInstallOnStartUpSettingsKey = "ExtensionCheckOnStartup/ifCheckInstallWithoutDialog";
 
-  //Setup Handling
   QObject::connect(installButton, SIGNAL(clicked()),
     q, SLOT(onInstallSelectedExtensionsTriggered()));
+  QObject::connect(checkOnStartup, SIGNAL(stateChanged(int)),
+    q, SLOT(onCheckOnStartupChanged(int)));
+  QObject::connect(silentInstallOnStartup, SIGNAL(stateChanged(int)),
+    q, SLOT(onSilentInstallOnStartupChanged(int)));
+
 }
+
+
 
 // --------------------------------------------------------------------------
 QStringList qSlicerExtensionsRestoreWidgetPrivate
@@ -188,32 +228,38 @@ QStringList qSlicerExtensionsRestoreWidgetPrivate
 void qSlicerExtensionsRestoreWidgetPrivate
 ::processExtensionsHistoryInformationOnStartup(QVariantMap extensionHistoryInformation)
 {
-  QSettings settings(this->ExtensionsManagerModel->extensionsSettingsFilePath(), QSettings::IniFormat);
-  QString settingsKey = "ExtensionCheckOnStartup/DontShowDialog";
-  bool checkOnStartup = !settings.value(settingsKey).toBool();
+  QSettings settings;// (this->ExtensionsManagerModel->extensionsSettingsFilePath(), QSettings::IniFormat);
+
+  bool checkOnStartup = !settings.value(this->checkOnStartupSettingsKey).toBool();
+
   if (checkOnStartup)
   {
     QStringList candidateIds = extractInstallationCandidates(extensionHistoryInformation);
 
     if (candidateIds.length() > 0)
     {
-      QString text = QString("%1 compatible extension(s) from a previous Slicer installation found. Do you want to install?"
-        "(For details see: Extension Manager > Restore Extensions)").arg(candidateIds.length());
-
-      ctkMessageBox checkHistoryMessage;
-      checkHistoryMessage.setText(text);
-      checkHistoryMessage.setIcon(QMessageBox::Information);
-      checkHistoryMessage.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
-      checkHistoryMessage.setDontShowAgainVisible(true);
-
-      if (checkHistoryMessage.exec() == QMessageBox::Yes)
+      bool silentInstall = settings.value(this->silentInstallOnStartUpSettingsKey).toBool();
+      if (silentInstall)
       {
-        this->headlessMode = true;
-        this->progressDialog->show();
-        this->startDownloadAndInstallExtensions(candidateIds);
+        this->startDownloadAndInstallExtensionsHeadless(candidateIds);
       }
-      settings.setValue(settingsKey, checkHistoryMessage.dontShowAgain());
+      else
+      {
+        QString text = QString("%1 compatible extension(s) from a previous Slicer installation found. Do you want to install?"
+          "(For details see: Extension Manager > Restore Extensions)").arg(candidateIds.length());
 
+        ctkMessageBox checkHistoryMessage;
+        checkHistoryMessage.setText(text);
+        checkHistoryMessage.setIcon(QMessageBox::Information);
+        checkHistoryMessage.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+        checkHistoryMessage.setDontShowAgainVisible(true);
+
+        if (checkHistoryMessage.exec() == QMessageBox::Yes)
+        {
+          this->startDownloadAndInstallExtensionsHeadless(candidateIds);
+        }
+        settings.setValue(checkOnStartupSettingsKey, checkHistoryMessage.dontShowAgain());
+      }
     }
   }
 }
@@ -276,6 +322,15 @@ QStringList qSlicerExtensionsRestoreWidgetPrivate
 
 // --------------------------------------------------------------------------
 void qSlicerExtensionsRestoreWidgetPrivate
+::startDownloadAndInstallExtensionsHeadless(QStringList extensionIds)
+{
+  headlessMode = true;
+  progressDialog->show();
+  startDownloadAndInstallExtensions(extensionIds);
+}
+
+// --------------------------------------------------------------------------
+void qSlicerExtensionsRestoreWidgetPrivate
 ::startDownloadAndInstallExtensions(QStringList extensionIds)
 {
   extensionsToInstall = extensionIds;
@@ -298,13 +353,7 @@ void qSlicerExtensionsRestoreWidgetPrivate
 	  if (headlessMode) {
 		  progressDialog->close();
       headlessMode = false;
-
-      ctkMessageBox checkHistoryMessage;
-      checkHistoryMessage.setText("All extensions restored. Please restart Slicer.");
-      checkHistoryMessage.setIcon(QMessageBox::Information);
-      checkHistoryMessage.setStandardButtons(QMessageBox::Ok);
-      checkHistoryMessage.setDontShowAgainVisible(false);
-      checkHistoryMessage.exec();
+      static_cast<qSlicerApplication*>qApp->confirmRestart("All extensions restored. Please restart Slicer.");
 	  }
     else
     {
@@ -327,6 +376,25 @@ void qSlicerExtensionsRestoreWidgetPrivate
 	  progressBar->setValue(value);
   }
 }
+
+// --------------------------------------------------------------------------
+void qSlicerExtensionsRestoreWidgetPrivate
+::setCheckOnStartup(int state)
+{
+  QSettings settings;// (this->ExtensionsManagerModel->extensionsSettingsFilePath(), QSettings::IniFormat);
+  settings.setValue(checkOnStartupSettingsKey, !bool(state));
+  silentInstallOnStartup->setEnabled(bool(state));
+}
+
+// --------------------------------------------------------------------------
+void qSlicerExtensionsRestoreWidgetPrivate
+::setSilentInstallOnStartup(int state)
+{
+  QSettings settings;// (this->ExtensionsManagerModel->extensionsSettingsFilePath(), QSettings::IniFormat);
+  settings.setValue(silentInstallOnStartUpSettingsKey, bool(state));
+}
+
+
 
 // qSlicerExtensionsRestoreWidget methods
 
@@ -354,7 +422,14 @@ qSlicerExtensionsManagerModel* qSlicerExtensionsRestoreWidget
   return d->ExtensionsManagerModel;
 }
 
-
+// --------------------------------------------------------------------------
+void qSlicerExtensionsRestoreWidget
+::showEvent(QShowEvent* event) {
+  QWidget::showEvent(event);
+  //your code here
+  Q_D(qSlicerExtensionsRestoreWidget);
+  d->onShow();
+}
 
 // --------------------------------------------------------------------------
 void qSlicerExtensionsRestoreWidget
@@ -390,6 +465,22 @@ void qSlicerExtensionsRestoreWidget
 {
   Q_D(qSlicerExtensionsRestoreWidget);
   d->startDownloadAndInstallExtensions(d->getSelectedExtensions());
+}
+
+// --------------------------------------------------------------------------
+void qSlicerExtensionsRestoreWidget
+::onCheckOnStartupChanged(int state)
+{
+  Q_D(qSlicerExtensionsRestoreWidget);
+  d->setCheckOnStartup(state);
+}
+
+// --------------------------------------------------------------------------
+void qSlicerExtensionsRestoreWidget
+::onSilentInstallOnStartupChanged(int state)
+{
+  Q_D(qSlicerExtensionsRestoreWidget);
+  d->setSilentInstallOnStartup(state);
 }
 
 // --------------------------------------------------------------------------
