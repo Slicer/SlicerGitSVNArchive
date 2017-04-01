@@ -199,6 +199,14 @@ bool vtkMRMLModelSliceDisplayableManager::vtkInternal
           {
           visibleOnNode = false;
           }
+        else
+          {
+          // Update slice intersection visibility independently of the
+          // Slice visbility in the 3D view.
+          // This is done by directly using "IsDisplayableInView(viewNodeID)"
+          // instead of "GetVisibility(viewNodeID)
+          visibleOnNode = displayNode->IsDisplayableInView(this->SliceNode->GetID());
+          }
         }
       }
     }
