@@ -8,7 +8,6 @@
 #include <QListWidget>
 #include <QDebug>
 #include <QProgressdialog>
-#include <QMessagebox>
 #include <ctkMessageBox.h>
 #include <QStyledItemDelegate>
 #include <QPainter>
@@ -52,13 +51,15 @@ public:
     QPen enabledPen(QColor::fromRgb(0, 0, 0), 1, Qt::SolidLine);
     QPen disabledPen(QColor::fromRgb(125, 125, 125), 1, Qt::SolidLine);
     QPen candidatePen(QColor::fromRgb(0, 200, 50), 1, Qt::SolidLine);
+    QPen installedPen(QColor::fromRgb(0, 50, 200), 1, Qt::SolidLine);
 
     //GET DATA
-    QString title           = index.data(Qt::DisplayRole).toString();
-    bool isChecked          = index.data(Qt::UserRole + 1).toBool();
-    QString description     = index.data(Qt::UserRole + 2).toString();
-    bool isEnabled          = index.data(Qt::UserRole + 3).toBool();
-    bool isRestoreCandidate = index.data(Qt::UserRole + 4).toBool();
+    const QString& title            = index.data(Qt::DisplayRole).toString();
+    const bool isChecked            = index.data(Qt::UserRole + 1).toBool();
+    const QString& description      = index.data(Qt::UserRole + 2).toString();
+    const bool isEnabled            = index.data(Qt::UserRole + 3).toBool();
+    const bool isRestoreCandidate   = index.data(Qt::UserRole + 4).toBool();
+    const bool isInstalled          = index.data(Qt::UserRole + 5).toBool();
 
     //TITLE
     painter->setPen((isEnabled ? enabledPen : disabledPen));
@@ -66,7 +67,7 @@ public:
     painter->setFont(QFont("Arial", 13, QFont::Bold));
     painter->drawText(r.left(), r.top(), r.width(), r.height(), Qt::AlignTop | Qt::AlignLeft, title, &r);
     //DESCRIPTION
-    painter->setPen((isEnabled ? ( isRestoreCandidate ? candidatePen : enabledPen ) : disabledPen));
+    painter->setPen((isEnabled ? ( isRestoreCandidate ? candidatePen : enabledPen ) : ( isInstalled ? installedPen : disabledPen)));
     r = option.rect.adjusted(55, 30, -10, 0);
     painter->setFont(QFont("Arial", 9, QFont::Normal));
     painter->drawText(r.left(), r.top(), r.width(), r.height(), Qt::AlignLeft, description, &r);
@@ -86,7 +87,7 @@ public:
     QApplication::style()->drawControl(QStyle::CE_CheckBox, &cbOpt, painter);
   }
   QSize sizeHint(const QStyleOptionViewItem & option, const QModelIndex & index) const{
-    return QSize(200, 60); // very dumb value
+    return QSize(200, 60);
   }
 
 };
@@ -143,15 +144,14 @@ qSlicerExtensionsRestoreWidgetPrivate::qSlicerExtensionsRestoreWidgetPrivate(qSl
 // --------------------------------------------------------------------------
 void qSlicerExtensionsRestoreWidgetPrivate::init()
 {
-  nrOfExtensionsToInstall = 0;
-  headlessMode = false;
+  this->nrOfExtensionsToInstall = 0;
+  this->headlessMode = false;
   setupUi();
 }
 
 // --------------------------------------------------------------------------
 void qSlicerExtensionsRestoreWidgetPrivate::onShow()
 {
-  qDebug() << "on show";
   QSettings settings; // (this->ExtensionsManagerModel->extensionsSettingsFilePath(), QSettings::IniFormat);
   checkOnStartup->setChecked(!settings.value(checkOnStartupSettingsKey).toBool());
   silentInstallOnStartup->setChecked(settings.value(silentInstallOnStartUpSettingsKey).toBool());
@@ -168,31 +168,32 @@ void qSlicerExtensionsRestoreWidgetPrivate
   QHBoxLayout *layoutForProgressAndButton = new QHBoxLayout;
   QHBoxLayout *layoutForSettings= new QHBoxLayout;
   QPushButton *installButton = new QPushButton;
-  checkOnStartup = new QCheckBox;
-  silentInstallOnStartup = new QCheckBox;
-  progressDialog = new QProgressDialog;
-  extensionList = new QListWidget;
-  progressBar = new QProgressBar;
+  this->checkOnStartup = new QCheckBox;
+  this->silentInstallOnStartup = new QCheckBox;
+  this->progressDialog = new QProgressDialog;
+  this->extensionList = new QListWidget;
+  this->progressBar = new QProgressBar;
 
-  extensionList->setAlternatingRowColors(true);
-  extensionList->setItemDelegate(new qSlicerRestoreExtensionsItemDelegate(q));
+  this->extensionList->setAlternatingRowColors(true);
+  this->extensionList->setItemDelegate(new qSlicerRestoreExtensionsItemDelegate(q));
+  this->checkOnStartup->setText("Check previous extensions on startup");
+  this->silentInstallOnStartup->setText("Install previous extensions without request");
+
+  this->maxProgress = 1000;
+  this->progressBar->setValue(0);
+  this->progressBar->setMaximum(maxProgress);
+  this->progressDialog->setMinimum(0);
+  this->progressDialog->setMaximum(maxProgress);
+  this->progressDialog->setWindowFlags(Qt::WindowStaysOnTopHint | Qt::WindowTitleHint | Qt::CustomizeWindowHint);
+
   installButton->setText("Install Selected");
-  checkOnStartup->setText("Check previous extensions on startup");
-  silentInstallOnStartup->setText("Install previous extensions without request");
-
-  maxProgress = 1000;
-  progressBar->setValue(0);
-  progressBar->setMaximum(maxProgress);
-  progressDialog->setMinimum(0);
-  progressDialog->setMaximum(maxProgress);
-  layoutForProgressAndButton->addWidget(progressBar);
+  layoutForProgressAndButton->addWidget(this->progressBar);
   layoutForProgressAndButton->addWidget(installButton);
-  layoutForSettings->addWidget(checkOnStartup);
-  layoutForSettings->addWidget(silentInstallOnStartup);
-  mainLayout->addWidget(extensionList);
+  layoutForSettings->addWidget(this->checkOnStartup);
+  layoutForSettings->addWidget(this->silentInstallOnStartup);
+  mainLayout->addWidget(this->extensionList);
   mainLayout->addLayout(layoutForProgressAndButton);
   mainLayout->addLayout(layoutForSettings);
-  progressDialog->setWindowFlags(Qt::WindowStaysOnTopHint | Qt::WindowTitleHint | Qt::CustomizeWindowHint);
   q->setLayout(mainLayout);
   checkOnStartupSettingsKey = "ExtensionCheckOnStartup/dontCheck";
   silentInstallOnStartUpSettingsKey = "ExtensionCheckOnStartup/ifCheckInstallWithoutDialog";
@@ -206,20 +207,18 @@ void qSlicerExtensionsRestoreWidgetPrivate
 
 }
 
-
-
 // --------------------------------------------------------------------------
 QStringList qSlicerExtensionsRestoreWidgetPrivate
 ::extractInstallationCandidates(QVariantMap extensionHistoryInformation)
 {
   QStringList candidateIds;
-  for (unsigned int i = 0; i < extensionHistoryInformation.size(); i++)
+  foreach(QString extensionName, extensionHistoryInformation.keys())
   {
-    QVariantMap currentInfo = extensionHistoryInformation.value(extensionHistoryInformation.keys().at(i)).toMap();
-    if (currentInfo.value("WasInstalledInLastRevision").toBool() && currentInfo.value("IsCompatible").toBool() && !currentInfo.value("IsInstalled").toBool())
-    {
-      candidateIds.append(extensionHistoryInformation.keys().at(i));
+    const QVariantMap& currentInfo = extensionHistoryInformation.value(extensionName).toMap();
+    if (currentInfo.value("WasInstalledInLastRevision").toBool() && currentInfo.value("IsCompatible").toBool() && !currentInfo.value("IsInstalled").toBool()) {
+      candidateIds.append(currentInfo.value("ExtensionId").toString());
     }
+
   }
   return candidateIds;
 }
@@ -234,7 +233,7 @@ void qSlicerExtensionsRestoreWidgetPrivate
 
   if (checkOnStartup)
   {
-    QStringList candidateIds = extractInstallationCandidates(extensionHistoryInformation);
+    const QStringList& candidateIds = extractInstallationCandidates(extensionHistoryInformation);
 
     if (candidateIds.length() > 0)
     {
@@ -245,7 +244,7 @@ void qSlicerExtensionsRestoreWidgetPrivate
       }
       else
       {
-        QString text = QString("%1 compatible extension(s) from a previous Slicer installation found. Do you want to install?"
+        const QString& text = QString("%1 compatible extension(s) from a previous Slicer installation found. Do you want to install?"
           "(For details see: Extension Manager > Restore Extensions)").arg(candidateIds.length());
 
         ctkMessageBox checkHistoryMessage;
@@ -274,30 +273,31 @@ void qSlicerExtensionsRestoreWidgetPrivate
   QVariantMap extensionInfo = q->extensionsManagerModel()->getExtensionHistoryInformation();
 
 
-  foreach(QString extensionId, extensionInfo.keys())
+  foreach(QString extensionName, extensionInfo.keys())
   {
     QListWidgetItem* extensionItem = new QListWidgetItem;
 
-    QVariantMap currentInfo = extensionInfo.value(extensionId).toMap();
+    QVariantMap currentInfo = extensionInfo.value(extensionName).toMap();
 
-    QString title                   = currentInfo.value("Name").toString();
-    bool isCompatible               = currentInfo.value("IsCompatible").toBool();
-    bool isInstalled                = currentInfo.value("IsInstalled").toBool();
-    QString usedLastInRevision      = currentInfo.value("UsedLastInRevision").toString();
-    bool wasInstalledInLastRevision = currentInfo.value("WasInstalledInLastRevision").toBool();
-    bool isItemEnabled              = isCompatible && !isInstalled;
-    bool isItemChecked              = isItemEnabled && wasInstalledInLastRevision;
-    QString description =
+    const QString& title                  = extensionName;
+    const bool isCompatible               = currentInfo.value("IsCompatible").toBool();
+    const bool isInstalled                = currentInfo.value("IsInstalled").toBool();
+    const QString& usedLastInRevision     = currentInfo.value("UsedLastInRevision").toString();
+    const bool wasInstalledInLastRevision = currentInfo.value("WasInstalledInLastRevision").toBool();
+    const bool isItemEnabled              = isCompatible && !isInstalled;
+    const bool isItemChecked              = isItemEnabled && wasInstalledInLastRevision;
+    const QString& description =
       (isInstalled ? "currently installed" :
       (isCompatible ? ( wasInstalledInLastRevision ? "was used in previously installed Slicer version (" + usedLastInRevision + ") " :
       "was last used in Slicer version " + usedLastInRevision) :
       "not compatible with current Slicer version (was last used in Slicer version " + usedLastInRevision + ")"));
 
-    extensionItem->setData(Qt::UserRole, extensionId);
+    extensionItem->setData(Qt::UserRole, currentInfo.value("ExtensionId").toString());
     extensionItem->setData(Qt::UserRole + 1, isItemChecked);
     extensionItem->setData(Qt::UserRole + 2, description);
     extensionItem->setData(Qt::UserRole + 3, isItemEnabled);
-    extensionItem->setData(Qt::UserRole + 4, wasInstalledInLastRevision);
+    extensionItem->setData(Qt::UserRole + 4, wasInstalledInLastRevision); //details added for color coding
+    extensionItem->setData(Qt::UserRole + 5, isInstalled);
     extensionItem->setText(title);
 
     extensionList->addItem(extensionItem);
@@ -309,7 +309,7 @@ QStringList qSlicerExtensionsRestoreWidgetPrivate
 ::getSelectedExtensions()
 {
   QStringList selectedExtensions;
-  for (int i = 0; i < extensionList->count(); i++)
+  for (unsigned int i = 0; i < extensionList->count(); i++)
   {
     QListWidgetItem* currentItem = extensionList->item(i);
     if (currentItem->data(Qt::UserRole + 1).toBool())
@@ -324,8 +324,8 @@ QStringList qSlicerExtensionsRestoreWidgetPrivate
 void qSlicerExtensionsRestoreWidgetPrivate
 ::startDownloadAndInstallExtensionsHeadless(QStringList extensionIds)
 {
-  headlessMode = true;
-  progressDialog->show();
+  this->headlessMode = true;
+  this->progressDialog->show();
   startDownloadAndInstallExtensions(extensionIds);
 }
 
@@ -333,9 +333,9 @@ void qSlicerExtensionsRestoreWidgetPrivate
 void qSlicerExtensionsRestoreWidgetPrivate
 ::startDownloadAndInstallExtensions(QStringList extensionIds)
 {
-  extensionsToInstall = extensionIds;
-  nrOfExtensionsToInstall = extensionsToInstall.size();
-  currentExtensionToInstall = -1;
+  this->extensionsToInstall = extensionIds;
+  this->nrOfExtensionsToInstall = extensionsToInstall.size();
+  this->currentExtensionToInstall = -1;
   downloadAndInstallNextExtension();
 }
 
@@ -344,15 +344,15 @@ void qSlicerExtensionsRestoreWidgetPrivate
 ::downloadAndInstallNextExtension()
 {
   Q_Q(qSlicerExtensionsRestoreWidget);
-  currentExtensionToInstall++;
-  if (currentExtensionToInstall < nrOfExtensionsToInstall)
+  this->currentExtensionToInstall++;
+  if (this->currentExtensionToInstall < this->nrOfExtensionsToInstall)
   {
     q->extensionsManagerModel()->downloadAndInstallExtension(extensionsToInstall.at(currentExtensionToInstall));
   }
   else {
-	  if (headlessMode) {
-		  progressDialog->close();
-      headlessMode = false;
+    if (this->headlessMode) {
+      this->progressDialog->close();
+      this->headlessMode = false;
       static_cast<qSlicerApplication*>qApp->confirmRestart("All extensions restored. Please restart Slicer.");
 	  }
     else
@@ -367,13 +367,13 @@ void qSlicerExtensionsRestoreWidgetPrivate
 {
   int value = (((float(maxProgress) / float(nrOfExtensionsToInstall))*float(currentExtensionToInstall)) +
     ((float(received) / float(total)) * (float(maxProgress) / float(nrOfExtensionsToInstall))));
-  if (headlessMode) {
-	  progressDialog->setValue(value);
-    progressDialog->setLabelText("Installing " + extensionName + " (" + QString::number(received) + "/" + QString::number(total) + ")");
+  if (this->headlessMode) {
+	  this->progressDialog->setValue(value);
+    this->progressDialog->setLabelText("Installing " + extensionName + " (" + QString::number(received) + "/" + QString::number(total) + ")");
   }
   else
   {
-	  progressBar->setValue(value);
+	  this->progressBar->setValue(value);
   }
 }
 
@@ -383,7 +383,7 @@ void qSlicerExtensionsRestoreWidgetPrivate
 {
   QSettings settings;// (this->ExtensionsManagerModel->extensionsSettingsFilePath(), QSettings::IniFormat);
   settings.setValue(checkOnStartupSettingsKey, !bool(state));
-  silentInstallOnStartup->setEnabled(bool(state));
+  this->silentInstallOnStartup->setEnabled(bool(state));
 }
 
 // --------------------------------------------------------------------------
@@ -393,8 +393,6 @@ void qSlicerExtensionsRestoreWidgetPrivate
   QSettings settings;// (this->ExtensionsManagerModel->extensionsSettingsFilePath(), QSettings::IniFormat);
   settings.setValue(silentInstallOnStartUpSettingsKey, bool(state));
 }
-
-
 
 // qSlicerExtensionsRestoreWidget methods
 
