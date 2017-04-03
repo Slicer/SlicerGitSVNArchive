@@ -2027,6 +2027,9 @@ bool qSlicerExtensionsManagerModel::scheduleExtensionForUninstall(const QString&
   // Add to scheduled uninstalls
   scheduled.append(extensionName);
   settings.setValue("Extensions/ScheduledForUninstall", scheduled);
+
+  d->removeExtensionSettings(extensionName);
+
   const ExtensionMetadataType& extensionMetadata = this->extensionMetadata(extensionName);
   d->scheduleExtensionHistorySettingRemoval(this->extensionsHistorySettingsFilePath(), extensionMetadata);
   emit this->extensionScheduledForUninstall(extensionName);
