@@ -9,7 +9,7 @@
 # to allow other extensions to use it.
 #
 #   # Pass some custom content to the SequencesConfig.cmake file (optional)
-#   set(Sequences_CUSTOM_CONFIG "MESSAGE(STATUS \"Test\")")
+#   set(Sequences_CUSTOM_CONFIG "message(STATUS \"Test\")")
 #
 #   # Generate SequencesConfig.cmake
 #   include(${Slicer_EXTENSION_GENERATE_CONFIG})
