@@ -1,9 +1,20 @@
 # Generate the <Extension>Config.cmake file in the build tree.
-# This file makes it possible an extension to depend on targets defined
+# This file makes it possible for an extension to depend on targets defined
 # in other extensions.
 # This file is based on SlicerGenerateSlicerConfig.cmake.
 #
-# Example: add these lines to the CMakeLists.txt to use vtkMRMLSequenceNode
+# Example:
+#
+# Add these lines near the end of top-level CMakeLists.txt in Sequences extension
+# to allow other extensions to use it.
+#
+#   # Pass some custom content to the SequencesConfig.cmake file (optional)
+#   set(Sequences_CUSTOM_CONFIG "MESSAGE(STATUS \"Test\")")
+#
+#   # Generate SequencesConfig.cmake
+#   include(${Slicer_EXTENSION_GENERATE_CONFIG})
+#
+# Add these lines to the CMakeLists.txt to use vtkMRMLSequenceNode
 # implemented in Sequences extension:
 #
 #   find_package(Sequences REQUIRED)
@@ -66,10 +77,19 @@ set(${target}_INCLUDE_DIRS
   endforeach()
 endif()
 
+set(EXTENSION_SOURCE_DIR_CONFIG "set(${EXTENSION_NAME}_SOURCE_DIR \"${${EXTENSION_NAME}_SOURCE_DIR}\")")
+
+# Allow extensions to add some custom content.
+if(${EXTENSION_NAME}_CUSTOM_CONFIG)
+  set(EXTENSION_CUSTOM_CONFIG "${${EXTENSION_NAME}_CUSTOM_CONFIG}")
+else()
+  set(EXTENSION_CUSTOM_CONFIG "")
+endif()
+
 # Export Targets file.
 set(EXTENSION_TARGETS_FILE "${EXTENSION_SUPERBUILD_BINARY_DIR}/${EXTENSION_NAME}Targets.cmake")
-
-set(EXTENSION_SOURCE_DIR_CONFIG "set(${EXTENSION_NAME}_SOURCE_DIR \"${${EXTENSION_NAME}_SOURCE_DIR}\")")
+get_property(Slicer_TARGETS GLOBAL PROPERTY Slicer_TARGETS)
+export(TARGETS ${Slicer_TARGETS} FILE ${EXTENSION_TARGETS_FILE})
 
 # Configure <Extension>Config.cmake for the build tree.
 configure_file(

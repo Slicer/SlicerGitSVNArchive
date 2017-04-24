@@ -4,6 +4,8 @@
 
 @EXTENSION_SOURCE_DIR_CONFIG@
 
+@EXTENSION_CUSTOM_CONFIG@
+
 # --------------------------------------------------------------------------
 # Include directories
 
