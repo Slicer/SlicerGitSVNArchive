@@ -40,8 +40,12 @@ public:
 
   virtual void enter();
 
-  static const int TAB_INDEX_SUBJECT;
-  static const int TAB_INDEX_TRANSFORM;
+  enum
+    {
+    TabIndexSubjectHierarchy = 0,
+    TabIndexTransformHierarchy,
+    TabIndexAllNodes
+    };
 
 public slots:
   /// Reimplemented for internal reasons

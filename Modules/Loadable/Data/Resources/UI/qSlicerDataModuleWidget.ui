@@ -14,7 +14,7 @@
    <string>Data</string>
   </property>
   <property name="windowIcon">
-   <iconset>
+   <iconset resource="../qSlicerDataModule.qrc">
     <normaloff>:/Icons/Data.png</normaloff>:/Icons/Data.png</iconset>
   </property>
   <layout class="QGridLayout" name="gridLayout_5">
@@ -68,7 +68,7 @@
      </property>
      <widget class="QWidget" name="tabSubject">
       <attribute name="title">
-       <string>Subject</string>
+       <string>Subject hierarchy</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout_4">
        <item row="1" column="0">
@@ -77,7 +77,7 @@
           <number>0</number>
          </property>
          <item>
-          <widget class="QCheckBox" name="DisplayTransformsCheckBox">
+          <widget class="QCheckBox" name="SubjectHierarchyDisplayTransformsCheckBox">
            <property name="text">
             <string>Transforms</string>
            </property>
@@ -87,7 +87,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QCheckBox" name="DisplayDataNodeIDsCheckBox">
+          <widget class="QCheckBox" name="SubjectHierarchyDisplayDataNodeIDsCheckBox">
            <property name="text">
             <string>Data node ID's</string>
            </property>
@@ -107,18 +107,25 @@
           </spacer>
          </item>
          <item>
-          <widget class="QLabel" name="label_Help">
-           <property name="toolTip">
-            <string>Tooltip is populated by the plugins</string>
+          <widget class="QToolButton" name="HelpButton">
+           <property name="styleSheet">
+            <string notr="true">border: none; hover: {border: 1px}; pressed: {border: 1px}</string>
            </property>
            <property name="text">
             <string/>
            </property>
-           <property name="pixmap">
-            <pixmap resource="../../../SubjectHierarchy/Resources/qSlicerSubjectHierarchyModule.qrc">:/Icons/Help.png</pixmap>
+           <property name="icon">
+            <iconset resource="../../../SubjectHierarchy/Resources/qSlicerSubjectHierarchyModule.qrc">
+             <normaloff>:/Icons/Help.png</normaloff>:/Icons/Help.png</iconset>
            </property>
-           <property name="alignment">
-            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           <property name="iconSize">
+            <size>
+             <width>21</width>
+             <height>21</height>
+            </size>
+           </property>
+           <property name="toolButtonStyle">
+            <enum>Qt::ToolButtonFollowStyle</enum>
            </property>
           </widget>
          </item>
@@ -169,20 +176,20 @@
      </widget>
      <widget class="QWidget" name="tabTransform">
       <attribute name="title">
-       <string>Transform</string>
+       <string>Transform hierarchy</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout_6">
        <item row="1" column="0">
         <layout class="QHBoxLayout" name="horizontalLayout_3">
          <item>
-          <widget class="QCheckBox" name="DisplayMRMLIDsCheckBox">
+          <widget class="QCheckBox" name="TransformDisplayMRMLIDsCheckBox">
            <property name="text">
             <string>Show MRML ID's</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QCheckBox" name="ShowHiddenCheckBox">
+          <widget class="QCheckBox" name="TransformShowHiddenCheckBox">
            <property name="text">
             <string>Show hidden nodes</string>
            </property>
@@ -204,12 +211,17 @@
         </layout>
        </item>
        <item row="0" column="0">
-        <widget class="qMRMLTreeView" name="MRMLTreeView">
+        <widget class="qMRMLTreeView" name="TransformMRMLTreeView">
          <property name="dragDropMode">
           <enum>QAbstractItemView::InternalMove</enum>
          </property>
          <property name="indentation">
           <number>10</number>
+         </property>
+         <property name="nodeTypes">
+          <stringlist>
+           <string>vtkMRMLTransformableNode</string>
+          </stringlist>
          </property>
          <property name="minSizeHint">
           <size>
@@ -218,6 +230,69 @@
           </size>
          </property>
          <property name="editMenuActionVisible">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tabAll">
+      <attribute name="title">
+       <string>All nodes</string>
+      </attribute>
+      <layout class="QGridLayout" name="gridLayout">
+       <item row="1" column="0">
+        <layout class="QHBoxLayout" name="horizontalLayout_5">
+         <item>
+          <widget class="QCheckBox" name="AllNodesDisplayMRMLIDsCheckBox">
+           <property name="text">
+            <string>Show MRML ID's</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="AllNodesTransformShowHiddenCheckBox">
+           <property name="text">
+            <string>Show hidden nodes</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer_3">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </item>
+       <item row="0" column="0">
+        <widget class="qMRMLTreeView" name="AllNodesMRMLTreeView">
+         <property name="indentation">
+          <number>10</number>
+         </property>
+         <property name="sceneModelType">
+          <string/>
+         </property>
+         <property name="minSizeHint">
+          <size>
+           <width>0</width>
+           <height>120</height>
+          </size>
+         </property>
+         <property name="editMenuActionVisible">
+          <bool>true</bool>
+         </property>
+         <property name="showScene">
+          <bool>false</bool>
+         </property>
+         <property name="showRootNode">
           <bool>true</bool>
          </property>
         </widget>
@@ -289,13 +364,13 @@
  <resources>
   <include location="../../../Annotations/Resources/qSlicerAnnotationModule.qrc"/>
   <include location="../../../SubjectHierarchy/Resources/qSlicerSubjectHierarchyModule.qrc"/>
-  <include location="../qSlicerSubjectHierarchyModule.qrc"/>
+  <include location="../qSlicerDataModule.qrc"/>
  </resources>
  <connections>
   <connection>
    <sender>qSlicerDataModuleWidget</sender>
    <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
-   <receiver>MRMLTreeView</receiver>
+   <receiver>TransformMRMLTreeView</receiver>
    <slot>setMRMLScene(vtkMRMLScene*)</slot>
    <hints>
     <hint type="sourcelabel">
@@ -321,6 +396,22 @@
     <hint type="destinationlabel">
      <x>176</x>
      <y>84</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>qSlicerDataModuleWidget</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>AllNodesMRMLTreeView</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>215</x>
+     <y>3</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>284</x>
+     <y>115</y>
     </hint>
    </hints>
   </connection>

@@ -51,10 +51,6 @@
 #include <QDebug>
 
 //-----------------------------------------------------------------------------
-const int qSlicerDataModuleWidget::TAB_INDEX_SUBJECT = 0;
-const int qSlicerDataModuleWidget::TAB_INDEX_TRANSFORM = 1;
-
-//-----------------------------------------------------------------------------
 class qSlicerDataModuleWidgetPrivate: public Ui_qSlicerDataModuleWidget
 {
   Q_DECLARE_PUBLIC(qSlicerDataModuleWidget);
@@ -141,21 +137,25 @@ void qSlicerDataModuleWidget::setup()
   d->setupUi(this);
 
   // Tab widget
-  d->ViewTabWidget->widget(TAB_INDEX_SUBJECT)->layout()->setContentsMargins(2,2,2,2);
-  d->ViewTabWidget->widget(TAB_INDEX_SUBJECT)->layout()->setSpacing(4);
+  d->ViewTabWidget->widget(TabIndexSubjectHierarchy)->layout()->setContentsMargins(2,2,2,2);
+  d->ViewTabWidget->widget(TabIndexSubjectHierarchy)->layout()->setSpacing(4);
 
-  d->ViewTabWidget->widget(TAB_INDEX_TRANSFORM)->layout()->setContentsMargins(2,2,2,2);
-  d->ViewTabWidget->widget(TAB_INDEX_TRANSFORM)->layout()->setSpacing(4);
+  d->ViewTabWidget->widget(TabIndexTransformHierarchy)->layout()->setContentsMargins(2,2,2,2);
+  d->ViewTabWidget->widget(TabIndexTransformHierarchy)->layout()->setSpacing(4);
+
+  d->ViewTabWidget->widget(TabIndexAllNodes)->layout()->setContentsMargins(2,2,2,2);
+  d->ViewTabWidget->widget(TabIndexAllNodes)->layout()->setSpacing(4);
 
   connect( d->ViewTabWidget, SIGNAL(currentChanged(int)),
           this, SLOT(onCurrentTabChanged(int)) );
 
   //
-  // Subject tab
+  // Subject hierarchy tab
+
   // Make connections for the checkboxes and buttons
-  connect( d->DisplayDataNodeIDsCheckBox, SIGNAL(toggled(bool)),
+  connect( d->SubjectHierarchyDisplayTransformsCheckBox, SIGNAL(toggled(bool)),
     this, SLOT(setMRMLIDsVisible(bool)) );
-  connect( d->DisplayTransformsCheckBox, SIGNAL(toggled(bool)),
+  connect( d->SubjectHierarchyDisplayTransformsCheckBox, SIGNAL(toggled(bool)),
     this, SLOT(setTransformsVisible(bool)) );
 
   // Set up tree view
@@ -190,38 +190,71 @@ void qSlicerDataModuleWidget::setup()
       }
     }
   aggregatedHelpText.append(QString("</body></html>"));
-  d->label_Help->setToolTip(aggregatedHelpText);
+  d->HelpButton->setToolTip(aggregatedHelpText);
 
   //
-  // Transform tab
+  // Transform hierarchy tab
 
-  // Edit properties...
-  connect( d->MRMLTreeView, SIGNAL(editNodeRequested(vtkMRMLNode*)),
+  d->TransformMRMLTreeView->sceneModel()->setIDColumn(1);
+  d->TransformMRMLTreeView->sceneModel()->setHorizontalHeaderLabels(QStringList() << "Nodes" << "IDs");
+  d->TransformMRMLTreeView->header()->setStretchLastSection(false);
+  d->TransformMRMLTreeView->header()->setResizeMode(0, QHeaderView::Stretch);
+  d->TransformMRMLTreeView->header()->setResizeMode(1, QHeaderView::ResizeToContents);
+
+  // Edit properties
+  connect( d->TransformMRMLTreeView, SIGNAL(editNodeRequested(vtkMRMLNode*)),
            qSlicerApplication::application(), SLOT(openNodeModule(vtkMRMLNode*)) );
   // Insert transform
   QAction* insertTransformAction = new QAction(tr("Insert transform"),this);
-  d->MRMLTreeView->prependNodeMenuAction(insertTransformAction);
-  d->MRMLTreeView->prependSceneMenuAction(insertTransformAction);
+  d->TransformMRMLTreeView->prependNodeMenuAction(insertTransformAction);
+  d->TransformMRMLTreeView->prependSceneMenuAction(insertTransformAction);
   connect( insertTransformAction, SIGNAL(triggered()),
     this, SLOT(insertTransformNode()) );
   // Harden transform
-  connect( d->MRMLTreeView, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(onCurrentNodeChanged(vtkMRMLNode*)) );
+  connect( d->TransformMRMLTreeView, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(onCurrentNodeChanged(vtkMRMLNode*)) );
   d->HardenTransformAction = new QAction(tr("Harden transform"), this);
   connect( d->HardenTransformAction, SIGNAL(triggered()),
            this, SLOT(hardenTransformOnCurrentNode()) );
-
-  connect( d->DisplayMRMLIDsCheckBox, SIGNAL(toggled(bool)),
+  // Checkboxes
+  connect( d->TransformDisplayMRMLIDsCheckBox, SIGNAL(toggled(bool)),
           this, SLOT(setMRMLIDsVisible(bool)) );
-  connect( d->ShowHiddenCheckBox, SIGNAL(toggled(bool)),
-          d->MRMLTreeView->sortFilterProxyModel(), SLOT(setShowHidden(bool)) );
-
+  connect( d->TransformShowHiddenCheckBox, SIGNAL(toggled(bool)),
+          d->TransformMRMLTreeView->sortFilterProxyModel(), SLOT(setShowHidden(bool)) );
+  connect( d->TransformShowHiddenCheckBox, SIGNAL(toggled(bool)),
+          d->AllNodesTransformShowHiddenCheckBox, SLOT(setChecked(bool)) );
   // Filter on all the columns
-  d->MRMLTreeView->sortFilterProxyModel()->setFilterKeyColumn(-1);
+  d->TransformMRMLTreeView->sortFilterProxyModel()->setFilterKeyColumn(-1);
   connect( d->FilterLineEdit, SIGNAL(textChanged(QString)),
-          d->MRMLTreeView->sortFilterProxyModel(), SLOT(setFilterWildcard(QString)) );
-
+          d->TransformMRMLTreeView->sortFilterProxyModel(), SLOT(setFilterWildcard(QString)) );
   // Make connections for the attribute table widget
-  connect( d->MRMLTreeView, SIGNAL(currentNodeChanged(vtkMRMLNode*)),
+  connect( d->TransformMRMLTreeView, SIGNAL(currentNodeChanged(vtkMRMLNode*)),
+          d->MRMLNodeAttributeTableWidget, SLOT(setMRMLNode(vtkMRMLNode*)) );
+
+  //
+  // All nodes tab
+
+  d->AllNodesMRMLTreeView->sceneModel()->setIDColumn(1);
+  d->AllNodesMRMLTreeView->sceneModel()->setHorizontalHeaderLabels(QStringList() << "Nodes" << "IDs");
+  d->AllNodesMRMLTreeView->header()->setStretchLastSection(false);
+  d->AllNodesMRMLTreeView->header()->setResizeMode(0, QHeaderView::Stretch);
+  d->AllNodesMRMLTreeView->header()->setResizeMode(1, QHeaderView::ResizeToContents);
+
+  // Edit properties
+  connect( d->AllNodesMRMLTreeView, SIGNAL(editNodeRequested(vtkMRMLNode*)),
+           qSlicerApplication::application(), SLOT(openNodeModule(vtkMRMLNode*)) );
+  // Checkboxes
+  connect( d->AllNodesDisplayMRMLIDsCheckBox, SIGNAL(toggled(bool)),
+          this, SLOT(setMRMLIDsVisible(bool)) );
+  connect( d->AllNodesTransformShowHiddenCheckBox, SIGNAL(toggled(bool)),
+          d->AllNodesMRMLTreeView->sortFilterProxyModel(), SLOT(setShowHidden(bool)) );
+  connect( d->AllNodesTransformShowHiddenCheckBox, SIGNAL(toggled(bool)),
+          d->TransformShowHiddenCheckBox, SLOT(setChecked(bool)) );
+  // Filter on all the columns
+  d->AllNodesMRMLTreeView->sortFilterProxyModel()->setFilterKeyColumn(-1);
+  connect( d->FilterLineEdit, SIGNAL(textChanged(QString)),
+          d->AllNodesMRMLTreeView->sortFilterProxyModel(), SLOT(setFilterWildcard(QString)) );
+  // Make connections for the attribute table widget
+  connect( d->AllNodesMRMLTreeView, SIGNAL(currentNodeChanged(vtkMRMLNode*)),
           d->MRMLNodeAttributeTableWidget, SLOT(setMRMLNode(vtkMRMLNode*)) );
 }
 
@@ -232,8 +265,8 @@ void qSlicerDataModuleWidget::setMRMLScene(vtkMRMLScene* scene)
 
   Superclass::setMRMLScene(scene);
 
-  this->setMRMLIDsVisible(d->DisplayMRMLIDsCheckBox->isChecked());
-  this->setTransformsVisible(d->DisplayTransformsCheckBox->isChecked());
+  this->setMRMLIDsVisible(d->TransformDisplayMRMLIDsCheckBox->isChecked());
+  this->setTransformsVisible(d->SubjectHierarchyDisplayTransformsCheckBox->isChecked());
 }
 
 //-----------------------------------------------------------------------------
@@ -241,26 +274,37 @@ void qSlicerDataModuleWidget::setMRMLIDsVisible(bool visible)
 {
   Q_D(qSlicerDataModuleWidget);
 
-  // Subject view
+  // Subject hierarchy view
   d->SubjectHierarchyTreeView->setColumnHidden(d->SubjectHierarchyTreeView->model()->idColumn(), !visible);
 
-  // Transform view
-  d->MRMLTreeView->setColumnHidden(d->MRMLTreeView->sceneModel()->idColumn(), !visible);
-  const int columnCount = d->MRMLTreeView->header()->count();
-  for(int i = 0; i < columnCount; ++i)
+  // Transform hierarchy view
+  d->TransformMRMLTreeView->setColumnHidden(d->TransformMRMLTreeView->sceneModel()->idColumn(), !visible);
+  int columnCount = d->TransformMRMLTreeView->header()->count();
+  for (int i=0; i<columnCount; ++i)
     {
-    d->MRMLTreeView->resizeColumnToContents(i);
+    d->TransformMRMLTreeView->resizeColumnToContents(i);
     }
 
-  // Update both checkboxes that represent the same thing
-  bool wereSignalsBlocked = d->DisplayMRMLIDsCheckBox->blockSignals(true);
-  d->DisplayMRMLIDsCheckBox->setChecked(visible);
-  d->DisplayMRMLIDsCheckBox->blockSignals(wereSignalsBlocked);
+  // All nodes view
+  d->AllNodesMRMLTreeView->setColumnHidden(d->AllNodesMRMLTreeView->sceneModel()->idColumn(), !visible);
+  columnCount = d->AllNodesMRMLTreeView->header()->count();
+  for (int i=0; i<columnCount; ++i)
+    {
+    d->AllNodesMRMLTreeView->resizeColumnToContents(i);
+    }
 
-  wereSignalsBlocked = d->DisplayDataNodeIDsCheckBox->blockSignals(true);
-  d->DisplayDataNodeIDsCheckBox->setChecked(visible);
-  d->DisplayDataNodeIDsCheckBox->blockSignals(wereSignalsBlocked);
+  // Update each checkbox that represent the same thing
+  bool wereSignalsBlocked = d->SubjectHierarchyDisplayDataNodeIDsCheckBox->blockSignals(true);
+  d->SubjectHierarchyDisplayDataNodeIDsCheckBox->setChecked(visible);
+  d->SubjectHierarchyDisplayDataNodeIDsCheckBox->blockSignals(wereSignalsBlocked);
 
+  wereSignalsBlocked = d->SubjectHierarchyDisplayTransformsCheckBox->blockSignals(true);
+  d->SubjectHierarchyDisplayTransformsCheckBox->setChecked(visible);
+  d->SubjectHierarchyDisplayTransformsCheckBox->blockSignals(wereSignalsBlocked);
+
+  wereSignalsBlocked = d->AllNodesDisplayMRMLIDsCheckBox->blockSignals(true);
+  d->AllNodesDisplayMRMLIDsCheckBox->setChecked(visible);
+  d->AllNodesDisplayMRMLIDsCheckBox->blockSignals(wereSignalsBlocked);
 }
 
 //-----------------------------------------------------------------------------
@@ -268,11 +312,12 @@ void qSlicerDataModuleWidget::onCurrentTabChanged(int tabIndex)
 {
   Q_D(qSlicerDataModuleWidget);
 
-  if (tabIndex == TAB_INDEX_SUBJECT)
+  if (tabIndex == TabIndexSubjectHierarchy)
     {
     // Prevent the taller widget affect the size of the other
-    d->MRMLTreeView->setVisible(false);
+    d->TransformMRMLTreeView->setVisible(false);
     d->SubjectHierarchyTreeView->setVisible(true);
+    d->AllNodesMRMLTreeView->setVisible(false);
 
     // Make sure MRML node attribute widget is updated
     this->setDataNodeFromSubjectHierarchyItem(d->SubjectHierarchyTreeView->currentItem());
@@ -280,16 +325,29 @@ void qSlicerDataModuleWidget::onCurrentTabChanged(int tabIndex)
     // Show context menu hint if applicable
     d->showContextMenuHint();
     }
-  else if (tabIndex == TAB_INDEX_TRANSFORM)
+  else if (tabIndex == TabIndexTransformHierarchy)
     {
     // Prevent the taller widget affect the size of the other
-    d->MRMLTreeView->setVisible(true);
+    d->TransformMRMLTreeView->setVisible(true);
     d->SubjectHierarchyTreeView->setVisible(false);
+    d->AllNodesMRMLTreeView->setVisible(false);
 
     // MRML node attribute widget always enabled in transform mode
     d->MRMLNodeAttributeTableWidget->setEnabled(true);
     // Make sure MRML node attribute widget is updated
-    d->MRMLNodeAttributeTableWidget->setMRMLNode(d->MRMLTreeView->currentNode());
+    d->MRMLNodeAttributeTableWidget->setMRMLNode(d->TransformMRMLTreeView->currentNode());
+    }
+  else if (tabIndex == TabIndexAllNodes)
+    {
+    // Prevent the taller widget affect the size of the other
+    d->TransformMRMLTreeView->setVisible(false);
+    d->SubjectHierarchyTreeView->setVisible(false);
+    d->AllNodesMRMLTreeView->setVisible(true);
+
+    // MRML node attribute widget always enabled in all nodes mode
+    d->MRMLNodeAttributeTableWidget->setEnabled(true);
+    // Make sure MRML node attribute widget is updated
+    d->MRMLNodeAttributeTableWidget->setMRMLNode(d->AllNodesMRMLTreeView->currentNode());
     }
 }
 
@@ -305,11 +363,11 @@ void qSlicerDataModuleWidget::onCurrentNodeChanged(vtkMRMLNode* newCurrentNode)
       (transformNode->CanApplyNonLinearTransforms() ||
       transformNode->IsTransformToWorldLinear()))
     {
-    d->MRMLTreeView->prependNodeMenuAction(d->HardenTransformAction);
+    d->TransformMRMLTreeView->prependNodeMenuAction(d->HardenTransformAction);
     }
   else
     {
-    d->MRMLTreeView->removeNodeMenuAction(d->HardenTransformAction);
+    d->TransformMRMLTreeView->removeNodeMenuAction(d->HardenTransformAction);
     }
 }
 
@@ -321,7 +379,7 @@ void qSlicerDataModuleWidget::insertTransformNode()
   this->mrmlScene()->AddNode(linearTransform.GetPointer());
 
   vtkMRMLNode* parent = vtkMRMLTransformNode::SafeDownCast(
-    d->MRMLTreeView->currentNode());
+    d->TransformMRMLTreeView->currentNode());
   if (parent)
     {
     linearTransform->SetAndObserveTransformNodeID( parent->GetID() );
@@ -332,7 +390,7 @@ void qSlicerDataModuleWidget::insertTransformNode()
 void qSlicerDataModuleWidget::hardenTransformOnCurrentNode()
 {
   Q_D(qSlicerDataModuleWidget);
-  vtkMRMLNode* node = d->MRMLTreeView->currentNode();
+  vtkMRMLNode* node = d->TransformMRMLTreeView->currentNode();
   vtkMRMLTransformableNode* transformableNode = vtkMRMLTransformableNode::SafeDownCast(node);
   if (transformableNode)
     {
@@ -349,9 +407,9 @@ void qSlicerDataModuleWidget::setTransformsVisible(bool visible)
   d->SubjectHierarchyTreeView->setColumnHidden(model->transformColumn(), !visible);
   d->SubjectHierarchyTreeView->header()->resizeSection(model->transformColumn(), 60);
 
-  bool wereSignalsBlocked = d->DisplayTransformsCheckBox->blockSignals(true);
-  d->DisplayTransformsCheckBox->setChecked(visible);
-  d->DisplayTransformsCheckBox->blockSignals(wereSignalsBlocked);
+  bool wereSignalsBlocked = d->SubjectHierarchyDisplayTransformsCheckBox->blockSignals(true);
+  d->SubjectHierarchyDisplayTransformsCheckBox->setChecked(visible);
+  d->SubjectHierarchyDisplayTransformsCheckBox->blockSignals(wereSignalsBlocked);
 }
 
 //-----------------------------------------------------------------------------
