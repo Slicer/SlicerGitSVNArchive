@@ -49,6 +49,7 @@
 // Qt includes
 #include <QSettings>
 #include <QDebug>
+#include <QTimer>
 
 //-----------------------------------------------------------------------------
 class qSlicerDataModuleWidgetPrivate: public Ui_qSlicerDataModuleWidget
@@ -59,7 +60,6 @@ protected:
 public:
   qSlicerDataModuleWidgetPrivate(qSlicerDataModuleWidget& object);
   vtkSlicerDataModuleLogic* logic() const;
-  void showContextMenuHint();
 public:
   QAction* HardenTransformAction;
 
@@ -86,21 +86,6 @@ qSlicerDataModuleWidgetPrivate::logic() const
 {
   Q_Q(const qSlicerDataModuleWidget);
   return vtkSlicerDataModuleLogic::SafeDownCast(q->logic());
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerDataModuleWidgetPrivate::showContextMenuHint()
-{
-  // Show hint to user about context menus if has not been shown before
-  QSettings* settings = qSlicerApplication::application()->settingsDialog()->settings();
-  if ( !settings->contains("SubjectHierarchy/ContextMenusHintShown")
-    || settings->value("SubjectHierarchy/ContextMenusHintShown").toInt() < 2 )
-    {
-    if (this->SubjectHierarchyTreeView->showContextMenuHint(settings->contains("SubjectHierarchy/ContextMenusHintShown")))
-      {
-      settings->setValue("SubjectHierarchy/ContextMenusHintShown", settings->value("SubjectHierarchy/ContextMenusHintShown").toInt() + 1);
-      }
-    }
 }
 
 //-----------------------------------------------------------------------------
@@ -154,9 +139,9 @@ void qSlicerDataModuleWidget::setup()
 
   // Make connections for the checkboxes and buttons
   connect( d->SubjectHierarchyDisplayTransformsCheckBox, SIGNAL(toggled(bool)),
-    this, SLOT(setMRMLIDsVisible(bool)) );
+           this, SLOT(setMRMLIDsVisible(bool)) );
   connect( d->SubjectHierarchyDisplayTransformsCheckBox, SIGNAL(toggled(bool)),
-    this, SLOT(setTransformsVisible(bool)) );
+           this, SLOT(setTransformsVisible(bool)) );
 
   // Set up tree view
   qMRMLSubjectHierarchyModel* sceneModel = (qMRMLSubjectHierarchyModel*)d->SubjectHierarchyTreeView->model();
@@ -167,15 +152,18 @@ void qSlicerDataModuleWidget::setup()
   d->SubjectHierarchyItemInfoLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
 
   connect(d->SubjectHierarchyTreeView, SIGNAL(currentItemChanged(vtkIdType)),
-    this, SLOT(setDataNodeFromSubjectHierarchyItem(vtkIdType)) );
+           this, SLOT(setDataNodeFromSubjectHierarchyItem(vtkIdType)) );
   connect(d->SubjectHierarchyTreeView, SIGNAL(currentItemChanged(vtkIdType)),
-    this, SLOT(setInfoLabelFromSubjectHierarchyItem(vtkIdType)) );
+           this, SLOT(setInfoLabelFromSubjectHierarchyItem(vtkIdType)) );
 
   // Connect name filter
   connect( d->FilterLineEdit, SIGNAL(textChanged(QString)),
-    d->SubjectHierarchyTreeView->sortFilterProxyModel(), SLOT(setNameFilter(QString)) );
+           d->SubjectHierarchyTreeView->sortFilterProxyModel(), SLOT(setNameFilter(QString)) );
 
-  // Assemble help text for question mark tooltip
+  // Help button
+  connect( d->HelpButton, SIGNAL(clicked()),
+           this, SLOT(onHelpButtonClicked()) );
+  // Assemble help text for help button tooltip
   QString aggregatedHelpText(
     "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">"
     "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\"> p, li { white-space: pre-wrap; }"
@@ -201,6 +189,9 @@ void qSlicerDataModuleWidget::setup()
   d->TransformMRMLTreeView->header()->setResizeMode(0, QHeaderView::Stretch);
   d->TransformMRMLTreeView->header()->setResizeMode(1, QHeaderView::ResizeToContents);
 
+  connect( d->TransformMRMLTreeView, SIGNAL(currentNodeChanged(vtkMRMLNode*)),
+           this, SLOT(onCurrentNodeChanged(vtkMRMLNode*)) );
+
   // Edit properties
   connect( d->TransformMRMLTreeView, SIGNAL(editNodeRequested(vtkMRMLNode*)),
            qSlicerApplication::application(), SLOT(openNodeModule(vtkMRMLNode*)) );
@@ -209,9 +200,8 @@ void qSlicerDataModuleWidget::setup()
   d->TransformMRMLTreeView->prependNodeMenuAction(insertTransformAction);
   d->TransformMRMLTreeView->prependSceneMenuAction(insertTransformAction);
   connect( insertTransformAction, SIGNAL(triggered()),
-    this, SLOT(insertTransformNode()) );
+           this, SLOT(insertTransformNode()) );
   // Harden transform
-  connect( d->TransformMRMLTreeView, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(onCurrentNodeChanged(vtkMRMLNode*)) );
   d->HardenTransformAction = new QAction(tr("Harden transform"), this);
   connect( d->HardenTransformAction, SIGNAL(triggered()),
            this, SLOT(hardenTransformOnCurrentNode()) );
@@ -323,7 +313,7 @@ void qSlicerDataModuleWidget::onCurrentTabChanged(int tabIndex)
     this->setDataNodeFromSubjectHierarchyItem(d->SubjectHierarchyTreeView->currentItem());
 
     // Show context menu hint if applicable
-    d->showContextMenuHint();
+    QTimer::singleShot(100, this, SLOT(showContextMenuHint()));
     }
   else if (tabIndex == TabIndexTransformHierarchy)
     {
@@ -528,4 +518,37 @@ qMRMLSubjectHierarchyModel* qSlicerDataModuleWidget::subjectHierarchySceneModel(
 
   qMRMLSubjectHierarchyModel* model = qobject_cast<qMRMLSubjectHierarchyModel*>(d->SubjectHierarchyTreeView->model());
   return model;
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerDataModuleWidget::showContextMenuHint()
+{
+  Q_D(qSlicerDataModuleWidget);
+
+  // Show hint to user about context menus if has not been shown before
+  QSettings* settings = qSlicerApplication::application()->settingsDialog()->settings();
+  if ( !settings->contains("SubjectHierarchy/ContextMenusHintShown")
+    || settings->value("SubjectHierarchy/ContextMenusHintShown").toInt() < 2 )
+    {
+    if ( d->SubjectHierarchyTreeView->showContextMenuHint(
+           settings->contains("SubjectHierarchy/ContextMenusHintShown") && settings->value("SubjectHierarchy/ContextMenusHintShown").toInt() > 0 ) )
+      {
+      settings->setValue("SubjectHierarchy/ContextMenusHintShown", settings->value("SubjectHierarchy/ContextMenusHintShown").toInt() + 1);
+      }
+    }
+}
+
+//------------------------------------------------------------------------------
+void qSlicerDataModuleWidget::onHelpButtonClicked()
+{
+  // Reset counter so that it is shown
+  QSettings* settings = qSlicerApplication::application()->settingsDialog()->settings();
+  if ( settings->contains("SubjectHierarchy/ContextMenusHintShown")
+    && settings->value("SubjectHierarchy/ContextMenusHintShown").toInt() >= 2 )
+    {
+    settings->setValue("SubjectHierarchy/ContextMenusHintShown", 0);
+    }
+
+  // Show first or second tooltip
+  this->showContextMenuHint();
 }

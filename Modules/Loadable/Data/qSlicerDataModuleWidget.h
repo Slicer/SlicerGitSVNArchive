@@ -79,6 +79,9 @@ protected:
 protected slots:
   void onCurrentNodeChanged(vtkMRMLNode* newCurrentNode);
   void onCurrentTabChanged(int tabIndex);
+  void onHelpButtonClicked();
+
+  void showContextMenuHint();
 
 protected:
   virtual void setup();
