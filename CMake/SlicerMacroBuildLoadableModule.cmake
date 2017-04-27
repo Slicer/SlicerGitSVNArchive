@@ -304,11 +304,11 @@ macro(slicerMacroBuildQtModule)
     )
 
   message(AUTHOR_WARNING
-   "Macro 'slicerMacroBuildQtModule' is deprecated, "
-   "and is scheduled for removal in version 4.8. "
-   "Consider using macro 'slicerMacroBuildLoadableModule'. "
-   "See http://www.na-mic.org/Bug/view.php?id=2648"
-   )
+    "Macro 'slicerMacroBuildQtModule' is deprecated, "
+    "and is scheduled for removal in version 4.8. "
+    "Consider using macro 'slicerMacroBuildLoadableModule'. "
+    "See http://www.na-mic.org/Bug/view.php?id=2648"
+    )
 
   set(QTMODULE_ARGS)
   foreach(arg ${oneValueArgs} ${multiValueArgs})
