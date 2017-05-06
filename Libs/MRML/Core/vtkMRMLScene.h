@@ -178,12 +178,16 @@ public:
   /// the scene. It ensures that the new node properties are initialized
   /// considering its default nodes.
   ///
-  /// The method calls CreateNodeByClass(), AddNode() and vtkMRMLNode::SetName().
+  /// The method calls CreateNodeByClass(), vtkMRMLNode::SetName() and AddNode().
   ///
-  /// \sa CreateNodeByClass()
-  /// \sa AddDefaultNode(vtkMRMLNode*)
-  /// \sa AddNode()
-  vtkMRMLNode* AddNewNodeByClass(std::string className, std::string nodeName = "");
+  /// \note Instead of calling SetName() after creating the node, prefer
+  /// passing \a nodeBaseName, indeed the method AddNode() ensures that the
+  /// final node name is unique by appending a suffix.
+  ///
+  /// \sa CreateNodeByClass(), vtkMRMLNode::SetName(), AddNode()
+  /// \sa AddDefaultNode()
+  /// \sa GenerateUniqueName()
+  vtkMRMLNode* AddNewNodeByClass(std::string className, std::string nodeBaseName = "");
 
   /// Add a copy of a node to the scene.
   vtkMRMLNode* CopyNode(vtkMRMLNode *n);
