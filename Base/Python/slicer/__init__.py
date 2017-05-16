@@ -42,9 +42,10 @@ for kit in available_kits:
    except ImportError as detail:
      print detail
 
+
 #-----------------------------------------------------------------------------
 # Cleanup: Removing things the user shouldn't have to see.
 
 del _createModule
 del available_kits
-del kit
+#del kit
