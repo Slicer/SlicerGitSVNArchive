@@ -11,35 +11,35 @@ It is important to remember that Segment Editor does not edit labelmap volumes, 
 Keyboard shortcuts
 ------------------
 
-The following keyboard shortcuts are active when you are in the Editor module.  They do not require a modifier key (no Control or Alt required) and they are intended to allow two-handed editing, where on hand is on the mouse and the other hand uses the keyboard to switch modes.
+The following keyboard shortcuts are active when you are in the Editor module.  They are intended to allow two-handed editing, where on hand is on the mouse and the other hand uses the keyboard to switch modes.
 
-+---------------------+-----------------------------------------+
-| Key                 | Operation                               |
-+=====================+=========================================+
-| left arrow          | move to previous slice                  |
-+---------------------+-----------------------------------------+
-| right arrow         | move to next slice                      |
-+---------------------+-----------------------------------------+
-| shift + mouse move  | scroll slices to mouse location         |
-+---------------------+-----------------------------------------+
-| ctrl + mouse wheel  | zoom image in/out                       |
-+---------------------+-----------------------------------------+
-| q                   | select previous segment                 |
-+---------------------+-----------------------------------------+
-| w                   | select next segment                     |
-+---------------------+-----------------------------------------+
-| z                   | undo                                    |
-+---------------------+-----------------------------------------+
-| y                   | redo                                    |
-+---------------------+-----------------------------------------+
-| esc                 | unselect effect                         |
-+---------------------+-----------------------------------------+
-| space               | toggle between last two active effects  |
-+---------------------+-----------------------------------------+
-| 1, 2, ... 0         | select effect (1-10)                    |
-+---------------------+-----------------------------------------+
-| shift + 1, 2, ... 0 | select effect (11-20)                   |
-+---------------------+-----------------------------------------+
++-------------------------------------+-----------------------------------------+
+| Key                                 | Operation                               |
++=====================================+=========================================+
+| ``left arrow``                      | move to previous slice                  |
++-------------------------------------+-----------------------------------------+
+| ``right arrow``                     | move to next slice                      |
++-------------------------------------+-----------------------------------------+
+| ``shift`` + ``mouse move``          | scroll slices to mouse location         |
++-------------------------------------+-----------------------------------------+
+| ``ctrl`` + ``mouse wheel``          | zoom image in/out                       |
++-------------------------------------+-----------------------------------------+
+| ``q``                               | select previous segment                 |
++-------------------------------------+-----------------------------------------+
+| ``w``                               | select next segment                     |
++-------------------------------------+-----------------------------------------+
+| ``z``                               | undo                                    |
++-------------------------------------+-----------------------------------------+
+| ``y``                               | redo                                    |
++-------------------------------------+-----------------------------------------+
+| ``esc``                             | unselect effect                         |
++-------------------------------------+-----------------------------------------+
+| ``space``                           | toggle between last two active effects  |
++-------------------------------------+-----------------------------------------+
+| ``1``, ``2``, ... ``0``             | select effect (1-10)                    |
++-------------------------------------+-----------------------------------------+
+| ``shift`` + ``1``, ``2``, ... ``0`` | select effect (11-20)                   |
++-------------------------------------+-----------------------------------------+
 
 Panels and their use
 --------------------
@@ -73,37 +73,37 @@ Effects operate either by clicking the Apply button in the effect options sectio
 
 .. |paint| image:: images/module_segment_editor/paint.png
 
-* Pick the radius (in millimeters) of the brush to apply
-* Left click to apply single circle
-* Left click and drag to fill a region
-* A trace of circles is left which are applied when the mouse button is released
-* Sphere mode applies the radius to slices above and below the current slice.
+- Pick the radius (in millimeters) of the brush to apply
+- Left click to apply single circle
+- Left click and drag to fill a region
+- A trace of circles is left which are applied when the mouse button is released
+- Sphere mode applies the radius to slices above and below the current slice.
 
-+---------------------+-----------------------------------------+
-| Key                 | Operation                               |
-+=====================+=========================================+
-| shift + mouse wheel | increase/decrease brush size            |
-+---------------------+-----------------------------------------+
-| -                   | shrink brush radius by 20%              |
-+---------------------+-----------------------------------------+
-| +                   | grow brush radius by 20%                |
-+---------------------+-----------------------------------------+
++-----------------------------+-----------------------------------------+
+| Key                         | Operation                               |
++=============================+=========================================+
+| ``shift`` + ``mouse wheel`` | increase/decrease brush size            |
++-----------------------------+-----------------------------------------+
+| ``-``                       | shrink brush radius by 20%              |
++-----------------------------+-----------------------------------------+
+| ``+``                       | grow brush radius by 20%                |
++-----------------------------+-----------------------------------------+
 
 |draw| Draw
 ~~~~~~~~~~~~~~~~~~
 
 .. |draw| image:: images/module_segment_editor/draw.png
 
-* Left click to lay individual points of an outline
-* Left drag to lay down a continuous line of points
-* Right click to apply segment
+- Left click to lay individual points of an outline
+- Left drag to lay down a continuous line of points
+- Right click to apply segment
 
 +---------------------+-----------------------------------------+
 | Key                 | Operation                               |
 +=====================+=========================================+
-| x                   | delete the last point added             |
+| ``x``               | delete the last point added             |
 +---------------------+-----------------------------------------+
-| a                   | apply segment                           |
+| ``a``               | apply segment                           |
 +---------------------+-----------------------------------------+
 
 |erase| Erase
@@ -115,23 +115,23 @@ Same as the Paint effect, but the highlighted regions are removed from the selec
 
 If Masking / Editable area is set to a specific segment then the highlighted region is removed from selected segment *and* added to the masking segment. This is useful when a part of a segment has to be separated into another segment.
 
-+---------------------+-----------------------------------------+
-| Key                 | Operation                               |
-+=====================+=========================================+
-| shift + mouse wheel | increase/decrease brush size            |
-+---------------------+-----------------------------------------+
-| -                   | shrink brush radius by 20%              |
-+---------------------+-----------------------------------------+
-| +                   | grow brush radius by 20%                |
-+---------------------+-----------------------------------------+
++-----------------------------+-----------------------------------------+
+| Key                         | Operation                               |
++=============================+=========================================+
+| ``shift`` + ``mouse wheel`` | increase/decrease brush size            |
++-----------------------------+-----------------------------------------+
+| ``-``                       | shrink brush radius by 20%              |
++-----------------------------+-----------------------------------------+
+| ``+``                       | grow brush radius by 20%                |
++-----------------------------+-----------------------------------------+
 
 |level_tracing| Level Tracing
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. |level_tracing| image:: images/module_segment_editor/level_tracing.png
 
-* Moving the mouse defines an outline where the pixels all have the same background value as the current background pixel
-* Clicking the left mouse button applies that outline to the label map
+- Moving the mouse defines an outline where the pixels all have the same background value as the current background pixel
+- Clicking the left mouse button applies that outline to the label map
 
 |grow_from_seeds| Grow from seeds
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -140,17 +140,18 @@ If Masking / Editable area is set to a specific segment then the highlighted reg
 
 Draw segment inside each anatomical structure. This method will start from these "seeds" and grow them to achieve complete segmentation.
 
-* Initialize: Click this button after initial segmentation is completed (by using other editor effects). Initial computation may take more time than subsequent updates. Master volume, auto-complete method, segmentation extent will be locked after initialization, therefore if any of these have to be changed then click Cancel and initialize again.
-* Update: Update completed segmentation based on changed inputs.
-* Auto-update: activate this option to automatically updating result preview when segmentation is changed.
-* Cancel: Remove result preview. Seeds are kept unchanged, so parameters can be changed and segmentation can be restarted by clicking Initialize.
-* Apply: Overwrite seeds segments with previewed results.
+- Initialize: Click this button after initial segmentation is completed (by using other editor effects). Initial computation may take more time than subsequent updates. Master volume, auto-complete method, segmentation extent will be locked after initialization, therefore if any of these have to be changed then click Cancel and initialize again.
+- Update: Update completed segmentation based on changed inputs.
+- Auto-update: activate this option to automatically updating result preview when segmentation is changed.
+- Cancel: Remove result preview. Seeds are kept unchanged, so parameters can be changed and segmentation can be restarted by clicking Initialize.
+- Apply: Overwrite seeds segments with previewed results.
 
 Notes:
-* Only visible segments are used by this effect.
-* At least two segments are required.
-* If parts of a segment is removed (and not overwritten by another segment) then it is recommended to cancel and initialize again.
-* The method uses grow-cut algorithm: Liangjia Zhu, Ivan Kolesov, Yi Gao, Ron Kikinis, Allen Tannenbaum. An Effective Interactive Medical Image Segmentation Method Using Fast GrowCut, International Conference on Medical Image Computing and Computer Assisted Intervention (MICCAI), Interactive Medical Image Computing Workshop, 2014.
+
+- Only visible segments are used by this effect.
+- At least two segments are required.
+- If parts of a segment is removed (and not overwritten by another segment) then it is recommended to cancel and initialize again.
+- The method uses grow-cut algorithm: Liangjia Zhu, Ivan Kolesov, Yi Gao, Ron Kikinis, Allen Tannenbaum. An Effective Interactive Medical Image Segmentation Method Using Fast GrowCut, International Conference on Medical Image Computing and Computer Assisted Intervention (MICCAI), Interactive Medical Image Computing Workshop, 2014.
 
 |fill_between_slices| Fill between slices
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -159,16 +160,17 @@ Notes:
 
 Create complete segmentation on selected slices using any editor effect. You can skip any number of slices between segmented slices. This method will fill the skipped slices by interpolating between segmented slices.
 
-* Initialize: Click this button after initial segmentation is completed (by using other editor effects). Initial computation may take more time than subsequent updates. Master volume, auto-complete method, segmentation extent will be locked after initialization, therefore if any of these have to be changed then click Cancel and initialize again.
-* Update: Update completed segmentation based on changed inputs.
-* Auto-update: activate this option to automatically updating result preview when segmentation is changed.
-* Cancel: Remove result preview. Seeds are kept unchanged, so parameters can be changed and segmentation can be restarted by clicking Initialize.
-* Apply: Overwrite seeds segments with previewed results.
+- Initialize: Click this button after initial segmentation is completed (by using other editor effects). Initial computation may take more time than subsequent updates. Master volume, auto-complete method, segmentation extent will be locked after initialization, therefore if any of these have to be changed then click Cancel and initialize again.
+- Update: Update completed segmentation based on changed inputs.
+- Auto-update: activate this option to automatically updating result preview when segmentation is changed.
+- Cancel: Remove result preview. Seeds are kept unchanged, so parameters can be changed and segmentation can be restarted by clicking Initialize.
+- Apply: Overwrite seeds segments with previewed results.
 
 Notes:
-* Only visible segments are used by this effect.
-* The method does not use the master volume, only the shape of the specified segments.
-* The method uses ND morphological contour interpolation algorithm. See details here: http://insight-journal.org/browse/publication/977
+
+- Only visible segments are used by this effect.
+- The method does not use the master volume, only the shape of the specified segments.
+- The method uses ND morphological contour interpolation algorithm. See details here: http://insight-journal.org/browse/publication/977
 
 |threshold| Threshold
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -198,8 +200,8 @@ Smoothes selected labelmap or all labelmaps (only for Joint smoothing method).
 
 Clip segments to the specified region or fill regions of a segment (typically used with masking). Regions can be drawn on both slice view or 3D views.
 
-* Left click to start drawing (free-form or rubber band circle or rectangle)
-* Release button to apply
+- Left click to start drawing (free-form or rubber band circle or rectangle)
+- Release button to apply
 
 |islands| Identify islands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -209,8 +211,8 @@ Clip segments to the specified region or fill regions of a segment (typically us
 
 Use this tool to create a unique segment for each connected region of the selected segment. Connected regions are defined as groups of pixels which touch each other but are surrounded by zero valued voxels.
 
-* Fully connected: If checked then only voxels that share a face are counted as connected; if unchecked then voxels that touch at an edge or a corner are considered connected.
-* Minimum size: All regions that have less than this number of voxels will be deleted.
+- Fully connected: If checked then only voxels that share a face are counted as connected; if unchecked then voxels that touch at an edge or a corner are considered connected.
+- Minimum size: All regions that have less than this number of voxels will be deleted.
 
 |logical_operators| Logical operators
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -224,19 +226,19 @@ Hints
 -----
 
 [[Image:Selection 139.png|thumb|400px|right|Use of the Label Outline feature (below) vs the default view (above).  Note that the label outlines appear faint in the lower image -- zoom in by clicking on the image to see them as they actually appear in Slicer.]]
-* A large radius paint brush with threshold painting is often a very fast way to segment anatomy that is consistently brighter or darker than the surrounding region, but partially connected to similar nearby structures (this happens a lot).
-* Use the slice viewer menus to control the label map opacity and display mode (to show outlines only or full volume).
+- A large radius paint brush with threshold painting is often a very fast way to segment anatomy that is consistently brighter or darker than the surrounding region, but partially connected to similar nearby structures (this happens a lot).
+- Use the slice viewer menus to control the label map opacity and display mode (to show outlines only or full volume).
 
 Limitations
 -----------
 
-* Threshold will not work with non-scalar volume background volumes.
-* Mouse wheel can be used to move slice through volume, but on some platforms (mac) it may move more than one slice at a time.
+- Threshold will not work with non-scalar volume background volumes.
+- Mouse wheel can be used to move slice through volume, but on some platforms (mac) it may move more than one slice at a time.
 
 Similar Modules
 ---------------
 
-* [Editor](../editor/README.md) is the predecessor of this module. Segment Editor will eventually replace the Editor module.
+- :ref:`module_editor` is the predecessor of this module. Segment Editor will eventually replace the Editor module.
 
 Information for Developers
 --------------------------
@@ -246,47 +248,16 @@ TODO
 Contributors
 ------------
 
-* Contributors: Csaba Pinter (PerkLab, Queen's University), Andras Lasso (PerkLab, Queen's University), Steve Pieper (Isomics Inc.), Wendy Plesniak (SPL, BWH), Ron Kikinis (SPL, BWH), Jim Miller (GE)
-* Contact: Csaba Pinter, csaba.pinter@queensu.ca; Andras Lasso, lasso@queensu.ca
+- Contributors: Csaba Pinter (PerkLab, Queen's University), Andras Lasso (PerkLab, Queen's University), Steve Pieper (Isomics Inc.), Wendy Plesniak (SPL, BWH), Ron Kikinis (SPL, BWH), Jim Miller (GE)
+- Contact: Csaba Pinter, csaba.pinter@queensu.ca; Andras Lasso, lasso@queensu.ca
 
 Acknowledgements
 ----------------
 
 This module is partly funded by an Applied Cancer Research Unit of Cancer Care Ontario with funds provided by the Ministry of Health and Long-Term Care and the Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO) to provide free, open-source toolset for radiotherapy and related image-guided interventions.
 The work is part of the [http://www.na-mic.org/ National Alliance for Medical Image Computing] (NA-MIC), funded by the National Institutes of Health through the NIH Roadmap for Medical Research, Grant U54 EB005149.
-
-+---------------------+-----------------------------------------+
-| Key                 | Operation                               |
-+---------------------+-----------------------------------------+
-| shift + mouse wheel | increase/decrease brush size            |
-+---------------------+-----------------------------------------+
-
-.. |isomics_logo| image:: images/logos/isomics.png
-  :scale: 100%
-  :align: middle
-  :alt: Isomics
-
-.. |namic_logo| image:: images/logos/namic.png
-  :scale: 100%
-  :align: middle
-  :alt: National Alliance for Medical Image Computing (NA-MIC)
-
-.. figure:: images/logos/namic.png
-   :scale: 50 %
-   :alt: map to buried treasure
-
-   This is the caption of the figure (a simple paragraph).
-
-|isomics_logo| |namic_logo|
-
    
 
-| ![](/images/logos/isomics.png) | ![](/images/logos/namic.png)|![](/images/logos/nac.png) | ![](/images/logos/ge.png) |
-| ---------------- | ---------------- | ---------------- | ---------------- |
-| Isomics, Inc. | National Alliance for Medical Image Computing (NA-MIC) | Neuroimage Analysis Center (NAC) | GE Global Research |
-
-+---------------------+-----------------------------------------+
-| |isomics_logo|      | |namic_logo|                            |
-+---------------------+-----------------------------------------+
-| Isomics             | Operation                               |
-+---------------------+-----------------------------------------+
++------------------+----------------+--------------+-------------+
+|  |isomics_logo|  |  |namic_logo|  |  |nac_logo|  |  |ge_logo|  |
++------------------+----------------+--------------+-------------+
