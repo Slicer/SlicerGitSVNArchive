@@ -40,12 +40,12 @@ Core Modules
 
 The Core Module Toolbar provides shortcuts to your "Home" module, and some of Slicer's core modules including:
 
-* Models
-* Transforms
 * Data
 * Volumes
-* Annotations
-* Interactive Editor
+* Models
+* Transforms
+* Markups
+* Segment Editor
 
 Layouts
 ^^^^^^^

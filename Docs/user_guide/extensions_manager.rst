@@ -1,3 +1,3 @@
 =================
-Extenions Manager
+Extensions Manager
 =================
