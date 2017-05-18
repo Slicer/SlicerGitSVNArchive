@@ -1,5 +1,3 @@
-.. _module_segment_editor:
-
 ==============
 Segment editor
 ==============
@@ -255,8 +253,7 @@ Acknowledgements
 ----------------
 
 This module is partly funded by an Applied Cancer Research Unit of Cancer Care Ontario with funds provided by the Ministry of Health and Long-Term Care and the Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO) to provide free, open-source toolset for radiotherapy and related image-guided interventions.
-The work is part of the [http://www.na-mic.org/ National Alliance for Medical Image Computing] (NA-MIC), funded by the National Institutes of Health through the NIH Roadmap for Medical Research, Grant U54 EB005149.
-   
+The work is part of the `National Alliance for Medical Image Computing <http://www.na-mic.org/>`_ (NA-MIC), funded by the National Institutes of Health through the NIH Roadmap for Medical Research, Grant U54 EB005149.
 
 +------------------+----------------+--------------+-------------+
 |  |isomics_logo|  |  |namic_logo|  |  |nac_logo|  |  |ge_logo|  |

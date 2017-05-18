@@ -21,7 +21,7 @@ Welcome to 3D Slicer's documentation!
 
    user_guide/user_interface
    user_guide/data_loading_and_saving
-   user_guide/core_modules
+   user_guide/modules
    user_guide/module_segment_editor
    user_guide/extensions_manager
    user_guide/settings
