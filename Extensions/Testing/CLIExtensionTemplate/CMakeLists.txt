@@ -20,6 +20,7 @@ include(${Slicer_USE_FILE})
 #-----------------------------------------------------------------------------
 # Extension modules
 add_subdirectory(CLIModuleTemplate)
+add_subdirectory(CLIModuleTemplatePython)
 ## NEXT_MODULE
 
 #-----------------------------------------------------------------------------
