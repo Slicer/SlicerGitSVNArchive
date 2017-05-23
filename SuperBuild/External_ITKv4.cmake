@@ -132,6 +132,24 @@ if(NOT DEFINED ITK_DIR AND NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
 
   set(ITK_DIR ${CMAKE_BINARY_DIR}/${proj}-build)
 
+  # pythonpath
+  if(CMAKE_CONFIGURATION_TYPES)
+    set(${proj}_PYTHONPATH_LAUNCHER_BUILD
+      ${ITK_DIR}/Wrapping/Generators/Python/<CMAKE_CFG_INTDIR>
+      ${ITK_DIR}/lib/<CMAKE_CFG_INTDIR>
+      ${ITK_DIR}/lib
+      )
+  else()
+    set(${proj}_PYTHONPATH_LAUNCHER_BUILD
+      ${ITK_DIR}/Wrapping/Generators/Python
+      ${ITK_DIR}/lib
+      )
+  endif()
+  mark_as_superbuild(
+    VARS ${proj}_PYTHONPATH_LAUNCHER_BUILD
+    LABELS "PYTHONPATH_LAUNCHER_BUILD"
+    )
+
   #-----------------------------------------------------------------------------
   # Launcher setting specific to build tree
 
