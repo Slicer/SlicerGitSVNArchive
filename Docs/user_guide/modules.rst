@@ -124,7 +124,7 @@ Filtering
 - Morphology:
 
   - :doc:`module_GrayscaleFillHoleImageFilter`
-  - :doc:`module_GrayscaleGrindPeakImageFilter
+  - :doc:`module_GrayscaleGrindPeakImageFilter`
 
 Surface models
 --------------
