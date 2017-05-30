@@ -18,9 +18,9 @@ The following keyboard shortcuts are active when you are in the Editor module.  
 +-------------------------------------+-----------------------------------------+
 | ``right arrow``                     | move to next slice                      |
 +-------------------------------------+-----------------------------------------+
-| ``shift`` + ``mouse move``          | scroll slices to mouse location         |
+| ``Shift`` + ``mouse move``          | scroll slices to mouse location         |
 +-------------------------------------+-----------------------------------------+
-| ``ctrl`` + ``mouse wheel``          | zoom image in/out                       |
+| ``Ctrl`` + ``mouse wheel``          | zoom image in/out                       |
 +-------------------------------------+-----------------------------------------+
 | ``q``                               | select previous segment                 |
 +-------------------------------------+-----------------------------------------+
@@ -36,7 +36,7 @@ The following keyboard shortcuts are active when you are in the Editor module.  
 +-------------------------------------+-----------------------------------------+
 | ``1``, ``2``, ... ``0``             | select effect (1-10)                    |
 +-------------------------------------+-----------------------------------------+
-| ``shift`` + ``1``, ``2``, ... ``0`` | select effect (11-20)                   |
+| ``Shift`` + ``1``, ``2``, ... ``0`` | select effect (11-20)                   |
 +-------------------------------------+-----------------------------------------+
 
 Panels and their use
@@ -80,7 +80,7 @@ Effects operate either by clicking the Apply button in the effect options sectio
 +-----------------------------+-----------------------------------------+
 | Key                         | Operation                               |
 +=============================+=========================================+
-| ``shift`` + ``mouse wheel`` | increase/decrease brush size            |
+| ``Shift`` + ``mouse wheel`` | increase/decrease brush size            |
 +-----------------------------+-----------------------------------------+
 | ``-``                       | shrink brush radius by 20%              |
 +-----------------------------+-----------------------------------------+
@@ -116,7 +116,7 @@ If Masking / Editable area is set to a specific segment then the highlighted reg
 +-----------------------------+-----------------------------------------+
 | Key                         | Operation                               |
 +=============================+=========================================+
-| ``shift`` + ``mouse wheel`` | increase/decrease brush size            |
+| ``Shift`` + ``mouse wheel`` | increase/decrease brush size            |
 +-----------------------------+-----------------------------------------+
 | ``-``                       | shrink brush radius by 20%              |
 +-----------------------------+-----------------------------------------+

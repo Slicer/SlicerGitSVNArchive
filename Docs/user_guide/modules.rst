@@ -2,6 +2,9 @@
 Modules
 ===============
 
+Main modules
+------------
+
 - :doc:`module_annotations`
 - :doc:`module_data`
 - :doc:`module_datastore`
