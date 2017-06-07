@@ -81,7 +81,6 @@ ExternalProject_Execute(${proj} \"install\" \"${PYTHON_EXECUTABLE}\" Packaging/s
       -DCMAKE_C_FLAGS:STRING=${ep_common_c_flags}
       -DBUILD_SHARED_LIBS:BOOL=${Slicer_USE_SimpleITK_SHARED}
       -DBUILD_EXAMPLES:BOOL=OFF
-      -DSimpleITK_PYTHON_THREADS:BOOL=ON
       -DSimpleITK_INSTALL_ARCHIVE_DIR:PATH=${Slicer_INSTALL_LIB_DIR}
       -DSimpleITK_INSTALL_LIBRARY_DIR:PATH=${Slicer_INSTALL_LIB_DIR}
       -DSimpleITK_INT64_PIXELIDS:BOOL=OFF
