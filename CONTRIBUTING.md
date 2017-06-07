@@ -91,6 +91,10 @@ and developers introducing changes introducing build or test failures are notifi
 email.
 
 
+### Automatic building of documenation ###
+
+*wip*
+
 #### Decision-making process
 
 1. Given the topic of interest, initiate discussion on the [mailing list](http://massmail.spl.harvard.edu/mailman/listinfo/slicer-devel).
