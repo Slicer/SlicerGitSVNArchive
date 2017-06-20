@@ -61,6 +61,11 @@ Panels and their use
     - Visible segments: Visible segments will not overlap with each other. Hidden segments will not be overwritten by changes done to visible segments.
     - None: Segments can overlap. Changing one segment will not change any other.
 
+Tutorials
+---------
+
+- [Tutorial for 3D printing](https://www.slicer.org/wiki/Documentation/Nightly/Training#Segmentation_for_3D_printing)
+
 Effects
 -------
 
