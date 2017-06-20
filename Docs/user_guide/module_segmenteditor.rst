@@ -64,7 +64,7 @@ Panels and their use
 Tutorials
 ---------
 
-- [Tutorial for 3D printing](https://www.slicer.org/wiki/Documentation/Nightly/Training#Segmentation_for_3D_printing)
+- `Tutorial for 3D printing <https://www.slicer.org/wiki/Documentation/Nightly/Training#Segmentation_for_3D_printing>`_.
 
 Effects
 -------
