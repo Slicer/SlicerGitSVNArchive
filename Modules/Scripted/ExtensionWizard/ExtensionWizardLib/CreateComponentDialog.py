@@ -1,6 +1,7 @@
 import os
 import slicer
 import qt, ctk
+import re
 
 #=============================================================================
 #
@@ -48,8 +49,19 @@ class CreateComponentDialog(object):
     self._typelc = componenttype.lower()
     self._typetc = componenttype.title()
 
+    self.classNamePattern = re.compile(r"^[a-zA-Z_][a-zA-Z0-9_]*$")
+
   #---------------------------------------------------------------------------
   def accept(self):
+
+    if self._typelc == "module" and not self.classNamePattern.match(self.componentName):
+      slicer.util.errorDisplay("""Internal module names may not contain spaces or other special characters, \
+                                and cannot start with a number. Public-facing module names can be changed \
+                                later in the module code if needed.""",
+                               windowTitle=u"Cannot create %s" % self._typelc, parent=self.dialog)
+      return
+
+
     if not len(self.componentName):
       slicer.util.errorDisplay(u"%s name may not be empty." % self._typetc,
                                windowTitle=u"Cannot create %s" % self._typelc, parent=self.dialog)
