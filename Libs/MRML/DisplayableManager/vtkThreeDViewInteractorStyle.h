@@ -110,6 +110,9 @@ protected:
   vtkMRMLCameraNode *CameraNode;
 
   double MotionFactor;
+
+  /// Indicates whether the shift key was used during the previous action.
+  /// This is used to require shift-up before returning to default mode.
   bool ShiftKeyUsedForPreviousAction;
 
   /// Keep track of the number of picks so for resetting mouse modes when
