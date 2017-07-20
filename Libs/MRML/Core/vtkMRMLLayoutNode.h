@@ -113,6 +113,11 @@ public:
       SlicerLayoutThreeByThreeSliceView = 33,
       SlicerLayoutFourUpTableView = 34,
       SlicerLayout3DTableView = 35,
+      SlicerLayoutConventionalInteractiveQuantitativeView = 36,
+      SlicerLayoutFourUpInteractiveQuantitativeView = 37,
+      SlicerLayoutFourUpInteractiveQuantitativeTableView = 38,
+      SlicerLayoutOneUpInteractiveQuantitativeView = 39,
+      SlicerLayoutThreeOverThreeInteractiveQuantitativeView = 40,
       SlicerLayoutFinalView, // special value, must be placed after the last standard view (used for iterating through all the views)
 
       SlicerLayoutMaximizedView = 98,

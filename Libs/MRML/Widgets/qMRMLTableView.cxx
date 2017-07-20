@@ -26,12 +26,20 @@
 #include <QDebug>
 #include <QHeaderView>
 #include <QHBoxLayout>
+#include <QMessageBox>
 #include <QKeyEvent>
 #include <QSortFilterProxyModel>
+#include <QString>
 #include <QToolButton>
 
 // CTK includes
 #include <ctkPopupWidget.h>
+
+// VTK includes
+#include <vtkCollection.h>
+#include <vtkIntArray.h>
+#include <vtkNew.h>
+#include <vtkStringArray.h>
 
 // qMRML includes
 #include "qMRMLTableView.h"
@@ -39,6 +47,9 @@
 #include "qMRMLTableModel.h"
 
 // MRML includes
+#include <vtkMRMLSelectionNode.h>
+#include <vtkMRMLPlotNode.h>
+#include <vtkMRMLPlotLayoutNode.h>
 #include <vtkMRMLScene.h>
 #include <vtkMRMLTableNode.h>
 #include <vtkMRMLTableViewNode.h>
@@ -427,6 +438,157 @@ void qMRMLTableView::pasteSelection()
     rowIndex++;
     }
   tableNode->EndModify(wasModified);
+}
+
+//-----------------------------------------------------------------------------
+void qMRMLTableView::plotSelection()
+{
+  Q_D(qMRMLTableView);
+  CTK_CHECK_AND_RETURN_IF_FAIL(d->verifyTableModelAndNode)
+
+  vtkMRMLTableNode* tableNode = mrmlTableNode();
+
+  if(!this->mrmlScene())
+    {
+    qWarning() << "qMRMLTableView::plotSelection failed: no mrmlScene available";
+    return;
+    }
+
+  vtkMRMLSelectionNode* selectionNode = vtkMRMLSelectionNode::SafeDownCast(
+    this->mrmlScene()->GetNodeByID("vtkMRMLSelectionNodeSingleton"));
+
+  if (!selectionNode)
+    {
+    qWarning() << "qMRMLTableView::plotSelection failed: invalid selection Node";
+    return;
+    }
+
+  vtkSmartPointer<vtkMRMLPlotLayoutNode> mrmlLayoutPlot = vtkMRMLPlotLayoutNode::SafeDownCast(
+    this->mrmlScene()->GetNodeByID(selectionNode->GetActivePlotLayoutID()));
+
+  if (!mrmlLayoutPlot)
+    {
+    mrmlLayoutPlot = vtkSmartPointer<vtkMRMLPlotLayoutNode>::New();
+    this->mrmlScene()->AddNode(mrmlLayoutPlot);
+    selectionNode->SetActivePlotLayoutID(mrmlLayoutPlot->GetID());
+    }
+
+  qMRMLTableModel* mrmlModel = tableModel();
+  QItemSelectionModel* selection = selectionModel();
+  vtkNew<vtkIntArray> columnIndexs;
+  for (int columnIndex = 0; columnIndex < mrmlModel->columnCount(); columnIndex++)
+    {
+    if (!selection->columnIntersectsSelection(columnIndex, QModelIndex()))
+      {
+      // no items are selected in this entire column, skip it
+      continue;
+      }
+    columnIndexs->InsertNextValue(columnIndex);
+    }
+
+  if (columnIndexs->GetNumberOfValues() < 2)
+    {
+    QString message = QString("To generate a plot, please select at least two columns");
+    qCritical() << Q_FUNC_INFO << ": " << message;
+    QMessageBox::warning(NULL, tr("Failed to plot data"), message);
+    return;
+    }
+
+  // Remove columns/plots not selected from mrmlLayoutPlot
+  mrmlLayoutPlot->ClearPlotIDs();
+
+  // Add columns/plots not selected from mrmlLayoutPlot
+  for (int columnIndex = 1; columnIndex < columnIndexs->GetNumberOfValues(); columnIndex++)
+    {
+    std::string columnName = tableNode->GetColumnName(columnIndexs->GetValue(columnIndex));
+
+    vtkMRMLPlotNode *mrmlplot = NULL;
+    vtkCollection* colPlots = this->mrmlScene()->GetNodesByClassByName("vtkMRMLPlotNode", columnName.c_str());
+
+    if (!colPlots)
+      {
+      continue;
+      }
+
+    for (int plotIndex = 0; plotIndex < colPlots->GetNumberOfItems(); plotIndex++)
+      {
+      mrmlplot = vtkMRMLPlotNode::SafeDownCast(colPlots->GetItemAsObject(plotIndex));
+      if (mrmlplot == NULL)
+        {
+        continue;
+        }
+      else
+        {
+        break;
+        }
+      }
+
+    if (mrmlplot == NULL)
+      {
+      vtkSmartPointer<vtkMRMLNode> node = vtkSmartPointer<vtkMRMLNode>::Take(
+        this->mrmlScene()->CreateNodeByClass("vtkMRMLPlotNode"));
+      mrmlplot = vtkMRMLPlotNode::SafeDownCast(node);
+      this->mrmlScene()->AddNode(mrmlplot);
+      mrmlplot->SetName(columnName.c_str());
+      mrmlplot->SetXColumn(columnIndexs->GetValue(0));
+      mrmlplot->SetYColumn(columnIndexs->GetValue(columnIndex));
+      mrmlplot->SetAndObserveTableNodeID(tableNode->GetID());
+      }
+
+    std::string namePlotNode = mrmlplot->GetName();
+    std::size_t found = namePlotNode.find("Markups");
+    if (found != std::string::npos)
+      {
+      mrmlLayoutPlot->RemovePlotAndObservationByName(namePlotNode.c_str());
+      continue;
+      }
+
+    std::string Type = mrmlLayoutPlot->GetProperty("type");
+    if (!Type.compare("Line"))
+      {
+      mrmlplot->SetType(vtkMRMLPlotNode::LINE);
+      }
+    else if (!Type.compare("Scatter"))
+      {
+      mrmlplot->SetType(vtkMRMLPlotNode::POINTS);
+      }
+    else if (!Type.compare("Line and Scatter"))
+      {
+      mrmlplot->SetType(vtkMRMLPlotNode::LINE);
+
+      vtkSmartPointer<vtkMRMLPlotNode> plotNodeCopy = vtkMRMLPlotNode::SafeDownCast
+        (mrmlplot->GetNodeReference("Markups"));
+
+      if (plotNodeCopy)
+        {
+        plotNodeCopy->SetType(vtkMRMLPlotNode::POINTS);
+        }
+      else
+        {
+        vtkSmartPointer<vtkMRMLNode> node = vtkSmartPointer<vtkMRMLNode>::Take
+          (this->mrmlScene()->CreateNodeByClass("vtkMRMLPlotNode"));
+        plotNodeCopy = vtkMRMLPlotNode::SafeDownCast(node);
+
+        std::string namePlotNodeCopy = namePlotNode + " Markups";
+
+        plotNodeCopy->CopyAndSetNameAndType(mrmlplot, namePlotNodeCopy.c_str(), vtkMRMLPlotNode::POINTS);
+        this->mrmlScene()->AddNode(plotNodeCopy);
+        mrmlplot->AddNodeReferenceID("Markups", plotNodeCopy->GetID());
+        plotNodeCopy->AddNodeReferenceID("Markups", mrmlplot->GetID());
+        }
+
+      mrmlLayoutPlot->AddAndObservePlot(plotNodeCopy->GetName(), plotNodeCopy->GetID());
+      }
+    else if (!Type.compare("Bar"))
+      {
+      mrmlplot->SetType(vtkMRMLPlotNode::BAR);
+      }
+
+    mrmlLayoutPlot->AddAndObservePlot(columnName.c_str(), mrmlplot->GetID());
+
+    colPlots->Delete();
+    colPlots = NULL;
+    }
 }
 
 //-----------------------------------------------------------------------------

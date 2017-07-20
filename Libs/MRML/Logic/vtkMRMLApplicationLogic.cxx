@@ -24,20 +24,22 @@
 // MRMLLogic includes
 #include "vtkMRMLApplicationLogic.h"
 #include "vtkMRMLColorLogic.h"
+#include "vtkMRMLPlotLayoutLogic.h"
 #include "vtkMRMLSliceLogic.h"
-#include <vtkMRMLSliceLinkLogic.h>
-#include <vtkMRMLModelHierarchyLogic.h>
+#include "vtkMRMLSliceLinkLogic.h"
+#include "vtkMRMLModelHierarchyLogic.h"
 
 // MRML includes
-#include <vtkMRMLInteractionNode.h>
-#include <vtkMRMLScene.h>
-#include <vtkMRMLSelectionNode.h>
-#include <vtkMRMLSliceCompositeNode.h>
-#include <vtkMRMLSliceNode.h>
-#include <vtkMRMLStorableNode.h>
-#include <vtkMRMLStorageNode.h>
-#include <vtkMRMLSceneViewNode.h>
-#include <vtkMRMLTableViewNode.h>
+#include "vtkMRMLInteractionNode.h"
+#include "vtkMRMLPlotViewNode.h"
+#include "vtkMRMLScene.h"
+#include "vtkMRMLSelectionNode.h"
+#include "vtkMRMLSliceCompositeNode.h"
+#include "vtkMRMLSliceNode.h"
+#include "vtkMRMLStorableNode.h"
+#include "vtkMRMLStorageNode.h"
+#include "vtkMRMLSceneViewNode.h"
+#include "vtkMRMLTableViewNode.h"
 
 // VTK includes
 #include <vtkCollection.h>
@@ -80,6 +82,7 @@ public:
   vtkSmartPointer<vtkMRMLSliceLinkLogic> SliceLinkLogic;
   vtkSmartPointer<vtkMRMLModelHierarchyLogic> ModelHierarchyLogic;
   vtkSmartPointer<vtkMRMLColorLogic> ColorLogic;
+  vtkSmartPointer<vtkMRMLPlotLayoutLogic> PlotLayoutLogic;
   std::string TemporaryPath;
 
 };
@@ -94,6 +97,7 @@ vtkMRMLApplicationLogic::vtkInternal::vtkInternal(vtkMRMLApplicationLogic * exte
   this->SliceLinkLogic = vtkSmartPointer<vtkMRMLSliceLinkLogic>::New();
   this->ModelHierarchyLogic = vtkSmartPointer<vtkMRMLModelHierarchyLogic>::New();
   this->ColorLogic = vtkSmartPointer<vtkMRMLColorLogic>::New();
+  this->PlotLayoutLogic = vtkSmartPointer<vtkMRMLPlotLayoutLogic>::New();
 }
 
 //----------------------------------------------------------------------------
@@ -152,6 +156,7 @@ vtkMRMLApplicationLogic::vtkMRMLApplicationLogic()
   this->Internal->SliceLinkLogic->SetMRMLApplicationLogic(this);
   this->Internal->ModelHierarchyLogic->SetMRMLApplicationLogic(this);
   this->Internal->ColorLogic->SetMRMLApplicationLogic(this);
+  this->Internal->PlotLayoutLogic->SetMRMLApplicationLogic(this);
 }
 
 //----------------------------------------------------------------------------
@@ -330,6 +335,7 @@ void vtkMRMLApplicationLogic::SetMRMLSceneInternal(vtkMRMLScene *newScene)
 
   this->Internal->SliceLinkLogic->SetMRMLScene(newScene);
   this->Internal->ModelHierarchyLogic->SetMRMLScene(newScene);
+  this->Internal->PlotLayoutLogic->SetMRMLScene(newScene);
 }
 
 //----------------------------------------------------------------------------
@@ -405,9 +411,31 @@ void vtkMRMLApplicationLogic::PropagateTableSelection()
       continue;
       }
     tnode->SetTableNodeID( tableId );
-    }
+  }
 }
 
+//----------------------------------------------------------------------------
+void vtkMRMLApplicationLogic::PropagatePlotLayoutSelection()
+{
+  if ( !this->Internal->SelectionNode || !this->GetMRMLScene() )
+    {
+    return;
+    }
+
+  char *plotLayoutId = this->Internal->SelectionNode->GetActivePlotLayoutID();
+
+  const int nnodes = this->GetMRMLScene()->GetNumberOfNodesByClass("vtkMRMLTableViewNode");
+  for (int i = 0; i < nnodes; i++)
+    {
+    vtkMRMLPlotViewNode* pnode = vtkMRMLPlotViewNode::SafeDownCast (
+      this->GetMRMLScene()->GetNthNodeByClass( i, "vtkMRMLPlotViewNode" ) );
+    if(!pnode->GetDoPropagatePlotLayoutSelection())
+      {
+      continue;
+      }
+    pnode->SetAndUpdatePlotLayoutNodeID( plotLayoutId );
+  }
+}
 
 //----------------------------------------------------------------------------
 void vtkMRMLApplicationLogic::FitSliceToAll(bool onlyIfPropagateVolumeSelectionAllowed /* =false */)

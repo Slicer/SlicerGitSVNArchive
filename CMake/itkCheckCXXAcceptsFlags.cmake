@@ -46,7 +46,7 @@ macro(itkCHECK_CXX_ACCEPTS_FLAGS FLAGS VAR)
        "Source file was:\n${_SOURCE}\n")
    else(${VAR})
      message(STATUS "Checking to see if CXX compiler accepts flag ${FLAGS} - No")
-     file(APPEND ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeError.log
+     file(APPEND ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeerror.log
        "Determining if the CXX compiler accepts the flag ${FLAGS} passed with "
        "the following output:\n${OUTPUT}\n"
        "Source file was:\n${_SOURCE}\n")

@@ -126,6 +126,14 @@ set(MRMLWidgets_SRCS
   qMRMLNodeComboBox_p.h
   qMRMLNodeFactory.cxx
   qMRMLNodeFactory.h
+  qMRMLPlotWidget.cxx
+  qMRMLPlotWidget.h
+  qMRMLPlotView.cxx
+  qMRMLPlotView_p.h
+  qMRMLPlotView.h
+  qMRMLPlotViewControllerWidget.cxx
+  qMRMLPlotViewControllerWidget.h
+  qMRMLPlotViewControllerWidget_p.h
   qMRMLRangeWidget.cxx
   qMRMLRangeWidget.h
   qMRMLROIWidget.cxx
@@ -261,6 +269,11 @@ set(MRMLWidgets_MOC_SRCS
   qMRMLNodeComboBoxDelegate.h
   qMRMLNodeComboBoxMenuDelegate.h
   qMRMLNodeFactory.h
+  qMRMLPlotWidget.h
+  qMRMLPlotViewControllerWidget.h
+  qMRMLPlotViewControllerWidget_p.h
+  qMRMLPlotView_p.h
+  qMRMLPlotView.h
   qMRMLRangeWidget.h
   qMRMLROIWidget.h
   qMRMLScalarInvariantComboBox.h
@@ -325,6 +338,7 @@ set(MRMLWidgets_UI_SRCS
   Resources/UI/qMRMLModelInfoWidget.ui
   Resources/UI/qMRMLNodeAttributeTableView.ui
   Resources/UI/qMRMLNodeAttributeTableWidget.ui
+  Resources/UI/qMRMLPlotViewControllerWidget.ui
   Resources/UI/qMRMLROIWidget.ui
   Resources/UI/qMRMLSceneFactoryWidget.ui
   Resources/UI/qMRMLScreenShotDialog.ui

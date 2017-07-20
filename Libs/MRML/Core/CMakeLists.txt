@@ -141,6 +141,9 @@ set(MRMLCore_SRCS
   vtkMRMLModelStorageNode.cxx
   vtkMRMLNode.cxx
   vtkMRMLParser.cxx
+  vtkMRMLPlotLayoutNode.cxx
+  vtkMRMLPlotNode.cxx
+  vtkMRMLPlotViewNode.cxx
   vtkMRMLProceduralColorNode.cxx
   vtkMRMLProceduralColorStorageNode.cxx
   vtkMRMLROIListNode.cxx
