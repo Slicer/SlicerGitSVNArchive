@@ -174,6 +174,7 @@ protected:
 
   int ActionState;
   int ActionsEnabled;
+  bool ShiftKeyUsedForPreviousAction;
 
   int StartActionEventPosition[2];
   double StartActionFOV[3];
