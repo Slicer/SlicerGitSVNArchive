@@ -18,6 +18,7 @@
 // MRML includes
 #include "vtkMRMLVolumeNode.h"
 class vtkMRMLScalarVolumeDisplayNode;
+class vtkCodedEntry;
 
 /// \brief MRML node for representing a volume (image stack).
 ///
@@ -71,11 +72,20 @@ class VTK_MRML_EXPORT vtkMRMLScalarVolumeNode : public vtkMRMLVolumeNode
   /// Create and observe default display node
   virtual void CreateDefaultDisplayNodes();
 
+  void SetVoxelValueQuantity(vtkCodedEntry*);
+  vtkGetObjectMacro(VoxelValueQuantity, vtkCodedEntry);
+
+  void SetVoxelValueUnit(vtkCodedEntry*);
+  vtkGetObjectMacro(VoxelValueUnit, vtkCodedEntry);
+
 protected:
   vtkMRMLScalarVolumeNode();
   ~vtkMRMLScalarVolumeNode();
   vtkMRMLScalarVolumeNode(const vtkMRMLScalarVolumeNode&);
   void operator=(const vtkMRMLScalarVolumeNode&);
+
+  vtkCodedEntry* VoxelValueQuantity;
+  vtkCodedEntry* VoxelValueUnit;
 };
 
 #endif
