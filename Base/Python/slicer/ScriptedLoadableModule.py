@@ -142,6 +142,8 @@ class ScriptedLoadableModuleWidget:
     ModuleWizard will substitute correct default moduleName.
     Generic reload method for any scripted module.
     """
+    print('\n' * 10)
+    print('-' * 330)
     slicer.util.reloadScriptedModule(self.moduleName)
 
   def onReloadAndTest(self):
