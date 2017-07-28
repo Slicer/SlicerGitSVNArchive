@@ -76,8 +76,8 @@ std::string vtkCodedEntry::GetAsPrintableString()
 {
   std::string printable = std::string("(")
     + (this->CodingSchemeDesignator ? this->CodingSchemeDesignator : "(none)") + ", "
-    + (this->CodeValue ? this->CodeValue : "(none)") + ", "
-    + (this->CodeMeaning ? this->CodeMeaning : "(none)") + ")";
+    + (this->CodeValue ? this->CodeValue : "(none)") + ", \""
+    + (this->CodeMeaning ? this->CodeMeaning : "") + "\")";
   return printable;
 }
 

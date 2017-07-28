@@ -454,7 +454,7 @@ class DICOMScalarVolumePluginClass(DICOMPlugin):
       if quantity is not None:
         volumeNode.SetVoxelValueQuantity(quantity)
       if units is not None:
-        volumeNode.SetVoxelValueUnit(units)
+        volumeNode.SetVoxelValueUnits(units)
 
   def loadWithMultipleLoaders(self,loadable):
     """Load using multiple paths (for testing)

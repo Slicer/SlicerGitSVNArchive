@@ -98,16 +98,16 @@ class DICOMReadersTest(ScriptedLoadableModuleTest):
         "name": "Mouse-MR-example-where-GDCM_fails",
         "seriesUID": "1.3.6.1.4.1.9590.100.1.2.366426457713813178933224342280246227461",
         "expectedFailures": ["GDCM", "Archetype"],
-        "voxelValueQuantity": "(DCM, 110852, MR signal intensity)",
-        "voxelValueUnit": "(UCUM, [hnsf'U], Hounsfield unit)"
+        "voxelValueQuantity": "(DCM, 110852, \\"MR signal intensity\\")",
+        "voxelValueUnits": "(UCUM, 1, \\"no units\\")"
       },
       { "url": "http://slicer.kitware.com/midas3/download/item/294857/deidentifiedMRHead-dcm-one-series.zip",
         "fileName": "deidentifiedMRHead-dcm-one-series.zip",
         "name": "deidentifiedMRHead-dcm-one-series",
         "seriesUID": "1.3.6.1.4.1.5962.99.1.3814087073.479799962.1489872804257.270.0",
         "expectedFailures": [],
-        "voxelValueQuantity": "(DCM, 110852, MR signal intensity)",
-        "voxelValueUnit": "(UCUM, 1, no units)"
+        "voxelValueQuantity": "(DCM, 110852, \\"MR signal intensity\\")",
+        "voxelValueUnits": "(UCUM, 1, \\"no units\\")"
       }
     ]''')
 
@@ -117,7 +117,7 @@ class DICOMReadersTest(ScriptedLoadableModuleTest):
         #"fileName": "RIDER_bug.zip",
         #"name": "RIDER_bug",
         #"seriesUID": "1.3.6.1.4.1.9328.50.7.261772317324041365541450388603508531852",
-        #"expectedFailures": [],
+        #"expectedFailures": []
       #}
 
     loadingResult = {}
@@ -181,11 +181,11 @@ class DICOMReadersTest(ScriptedLoadableModuleTest):
           if volumeNode:
             volumesByApproach[readerApproach] = volumeNode
 
-            # Test quantity and unit
+            self.delayDisplay('Test quantity and unit')
             if 'voxelValueQuantity' in dataset.keys():
               self.assertEqual(volumeNode.GetVoxelValueQuantity().GetAsPrintableString(), dataset['voxelValueQuantity'])
-            if 'voxelValueUnit' in dataset.keys():
-              self.assertEqual(volumeNode.GetVoxelValueUnit().GetAsPrintableString(), dataset['voxelValueUnit'])
+            if 'voxelValueUnits' in dataset.keys():
+              self.assertEqual(volumeNode.GetVoxelValueUnits().GetAsPrintableString(), dataset['voxelValueUnits'])
 
 
         #

@@ -306,7 +306,7 @@ class DICOMPlugin(object):
 
     if classUID in CTname2UID.values():
       quantity = slicer.vtkCodedEntry()
-      quantity.SetSchemeValueMeaning("DCM", "110851", "X-Ray Attenuation Coefficient")
+      quantity.SetSchemeValueMeaning("DCM", "112031", "Attenuation Coefficient")
       units = slicer.vtkCodedEntry()
       units.SetSchemeValueMeaning("UCUM", "[hnsf'U]", "Hounsfield unit")
 

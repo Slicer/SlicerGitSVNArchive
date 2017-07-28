@@ -28,12 +28,12 @@ Version:   $Revision: 1.14 $
 //----------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLScalarVolumeNode);
 vtkCxxSetObjectMacro(vtkMRMLScalarVolumeNode, VoxelValueQuantity, vtkCodedEntry);
-vtkCxxSetObjectMacro(vtkMRMLScalarVolumeNode, VoxelValueUnit, vtkCodedEntry);
+vtkCxxSetObjectMacro(vtkMRMLScalarVolumeNode, VoxelValueUnits, vtkCodedEntry);
 
 //----------------------------------------------------------------------------
 vtkMRMLScalarVolumeNode::vtkMRMLScalarVolumeNode()
 : VoxelValueQuantity(NULL)
-, VoxelValueUnit(NULL)
+, VoxelValueUnits(NULL)
 {
 }
 
@@ -41,7 +41,7 @@ vtkMRMLScalarVolumeNode::vtkMRMLScalarVolumeNode()
 vtkMRMLScalarVolumeNode::~vtkMRMLScalarVolumeNode()
 {
   this->SetVoxelValueQuantity(NULL);
-  this->SetVoxelValueUnit(NULL);
+  this->SetVoxelValueUnits(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -52,9 +52,9 @@ void vtkMRMLScalarVolumeNode::WriteXML(ostream& of, int nIndent)
     {
     of << " voxelValueQuantity=\"" << vtkMRMLNode::URLEncodeString(this->GetVoxelValueQuantity()->GetAsString().c_str()) << "\"";
     }
-  if (this->GetVoxelValueUnit())
+  if (this->GetVoxelValueUnits())
     {
-    of << " voxelValueUnit=\"" << vtkMRMLNode::URLEncodeString(this->GetVoxelValueUnit()->GetAsString().c_str()) << "\"";
+    of << " voxelValueUnits=\"" << vtkMRMLNode::URLEncodeString(this->GetVoxelValueUnits()->GetAsString().c_str()) << "\"";
     }
 }
 
@@ -90,11 +90,11 @@ void vtkMRMLScalarVolumeNode::ReadXMLAttributes(const char** atts)
       entry->SetFromString(vtkMRMLNode::URLDecodeString(attValue));
       this->SetVoxelValueQuantity(entry.GetPointer());
       }
-    else if (!strcmp(attName, "voxelValueUnit"))
+    else if (!strcmp(attName, "voxelValueUnits"))
       {
       vtkNew<vtkCodedEntry> entry;
       entry->SetFromString(vtkMRMLNode::URLDecodeString(attValue));
-      this->SetVoxelValueUnit(entry.GetPointer());
+      this->SetVoxelValueUnits(entry.GetPointer());
       }
     }
 
@@ -143,9 +143,9 @@ void vtkMRMLScalarVolumeNode::PrintSelf(ostream& os, vtkIndent indent)
     {
     os << indent << "VoxelValueQuantity: " << this->GetVoxelValueQuantity()->GetAsPrintableString() << "\n";
     }
-  if (this->GetVoxelValueUnit())
+  if (this->GetVoxelValueUnits())
     {
-    os << indent << "GetVoxelValueUnit: " << this->GetVoxelValueUnit()->GetAsPrintableString() << "\n";
+    os << indent << "VoxelValueUnits: " << this->GetVoxelValueUnits()->GetAsPrintableString() << "\n";
     }
 }
 
