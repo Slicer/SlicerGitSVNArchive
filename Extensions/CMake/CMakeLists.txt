@@ -1,6 +1,6 @@
 
 #-----------------------------------------------------------------------------
-cmake_minimum_required(VERSION 2.8.4)
+cmake_minimum_required(VERSION 3.3)
 #-----------------------------------------------------------------------------
 
 if(Slicer_SOURCE_DIR)
@@ -14,17 +14,8 @@ if(APPLE)
   include(${CMAKE_CURRENT_SOURCE_DIR}/../../CMake/SlicerBlockSetCMakeOSXVariables.cmake)
 endif()
 
-if(POLICY CMP0048)
-  cmake_policy(SET CMP0048 NEW) # CMake 3.0.0
-endif()
 project(SlicerExtensions)
-
-#-----------------------------------------------------------------------------
-# See http://cmake.org/cmake/help/cmake-2-8-docs.html#section_Policies for details
-#-----------------------------------------------------------------------------
-if(POLICY CMP0017)
-  cmake_policy(SET CMP0017 OLD)
-endif()
+cmake_policy(SET CMP0017 OLD)
 
 #-----------------------------------------------------------------------------
 set(_url $ENV{MIDAS_PACKAGE_URL})
