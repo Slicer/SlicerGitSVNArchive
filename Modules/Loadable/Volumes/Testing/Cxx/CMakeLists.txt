@@ -59,3 +59,8 @@ add_test(NAME vtkSlicer${MODULE_NAME}LogicTest2
   COMMAND ${Slicer_LAUNCH_COMMAND} $<TARGET_FILE:vtkSlicer${MODULE_NAME}LogicTest2>
   vtkSlicer${MODULE_NAME}LogicTest2 ${TEMP}
   )
+
+ExternalData_add_test(${Slicer_ExternalData_DATA_MANAGEMENT_TARGET} NAME vtkSlicer${MODULE_NAME}LogicTest1_TestNAN
+  COMMAND ${Slicer_LAUNCH_COMMAND} $<TARGET_FILE:${KIT}CxxTests>
+  vtkSlicer${MODULE_NAME}LogicTest1 DATA{${INPUT_TESTDATA}/testNANInVolume.nrrd}
+  )
