@@ -1,12 +1,15 @@
 <MRML>
 
 <Selection
-  id="vtkMRMLSelectionNodeSingleton" name="vtkMRMLSelectionNode1" hideFromEditors="true"
-  activeVolumeID="vtkMRMLScalarVolumeNode1" activeLayoutID="vtkMRMLLayoutNode1">
+  id="vtkMRMLSelectionNodeSingleton" name="Selection" hideFromEditors="true"
+  activeVolumeID="vtkMRMLScalarVolumeNode1" activeLayoutID="vtkMRMLLayoutNode1"
+  singletonTag="Singleton"
+  >
 </Selection>
 <Interaction
-  id="vtkMRMLInteractionNodeSingleton" name="vtkMRMLInteractionNode1" hideFromEditors="true"
-  currentInteractionMode="ViewTransform" lastInteractionMode="ViewTransform">
+  id="vtkMRMLInteractionNodeSingleton" name="Interaction" hideFromEditors="true"
+  currentInteractionMode="ViewTransform" lastInteractionMode="ViewTransform"
+  singletonTag="Singleton">
 </Interaction>
 
 <Slice

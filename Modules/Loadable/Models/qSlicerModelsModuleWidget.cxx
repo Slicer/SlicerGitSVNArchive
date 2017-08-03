@@ -545,14 +545,9 @@ void qSlicerModelsModuleWidget::updateWidgetFromSelectionNode()
 
   if (include)
     {
-    // force update mrml widgets
-    std::vector<vtkMRMLNode *> nodes;
-    vtkMRMLScene *scene = this->mrmlScene();
-    scene->GetNodesByClass(displayNodeClass.c_str(), nodes);
-    for (unsigned int i = 0; i < nodes.size(); i++)
-      {
-      nodes[i]->InvokeEvent(vtkCommand::ModifiedEvent);
-      }
+    // invoke batch scenemodel update. triggering modified on each model
+    // node is extremely expensive with larger scenes.
+    d->ModelHierarchyTreeView->sceneModel()->updateScene();
     }
   d->ModelDisplayWidget->setMRMLModelOrHierarchyNode(d->ModelDisplayWidget->mrmlDisplayableNode());
 }

@@ -1157,6 +1157,14 @@ void qMRMLSceneModel::onMRMLSceneEvent(vtkObject* vtk_obj, unsigned long event,
   vtkMRMLNode* node = reinterpret_cast<vtkMRMLNode*>(call_data);
   Q_ASSERT(scene);
   Q_ASSERT(sceneModel);
+
+  // we don't care about importing events. we will
+  // repopulate entire scenemodel at EndImportEvent.
+  if (event != vtkMRMLScene::EndImportEvent && scene->IsImporting())
+    {
+    return;
+    }
+
   switch(event)
     {
     case vtkMRMLScene::NodeAboutToBeAddedEvent:
@@ -1501,7 +1509,6 @@ bool qMRMLSceneModel::isANode(const QStandardItem * item)const
 void qMRMLSceneModel::onMRMLSceneAboutToBeImported(vtkMRMLScene* scene)
 {
   Q_UNUSED(scene);
-  //this->beginResetModel();
 }
 
 //------------------------------------------------------------------------------
@@ -1509,11 +1516,8 @@ void qMRMLSceneModel::onMRMLSceneImported(vtkMRMLScene* scene)
 {
   Q_D(qMRMLSceneModel);
   Q_UNUSED(scene);
-  if (d->LazyUpdate)
-    {
-    this->updateScene();
-    }
-  //this->endResetModel();
+  this->updateScene();
+  emit sceneUpdated();
 }
 
 //------------------------------------------------------------------------------
