@@ -96,6 +96,8 @@ endmacro()
 # Set default values
 #-----------------------------------------------------------------------------
 setIfNotDefined(CTEST_PARALLEL_LEVEL 8)
+setIfNotDefined(CTEST_CONTINUOUS_DURATION 46800) # Lasts 13 hours (Assuming it starts at 9am, it will end around 10pm)
+setIfNotDefined(CTEST_CONTINUOUS_INTERVAL 300)
 setIfNotDefined(MIDAS_PACKAGE_URL "http://slicer.kitware.com/midas3")
 setIfNotDefined(MIDAS_PACKAGE_EMAIL "MIDAS_PACKAGE_EMAIL-NOTDEFINED" OBFUSCATE)
 setIfNotDefined(MIDAS_PACKAGE_API_KEY "MIDAS_PACKAGE_API_KEY-NOTDEFINED" OBFUSCATE)
@@ -426,14 +428,13 @@ ${ADDITIONAL_CMAKECACHE_OPTION}
   endif()
 endmacro()
 
-if(SCRIPT_MODE STREQUAL "continuous")
-  while(${CTEST_ELAPSED_TIME} LESS 46800) # Lasts 13 hours (Assuming it starts at 9am, it will end around 10pm)
+if(SCRIPT_MODE STREQUAL "continuous" AND ${CTEST_CONTINUOUS_DURATION} GREATER 0)
+  while(${CTEST_ELAPSED_TIME} LESS ${CTEST_CONTINUOUS_DURATION})
     set(START_TIME ${CTEST_ELAPSED_TIME})
     run_ctest()
-    set(interval 300)
-    # Loop no faster than once every <interval> seconds
-    message("Wait for ${interval} seconds ...")
-    ctest_sleep(${START_TIME} ${interval} ${CTEST_ELAPSED_TIME})
+    # Loop no faster than once every <CTEST_CONTINUOUS_INTERVAL> seconds
+    message("Wait for ${CTEST_CONTINUOUS_INTERVAL} seconds ...")
+    ctest_sleep(${START_TIME} ${CTEST_CONTINUOUS_INTERVAL} ${CTEST_ELAPSED_TIME})
   endwhile()
 else()
   run_ctest()
