@@ -28,6 +28,7 @@
 #include <QSettings>
 #include <QUuid>
 #include <QVariantMap>
+#include <QMap>
 
 // CTK includes
 #include <ctkErrorLogModel.h>
@@ -140,6 +141,8 @@ public:
   /// \brief Return names of all enabled extensions
   /// \sa setExtensionEnabled, extensionEnabledChanged, isExtensionEnabled
   QStringList enabledExtensions()const;
+
+  QMap<QString, QStringList> getExtensionRestoreInformation();
 
   QString extensionsSettingsFilePath()const;
   void setExtensionsSettingsFilePath(const QString& extensionsSettingsFilePath);
@@ -317,6 +320,9 @@ signals:
   void updateDownloadProgress(const QString& extensionName,
                               qint64 received, qint64 total);
 
+  void installDownloadProgress(const QString& extensionName,
+                               qint64 received, qint64 total);
+
   void modelUpdated();
 
   void extensionUpdateAvailable(const QString& extensionName);
@@ -347,6 +353,8 @@ protected slots:
 
   /// \sa downloadAndInstallExtension
   void onInstallDownloadFinished(qSlicerExtensionDownloadTask* task);
+  void onInstallDownloadProgress(qSlicerExtensionDownloadTask* task,
+                                 qint64 received, qint64 total);
 
   /// \sa scheduleExtensionForUpdate
   void onUpdateDownloadFinished(qSlicerExtensionDownloadTask* task);

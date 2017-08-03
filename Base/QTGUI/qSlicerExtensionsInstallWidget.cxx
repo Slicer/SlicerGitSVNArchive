@@ -72,6 +72,7 @@ QUrl qSlicerExtensionsInstallWidgetPrivate::extensionsListUrl()
                     << QPair<QString, QString>("os", this->SlicerOs)
                     << QPair<QString, QString>("arch", this->SlicerArch)
                     << QPair<QString, QString>("revision", this->SlicerRevision));
+  QString temp = url.toString();
   return url;
 }
 
