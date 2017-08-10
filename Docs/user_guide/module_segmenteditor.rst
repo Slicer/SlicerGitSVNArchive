@@ -68,7 +68,8 @@ Panels and their use
 Tutorials
 ---------
 
-- `Tutorial for 3D printing <https://www.slicer.org/wiki/Documentation/Nightly/Training#Segmentation_for_3D_printing>`_.
+- `Tutorial for 3D printing <https://www.slicer.org/wiki/Documentation/Nightly/Training#Segmentation_for_3D_printing>`_: create a 3D-printable STL model from a section of the spinal column, segmented from a CT image, attached to a base designed in CAD software.
+
 
 Effects
 -------
@@ -232,7 +233,6 @@ Apply Boolean operators to selected segment or combine segments.
 Hints
 -----
 
-[[Image:Selection 139.png|thumb|400px|right|Use of the Label Outline feature (below) vs the default view (above).  Note that the label outlines appear faint in the lower image -- zoom in by clicking on the image to see them as they actually appear in Slicer.]]
 - A large radius paint brush with threshold painting is often a very fast way to segment anatomy that is consistently brighter or darker than the surrounding region, but partially connected to similar nearby structures (this happens a lot).
 - Use the slice viewer menus to control the label map opacity and display mode (to show outlines only or full volume).
 
@@ -242,15 +242,19 @@ Limitations
 - Threshold will not work with non-scalar volume background volumes.
 - Mouse wheel can be used to move slice through volume, but on some platforms (mac) it may move more than one slice at a time.
 
-Similar Modules
+Related Modules
 ---------------
 
-- :ref:`module_editor` is the predecessor of this module. Segment Editor will eventually replace the Editor module.
+- :ref:`module_segment_statistics` module computes volume, surface, mean intensity, and various other metrics for each segment.
+- :ref:`module_segmentations` module allows changing visualization options, exporting/importing segments to/from other nodes (models, labelmap volumes), and moving or copying segments between segmentation nodes.
+- :ref:`module_data` module shows all segmentations and segments in a tree structure. Commonly used operations are available by right-clicking on an item in the tree.
+- :ref:`module_editor` is the predecessor of this module. Segment Editor will eventually replace the Editor module, therefore developers and users are encouraged to switch to Segment Editor module.
 
 Information for Developers
 --------------------------
 
-TODO
+See examples for creating and modifying segmentation nodes and using segment editor effects from your own modules in `Slicer script repository <https://www.slicer.org/wiki/Documentation/Nightly/ScriptRepository#Segmentations>`_.
+
 
 Contributors
 ------------
