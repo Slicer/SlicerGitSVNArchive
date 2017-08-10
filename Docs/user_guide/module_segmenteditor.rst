@@ -54,9 +54,13 @@ Panels and their use
 - Options: Options for the selected effect will be displayed here.
 - Undo/Redo: The module saves state of segmentation before each effect is applied. This is useful for experimentation and error correction. By default the last 10 states are remembered.
 - Masking: These options allow you to define the editable areas and whether or not certain segments can be overwritten.
+
   - Editable area: Changes will be limited to the selected area. This can be used for drawing inside a specific region or split a segment into multiple segments.
+
   - Editable intensity range: Changes wil be limited to areas where the master volume's voxels are in the selected intensity range. It is useful when locally an intensity threshold separates well between different regions. Intensity range can be previewed by using Threshold effect.
+
   - Overwrite other segments: Select which segments will be overwritten rather than overlapped.
+
     - All segments: Segment will not overlap.
     - Visible segments: Visible segments will not overlap with each other. Hidden segments will not be overwritten by changes done to visible segments.
     - None: Segments can overlap. Changing one segment will not change any other.
