@@ -24,7 +24,19 @@
 #include <QNetworkReply>
 #include <QTime>
 #include <QUrl>
+#include <QVBoxLayout>
+#if (QT_VERSION < QT_VERSION_CHECK(5, 6, 0))
 #include <QWebFrame>
+#include <QWebView>
+#else
+#include <QWebEngineView>
+#include <QWebChannel>
+#include <QWebEngineScript>
+#include <QWebEnginePage>
+#include <QWebEngineProfile>
+#include <qwebenginescriptcollection.h>
+#include <QFile>
+#endif
 
 // QtCore includes
 #include <qSlicerPersistentCookieJar.h>
@@ -45,13 +57,21 @@ public:
 
   void init();
 
+#if (QT_VERSION < QT_VERSION_CHECK(5, 6, 0))
   /// Convenient function to return the mainframe
   QWebFrame* mainFrame();
+#endif
 
   /// Convenient method to set "document.webkitHidden" property
   void setDocumentWebkitHidden(bool value);
 
   QTime DownloadTime;
+#if (QT_VERSION < QT_VERSION_CHECK(5, 6, 0))
+  QWebView* WebView;
+#else
+  QWebEngineView* WebView;
+  QWebChannel* WebChannel;
+#endif
 };
 
 // --------------------------------------------------------------------------
@@ -66,11 +86,53 @@ void qSlicerWebWidgetPrivate::init()
   Q_Q(qSlicerWebWidget);
 
   this->setupUi(q);
+#if (QT_VERSION < QT_VERSION_CHECK(5, 6, 0))
+  this->WebView = new QWebView();
+#else
+  this->WebView = new QWebEngineView();
+
+  QWebEngineProfile *profile = new QWebEngineProfile("MyWebChannelProfile", q);
+
+  QFile webChannelJsFile(":/qtwebchannel/qwebchannel.js");
+
+  if (!webChannelJsFile.open(QIODevice::ReadOnly))
+    {
+    qDebug() << QString("Couldn't open qwebchannel.js file: %1").arg(webChannelJsFile.errorString());
+    }
+  else
+    {
+    qDebug() << "OK webEngineProfile";
+    QByteArray webChannelJs = webChannelJsFile.readAll();
+    webChannelJs.append(
+        "\n"
+        "new QWebChannel(qt.webChannelTransport, function(channel) {"
+        " window.extensions_install_widget = channel.objects.extensions_install_widget;"
+        " console.log('From core: ' + extensions_install_widget.slicerOs);"
+        "});"
+        );
+    QWebEngineScript script;
+    script.setSourceCode(webChannelJs);
+    script.setName("qwebchannel_appended.js");
+    script.setWorldId(QWebEngineScript::MainWorld);
+    script.setInjectionPoint(QWebEngineScript::DocumentCreation);
+    script.setRunsOnSubFrames(false);
+    profile->scripts()->insert(script);
+    }
+
+  QWebEnginePage *myPage = new QWebEnginePage(profile, this->WebView);
+  this->WebView->setPage(myPage);
+  this->WebChannel = new QWebChannel(this->WebView->page());
+  this->WebView->page()->setWebChannel(this->WebChannel);
+#endif
+  this->verticalLayout->insertWidget(0, this->WebView);
+
   this->WebView->installEventFilter(q);
 
-  QNetworkAccessManager * networkAccessManager = this->WebView->page()->networkAccessManager();;
+#if (QT_VERSION < QT_VERSION_CHECK(5, 6, 0))
+  QNetworkAccessManager * networkAccessManager = this->WebView->page()->networkAccessManager();
   Q_ASSERT(networkAccessManager);
   networkAccessManager->setCookieJar(new qSlicerPersistentCookieJar());
+#endif
 
   QObject::connect(this->WebView, SIGNAL(loadStarted()),
                    q, SLOT(onLoadStarted()));
@@ -81,30 +143,42 @@ void qSlicerWebWidgetPrivate::init()
   QObject::connect(this->WebView, SIGNAL(loadProgress(int)),
                    this->ProgressBar, SLOT(setValue(int)));
 
+#if (QT_VERSION < QT_VERSION_CHECK(5, 6, 0))
   QObject::connect(this->mainFrame(), SIGNAL(javaScriptWindowObjectCleared()),
                    q, SLOT(initJavascript()));
 
   this->WebView->settings()->setAttribute(QWebSettings::DeveloperExtrasEnabled, true);
+#endif
 
   this->ProgressBar->setVisible(false);
 
+#if (QT_VERSION < QT_VERSION_CHECK(5, 6, 0))
   this->mainFrame()->setScrollBarPolicy(Qt::Vertical, Qt::ScrollBarAlwaysOn);
+#endif
 
+#if (QT_VERSION < QT_VERSION_CHECK(5, 6, 0))
   QObject::connect(this->WebView->page(), SIGNAL(linkClicked(QUrl)),
                    q, SLOT(onLinkClicked(QUrl)));
+#endif
 
 #ifdef Slicer_USE_PYTHONQT_WITH_OPENSSL
+#if (QT_VERSION < QT_VERSION_CHECK(5, 6, 0))
   QObject::connect(networkAccessManager,
                    SIGNAL(sslErrors(QNetworkReply*, const QList<QSslError> & )),
                    q, SLOT(handleSslErrors(QNetworkReply*, const QList<QSslError> & )));
+#else
+  qDebug() << "qSlicerWebWidget - Handling of SSL error not implemented";
+#endif
 #endif
 }
 
 // --------------------------------------------------------------------------
+#if (QT_VERSION < QT_VERSION_CHECK(5, 6, 0))
 QWebFrame* qSlicerWebWidgetPrivate::mainFrame()
 {
   return this->WebView->page()->mainFrame();
 }
+#endif
 
 // --------------------------------------------------------------------------
 void qSlicerWebWidgetPrivate::setDocumentWebkitHidden(bool value)
@@ -128,7 +202,12 @@ qSlicerWebWidget::~qSlicerWebWidget()
 }
 
 // --------------------------------------------------------------------------
-QWebView * qSlicerWebWidget::webView()
+#if (QT_VERSION < QT_VERSION_CHECK(5, 6, 0))
+QWebView *
+#else
+QWebEngineView *
+#endif
+qSlicerWebWidget::webView()
 {
   Q_D(qSlicerWebWidget);
   return d->WebView;
@@ -138,7 +217,23 @@ QWebView * qSlicerWebWidget::webView()
 QString qSlicerWebWidget::evalJS(const QString &js)
 {
   Q_D(qSlicerWebWidget);
+
+#if (QT_VERSION < QT_VERSION_CHECK(5, 6, 0))
   return d->mainFrame()->evaluateJavaScript(js).toString();
+#else
+  // NOTE: Beginning Qt5.7, the call to runJavaScript becomes asynchronous,
+  // and generally it takes a function lambda which is called once
+  // the script evaluation is completed. This takes in the result string
+  // as an argument.
+  // Since the result of JavaScript evaluation is not used anywhere
+  // in the code base, the function lambda is not supplied here,
+  // and an empty string is returned instead.
+  // When the need arises to use the result string, function lambdas
+  // and resulting infrastructure will have to be provided.
+  d->WebView->page()->runJavaScript(js);
+  return QString();
+#endif
+
 }
 
 // --------------------------------------------------------------------------
@@ -221,6 +316,7 @@ void qSlicerWebWidget::onLinkClicked(const QUrl& url)
 void qSlicerWebWidget::handleSslErrors(QNetworkReply* reply,
                                        const QList<QSslError> &errors)
 {
+#if (QT_VERSION < QT_VERSION_CHECK(5, 3, 0))
 #ifdef QT_NO_OPENSSL
   Q_UNUSED(reply)
   Q_UNUSED(errors)
@@ -230,6 +326,18 @@ void qSlicerWebWidget::handleSslErrors(QNetworkReply* reply,
     qDebug() << "[SSL] [" << qPrintable(reply->url().host().trimmed()) << "]"
              << qPrintable(e.errorString());
     }
+#endif
+#else
+#ifdef QT_NO_SSL
+  Q_UNUSED(reply)
+  Q_UNUSED(errors)
+#else
+  foreach (QSslError e, errors)
+    {
+    qDebug() << "[SSL] [" << qPrintable(reply->url().host().trimmed()) << "]"
+             << qPrintable(e.errorString());
+    }
+#endif
 #endif
 }
 

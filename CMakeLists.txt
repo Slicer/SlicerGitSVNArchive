@@ -2,6 +2,20 @@
 cmake_minimum_required(VERSION 3.5)
 
 #-----------------------------------------------------------------------------
+# Enable C++11
+#-----------------------------------------------------------------------------
+set(_msg "Setting C++ standard")
+message(STATUS "${_msg}")
+if("${Slicer_VTK_VERSION_MAJOR}" STREQUAL "8" OR DEFINED Qt5_DIR)
+  set(CMAKE_CXX_STANDARD 11)
+else()
+  set(CMAKE_CXX_STANDARD 98)
+endif()
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+message(STATUS "${_msg} - C++${CMAKE_CXX_STANDARD}")
+
+#-----------------------------------------------------------------------------
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake" ${CMAKE_MODULE_PATH})
 include(ExternalProject)
 include(ExternalProjectDependency)
@@ -152,7 +166,11 @@ mark_as_superbuild(GIT_EXECUTABLE)
 # Qt requirements
 #-----------------------------------------------------------------------------
 if(NOT DEFINED Slicer_REQUIRED_QT_VERSION)
-  set(Slicer_REQUIRED_QT_VERSION "4.7.4" CACHE STRING "Minimum required Qt version" FORCE)
+  set(_required_qt_version "4.7.4")
+  if(DEFINED Qt5_DIR OR "${Slicer_VTK_VERSION_MAJOR}" STREQUAL "8")
+    set(_required_qt_version "5.6.0")
+  endif()
+  set(Slicer_REQUIRED_QT_VERSION ${_required_qt_version} CACHE STRING "Minimum required Qt version" FORCE)
 endif()
 mark_as_superbuild(Slicer_REQUIRED_QT_VERSION)
 
@@ -283,6 +301,17 @@ mark_as_superbuild(Slicer_INSTALL_ITKPython)
 
 option(Slicer_BUILD_PARAMETERSERIALIZER_SUPPORT "Build Slicer with parameter serializer support" ON)
 mark_as_superbuild(Slicer_BUILD_PARAMETERSERIALIZER_SUPPORT)
+
+set(_default_vtk "7")
+if(DEFINED Qt5_DIR)
+  set(_default_vtk "8")
+endif()
+set(Slicer_VTK_VERSION_MAJOR ${_default_vtk} CACHE STRING "The VTK major version (7 or 8).")
+set_property(CACHE Slicer_VTK_VERSION_MAJOR PROPERTY STRINGS "7" "8")
+if(NOT "${Slicer_VTK_VERSION_MAJOR}" STREQUAL "7" AND NOT "${Slicer_VTK_VERSION_MAJOR}" STREQUAL "8")
+  message(FATAL_ERROR "error: Slicer_VTK_VERSION_MAJOR must be 7 or 8.")
+endif()
+mark_as_superbuild(Slicer_VTK_VERSION_MAJOR)
 
 #
 # SimpleITK has large internal libraries, which take an extremely long
@@ -507,12 +536,20 @@ if(Slicer_BUILD_CLI_SUPPORT)
 endif()
 
 #-----------------------------------------------------------------------------
-# VTKv7 - Slicer_VTK_COMPONENTS
+# VTKv8 - Slicer_VTK_COMPONENTS
 #-----------------------------------------------------------------------------
-set(Slicer_VTK_RENDERING_BACKEND "OpenGL" CACHE STRING "Choose the rendering backend.")
-set_property(CACHE Slicer_VTK_RENDERING_BACKEND PROPERTY STRINGS "OpenGL" "OpenGL2")
+if(Slicer_VTK_VERSION_MAJOR STREQUAL "7")
+  set(_backend "OpenGL")
+else()
+  set(_backend "OpenGL2")
+endif()
+set(Slicer_VTK_RENDERING_BACKEND "${_backend}" CACHE STRING "Rendering backend." FORCE)
 mark_as_superbuild(Slicer_VTK_RENDERING_BACKEND)
 set(Slicer_VTK_RENDERING_USE_${Slicer_VTK_RENDERING_BACKEND}_BACKEND 1)
+
+message(STATUS "Configuring VTK")
+message(STATUS "  Slicer_VTK_RENDERING_BACKEND is ${Slicer_VTK_RENDERING_BACKEND}")
+message(STATUS "  Slicer_VTK_VERSION_MAJOR is ${Slicer_VTK_VERSION_MAJOR}")
 
 set(Slicer_VTK_COMPONENTS
   vtkFiltersExtraction
@@ -563,27 +600,63 @@ endif()
 #-----------------------------------------------------------------------------
 # Qt - Slicer_REQUIRED_QT_MODULES
 #-----------------------------------------------------------------------------
-# Module name should be specified as they appear in FindQt4.cmake
+# Module name should be specified as they appear in FindQt4.cmake or
 # For example, the module name associated with the variable QT_USE_QTXML is QTXML.
 # Note that the modules will be installed when packaging.
-set(Slicer_REQUIRED_QT_MODULES
-  QTCORE QTGUI
-  QTNETWORK QTOPENGL
-  QTUITOOLS #no dll
-  QTXML QTXMLPATTERNS
-  QTWEBKIT
-  QTSVG QTSQL
-  )
-if(WIN32)
-  list(APPEND Slicer_REQUIRED_QT_MODULES PHONON) # webkit requires phonon
-endif()
-if(Slicer_BUILD_EXTENSIONMANAGER_SUPPORT)
-  list(APPEND Slicer_REQUIRED_QT_MODULES QTSCRIPT)
-endif()
-if(BUILD_TESTING)
-  list(APPEND Slicer_REQUIRED_QT_MODULES QTTEST)
+if(Slicer_REQUIRED_QT_VERSION VERSION_LESS "5")
+  set(Slicer_REQUIRED_QT_MODULES
+    QTCORE QTGUI
+    QTNETWORK QTOPENGL
+    QTUITOOLS #no dll
+    QTXML QTXMLPATTERNS
+    QTWEBKIT
+    QTSVG QTSQL
+    )
+  if(WIN32)
+    list(APPEND Slicer_REQUIRED_QT_MODULES PHONON) # webkit requires phonon
+  endif()
+  if(Slicer_BUILD_EXTENSIONMANAGER_SUPPORT)
+    list(APPEND Slicer_REQUIRED_QT_MODULES QTSCRIPT)
+  endif()
+  if(BUILD_TESTING)
+    list(APPEND Slicer_REQUIRED_QT_MODULES QTTEST)
+  endif()
+else()
+  set(Slicer_REQUIRED_QT_MODULES
+    Core Widgets
+    Network OpenGL
+    PrintSupport # Required by "Annotations" module
+    UiTools #no dll
+    Xml XmlPatterns
+    Svg Sql
+    )
+  find_package(Qt5 COMPONENTS Core QUIET)
+  if(Qt5_VERSION VERSION_LESS "5.6.0")
+    list(APPEND Slicer_REQUIRED_QT_MODULES
+      WebKit
+      )
+  else()
+    list(APPEND Slicer_REQUIRED_QT_MODULES
+      WebEngine
+      WebEngineWidgets
+      WebChannel
+      )
+  endif()
+  if(Slicer_BUILD_EXTENSIONMANAGER_SUPPORT)
+    list(APPEND Slicer_REQUIRED_QT_MODULES Script)
+  endif()
+  if(BUILD_TESTING)
+    list(APPEND Slicer_REQUIRED_QT_MODULES Test)
+  endif()
 endif()
 list(APPEND Slicer_REQUIRED_QT_MODULES ${Slicer_ADDITIONAL_REQUIRED_QT_MODULES})
+
+if(Slicer_REQUIRED_QT_VERSION VERSION_GREATER "4.9")
+  set(QT_LIBRARIES)
+  foreach(lib IN LISTS Slicer_REQUIRED_QT_MODULES)
+    list(APPEND QT_LIBRARIES Qt5::${lib})
+  endforeach()
+endif()
 
 if(DEFINED Slicer_ADDITIONAL_REQUIRED_QT_MODULES)
   mark_as_superbuild(Slicer_ADDITIONAL_REQUIRED_QT_MODULES:STRING)
@@ -601,7 +674,23 @@ set(Slicer_INSTALL_QtPlugins_DIR "${Slicer_INSTALL_ROOT}${Slicer_QtPlugins_DIR}"
 # Qt
 #-----------------------------------------------------------------------------
 include(SlicerBlockFindQtAndCheckVersion)
-mark_as_superbuild(VARS QT_QMAKE_EXECUTABLE LABELS "FIND_PACKAGE")
+if(Slicer_REQUIRED_QT_VERSION VERSION_LESS "5")
+  mark_as_superbuild(VARS QT_QMAKE_EXECUTABLE LABELS "FIND_PACKAGE")
+else()
+  mark_as_superbuild(VARS Qt5_DIR LABELS "FIND_PACKAGE")
+endif()
+
+set(Slicer_HAVE_QT5 1)
+if(Slicer_REQUIRED_QT_VERSION VERSION_LESS "5")
+  set(Slicer_HAVE_QT5 0)
+endif()
+
+set(Slicer_HAVE_WEBKIT_SUPPORT 1)
+if(Slicer_REQUIRED_QT_VERSION VERSION_GREATER "4.9")
+  if(Qt5_VERSION VERSION_GREATER "5.5.0")
+    set(Slicer_HAVE_WEBKIT_SUPPORT 0)
+  endif()
+endif()
 
 #
 # If qmake is found in a system location, explicitly mark Qt as such. Doing so
@@ -626,6 +715,14 @@ foreach(_path IN ITEMS
     break()
   endif()
 endforeach()
+
+# Prefer QVTKOpenGLWidget to QVTKWidget when supported
+set(Slicer_VTK_USE_QVTKOPENGLWIDGET 1)
+if(Slicer_REQUIRED_QT_VERSION VERSION_LESS "5"
+    OR Slicer_VTK_VERSION_MAJOR VERSION_LESS "8"
+    OR NOT Slicer_VTK_RENDERING_USE_OpenGL2_BACKEND)
+  set(Slicer_VTK_USE_QVTKOPENGLWIDGET 0)
+endif()
 
 #-----------------------------------------------------------------------------
 # Testing
@@ -777,7 +874,7 @@ endif()
 #-----------------------------------------------------------------------------
 # VTK
 #-----------------------------------------------------------------------------
-find_package(VTK 7.1 COMPONENTS ${Slicer_VTK_COMPONENTS} REQUIRED NO_MODULE)
+find_package(VTK ${Slicer_VTK_VERSION_MAJOR} COMPONENTS ${Slicer_VTK_COMPONENTS} REQUIRED NO_MODULE)
 if(NOT TARGET vtkGUISupportQt)
   message(FATAL_ERROR "error: VTK was not configured to use QT, you probably need "
                     "to recompile it with VTK_USE_GUISUPPORT ON, VTK_Group_Qt ON, "
