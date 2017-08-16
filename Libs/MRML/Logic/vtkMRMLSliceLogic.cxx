@@ -549,11 +549,23 @@ void vtkMRMLSliceLogic::ProcessMRMLLogicsEvents()
     plane->SetOrigin(outPt3);
 
     inPt[0] = dims[0];
+    // Force non-zero coordinates to avoid "Bad plane coordinate system"
+    // error from vtkPlaneSource when slice viewers have a width of zero.
+    if (inPt[0] < 1)
+      {
+      inPt[0] = 1;
+      }
     textureToRAS->MultiplyPoint(inPt, outPt);
     plane->SetPoint1(outPt3);
 
     inPt[0] = 0;
     inPt[1] = dims[1];
+    // Force non-zero coordinates to avoid "Bad plane coordinate system"
+    // error from vtkPlaneSource when slice viewers have an height of zero.
+    if (inPt[1] < 1)
+      {
+      inPt[1] = 1;
+      }
     textureToRAS->MultiplyPoint(inPt, outPt);
     plane->SetPoint2(outPt3);
 
