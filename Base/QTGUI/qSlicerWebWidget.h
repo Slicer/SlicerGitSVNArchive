@@ -28,15 +28,25 @@
 // QtGUI includes
 #include "qSlicerBaseQTGUIExport.h"
 
-#include "vtkSlicerConfigure.h" // For Slicer_USE_PYTHONQT_WITH_OPENSSL
+#include "vtkSlicerConfigure.h" // For Slicer_USE_PYTHONQT_WITH_OPENSSL, Slicer_HAVE_WEBKIT_SUPPORT
 
 class QNetworkReply;
 class qSlicerWebWidgetPrivate;
 class QUrl;
+#ifdef Slicer_HAVE_WEBKIT_SUPPORT
 class QWebView;
+#else
+class QWebEngineView;
+#endif
 
+#if (QT_VERSION < QT_VERSION_CHECK(5, 3, 0))
 #ifdef QT_NO_OPENSSL
 struct QSslError{};
+#endif
+#else
+#ifdef QT_NO_SSL
+struct QSslError{};
+#endif
 #endif
 
 class Q_SLICER_BASE_QTGUI_EXPORT qSlicerWebWidget
@@ -54,7 +64,11 @@ public:
   virtual ~qSlicerWebWidget();
 
   /// Return a reference to the QWebView used internally.
+#ifdef Slicer_HAVE_WEBKIT_SUPPORT
   Q_INVOKABLE QWebView * webView();
+#else
+  Q_INVOKABLE QWebEngineView * webView();
+#endif
 
   /// Convenient function to evaluate JS in main frame context
   QString evalJS(const QString &js);

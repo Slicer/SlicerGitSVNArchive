@@ -39,11 +39,12 @@ class vtkPolyData;
 class vtkDataObject;
 class vtkGeneralTransform;
 
-class vtkMRMLScalarVolumeNode;
 class vtkMRMLSegmentationStorageNode;
+class vtkMRMLScalarVolumeNode;
 class vtkMRMLLabelMapVolumeNode;
-class vtkMRMLModelNode;
 class vtkMRMLVolumeNode;
+class vtkMRMLModelNode;
+class vtkMRMLModelHierarchyNode;
 
 /// \ingroup SlicerRt_QtModules_Segmentations
 class VTK_SLICER_SEGMENTATIONS_LOGIC_EXPORT vtkSlicerSegmentationsModuleLogic :
@@ -52,7 +53,7 @@ class VTK_SLICER_SEGMENTATIONS_LOGIC_EXPORT vtkSlicerSegmentationsModuleLogic :
 public:
   static vtkSlicerSegmentationsModuleLogic *New();
   vtkTypeMacro(vtkSlicerSegmentationsModuleLogic,vtkSlicerModuleLogic);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   /// Get segmentation node containing a segmentation object. As segmentation objects are out-of-MRML
   /// VTK objects, there is no direct link from it to its parent node, so must be found from the MRML scene.
@@ -137,6 +138,30 @@ public:
   /// Otherwise return with failure.
   static bool ExportSegmentToRepresentationNode(vtkSegment* segment, vtkMRMLNode* representationNode);
 
+  /// Export multiple segments into a model hierarchy, a model node from each segment
+  /// \param segmentationNode Segmentation node from which the the segments are exported
+  /// \param segmentIds List of segment IDs to export
+  /// \param modelHierarchyNode Model hierarchy to export the segments to
+  static bool ExportSegmentsToModelHierarchy(vtkMRMLSegmentationNode* segmentationNode,
+    std::vector<std::string>& segmentIDs, vtkMRMLModelHierarchyNode* modelHierarchyNode);
+
+  /// Export multiple segments into a model hierarchy, a model node from each segment
+  /// \param segmentationNode Segmentation node from which the the segments are exported
+  /// \param segmentIds List of segment IDs to export
+  /// \param modelHierarchyNode Model hierarchy to export the segments to
+  static bool ExportSegmentsToModelHierarchy(vtkMRMLSegmentationNode* segmentationNode,
+    vtkStringArray* segmentIds, vtkMRMLModelHierarchyNode* modelHierarchyNode);
+
+  /// Export visible segments into a model hierarchy, a model node from each segment
+  /// \param segmentationNode Segmentation node from which the the segments are exported
+  /// \param modelHierarchyNode Model hierarchy to export the visible segments to
+  static bool ExportVisibleSegmentsToModelHierarchy(vtkMRMLSegmentationNode* segmentationNode, vtkMRMLModelHierarchyNode* modelHierarchyNode);
+
+  /// Export all segments into a model hierarchy, a model node from each segment
+  /// \param segmentationNode Segmentation node from which the the segments are exported
+  /// \param modelHierarchyNode Model hierarchy to export the segments to
+  static bool ExportAllSegmentsToModelHierarchy(vtkMRMLSegmentationNode* segmentationNode, vtkMRMLModelHierarchyNode* modelHierarchyNode);
+
   /// Export multiple segments into a multi-label labelmap volume node
   /// \param segmentationNode Segmentation node from which the the segments are exported
   /// \param segmentIds List of segment IDs to export
@@ -151,6 +176,13 @@ public:
   /// \param labelmapNode Labelmap node to export the segments to
   /// \param referenceVolumeNode If specified, then the merged labelmap node will match the geometry of referenceVolumeNode
   static bool ExportSegmentsToLabelmapNode(vtkMRMLSegmentationNode* segmentationNode, vtkStringArray* segmentIDs,
+    vtkMRMLLabelMapVolumeNode* labelmapNode, vtkMRMLVolumeNode* referenceVolumeNode = NULL);
+
+  /// Export visible segments into a multi-label labelmap volume node
+  /// \param segmentationNode Segmentation node from which the the visible segments are exported
+  /// \param labelmapNode Labelmap node to export the segments to
+  /// \param referenceVolumeNode If specified, then the merged labelmap node will match the geometry of referenceVolumeNode
+  static bool ExportVisibleSegmentsToLabelmapNode(vtkMRMLSegmentationNode* segmentationNode,
     vtkMRMLLabelMapVolumeNode* labelmapNode, vtkMRMLVolumeNode* referenceVolumeNode = NULL);
 
   /// Export all segments into a multi-label labelmap volume node
@@ -263,10 +295,10 @@ public:
   static bool SetBinaryLabelmapToSegment(vtkOrientedImageData* labelmap, vtkMRMLSegmentationNode* segmentationNode, std::string segmentID, int mergeMode=MODE_REPLACE, const int extent[6]=0);
 
 protected:
-  virtual void SetMRMLSceneInternal(vtkMRMLScene * newScene);
+  virtual void SetMRMLSceneInternal(vtkMRMLScene * newScene) VTK_OVERRIDE;
 
   /// Register MRML Node classes to Scene. Gets called automatically when the MRMLScene is attached to this logic class.
-  virtual void RegisterNodes();
+  virtual void RegisterNodes() VTK_OVERRIDE;
 
   /// Callback function observing UID added events for subject hierarchy nodes.
   /// In case the newly added UID is a volume node referenced from a segmentation,
@@ -276,7 +308,7 @@ protected:
   static void OnSubjectHierarchyUIDAdded(vtkObject* caller, unsigned long eid, void* clientData, void* callData);
 
   /// Handle MRML node added events
-  virtual void OnMRMLSceneNodeAdded(vtkMRMLNode* node);
+  virtual void OnMRMLSceneNodeAdded(vtkMRMLNode* node) VTK_OVERRIDE;
 
 protected:
   vtkSlicerSegmentationsModuleLogic();

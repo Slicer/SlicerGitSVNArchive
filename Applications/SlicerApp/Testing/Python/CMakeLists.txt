@@ -218,6 +218,14 @@ slicer_add_python_test(
   TESTNAME_PREFIX mainwindow_
   )
 
+if(Slicer_USE_SimpleITK)
+  slicer_add_python_unittest(
+    SCRIPT ${Slicer_SOURCE_DIR}/Base/Python/tests/test_sitkUtils.py
+    SLICER_ARGS --no-main-window
+    TESTNAME_PREFIX nomainwindow_
+    )
+endif()
+
 slicer_add_python_unittest(
   SCRIPT ${Slicer_SOURCE_DIR}/Base/Python/tests/test_saferef.py
   SLICER_ARGS --no-main-window --disable-modules
@@ -280,6 +288,55 @@ if(Slicer_USE_PYTHONQT_WITH_OPENSSL)
     -c "import urllib2; urllib2.urlopen('https://www.eff.org/https-everywhere')"
     )
 endif()
+
+# Check that python standard library modules can be imported
+foreach(stdlib_module IN ITEMS
+    "bz2"
+    )
+  add_test(
+    NAME py_test_stdlib_import_${stdlib_module}_using_slicer
+    COMMAND ${Slicer_LAUNCHER_EXECUTABLE}
+    -c "import ${stdlib_module}" --no-splash --ignore-slicerrc --disable-settings
+    )
+  add_test(
+    NAME py_test_stdlib_import_${stdlib_module}_using_python
+    COMMAND ${PYTHON_EXECUTABLE}
+    -c "import ${stdlib_module}"
+    )
+endforeach()
+
+# Check that application signal "startupCompleted()" is emitted
+# (1) with mainwindow
+set(_dest "${CMAKE_CURRENT_BINARY_DIR}/StartupCompletedTest")
+file(MAKE_DIRECTORY ${_dest})
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/SlicerStartupCompletedTest.py DESTINATION ${_dest})
+set(_test "py_startupcompleted_signal_emitted_with_mainwindow_test")
+add_test(
+  NAME ${_test}
+  COMMAND ${Slicer_LAUNCHER_EXECUTABLE}
+    --testing --no-splash
+    --disable-builtin-cli-modules
+    --disable-builtin-loadable-modules
+    --disable-builtin-scripted-loadable-modules
+    --additional-module-path ${_dest}
+    --exit-after-startup
+  )
+set_tests_properties(${_test} PROPERTIES PASS_REGULAR_EXPRESSION "StartupCompleted emitted")
+
+# (2) without mainwindow
+set(_test "py_startupcompleted_signal_emitted_without_mainwindow_test")
+add_test(
+  NAME ${_test}
+  COMMAND ${Slicer_LAUNCHER_EXECUTABLE}
+    --testing --no-splash
+    --disable-builtin-cli-modules
+    --disable-builtin-loadable-modules
+    --disable-builtin-scripted-loadable-modules
+    --additional-module-path ${_dest}
+    --no-main-window
+    --exit-after-startup
+  )
+set_tests_properties(${_test} PROPERTIES PASS_REGULAR_EXPRESSION "StartupCompleted emitted")
 
 #
 # SelfTests

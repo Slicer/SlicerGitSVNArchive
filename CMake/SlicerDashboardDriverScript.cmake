@@ -28,7 +28,6 @@ set(expected_variables
   CTEST_MEMORYCHECK_COMMAND
   CTEST_SVN_COMMAND
   CTEST_GIT_COMMAND
-  QT_QMAKE_EXECUTABLE
   )
 
 # Update list of expected variables based on build options.
@@ -45,6 +44,19 @@ foreach(var ${expected_variables})
     message(FATAL_ERROR "Variable ${var} should be defined in top-level script !")
   endif()
 endforeach()
+
+# Handle Qt configuration
+if(NOT DEFINED QT_QMAKE_EXECUTABLE AND NOT DEFINED Qt5_DIR)
+  message(FATAL_ERROR "Either QT_QMAKE_EXECUTABLE (for Qt4) or Qt5_DIR (for Qt5) should be defined in top-level script")
+endif()
+if(DEFINED QT_QMAKE_EXECUTABLE)
+  set(QT_CACHE_ENTRY "QT_QMAKE_EXECUTABLE:FILEPATH=${QT_QMAKE_EXECUTABLE}")
+  list(APPEND variables QT_QMAKE_EXECUTABLE)
+endif()
+if(DEFINED Qt5_DIR)
+  set(QT_CACHE_ENTRY "Qt5_DIR:PATH=${Qt5_DIR}")
+  list(APPEND variables Qt5_DIR)
+endif()
 
 if(NOT DEFINED CTEST_CONFIGURATION_TYPE AND DEFINED CTEST_BUILD_CONFIGURATION)
   set(CTEST_CONFIGURATION_TYPE ${CTEST_BUILD_CONFIGURATION})
@@ -96,6 +108,7 @@ endmacro()
 # Set default values
 #-----------------------------------------------------------------------------
 setIfNotDefined(CTEST_PARALLEL_LEVEL 8)
+setIfNotDefined(CTEST_CONTINUOUS_DURATION 46800) # Lasts 13 hours (Assuming it starts at 9am, it will end around 10pm)
 setIfNotDefined(MIDAS_PACKAGE_URL "http://slicer.kitware.com/midas3")
 setIfNotDefined(MIDAS_PACKAGE_EMAIL "MIDAS_PACKAGE_EMAIL-NOTDEFINED" OBFUSCATE)
 setIfNotDefined(MIDAS_PACKAGE_API_KEY "MIDAS_PACKAGE_API_KEY-NOTDEFINED" OBFUSCATE)
@@ -156,7 +169,19 @@ if(SCRIPT_MODE STREQUAL "experimental")
   set(force_build TRUE)
   set(model Experimental)
 elseif(SCRIPT_MODE STREQUAL "continuous")
-  set(empty_binary_directory TRUE)
+  if(${CTEST_CONTINUOUS_DURATION} GREATER 0)
+    # Continuous tests are performed in a loop
+    # until duration expires. Clean up the build
+    # tree at the beginning.
+    set(empty_binary_directory TRUE)
+  else()
+    # A single continuous test run is requested,
+    # do not delete the build tree.
+    # (useful when the nightly build tree is reused
+    # as continuous build tree and repeated builds
+    # are triggered by an external scheduler)
+    set(empty_binary_directory FALSE)
+  endif()
   set(force_build FALSE)
   set(model Continuous)
 elseif(SCRIPT_MODE STREQUAL "nightly")
@@ -265,7 +290,7 @@ macro(run_ctest)
     # Write initial cache.
     #-----------------------------------------------------------------------------
     file(WRITE "${CTEST_BINARY_DIRECTORY}/CMakeCache.txt" "
-QT_QMAKE_EXECUTABLE:FILEPATH=${QT_QMAKE_EXECUTABLE}
+${QT_CACHE_ENTRY}
 GIT_EXECUTABLE:FILEPATH=${CTEST_GIT_COMMAND}
 Subversion_SVN_EXECUTABLE:FILEPATH=${CTEST_SVN_COMMAND}
 WITH_COVERAGE:BOOL=${WITH_COVERAGE}
@@ -426,8 +451,8 @@ ${ADDITIONAL_CMAKECACHE_OPTION}
   endif()
 endmacro()
 
-if(SCRIPT_MODE STREQUAL "continuous")
-  while(${CTEST_ELAPSED_TIME} LESS 46800) # Lasts 13 hours (Assuming it starts at 9am, it will end around 10pm)
+if(SCRIPT_MODE STREQUAL "continuous" AND ${CTEST_CONTINUOUS_DURATION} GREATER 0)
+  while(${CTEST_ELAPSED_TIME} LESS ${CTEST_CONTINUOUS_DURATION})
     set(START_TIME ${CTEST_ELAPSED_TIME})
     run_ctest()
     set(interval 300)

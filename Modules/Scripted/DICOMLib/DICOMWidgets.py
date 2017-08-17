@@ -2,12 +2,16 @@ import os, copy
 import qt
 import vtk
 import logging
+
+from packaging import version
+
 from ctk import ctkDICOMObjectListWidget, ctkDICOMDatabase, ctkDICOMIndexer, ctkDICOMBrowser, ctkPopupWidget, ctkExpandButton
 import slicer
 from slicer.util import VTKObservationMixin
 
 from slicer.util import settingsValue, toBool
 import DICOMLib
+
 
 #########################################################
 #
@@ -848,20 +852,16 @@ class DICOMDetailsBase(VTKObservationMixin, SizePositionSettingsMixin):
     self.onLoadingFinished()
 
   def warnUserIfLoadableWarningsAndProceed(self):
-    warningsInLoadableWithConfidence = 0.0
-    maximumConfidence = 0.0
+    warningsInSelectedLoadables = False
     for plugin in self.loadablesByPlugin:
       for loadable in self.loadablesByPlugin[plugin]:
-        if loadable.warning != "":
+        if loadable.selected and loadable.warning != "":
+          warningsInSelectedLoadables = True
           logging.warning('Warning in DICOM plugin ' + plugin.loadType + ' when examining loadable ' + loadable.name +
                           ': ' + loadable.warning)
-          if warningsInLoadableWithConfidence < loadable.confidence:
-            warningsInLoadableWithConfidence = loadable.confidence
-        if maximumConfidence < loadable.confidence:
-          maximumConfidence = loadable.confidence
-    if warningsInLoadableWithConfidence == maximumConfidence and not self.advancedView:
+    if warningsInSelectedLoadables:
       warning = "Warnings detected during load.  Examine data in Advanced mode for details.  Load anyway?"
-      if not slicer.util.confirmOkCancelDisplay(warning):
+      if not slicer.util.confirmOkCancelDisplay(warning, parent=self):
         return False
     return True
 
@@ -1017,7 +1017,7 @@ class DICOMPluginSelector(qt.QWidget):
   """
 
   def __init__(self, parent, width=50, height=100):
-    super(DICOMPluginSelector, self).__init__(parent, width=width, height=height)
+    super(DICOMPluginSelector, self).__init__(parent)
     self.setMinimumHeight(height)
     self.setMinimumWidth(width)
     self.setLayout(qt.QVBoxLayout())
@@ -1058,6 +1058,13 @@ class DICOMPluginSelector(qt.QWidget):
     return selectedPlugins
 
 
+def _setSectionResizeMode(header, *args, **kwargs):
+  if version.parse(qt.Qt.qVersion()) < version.parse("5.0.0"):
+    header.setResizeMode(*args, **kwargs)
+  else:
+    header.setSectionResizeMode(*args, **kwargs)
+
+
 class DICOMLoadableTable(qt.QTableWidget):
   """Implement the Qt code for a table of
   selectable slicer data to be made from
@@ -1080,10 +1087,10 @@ class DICOMLoadableTable(qt.QTableWidget):
     self.setColumnCount(3)
     self.setHorizontalHeaderLabels(['DICOM Data', 'Reader', 'Warnings'])
     self.setSelectionBehavior(qt.QTableView.SelectRows)
-    self.horizontalHeader().setResizeMode(qt.QHeaderView.Stretch)
-    self.horizontalHeader().setResizeMode(0, qt.QHeaderView.ResizeToContents)
-    self.horizontalHeader().setResizeMode(1, qt.QHeaderView.Stretch)
-    self.horizontalHeader().setResizeMode(2, qt.QHeaderView.Stretch)
+    _setSectionResizeMode(self.horizontalHeader(), qt.QHeaderView.Stretch)
+    _setSectionResizeMode(self.horizontalHeader(), 0, qt.QHeaderView.ResizeToContents)
+    _setSectionResizeMode(self.horizontalHeader(), 1, qt.QHeaderView.Stretch)
+    _setSectionResizeMode(self.horizontalHeader(), 2, qt.QHeaderView.Stretch)
 
   def addLoadableRow(self, loadable, row, reader):
     self.insertRow(row)
@@ -1176,9 +1183,9 @@ class DICOMHeaderWidget(qt.QTableWidget):
   def configure(self):
     self.setColumnCount(2)
     self.setHorizontalHeaderLabels(['Tag', 'Value'])
-    self.horizontalHeader().setResizeMode(qt.QHeaderView.Stretch)
-    self.horizontalHeader().setResizeMode(0, qt.QHeaderView.Stretch)
-    self.horizontalHeader().setResizeMode(1, qt.QHeaderView.Stretch)
+    _setSectionResizeMode(self.horizontalHeader(), qt.QHeaderView.Stretch)
+    _setSectionResizeMode(self.horizontalHeader(), 0, qt.QHeaderView.Stretch)
+    _setSectionResizeMode(self.horizontalHeader(), 1, qt.QHeaderView.Stretch)
 
   def setHeader(self, dcmFile=None):
     #TODO: this method never gets called. Should be called when clicking on items from the SeriesTable
@@ -1422,7 +1429,7 @@ class DICOMHeaderPopup(qt.QDialog, SizePositionSettingsMixin):
     for fileList in fileLists:
       for filePath in fileList:
         filePaths.append(filePath)
-        self.listWidget.setFileList(filePaths)
+    self.listWidget.setFileList(filePaths)
 
   def show(self):
     if not self.isVisible():

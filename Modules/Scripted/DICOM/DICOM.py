@@ -67,9 +67,8 @@ This work is supported by NA-MIC, NAC, BIRN, NCIGT, and the Slicer Community. Se
         if slicer.dicomDatabase:
           slicer.app.setDICOMDatabase(slicer.dicomDatabase)
 
-    # Trigger the menu to be added when application has started up
-    if not slicer.app.commandOptions().noMainWindow :
-      qt.QTimer.singleShot(0, self.performPostModuleDiscoveryTasks)
+    # Tasks to execute after the application has started up
+    slicer.app.connect("startupCompleted()", self.performPostModuleDiscoveryTasks)
 
   def setup(self):
     pluginHandlerSingleton = slicer.qSlicerSubjectHierarchyPluginHandler.instance()
@@ -83,11 +82,13 @@ This work is supported by NA-MIC, NAC, BIRN, NCIGT, and the Slicer Community. Se
     """
     # set the dicom pre-cache tags once all plugin classes have been initialized
     DICOMLib.setDatabasePrecacheTags()
-    # add to the main app file menu
-    self.addMenu()
-    # add the settings options
-    self.settingsPanel = DICOMSettingsPanel()
-    slicer.app.settingsDialog().addPanel("DICOM", self.settingsPanel)
+
+    if not slicer.app.commandOptions().noMainWindow:
+      # add to the main app file menu
+      self.addMenu()
+      # add the settings options
+      self.settingsPanel = DICOMSettingsPanel()
+      slicer.app.settingsDialog().addPanel("DICOM", self.settingsPanel)
 
   def addMenu(self):
     """Add an action to the File menu that will go into
@@ -228,7 +229,7 @@ class DICOMWidget:
     # - if the update is requested before the timeout, the call to timer.start() resets it
     # - the actual update only happens when the the full time elapses since the last request
     self.updateRecentActivityTimer = qt.QTimer()
-    self.updateRecentActivityTimer.singleShot = True
+    self.updateRecentActivityTimer.setSingleShot(True)
     self.updateRecentActivityTimer.interval = 500
     self.updateRecentActivityTimer.connect('timeout()', self.onUpateRecentActivityRequestTimeout)
 
@@ -288,7 +289,7 @@ class DICOMWidget:
     self.toggleListener.checkable = True
     if hasattr(slicer, 'dicomListener'):
       self.toggleListener.text = "Stop Listener"
-      slicer.dicomListener.process.connect('stateChanged(int)',self.onListenerStateChanged)
+      slicer.dicomListener.process.connect('stateChanged(QProcess::ProcessState)',self.onListenerStateChanged)
     else:
       self.toggleListener.text = "Start Listener"
     self.localFrame.layout().addWidget(self.toggleListener)

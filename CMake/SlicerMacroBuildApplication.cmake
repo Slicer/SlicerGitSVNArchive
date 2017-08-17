@@ -139,11 +139,27 @@ macro(slicerMacroBuildAppLibrary)
   #-----------------------------------------------------------------------------
   # Sources
   # --------------------------------------------------------------------------
-  QT4_WRAP_CPP(SLICERAPPLIB_MOC_OUTPUT ${SLICERAPPLIB_MOC_SRCS})
-  QT4_WRAP_UI(SLICERAPPLIB_UI_CXX ${SLICERAPPLIB_UI_SRCS})
-  if(DEFINED SLICERAPPLIB_RESOURCES)
-    QT4_ADD_RESOURCES(SLICERAPPLIB_QRC_SRCS ${SLICERAPPLIB_RESOURCES})
-  endif(DEFINED SLICERAPPLIB_RESOURCES)
+  if(CTK_QT_VERSION VERSION_LESS "5")
+    set(_moc_options)
+    if(Slicer_HAVE_WEBKIT_SUPPORT)
+      set(_moc_options OPTIONS -DSlicer_HAVE_WEBKIT_SUPPORT)
+    endif()
+    QT4_WRAP_CPP(SLICERAPPLIB_MOC_OUTPUT ${SLICERAPPLIB_MOC_SRCS} ${_moc_options})
+    QT4_WRAP_UI(SLICERAPPLIB_UI_CXX ${SLICERAPPLIB_UI_SRCS})
+    if(DEFINED SLICERAPPLIB_RESOURCES)
+      QT4_ADD_RESOURCES(SLICERAPPLIB_QRC_SRCS ${SLICERAPPLIB_RESOURCES})
+    endif(DEFINED SLICERAPPLIB_RESOURCES)
+  else()
+    set(_moc_options OPTIONS -DSlicer_HAVE_QT5)
+    if(Slicer_HAVE_WEBKIT_SUPPORT)
+      set(_moc_options OPTIONS -DSlicer_HAVE_WEBKIT_SUPPORT)
+    endif()
+    QT5_WRAP_CPP(SLICERAPPLIB_MOC_OUTPUT ${SLICERAPPLIB_MOC_SRCS} ${_moc_options})
+    QT5_WRAP_UI(SLICERAPPLIB_UI_CXX ${SLICERAPPLIB_UI_SRCS})
+    if(DEFINED SLICERAPPLIB_RESOURCES)
+      QT5_ADD_RESOURCES(SLICERAPPLIB_QRC_SRCS ${SLICERAPPLIB_RESOURCES})
+    endif(DEFINED SLICERAPPLIB_RESOURCES)
+  endif()
 
   set_source_files_properties(
     ${SLICERAPPLIB_UI_CXX}
@@ -362,7 +378,7 @@ macro(slicerMacroBuildApplication)
 
   if(QT_MAC_USE_COCOA)
     get_filename_component(qt_menu_nib
-      "@QT_QTGUI_LIBRARY_RELEASE@/Resources/qt_menu.nib"
+      "${QT_QTGUI_LIBRARY_RELEASE}/Resources/qt_menu.nib"
       REALPATH)
 
     set(qt_menu_nib_sources

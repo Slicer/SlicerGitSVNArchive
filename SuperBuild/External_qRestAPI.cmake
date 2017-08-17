@@ -22,6 +22,20 @@ if(NOT DEFINED qRestAPI_DIR)
     set(git_protocol "git")
   endif()
 
+
+  set(ep_cache_args)
+  if(Slicer_REQUIRED_QT_VERSION VERSION_LESS "5")
+    list(APPEND ep_cache_args
+      -DQT_QMAKE_EXECUTABLE:FILEPATH=${QT_QMAKE_EXECUTABLE}
+      -DqRestAPI_QT_VERSION:STRING=4
+      )
+  else()
+    list(APPEND ep_cache_args
+      -DQt5_DIR:FILEPATH=${Qt5_DIR}
+      -DqRestAPI_QT_VERSION:STRING=5
+      )
+  endif()
+
   ExternalProject_SetIfNotDefined(
     ${CMAKE_PROJECT_NAME}_${proj}_GIT_REPOSITORY
     "${git_protocol}://github.com/commontk/qRestAPI.git"
@@ -30,7 +44,7 @@ if(NOT DEFINED qRestAPI_DIR)
 
   ExternalProject_SetIfNotDefined(
     ${CMAKE_PROJECT_NAME}_${proj}_GIT_TAG
-    "d1b07cc3e9dfd0a8a58e41546469a8f7ef5d0998"
+    "14580c3edca2f15e44b7f69f2d15062c3f5d4b1a"
     QUIET
     )
 
@@ -45,9 +59,12 @@ if(NOT DEFINED qRestAPI_DIR)
       -DCMAKE_CXX_FLAGS:STRING=${ep_common_cxx_flags}
       -DCMAKE_C_COMPILER:FILEPATH=${CMAKE_C_COMPILER}
       #-DCMAKE_C_FLAGS:STRING=${ep_common_c_flags} # Unused
+      -DCMAKE_CXX_STANDARD:STRING=${CMAKE_CXX_STANDARD}
+      -DCMAKE_CXX_STANDARD_REQUIRED:BOOL=${CMAKE_CXX_STANDARD_REQUIRED}
+      -DCMAKE_CXX_EXTENSIONS:BOOL=${CMAKE_CXX_EXTENSIONS}
       -DBUILD_TESTING:BOOL=OFF
       -DBUILD_SHARED_LIBS:BOOL=OFF
-      -DQT_QMAKE_EXECUTABLE:FILEPATH=${QT_QMAKE_EXECUTABLE}
+      ${ep_cache_args}
     INSTALL_COMMAND ""
     DEPENDS
       ${${proj}_DEPENDENCIES}

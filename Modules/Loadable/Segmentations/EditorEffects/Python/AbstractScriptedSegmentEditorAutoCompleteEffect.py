@@ -39,7 +39,7 @@ class AbstractScriptedSegmentEditorAutoCompleteEffect(AbstractScriptedSegmentEdi
     # Wait this much after the last modified event before starting aut-update:
     autoUpdateDelaySec = 1.0
     self.delayedAutoUpdateTimer = qt.QTimer()
-    self.delayedAutoUpdateTimer.singleShot = True
+    self.delayedAutoUpdateTimer.setSingleShot(True)
     self.delayedAutoUpdateTimer.interval = autoUpdateDelaySec * 1000
     self.delayedAutoUpdateTimer.connect('timeout()', self.onPreview)
 
@@ -294,7 +294,7 @@ class AbstractScriptedSegmentEditorAutoCompleteEffect(AbstractScriptedSegmentEdi
       self.selectedSegmentIds = vtk.vtkStringArray()
       segmentationNode.GetDisplayNode().GetVisibleSegmentIDs(self.selectedSegmentIds)
       if self.selectedSegmentIds.GetNumberOfValues() < self.minimumNumberOfSegments:
-        logging.info("Auto-complete operation skipped: at least {0} visible segments are required".format(self.minimumNumberOfSegments))
+        logging.error("Auto-complete operation skipped: at least {0} visible segments are required".format(self.minimumNumberOfSegments))
         return
       if not self.mergedLabelmapGeometryImage:
         self.mergedLabelmapGeometryImage = vtkSegmentationCore.vtkOrientedImageData()

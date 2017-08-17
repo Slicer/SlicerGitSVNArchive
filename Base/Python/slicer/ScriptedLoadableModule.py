@@ -70,7 +70,7 @@ class ScriptedLoadableModuleWidget:
     self.moduleName = self.__class__.__name__
     if self.moduleName.endswith('Widget'):
       self.moduleName = self.moduleName[:-6]
-    self.developerMode = slicer.util.settingsValue('Developer/DeveloperMode', False, lambda v: v.lower()=='true')
+    self.developerMode = slicer.util.settingsValue('Developer/DeveloperMode', False, converter=slicer.util.toBool)
     if not parent:
       self.parent = slicer.qMRMLWidget()
       self.parent.setLayout(qt.QVBoxLayout())
@@ -142,6 +142,16 @@ class ScriptedLoadableModuleWidget:
     ModuleWizard will substitute correct default moduleName.
     Generic reload method for any scripted module.
     """
+
+    # Print a clearly visible separator to make it easier
+    # to distinguish new error messages (during/after reload)
+    # from old ones.
+    print('\n' * 2)
+    print('-' * 30)
+    print('Reloading module: '+self.moduleName)
+    print('-' * 30)
+    print('\n' * 2)
+
     slicer.util.reloadScriptedModule(self.moduleName)
 
   def onReloadAndTest(self):

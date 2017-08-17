@@ -1146,6 +1146,7 @@ void qSlicerAppMainWindow::showEvent(QShowEvent *event)
     this->disclaimer();
     this->pythonConsoleInitialDisplay();
     }
+  emit windowShown();
 }
 
 //-----------------------------------------------------------------------------

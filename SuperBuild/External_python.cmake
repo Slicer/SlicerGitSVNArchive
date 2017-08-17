@@ -2,9 +2,13 @@
 set(proj python)
 
 # Set dependency list
-set(${proj}_DEPENDENCIES zlib)
+set(${proj}_DEPENDENCIES "")
 if(NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM_python)
-  list(APPEND ${proj}_DEPENDENCIES CTKAPPLAUNCHER)
+  list(APPEND ${proj}_DEPENDENCIES
+    bzip2
+    CTKAPPLAUNCHER
+    zlib
+    )
 endif()
 if(Slicer_USE_PYTHONQT_WITH_TCL)
   if(WIN32)
@@ -88,12 +92,15 @@ if((NOT DEFINED PYTHON_INCLUDE_DIR
       )
   endif()
 
-  # Force modules that statically link to zlib to not be built-in.  Otherwise,
-  # when building in Debug configuration, the Python library--which we force to
-  # build in Release configuration--would mix Debug and Release C runtime
-  # libraries.
+  # Force modules that statically link to zlib or libbz2 to not be built-in.
+  # Otherwise, when building in Debug configuration, the Python library--which
+  # we force to build in Release configuration--would mix Debug and Release C
+  # runtime libraries.
   if(WIN32)
     list(APPEND EXTERNAL_PROJECT_OPTIONAL_CMAKE_ARGS
+        # Depends on libbz2
+        -DBUILTIN_BZ2:BOOL=OFF
+        # Depends on zlib
         -DBUILTIN_BINASCII:BOOL=OFF
         -DBUILTIN_ZLIB:BOOL=OFF
       )
@@ -101,13 +108,16 @@ if((NOT DEFINED PYTHON_INCLUDE_DIR
 
   set(EXTERNAL_PROJECT_OPTIONAL_CMAKE_CACHE_ARGS)
 
-  # Force Python build to "Release".
+  # Force python build to "Release"
   if(CMAKE_CONFIGURATION_TYPES)
-    set(SAVED_CMAKE_CFG_INTDIR ${CMAKE_CFG_INTDIR})
-    set(CMAKE_CFG_INTDIR "Release")
+    set(_build_command BUILD_COMMAND ${CMAKE_COMMAND} --build . --config Release)
+    set(_install_command INSTALL_COMMAND ${CMAKE_COMMAND} --build . --config Release --target install)
   else()
+    set(_build_command)
+    set(_install_command)
     list(APPEND EXTERNAL_PROJECT_OPTIONAL_CMAKE_CACHE_ARGS
-      -DCMAKE_BUILD_TYPE:STRING=Release)
+      -DCMAKE_BUILD_TYPE:STRING=Release
+      )
   endif()
 
   ExternalProject_SetIfNotDefined(
@@ -118,7 +128,7 @@ if((NOT DEFINED PYTHON_INCLUDE_DIR
 
   ExternalProject_SetIfNotDefined(
     ${CMAKE_PROJECT_NAME}_${proj}_GIT_TAG
-    "ec32accf51038d211623dd94c5d812d7c4f84c9c"
+    "849e5968b9f7b0e0faf4a5b5ba6e9daa0a3a9542"
     QUIET
     )
 
@@ -140,12 +150,16 @@ if((NOT DEFINED PYTHON_INCLUDE_DIR
       -DSRC_DIR:PATH=${python_SOURCE_DIR}
       -DDOWNLOAD_SOURCES:BOOL=OFF
       -DINSTALL_WINDOWS_TRADITIONAL:BOOL=OFF
+      -DBZIP2_INCLUDE_DIR:PATH=${BZIP2_INCLUDE_DIR}
+      -DBZIP2_LIBRARIES:FILEPATH=${BZIP2_LIBRARIES}
       -DZLIB_INCLUDE_DIR:PATH=${ZLIB_INCLUDE_DIR}
       -DZLIB_LIBRARY:FILEPATH=${ZLIB_LIBRARY}
       -DENABLE_TKINTER:BOOL=${Slicer_USE_PYTHONQT_WITH_TCL}
       -DENABLE_SSL:BOOL=${PYTHON_ENABLE_SSL}
       ${EXTERNAL_PROJECT_OPTIONAL_CMAKE_CACHE_ARGS}
     ${EXTERNAL_PROJECT_OPTIONAL_CMAKE_ARGS}
+    ${_build_command}
+    ${_install_command}
     DEPENDS
       python-source ${${proj}_DEPENDENCIES}
     )
@@ -190,10 +204,6 @@ if((NOT DEFINED PYTHON_INCLUDE_DIR
       DEPENDEES install
       )
 
-  endif()
-
-  if(CMAKE_CONFIGURATION_TYPES)
-    set(CMAKE_CFG_INTDIR ${SAVED_CMAKE_CFG_INTDIR}) # Restore CMAKE_CFG_INTDIR
   endif()
 
   #-----------------------------------------------------------------------------

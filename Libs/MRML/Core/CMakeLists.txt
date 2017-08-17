@@ -1,7 +1,7 @@
 project(MRMLCore)
 
 #-----------------------------------------------------------------------------
-cmake_minimum_required(VERSION 2.8.4)
+cmake_minimum_required(VERSION 3.5)
 #-----------------------------------------------------------------------------
 
 # --------------------------------------------------------------------------
@@ -101,6 +101,7 @@ endif()
 # Sources
 # --------------------------------------------------------------------------
 set(MRMLCore_SRCS
+  vtkCodedEntry.cxx
   vtkEventBroker.cxx
   vtkImageBimodalAnalysis.cxx
   vtkDataFileFormatHelper.cxx

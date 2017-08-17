@@ -6,8 +6,13 @@
   or http://www.slicer.org/copyright/copyright.txt for details.
 
 =========================================================================auto=*/
+
+// EditorLib includes
 #include "vtkPichonFastMarchingPDF.h"
-#include "vtkObjectFactory.h"
+
+// VTK includes
+#include <vtkMath.h>
+#include <vtkObjectFactory.h>
 
 vtkPichonFastMarchingPDF::vtkPichonFastMarchingPDF( int _realizationMax )
 {
@@ -189,10 +194,10 @@ void vtkPichonFastMarchingPDF::update( void )
 
 void vtkPichonFastMarchingPDF::addRealization( int k )
 {
-  //assert(finite(k)!=0);
-  if(!(finite(k)!=0))
+  //assert(vtkMath::IsFinite(k)!=0);
+  if(!(vtkMath::IsFinite(k)!=0))
     {
-      vtkErrorMacro("Error in vtkFastMarching, vtkPichonFastMarchingPDF::vtkPichonFastMarchingPDF(...), !(finite(k)!=0)");
+      vtkErrorMacro("Error in vtkFastMarching, vtkPichonFastMarchingPDF::vtkPichonFastMarchingPDF(...), !(vtkMath::IsFinite(k)!=0)");
       return;
     }
 
