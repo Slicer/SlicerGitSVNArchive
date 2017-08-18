@@ -34,13 +34,15 @@ class vtkColor4ub;
 class vtkPlot;
 class vtkTable;
 
-/// \brief MRML node to represent a Plot object
+/// \brief MRML node to represent a vtkPlot object
 ///
+/// Plot nodes describe the properties of a single plot.
+/// In addition, takes care of references for the input
+/// (one vtkTable from vtkMRMLTableNode).
+/// To be viewed the node has to be added in the reference list
+/// of a vtkMRMLPlotViewNode.
 class VTK_MRML_EXPORT vtkMRMLPlotNode : public vtkMRMLNode
 {
-public:
-  /// Data types supported by the Plot. Used in qMRMLPlotModel for visualization.
-
 public:
   static vtkMRMLPlotNode *New();
   vtkTypeMacro(vtkMRMLPlotNode,vtkMRMLNode);
@@ -53,50 +55,68 @@ public:
     BAR,
   };
 
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   //----------------------------------------------------------------
   /// Standard methods for MRML nodes
   //----------------------------------------------------------------
 
-  virtual vtkMRMLNode* CreateNodeInstance();
+  virtual vtkMRMLNode* CreateNodeInstance() VTK_OVERRIDE;
 
   ///
   /// Set node attributes
-  virtual void ReadXMLAttributes( const char** atts);
+  virtual void ReadXMLAttributes( const char** atts) VTK_OVERRIDE;
 
   ///
   /// Write this node's information to a MRML file in XML format.
-  virtual void WriteXML(ostream& of, int indent);
-
-  ///
-  /// Copy the node's attributes to this object
-  virtual void Copy(vtkMRMLNode *node);
-
-  ///
-  /// Copy the node's attributes to this object but changing the name and type
-  virtual void CopyAndSetNameAndType(vtkMRMLNode *node, const char *name, int Type);
+  virtual void WriteXML(ostream& of, int indent) VTK_OVERRIDE;
 
   ///
   /// Get node XML tag name (like Volume, Model)
-  virtual const char* GetNodeTagName() { return "Plot"; };
+  virtual const char* GetNodeTagName() VTK_OVERRIDE { return "Plot"; };
 
   ///
-  /// Method to propagate events generated in mrml
-  virtual void ProcessMRMLEvents(vtkObject *caller, unsigned long event, void *callData);
+  /// Set and observe Table node ID.
+  /// \sa TableNodeID, GetTableNodeID(), SetInputData()
+  virtual bool SetAndObserveTableNodeID(const char *TableNodeID);
 
   ///
-  /// Mark the Table node as references.
-  virtual void SetSceneReferences();
+  /// Set and observe Table node ID.
+  /// Utility method that conveniently takes a string instead of a char*
+  /// \sa TableNodeID, GetTableNodeID(), SetInputData()
+  virtual bool SetAndObserveTableNodeID(const std::string& TableNodeID);
 
   ///
-  /// Updates this node if it depends on other nodes
-  /// when the node is deleted in the scene.
-  virtual void UpdateReferences();
+  /// Get associated Table MRML noide.
+  virtual vtkMRMLTableNode* GetTableNode();
 
   ///
-  /// Update the stored reference to another node in the scene.
-  virtual void UpdateReferenceID(const char *oldID, const char *newID);
+  /// Method to propagate events generated in Plot nodes
+  virtual void ProcessMRMLEvents (vtkObject *caller,
+                                  unsigned long event,
+                                  void *callData) VTK_OVERRIDE;
+
+  ///
+  /// TableModifiedEvent is send when the parent table is modified
+  enum
+    {
+      TableModifiedEvent = 15000
+    };
+
+  ///
+  /// Get referenced transform node id
+  const char *GetTableNodeID();
+
+  ///
+  /// Updates other nodes in the scene depending on this node
+  /// or updates this node if it depends on other nodes when the scene is read in
+  /// This method is called automatically by XML parser after all nodes are created
+  virtual void UpdateScene(vtkMRMLScene * scene);
+
+  ///
+  /// Updates this node if it depends on other nodes when the scene is read in
+  /// This method is called by scene when a node added to a scene.
+  virtual void OnNodeAddedToScene();
 
   //----------------------------------------------------------------
   /// Get and Set Macros
@@ -112,25 +132,6 @@ public:
   /// Get observed plot
   vtkGetObjectMacro(Plot, vtkPlot);
 
-  ///
-  /// Set and observe Table node ID.
-  /// \sa TableNodeID, GetTableNodeID(), SetInputData()
-  virtual void SetAndObserveTableNodeID(const char *TableNodeID);
-
-  /// Set and observe Table node ID.
-  /// Utility method that conveniently takes a string instead of a char*
-  /// \sa TableNodeID, GetTableNodeID(), SetInputData()
-  virtual void SetAndObserveTableNodeID(const std::string& TableNodeID);
-
-  /// Get Table node ID.
-  /// \sa TableNodeID, SetAndObserveTableNodeID()
-  vtkGetStringMacro(TableNodeID);
-
-  /// Get associated Table MRML node. Search the node into the scene if the node
-  /// hasn't been cached yet. This can be a slow call.
-  /// \sa TableNodeID, SetAndObserveTableNodeID, GetTableNodeID()
-  virtual vtkMRMLTableNode* GetTableNode();
-
   /// Get the type of the plot (line, scatter, bar)
   /// \brief vtkGetMacro
   /// \sa SetTypeAndColor
@@ -141,48 +142,36 @@ public:
   virtual void SetType(int type);
 
   ///
-  /// Get/Set the status of the Plot
-  vtkGetMacro(Dirty, bool);
-  vtkSetMacro(Dirty, bool);
-
-  ///
   /// Get the index of the XColumn
   /// \brief vtkGetMacro
-  vtkGetMacro(XColumn, vtkIdType);
+  vtkGetMacro(XColumnIndex, vtkIdType);
 
   ///
   /// Set the index of the XColumn and assure the data connection
   /// \brief vtkSetMacro
   /// \sa SetInputData
-  virtual void SetXColumn(vtkIdType xColumn);
+  virtual void SetXColumnIndex(vtkIdType xColumnIndex);
 
   ///
-  /// Utility method to get the name of the columnX.
+  /// Utility method to get the name of the XColumn.
   /// The name is automatically set internally
   virtual std::string GetXColumnName();
 
   ///
   /// Get the index of the YColumn
   /// \brief vtkGetMacro
-  vtkGetMacro(YColumn, vtkIdType);
+  vtkGetMacro(YColumnIndex, vtkIdType);
 
   ///
   /// Set the index of the YColumn and assure the data connection
   /// \brief vtkSetMacro
   /// \sa SetInputData
-  virtual void SetYColumn(vtkIdType yColumn);
+  virtual void SetYColumnIndex(vtkIdType yColumnIndex);
 
   ///
-  /// Utility method to get the name of the columnY.
+  /// Utility method to get the name of the YColumn.
   /// The name is automatically set internally
   virtual std::string GetYColumnName();
-
-  ///
-  /// Events
-  enum
-  {
-    vtkPlotRemovedEvent = 23000
-  };
 
   //----------------------------------------------------------------
   /// Constructor and destructor
@@ -193,16 +182,63 @@ public:
   vtkMRMLPlotNode(const vtkMRMLPlotNode&);
   void operator=(const vtkMRMLPlotNode&);
 
+  static const char* TableNodeReferenceRole;
+  static const char* TableNodeReferenceMRMLAttributeName;
+
+  virtual const char* GetTableNodeReferenceRole();
+  virtual const char* GetTableNodeReferenceMRMLAttributeName();
+
+  ///
+  /// Called when a node reference ID is added (list size increased).
+  virtual void OnNodeReferenceAdded(vtkMRMLNodeReference *reference) VTK_OVERRIDE
+  {
+    Superclass::OnNodeReferenceAdded(reference);
+    if (std::string(reference->GetReferenceRole()) == this->TableNodeReferenceRole)
+      {
+      this->InvokeCustomModifiedEvent(vtkMRMLPlotNode::TableModifiedEvent, reference->GetReferencedNode());
+      }
+  }
+
+  ///
+  /// Called when a node reference ID is modified.
+  virtual void OnNodeReferenceModified(vtkMRMLNodeReference *reference) VTK_OVERRIDE
+  {
+    Superclass::OnNodeReferenceModified(reference);
+    if (std::string(reference->GetReferenceRole()) == this->TableNodeReferenceRole)
+    {
+      this->InvokeCustomModifiedEvent(vtkMRMLPlotNode::TableModifiedEvent, reference->GetReferencedNode());
+    }
+  }
+
+  ///
+  /// Called after a node reference ID is removed (list size decreased).
+  virtual void OnNodeReferenceRemoved(vtkMRMLNodeReference *reference) VTK_OVERRIDE
+  {
+    Superclass::OnNodeReferenceRemoved(reference);
+    if (std::string(reference->GetReferenceRole()) == this->TableNodeReferenceRole)
+    {
+      this->InvokeCustomModifiedEvent(vtkMRMLPlotNode::TableModifiedEvent, reference->GetReferencedNode());
+    }
+  }
+
+  ///
+  /// Copy the node's attributes to this object
+  /// This can is used only internally.
+  /// CopyWithScene has to be used.
+  virtual void Copy(vtkMRMLNode *node) VTK_OVERRIDE;
+
   /// Set input data from a vtkTable.
   /// This method is called internally everytime
   /// that a new vtkPlot or vtkMRMLTable has been
   /// set and observed.
   /// \sa vtkPlot->SetInputData(), SetXColumnName(), SetYColumnName()
-  virtual void SetInputData(vtkMRMLTableNode* tableNode, vtkIdType xColumn, vtkIdType yColumn);
+  virtual void SetInputData(vtkMRMLTableNode* tableNode,
+                            vtkIdType xColumnIndex,
+                            vtkIdType yColumnIndex);
 
   /// Utility method for setting InputData without
-  /// providing the xColumn and yColumn parameters
-  /// \sa GetXColumn(), GetYColumn()
+  /// providing the XColumnIndex and YColumnIndex parameters
+  /// \sa GetXColumnIndex(), GetYColumnIndex()
   /// \def default are 0, 1
   virtual void SetInputData(vtkMRMLTableNode* tableNode);
 
@@ -220,30 +256,12 @@ public:
   ///
   /// Type of Plot (line, scatter, bar)
   int Type;
-  ///
-  /// Plot require to be update in the chartXY
-  /// (after a change of Type this is set to true)
-  bool Dirty;
 
-  vtkIdType XColumn;
-  vtkIdType YColumn;
+  vtkIdType XColumnIndex;
+  vtkIdType YColumnIndex;
 
   std::string XColumnName;
   std::string YColumnName;
-
-  ///
-  /// String ID of the table MRML node.
-  /// Note that anytime the Table node is modified, the observing display node
-  /// fires a Modified event.
-  /// No Table node by default.
-  /// \sa SetTableNodeID(), GetTableNodeID(),
-  /// TableNode
-  char *TableNodeID;
-
-  vtkMRMLTableNode *TableNode;
-
-private:
-  void SetTableNodeID(const char* id);
 };
 
 #endif

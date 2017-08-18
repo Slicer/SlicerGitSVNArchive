@@ -77,8 +77,6 @@ public slots:
   void startProcessing();
   void endProcessing();
 
-  void cleanPlotsInView();
-
   void updateWidgetFromMRML();
   void onPlotLayoutNodeChanged();
 

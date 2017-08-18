@@ -461,7 +461,7 @@ const char* conventionalQuantitativeView =
   " </item>"
   "</layout>";
 
-const char* conventionalInteractiveQuantitativeView =
+const char* conventionalPlotView =
   "<layout type=\"vertical\" split=\"true\" >"
   " <item>"
   "   <layout type=\"horizontal\">"
@@ -542,7 +542,7 @@ const char* fourUpQuantitativeView =
   " </item>"
   "</layout>";
 
-const char* fourUpInteractiveQuantitativeView =
+const char* fourUpPlotView =
   "<layout type=\"vertical\">"
   " <item>"
   "  <layout type=\"horizontal\">"
@@ -580,7 +580,7 @@ const char* fourUpInteractiveQuantitativeView =
   " </item>"
   "</layout>";
 
-const char* fourUpInteractiveQuantitativeTableView =
+const char* fourUpPlotTableView =
   "<layout type=\"vertical\" split=\"true\" >"
   " <item>"
   "  <layout type=\"vertical\">"
@@ -636,7 +636,7 @@ const char* oneUpQuantitativeView =
   " </item>"
   "</layout>";
 
-const char* oneUpInteractiveQuantitativeView =
+const char* oneUpPlotView =
   "<layout type=\"horizontal\">"
   " <item>"
   "    <view class=\"vtkMRMLPlotViewNode\" singletontag=\"PlotView1\">"
@@ -733,7 +733,7 @@ const char* threeOverThreeQuantitativeView =
   " </item>"
   "</layout>";
 
-const char* threeOverThreeInteractiveQuantitativeView =
+const char* threeOverThreePlotView =
   "<layout type=\"vertical\">"
   " <item>"
   "  <layout type=\"horizontal\">"
@@ -1602,20 +1602,20 @@ void vtkMRMLLayoutLogic::AddDefaultLayouts()
                                          fourUpQuantitativeView);
   this->LayoutNode->AddLayoutDescription(vtkMRMLLayoutNode::SlicerLayoutOneUpQuantitativeView,
                                          oneUpQuantitativeView);
-  this->LayoutNode->AddLayoutDescription(vtkMRMLLayoutNode::SlicerLayoutConventionalInteractiveQuantitativeView,
-                                         conventionalInteractiveQuantitativeView);
-  this->LayoutNode->AddLayoutDescription(vtkMRMLLayoutNode::SlicerLayoutFourUpInteractiveQuantitativeView,
-                                         fourUpInteractiveQuantitativeView);
-  this->LayoutNode->AddLayoutDescription(vtkMRMLLayoutNode::SlicerLayoutFourUpInteractiveQuantitativeTableView,
-                                         fourUpInteractiveQuantitativeTableView);
-  this->LayoutNode->AddLayoutDescription(vtkMRMLLayoutNode::SlicerLayoutOneUpInteractiveQuantitativeView,
-                                         oneUpInteractiveQuantitativeView);
+  this->LayoutNode->AddLayoutDescription(vtkMRMLLayoutNode::SlicerLayoutConventionalPlotView,
+                                         conventionalPlotView);
+  this->LayoutNode->AddLayoutDescription(vtkMRMLLayoutNode::SlicerLayoutFourUpPlotView,
+                                         fourUpPlotView);
+  this->LayoutNode->AddLayoutDescription(vtkMRMLLayoutNode::SlicerLayoutFourUpPlotTableView,
+                                         fourUpPlotTableView);
+  this->LayoutNode->AddLayoutDescription(vtkMRMLLayoutNode::SlicerLayoutOneUpPlotView,
+                                         oneUpPlotView);
   this->LayoutNode->AddLayoutDescription(vtkMRMLLayoutNode::SlicerLayoutTwoOverTwoView,
                                          twoOverTwoView);
   this->LayoutNode->AddLayoutDescription(vtkMRMLLayoutNode::SlicerLayoutThreeOverThreeQuantitativeView,
                                          threeOverThreeQuantitativeView);
-  this->LayoutNode->AddLayoutDescription(vtkMRMLLayoutNode::SlicerLayoutThreeOverThreeInteractiveQuantitativeView,
-                                         threeOverThreeInteractiveQuantitativeView);
+  this->LayoutNode->AddLayoutDescription(vtkMRMLLayoutNode::SlicerLayoutThreeOverThreePlotView,
+                                         threeOverThreePlotView);
   this->LayoutNode->AddLayoutDescription(vtkMRMLLayoutNode::SlicerLayoutFourUpTableView,
                                          fourUpTableView);
   this->LayoutNode->AddLayoutDescription(vtkMRMLLayoutNode::SlicerLayoutSideBySideView,

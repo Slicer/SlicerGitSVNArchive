@@ -424,7 +424,7 @@ void vtkMRMLApplicationLogic::PropagatePlotLayoutSelection()
 
   char *plotLayoutId = this->Internal->SelectionNode->GetActivePlotLayoutID();
 
-  const int nnodes = this->GetMRMLScene()->GetNumberOfNodesByClass("vtkMRMLTableViewNode");
+  const int nnodes = this->GetMRMLScene()->GetNumberOfNodesByClass("vtkMRMLPlotViewNode");
   for (int i = 0; i < nnodes; i++)
     {
     vtkMRMLPlotViewNode* pnode = vtkMRMLPlotViewNode::SafeDownCast (

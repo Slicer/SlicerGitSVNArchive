@@ -530,8 +530,8 @@ void qMRMLTableView::plotSelection()
       mrmlplot = vtkMRMLPlotNode::SafeDownCast(node);
       this->mrmlScene()->AddNode(mrmlplot);
       mrmlplot->SetName(columnName.c_str());
-      mrmlplot->SetXColumn(columnIndexs->GetValue(0));
-      mrmlplot->SetYColumn(columnIndexs->GetValue(columnIndex));
+      mrmlplot->SetXColumnIndex(columnIndexs->GetValue(0));
+      mrmlplot->SetYColumnIndex(columnIndexs->GetValue(columnIndex));
       mrmlplot->SetAndObserveTableNodeID(tableNode->GetID());
       }
 
@@ -540,6 +540,8 @@ void qMRMLTableView::plotSelection()
     if (found != std::string::npos)
       {
       mrmlLayoutPlot->RemovePlotAndObservationByName(namePlotNode.c_str());
+      mrmlplot->GetNodeReference("Markups")->RemoveNodeReferenceIDs("Markups");
+      this->mrmlScene()->RemoveNode(mrmlplot);
       continue;
       }
 
@@ -556,7 +558,7 @@ void qMRMLTableView::plotSelection()
       {
       mrmlplot->SetType(vtkMRMLPlotNode::LINE);
 
-      vtkSmartPointer<vtkMRMLPlotNode> plotNodeCopy = vtkMRMLPlotNode::SafeDownCast
+      vtkMRMLPlotNode* plotNodeCopy = vtkMRMLPlotNode::SafeDownCast
         (mrmlplot->GetNodeReference("Markups"));
 
       if (plotNodeCopy)
@@ -568,10 +570,10 @@ void qMRMLTableView::plotSelection()
         vtkSmartPointer<vtkMRMLNode> node = vtkSmartPointer<vtkMRMLNode>::Take
           (this->mrmlScene()->CreateNodeByClass("vtkMRMLPlotNode"));
         plotNodeCopy = vtkMRMLPlotNode::SafeDownCast(node);
-
         std::string namePlotNodeCopy = namePlotNode + " Markups";
-
-        plotNodeCopy->CopyAndSetNameAndType(mrmlplot, namePlotNodeCopy.c_str(), vtkMRMLPlotNode::POINTS);
+        plotNodeCopy->CopyWithScene(mrmlplot);
+        plotNodeCopy->SetName(namePlotNodeCopy.c_str());
+        plotNodeCopy->SetType(vtkMRMLPlotNode::POINTS);
         this->mrmlScene()->AddNode(plotNodeCopy);
         mrmlplot->AddNodeReferenceID("Markups", plotNodeCopy->GetID());
         plotNodeCopy->AddNodeReferenceID("Markups", mrmlplot->GetID());

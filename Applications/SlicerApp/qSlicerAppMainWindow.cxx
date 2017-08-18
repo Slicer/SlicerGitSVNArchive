@@ -1202,19 +1202,19 @@ void qSlicerAppMainWindow::setupMenuActions()
 
   d->ViewLayoutConventionalAction->setData(vtkMRMLLayoutNode::SlicerLayoutConventionalView);
   d->ViewLayoutConventionalWidescreenAction->setData(vtkMRMLLayoutNode::SlicerLayoutConventionalWidescreenView);
-  d->ViewLayoutConventionalQuantitativeStandardAction->setData(vtkMRMLLayoutNode::SlicerLayoutConventionalQuantitativeView);
-  d->ViewLayoutConventionalQuantitativeInteractiveAction->setData(vtkMRMLLayoutNode::SlicerLayoutConventionalInteractiveQuantitativeView);
+  d->ViewLayoutConventionalQuantitativeAction->setData(vtkMRMLLayoutNode::SlicerLayoutConventionalQuantitativeView);
+  d->ViewLayoutConventionalPlotAction->setData(vtkMRMLLayoutNode::SlicerLayoutConventionalPlotView);
   d->ViewLayoutFourUpAction->setData(vtkMRMLLayoutNode::SlicerLayoutFourUpView);
-  d->ViewLayoutFourUpQuantitativeStandardAction->setData(vtkMRMLLayoutNode::SlicerLayoutFourUpQuantitativeView);
-  d->ViewLayoutFourUpQuantitativeInteractiveAction->setData(vtkMRMLLayoutNode::SlicerLayoutFourUpInteractiveQuantitativeView);
-  d->ViewLayoutFourUpQuantitativeTableAction->setData(vtkMRMLLayoutNode::SlicerLayoutFourUpInteractiveQuantitativeTableView);
+  d->ViewLayoutFourUpQuantitativeAction->setData(vtkMRMLLayoutNode::SlicerLayoutFourUpQuantitativeView);
+  d->ViewLayoutFourUpPlotAction->setData(vtkMRMLLayoutNode::SlicerLayoutFourUpPlotView);
+  d->ViewLayoutFourUpPlotTableAction->setData(vtkMRMLLayoutNode::SlicerLayoutFourUpPlotTableView);
   d->ViewLayoutFourUpTableAction->setData(vtkMRMLLayoutNode::SlicerLayoutFourUpTableView);
   d->ViewLayoutDual3DAction->setData(vtkMRMLLayoutNode::SlicerLayoutDual3DView);
   d->ViewLayoutTriple3DAction->setData(vtkMRMLLayoutNode::SlicerLayoutTriple3DEndoscopyView);
   d->ViewLayoutOneUp3DAction->setData(vtkMRMLLayoutNode::SlicerLayoutOneUp3DView);
   d->ViewLayout3DTableAction->setData(vtkMRMLLayoutNode::SlicerLayout3DTableView);
-  d->ViewLayoutOneUpQuantitativeStandardAction->setData(vtkMRMLLayoutNode::SlicerLayoutOneUpQuantitativeView);
-  d->ViewLayoutOneUpQuantitativeInteractiveAction->setData(vtkMRMLLayoutNode::SlicerLayoutOneUpInteractiveQuantitativeView);
+  d->ViewLayoutOneUpQuantitativeAction->setData(vtkMRMLLayoutNode::SlicerLayoutOneUpQuantitativeView);
+  d->ViewLayoutOneUpPlotAction->setData(vtkMRMLLayoutNode::SlicerLayoutOneUpPlotView);
   d->ViewLayoutOneUpRedSliceAction->setData(vtkMRMLLayoutNode::SlicerLayoutOneUpRedSliceView);
   d->ViewLayoutOneUpYellowSliceAction->setData(vtkMRMLLayoutNode::SlicerLayoutOneUpYellowSliceView);
   d->ViewLayoutOneUpGreenSliceAction->setData(vtkMRMLLayoutNode::SlicerLayoutOneUpGreenSliceView);
@@ -1224,8 +1224,8 @@ void qSlicerAppMainWindow::setupMenuActions()
   d->ViewLayoutCompareWidescreenAction->setData(vtkMRMLLayoutNode::SlicerLayoutCompareWidescreenView);
   d->ViewLayoutCompareGridAction->setData(vtkMRMLLayoutNode::SlicerLayoutCompareGridView);
   d->ViewLayoutThreeOverThreeAction->setData(vtkMRMLLayoutNode::SlicerLayoutThreeOverThreeView);
-  d->ViewLayoutThreeOverThreeQuantitativeStandardAction->setData(vtkMRMLLayoutNode::SlicerLayoutThreeOverThreeQuantitativeView);
-  d->ViewLayoutThreeOverThreeQuantitativeInteractiveAction->setData(vtkMRMLLayoutNode::SlicerLayoutThreeOverThreeInteractiveQuantitativeView);
+  d->ViewLayoutThreeOverThreeQuantitativeAction->setData(vtkMRMLLayoutNode::SlicerLayoutThreeOverThreeQuantitativeView);
+  d->ViewLayoutThreeOverThreePlotAction->setData(vtkMRMLLayoutNode::SlicerLayoutThreeOverThreePlotView);
   d->ViewLayoutFourOverFourAction->setData(vtkMRMLLayoutNode::SlicerLayoutFourOverFourView);
   d->ViewLayoutTwoOverTwoAction->setData(vtkMRMLLayoutNode::SlicerLayoutTwoOverTwoView);
   d->ViewLayoutSideBySideAction->setData(vtkMRMLLayoutNode::SlicerLayoutSideBySideView);

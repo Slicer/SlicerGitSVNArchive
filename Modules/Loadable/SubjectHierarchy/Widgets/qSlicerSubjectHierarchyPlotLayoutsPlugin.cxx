@@ -229,7 +229,7 @@ void qSlicerSubjectHierarchyPlotLayoutsPlugin::setDisplayVisibility(vtkIdType it
   if (associatedPlotLayoutNode && visible)
     {
     // Switch to four-up quantitative layout
-    layoutNode->SetViewArrangement( vtkMRMLLayoutNode::SlicerLayoutConventionalInteractiveQuantitativeView );
+    layoutNode->SetViewArrangement( vtkMRMLLayoutNode::SlicerLayoutConventionalPlotView );
 
     // Make sure we have a valid plot view node (if we want to show the plotLayout, but there was
     // no plot view, then one was just created when we switched to quantitative layout)
@@ -286,10 +286,11 @@ int qSlicerSubjectHierarchyPlotLayoutsPlugin::getDisplayVisibility(vtkIdType ite
     }
 
   // Return hidden if current layout is not one of the quantitative ones
-  if ( qSlicerApplication::application()->layoutManager()->layout() != vtkMRMLLayoutNode::SlicerLayoutFourUpInteractiveQuantitativeView
-    && qSlicerApplication::application()->layoutManager()->layout() != vtkMRMLLayoutNode::SlicerLayoutOneUpInteractiveQuantitativeView
-    && qSlicerApplication::application()->layoutManager()->layout() != vtkMRMLLayoutNode::SlicerLayoutConventionalInteractiveQuantitativeView
-    && qSlicerApplication::application()->layoutManager()->layout() != vtkMRMLLayoutNode::SlicerLayoutThreeOverThreeInteractiveQuantitativeView )
+  if ( qSlicerApplication::application()->layoutManager()->layout() != vtkMRMLLayoutNode::SlicerLayoutFourUpPlotView
+    && qSlicerApplication::application()->layoutManager()->layout() != vtkMRMLLayoutNode::SlicerLayoutFourUpPlotTableView
+    && qSlicerApplication::application()->layoutManager()->layout() != vtkMRMLLayoutNode::SlicerLayoutOneUpPlotView
+    && qSlicerApplication::application()->layoutManager()->layout() != vtkMRMLLayoutNode::SlicerLayoutConventionalPlotView
+    && qSlicerApplication::application()->layoutManager()->layout() != vtkMRMLLayoutNode::SlicerLayoutThreeOverThreePlotView)
     {
     return 0;
     }

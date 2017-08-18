@@ -37,6 +37,7 @@
 #include "vtkMRMLPlotLayoutNode.h"
 #include "vtkMRMLPlotNode.h"
 #include "vtkMRMLScene.h"
+#include "vtkMRMLTableNode.h"
 
 class PlotIDMap : public std::map<std::string, std::string> {} ;
 class PlotLayoutPropertyMap : public std::map<std::string, std::string> {} ;
@@ -71,6 +72,9 @@ vtkMRMLPlotLayoutNode::vtkMRMLPlotLayoutNode()
   this->SetProperty("TitleName", "");
   this->SetProperty("XAxisLabelName", "");
   this->SetProperty("YAxisLabelName", "");
+
+  this->SetProperty("ClickAndDragAlongX", "on");
+  this->SetProperty("ClickAndDragAlongY", "on");
 
   this->SetProperty("FontType", "Arial");
   this->SetProperty("TitleFontSize", "20");
@@ -246,14 +250,22 @@ void vtkMRMLPlotLayoutNode::Copy(vtkMRMLNode *anode)
 
 
 //----------------------------------------------------------------------------
-void vtkMRMLPlotLayoutNode::ProcessMRMLEvents( vtkObject *caller, unsigned long event, void *callData )
+void vtkMRMLPlotLayoutNode::ProcessMRMLEvents(vtkObject *caller,
+                                              unsigned long event,
+                                              void *callData)
 {
   Superclass::ProcessMRMLEvents(caller, event, callData);
 
-  vtkMRMLPlotNode* callerMRMLPlot = vtkMRMLPlotNode::SafeDownCast(caller);
-  if (callerMRMLPlot != NULL && this->GetScene())
+  if (caller == NULL || this->GetScene() == NULL ||
+      (event != vtkCommand::ModifiedEvent &&
+       event != vtkMRMLPlotNode::TableModifiedEvent))
     {
+    return;
+    }
 
+  vtkMRMLPlotNode* callerMRMLPlot = vtkMRMLPlotNode::SafeDownCast(caller);
+  if (callerMRMLPlot != NULL)
+    {
     vtkStringArray* plotNodesIDs = this->GetPlotIDs();
     if (!plotNodesIDs)
       {
@@ -271,17 +283,35 @@ void vtkMRMLPlotLayoutNode::ProcessMRMLEvents( vtkObject *caller, unsigned long 
 
       if (callerMRMLPlot == plotNode)
         {
-        if (event == vtkCommand::ModifiedEvent)
-          {
-          this->Modified();
-          }
-        else if (event == vtkMRMLPlotNode::vtkPlotRemovedEvent)
-          {
-          this->InvokeEvent(vtkMRMLPlotLayoutNode::vtkPlotRemovedEvent, callData);
-          }
+        this->Modified();
         }
       }
+    return;
+    }
 
+  vtkMRMLTableNode* callerMRMLTable = vtkMRMLTableNode::SafeDownCast(caller);
+  if (callerMRMLTable != NULL)
+    {
+    vtkStringArray* plotNodesIDs = this->GetPlotIDs();
+    if (!plotNodesIDs)
+      {
+      return;
+      }
+
+    for (int plotIDsIndex = 0; plotIDsIndex < plotNodesIDs->GetNumberOfValues(); plotIDsIndex++)
+      {
+      vtkMRMLPlotNode* plotNode = vtkMRMLPlotNode::SafeDownCast
+        (this->GetScene()->GetNodeByID(plotNodesIDs->GetValue(plotIDsIndex)));
+      if (plotNode == NULL)
+        {
+        continue;
+        }
+
+      if (callerMRMLTable == plotNode->GetTableNode())
+        {
+        this->Modified();
+        }
+      }
     return;
     }
 
@@ -443,8 +473,8 @@ void vtkMRMLPlotLayoutNode::ObservePlot(const char *id)
   this->plotNodes->AddItem(plotNode);
 
   vtkNew<vtkIntArray> events;
-  events->InsertNextValue(vtkMRMLPlotNode::vtkPlotRemovedEvent);
   events->InsertNextValue(vtkCommand::ModifiedEvent);
+  events->InsertNextValue(vtkMRMLPlotNode::TableModifiedEvent);
   vtkNew<vtkFloatArray> priorities;
   priorities->InsertNextValue(1.);
   priorities->InsertNextValue(1.);

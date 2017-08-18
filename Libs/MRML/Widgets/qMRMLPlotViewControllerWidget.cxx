@@ -251,6 +251,11 @@ void qMRMLPlotViewControllerWidgetPrivate::onPlotTypeSelected(const QString &Typ
     return;
     }
 
+  if (!strcmp(this->PlotLayoutNode->GetProperty("type"), Type.toStdString().c_str()))
+    {
+    return;
+    }
+
   this->PlotLayoutNode->SetProperty("type", Type.toStdString().c_str());
 
   std::vector<std::string> plotNodesIDs;
@@ -270,6 +275,8 @@ void qMRMLPlotViewControllerWidgetPrivate::onPlotTypeSelected(const QString &Typ
     if (found != std::string::npos)
       {
       this->PlotLayoutNode->RemovePlotAndObservationByName(namePlotNode.c_str());
+      plotNode->GetNodeReference("Markups")->RemoveNodeReferenceIDs("Markups");
+      q->mrmlScene()->RemoveNode(plotNode);
       continue;
       }
 
@@ -285,7 +292,7 @@ void qMRMLPlotViewControllerWidgetPrivate::onPlotTypeSelected(const QString &Typ
       {
       plotNode->SetType(vtkMRMLPlotNode::LINE);
 
-      vtkSmartPointer<vtkMRMLPlotNode> plotNodeCopy = vtkMRMLPlotNode::SafeDownCast
+      vtkMRMLPlotNode* plotNodeCopy = vtkMRMLPlotNode::SafeDownCast
         (plotNode->GetNodeReference("Markups"));
 
       if (plotNodeCopy)
@@ -297,10 +304,10 @@ void qMRMLPlotViewControllerWidgetPrivate::onPlotTypeSelected(const QString &Typ
         vtkSmartPointer<vtkMRMLNode> node = vtkSmartPointer<vtkMRMLNode>::Take
           (q->mrmlScene()->CreateNodeByClass("vtkMRMLPlotNode"));
         plotNodeCopy = vtkMRMLPlotNode::SafeDownCast(node);
-
         std::string namePlotNodeCopy = namePlotNode + " Markups";
-
-        plotNodeCopy->CopyAndSetNameAndType(plotNode, namePlotNodeCopy.c_str(), vtkMRMLPlotNode::POINTS);
+        plotNodeCopy->CopyWithScene(plotNode);
+        plotNodeCopy->SetName(namePlotNodeCopy.c_str());
+        plotNodeCopy->SetType(vtkMRMLPlotNode::POINTS);
         q->mrmlScene()->AddNode(plotNodeCopy);
         plotNode->AddNodeReferenceID("Markups", plotNodeCopy->GetID());
         plotNodeCopy->AddNodeReferenceID("Markups", plotNode->GetID());
@@ -627,8 +634,8 @@ void qMRMLPlotViewControllerWidget::updateWidgetFromMRML()
   bool plotBlockSignals = d->plotComboBox->blockSignals(true);
   for (int idx = 0; idx < d->plotComboBox->nodeCount(); idx++)
     {
-    d->plotComboBox->setCheckState(d->plotComboBox->nodeFromIndex(idx),
-                                    Qt::Unchecked);
+    vtkMRMLNode* node = d->plotComboBox->nodeFromIndex(idx);
+    d->plotComboBox->setCheckState(node, Qt::Unchecked);
     }
   for (int idx = 0; idx < plotIDs->GetNumberOfValues(); idx++)
     {

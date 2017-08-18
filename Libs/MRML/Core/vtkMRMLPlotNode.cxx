@@ -50,8 +50,8 @@
 #include <algorithm>
 #include <sstream>
 
-//----------------------------------------------------------------------------
-vtkCxxSetReferenceStringMacro(vtkMRMLPlotNode, TableNodeID);
+const char* vtkMRMLPlotNode::TableNodeReferenceRole = "table";
+const char* vtkMRMLPlotNode::TableNodeReferenceMRMLAttributeName = "tableNodeRef";
 
 //------------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLPlotNode);
@@ -80,16 +80,21 @@ vtkMRMLPlotNode::vtkMRMLPlotNode()
 {
   this->Plot = NULL;
   this->Type = -1;
-  this->Dirty = false;
-  this->XColumn = 0;
-  this->YColumn = 1;
+  this->XColumnIndex = 0;
+  this->YColumnIndex = 1;
   this->XColumnName = "(none)";
   this->YColumnName = "(none)";
-  this->TableNodeID = NULL;
-  this->TableNode = NULL;
   this->HideFromEditorsOff();
 
   this->SetType(LINE);
+
+  vtkIntArray  *events = vtkIntArray::New();
+  events->InsertNextValue(vtkCommand::ModifiedEvent);
+  events->InsertNextValue(vtkMRMLPlotNode::TableModifiedEvent);
+  this->AddNodeReferenceRole(this->GetTableNodeReferenceRole(),
+                             this->GetTableNodeReferenceMRMLAttributeName(),
+                             events);
+  events->Delete();
 }
 
 //----------------------------------------------------------------------------
@@ -100,18 +105,18 @@ vtkMRMLPlotNode::~vtkMRMLPlotNode()
     this->Plot->Delete();
     this->Plot = NULL;
     }
+}
 
-  if (this->TableNodeID)
-    {
-    delete [] this->TableNodeID;
-    this->TableNodeID = NULL;
-    }
+//----------------------------------------------------------------------------
+const char *vtkMRMLPlotNode::GetTableNodeReferenceRole()
+{
+  return vtkMRMLPlotNode::TableNodeReferenceRole;
+}
 
-  if (this->TableNode)
-    {
-    this->TableNode->Delete();
-    this->TableNode = NULL;
-    }
+//----------------------------------------------------------------------------
+const char *vtkMRMLPlotNode::GetTableNodeReferenceMRMLAttributeName()
+{
+  return vtkMRMLPlotNode::TableNodeReferenceMRMLAttributeName;
 }
 
 //----------------------------------------------------------------------------
@@ -120,9 +125,8 @@ void vtkMRMLPlotNode::WriteXML(ostream& of, int nIndent)
   // Start by having the superclass write its information
   Superclass::WriteXML(of, nIndent);
   of << " Type=\"" << this->GetType() << "\"";
-  of << " XColumn=\"" << this->GetXColumn() << "\"";
-  of << " YColumn=\"" << this->GetYColumn() << "\"";
-  of << " TableNodeID=\"" << (this->TableNodeID ? this->TableNodeID : "") << "\"";
+  of << " XColumnIndex=\"" << this->GetXColumnIndex() << "\"";
+  of << " YColumnIndex=\"" << this->GetYColumnIndex() << "\"";
   of << " ";
 }
 
@@ -131,7 +135,7 @@ void vtkMRMLPlotNode::ReadXMLAttributes(const char** atts)
 {
   int disabledModify = this->StartModify();
 
-  vtkMRMLNode::ReadXMLAttributes(atts);
+  Superclass::ReadXMLAttributes(atts);
 
   const char* attName;
   const char* attValue;
@@ -143,24 +147,13 @@ void vtkMRMLPlotNode::ReadXMLAttributes(const char** atts)
       {
       this->SetType(StringToInt(attValue));
       }
-    else if (!strcmp(attName, "XColumn"))
+    else if (!strcmp(attName, "XColumnIndex"))
       {
-      this->SetXColumn(StringToInt(attValue));
+      this->SetXColumnIndex(StringToInt(attValue));
       }
-    else if (!strcmp(attName, "YColumn"))
+    else if (!strcmp(attName, "YColumnIndex"))
       {
-      this->SetYColumn(StringToInt(attValue));
-      }
-    else if (!strcmp(attName, "TableNodeID"))
-      {
-      if (attValue && *attValue == '\0')
-        {
-        this->SetTableNodeID(NULL);
-        }
-      else
-        {
-        this->SetTableNodeID(attValue);
-        }
+      this->SetYColumnIndex(StringToInt(attValue));
       }
     }
   this->EndModify(disabledModify);
@@ -171,62 +164,38 @@ void vtkMRMLPlotNode::ReadXMLAttributes(const char** atts)
 //
 void vtkMRMLPlotNode::Copy(vtkMRMLNode *anode)
 {
+  int disabledModify = this->StartModify();
+
+  Superclass::Copy(anode);
+
   vtkMRMLPlotNode *node = vtkMRMLPlotNode::SafeDownCast(anode);
   if (!node)
     {
     vtkErrorMacro("vtkMRMLPlotNode::Copy failed: invalid or incompatible source node");
     return;
     }
-  int disabledModify = this->StartModify();
-  Superclass::Copy(anode);
 
   this->SetType(node->GetType());
-  this->SetXColumn(node->GetXColumn());
-  this->SetYColumn(node->GetYColumn());
-
-  // Table (SetAndObserveTableNode set also InputData for plot)
-  this->SetAndObserveTableNodeID(node->GetTableNodeID());
+  this->SetXColumnIndex(node->GetXColumnIndex());
+  this->SetYColumnIndex(node->GetYColumnIndex());
 
   this->EndModify(disabledModify);
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLPlotNode::CopyAndSetNameAndType(vtkMRMLNode *anode, const char *name, int Type)
-{
-  vtkMRMLPlotNode *node = vtkMRMLPlotNode::SafeDownCast(anode);
-  if (!node)
-    {
-    vtkErrorMacro("vtkMRMLPlotNode::Copy failed: invalid or incompatible source node");
-    return;
-    }
-
-  if (!name)
-    {
-    vtkErrorMacro("vtkMRMLPlotNode::Copy failed: invalid name");
-    return;
-    }
-
-  int disabledModify = this->StartModify();
-  Superclass::Copy(anode);
-
-  this->SetName(name);
-  this->SetType(Type);
-  this->SetXColumn(node->GetXColumn());
-  this->SetYColumn(node->GetYColumn());
-
-  // Table (SetAndObserveTableNode set also InputData for plot)
-  this->SetAndObserveTableNodeID(node->GetTableNodeID());
-
-  this->EndModify(disabledModify);
-}
-
-//----------------------------------------------------------------------------
-void vtkMRMLPlotNode::ProcessMRMLEvents( vtkObject *caller, unsigned long event, void *callData )
+void vtkMRMLPlotNode::ProcessMRMLEvents(vtkObject *caller, unsigned long event, void *callData)
 {
   Superclass::ProcessMRMLEvents(caller, event, callData);
+
+  if (caller == NULL ||
+      (event != vtkCommand::ModifiedEvent &&
+       event != vtkMRMLPlotNode::TableModifiedEvent))
+    {
+    return;
+    }
+
   vtkPlot* callerPlot = vtkPlot::SafeDownCast(caller);
-  if (event == vtkCommand::ModifiedEvent &&  callerPlot != NULL
-    && this->Plot != NULL && this->Plot == callerPlot)
+  if (callerPlot != NULL && this->Plot != NULL && this->Plot == callerPlot)
     {
     // this indicates that data stored in the node is changed (either the Plot or other
     // data members are changed)
@@ -234,63 +203,37 @@ void vtkMRMLPlotNode::ProcessMRMLEvents( vtkObject *caller, unsigned long event,
     return;
     }
 
-  vtkMRMLTableNode* callerMRMLTable = vtkMRMLTableNode::SafeDownCast(caller);
-  if (event == vtkCommand::ModifiedEvent &&  callerMRMLTable != NULL
-    && this->TableNode != NULL && this->TableNode == callerMRMLTable)
+  vtkMRMLTableNode *tnode = this->GetTableNode();
+  vtkMRMLTableNode *callerTable = vtkMRMLTableNode::SafeDownCast(caller);
+  if (callerTable != NULL && tnode != NULL && tnode == callerTable &&
+      event == vtkCommand::ModifiedEvent)
     {
-    // this indicates that data stored in the node is changed (either the table, the plot or other
-    // data members are changed)
-    if (this->Plot != NULL)
-      {
-      // this is necessary to ensure that the vtkTable of Plot is updated when reading a saved scene
-      // (in that case SetAndObserveTableID is called before that the table is read from file)
-      if (!this->Plot->GetInput())
-        {
-        this->SetInputData(callerMRMLTable);
-        }
-      this->Plot->Modified();
-      }
-    this->Modified();
-    return;
+    this->InvokeCustomModifiedEvent(vtkMRMLPlotNode::TableModifiedEvent, callerTable);
     }
 
   return;
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLPlotNode::SetSceneReferences()
+const char *vtkMRMLPlotNode::GetTableNodeID()
 {
-  this->Superclass::SetSceneReferences();
-
-  if (this->GetScene())
-    {
-    this->SetAndObserveTableNodeID(this->GetTableNodeID());
-    }
+  return this->GetNodeReferenceID(this->GetTableNodeReferenceRole());
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLPlotNode::UpdateReferences()
+void vtkMRMLPlotNode::UpdateScene(vtkMRMLScene *scene)
 {
-  if (this->GetScene() == NULL)
-    {
-    return;
-    }
+  Superclass::UpdateScene(scene);
 
-  if (this->TableNodeID != NULL && this->GetScene()->GetNodeByID(this->TableNodeID) == NULL)
-    {
-    this->SetAndObserveTableNodeID(NULL);
-    }
+  this->SetInputData(this->GetTableNode());
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLPlotNode::UpdateReferenceID(const char *oldID, const char *newID)
+void vtkMRMLPlotNode::OnNodeAddedToScene()
 {
-  this->Superclass::UpdateReferenceID(oldID, newID);
-  if (this->TableNodeID && !strcmp(oldID, this->TableNodeID))
-    {
-    this->RemoveNodeReferenceIDs(oldID);
-    this->SetAndObserveTableNodeID(newID);
-    }
+  Superclass::OnNodeAddedToScene();
+
+  this->SetInputData(this->GetTableNode());
 }
 
 //----------------------------------------------------------------------------
@@ -298,15 +241,12 @@ void vtkMRMLPlotNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
   os << indent << "\nType: " << this->Type;
-  os << indent << "\nXColumn: " << this->XColumn;
+  os << indent << "\nXColumnIndex: " << this->XColumnIndex;
   os << indent << "\nXColumnName: " << this->XColumnName;
-  os << indent << "\nYColumn: " << this->YColumn;
+  os << indent << "\nYColumnIndex: " << this->YColumnIndex;
   os << indent << "\nYColumnName: " << this->YColumnName;
-  os << indent << "\nTableNodeID: " <<
-    (this->TableNodeID ? this->TableNodeID : "(none)");
   os << indent << "\nvtkPlot: " <<
     (this->Plot ? this->Plot->GetClassName() : "(none)");
-
   if (this->Plot)
     {
     this->Plot->PrintSelf(os,indent);
@@ -320,49 +260,36 @@ void vtkMRMLPlotNode::SetAndObservePlot(vtkPlot* plot)
     {
     return;
     }
-  // this is necessary to pass to chartXY in the view that the Plot needs to be cleaned
-  this->Dirty = true;
-
-  this->InvokeEvent(vtkMRMLPlotNode::vtkPlotRemovedEvent, this->Plot);
 
   vtkSetAndObserveMRMLObjectMacro(this->Plot, plot);
-  this->SetInputData(this->TableNode);
+  // Set the connection between the vktTable and the vtkPlot
+  this->SetInputData(this->GetTableNode());
   this->Modified();
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLPlotNode::SetInputData(vtkMRMLTableNode *tableNode,
-                                   vtkIdType xColumn,
-                                   vtkIdType yColumn)
+                                   vtkIdType xColumnIndex,
+                                   vtkIdType yColumnIndex)
 {
-  if (tableNode == NULL)
-    {
-    return;
-    }
-
-  if (tableNode->GetTable() == NULL       ||
+  if (tableNode == NULL || tableNode->GetTable() == NULL ||
       tableNode->GetNumberOfColumns() < 2 ||
       this->GetPlot() == NULL)
     {
     return;
     }
 
-  this->SetXColumnName(this->GetTableNode()->GetColumnName(xColumn));
-  this->SetYColumnName(this->GetTableNode()->GetColumnName(yColumn));
+  this->SetXColumnName(tableNode->GetColumnName(xColumnIndex));
+  this->SetYColumnName(tableNode->GetColumnName(yColumnIndex));
 
-  this->GetPlot()->SetInputData(tableNode->GetTable(), xColumn, yColumn);
+  this->GetPlot()->SetInputData(tableNode->GetTable(), xColumnIndex, yColumnIndex);
   this->Modified();
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLPlotNode::SetInputData(vtkMRMLTableNode *tableNode)
 {
-  if (tableNode == NULL)
-    {
-    return;
-    }
-
-  this->SetInputData(tableNode, this->GetXColumn(), this->GetYColumn());
+  this->SetInputData(tableNode, this->GetXColumnIndex(), this->GetYColumnIndex());
 }
 
 //----------------------------------------------------------------------------
@@ -390,54 +317,33 @@ void vtkMRMLPlotNode::SetYColumnName(const std::string &yColumnName)
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLPlotNode::SetAndObserveTableNodeID(const char *TableNodeID)
+bool vtkMRMLPlotNode::SetAndObserveTableNodeID(const char *TableNodeID)
 {
-  vtkMRMLTableNode* cnode = NULL;
-  if (this->GetScene() && TableNodeID)
+  if (!TableNodeID)
     {
-    cnode = vtkMRMLTableNode::SafeDownCast(
-      this->GetScene()->GetNodeByID(TableNodeID));
-    }
-  if (this->TableNode != cnode)
-    {
-    vtkSetAndObserveMRMLObjectMacro(this->TableNode, cnode);
+    return false;
     }
 
-  this->SetTableNodeID(TableNodeID);
-  if (this->GetScene())
-    {
-    this->GetScene()->AddReferencedNodeID(this->TableNodeID, this);
-    }
+  // Set and Observe the MRMLTable reference
+  this->SetAndObserveNodeReferenceID(this->GetTableNodeReferenceRole(), TableNodeID);
 
-  this->SetInputData(this->TableNode);
+  // Set the connection between the vktTable and the vtkPlot
+  this->SetInputData(this->GetTableNode());
+
+  return true;
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLPlotNode::SetAndObserveTableNodeID(const std::string &TableNodeID)
+bool vtkMRMLPlotNode::SetAndObserveTableNodeID(const std::string &TableNodeID)
 {
-  this->SetAndObserveTableNodeID( TableNodeID.c_str() );
+  return this->SetAndObserveTableNodeID(TableNodeID.c_str());
 }
 
 //----------------------------------------------------------------------------
 vtkMRMLTableNode *vtkMRMLPlotNode::GetTableNode()
 {
-  if (this->TableNode == NULL && this->TableNodeID == NULL)
-    {
-    return NULL;
-    }
-
-  if (this->TableNode != NULL || this->TableNodeID == NULL)
-    {
-    return this->TableNode;
-    }
-  vtkMRMLTableNode* cnode = NULL;
-  if (this->GetScene())
-    {
-    cnode = vtkMRMLTableNode::SafeDownCast(
-      this->GetScene()->GetNodeByID(this->TableNodeID));
-    }
-  vtkSetAndObserveMRMLObjectMacro(this->TableNode, cnode);
-  return cnode;
+  return vtkMRMLTableNode::SafeDownCast(
+    this->GetNodeReference(this->GetTableNodeReferenceRole()));
 }
 
 //----------------------------------------------------------------------------
@@ -487,15 +393,17 @@ void vtkMRMLPlotNode::SetType(int type)
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLPlotNode::SetXColumn(vtkIdType xColumn)
+void vtkMRMLPlotNode::SetXColumnIndex(vtkIdType xColumnIndex)
 {
-  this->XColumn = xColumn;
+  this->XColumnIndex = xColumnIndex;
+  // Set the connection between the vktTable and the vtkPlot
   this->SetInputData(this->GetTableNode());
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLPlotNode::SetYColumn(vtkIdType yColumn)
+void vtkMRMLPlotNode::SetYColumnIndex(vtkIdType yColumnIndex)
 {
-  this->YColumn = yColumn;
+  this->YColumnIndex = yColumnIndex;
+  // Set the connection between the vktTable and the vtkPlot
   this->SetInputData(this->GetTableNode());
 }

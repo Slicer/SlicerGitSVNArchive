@@ -24,11 +24,11 @@
 #include <QHBoxLayout>
 #include <QKeyEvent>
 #include <QToolButton>
-#include <QWebFrame>
 
 // STD includes
-#include <vector>
 #include <algorithm>
+#include <sstream>
+#include <vector>
 
 // CTK includes
 #include <ctkAxesWidget.h>
@@ -240,13 +240,8 @@ void qMRMLPlotViewPrivate::onPlotLayoutNodeChanged()
       (this->MRMLScene->GetNodeByID(this->MRMLPlotViewNode->GetPlotLayoutNodeID()));
     }
 
-  this->qvtkReconnect(
-    this->MRMLPlotLayoutNode, newPlotLayoutNode,
+  this->qvtkReconnect(this->MRMLPlotLayoutNode, newPlotLayoutNode,
     vtkCommand::ModifiedEvent, this, SLOT(updateWidgetFromMRML()));
-
-  this->qvtkReconnect(
-    this->MRMLPlotLayoutNode, newPlotLayoutNode,
-    vtkMRMLPlotLayoutNode::vtkPlotRemovedEvent, this, SLOT(cleanPlotsInView()));
 
   this->MRMLPlotLayoutNode = newPlotLayoutNode;
 }
@@ -331,17 +326,8 @@ void qMRMLPlotViewPrivate::updateWidgetFromMRML()
 {
   Q_Q(qMRMLPlotView);
 
-  if (!q->isEnabled())
-    {
-    return;
-    }
-
-  if (!this->MRMLScene || !this->ColorLogic || !this->MRMLPlotViewNode || !q->chart())
-    {
-    return;
-    }
-
-  if (!q->chart()->GetLegend())
+  if (!this->MRMLScene || !this->ColorLogic || !this->MRMLPlotViewNode
+      || !q->isEnabled() || !q->chart() || !q->chart()->GetLegend())
     {
     return;
     }
@@ -392,6 +378,29 @@ void qMRMLPlotViewPrivate::updateWidgetFromMRML()
   std::vector<std::string> plotNodesIDs;
   pln->GetPlotIDs(plotNodesIDs);
 
+  for(int chartPlotNodesIndex = 0; chartPlotNodesIndex < q->chart()->GetNumberOfPlots(); chartPlotNodesIndex++)
+    {
+    bool plotFound = false;
+    for(int plotNodesIndex = 0; plotNodesIndex < plotNodes->GetNumberOfItems(); plotNodesIndex++)
+      {
+      vtkMRMLPlotNode* plotNode = vtkMRMLPlotNode::SafeDownCast
+        (plotNodes->GetItemAsObject(plotNodesIndex));
+      if (!plotNode)
+        {
+        continue;
+        }
+      if (q->chart()->GetPlot(chartPlotNodesIndex) == plotNode->GetPlot())
+        {
+        plotFound = true;
+        break;
+        }
+      }
+    if (!plotFound)
+      {
+      q->removePlot(q->chart()->GetPlot(chartPlotNodesIndex));
+      }
+    }
+
   for(int plotNodesIndex = 0; plotNodesIndex < plotNodes->GetNumberOfItems(); plotNodesIndex++)
     {
     vtkMRMLPlotNode* plotNode = vtkMRMLPlotNode::SafeDownCast
@@ -401,7 +410,7 @@ void qMRMLPlotViewPrivate::updateWidgetFromMRML()
       continue;
       }
 
-    bool plotFound = FALSE;
+    bool plotFound = false;
     for (unsigned int PlotNodeIDsIndex = 0; PlotNodeIDsIndex < plotNodesIDs.size(); PlotNodeIDsIndex++)
       {
       if (plotNodesIDs[PlotNodeIDsIndex].compare(plotNode->GetID()))
@@ -424,7 +433,7 @@ void qMRMLPlotViewPrivate::updateWidgetFromMRML()
           {
           vtkMRMLPlotNode* selectedPlotNode = vtkMRMLPlotNode::SafeDownCast
             (this->mrmlScene()->GetNodeByID(selectedPlotNodeIDs->GetValue(selectedPlotNodesIndex)));
-          if (!selectedPlotNode)
+          if (!selectedPlotNode || selectedPlotNode->GetPlot() != plot)
             {
             continue;
             }
@@ -432,11 +441,6 @@ void qMRMLPlotViewPrivate::updateWidgetFromMRML()
           std::string namePlotNode = selectedPlotNode->GetName();
           std::size_t found = namePlotNode.find("Markups");
           if (found != std::string::npos)
-            {
-            continue;
-            }
-
-          if (selectedPlotNode->GetPlot() != plot)
             {
             continue;
             }
@@ -449,16 +453,15 @@ void qMRMLPlotViewPrivate::updateWidgetFromMRML()
             }
 
           plot->SetSelection(selectedArray);
+          plot->Modified();
 
           vtkMRMLPlotNode* MarkupsPlotNode = vtkMRMLPlotNode::SafeDownCast
             (plotNode->GetNodeReference("Markups"));
 
-          if (MarkupsPlotNode)
+          if (MarkupsPlotNode && MarkupsPlotNode->GetPlot())
             {
-            if (MarkupsPlotNode->GetPlot())
-              {
-              MarkupsPlotNode->GetPlot()->SetSelection(selectedArray);
-              }
+            MarkupsPlotNode->GetPlot()->SetSelection(selectedArray);
+            MarkupsPlotNode->GetPlot()->Modified();
             }
           break;
           }
@@ -476,21 +479,21 @@ void qMRMLPlotViewPrivate::updateWidgetFromMRML()
         {
         q->addPlot(plot);
         }
-      plotFound = TRUE;
+      plotFound = true;
       break;
       }
 
-    bool columnXFound = FALSE;
-    bool columnYFound = FALSE;
+    bool columnXFound = false;
+    bool columnYFound = false;
     for (int columnIndex = 0; columnIndex < plotNode->GetTableNode()->GetNumberOfColumns(); columnIndex++)
       {
       if(!strcmp(plotNode->GetTableNode()->GetColumnName(columnIndex).c_str(), plotNode->GetXColumnName().c_str()))
         {
-        columnXFound = TRUE;
+        columnXFound = true;
         }
       if(!strcmp(plotNode->GetTableNode()->GetColumnName(columnIndex).c_str(), plotNode->GetYColumnName().c_str()))
         {
-        columnYFound = TRUE;
+        columnYFound = true;
         }
       }
 
@@ -535,6 +538,25 @@ void qMRMLPlotViewPrivate::updateWidgetFromMRML()
   q->chart()->GetTitleProperties()->SetFontFamily(VTKFont);
   q->chart()->GetTitleProperties()->SetFontSize(StringToInt(pln->GetProperty("TitleFontSize")));
   q->chart()->GetLegend()->GetLabelProperties()->SetFontFamily(VTKFont);
+
+  // Setting ClickAndDrag action draggable along X and Y axes
+  if (!strcmp(pln->GetProperty("ClickAndDragAlongX"), "on"))
+    {
+    q->chart()->SetDragPointAlongX(true);
+    }
+  else
+    {
+    q->chart()->SetDragPointAlongX(false);
+    }
+
+  if (!strcmp(pln->GetProperty("ClickAndDragAlongY"), "on"))
+    {
+    q->chart()->SetDragPointAlongY(true);
+    }
+  else
+    {
+    q->chart()->SetDragPointAlongY(false);
+    }
 
   // Setting Axes
   // Assuming the the Top and Bottom axes are the "X" axis
@@ -649,49 +671,6 @@ void qMRMLPlotViewPrivate::updateWidgetFromMRML()
 
   // Repaint the chart scene
   q->scene()->SetDirty(true);
-}
-
-// --------------------------------------------------------------------------
-void qMRMLPlotViewPrivate::cleanPlotsInView()
-{
-  Q_Q(qMRMLPlotView);
-
-  if (!q->isEnabled())
-    {
-    return;
-    }
-
-  if (!this->MRMLScene || !this->MRMLPlotLayoutNode || !q->chart())
-    {
-    return;
-    }
-
-  vtkStringArray* plotNodeIDs = this->MRMLPlotLayoutNode->GetPlotIDs();
-
-  if (!plotNodeIDs)
-    {
-    return;
-    }
-
-  for (int plotIndex = 0; plotIndex < plotNodeIDs->GetNumberOfValues(); plotIndex++)
-    {
-    vtkMRMLPlotNode* plotNode = vtkMRMLPlotNode::SafeDownCast
-      (this->MRMLScene->GetNodeByID(plotNodeIDs->GetValue(plotIndex)));
-    if (!plotNode)
-      {
-      continue;
-      }
-
-    if (plotNode->GetDirty())
-      {
-      q->removePlot(plotNode->GetPlot());
-      // Plot Node is removed and it will be readded
-      // by updateWidgetFromMRML automatically.
-      // This clean chartXY from the plot and it is needed
-      // when the Type of vtkMRMLPlotNode is changed.
-      plotNode->SetDirty(false);
-      }
-    }
 }
 
 // --------------------------------------------------------------------------
