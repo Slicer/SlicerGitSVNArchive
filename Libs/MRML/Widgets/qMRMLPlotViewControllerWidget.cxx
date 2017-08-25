@@ -204,8 +204,6 @@ void qMRMLPlotViewControllerWidgetPrivate::onPlotNodesSelected()
 
   std::vector<std::string> plotNodesIDs;
   this->PlotLayoutNode->GetPlotIDs(plotNodesIDs);
-  std::vector<std::string> plotNodesNames;
-  this->PlotLayoutNode->GetPlotNames(plotNodesNames);
 
   // loop over arrays in the widget
   for (int idx = 0; idx < this->plotComboBox->nodeCount(); idx++)
@@ -216,15 +214,16 @@ void qMRMLPlotViewControllerWidgetPrivate::onPlotNodesSelected()
 
     // is the node in the Plot?
     bool found = false;
-    for (unsigned int ii = 0; ii < plotNodesIDs.size(); ii++)
+    std::vector<std::string>::iterator it = plotNodesIDs.begin();
+    for (; it != plotNodesIDs.end(); ++it)
       {
-      if (!strcmp(dn->GetID(), plotNodesIDs[ii].c_str()))
+      if (!strcmp(dn->GetID(), (*it).c_str()))
         {
         if (!checked)
           {
           // plot is not checked but currently in the LayoutPlot, remove it
           // (might want to cache the old name in case user adds it back)
-          this->PlotLayoutNode->RemovePlotAndObservationByName(plotNodesNames[ii].c_str());
+          this->PlotLayoutNode->RemovePlotNodeID((*it).c_str());
           }
         found = true;
         break;
@@ -235,8 +234,7 @@ void qMRMLPlotViewControllerWidgetPrivate::onPlotNodesSelected()
       if (checked)
         {
         // plot is checked but not currently in the LayoutPlot, add it
-        // (need a string for the name).
-        this->PlotLayoutNode->AddAndObservePlot(dn->GetName(), dn->GetID());
+        this->PlotLayoutNode->AddAndObservePlotNodeID(dn->GetID());
         }
       }
     }
@@ -251,20 +249,21 @@ void qMRMLPlotViewControllerWidgetPrivate::onPlotTypeSelected(const QString &Typ
     return;
     }
 
-  if (!strcmp(this->PlotLayoutNode->GetProperty("type"), Type.toStdString().c_str()))
+  if (!strcmp(this->PlotLayoutNode->GetAttribute("Type"), Type.toStdString().c_str()))
     {
     return;
     }
 
-  this->PlotLayoutNode->SetProperty("type", Type.toStdString().c_str());
+  this->PlotLayoutNode->SetAttribute("Type", Type.toStdString().c_str());
 
   std::vector<std::string> plotNodesIDs;
   this->PlotLayoutNode->GetPlotIDs(plotNodesIDs);
 
-  for (unsigned int plotIndex = 0; plotIndex < plotNodesIDs.size(); plotIndex++)
+  std::vector<std::string>::iterator it = plotNodesIDs.begin();
+  for (; it != plotNodesIDs.end(); ++it)
     {
     vtkMRMLPlotNode* plotNode = vtkMRMLPlotNode::SafeDownCast
-      (q->mrmlScene()->GetNodeByID(plotNodesIDs[plotIndex]));
+      (q->mrmlScene()->GetNodeByID((*it).c_str()));
     if (!plotNode)
       {
       continue;
@@ -274,7 +273,7 @@ void qMRMLPlotViewControllerWidgetPrivate::onPlotTypeSelected(const QString &Typ
     std::size_t found = namePlotNode.find("Markups");
     if (found != std::string::npos)
       {
-      this->PlotLayoutNode->RemovePlotAndObservationByName(namePlotNode.c_str());
+      this->PlotLayoutNode->RemovePlotNodeID(plotNode->GetID());
       plotNode->GetNodeReference("Markups")->RemoveNodeReferenceIDs("Markups");
       q->mrmlScene()->RemoveNode(plotNode);
       continue;
@@ -313,7 +312,7 @@ void qMRMLPlotViewControllerWidgetPrivate::onPlotTypeSelected(const QString &Typ
         plotNodeCopy->AddNodeReferenceID("Markups", plotNode->GetID());
         }
 
-      this->PlotLayoutNode->AddAndObservePlot(plotNodeCopy->GetName(), plotNodeCopy->GetID());
+      this->PlotLayoutNode->AddAndObservePlotNodeID(plotNodeCopy->GetID());
       }
     else if (!Type.compare("Bar"))
       {
@@ -389,11 +388,11 @@ void qMRMLPlotViewControllerWidget::showGrid(bool show)
 
   if (show)
     {
-    d->PlotLayoutNode->SetProperty("showGrid", "on");
+    d->PlotLayoutNode->SetAttribute("ShowGrid", "on");
     }
   else
     {
-    d->PlotLayoutNode->SetProperty("showGrid", "off");
+    d->PlotLayoutNode->SetAttribute("ShowGrid", "off");
     }
 }
 
@@ -409,11 +408,11 @@ void qMRMLPlotViewControllerWidget::showLegend(bool show)
 
   if (show)
     {
-    d->PlotLayoutNode->SetProperty("showLegend", "on");
+    d->PlotLayoutNode->SetAttribute("ShowLegend", "on");
     }
   else
     {
-    d->PlotLayoutNode->SetProperty("showLegend", "off");
+    d->PlotLayoutNode->SetAttribute("ShowLegend", "off");
     }
 }
 
@@ -429,11 +428,11 @@ void qMRMLPlotViewControllerWidget::showTitle(bool show)
 
   if (show)
     {
-    d->PlotLayoutNode->SetProperty("showTitle", "on");
+    d->PlotLayoutNode->SetAttribute("ShowTitle", "on");
     }
   else
     {
-    d->PlotLayoutNode->SetProperty("showTitle", "off");
+    d->PlotLayoutNode->SetAttribute("ShowTitle", "off");
     }
 }
 
@@ -449,11 +448,11 @@ void qMRMLPlotViewControllerWidget::showXAxisLabel(bool show)
 
   if (show)
     {
-    d->PlotLayoutNode->SetProperty("showXAxisLabel", "on");
+    d->PlotLayoutNode->SetAttribute("ShowXAxisLabel", "on");
     }
   else
     {
-    d->PlotLayoutNode->SetProperty("showXAxisLabel", "off");
+    d->PlotLayoutNode->SetAttribute("ShowXAxisLabel", "off");
     }
 }
 
@@ -469,11 +468,11 @@ void qMRMLPlotViewControllerWidget::showYAxisLabel(bool show)
 
   if (show)
     {
-    d->PlotLayoutNode->SetProperty("showYAxisLabel", "on");
+    d->PlotLayoutNode->SetAttribute("ShowYAxisLabel", "on");
     }
   else
     {
-    d->PlotLayoutNode->SetProperty("showYAxisLabel", "off");
+    d->PlotLayoutNode->SetAttribute("ShowYAxisLabel", "off");
     }
 }
 
@@ -487,7 +486,7 @@ void qMRMLPlotViewControllerWidget::setTitle(const QString &str)
     return;
     }
 
-  d->PlotLayoutNode->SetProperty("TitleName", str.toLatin1());
+  d->PlotLayoutNode->SetAttribute("TitleName", str.toLatin1());
 }
 
 //---------------------------------------------------------------------------
@@ -500,7 +499,7 @@ void qMRMLPlotViewControllerWidget::setXAxisLabel(const QString &str)
     return;
     }
 
-  d->PlotLayoutNode->SetProperty("XAxisLabelName", str.toLatin1());
+  d->PlotLayoutNode->SetAttribute("XAxisLabelName", str.toLatin1());
 }
 
 //---------------------------------------------------------------------------
@@ -513,7 +512,7 @@ void qMRMLPlotViewControllerWidget::setYAxisLabel(const QString &str)
     return;
     }
 
-  d->PlotLayoutNode->SetProperty("YAxisLabelName", str.toLatin1());
+  d->PlotLayoutNode->SetAttribute("YAxisLabelName", str.toLatin1());
 }
 
 //---------------------------------------------------------------------------
@@ -530,7 +529,7 @@ void qMRMLPlotViewControllerWidget::editTitle()
   bool ok = false;
   QString newTitle = QInputDialog::getText(
     this, "Edit Title", "Title",
-    QLineEdit::Normal, d->PlotLayoutNode->GetProperty("TitleName"), &ok);
+    QLineEdit::Normal, d->PlotLayoutNode->GetAttribute("TitleName"), &ok);
   if (!ok)
     {
     return;
@@ -554,7 +553,7 @@ void qMRMLPlotViewControllerWidget::editXAxisLabel()
   bool ok = false;
   QString newXLabel = QInputDialog::getText(
     this, "Edit X-axis label", "X-axis label",
-    QLineEdit::Normal, d->PlotLayoutNode->GetProperty("XAxisLabelName"), &ok);
+    QLineEdit::Normal, d->PlotLayoutNode->GetAttribute("XAxisLabelName"), &ok);
   if (!ok)
     {
     return;
@@ -578,7 +577,7 @@ void qMRMLPlotViewControllerWidget::editYAxisLabel()
   bool ok = false;
   QString newYLabel = QInputDialog::getText(
     this, "Edit Y-axis label", "Y-axis label",
-    QLineEdit::Normal, d->PlotLayoutNode->GetProperty("YAxisLabelName"), &ok);
+    QLineEdit::Normal, d->PlotLayoutNode->GetAttribute("YAxisLabelName"), &ok);
   if (!ok)
     {
     return;
@@ -630,17 +629,19 @@ void qMRMLPlotViewControllerWidget::updateWidgetFromMRML()
     }
 
   // Plot selector
-  vtkStringArray *plotIDs = mrmlPlotLayoutNode->GetPlotIDs();
+  std::vector<std::string> plotNodesIDs;
+  mrmlPlotLayoutNode->GetPlotIDs(plotNodesIDs);
   bool plotBlockSignals = d->plotComboBox->blockSignals(true);
   for (int idx = 0; idx < d->plotComboBox->nodeCount(); idx++)
     {
     vtkMRMLNode* node = d->plotComboBox->nodeFromIndex(idx);
     d->plotComboBox->setCheckState(node, Qt::Unchecked);
     }
-  for (int idx = 0; idx < plotIDs->GetNumberOfValues(); idx++)
+  std::vector<std::string>::iterator it = plotNodesIDs.begin();
+  for (; it != plotNodesIDs.end(); ++it)
     {
     vtkMRMLPlotNode *dn = vtkMRMLPlotNode::SafeDownCast
-      (this->mrmlScene()->GetNodeByID(plotIDs->GetValue(idx).c_str()));
+      (this->mrmlScene()->GetNodeByID((*it).c_str()));
     if (dn)
       {
       d->plotComboBox->setCheckState(dn, Qt::Checked);
@@ -648,44 +649,44 @@ void qMRMLPlotViewControllerWidget::updateWidgetFromMRML()
     }
   d->plotComboBox->blockSignals(plotBlockSignals);
 
-  const char *propertyValue;
-  propertyValue = mrmlPlotLayoutNode->GetProperty("showGrid");
-  d->actionShow_Grid->setChecked(propertyValue && !strcmp("on", propertyValue));
+  const char *AttributeValue;
+  AttributeValue = mrmlPlotLayoutNode->GetAttribute("ShowGrid");
+  d->actionShow_Grid->setChecked(AttributeValue && !strcmp("on", AttributeValue));
 
-  propertyValue = mrmlPlotLayoutNode->GetProperty("showLegend");
-  d->actionShow_Legend->setChecked(propertyValue && !strcmp("on", propertyValue));
+  AttributeValue = mrmlPlotLayoutNode->GetAttribute("ShowLegend");
+  d->actionShow_Legend->setChecked(AttributeValue && !strcmp("on", AttributeValue));
 
   // Titles, axis labels (checkboxes AND text widgets)
-  propertyValue = mrmlPlotLayoutNode->GetProperty("showTitle");
-  d->showTitleCheckBox->setChecked(propertyValue && !strcmp("on", propertyValue));
-  propertyValue = mrmlPlotLayoutNode->GetProperty("TitleName");
-  if (propertyValue)
+  AttributeValue = mrmlPlotLayoutNode->GetAttribute("ShowTitle");
+  d->showTitleCheckBox->setChecked(AttributeValue && !strcmp("on", AttributeValue));
+  AttributeValue = mrmlPlotLayoutNode->GetAttribute("TitleName");
+  if (AttributeValue)
     {
-    d->titleLineEdit->setText(propertyValue);
+    d->titleLineEdit->setText(AttributeValue);
     }
   else
     {
     d->titleLineEdit->clear();
     }
 
-  propertyValue = mrmlPlotLayoutNode->GetProperty("showXAxisLabel");
-  d->showXAxisLabelCheckBox->setChecked(propertyValue && !strcmp("on", propertyValue));
-  propertyValue = mrmlPlotLayoutNode->GetProperty("XAxisLabelName");
-  if (propertyValue)
+  AttributeValue = mrmlPlotLayoutNode->GetAttribute("ShowXAxisLabel");
+  d->showXAxisLabelCheckBox->setChecked(AttributeValue && !strcmp("on", AttributeValue));
+  AttributeValue = mrmlPlotLayoutNode->GetAttribute("XAxisLabelName");
+  if (AttributeValue)
     {
-    d->xAxisLabelLineEdit->setText(propertyValue);
+    d->xAxisLabelLineEdit->setText(AttributeValue);
     }
   else
     {
     d->xAxisLabelLineEdit->clear();
     }
 
-  propertyValue = mrmlPlotLayoutNode->GetProperty("showYAxisLabel");
-  d->showYAxisLabelCheckBox->setChecked(propertyValue && !strcmp("on", propertyValue));
-  propertyValue = mrmlPlotLayoutNode->GetProperty("YAxisLabelName");
-  if (propertyValue)
+  AttributeValue = mrmlPlotLayoutNode->GetAttribute("ShowYAxisLabel");
+  d->showYAxisLabelCheckBox->setChecked(AttributeValue && !strcmp("on", AttributeValue));
+  AttributeValue = mrmlPlotLayoutNode->GetAttribute("YAxisLabelName");
+  if (AttributeValue)
     {
-    d->yAxisLabelLineEdit->setText(propertyValue);
+    d->yAxisLabelLineEdit->setText(AttributeValue);
     }
   else
     {
@@ -695,7 +696,7 @@ void qMRMLPlotViewControllerWidget::updateWidgetFromMRML()
   // PlotType selector
   const char *type;
   std::string stype("Line");
-  type = mrmlPlotLayoutNode->GetProperty("type");
+  type = mrmlPlotLayoutNode->GetAttribute("Type");
   if (!type)
     {
     // no type specified, default to "Line"

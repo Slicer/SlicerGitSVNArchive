@@ -111,12 +111,22 @@ public:
   /// Updates other nodes in the scene depending on this node
   /// or updates this node if it depends on other nodes when the scene is read in
   /// This method is called automatically by XML parser after all nodes are created
-  virtual void UpdateScene(vtkMRMLScene * scene);
+  virtual void UpdateScene(vtkMRMLScene * scene) VTK_OVERRIDE;
 
   ///
   /// Updates this node if it depends on other nodes when the scene is read in
   /// This method is called by scene when a node added to a scene.
-  virtual void OnNodeAddedToScene();
+  virtual void OnNodeAddedToScene() VTK_OVERRIDE;
+
+  ///
+  /// Update the stored reference to another node in the scene.
+  virtual void UpdateReferenceID(const char *oldID, const char *newID) VTK_OVERRIDE;
+
+  /// \brief Update the references of the node to the scene.
+  ///
+  /// \note You must unsure that a valid scene is set before calling
+  /// SetSceneReferences().
+  virtual void SetSceneReferences() VTK_OVERRIDE;
 
   //----------------------------------------------------------------
   /// Get and Set Macros
@@ -223,8 +233,8 @@ public:
 
   ///
   /// Copy the node's attributes to this object
-  /// This can is used only internally.
-  /// CopyWithScene has to be used.
+  /// This is used only internally.
+  /// Externally CopyWithScene has to be called.
   virtual void Copy(vtkMRMLNode *node) VTK_OVERRIDE;
 
   /// Set input data from a vtkTable.

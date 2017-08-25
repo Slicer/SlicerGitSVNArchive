@@ -39,11 +39,10 @@ class vtkStringArray;
 
 /// \brief qMRMLPlotView is the display canvas for a Plot.
 ///
-/// qMRMLPlotView is currently implemented as a subclass of QWebView and Ploting
-/// is implemented using a jQuery library called jqPlot. This is
-/// subject to being made opaque, so that qMRMLPlotView is merely a
-/// subclass of QWidget and internally a variety of implementations
-/// for Ploting may be provided.
+/// qMRMLPlotView supports only 2D plots.
+/// For extending this class to 3DPlots it is needed to expand the mother class
+/// cktVTKChartView to use also vtkChartXYZ (currently exploiting only vtkChartXY).
+
 class QMRML_WIDGETS_EXPORT qMRMLPlotView : public ctkVTKChartView
 {
   Q_OBJECT
@@ -94,9 +93,11 @@ signals:
 protected:
   QScopedPointer<qMRMLPlotViewPrivate> d_ptr;
 
-  /// Handle mouse and keyboard events
-  virtual void mouseDoubleClickEvent(QMouseEvent* event);
+  /// Handle keyboard events
   virtual void keyPressEvent(QKeyEvent* event);
+
+  virtual void keyReleaseEvent(QKeyEvent* event);
+
 private:
   Q_DECLARE_PRIVATE(qMRMLPlotView);
   Q_DISABLE_COPY(qMRMLPlotView);

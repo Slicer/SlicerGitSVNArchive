@@ -80,7 +80,10 @@ public slots:
   void updateWidgetFromMRML();
   void onPlotLayoutNodeChanged();
 
-  void mouseDoubleClickEventInternalUpdate();
+  void RecalculateBounds();
+  void switchSelectionMode();
+  void switchLeftAndMiddleClick();
+
   void emitSelection();
 
 protected:

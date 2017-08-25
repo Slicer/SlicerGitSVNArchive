@@ -74,7 +74,6 @@ set(MRMLLogic_SRCS
   vtkMRMLRemoteIOLogic.cxx
   vtkMRMLLayoutLogic.cxx
   vtkMRMLModelHierarchyLogic.cxx
-  vtkMRMLPlotLayoutLogic.cxx
   vtkMRMLSliceLayerLogic.cxx
   vtkMRMLSliceLogic.cxx
   vtkMRMLSliceLinkLogic.cxx

@@ -27,9 +27,6 @@ class vtkDataObject;
 class vtkMRMLPlotNode;
 class vtkStringArray;
 
-class PlotIDMap;
-class PlotLayoutPropertyMap;
-
 #include <string>
 
 /// \brief MRML node for referencing a collection of data to plot.
@@ -69,134 +66,143 @@ class VTK_MRML_EXPORT vtkMRMLPlotLayoutNode : public vtkMRMLNode
                                  unsigned long event,
                                  void *callData) VTK_OVERRIDE;
 
+  /// PlotModifiedEvent is fired when:
+  ///  - a new plot node is observed
+  ///  - a plot node is not longer observed
+  ///  - an associated plot node is modified
+  /// Note that when SetAndObserve(Nth)NodeID() is called with an ID that
+  /// has not yet any associated plot node in the scene, then
+  /// plotModifiedEvent is not fired until found for the first time in
+  /// the scene, e.g. Get(Nth)plotNode(), UpdateScene()...
+  enum
+    {
+    PlotModifiedEvent = 17000,
+    };
+
   //----------------------------------------------------------------
   /// Access methods
   //----------------------------------------------------------------
 
   ///
-  /// Add and Observe a Plot to the PlotLayout. Parameter "name" is used for
-  /// referencing the Plot when setting properties for plotting the
-  /// Plot or for removing the Plot from the PlotLayout.
-  virtual void AddAndObservePlot(const char *name, const char * id);
+  /// Convenience method that sets the first plot node ID.
+  /// \sa SetAndObserverNthPlotNodeID(int, const char*)
+  void SetAndObservePlotNodeID(const char *plotNodeID);
 
   ///
-  /// Remove a Plot and Observation from the PlotLayout by a particular name
-  virtual void RemovePlotAndObservationByName(const char *name);
+  /// Convenience method that adds a plot node ID at the end of the list.
+  /// \sa SetAndObserverNthPlotNodeID(int, const char*)
+  void AddAndObservePlotNodeID(const char *plotNodeID);
 
   ///
-  /// Remove a Plot and Observation from the PlotLayout by ID
-  virtual void RemovePlotAndObservationByID(const char *id);
+  /// Convenience method that removes the plot node ID from the list
+  /// \sa SetAndObserverNthPlotNodeID(int, const char*)
+  void RemovePlotNodeID(const char *plotNodeID);
 
   ///
-  /// Update all missing Observations
-  virtual void UpdateObservations();
+  /// Convenience method that removes the Nth plot node ID from the list
+  /// \sa SetAndObserverNthPlotNodeID(int, const char*)
+  void RemoveNthPlotNodeID(int n);
 
   ///
-  /// Update a Plot Observation if is missing
-  virtual void UpdateObservation(const char * id);
+  /// Remove all plot node IDs and associated plot nodes.
+  void RemoveAllPlotNodeIDs();
 
   ///
-  /// Remove all the Plots
-  virtual void ClearPlotIDs();
+  /// Set and observe the Nth plot node ID in the list.
+  /// If n is larger than the number of plot nodes, the plot node ID
+  /// is added at the end of the list. If PlotNodeID is 0, the node ID is
+  /// removed from the list.
+  /// When a node ID is set (added or changed), its corresponding node is
+  /// searched (slow) into the scene and cached for fast future access.
+  /// It is possible however that the node is not yet into the scene (due to
+  /// some temporary state (at loading time for example). UpdateScene() can
+  /// later be called to retrieve the plot nodes from the scene
+  /// (automatically done when loading a scene). Get(Nth)PlotNode() also
+  /// scan the scene if the node was not yet cached.
+  /// \sa SetAndObservePlotNodeID(const char*),
+  /// AddAndObservePlotNodeID(const char *), RemoveNthPlotNodeID(int)
+  void SetAndObserveNthPlotNodeID(int n, const char *plotNodeID);
 
   ///
-  /// Get the Plot id referenced by a particular name
-  virtual const char* GetPlotID(const char *name);
+  /// Return true if plotNodeID is in the plot node ID list.
+  bool HasPlotNodeID(const char* plotNodeID);
 
   ///
-  /// Get the Plot referenced by a particular name
-  virtual vtkMRMLPlotNode* GetPlotbyName(const char *name);
+  /// Return the number of plot node IDs (and plot nodes as they always
+  /// have the same size).
+  int GetNumberOfPlotNodes();
 
   ///
-  /// Get the Plot referenced by a particular id
-  virtual vtkMRMLPlotNode* GetPlotByID(const char *id);
+  /// Return the string of the Nth plot node ID. Or 0 if no such
+  /// node exist.
+  /// Warning, a temporary char generated from a std::string::c_str()
+  /// is returned.
+  const char *GetNthPlotNodeID(int n);
+
+  ///
+  /// Return the index of the Nth plot node ID.
+  /// If not found, it return '-1'
+  int GetNthPlotIdexFromID(const char* plotNodeID);
+
+  ///
+  /// Return an index to color each Plot.
+  /// If not found, it return '-1'
+  vtkIdType GetColorPlotIdexFromID(const char* plotNodeID);
+
+  ///
+  /// Utility function that returns the first plot node id.
+  /// \sa GetNthPlotNodeID(int), GetPlotNode()
+  const char *GetPlotNodeID();
+
+  ///
+  /// Get associated plot MRML node. Can be 0 in temporary states; e.g. if
+  /// the plot node has no scene, or if the associated plot is not
+  /// yet into the scene.
+  /// If not cached, it internally scans (slow) the scene to search for the
+  /// associated plot node ID.
+  /// If the plot node is no longer in the scene (GetScene() == 0), it
+  /// happens after the node is removed from the scene (scene->RemoveNode(dn),
+  /// the returned plot node is 0.
+  /// \sa GetNthplotNodeByClass()
+  vtkMRMLPlotNode* GetNthPlotNode(int n);
+
+  ///
+  /// Utility function that returns the first plot node.
+  /// \sa GetNthPlotNode(int), GetPlotNodeID()
+  vtkMRMLPlotNode* GetPlotNode();
 
   ///
   /// Get the list of Plot names
-  virtual vtkStringArray* GetPlotNames();
   virtual int GetPlotNames(std::vector<std::string> &plotNodeNames);
 
   ///
   /// Get the list of Plot ids
-  virtual vtkStringArray* GetPlotIDs();
   virtual int GetPlotIDs(std::vector<std::string> &plotNodeIDs);
 
   ///
-  /// Get the collection of PlotNodes
-  virtual vtkCollection* GetPlotNodes();
-
+  /// In addition a set of properties are available for a PlotLayout.
+  /// These are stored as Attributes of PlotLayoutNode.
+  /// Available properties are:
   ///
-  /// Set/Get the selected PlotNodeIDs
-  virtual void SetSelectionPlotNodeIDs(vtkStringArray* selectedPlotNodeIDs);
-  virtual vtkStringArray* GetSelectionPlotNodeIDs();
-
-  ///
-  /// Set/Get the collection of selectedIDArrays
-  virtual void SetSelectionArrays(vtkCollection* selectedArrays);
-  virtual vtkCollection *GetSelectionArrays();
-
-  ///
-  /// Set the PlotNodeIDs and selectedArrays
-  virtual void SetSelection(vtkStringArray* selectedPlotNodeIDs,
-                            vtkCollection* selectedArrays);
-
-  ///
-  /// Get the index of a PlotNode
-  virtual vtkIdType GetPlotNodeIndex(vtkMRMLPlotNode* plotNode);
-
-  ///
-  /// Set/Get a property for a specific Plot to control how it will
-  /// appear in the PlotLayout. If the Plot name is "default", then the property
-  /// is either a property of the entire PlotLayout or a default property
-  /// for the Plots (which can be overridden by properties assigned
-  /// to specific Plots).  Available properties are:
-  ///
-  /// PlotLayout level properties
-  ///
-  /// \li  "type" - "Line", "Line and Scatter", "Scatter", "Bar"
-  /// \li  "TitleName" - title displayed on the PlotLayout
-  /// \li  "showTitle" - show title "on" or "off"
-  /// \li  "XAxisLabelName" - label displayed on the x-axis
-  /// \li  "showXAxisLabel" - show x-axis label "on" or "off"
+  /// \li  "Type" - "Line", "Line and Scatter", "Scatter", "Bar"
+  /// \li  "TitleName" - title ploted on the PlotLayout
+  /// \li  "ShowTitle" - show title "on" or "off"
+  /// \li  "XAxisLabelName" - label ploted on the x-axis
+  /// \li  "ShowXAxisLabel" - show x-axis label "on" or "off"
   /// \li  "ClickAndDragAlongX" - set the action along x-axis "on" or "off"
   /// \li  "ClickAndDragAlongY" - set the action along y-axis "on" or "off"
-  /// \li  "YAxisLabelName" - label displayed on the y-axis
-  /// \li  "showYAxisLabel" - show y-axis label "on" or "off"
-  /// \li  "showGrid" - show grid "on" or "off"
-  /// \li  "showLegend" - show legend "on" or "off"
+  /// \li  "YAxisLabelName" - label ploted on the y-axis
+  /// \li  "ShowYAxisLabel" - show y-axis label "on" or "off"
+  /// \li  "ShowGrid" - show grid "on" or "off"
+  /// \li  "ShowLegend" - show legend "on" or "off"
   /// \li  "FontType" - global Font for the PlotLayout: "Arial", "Times", "Courier"
   /// \li  "TitleFontSize" - default: "20"
   /// \li  "AxisTitleFontSize" - default: "16"
   /// \li  "AxisLabelFontSize" - default: "12"
-  /// \li  "lookupTable" colorNodeID default: NULL
+  /// \li  "LookupTable" colorNodeID default: NULL
   ///
 
-  ///
-  /// Set/Get a property for the PlotLayoutNode
-  virtual void SetProperty(const char *property, const char *value);
-  virtual const char* GetProperty(const char *property);
-
-  ///
-  /// Remove a property for the PlotLayoutNode
-  virtual void ClearProperty(const char *property);
-
-  ///
-  /// Remove all the properties for all the Plots
-  virtual void ClearProperties();
-
-  ///
-  /// Updates this node if it depends on other nodes
-  /// when the node is deleted in the scene
-  virtual void SetSceneReferences() VTK_OVERRIDE;
-
-  ///
-  /// Updates this node if it depends on other nodes
-  /// when the node is deleted in the scene
-  virtual void UpdateReferences() VTK_OVERRIDE;
-
-  ///
-  /// Update the stored reference to another node in the scene
-  virtual void UpdateReferenceID(const char *oldID, const char *newID) VTK_OVERRIDE;
+  virtual const char* GetPlotNodeReferenceRole();
 
  protected:
   //----------------------------------------------------------------
@@ -207,52 +213,22 @@ class VTK_MRML_EXPORT vtkMRMLPlotLayoutNode : public vtkMRMLNode
   vtkMRMLPlotLayoutNode(const vtkMRMLPlotLayoutNode&);
   void operator=(const vtkMRMLPlotLayoutNode&);
 
-  ///
-  /// Add a Plot to the PlotLayout. Parameter "name" is used for
-  /// referencing the Plot when setting properties for plotting the
-  /// Plot or for removing the Plot from the PlotLayout.
-  virtual void AddPlot(const char *name, const char * id);
+  static const char* PlotNodeReferenceRole;
+  static const char* PlotNodeReferenceMRMLAttributeName;
+
+  virtual const char* GetPlotNodeReferenceMRMLAttributeName();
 
   ///
-  /// Add the Plot to the plotNodes collection
-  /// and start the Observation of the Plot.
-  virtual void ObservePlot(const char * id);
+  /// Called when a node reference ID is added (list size increased).
+  virtual void OnNodeReferenceAdded(vtkMRMLNodeReference *reference) VTK_OVERRIDE;
 
   ///
-  /// Remove a Plot Observation if is missing
-  virtual void RemovePlotObservation(const char * id);
-
- protected:
-  //----------------------------------------------------------------
-  /// Data
-  //----------------------------------------------------------------
+  /// Called when a node reference ID is modified.
+  virtual void OnNodeReferenceModified(vtkMRMLNodeReference *reference) VTK_OVERRIDE;
 
   ///
-  /// This map stores the names and the IDs of the Plot Node to observe
-  PlotIDMap *MapPlotNamesIDs;
-
-  ///
-  /// Utility array for get methods (they are instantiate at the get call)
-  vtkStringArray *PlotIDs;
-  vtkStringArray *PlotNames;
-
-  ///
-  /// Both PlotLayout and Plots Properties are stored
-  PlotLayoutPropertyMap *Properties;
-
-  ///
-  /// A collection of the pointers of the PlotNodes
-  /// to observe. If the PlotNodeId is stored in MapPlotNamesIDs,
-  /// but it is missing the relative Plot in plotNodes then it is needed to
-  /// call UpdateObservations() to restore the observations.
-  vtkSmartPointer<vtkCollection> plotNodes;
-
-  ///
-  ///
-  /// Two collections of the pointers of the vktMRMLPlotNodes and vtkIdTypeArrays.
-  /// They keep track of the user-selections in the chart View.
-  vtkSmartPointer<vtkStringArray> selectionPlotNodeIDs;
-  vtkSmartPointer<vtkCollection> selectionArrays;
+  /// Called after a node reference ID is removed (list size decreased).
+  virtual void OnNodeReferenceRemoved(vtkMRMLNodeReference *reference) VTK_OVERRIDE;
 };
 
 #endif

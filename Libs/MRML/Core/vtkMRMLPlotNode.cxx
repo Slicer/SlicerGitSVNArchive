@@ -237,6 +237,22 @@ void vtkMRMLPlotNode::OnNodeAddedToScene()
 }
 
 //----------------------------------------------------------------------------
+void vtkMRMLPlotNode::UpdateReferenceID(const char *oldID, const char *newID)
+{
+  Superclass::UpdateReferenceID(oldID, newID);
+
+  this->SetInputData(this->GetTableNode());
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLPlotNode::SetSceneReferences()
+{
+  Superclass::SetSceneReferences();
+
+  this->SetInputData(this->GetTableNode());
+}
+
+//----------------------------------------------------------------------------
 void vtkMRMLPlotNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);

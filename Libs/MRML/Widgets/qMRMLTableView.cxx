@@ -495,7 +495,7 @@ void qMRMLTableView::plotSelection()
     }
 
   // Remove columns/plots not selected from mrmlLayoutPlot
-  mrmlLayoutPlot->ClearPlotIDs();
+  mrmlLayoutPlot->RemoveAllPlotNodeIDs();
 
   // Add columns/plots not selected from mrmlLayoutPlot
   for (int columnIndex = 1; columnIndex < columnIndexs->GetNumberOfValues(); columnIndex++)
@@ -539,13 +539,13 @@ void qMRMLTableView::plotSelection()
     std::size_t found = namePlotNode.find("Markups");
     if (found != std::string::npos)
       {
-      mrmlLayoutPlot->RemovePlotAndObservationByName(namePlotNode.c_str());
+      mrmlLayoutPlot->RemovePlotNodeID(mrmlplot->GetID());
       mrmlplot->GetNodeReference("Markups")->RemoveNodeReferenceIDs("Markups");
       this->mrmlScene()->RemoveNode(mrmlplot);
       continue;
       }
 
-    std::string Type = mrmlLayoutPlot->GetProperty("type");
+    std::string Type = mrmlLayoutPlot->GetAttribute("Type");
     if (!Type.compare("Line"))
       {
       mrmlplot->SetType(vtkMRMLPlotNode::LINE);
@@ -579,14 +579,14 @@ void qMRMLTableView::plotSelection()
         plotNodeCopy->AddNodeReferenceID("Markups", mrmlplot->GetID());
         }
 
-      mrmlLayoutPlot->AddAndObservePlot(plotNodeCopy->GetName(), plotNodeCopy->GetID());
+      mrmlLayoutPlot->AddAndObservePlotNodeID(plotNodeCopy->GetID());
       }
     else if (!Type.compare("Bar"))
       {
       mrmlplot->SetType(vtkMRMLPlotNode::BAR);
       }
 
-    mrmlLayoutPlot->AddAndObservePlot(columnName.c_str(), mrmlplot->GetID());
+    mrmlLayoutPlot->AddAndObservePlotNodeID(mrmlplot->GetID());
 
     colPlots->Delete();
     colPlots = NULL;

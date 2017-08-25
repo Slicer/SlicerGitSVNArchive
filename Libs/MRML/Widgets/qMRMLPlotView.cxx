@@ -122,8 +122,9 @@ void qMRMLPlotViewPrivate::init()
     return;
     }
 
-  q->chart()->SetActionToButton(vtkChart::CLICKANDDRAG, vtkContextMouseEvent::LEFT_BUTTON);
-  q->chart()->SetActionToButton(vtkChart::SELECT, vtkContextMouseEvent::RIGHT_BUTTON);
+  q->chart()->SetActionToButton(vtkChart::SELECT, vtkContextMouseEvent::LEFT_BUTTON);
+  q->chart()->SetActionToButton(vtkChart::PAN, vtkContextMouseEvent::MIDDLE_BUTTON);
+  q->chart()->SetActionToButton(vtkChart::ZOOM, vtkContextMouseEvent::RIGHT_BUTTON);
 
   qvtkConnect(q->chart(), vtkCommand::SelectionChangedEvent, this, SLOT(emitSelection()));
 
@@ -243,11 +244,14 @@ void qMRMLPlotViewPrivate::onPlotLayoutNodeChanged()
   this->qvtkReconnect(this->MRMLPlotLayoutNode, newPlotLayoutNode,
     vtkCommand::ModifiedEvent, this, SLOT(updateWidgetFromMRML()));
 
+  this->qvtkReconnect(this->MRMLPlotLayoutNode, newPlotLayoutNode,
+    vtkMRMLPlotLayoutNode::PlotModifiedEvent, this, SLOT(updateWidgetFromMRML()));
+
   this->MRMLPlotLayoutNode = newPlotLayoutNode;
 }
 
 // --------------------------------------------------------------------------
-void qMRMLPlotViewPrivate::mouseDoubleClickEventInternalUpdate()
+void qMRMLPlotViewPrivate::RecalculateBounds()
 {
   Q_Q(qMRMLPlotView);
 
@@ -257,6 +261,88 @@ void qMRMLPlotViewPrivate::mouseDoubleClickEventInternalUpdate()
     }
 
   q->chart()->RecalculateBounds();
+}
+
+// --------------------------------------------------------------------------
+void qMRMLPlotViewPrivate::switchSelectionMode()
+{
+  Q_Q(qMRMLPlotView);
+
+  if (!q->chart())
+    {
+    return;
+    }
+
+  int buttonSelect, buttonSelectPoly, buttonSelectClickAndDrag;
+  buttonSelect = q->chart()->GetActionToButton(vtkChart::SELECT);
+  buttonSelectPoly = q->chart()->GetActionToButton(vtkChart::SELECT_POLYGON);
+  buttonSelectClickAndDrag = q->chart()->GetActionToButton(vtkChart::CLICK_AND_DRAG);
+  if (buttonSelect > 0 && buttonSelectPoly < 0 && buttonSelectClickAndDrag < 0)
+    {
+    q->chart()->SetActionToButton(vtkChart::SELECT_POLYGON, vtkContextMouseEvent::LEFT_BUTTON);
+    }
+  else if (buttonSelect < 0 && buttonSelectPoly > 0 && buttonSelectClickAndDrag < 0)
+    {
+    q->chart()->SetActionToButton(vtkChart::CLICK_AND_DRAG, vtkContextMouseEvent::LEFT_BUTTON);
+    }
+  else if (buttonSelect < 0 && buttonSelectPoly < 0 && buttonSelectClickAndDrag > 0)
+    {
+    q->chart()->SetActionToButton(vtkChart::SELECT, vtkContextMouseEvent::LEFT_BUTTON);
+    }
+  else if (buttonSelectClickAndDrag < 0 && buttonSelectPoly < 0 && buttonSelect < 0)
+    {
+    q->chart()->SetActionToButton(vtkChart::SELECT, vtkContextMouseEvent::LEFT_BUTTON);
+  }
+}
+
+// --------------------------------------------------------------------------
+void qMRMLPlotViewPrivate::switchLeftAndMiddleClick()
+{
+  Q_Q(qMRMLPlotView);
+
+  if (!q->chart())
+    {
+    return;
+    }
+
+  int buttonPan, buttonSelect, buttonSelectPoly, buttonSelectClickAndDrag;
+  buttonPan = q->chart()->GetActionToButton(vtkChart::PAN);
+  buttonSelect = q->chart()->GetActionToButton(vtkChart::SELECT);
+  buttonSelectPoly = q->chart()->GetActionToButton(vtkChart::SELECT_POLYGON);
+  buttonSelectClickAndDrag = q->chart()->GetActionToButton(vtkChart::CLICK_AND_DRAG);
+
+  if (buttonPan == 2)
+    {
+    q->chart()->SetActionToButton(vtkChart::PAN, vtkContextMouseEvent::LEFT_BUTTON);
+    if (buttonSelect == 1)
+      {
+      q->chart()->SetActionToButton(vtkChart::SELECT, vtkContextMouseEvent::MIDDLE_BUTTON);
+      }
+    else if (buttonSelectPoly == 1)
+      {
+      q->chart()->SetActionToButton(vtkChart::SELECT_POLYGON, vtkContextMouseEvent::MIDDLE_BUTTON);
+      }
+    else if (buttonSelectClickAndDrag == 1)
+      {
+      q->chart()->SetActionToButton(vtkChart::CLICK_AND_DRAG, vtkContextMouseEvent::MIDDLE_BUTTON);
+      }
+    }
+  else if (buttonPan == 1)
+    {
+    q->chart()->SetActionToButton(vtkChart::PAN, vtkContextMouseEvent::MIDDLE_BUTTON);
+    if (buttonSelect == 2)
+      {
+      q->chart()->SetActionToButton(vtkChart::SELECT, vtkContextMouseEvent::LEFT_BUTTON);
+      }
+    else if (buttonSelectPoly == 2)
+      {
+      q->chart()->SetActionToButton(vtkChart::SELECT_POLYGON, vtkContextMouseEvent::LEFT_BUTTON);
+      }
+    else if (buttonSelectClickAndDrag == 2)
+      {
+      q->chart()->SetActionToButton(vtkChart::CLICK_AND_DRAG, vtkContextMouseEvent::LEFT_BUTTON);
+      }
+    }
 }
 
 // --------------------------------------------------------------------------
@@ -298,11 +384,10 @@ void qMRMLPlotViewPrivate::emitSelection()
       {
       selectionCol->AddItem(Selection);
       // get MRMLPlotNode from pln and find the Node with the same vtkPlot address
-      vtkCollection* plotNodes = pln->GetPlotNodes();
-      for (int plotNodeIndex = 0; plotNodeIndex < plotNodes->GetNumberOfItems(); plotNodeIndex++)
+      int numPlotNodes = pln->GetNumberOfNodeReferences(pln->GetPlotNodeReferenceRole());
+      for (int plotNodeIndex = 0; plotNodeIndex < numPlotNodes; plotNodeIndex++)
         {
-        vtkMRMLPlotNode *PlotNode = vtkMRMLPlotNode::SafeDownCast
-          (plotNodes->GetItemAsObject(plotNodeIndex));
+        vtkMRMLPlotNode *PlotNode = pln->GetNthPlotNode(plotNodeIndex);
         if (!PlotNode)
           {
           continue;
@@ -317,8 +402,6 @@ void qMRMLPlotViewPrivate::emitSelection()
     }
   // emit the signal
   emit q->dataSelected(mrmlPlotIDs.GetPointer(), selectionCol.GetPointer());
-  // save them in the PlotLayoutNode as well
-  pln->SetSelection(mrmlPlotIDs.GetPointer(), selectionCol.GetPointer());
 }
 
 // --------------------------------------------------------------------------
@@ -360,7 +443,7 @@ void qMRMLPlotViewPrivate::updateWidgetFromMRML()
   vtkMRMLColorNode *defaultColorNode = vtkMRMLColorNode::SafeDownCast
     (this->MRMLScene->GetNodeByID(defaultPlotColorNodeID));
   vtkMRMLColorNode *colorNode = vtkMRMLColorNode::SafeDownCast
-    (this->MRMLScene->GetNodeByID(pln->GetProperty("lookupTable")));
+    (this->MRMLScene->GetNodeByID(pln->GetAttribute("LookupTable")));
 
   if (!colorNode)
     {
@@ -411,9 +494,10 @@ void qMRMLPlotViewPrivate::updateWidgetFromMRML()
       }
 
     bool plotFound = false;
-    for (unsigned int PlotNodeIDsIndex = 0; PlotNodeIDsIndex < plotNodesIDs.size(); PlotNodeIDsIndex++)
+    std::vector<std::string>::iterator it = plotNodesIDs.begin();
+    for (; it != plotNodesIDs.end(); ++it)
       {
-      if (plotNodesIDs[PlotNodeIDsIndex].compare(plotNode->GetID()))
+      if ((*it).compare(plotNode->GetID()))
         {
         continue;
         }
@@ -423,54 +507,14 @@ void qMRMLPlotViewPrivate::updateWidgetFromMRML()
         continue;
         }
 
-      // Update Selection from PlotLayoutNode
-      vtkStringArray *selectedPlotNodeIDs = pln->GetSelectionPlotNodeIDs();
-      vtkCollection *selectedArrays = pln->GetSelectionArrays();
-
-      if (selectedPlotNodeIDs && selectedArrays)
-        {
-        for (int selectedPlotNodesIndex = 0; selectedPlotNodesIndex < selectedPlotNodeIDs->GetNumberOfValues(); selectedPlotNodesIndex++)
-          {
-          vtkMRMLPlotNode* selectedPlotNode = vtkMRMLPlotNode::SafeDownCast
-            (this->mrmlScene()->GetNodeByID(selectedPlotNodeIDs->GetValue(selectedPlotNodesIndex)));
-          if (!selectedPlotNode || selectedPlotNode->GetPlot() != plot)
-            {
-            continue;
-            }
-
-          std::string namePlotNode = selectedPlotNode->GetName();
-          std::size_t found = namePlotNode.find("Markups");
-          if (found != std::string::npos)
-            {
-            continue;
-            }
-
-          vtkIdTypeArray* selectedArray = vtkIdTypeArray::SafeDownCast
-            (selectedArrays->GetItemAsObject(selectedPlotNodesIndex));
-          if (!selectedArray)
-            {
-            continue;
-            }
-
-          plot->SetSelection(selectedArray);
-          plot->Modified();
-
-          vtkMRMLPlotNode* MarkupsPlotNode = vtkMRMLPlotNode::SafeDownCast
-            (plotNode->GetNodeReference("Markups"));
-
-          if (MarkupsPlotNode && MarkupsPlotNode->GetPlot())
-            {
-            MarkupsPlotNode->GetPlot()->SetSelection(selectedArray);
-            MarkupsPlotNode->GetPlot()->Modified();
-            }
-          break;
-          }
-        }
-
       // Set color of the plot
       double color[4] = {0., 0., 0., 0.};
-      // Get the index from PlotLayoutNode (it doesn't count for Plot "Markups" Nodes)
-      vtkIdType plotIndex = pln->GetPlotNodeIndex(plotNode);
+
+      vtkIdType plotIndex = pln->GetColorPlotIdexFromID(plotNode->GetID());
+      if (plotIndex < 0)
+        {
+        plotIndex = 0;
+        }
       colorNode->GetColor(plotIndex , color);
       plot->SetColor(color[0], color[1], color[2]);
 
@@ -513,9 +557,9 @@ void qMRMLPlotViewPrivate::updateWidgetFromMRML()
     }
 
   // Setting Title
-  if (!strcmp(pln->GetProperty("showTitle"), "on"))
+  if (!strcmp(pln->GetAttribute("ShowTitle"), "on"))
     {
-    q->chart()->SetTitle(pln->GetProperty("TitleName"));
+    q->chart()->SetTitle(pln->GetAttribute("TitleName"));
     }
   else
     {
@@ -523,7 +567,7 @@ void qMRMLPlotViewPrivate::updateWidgetFromMRML()
     }
 
   // Setting Legend
-  if (!strcmp(pln->GetProperty("showLegend"), "on"))
+  if (!strcmp(pln->GetAttribute("ShowLegend"), "on"))
     {
     q->chart()->SetShowLegend(true);
     }
@@ -533,14 +577,14 @@ void qMRMLPlotViewPrivate::updateWidgetFromMRML()
     }
 
   // Setting Title and Legend Properties
-  int VTKFont = q->chart()->GetTitleProperties()->GetFontFamilyFromString(pln->GetProperty("FontType"));
+  int VTKFont = q->chart()->GetTitleProperties()->GetFontFamilyFromString(pln->GetAttribute("FontType"));
 
   q->chart()->GetTitleProperties()->SetFontFamily(VTKFont);
-  q->chart()->GetTitleProperties()->SetFontSize(StringToInt(pln->GetProperty("TitleFontSize")));
+  q->chart()->GetTitleProperties()->SetFontSize(StringToInt(pln->GetAttribute("TitleFontSize")));
   q->chart()->GetLegend()->GetLabelProperties()->SetFontFamily(VTKFont);
 
   // Setting ClickAndDrag action draggable along X and Y axes
-  if (!strcmp(pln->GetProperty("ClickAndDragAlongX"), "on"))
+  if (!strcmp(pln->GetAttribute("ClickAndDragAlongX"), "on"))
     {
     q->chart()->SetDragPointAlongX(true);
     }
@@ -549,7 +593,7 @@ void qMRMLPlotViewPrivate::updateWidgetFromMRML()
     q->chart()->SetDragPointAlongX(false);
     }
 
-  if (!strcmp(pln->GetProperty("ClickAndDragAlongY"), "on"))
+  if (!strcmp(pln->GetAttribute("ClickAndDragAlongY"), "on"))
     {
     q->chart()->SetDragPointAlongY(true);
     }
@@ -563,16 +607,16 @@ void qMRMLPlotViewPrivate::updateWidgetFromMRML()
   vtkAxis *axis = q->chart()->GetAxis(vtkAxis::BOTTOM);
   if (axis)
     {
-    if (!strcmp(pln->GetProperty("showXAxisLabel"), "on"))
+    if (!strcmp(pln->GetAttribute("ShowXAxisLabel"), "on"))
       {
-      axis->SetTitle(pln->GetProperty("XAxisLabelName"));
+      axis->SetTitle(pln->GetAttribute("XAxisLabelName"));
       }
     else
       {
       axis->SetTitle("");
       }
 
-    if (!strcmp(pln->GetProperty("showGrid"), "on"))
+    if (!strcmp(pln->GetAttribute("ShowGrid"), "on"))
       {
       axis->SetGridVisible(true);
       }
@@ -582,24 +626,24 @@ void qMRMLPlotViewPrivate::updateWidgetFromMRML()
       }
 
     axis->GetTitleProperties()->SetFontFamily(VTKFont);
-    axis->GetTitleProperties()->SetFontSize(StringToInt(pln->GetProperty("AxisTitleFontSize")));
+    axis->GetTitleProperties()->SetFontSize(StringToInt(pln->GetAttribute("AxisTitleFontSize")));
     axis->GetLabelProperties()->SetFontFamily(VTKFont);
-    axis->GetLabelProperties()->SetFontSize(StringToInt(pln->GetProperty("AxisLabelFontSize")));
+    axis->GetLabelProperties()->SetFontSize(StringToInt(pln->GetAttribute("AxisLabelFontSize")));
     }
 
   axis = q->chart()->GetAxis(vtkAxis::TOP);
   if (axis)
     {
-    if (!strcmp(pln->GetProperty("showXAxisLabel"), "on"))
+    if (!strcmp(pln->GetAttribute("ShowXAxisLabel"), "on"))
       {
-      axis->SetTitle(pln->GetProperty("XAxisLabelName"));
+      axis->SetTitle(pln->GetAttribute("XAxisLabelName"));
       }
     else
       {
       axis->SetTitle("");
       }
 
-    if (!strcmp(pln->GetProperty("showGrid"), "on"))
+    if (!strcmp(pln->GetAttribute("ShowGrid"), "on"))
       {
       axis->SetGridVisible(true);
       }
@@ -609,25 +653,25 @@ void qMRMLPlotViewPrivate::updateWidgetFromMRML()
       }
 
     axis->GetTitleProperties()->SetFontFamily(VTKFont);
-    axis->GetTitleProperties()->SetFontSize(StringToInt(pln->GetProperty("AxisTitleFontSize")));
+    axis->GetTitleProperties()->SetFontSize(StringToInt(pln->GetAttribute("AxisTitleFontSize")));
     axis->GetLabelProperties()->SetFontFamily(VTKFont);
-    axis->GetLabelProperties()->SetFontSize(StringToInt(pln->GetProperty("AxisLabelFontSize")));
+    axis->GetLabelProperties()->SetFontSize(StringToInt(pln->GetAttribute("AxisLabelFontSize")));
     }
 
   // Assuming the Left and Right axis are the "Y" axis
   axis = q->chart()->GetAxis(vtkAxis::LEFT);
   if (axis)
     {
-    if (!strcmp(pln->GetProperty("showYAxisLabel"), "on"))
+    if (!strcmp(pln->GetAttribute("ShowYAxisLabel"), "on"))
       {
-      axis->SetTitle(pln->GetProperty("YAxisLabelName"));
+      axis->SetTitle(pln->GetAttribute("YAxisLabelName"));
       }
     else
       {
       axis->SetTitle("");
       }
 
-    if (!strcmp(pln->GetProperty("showGrid"), "on"))
+    if (!strcmp(pln->GetAttribute("ShowGrid"), "on"))
       {
       axis->SetGridVisible(true);
       }
@@ -637,24 +681,24 @@ void qMRMLPlotViewPrivate::updateWidgetFromMRML()
       }
 
     axis->GetTitleProperties()->SetFontFamily(VTKFont);
-    axis->GetTitleProperties()->SetFontSize(StringToInt(pln->GetProperty("AxisTitleFontSize")));
+    axis->GetTitleProperties()->SetFontSize(StringToInt(pln->GetAttribute("AxisTitleFontSize")));
     axis->GetLabelProperties()->SetFontFamily(VTKFont);
-    axis->GetLabelProperties()->SetFontSize(StringToInt(pln->GetProperty("AxisLabelFontSize")));
+    axis->GetLabelProperties()->SetFontSize(StringToInt(pln->GetAttribute("AxisLabelFontSize")));
     }
 
   axis = q->chart()->GetAxis(vtkAxis::RIGHT);
   if (axis)
     {
-    if (!strcmp(pln->GetProperty("showYAxisLabel"), "on"))
+    if (!strcmp(pln->GetAttribute("ShowYAxisLabel"), "on"))
       {
-      axis->SetTitle(pln->GetProperty("YAxisLabelName"));
+      axis->SetTitle(pln->GetAttribute("YAxisLabelName"));
       }
     else
       {
       axis->SetTitle("");
       }
 
-    if (!strcmp(pln->GetProperty("showGrid"), "on"))
+    if (!strcmp(pln->GetAttribute("ShowGrid"), "on"))
       {
       axis->SetGridVisible(true);
       }
@@ -664,9 +708,9 @@ void qMRMLPlotViewPrivate::updateWidgetFromMRML()
       }
 
     axis->GetTitleProperties()->SetFontFamily(VTKFont);
-    axis->GetTitleProperties()->SetFontSize(StringToInt(pln->GetProperty("AxisTitleFontSize")));
+    axis->GetTitleProperties()->SetFontSize(StringToInt(pln->GetAttribute("AxisTitleFontSize")));
     axis->GetLabelProperties()->SetFontFamily(VTKFont);
-    axis->GetLabelProperties()->SetFontSize(StringToInt(pln->GetProperty("AxisLabelFontSize")));
+    axis->GetLabelProperties()->SetFontSize(StringToInt(pln->GetAttribute("AxisLabelFontSize")));
     }
 
   // Repaint the chart scene
@@ -777,40 +821,33 @@ QSize qMRMLPlotView::sizeHint()const
 }
 
 // --------------------------------------------------------------------------
-void qMRMLPlotView::mouseDoubleClickEvent(QMouseEvent *event)
-{
-  Q_D(qMRMLPlotView);
-  this->Superclass::mouseDoubleClickEvent(event);
-
-  d->mouseDoubleClickEventInternalUpdate();
-}
-
-// --------------------------------------------------------------------------
 void qMRMLPlotView::keyPressEvent(QKeyEvent *event)
 {
+  Q_D(qMRMLPlotView);
   this->Superclass::keyPressEvent(event);
-
-  if (!this->chart())
-    {
-    return;
-    }
 
   if (event->key() == Qt::Key_S)
     {
-    int buttonSelect, buttonSelectPoly;
-    buttonSelect = this->chart()->GetActionToButton(vtkChart::SELECT);
-    buttonSelectPoly = this->chart()->GetActionToButton(vtkChart::SELECT_POLYGON);
-    if (buttonSelect < 0 && buttonSelectPoly > 0)
-      {
-      this->chart()->SetActionToButton(vtkChart::SELECT, vtkContextMouseEvent::RIGHT_BUTTON);
-      }
-    else if (buttonSelectPoly < 0 && buttonSelect > 0)
-      {
-      this->chart()->SetActionToButton(vtkChart::SELECT_POLYGON, vtkContextMouseEvent::RIGHT_BUTTON);
-      }
-    else if (buttonSelectPoly < 0 && buttonSelect < 0)
-      {
-      this->chart()->SetActionToButton(vtkChart::SELECT, vtkContextMouseEvent::RIGHT_BUTTON);
-      }
+    d->switchSelectionMode();
+    }
+  if (event->key() == Qt::Key_R)
+    {
+    d->RecalculateBounds();
+    }
+  if (event->key() == Qt::Key_Shift)
+    {
+    d->switchLeftAndMiddleClick();
+    }
+}
+
+// --------------------------------------------------------------------------
+void qMRMLPlotView::keyReleaseEvent(QKeyEvent *event)
+{
+  Q_D(qMRMLPlotView);
+  this->Superclass::keyPressEvent(event);
+
+  if (event->key() == Qt::Key_Shift)
+    {
+    d->switchLeftAndMiddleClick();
     }
 }
