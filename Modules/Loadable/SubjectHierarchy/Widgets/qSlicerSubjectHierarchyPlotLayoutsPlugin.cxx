@@ -245,18 +245,18 @@ void qSlicerSubjectHierarchyPlotLayoutsPlugin::setDisplayVisibility(vtkIdType it
       vtkIdType plotLayoutItemID = shNode->GetItemByDataNode(scene->GetNodeByID(plotViewNode->GetPlotLayoutNodeID()));
       if (plotLayoutItemID)
         {
-        plotViewNode->SetAndUpdatePlotLayoutNodeID(NULL);
+        plotViewNode->SetPlotLayoutNodeID(NULL);
         shNode->ItemModified(plotLayoutItemID);
         }
       }
 
     // Select plotLayout to show
-    plotViewNode->SetAndUpdatePlotLayoutNodeID(associatedPlotLayoutNode->GetID());
+    plotViewNode->SetPlotLayoutNodeID(associatedPlotLayoutNode->GetID());
     }
   else if (plotViewNode)
     {
     // Hide plotLayout
-    plotViewNode->SetAndUpdatePlotLayoutNodeID(NULL);
+    plotViewNode->SetPlotLayoutNodeID(NULL);
     }
 
   // Trigger icon update

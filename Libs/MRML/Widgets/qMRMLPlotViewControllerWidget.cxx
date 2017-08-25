@@ -182,7 +182,7 @@ void qMRMLPlotViewControllerWidgetPrivate::onPlotLayoutNodeSelected(vtkMRMLNode 
 
   this->PlotLayoutNode = mrmlPlotLayoutNode;
 
-  this->PlotViewNode->SetAndUpdatePlotLayoutNodeID(mrmlPlotLayoutNode ? mrmlPlotLayoutNode->GetID() : NULL);
+  this->PlotViewNode->SetPlotLayoutNodeID(mrmlPlotLayoutNode ? mrmlPlotLayoutNode->GetID() : NULL);
 
   q->updateWidgetFromMRML();
 }

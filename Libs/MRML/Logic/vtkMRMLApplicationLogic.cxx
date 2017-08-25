@@ -428,7 +428,7 @@ void vtkMRMLApplicationLogic::PropagatePlotLayoutSelection()
       {
       continue;
       }
-    pnode->SetAndUpdatePlotLayoutNodeID( plotLayoutId );
+    pnode-> SetPlotLayoutNodeID(plotLayoutId);
   }
 }
 

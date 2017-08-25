@@ -355,7 +355,7 @@ void qMRMLPlotViewPrivate::emitSelection()
     return;
     }
 
-  char *PlotLayoutNodeID = this->MRMLPlotViewNode->GetPlotLayoutNodeID();
+  const char *PlotLayoutNodeID = this->MRMLPlotViewNode->GetPlotLayoutNodeID();
 
   vtkMRMLPlotLayoutNode* pln = vtkMRMLPlotLayoutNode::SafeDownCast
     (this->MRMLScene->GetNodeByID(PlotLayoutNodeID));
@@ -416,7 +416,7 @@ void qMRMLPlotViewPrivate::updateWidgetFromMRML()
     }
 
   // Get the PlotLayoutNode
-  char *PlotLayoutNodeID = this->MRMLPlotViewNode->GetPlotLayoutNodeID();
+  const char *PlotLayoutNodeID = this->MRMLPlotViewNode->GetPlotLayoutNodeID();
 
   vtkMRMLPlotLayoutNode* pln = vtkMRMLPlotLayoutNode::SafeDownCast
     (this->MRMLScene->GetNodeByID(PlotLayoutNodeID));
@@ -764,14 +764,12 @@ void qMRMLPlotView::setMRMLPlotViewNode(vtkMRMLPlotViewNode* newPlotViewNode)
     }
 
   // connect modified event on PlotViewNode to updating the widget
-  d->qvtkReconnect(
-    d->MRMLPlotViewNode, newPlotViewNode,
-    vtkCommand::ModifiedEvent, d, SLOT(updateWidgetFromMRML()));
+  d->qvtkReconnect(d->MRMLPlotViewNode, newPlotViewNode,
+    vtkMRMLPlotViewNode::PlotLayoutNodeChangedEvent, d, SLOT(updateWidgetFromMRML()));
 
   // connect on PlotNodeChangedEvent (e.g. PlotView is looking at a
   // different PlotNode
-  d->qvtkReconnect(
-    d->MRMLPlotViewNode, newPlotViewNode,
+  d->qvtkReconnect(d->MRMLPlotViewNode, newPlotViewNode,
     vtkMRMLPlotViewNode::PlotLayoutNodeChangedEvent, d, SLOT(onPlotLayoutNodeChanged()));
 
   // cache the PlotViewNode

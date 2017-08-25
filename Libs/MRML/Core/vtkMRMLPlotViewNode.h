@@ -22,6 +22,8 @@
 
 #include "vtkMRMLAbstractViewNode.h"
 
+class vtkMRMLPlotLayoutNode;
+
 /// \brief MRML node to represent Plot view parameters.
 ///
 /// PlotViewNodes are associated one to one with a PlotWidget.
@@ -56,16 +58,15 @@ public:
 
   ///
   /// Set and Update the PlotLayout node id displayed in this Plot View
-  virtual void SetAndUpdatePlotLayoutNodeID(const char *PlotLayoutNodeID);
+  virtual void SetPlotLayoutNodeID(const char *PlotLayoutNodeID);
 
   ///
-  /// Set and Update the PlotLayout node id displayed in this Plot View
-  /// Utility method that conveniently takes a string instead of a char*
-  virtual void SetAndUpdatePlotLayoutNodeID(const std::string& PlotLayoutNodeID);
+  /// Get the PlotLayout node id displayed in this PlotLayout View
+  const char* GetPlotLayoutNodeID();
 
   ///
-  /// Get the Plot node id displayed in this Plot View
-  vtkGetStringMacro(PlotLayoutNodeID);
+  /// Get the PlotLayout node displayed in this PlotLayout View
+  vtkMRMLPlotLayoutNode* GetPlotLayoutNode();
 
   ///
   /// Configures the behavior of PropagatePlotLayoutSelection().
@@ -76,24 +77,25 @@ public:
   vtkGetMacro (DoPropagatePlotLayoutSelection, bool );
 
   ///
-  /// Mark the PlotLayout node as references.
-  virtual void SetSceneReferences() VTK_OVERRIDE;
+  /// Method to propagate events generated in mrml
+  virtual void ProcessMRMLEvents(vtkObject *caller,
+                                 unsigned long event,
+                                 void *callData) VTK_OVERRIDE;
 
-  ///
-  /// Updates this node if it depends on other nodes
-  /// when the node is deleted in the scene
-  virtual void UpdateReferences() VTK_OVERRIDE;
-
-  ///
-  /// Update the stored reference to another node in the scene
-  virtual void UpdateReferenceID(const char *oldID, const char *newID) VTK_OVERRIDE;
-
-  ///
-  /// Events
+  /// PlotModifiedEvent is fired when:
+  ///  - a new plotLayout node is observed
+  ///  - a plotLayout node is not longer observed
+  ///  - an associated plotLayout node is modified
+  /// Note that when SetAndObserve(Nth)NodeID() is called with an ID that
+  /// has not yet any associated plot node in the scene, then
+  /// plotModifiedEvent is not fired until found for the first time in
+  /// the scene, e.g. Get(Nth)plotNode(), UpdateScene()...
   enum
   {
     PlotLayoutNodeChangedEvent = 18000
   };
+
+  virtual const char* GetPlotLayoutNodeReferenceRole();
 
 protected:
   vtkMRMLPlotViewNode();
@@ -101,13 +103,24 @@ protected:
   vtkMRMLPlotViewNode(const vtkMRMLPlotViewNode&);
   void operator=(const vtkMRMLPlotViewNode&);
 
-  char* PlotLayoutNodeID;
-  bool DoPropagatePlotLayoutSelection;
+  virtual const char* GetPlotLayoutNodeReferenceMRMLAttributeName();
 
-private:
+  static const char* PlotLayoutNodeReferenceRole;
+  static const char* PlotLayoutNodeReferenceMRMLAttributeName;
+
   ///
-  /// Set the PlotLayout node id displayed in this Plot View
-  void SetPlotLayoutNodeID(const char* id);
+  /// Called when a node reference ID is added (list size increased).
+  virtual void OnNodeReferenceAdded(vtkMRMLNodeReference *reference) VTK_OVERRIDE;
+
+  ///
+  /// Called when a node reference ID is modified.
+  virtual void OnNodeReferenceModified(vtkMRMLNodeReference *reference) VTK_OVERRIDE;
+
+  ///
+  /// Called after a node reference ID is removed (list size decreased).
+  virtual void OnNodeReferenceRemoved(vtkMRMLNodeReference *reference) VTK_OVERRIDE;
+
+  bool DoPropagatePlotLayoutSelection;
 };
 
 #endif

@@ -64,6 +64,7 @@ set(TEST_SOURCES
   qMRMLNodeComboBoxTest9.cxx
   qMRMLNodeComboBoxLazyUpdateTest1.cxx
   qMRMLNodeFactoryTest1.cxx
+  qMRMLPlotViewTest1.cxx
   qMRMLScalarInvariantComboBoxTest1.cxx
   qMRMLSceneCategoryModelTest1.cxx
   qMRMLSceneColorTableModelTest1.cxx

@@ -50,6 +50,9 @@ create_test_sourcelist(Tests ${KIT}CxxTests.cxx
   vtkMRMLNodeTest1.cxx
   vtkMRMLNonlinearTransformNodeTest1.cxx
   vtkMRMLPETProceduralColorNodeTest1.cxx
+  vtkMRMLPlotLayoutNodeTest1.cxx
+  vtkMRMLPlotNodeTest1.cxx
+  vtkMRMLPlotViewNodeTest1.cxx
   vtkMRMLProceduralColorNodeTest1.cxx
   vtkMRMLProceduralColorStorageNodeTest1.cxx
   vtkMRMLROIListNodeTest1.cxx
