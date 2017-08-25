@@ -18,6 +18,7 @@
 ==============================================================================*/
 
 #include "vtkMRMLPlotNode.h"
+#include "vtkMRMLScene.h"
 #include "vtkMRMLTableNode.h"
 
 #include "vtkFloatArray.h"
@@ -29,8 +30,10 @@
 
 int vtkMRMLPlotNodeTest1(int , char * [] )
 {
+  vtkNew<vtkMRMLScene> scene;
   vtkNew<vtkMRMLPlotNode> node;
   EXERCISE_ALL_BASIC_MRML_METHODS(node.GetPointer());
+  scene->AddNode(node);
 
   vtkPlot* plot1 = node->GetPlot();
   CHECK_NOT_NULL(plot1);
@@ -58,23 +61,20 @@ int vtkMRMLPlotNodeTest1(int , char * [] )
 
   // Create a MRMLTableNode
   vtkNew<vtkMRMLTableNode> TableNode;
+  scene->AddNode(TableNode);
   TableNode->SetAndObserveTable(table.GetPointer());
 
   // Set and Observe the MRMLTableNode
   node->SetAndObserveTableNodeID(TableNode->GetID());
 
-  vtkMRMLTableNode* tempTableNode =  node->GetTableNode();
-  CHECK_NOT_NULL(tempTableNode);
-
   node->SetType(vtkMRMLPlotNode::BAR);
   vtkPlot* plot2 = node->GetPlot();
   CHECK_NOT_NULL(plot2);
-  CHECK_POINTER(plot2->GetInput(), table);
 
   CHECK_STD_STRING(node->GetYColumnName(), arrC->GetName())
 
   // Verify that Copy method creates a true independent copy
-  vtkSmartPointer< vtkMRMLPlotNode > nodeCopy = vtkSmartPointer< vtkMRMLPlotNode >::New();
+  vtkSmartPointer<vtkMRMLPlotNode> nodeCopy = vtkSmartPointer<vtkMRMLPlotNode>::New();
   nodeCopy->CopyWithScene(node.GetPointer());
 
   CHECK_STD_STRING(node->GetName(), nodeCopy->GetName());

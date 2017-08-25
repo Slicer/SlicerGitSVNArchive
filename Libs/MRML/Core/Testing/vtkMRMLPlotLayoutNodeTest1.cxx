@@ -19,6 +19,7 @@
 
 #include "vtkMRMLPlotNode.h"
 #include "vtkMRMLPlotLayoutNode.h"
+#include "vtkMRMLScene.h"
 #include "vtkMRMLTableNode.h"
 
 #include "vtkFloatArray.h"
@@ -31,12 +32,16 @@
 int vtkMRMLPlotLayoutNodeTest1(int , char * [] )
 {
   // Create a PlotLayout node
+  vtkNew<vtkMRMLScene> scene;
   vtkNew<vtkMRMLPlotLayoutNode> node;
   EXERCISE_ALL_BASIC_MRML_METHODS(node.GetPointer());
+  scene->AddNode(node);
 
   // Create two plotNodes
   vtkNew<vtkMRMLPlotNode> plotNode1;
   vtkNew<vtkMRMLPlotNode> plotNode2;
+  scene->AddNode(plotNode1);
+  scene->AddNode(plotNode2);
 
   // Create a vtkTable
   vtkNew<vtkTable> table;
@@ -66,6 +71,7 @@ int vtkMRMLPlotLayoutNodeTest1(int , char * [] )
 
   // Create a MRMLTableNode
   vtkNew<vtkMRMLTableNode> TableNode;
+  scene->AddNode(TableNode);
   TableNode->SetAndObserveTable(table.GetPointer());
 
   // Set and Observe the MRMLTableNode

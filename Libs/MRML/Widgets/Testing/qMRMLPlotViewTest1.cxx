@@ -28,6 +28,8 @@
 
 // qMRML includes
 #include "qMRMLPlotView.h"
+#include "qMRMLPlotWidget.h"
+#include "qMRMLPlotViewControllerWidget.h"
 
 // MRML includes
 #include "vtkMRMLPlotNode.h"
@@ -54,6 +56,8 @@ int qMRMLPlotViewTest1( int argc, char * argv [] )
 #endif
 
   QApplication app(argc, argv);
+
+  vtkNew<vtkMRMLScene> scene;
 
   // Create a vtkTable
   vtkNew<vtkTable> table;
@@ -83,11 +87,14 @@ int qMRMLPlotViewTest1( int argc, char * argv [] )
 
   // Create a MRMLTableNode
   vtkNew<vtkMRMLTableNode> TableNode;
+  scene->AddNode(TableNode);
   TableNode->SetAndObserveTable(table.GetPointer());
 
   // Create two plotNodes
   vtkNew<vtkMRMLPlotNode> plotNode1;
   vtkNew<vtkMRMLPlotNode> plotNode2;
+  scene->AddNode(plotNode1);
+  scene->AddNode(plotNode2);
 
   // Set and Observe the MRMLTableNode
   plotNode1->SetAndObserveTableNodeID(TableNode->GetID());
@@ -96,12 +103,16 @@ int qMRMLPlotViewTest1( int argc, char * argv [] )
 
   // Create a PlotLayout node
   vtkNew<vtkMRMLPlotLayoutNode> plotLayoutNode;
+  scene->AddNode(plotLayoutNode);
   // Add and Observe plots IDs in PlotLayout
+  plotNode1->SetName(arrC->GetName());
   plotLayoutNode->AddAndObservePlotNodeID(plotNode1->GetID());
+  plotNode2->SetName(arrS->GetName());
   plotLayoutNode->AddAndObservePlotNodeID(plotNode2->GetID());
 
   // Create PlotView node
   vtkNew<vtkMRMLPlotViewNode> plotViewNode;
+  scene->AddNode(plotViewNode);
   // Set plotLayout ID in PlotView
   plotViewNode->SetPlotLayoutNodeID(plotLayoutNode->GetID());
 
@@ -113,11 +124,13 @@ int qMRMLPlotViewTest1( int argc, char * argv [] )
   QVBoxLayout vbox;
   parentWidget.setLayout(&vbox);
 
-  qMRMLPlotView* plotView = new qMRMLPlotView();
-  plotView->setParent(&parentWidget);
-  plotView->setMRMLPlotViewNode(plotViewNode);
-  vbox.addWidget(plotView);
-
+  qMRMLPlotWidget* plotWidget = new qMRMLPlotWidget();
+  plotWidget->setParent(&parentWidget);
+  plotWidget->setMRMLScene(scene);
+  plotWidget->setMRMLPlotViewNode(plotViewNode);
+  vbox.addWidget(plotWidget);
+  parentWidget.show();
+  parentWidget.raise();
 
   if (argc < 2 || QString(argv[1]) != "-I")
     {
