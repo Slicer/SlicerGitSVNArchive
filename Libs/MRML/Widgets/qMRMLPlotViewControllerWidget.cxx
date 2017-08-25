@@ -92,7 +92,8 @@ void qMRMLPlotViewControllerWidgetPrivate::setupPopupUi()
                 SLOT(onPlotNodesSelected()));
 
   // Connect the Plot Type selector
-  this->connect(this->plotTypeComboBox, SIGNAL(activated(const QString&)), SLOT(onPlotTypeSelected(const QString&)));
+  this->connect(this->plotTypeComboBox, SIGNAL(currentIndexChanged(const QString&)),
+                SLOT(onPlotTypeSelected(const QString&)));
 
   // Connect the actions
   QObject::connect(this->actionShow_Grid, SIGNAL(toggled(bool)),
@@ -249,13 +250,20 @@ void qMRMLPlotViewControllerWidgetPrivate::onPlotTypeSelected(const QString &Typ
     return;
     }
 
-  if (!strcmp(this->PlotLayoutNode->GetAttribute("Type"), Type.toStdString().c_str()))
+  this->PlotLayoutNode->SetAttribute("Type", Type.toStdString().c_str());
+  this->updatePlotTypes(Type.toStdString().c_str());
+}
+
+// --------------------------------------------------------------------------
+void qMRMLPlotViewControllerWidgetPrivate::updatePlotTypes(const char* Type)
+{
+  Q_Q(qMRMLPlotViewControllerWidget);
+  if (!this->PlotLayoutNode || !q->mrmlScene())
     {
     return;
     }
 
-  this->PlotLayoutNode->SetAttribute("Type", Type.toStdString().c_str());
-
+  int wasModifying = this->PlotLayoutNode->StartModify();
   std::vector<std::string> plotNodesIDs;
   this->PlotLayoutNode->GetPlotIDs(plotNodesIDs);
 
@@ -279,15 +287,15 @@ void qMRMLPlotViewControllerWidgetPrivate::onPlotTypeSelected(const QString &Typ
       continue;
       }
 
-    if (!Type.compare("Line"))
+    if (!strcmp(Type,"Line"))
       {
       plotNode->SetType(vtkMRMLPlotNode::LINE);
       }
-    else if (!Type.compare("Scatter"))
+    else if (!strcmp(Type,"Scatter"))
       {
       plotNode->SetType(vtkMRMLPlotNode::POINTS);
       }
-    else if (!Type.compare("Line and Scatter"))
+    else if (!strcmp(Type,"Line and Scatter"))
       {
       plotNode->SetType(vtkMRMLPlotNode::LINE);
 
@@ -314,12 +322,12 @@ void qMRMLPlotViewControllerWidgetPrivate::onPlotTypeSelected(const QString &Typ
 
       this->PlotLayoutNode->AddAndObservePlotNodeID(plotNodeCopy->GetID());
       }
-    else if (!Type.compare("Bar"))
+    else if (!strcmp(Type,"Bar"))
       {
       plotNode->SetType(vtkMRMLPlotNode::BAR);
       }
     }
-
+  this->PlotLayoutNode->EndModify(wasModifying);
 }
 
 // --------------------------------------------------------------------------

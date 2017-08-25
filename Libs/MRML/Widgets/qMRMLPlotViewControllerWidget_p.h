@@ -82,6 +82,8 @@ public slots:
   /// Modify all the PlotNode selected in the PlotLayoutNode
   void onPlotTypeSelected(const QString& Type);
 
+  void updatePlotTypes(const char* Type);
+
 protected:
   virtual void setupPopupUi();
 
