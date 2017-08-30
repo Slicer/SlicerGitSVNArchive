@@ -354,7 +354,7 @@ int vtkMRMLPlotLayoutNode::GetPlotIDs(std::vector<std::string> &plotNodeIDs)
 //----------------------------------------------------------------------------
 void vtkMRMLPlotLayoutNode::SetPlotType(const char *Type)
 {
-    if (!this->GetScene())
+    if (!this->GetScene() || !strcmp(Type, this->GetAttribute("Type")))
       {
       return;
       }
@@ -375,7 +375,8 @@ void vtkMRMLPlotLayoutNode::SetPlotType(const char *Type)
 
       std::string namePlotNode = plotNode->GetName();
       std::size_t found = namePlotNode.find("Markups");
-      if (found != std::string::npos)
+      if (found != std::string::npos &&
+          (!strcmp(Type,"Line") || !strcmp(Type,"Scatter") || !strcmp(Type,"Bar")))
         {
         this->RemovePlotNodeID(plotNode->GetID());
         plotNode->GetNodeReference("Markups")->RemoveNodeReferenceIDs("Markups");
@@ -421,6 +422,12 @@ void vtkMRMLPlotLayoutNode::SetPlotType(const char *Type)
       else if (!strcmp(Type,"Bar"))
         {
         plotNode->SetType(vtkMRMLPlotNode::BAR);
+        }
+      else
+        {
+        vtkErrorWithObjectMacro(this, "vtkMRMLPlotLayoutNode::SetPlotType: Unknown PlotType"<< Type);
+        this->EndModify(wasModifying);
+        return;
         }
       }
 

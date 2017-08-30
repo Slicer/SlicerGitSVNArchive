@@ -207,6 +207,8 @@ class VTK_MRML_EXPORT vtkMRMLPlotLayoutNode : public vtkMRMLNode
   /// \li  "AxisLabelFontSize" - default: "12"
   /// \li  "LookupTable" colorNodeID default: NULL
   ///
+  ///  NOTE: To change the PlotType SetPlotType has to be used.
+  ///
 
   virtual const char* GetPlotNodeReferenceRole();
 
