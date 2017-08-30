@@ -47,6 +47,7 @@
 #include <vtkMRMLPlotLayoutNode.h>
 #include <vtkMRMLPlotViewNode.h>
 #include <vtkMRMLSceneViewNode.h>
+#include <vtkMRMLSelectionNode.h>
 #include <vtkSmartPointer.h>
 
 // STD include
@@ -186,6 +187,17 @@ void qMRMLPlotViewControllerWidgetPrivate::onPlotLayoutNodeSelected(vtkMRMLNode 
   this->PlotViewNode->SetPlotLayoutNodeID(mrmlPlotLayoutNode ? mrmlPlotLayoutNode->GetID() : NULL);
 
   q->updateWidgetFromMRML();
+
+  vtkMRMLSelectionNode* selectionNode = vtkMRMLSelectionNode::SafeDownCast(
+    q->mrmlScene() ? q->mrmlScene()->GetNodeByID("vtkMRMLSelectionNodeSingleton") : NULL);
+
+  if (!selectionNode)
+    {
+    qWarning() << "qMRMLPlotViewController::onPlotLayoutNodeSelected: invalid selection Node";
+    return;
+    }
+
+  selectionNode->SetActivePlotLayoutID(mrmlPlotLayoutNode->GetID());
 }
 
 // --------------------------------------------------------------------------
