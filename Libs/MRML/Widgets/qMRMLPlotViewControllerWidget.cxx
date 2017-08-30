@@ -250,84 +250,7 @@ void qMRMLPlotViewControllerWidgetPrivate::onPlotTypeSelected(const QString &Typ
     return;
     }
 
-  this->PlotLayoutNode->SetAttribute("Type", Type.toStdString().c_str());
-  this->updatePlotTypes(Type.toStdString().c_str());
-}
-
-// --------------------------------------------------------------------------
-void qMRMLPlotViewControllerWidgetPrivate::updatePlotTypes(const char* Type)
-{
-  Q_Q(qMRMLPlotViewControllerWidget);
-  if (!this->PlotLayoutNode || !q->mrmlScene())
-    {
-    return;
-    }
-
-  int wasModifying = this->PlotLayoutNode->StartModify();
-  std::vector<std::string> plotNodesIDs;
-  this->PlotLayoutNode->GetPlotIDs(plotNodesIDs);
-
-  std::vector<std::string>::iterator it = plotNodesIDs.begin();
-  for (; it != plotNodesIDs.end(); ++it)
-    {
-    vtkMRMLPlotNode* plotNode = vtkMRMLPlotNode::SafeDownCast
-      (q->mrmlScene()->GetNodeByID((*it).c_str()));
-    if (!plotNode)
-      {
-      continue;
-      }
-
-    std::string namePlotNode = plotNode->GetName();
-    std::size_t found = namePlotNode.find("Markups");
-    if (found != std::string::npos)
-      {
-      this->PlotLayoutNode->RemovePlotNodeID(plotNode->GetID());
-      plotNode->GetNodeReference("Markups")->RemoveNodeReferenceIDs("Markups");
-      q->mrmlScene()->RemoveNode(plotNode);
-      continue;
-      }
-
-    if (!strcmp(Type,"Line"))
-      {
-      plotNode->SetType(vtkMRMLPlotNode::LINE);
-      }
-    else if (!strcmp(Type,"Scatter"))
-      {
-      plotNode->SetType(vtkMRMLPlotNode::POINTS);
-      }
-    else if (!strcmp(Type,"Line and Scatter"))
-      {
-      plotNode->SetType(vtkMRMLPlotNode::LINE);
-
-      vtkMRMLPlotNode* plotNodeCopy = vtkMRMLPlotNode::SafeDownCast
-        (plotNode->GetNodeReference("Markups"));
-
-      if (plotNodeCopy)
-        {
-        plotNodeCopy->SetType(vtkMRMLPlotNode::POINTS);
-        }
-      else
-        {
-        vtkSmartPointer<vtkMRMLNode> node = vtkSmartPointer<vtkMRMLNode>::Take
-          (q->mrmlScene()->CreateNodeByClass("vtkMRMLPlotNode"));
-        plotNodeCopy = vtkMRMLPlotNode::SafeDownCast(node);
-        std::string namePlotNodeCopy = namePlotNode + " Markups";
-        plotNodeCopy->CopyWithScene(plotNode);
-        plotNodeCopy->SetName(namePlotNodeCopy.c_str());
-        plotNodeCopy->SetType(vtkMRMLPlotNode::POINTS);
-        q->mrmlScene()->AddNode(plotNodeCopy);
-        plotNode->AddNodeReferenceID("Markups", plotNodeCopy->GetID());
-        plotNodeCopy->AddNodeReferenceID("Markups", plotNode->GetID());
-        }
-
-      this->PlotLayoutNode->AddAndObservePlotNodeID(plotNodeCopy->GetID());
-      }
-    else if (!strcmp(Type,"Bar"))
-      {
-      plotNode->SetType(vtkMRMLPlotNode::BAR);
-      }
-    }
-  this->PlotLayoutNode->EndModify(wasModifying);
+  this->PlotLayoutNode->SetPlotType(Type.toStdString().c_str());
 }
 
 // --------------------------------------------------------------------------
@@ -599,8 +522,6 @@ void qMRMLPlotViewControllerWidget::editYAxisLabel()
 void qMRMLPlotViewControllerWidget::updateWidgetFromMRML()
 {
   Q_D(qMRMLPlotViewControllerWidget);
-
-  //qDebug() << "qMRMLPlotViewControllerWidget::updateWidgetFromMRML()";
 
   if (!d->PlotViewNode || !this->mrmlScene())
     {

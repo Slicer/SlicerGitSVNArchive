@@ -313,6 +313,7 @@ void vtkMRMLPlotLayoutNode::ProcessMRMLEvents(vtkObject *caller,
        (event ==  vtkCommand::ModifiedEvent || event == vtkMRMLPlotNode::TableModifiedEvent))
       {
       this->InvokeEvent(vtkMRMLPlotLayoutNode::PlotModifiedEvent, pnode);
+      this->Modified();
       }
     }
 
@@ -348,4 +349,82 @@ int vtkMRMLPlotLayoutNode::GetPlotIDs(std::vector<std::string> &plotNodeIDs)
     }
 
   return static_cast<int>(plotNodeIDs.size());
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLPlotLayoutNode::SetPlotType(const char *Type)
+{
+    if (!this->GetScene())
+      {
+      return;
+      }
+
+    int wasModifying = this->StartModify();
+    std::vector<std::string> plotNodesIDs;
+    this->GetPlotIDs(plotNodesIDs);
+
+    std::vector<std::string>::iterator it = plotNodesIDs.begin();
+    for (; it != plotNodesIDs.end(); ++it)
+      {
+      vtkMRMLPlotNode* plotNode = vtkMRMLPlotNode::SafeDownCast
+        (this->GetScene()->GetNodeByID((*it).c_str()));
+      if (!plotNode)
+        {
+        continue;
+        }
+
+      std::string namePlotNode = plotNode->GetName();
+      std::size_t found = namePlotNode.find("Markups");
+      if (found != std::string::npos)
+        {
+        this->RemovePlotNodeID(plotNode->GetID());
+        plotNode->GetNodeReference("Markups")->RemoveNodeReferenceIDs("Markups");
+        this->GetScene()->RemoveNode(plotNode);
+        continue;
+        }
+
+      if (!strcmp(Type,"Line"))
+        {
+        plotNode->SetType(vtkMRMLPlotNode::LINE);
+        }
+      else if (!strcmp(Type,"Scatter"))
+        {
+        plotNode->SetType(vtkMRMLPlotNode::POINTS);
+        }
+      else if (!strcmp(Type,"Line and Scatter"))
+        {
+        plotNode->SetType(vtkMRMLPlotNode::LINE);
+
+        vtkMRMLPlotNode* plotNodeCopy = vtkMRMLPlotNode::SafeDownCast
+          (plotNode->GetNodeReference("Markups"));
+
+        if (plotNodeCopy)
+          {
+          plotNodeCopy->SetType(vtkMRMLPlotNode::POINTS);
+          }
+        else
+          {
+          vtkSmartPointer<vtkMRMLNode> node = vtkSmartPointer<vtkMRMLNode>::Take
+            (this->GetScene()->CreateNodeByClass("vtkMRMLPlotNode"));
+          plotNodeCopy = vtkMRMLPlotNode::SafeDownCast(node);
+          std::string namePlotNodeCopy = namePlotNode + " Markups";
+          plotNodeCopy->CopyWithScene(plotNode);
+          plotNodeCopy->SetName(namePlotNodeCopy.c_str());
+          plotNodeCopy->SetType(vtkMRMLPlotNode::POINTS);
+          this->GetScene()->AddNode(plotNodeCopy);
+          plotNode->AddNodeReferenceID("Markups", plotNodeCopy->GetID());
+          plotNodeCopy->AddNodeReferenceID("Markups", plotNode->GetID());
+          }
+
+        this->AddAndObservePlotNodeID(plotNodeCopy->GetID());
+        }
+      else if (!strcmp(Type,"Bar"))
+        {
+        plotNode->SetType(vtkMRMLPlotNode::BAR);
+        }
+      }
+
+    this->SetAttribute("Type", Type);
+
+    this->EndModify(wasModifying);
 }

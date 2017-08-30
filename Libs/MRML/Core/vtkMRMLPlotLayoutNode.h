@@ -180,6 +180,12 @@ class VTK_MRML_EXPORT vtkMRMLPlotLayoutNode : public vtkMRMLNode
   virtual int GetPlotIDs(std::vector<std::string> &plotNodeIDs);
 
   ///
+  /// Set the Type for all the referenced Plots.
+  /// Type is also an attribute (see below),
+  /// but this method has to be used to properly set all the referenced Plots.
+  virtual void SetPlotType(const char* Type);
+
+  ///
   /// In addition a set of properties are available for a PlotLayout.
   /// These are stored as Attributes of PlotLayoutNode.
   /// Available properties are:

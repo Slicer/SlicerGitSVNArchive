@@ -244,9 +244,6 @@ void qMRMLPlotViewPrivate::onPlotLayoutNodeChanged()
   this->qvtkReconnect(this->MRMLPlotLayoutNode, newPlotLayoutNode,
     vtkCommand::ModifiedEvent, this, SLOT(updateWidgetFromMRML()));
 
-  this->qvtkReconnect(this->MRMLPlotLayoutNode, newPlotLayoutNode,
-    vtkMRMLPlotLayoutNode::PlotModifiedEvent, this, SLOT(updateWidgetFromMRML()));
-
   this->MRMLPlotLayoutNode = newPlotLayoutNode;
 }
 
