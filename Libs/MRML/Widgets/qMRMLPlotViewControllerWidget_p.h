@@ -42,8 +42,7 @@
 class QAction;
 class qMRMLSceneViewMenu;
 class vtkMRMLPlotViewNode;
-class vtkMRMLPlotLayoutNode;
-class vtkMRMLPlotNode;
+class vtkMRMLPlotChartNode;
 class QString;
 
 //-----------------------------------------------------------------------------
@@ -62,24 +61,24 @@ public:
 
   virtual void init();
 
-  vtkWeakPointer<vtkMRMLPlotLayoutNode>  PlotLayoutNode;
+  vtkWeakPointer<vtkMRMLPlotChartNode>   PlotChartNode;
   vtkWeakPointer<vtkMRMLPlotViewNode>    PlotViewNode;
   qMRMLPlotView*                         PlotView;
 
   QString                          PlotViewLabel;
 
-  vtkMRMLPlotLayoutNode* GetPlotLayoutNodeFromView();
+  vtkMRMLPlotChartNode* GetPlotChartNodeFromView();
 
 public slots:
   /// Called after a Plot node is selected
   /// using the associated qMRMLNodeComboBox
-  void onPlotLayoutNodeSelected(vtkMRMLNode* node);
+  void onPlotChartNodeSelected(vtkMRMLNode* node);
 
   /// Called after an array node is selected using the qMRMLCheckableNodeComboBox
-  void onPlotNodesSelected();
+  void onPlotDataNodesSelected();
 
   /// Called after a Plot type is selected using the qComboBox
-  /// Modify all the PlotNode selected in the PlotLayoutNode
+  /// Modify all the PlotDataNode selected in the PlotChartNode
   void onPlotTypeSelected(const QString& Type);
 
 protected:

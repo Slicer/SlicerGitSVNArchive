@@ -35,7 +35,7 @@ vtkCxxSetReferenceStringMacro(vtkMRMLSelectionNode, ActiveTableID);
 vtkCxxSetReferenceStringMacro(vtkMRMLSelectionNode, ActiveViewID);
 vtkCxxSetReferenceStringMacro(vtkMRMLSelectionNode, ActiveLayoutID);
 vtkCxxSetReferenceStringMacro(vtkMRMLSelectionNode, ActiveVolumeID);
-vtkCxxSetReferenceStringMacro(vtkMRMLSelectionNode, ActivePlotLayoutID);
+vtkCxxSetReferenceStringMacro(vtkMRMLSelectionNode, ActivePlotChartID);
 
 const char* vtkMRMLSelectionNode::UnitNodeReferenceRole = "unit/";
 const char* vtkMRMLSelectionNode::UnitNodeReferenceMRMLAttributeName = "UnitNodeRef";
@@ -61,7 +61,7 @@ vtkMRMLSelectionNode::vtkMRMLSelectionNode()
   this->ActiveTableID = NULL;
   this->ActiveViewID = NULL;
   this->ActiveLayoutID = NULL;
-  this->ActivePlotLayoutID = NULL;
+  this->ActivePlotChartID = NULL;
 
   this->AddNodeReferenceRole(this->GetUnitNodeReferenceRole(),
                              this->GetUnitNodeReferenceMRMLAttributeName());
@@ -121,10 +121,10 @@ vtkMRMLSelectionNode::~vtkMRMLSelectionNode()
     delete [] this->ActiveLayoutID;
     this->ActiveLayoutID = NULL;
     }
-  if ( this->ActivePlotLayoutID)
+  if ( this->ActivePlotChartID)
     {
-    delete [] this->ActivePlotLayoutID;
-    this->ActivePlotLayoutID = NULL;
+    delete [] this->ActivePlotChartID;
+    this->ActivePlotChartID = NULL;
     }
 }
 
@@ -156,7 +156,7 @@ void vtkMRMLSelectionNode::WriteXML(ostream& of, int nIndent)
   of << " activeTableID=\"" << (this->ActiveTableID ? this->ActiveTableID : "NULL") << "\"";
   of << " activeViewID=\"" << (this->ActiveViewID ? this->ActiveViewID : "NULL") << "\"";
   of << " activeLayoutID=\"" << (this->ActiveLayoutID ? this->ActiveLayoutID : "NULL") << "\"";
-  of << " activePlotLayoutID=\"" << (this->ActivePlotLayoutID ? this->ActivePlotLayoutID : "NULL") << "\"";
+  of << " activePlotChartID=\"" << (this->ActivePlotChartID ? this->ActivePlotChartID : "NULL") << "\"";
 
   if (this->ModelHierarchyDisplayNodeClassName.size() > 0)
     {
@@ -192,7 +192,7 @@ void vtkMRMLSelectionNode::SetSceneReferences()
   this->Scene->AddReferencedNodeID(this->ActiveTableID, this);
   this->Scene->AddReferencedNodeID(this->ActiveViewID, this);
   this->Scene->AddReferencedNodeID(this->ActiveLayoutID, this);
-  this->Scene->AddReferencedNodeID(this->ActivePlotLayoutID, this);
+  this->Scene->AddReferencedNodeID(this->ActivePlotChartID, this);
 }
 
 //----------------------------------------------------------------------------
@@ -235,9 +235,9 @@ if ( this->ActiveTableID && !strcmp (oldID, this->ActiveTableID ))
     {
     this->SetActiveLayoutID (newID );
     }
-  if ( this->ActivePlotLayoutID && !strcmp ( oldID, this->ActivePlotLayoutID ))
+  if ( this->ActivePlotChartID && !strcmp ( oldID, this->ActivePlotChartID ))
     {
-    this->SetActivePlotLayoutID (newID );
+    this->SetActivePlotChartID (newID );
     }
 }
 
@@ -282,9 +282,9 @@ void vtkMRMLSelectionNode::UpdateReferences()
     {
     this->SetActiveTableID(NULL);
     }
-  if (this->ActivePlotLayoutID != NULL && this->Scene->GetNodeByID(this->ActivePlotLayoutID) == NULL)
+  if (this->ActivePlotChartID != NULL && this->Scene->GetNodeByID(this->ActivePlotChartID) == NULL)
     {
-    this->SetActivePlotLayoutID(NULL);
+    this->SetActivePlotChartID(NULL);
     }
 }
 //----------------------------------------------------------------------------
@@ -352,10 +352,10 @@ void vtkMRMLSelectionNode::ReadXMLAttributes(const char** atts)
       this->SetActiveLayoutID (attValue);
       //this->Scene->AddReferencedNodeID ( this->ActiveLayoutID, this);
       }
-    if (!strcmp (attName, "activePlotLayoutID"))
+    if (!strcmp (attName, "activePlotChartID"))
       {
-      this->SetActivePlotLayoutID (attValue);
-      //this->Scene->AddReferencedNodeID ( this->ActivePlotLayoutID, this);
+      this->SetActivePlotChartID (attValue);
+      //this->Scene->AddReferencedNodeID ( this->ActivePlotChartID, this);
       }
     if (!strcmp (attName, "modelHierarchyDisplayableNodeClassName"))
       {
@@ -423,7 +423,7 @@ void vtkMRMLSelectionNode::Copy(vtkMRMLNode *anode)
   this->SetActiveTableID (node->GetActiveTableID());
   this->SetActiveViewID (node->GetActiveViewID() );
   this->SetActiveLayoutID (node->GetActiveLayoutID() );
-  this->SetActivePlotLayoutID (node->GetActivePlotLayoutID());
+  this->SetActivePlotChartID (node->GetActivePlotChartID());
   this->ModelHierarchyDisplayNodeClassName = node->ModelHierarchyDisplayNodeClassName;
   this->EndModify(disabledModify);
 }
@@ -467,7 +467,7 @@ void vtkMRMLSelectionNode::PrintSelf(ostream& os, vtkIndent indent)
   os << "ActiveTableID: " << ( (this->ActiveTableID) ? this->ActiveTableID : "None" ) << "\n";
   os << "ActiveViewID: " << ( (this->ActiveViewID) ? this->ActiveViewID : "None" ) << "\n";
   os << "ActiveLayoutID: " << ( (this->ActiveLayoutID) ? this->ActiveLayoutID : "None" ) << "\n";
-  os << "ActivePlotLayoutID: " << ( (this->ActivePlotLayoutID) ? this->ActivePlotLayoutID : "None" ) << "\n";
+  os << "ActivePlotChartID: " << ( (this->ActivePlotChartID) ? this->ActivePlotChartID : "None" ) << "\n";
 
   if (this->ModelHierarchyDisplayNodeClassName.size() > 0)
     {

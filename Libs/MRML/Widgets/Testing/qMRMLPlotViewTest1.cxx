@@ -32,8 +32,8 @@
 #include "qMRMLPlotViewControllerWidget.h"
 
 // MRML includes
-#include "vtkMRMLPlotNode.h"
-#include "vtkMRMLPlotLayoutNode.h"
+#include "vtkMRMLPlotDataNode.h"
+#include "vtkMRMLPlotChartNode.h"
 #include "vtkMRMLPlotViewNode.h"
 #include "vtkMRMLScene.h"
 #include "vtkMRMLTableNode.h"
@@ -90,31 +90,31 @@ int qMRMLPlotViewTest1( int argc, char * argv [] )
   scene->AddNode(TableNode);
   TableNode->SetAndObserveTable(table.GetPointer());
 
-  // Create two plotNodes
-  vtkNew<vtkMRMLPlotNode> plotNode1;
-  vtkNew<vtkMRMLPlotNode> plotNode2;
-  scene->AddNode(plotNode1);
-  scene->AddNode(plotNode2);
+  // Create two plotDataNodes
+  vtkNew<vtkMRMLPlotDataNode> plotDataNode1;
+  vtkNew<vtkMRMLPlotDataNode> plotDataNode2;
+  scene->AddNode(plotDataNode1);
+  scene->AddNode(plotDataNode2);
 
   // Set and Observe the MRMLTableNode
-  plotNode1->SetAndObserveTableNodeID(TableNode->GetID());
-  plotNode2->SetAndObserveTableNodeID(TableNode->GetID());
-  plotNode2->SetYColumnIndex(2);
+  plotDataNode1->SetAndObserveTableNodeID(TableNode->GetID());
+  plotDataNode2->SetAndObserveTableNodeID(TableNode->GetID());
+  plotDataNode2->SetYColumnIndex(2);
 
-  // Create a PlotLayout node
-  vtkNew<vtkMRMLPlotLayoutNode> plotLayoutNode;
-  scene->AddNode(plotLayoutNode);
-  // Add and Observe plots IDs in PlotLayout
-  plotNode1->SetName(arrC->GetName());
-  plotLayoutNode->AddAndObservePlotNodeID(plotNode1->GetID());
-  plotNode2->SetName(arrS->GetName());
-  plotLayoutNode->AddAndObservePlotNodeID(plotNode2->GetID());
+  // Create a PlotChart node
+  vtkNew<vtkMRMLPlotChartNode> plotChartNode;
+  scene->AddNode(plotChartNode);
+  // Add and Observe plots IDs in PlotChart
+  plotDataNode1->SetName(arrC->GetName());
+  plotChartNode->AddAndObservePlotDataNodeID(plotDataNode1->GetID());
+  plotDataNode2->SetName(arrS->GetName());
+  plotChartNode->AddAndObservePlotDataNodeID(plotDataNode2->GetID());
 
   // Create PlotView node
   vtkNew<vtkMRMLPlotViewNode> plotViewNode;
   scene->AddNode(plotViewNode);
-  // Set plotLayout ID in PlotView
-  plotViewNode->SetPlotLayoutNodeID(plotLayoutNode->GetID());
+  // Set PlotChart ID in PlotView
+  plotViewNode->SetPlotChartNodeID(plotChartNode->GetID());
 
   //
   // Create a simple gui with non-tranposed and transposed table view

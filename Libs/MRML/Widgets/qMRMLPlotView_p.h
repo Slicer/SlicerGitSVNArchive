@@ -49,7 +49,7 @@ class ctkPopupWidget;
 #include <vtkSmartPointer.h>
 
 class vtkMRMLPlotViewNode;
-class vtkMRMLPlotLayoutNode;
+class vtkMRMLPlotChartNode;
 class vtkMRMLColorLogic;
 class vtkMRMLColorNode;
 class vtkObject;
@@ -78,7 +78,7 @@ public slots:
   void endProcessing();
 
   void updateWidgetFromMRML();
-  void onPlotLayoutNodeChanged();
+  void onPlotChartNodeChanged();
 
   void RecalculateBounds();
   void switchSelectionMode();
@@ -90,7 +90,7 @@ protected:
 
   vtkMRMLScene*                      MRMLScene;
   vtkMRMLPlotViewNode*               MRMLPlotViewNode;
-  vtkMRMLPlotLayoutNode*             MRMLPlotLayoutNode;
+  vtkMRMLPlotChartNode*              MRMLPlotChartNode;
 
   vtkWeakPointer<vtkMRMLColorLogic>  ColorLogic;
 

@@ -17,8 +17,8 @@
 
 ==============================================================================*/
 
-#ifndef __vtkMRMLPlotNode_h
-#define __vtkMRMLPlotNode_h
+#ifndef __vtkMRMLPlotDataNode_h
+#define __vtkMRMLPlotDataNode_h
 
 #include <string>
 #include <vector>
@@ -41,11 +41,11 @@ class vtkTable;
 /// (one vtkTable from vtkMRMLTableNode).
 /// To be viewed the node has to be added in the reference list
 /// of a vtkMRMLPlotViewNode.
-class VTK_MRML_EXPORT vtkMRMLPlotNode : public vtkMRMLNode
+class VTK_MRML_EXPORT vtkMRMLPlotDataNode : public vtkMRMLNode
 {
 public:
-  static vtkMRMLPlotNode *New();
-  vtkTypeMacro(vtkMRMLPlotNode,vtkMRMLNode);
+  static vtkMRMLPlotDataNode *New();
+  vtkTypeMacro(vtkMRMLPlotDataNode,vtkMRMLNode);
 
   // Description:
   // Enum of the available plot types
@@ -187,10 +187,10 @@ public:
   /// Constructor and destructor
   //----------------------------------------------------------------
  protected:
-  vtkMRMLPlotNode();
-  ~vtkMRMLPlotNode();
-  vtkMRMLPlotNode(const vtkMRMLPlotNode&);
-  void operator=(const vtkMRMLPlotNode&);
+  vtkMRMLPlotDataNode();
+  ~vtkMRMLPlotDataNode();
+  vtkMRMLPlotDataNode(const vtkMRMLPlotDataNode&);
+  void operator=(const vtkMRMLPlotDataNode&);
 
   static const char* TableNodeReferenceRole;
   static const char* TableNodeReferenceMRMLAttributeName;
@@ -205,7 +205,7 @@ public:
     Superclass::OnNodeReferenceAdded(reference);
     if (std::string(reference->GetReferenceRole()) == this->TableNodeReferenceRole)
       {
-      this->InvokeCustomModifiedEvent(vtkMRMLPlotNode::TableModifiedEvent, reference->GetReferencedNode());
+      this->InvokeCustomModifiedEvent(vtkMRMLPlotDataNode::TableModifiedEvent, reference->GetReferencedNode());
       }
   }
 
@@ -216,7 +216,7 @@ public:
     Superclass::OnNodeReferenceModified(reference);
     if (std::string(reference->GetReferenceRole()) == this->TableNodeReferenceRole)
     {
-      this->InvokeCustomModifiedEvent(vtkMRMLPlotNode::TableModifiedEvent, reference->GetReferencedNode());
+      this->InvokeCustomModifiedEvent(vtkMRMLPlotDataNode::TableModifiedEvent, reference->GetReferencedNode());
     }
   }
 
@@ -227,7 +227,7 @@ public:
     Superclass::OnNodeReferenceRemoved(reference);
     if (std::string(reference->GetReferenceRole()) == this->TableNodeReferenceRole)
     {
-      this->InvokeCustomModifiedEvent(vtkMRMLPlotNode::TableModifiedEvent, reference->GetReferencedNode());
+      this->InvokeCustomModifiedEvent(vtkMRMLPlotDataNode::TableModifiedEvent, reference->GetReferencedNode());
     }
   }
 

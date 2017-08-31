@@ -40,8 +40,8 @@
 #include "qMRMLPlotView_p.h"
 
 // MRML includes
-#include <vtkMRMLPlotNode.h>
-#include <vtkMRMLPlotLayoutNode.h>
+#include <vtkMRMLPlotDataNode.h>
+#include <vtkMRMLPlotChartNode.h>
 #include <vtkMRMLPlotViewNode.h>
 #include <vtkMRMLColorLogic.h>
 #include <vtkMRMLColorNode.h>
@@ -74,7 +74,7 @@ qMRMLPlotViewPrivate::qMRMLPlotViewPrivate(qMRMLPlotView& object)
 {
   this->MRMLScene = 0;
   this->MRMLPlotViewNode = 0;
-  this->MRMLPlotLayoutNode = 0;
+  this->MRMLPlotChartNode = 0;
   this->ColorLogic = 0;
   this->PinButton = 0;
   this->PopupWidget = 0;
@@ -230,21 +230,21 @@ vtkMRMLScene* qMRMLPlotViewPrivate::mrmlScene()
 }
 
 // --------------------------------------------------------------------------
-void qMRMLPlotViewPrivate::onPlotLayoutNodeChanged()
+void qMRMLPlotViewPrivate::onPlotChartNodeChanged()
 {
   Q_Q(qMRMLPlotView);
-  vtkMRMLPlotLayoutNode *newPlotLayoutNode = NULL;
+  vtkMRMLPlotChartNode *newPlotChartNode = NULL;
 
-  if (this->MRMLPlotViewNode && this->MRMLPlotViewNode->GetPlotLayoutNodeID())
+  if (this->MRMLPlotViewNode && this->MRMLPlotViewNode->GetPlotChartNodeID())
     {
-    newPlotLayoutNode = vtkMRMLPlotLayoutNode::SafeDownCast
-      (this->MRMLScene->GetNodeByID(this->MRMLPlotViewNode->GetPlotLayoutNodeID()));
+    newPlotChartNode = vtkMRMLPlotChartNode::SafeDownCast
+      (this->MRMLScene->GetNodeByID(this->MRMLPlotViewNode->GetPlotChartNodeID()));
     }
 
-  this->qvtkReconnect(this->MRMLPlotLayoutNode, newPlotLayoutNode,
+  this->qvtkReconnect(this->MRMLPlotChartNode, newPlotChartNode,
     vtkCommand::ModifiedEvent, this, SLOT(updateWidgetFromMRML()));
 
-  this->MRMLPlotLayoutNode = newPlotLayoutNode;
+  this->MRMLPlotChartNode = newPlotChartNode;
 }
 
 // --------------------------------------------------------------------------
@@ -352,16 +352,16 @@ void qMRMLPlotViewPrivate::emitSelection()
     return;
     }
 
-  const char *PlotLayoutNodeID = this->MRMLPlotViewNode->GetPlotLayoutNodeID();
+  const char *PlotChartNodeID = this->MRMLPlotViewNode->GetPlotChartNodeID();
 
-  vtkMRMLPlotLayoutNode* pln = vtkMRMLPlotLayoutNode::SafeDownCast
-    (this->MRMLScene->GetNodeByID(PlotLayoutNodeID));
+  vtkMRMLPlotChartNode* pln = vtkMRMLPlotChartNode::SafeDownCast
+    (this->MRMLScene->GetNodeByID(PlotChartNodeID));
   if (!pln)
     {
     return;
     }
 
-  vtkNew<vtkStringArray> mrmlPlotIDs;
+  vtkNew<vtkStringArray> mrmlPlotDataIDs;
   vtkNew<vtkCollection> selectionCol;
 
   for (int plotIndex = 0; plotIndex < q->chart()->GetNumberOfPlots(); plotIndex++)
@@ -380,25 +380,25 @@ void qMRMLPlotViewPrivate::emitSelection()
     if (Selection->GetNumberOfValues() > 0)
       {
       selectionCol->AddItem(Selection);
-      // get MRMLPlotNode from pln and find the Node with the same vtkPlot address
-      int numPlotNodes = pln->GetNumberOfNodeReferences(pln->GetPlotNodeReferenceRole());
-      for (int plotNodeIndex = 0; plotNodeIndex < numPlotNodes; plotNodeIndex++)
+      // get MRMLPlotDataNode from pln and find the Node with the same vtkPlot address
+      int numPlotDataNodes = pln->GetNumberOfNodeReferences(pln->GetPlotDataNodeReferenceRole());
+      for (int plotDataNodeIndex = 0; plotDataNodeIndex < numPlotDataNodes; plotDataNodeIndex++)
         {
-        vtkMRMLPlotNode *PlotNode = pln->GetNthPlotNode(plotNodeIndex);
-        if (!PlotNode)
+        vtkMRMLPlotDataNode *PlotDataNode = pln->GetNthPlotDataNode(plotDataNodeIndex);
+        if (!PlotDataNode)
           {
           continue;
           }
-        if (PlotNode->GetPlot() == Plot)
+        if (PlotDataNode->GetPlot() == Plot)
           {
-          mrmlPlotIDs->InsertNextValue(PlotNode->GetID());
+          mrmlPlotDataIDs->InsertNextValue(PlotDataNode->GetID());
           break;
           }
         }
       }
     }
   // emit the signal
-  emit q->dataSelected(mrmlPlotIDs.GetPointer(), selectionCol.GetPointer());
+  emit q->dataSelected(mrmlPlotDataIDs.GetPointer(), selectionCol.GetPointer());
 }
 
 // --------------------------------------------------------------------------
@@ -412,11 +412,11 @@ void qMRMLPlotViewPrivate::updateWidgetFromMRML()
     return;
     }
 
-  // Get the PlotLayoutNode
-  const char *PlotLayoutNodeID = this->MRMLPlotViewNode->GetPlotLayoutNodeID();
+  // Get the PlotChartNode
+  const char *PlotChartNodeID = this->MRMLPlotViewNode->GetPlotChartNodeID();
 
-  vtkMRMLPlotLayoutNode* pln = vtkMRMLPlotLayoutNode::SafeDownCast
-    (this->MRMLScene->GetNodeByID(PlotLayoutNodeID));
+  vtkMRMLPlotChartNode* pln = vtkMRMLPlotChartNode::SafeDownCast
+    (this->MRMLScene->GetNodeByID(PlotChartNodeID));
   if (!pln)
     {
     // Clean all the plots in vtkChartXY
@@ -452,24 +452,24 @@ void qMRMLPlotViewPrivate::updateWidgetFromMRML()
     return;
     }
 
-  vtkSmartPointer<vtkCollection> plotNodes = vtkSmartPointer<vtkCollection>::Take
-    (this->mrmlScene()->GetNodesByClass("vtkMRMLPlotNode"));
+  vtkSmartPointer<vtkCollection> plotDataNodes = vtkSmartPointer<vtkCollection>::Take
+    (this->mrmlScene()->GetNodesByClass("vtkMRMLPlotDataNode"));
 
-  std::vector<std::string> plotNodesIDs;
-  pln->GetPlotIDs(plotNodesIDs);
+  std::vector<std::string> plotDataNodesIDs;
+  pln->GetPlotIDs(plotDataNodesIDs);
 
-  for(int chartPlotNodesIndex = 0; chartPlotNodesIndex < q->chart()->GetNumberOfPlots(); chartPlotNodesIndex++)
+  for(int chartPlotDataNodesIndex = 0; chartPlotDataNodesIndex < q->chart()->GetNumberOfPlots(); chartPlotDataNodesIndex++)
     {
     bool plotFound = false;
-    for(int plotNodesIndex = 0; plotNodesIndex < plotNodes->GetNumberOfItems(); plotNodesIndex++)
+    for(int plotDataNodesIndex = 0; plotDataNodesIndex < plotDataNodes->GetNumberOfItems(); plotDataNodesIndex++)
       {
-      vtkMRMLPlotNode* plotNode = vtkMRMLPlotNode::SafeDownCast
-        (plotNodes->GetItemAsObject(plotNodesIndex));
-      if (!plotNode)
+      vtkMRMLPlotDataNode* plotDataNode = vtkMRMLPlotDataNode::SafeDownCast
+        (plotDataNodes->GetItemAsObject(plotDataNodesIndex));
+      if (!plotDataNode)
         {
         continue;
         }
-      if (q->chart()->GetPlot(chartPlotNodesIndex) == plotNode->GetPlot())
+      if (q->chart()->GetPlot(chartPlotDataNodesIndex) == plotDataNode->GetPlot())
         {
         plotFound = true;
         break;
@@ -477,28 +477,28 @@ void qMRMLPlotViewPrivate::updateWidgetFromMRML()
       }
     if (!plotFound)
       {
-      q->removePlot(q->chart()->GetPlot(chartPlotNodesIndex));
+      q->removePlot(q->chart()->GetPlot(chartPlotDataNodesIndex));
       }
     }
 
-  for(int plotNodesIndex = 0; plotNodesIndex < plotNodes->GetNumberOfItems(); plotNodesIndex++)
+  for(int plotDataNodesIndex = 0; plotDataNodesIndex < plotDataNodes->GetNumberOfItems(); plotDataNodesIndex++)
     {
-    vtkMRMLPlotNode* plotNode = vtkMRMLPlotNode::SafeDownCast
-      (plotNodes->GetItemAsObject(plotNodesIndex));
-    if (!plotNode)
+    vtkMRMLPlotDataNode* plotDataNode = vtkMRMLPlotDataNode::SafeDownCast
+      (plotDataNodes->GetItemAsObject(plotDataNodesIndex));
+    if (!plotDataNode)
       {
       continue;
       }
 
     bool plotFound = false;
-    std::vector<std::string>::iterator it = plotNodesIDs.begin();
-    for (; it != plotNodesIDs.end(); ++it)
+    std::vector<std::string>::iterator it = plotDataNodesIDs.begin();
+    for (; it != plotDataNodesIDs.end(); ++it)
       {
-      if ((*it).compare(plotNode->GetID()))
+      if ((*it).compare(plotDataNode->GetID()))
         {
         continue;
         }
-      vtkPlot* plot = plotNode->GetPlot();
+      vtkPlot* plot = plotDataNode->GetPlot();
       if (!plot)
         {
         continue;
@@ -507,7 +507,7 @@ void qMRMLPlotViewPrivate::updateWidgetFromMRML()
       // Set color of the plot
       double color[4] = {0., 0., 0., 0.};
 
-      vtkIdType plotIndex = pln->GetColorPlotIdexFromID(plotNode->GetID());
+      vtkIdType plotIndex = pln->GetColorPlotIdexFromID(plotDataNode->GetID());
       if (plotIndex < 0)
         {
         plotIndex = 0;
@@ -526,13 +526,13 @@ void qMRMLPlotViewPrivate::updateWidgetFromMRML()
 
     bool columnXFound = false;
     bool columnYFound = false;
-    for (int columnIndex = 0; columnIndex < plotNode->GetTableNode()->GetNumberOfColumns(); columnIndex++)
+    for (int columnIndex = 0; columnIndex < plotDataNode->GetTableNode()->GetNumberOfColumns(); columnIndex++)
       {
-      if(!strcmp(plotNode->GetTableNode()->GetColumnName(columnIndex).c_str(), plotNode->GetXColumnName().c_str()))
+      if(!strcmp(plotDataNode->GetTableNode()->GetColumnName(columnIndex).c_str(), plotDataNode->GetXColumnName().c_str()))
         {
         columnXFound = true;
         }
-      if(!strcmp(plotNode->GetTableNode()->GetColumnName(columnIndex).c_str(), plotNode->GetYColumnName().c_str()))
+      if(!strcmp(plotDataNode->GetTableNode()->GetColumnName(columnIndex).c_str(), plotDataNode->GetYColumnName().c_str()))
         {
         columnYFound = true;
         }
@@ -545,11 +545,11 @@ void qMRMLPlotViewPrivate::updateWidgetFromMRML()
       // when successively the addPlot method is called
       // (to add the same plot instance to vtkChartXY) it will
       // fail to setup the graph in the vtkChartXY render.
-      if (q->chart()->GetPlotCorner(plotNode->GetPlot()) == 0)
+      if (q->chart()->GetPlotCorner(plotDataNode->GetPlot()) == 0)
         {
-        q->chart()->SetPlotCorner(plotNode->GetPlot(), 1);
+        q->chart()->SetPlotCorner(plotDataNode->GetPlot(), 1);
         }
-      q->removePlot(plotNode->GetPlot());
+      q->removePlot(plotDataNode->GetPlot());
       }
     }
 
@@ -762,19 +762,19 @@ void qMRMLPlotView::setMRMLPlotViewNode(vtkMRMLPlotViewNode* newPlotViewNode)
 
   // connect modified event on PlotViewNode to updating the widget
   d->qvtkReconnect(d->MRMLPlotViewNode, newPlotViewNode,
-    vtkMRMLPlotViewNode::PlotLayoutNodeChangedEvent, d, SLOT(updateWidgetFromMRML()));
+    vtkMRMLPlotViewNode::PlotChartNodeChangedEvent, d, SLOT(updateWidgetFromMRML()));
 
-  // connect on PlotNodeChangedEvent (e.g. PlotView is looking at a
-  // different PlotNode
+  // connect on PlotDataNodeChangedEvent (e.g. PlotView is looking at a
+  // different PlotDataNode
   d->qvtkReconnect(d->MRMLPlotViewNode, newPlotViewNode,
-    vtkMRMLPlotViewNode::PlotLayoutNodeChangedEvent, d, SLOT(onPlotLayoutNodeChanged()));
+    vtkMRMLPlotViewNode::PlotChartNodeChangedEvent, d, SLOT(onPlotChartNodeChanged()));
 
   // cache the PlotViewNode
   d->MRMLPlotViewNode = newPlotViewNode;
 
-  // ... and connect modified event on the PlotViewNode's PlotLayoutNode
+  // ... and connect modified event on the PlotViewNode's PlotChartNode
   // to update the widget
-  d->onPlotLayoutNodeChanged();
+  d->onPlotChartNodeChanged();
 
   // make sure the gui is up to date
   d->updateWidgetFromMRML();

@@ -17,28 +17,28 @@
 
 ==============================================================================*/
 
-#ifndef __vtkMRMLPlotLayoutNode_h
-#define __vtkMRMLPlotLayoutNode_h
+#ifndef __vtkMRMLPlotChartNode_h
+#define __vtkMRMLPlotChartNode_h
 
 #include "vtkMRMLNode.h"
 
 class vtkCollection;
 class vtkDataObject;
-class vtkMRMLPlotNode;
+class vtkMRMLPlotDataNode;
 class vtkStringArray;
 
 #include <string>
 
 /// \brief MRML node for referencing a collection of data to plot.
-class VTK_MRML_EXPORT vtkMRMLPlotLayoutNode : public vtkMRMLNode
+class VTK_MRML_EXPORT vtkMRMLPlotChartNode : public vtkMRMLNode
 {
  public:
   //----------------------------------------------------------------
   /// Standard methods for MRML nodes
   //----------------------------------------------------------------
 
-  static vtkMRMLPlotLayoutNode *New();
-  vtkTypeMacro(vtkMRMLPlotLayoutNode,vtkMRMLNode);
+  static vtkMRMLPlotChartNode *New();
+  vtkTypeMacro(vtkMRMLPlotChartNode,vtkMRMLNode);
 
   void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
@@ -58,7 +58,7 @@ class VTK_MRML_EXPORT vtkMRMLPlotLayoutNode : public vtkMRMLNode
 
   ///
   /// Get node XML tag name (like Volume, Model)
-  virtual const char* GetNodeTagName() VTK_OVERRIDE {return "PlotLayout";};
+  virtual const char* GetNodeTagName() VTK_OVERRIDE {return "PlotChart";};
 
   ///
   /// Method to propagate events generated in mrml
@@ -73,7 +73,7 @@ class VTK_MRML_EXPORT vtkMRMLPlotLayoutNode : public vtkMRMLNode
   /// Note that when SetAndObserve(Nth)NodeID() is called with an ID that
   /// has not yet any associated plot node in the scene, then
   /// plotModifiedEvent is not fired until found for the first time in
-  /// the scene, e.g. Get(Nth)plotNode(), UpdateScene()...
+  /// the scene, e.g. Get(Nth)PlotDataNode(), UpdateScene()...
   enum
     {
     PlotModifiedEvent = 17000,
@@ -85,74 +85,74 @@ class VTK_MRML_EXPORT vtkMRMLPlotLayoutNode : public vtkMRMLNode
 
   ///
   /// Convenience method that sets the first plot node ID.
-  /// \sa SetAndObserverNthPlotNodeID(int, const char*)
-  void SetAndObservePlotNodeID(const char *plotNodeID);
+  /// \sa SetAndObserverNthPlotDataNodeID(int, const char*)
+  void SetAndObservePlotDataNodeID(const char *plotDataNodeID);
 
   ///
   /// Convenience method that adds a plot node ID at the end of the list.
-  /// \sa SetAndObserverNthPlotNodeID(int, const char*)
-  void AddAndObservePlotNodeID(const char *plotNodeID);
+  /// \sa SetAndObserverNthPlotDataNodeID(int, const char*)
+  void AddAndObservePlotDataNodeID(const char *plotDataNodeID);
 
   ///
   /// Convenience method that removes the plot node ID from the list
-  /// \sa SetAndObserverNthPlotNodeID(int, const char*)
-  void RemovePlotNodeID(const char *plotNodeID);
+  /// \sa SetAndObserverNthPlotDataNodeID(int, const char*)
+  void RemovePlotDataNodeID(const char *plotDataNodeID);
 
   ///
   /// Convenience method that removes the Nth plot node ID from the list
-  /// \sa SetAndObserverNthPlotNodeID(int, const char*)
-  void RemoveNthPlotNodeID(int n);
+  /// \sa SetAndObserverNthPlotDataNodeID(int, const char*)
+  void RemoveNthPlotDataNodeID(int n);
 
   ///
   /// Remove all plot node IDs and associated plot nodes.
-  void RemoveAllPlotNodeIDs();
+  void RemoveAllPlotDataNodeIDs();
 
   ///
   /// Set and observe the Nth plot node ID in the list.
   /// If n is larger than the number of plot nodes, the plot node ID
-  /// is added at the end of the list. If PlotNodeID is 0, the node ID is
+  /// is added at the end of the list. If PlotDataNodeID is 0, the node ID is
   /// removed from the list.
   /// When a node ID is set (added or changed), its corresponding node is
   /// searched (slow) into the scene and cached for fast future access.
   /// It is possible however that the node is not yet into the scene (due to
   /// some temporary state (at loading time for example). UpdateScene() can
   /// later be called to retrieve the plot nodes from the scene
-  /// (automatically done when loading a scene). Get(Nth)PlotNode() also
+  /// (automatically done when loading a scene). Get(Nth)PlotDataNode() also
   /// scan the scene if the node was not yet cached.
-  /// \sa SetAndObservePlotNodeID(const char*),
-  /// AddAndObservePlotNodeID(const char *), RemoveNthPlotNodeID(int)
-  void SetAndObserveNthPlotNodeID(int n, const char *plotNodeID);
+  /// \sa SetAndObservePlotDataNodeID(const char*),
+  /// AddAndObservePlotDataNodeID(const char *), RemoveNthPlotDataNodeID(int)
+  void SetAndObserveNthPlotDataNodeID(int n, const char *plotDataNodeID);
 
   ///
-  /// Return true if plotNodeID is in the plot node ID list.
-  bool HasPlotNodeID(const char* plotNodeID);
+  /// Return true if PlotDataNodeID is in the plot node ID list.
+  bool HasPlotDataNodeID(const char* plotDataNodeID);
 
   ///
   /// Return the number of plot node IDs (and plot nodes as they always
   /// have the same size).
-  int GetNumberOfPlotNodes();
+  int GetNumberOfPlotDataNodes();
 
   ///
   /// Return the string of the Nth plot node ID. Or 0 if no such
   /// node exist.
   /// Warning, a temporary char generated from a std::string::c_str()
   /// is returned.
-  const char *GetNthPlotNodeID(int n);
+  const char *GetNthPlotDataNodeID(int n);
 
   ///
   /// Return the index of the Nth plot node ID.
   /// If not found, it return '-1'
-  int GetNthPlotIdexFromID(const char* plotNodeID);
+  int GetNthPlotIdexFromID(const char* plotDataNodeID);
 
   ///
   /// Return an index to color each Plot.
   /// If not found, it return '-1'
-  vtkIdType GetColorPlotIdexFromID(const char* plotNodeID);
+  vtkIdType GetColorPlotIdexFromID(const char* plotDataNodeID);
 
   ///
   /// Utility function that returns the first plot node id.
-  /// \sa GetNthPlotNodeID(int), GetPlotNode()
-  const char *GetPlotNodeID();
+  /// \sa GetNthPlotDataNodeID(int), GetPlotDataNode()
+  const char *GetPlotDataNodeID();
 
   ///
   /// Get associated plot MRML node. Can be 0 in temporary states; e.g. if
@@ -163,21 +163,21 @@ class VTK_MRML_EXPORT vtkMRMLPlotLayoutNode : public vtkMRMLNode
   /// If the plot node is no longer in the scene (GetScene() == 0), it
   /// happens after the node is removed from the scene (scene->RemoveNode(dn),
   /// the returned plot node is 0.
-  /// \sa GetNthplotNodeByClass()
-  vtkMRMLPlotNode* GetNthPlotNode(int n);
+  /// \sa GetNthPlotDataNodeByClass()
+  vtkMRMLPlotDataNode* GetNthPlotDataNode(int n);
 
   ///
   /// Utility function that returns the first plot node.
-  /// \sa GetNthPlotNode(int), GetPlotNodeID()
-  vtkMRMLPlotNode* GetPlotNode();
+  /// \sa GetNthPlotDataNode(int), GetPlotDataNodeID()
+  vtkMRMLPlotDataNode* GetPlotDataNode();
 
   ///
   /// Get the list of Plot names
-  virtual int GetPlotNames(std::vector<std::string> &plotNodeNames);
+  virtual int GetPlotNames(std::vector<std::string> &plotDataNodeNames);
 
   ///
   /// Get the list of Plot ids
-  virtual int GetPlotIDs(std::vector<std::string> &plotNodeIDs);
+  virtual int GetPlotIDs(std::vector<std::string> &plotDataNodeIDs);
 
   ///
   /// Set the Type for all the referenced Plots.
@@ -186,12 +186,12 @@ class VTK_MRML_EXPORT vtkMRMLPlotLayoutNode : public vtkMRMLNode
   virtual void SetPlotType(const char* Type);
 
   ///
-  /// In addition a set of properties are available for a PlotLayout.
-  /// These are stored as Attributes of PlotLayoutNode.
+  /// In addition a set of properties are available for a PlotChart.
+  /// These are stored as Attributes of PlotChartNode.
   /// Available properties are:
   ///
   /// \li  "Type" - "Line", "Line and Scatter", "Scatter", "Bar"
-  /// \li  "TitleName" - title ploted on the PlotLayout
+  /// \li  "TitleName" - title ploted on the PlotChart
   /// \li  "ShowTitle" - show title "on" or "off"
   /// \li  "XAxisLabelName" - label ploted on the x-axis
   /// \li  "ShowXAxisLabel" - show x-axis label "on" or "off"
@@ -201,7 +201,7 @@ class VTK_MRML_EXPORT vtkMRMLPlotLayoutNode : public vtkMRMLNode
   /// \li  "ShowYAxisLabel" - show y-axis label "on" or "off"
   /// \li  "ShowGrid" - show grid "on" or "off"
   /// \li  "ShowLegend" - show legend "on" or "off"
-  /// \li  "FontType" - global Font for the PlotLayout: "Arial", "Times", "Courier"
+  /// \li  "FontType" - global Font for the PlotChart: "Arial", "Times", "Courier"
   /// \li  "TitleFontSize" - default: "20"
   /// \li  "AxisTitleFontSize" - default: "16"
   /// \li  "AxisLabelFontSize" - default: "12"
@@ -210,21 +210,21 @@ class VTK_MRML_EXPORT vtkMRMLPlotLayoutNode : public vtkMRMLNode
   ///  NOTE: To change the PlotType SetPlotType has to be used.
   ///
 
-  virtual const char* GetPlotNodeReferenceRole();
+  virtual const char* GetPlotDataNodeReferenceRole();
 
  protected:
   //----------------------------------------------------------------
   /// Constructor and destroctor
   //----------------------------------------------------------------
-  vtkMRMLPlotLayoutNode();
-  ~vtkMRMLPlotLayoutNode();
-  vtkMRMLPlotLayoutNode(const vtkMRMLPlotLayoutNode&);
-  void operator=(const vtkMRMLPlotLayoutNode&);
+  vtkMRMLPlotChartNode();
+  ~vtkMRMLPlotChartNode();
+  vtkMRMLPlotChartNode(const vtkMRMLPlotChartNode&);
+  void operator=(const vtkMRMLPlotChartNode&);
 
-  static const char* PlotNodeReferenceRole;
-  static const char* PlotNodeReferenceMRMLAttributeName;
+  static const char* PlotDataNodeReferenceRole;
+  static const char* PlotDataNodeReferenceMRMLAttributeName;
 
-  virtual const char* GetPlotNodeReferenceMRMLAttributeName();
+  virtual const char* GetPlotDataNodeReferenceMRMLAttributeName();
 
   ///
   /// Called when a node reference ID is added (list size increased).

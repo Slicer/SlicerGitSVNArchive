@@ -18,7 +18,7 @@
 ==============================================================================*/
 
 #include "vtkMRMLScene.h"
-#include "vtkMRMLPlotLayoutNode.h"
+#include "vtkMRMLPlotChartNode.h"
 #include "vtkMRMLPlotViewNode.h"
 
 #include "vtkMRMLCoreTestingMacros.h"
@@ -29,35 +29,35 @@ int vtkMRMLPlotViewNodeTest1(int , char * [] )
   EXERCISE_ALL_BASIC_MRML_METHODS(node1.GetPointer());
 
   // Check if modified eventes are only fired if
-  // and only if PlotLayout node ID is changed
+  // and only if PlotChart node ID is changed
 
   vtkNew<vtkMRMLScene> scene;
-  vtkNew<vtkMRMLPlotLayoutNode> plotLayoutNode1;
-  vtkNew<vtkMRMLPlotLayoutNode> plotLayoutNode2;
-  scene->AddNode(plotLayoutNode1.GetPointer());
-  scene->AddNode(plotLayoutNode2.GetPointer());
+  vtkNew<vtkMRMLPlotChartNode> plotChartNode1;
+  vtkNew<vtkMRMLPlotChartNode> plotChartNode2;
+  scene->AddNode(plotChartNode1.GetPointer());
+  scene->AddNode(plotChartNode2.GetPointer());
 
   vtkNew<vtkMRMLCoreTestingUtilities::vtkMRMLNodeCallback> callback;
   node1->AddObserver(vtkCommand::AnyEvent, callback.GetPointer());
 
   callback->ResetNumberOfEvents();
-  node1->SetPlotLayoutNodeID(plotLayoutNode1->GetID());
+  node1->SetPlotChartNodeID(plotChartNode1->GetID());
   CHECK_INT(callback->GetNumberOfModified(),1);
 
   callback->ResetNumberOfEvents();
-  node1->SetPlotLayoutNodeID(plotLayoutNode2->GetID());
+  node1->SetPlotChartNodeID(plotChartNode2->GetID());
   CHECK_INT(callback->GetNumberOfModified(),1);
 
   callback->ResetNumberOfEvents();
-  node1->SetPlotLayoutNodeID(plotLayoutNode2->GetID());
+  node1->SetPlotChartNodeID(plotChartNode2->GetID());
   CHECK_INT(callback->GetNumberOfModified(),0);
 
   callback->ResetNumberOfEvents();
-  node1->SetPlotLayoutNodeID(NULL);
+  node1->SetPlotChartNodeID(NULL);
   CHECK_INT(callback->GetNumberOfModified(),1);
 
   callback->ResetNumberOfEvents();
-  node1->SetPlotLayoutNodeID(NULL);
+  node1->SetPlotChartNodeID(NULL);
   CHECK_INT(callback->GetNumberOfModified(),0);
 
   std::cout << "vtkMRMLPlotViewNodeTest1 completed successfully" << std::endl;

@@ -46,8 +46,8 @@ set(${KIT}_SRCS
   qSlicerSubjectHierarchyRegisterPlugin.h
   qSlicerSubjectHierarchyFolderPlugin.cxx
   qSlicerSubjectHierarchyFolderPlugin.h
-  qSlicerSubjectHierarchyPlotLayoutsPlugin.cxx
-  qSlicerSubjectHierarchyPlotLayoutsPlugin.h
+  qSlicerSubjectHierarchyPlotChartPlugin.cxx
+  qSlicerSubjectHierarchyPlotChartPlugin.h
   )
 
 set(${KIT}_MOC_SRCS
@@ -61,7 +61,7 @@ set(${KIT}_MOC_SRCS
   qSlicerSubjectHierarchyParseLocalDataPlugin.h
   qSlicerSubjectHierarchyRegisterPlugin.h
   qSlicerSubjectHierarchyFolderPlugin.h
-  qSlicerSubjectHierarchyPlotLayoutsPlugin.h
+  qSlicerSubjectHierarchyPlotChartPlugin.h
   qMRMLTransformItemDelegate.h
   qMRMLSubjectHierarchyTreeView.h
   qMRMLSubjectHierarchyComboBox.h

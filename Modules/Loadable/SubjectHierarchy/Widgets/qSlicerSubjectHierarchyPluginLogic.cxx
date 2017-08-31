@@ -32,7 +32,7 @@
 #include "qSlicerSubjectHierarchyCloneNodePlugin.h"
 #include "qSlicerSubjectHierarchyChartsPlugin.h"
 #include "qSlicerSubjectHierarchyParseLocalDataPlugin.h"
-#include "qSlicerSubjectHierarchyPlotLayoutsPlugin.h"
+#include "qSlicerSubjectHierarchyPlotChartPlugin.h"
 #include "qSlicerSubjectHierarchyRegisterPlugin.h"
 #include "qSlicerSubjectHierarchyFolderPlugin.h"
 
@@ -103,7 +103,7 @@ void qSlicerSubjectHierarchyPluginLogic::registerCorePlugins()
   qSlicerSubjectHierarchyPluginHandler::instance()->registerPlugin(
     new qSlicerSubjectHierarchyRegisterPlugin());
   qSlicerSubjectHierarchyPluginHandler::instance()->registerPlugin(
-    new qSlicerSubjectHierarchyPlotLayoutsPlugin());
+    new qSlicerSubjectHierarchyPlotChartPlugin());
 }
 
 //-----------------------------------------------------------------------------

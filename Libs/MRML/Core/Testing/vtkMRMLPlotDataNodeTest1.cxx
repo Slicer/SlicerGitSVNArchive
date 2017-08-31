@@ -17,7 +17,7 @@
 
 ==============================================================================*/
 
-#include "vtkMRMLPlotNode.h"
+#include "vtkMRMLPlotDataNode.h"
 #include "vtkMRMLScene.h"
 #include "vtkMRMLTableNode.h"
 
@@ -28,10 +28,10 @@
 
 #include "vtkMRMLCoreTestingMacros.h"
 
-int vtkMRMLPlotNodeTest1(int , char * [] )
+int vtkMRMLPlotDataNodeTest1(int , char * [] )
 {
   vtkNew<vtkMRMLScene> scene;
-  vtkNew<vtkMRMLPlotNode> node;
+  vtkNew<vtkMRMLPlotDataNode> node;
   EXERCISE_ALL_BASIC_MRML_METHODS(node.GetPointer());
   scene->AddNode(node);
 
@@ -67,18 +67,18 @@ int vtkMRMLPlotNodeTest1(int , char * [] )
   // Set and Observe the MRMLTableNode
   node->SetAndObserveTableNodeID(TableNode->GetID());
 
-  node->SetType(vtkMRMLPlotNode::BAR);
+  node->SetType(vtkMRMLPlotDataNode::BAR);
   vtkPlot* plot2 = node->GetPlot();
   CHECK_NOT_NULL(plot2);
 
   CHECK_STD_STRING(node->GetYColumnName(), arrC->GetName())
 
   // Verify that Copy method creates a true independent copy
-  vtkSmartPointer<vtkMRMLPlotNode> nodeCopy = vtkSmartPointer<vtkMRMLPlotNode>::New();
+  vtkSmartPointer<vtkMRMLPlotDataNode> nodeCopy = vtkSmartPointer<vtkMRMLPlotDataNode>::New();
   nodeCopy->CopyWithScene(node.GetPointer());
 
   CHECK_STD_STRING(node->GetName(), nodeCopy->GetName());
 
-  std::cout << "vtkMRMLPlotNodeTest1 completed successfully" << std::endl;
+  std::cout << "vtkMRMLPlotDataNodeTest1 completed successfully" << std::endl;
   return EXIT_SUCCESS;
 }

@@ -410,25 +410,25 @@ void vtkMRMLApplicationLogic::PropagateTableSelection()
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLApplicationLogic::PropagatePlotLayoutSelection()
+void vtkMRMLApplicationLogic::PropagatePlotChartSelection()
 {
   if ( !this->Internal->SelectionNode || !this->GetMRMLScene() )
     {
     return;
     }
 
-  char *plotLayoutId = this->Internal->SelectionNode->GetActivePlotLayoutID();
+  char *PlotChartId = this->Internal->SelectionNode->GetActivePlotChartID();
 
   const int nnodes = this->GetMRMLScene()->GetNumberOfNodesByClass("vtkMRMLPlotViewNode");
   for (int i = 0; i < nnodes; i++)
     {
     vtkMRMLPlotViewNode* pnode = vtkMRMLPlotViewNode::SafeDownCast (
       this->GetMRMLScene()->GetNthNodeByClass( i, "vtkMRMLPlotViewNode" ) );
-    if(!pnode->GetDoPropagatePlotLayoutSelection())
+    if(!pnode->GetDoPropagatePlotChartSelection())
       {
       continue;
       }
-    pnode-> SetPlotLayoutNodeID(plotLayoutId);
+    pnode->SetPlotChartNodeID(PlotChartId);
   }
 }
 

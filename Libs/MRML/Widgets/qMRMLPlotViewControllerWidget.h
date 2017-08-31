@@ -33,7 +33,7 @@ class vtkMRMLPlotViewNode;
 
 ///
 /// qMRMLPlotViewControllerWidget offers controls to a Plot view
-/// (vtkMRMLPlotViewNode and vtkMRMLPlotNode). This controller
+/// (vtkMRMLPlotChartNode and vtkMRMLPlotDataNode). This controller
 /// allows for the content (data) and style (properties) of a plot to
 /// be defined.
 class QMRML_WIDGETS_EXPORT qMRMLPlotViewControllerWidget

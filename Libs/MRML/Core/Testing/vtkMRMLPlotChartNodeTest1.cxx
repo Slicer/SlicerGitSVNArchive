@@ -17,8 +17,8 @@
 
 ==============================================================================*/
 
-#include "vtkMRMLPlotNode.h"
-#include "vtkMRMLPlotLayoutNode.h"
+#include "vtkMRMLPlotDataNode.h"
+#include "vtkMRMLPlotChartNode.h"
 #include "vtkMRMLScene.h"
 #include "vtkMRMLTableNode.h"
 
@@ -29,19 +29,19 @@
 
 #include "vtkMRMLCoreTestingMacros.h"
 
-int vtkMRMLPlotLayoutNodeTest1(int , char * [] )
+int vtkMRMLPlotChartNodeTest1(int , char * [] )
 {
-  // Create a PlotLayout node
+  // Create a PlotChart node
   vtkNew<vtkMRMLScene> scene;
-  vtkNew<vtkMRMLPlotLayoutNode> node;
+  vtkNew<vtkMRMLPlotChartNode> node;
   EXERCISE_ALL_BASIC_MRML_METHODS(node.GetPointer());
   scene->AddNode(node);
 
-  // Create two plotNodes
-  vtkNew<vtkMRMLPlotNode> plotNode1;
-  vtkNew<vtkMRMLPlotNode> plotNode2;
-  scene->AddNode(plotNode1);
-  scene->AddNode(plotNode2);
+  // Create two PlotDataNodes
+  vtkNew<vtkMRMLPlotDataNode> plotDataNode1;
+  vtkNew<vtkMRMLPlotDataNode> plotDataNode2;
+  scene->AddNode(plotDataNode1);
+  scene->AddNode(plotDataNode2);
 
   // Create a vtkTable
   vtkNew<vtkTable> table;
@@ -75,27 +75,27 @@ int vtkMRMLPlotLayoutNodeTest1(int , char * [] )
   TableNode->SetAndObserveTable(table.GetPointer());
 
   // Set and Observe the MRMLTableNode
-  plotNode1->SetAndObserveTableNodeID(TableNode->GetID());
-  plotNode2->SetAndObserveTableNodeID(TableNode->GetID());
-  plotNode2->SetYColumnIndex(2);
+  plotDataNode1->SetAndObserveTableNodeID(TableNode->GetID());
+  plotDataNode2->SetAndObserveTableNodeID(TableNode->GetID());
+  plotDataNode2->SetYColumnIndex(2);
 
-  // Add and Observe plots IDs in PlotLayout
-  node->AddAndObservePlotNodeID(plotNode1->GetID());
-  node->AddAndObservePlotNodeID(plotNode2->GetID());
+  // Add and Observe plots IDs in PlotChart
+  node->AddAndObservePlotDataNodeID(plotDataNode1->GetID());
+  node->AddAndObservePlotDataNodeID(plotDataNode2->GetID());
 
   // Test The references
-  CHECK_POINTER(node->GetPlotNode(), plotNode1);
-  CHECK_POINTER(node->GetNthPlotNode(1), plotNode2);
+  CHECK_POINTER(node->GetPlotDataNode(), plotDataNode1);
+  CHECK_POINTER(node->GetNthPlotDataNode(1), plotDataNode2);
 
-  node->RemovePlotNodeID(plotNode1->GetID());
-  CHECK_POINTER(node->GetPlotNode(), plotNode2);
+  node->RemovePlotDataNodeID(plotDataNode1->GetID());
+  CHECK_POINTER(node->GetPlotDataNode(), plotDataNode2);
 
   // Verify that Copy method creates a true independent copy
-  vtkSmartPointer< vtkMRMLPlotLayoutNode > nodeCopy = vtkSmartPointer< vtkMRMLPlotLayoutNode >::New();
+  vtkSmartPointer< vtkMRMLPlotChartNode > nodeCopy = vtkSmartPointer< vtkMRMLPlotChartNode >::New();
   nodeCopy->Copy(node.GetPointer());
 
   CHECK_STD_STRING(node->GetName(), nodeCopy->GetName());
 
-  std::cout << "vtkMRMLPlotLayoutNodeTest1 completed successfully" << std::endl;
+  std::cout << "vtkMRMLPlotChartNodeTest1 completed successfully" << std::endl;
   return EXIT_SUCCESS;
 }

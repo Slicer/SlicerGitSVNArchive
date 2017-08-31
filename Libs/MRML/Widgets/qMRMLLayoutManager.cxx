@@ -228,8 +228,8 @@ QWidget* qMRMLLayoutPlotViewFactory::createViewFromNode(vtkMRMLAbstractViewNode*
   /// \todo move color logic to view factory.
   plotWidget->setColorLogic(this->colorLogic());
   plotWidget->setMRMLScene(this->mrmlScene());
-  vtkMRMLPlotViewNode* plotNode = vtkMRMLPlotViewNode::SafeDownCast(viewNode);
-  plotWidget->setMRMLPlotViewNode(plotNode);
+  vtkMRMLPlotViewNode* plotViewNode = vtkMRMLPlotViewNode::SafeDownCast(viewNode);
+  plotWidget->setMRMLPlotViewNode(plotViewNode);
 
   return plotWidget;
 }

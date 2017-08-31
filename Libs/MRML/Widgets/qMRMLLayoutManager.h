@@ -47,7 +47,6 @@ class vtkMRMLChartViewNode;
 class vtkMRMLTableNode;
 class vtkMRMLTableViewNode;
 class vtkMRMLViewNode;
-class vtkMRMLPlotNode;
 class vtkMRMLPlotViewNode;
 
 class vtkCollection;

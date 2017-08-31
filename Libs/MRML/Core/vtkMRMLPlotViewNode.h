@@ -22,7 +22,7 @@
 
 #include "vtkMRMLAbstractViewNode.h"
 
-class vtkMRMLPlotLayoutNode;
+class vtkMRMLPlotChartNode;
 
 /// \brief MRML node to represent Plot view parameters.
 ///
@@ -57,24 +57,24 @@ public:
   virtual const char* GetNodeTagName() VTK_OVERRIDE { return "PlotView"; };
 
   ///
-  /// Set and Update the PlotLayout node id displayed in this Plot View
-  virtual void SetPlotLayoutNodeID(const char *PlotLayoutNodeID);
+  /// Set and Update the PlotChart node id displayed in this PlotView
+  virtual void SetPlotChartNodeID(const char *PlotChartNodeID);
 
   ///
-  /// Get the PlotLayout node id displayed in this PlotLayout View
-  const char* GetPlotLayoutNodeID();
+  /// Get the PlotChart node id displayed in this PlotView
+  const char* GetPlotChartNodeID();
 
   ///
-  /// Get the PlotLayout node displayed in this PlotLayout View
-  vtkMRMLPlotLayoutNode* GetPlotLayoutNode();
+  /// Get the PlotChart node displayed in this PlotView
+  vtkMRMLPlotChartNode* GetPlotChartNode();
 
   ///
-  /// Configures the behavior of PropagatePlotLayoutSelection().
-  /// If DoPropagatePlotLayoutSelection set to false then this
-  /// view will not be affected by PropagatePlotLayoutSelection.
+  /// Configures the behavior of PropagatePlotChartSelection().
+  /// If DoPropagatePlotChartSelection set to false then this
+  /// view will not be affected by PropagatePlotChartSelection.
   /// Default value is true.
-  vtkSetMacro (DoPropagatePlotLayoutSelection, bool );
-  vtkGetMacro (DoPropagatePlotLayoutSelection, bool );
+  vtkSetMacro (DoPropagatePlotChartSelection, bool );
+  vtkGetMacro (DoPropagatePlotChartSelection, bool );
 
   ///
   /// Method to propagate events generated in mrml
@@ -83,19 +83,19 @@ public:
                                  void *callData) VTK_OVERRIDE;
 
   /// PlotModifiedEvent is fired when:
-  ///  - a new plotLayout node is observed
-  ///  - a plotLayout node is not longer observed
-  ///  - an associated plotLayout node is modified
+  ///  - a new PlotChart node is observed
+  ///  - a PlotChart node is not longer observed
+  ///  - an associated PlotChart node is modified
   /// Note that when SetAndObserve(Nth)NodeID() is called with an ID that
   /// has not yet any associated plot node in the scene, then
   /// plotModifiedEvent is not fired until found for the first time in
-  /// the scene, e.g. Get(Nth)plotNode(), UpdateScene()...
+  /// the scene, e.g. UpdateScene()...
   enum
   {
-    PlotLayoutNodeChangedEvent = 18000
+    PlotChartNodeChangedEvent = 18000
   };
 
-  virtual const char* GetPlotLayoutNodeReferenceRole();
+  virtual const char* GetPlotChartNodeReferenceRole();
 
 protected:
   vtkMRMLPlotViewNode();
@@ -103,10 +103,10 @@ protected:
   vtkMRMLPlotViewNode(const vtkMRMLPlotViewNode&);
   void operator=(const vtkMRMLPlotViewNode&);
 
-  virtual const char* GetPlotLayoutNodeReferenceMRMLAttributeName();
+  virtual const char* GetPlotChartNodeReferenceMRMLAttributeName();
 
-  static const char* PlotLayoutNodeReferenceRole;
-  static const char* PlotLayoutNodeReferenceMRMLAttributeName;
+  static const char* PlotChartNodeReferenceRole;
+  static const char* PlotChartNodeReferenceMRMLAttributeName;
 
   ///
   /// Called when a node reference ID is added (list size increased).
@@ -120,7 +120,7 @@ protected:
   /// Called after a node reference ID is removed (list size decreased).
   virtual void OnNodeReferenceRemoved(vtkMRMLNodeReference *reference) VTK_OVERRIDE;
 
-  bool DoPropagatePlotLayoutSelection;
+  bool DoPropagatePlotChartSelection;
 };
 
 #endif

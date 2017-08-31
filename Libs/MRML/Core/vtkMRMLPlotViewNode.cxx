@@ -18,7 +18,7 @@
 ==============================================================================*/
 
 // MRML includes
-#include "vtkMRMLPlotLayoutNode.h"
+#include "vtkMRMLPlotChartNode.h"
 #include "vtkMRMLPlotViewNode.h"
 #include "vtkMRMLScene.h"
 #include "vtkMRMLSelectionNode.h"
@@ -35,23 +35,23 @@
 // STD includes
 #include <sstream>
 
-const char* vtkMRMLPlotViewNode::PlotLayoutNodeReferenceRole = "plotLayout";
-const char* vtkMRMLPlotViewNode::PlotLayoutNodeReferenceMRMLAttributeName = "plotLayoutNodeRef";
+const char* vtkMRMLPlotViewNode::PlotChartNodeReferenceRole = "plotChart";
+const char* vtkMRMLPlotViewNode::PlotChartNodeReferenceMRMLAttributeName = "plotChartNodeRef";
 
 //----------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLPlotViewNode);
 
 //----------------------------------------------------------------------------
 vtkMRMLPlotViewNode::vtkMRMLPlotViewNode()
-: DoPropagatePlotLayoutSelection(true)
+: DoPropagatePlotChartSelection(true)
 {
   vtkIntArray  *events = vtkIntArray::New();
   events->InsertNextValue(vtkCommand::ModifiedEvent);
-  events->InsertNextValue(vtkMRMLPlotViewNode::PlotLayoutNodeChangedEvent);
-  events->InsertNextValue(vtkMRMLPlotLayoutNode::PlotModifiedEvent);
+  events->InsertNextValue(vtkMRMLPlotViewNode::PlotChartNodeChangedEvent);
+  events->InsertNextValue(vtkMRMLPlotChartNode::PlotModifiedEvent);
 
-  this->AddNodeReferenceRole(this->GetPlotLayoutNodeReferenceRole(),
-                             this->GetPlotLayoutNodeReferenceMRMLAttributeName(),
+  this->AddNodeReferenceRole(this->GetPlotChartNodeReferenceRole(),
+                             this->GetPlotChartNodeReferenceMRMLAttributeName(),
                              events);
   events->Delete();
 }
@@ -66,7 +66,7 @@ void vtkMRMLPlotViewNode::WriteXML(ostream& of, int nIndent)
 {
   Superclass::WriteXML(of, nIndent);
 
-  of << " doPropagatePlotLayoutSelection=\"" << (int)this->DoPropagatePlotLayoutSelection << "\"";
+  of << " doPropagatePlotChartSelection=\"" << (int)this->DoPropagatePlotChartSelection << "\"";
 }
 
 //----------------------------------------------------------------------------
@@ -82,9 +82,9 @@ void vtkMRMLPlotViewNode::ReadXMLAttributes(const char** atts)
     {
     attName = *(atts++);
     attValue = *(atts++);
-    if(!strcmp(attName, "doPropagatePlotLayoutSelection"))
+    if(!strcmp(attName, "doPropagatePlotChartSelection"))
       {
-      this->SetDoPropagatePlotLayoutSelection(atoi(attValue)?true:false);
+      this->SetDoPropagatePlotChartSelection(atoi(attValue)?true:false);
       }
     }
 
@@ -102,7 +102,7 @@ void vtkMRMLPlotViewNode::Copy(vtkMRMLNode *anode)
 
   this->Superclass::Copy(anode);
 
-  this->SetDoPropagatePlotLayoutSelection(aPlotviewnode->GetDoPropagatePlotLayoutSelection());
+  this->SetDoPropagatePlotChartSelection(aPlotviewnode->GetDoPropagatePlotChartSelection());
 
   this->EndModify(disabledModify);
 }
@@ -112,25 +112,25 @@ void vtkMRMLPlotViewNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
 
-  os << indent << "DoPropagatePlotLayoutSelection: " << this->DoPropagatePlotLayoutSelection << "\n";
+  os << indent << "DoPropagatePlotChartSelection: " << this->DoPropagatePlotChartSelection << "\n";
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLPlotViewNode::SetPlotLayoutNodeID(const char* plotLayoutNodeId)
+void vtkMRMLPlotViewNode::SetPlotChartNodeID(const char* plotChartNodeId)
 {
-  this->SetNodeReferenceID(this->GetPlotLayoutNodeReferenceRole(), plotLayoutNodeId);
+  this->SetNodeReferenceID(this->GetPlotChartNodeReferenceRole(), plotChartNodeId);
 }
 
 //----------------------------------------------------------------------------
-const char* vtkMRMLPlotViewNode::GetPlotLayoutNodeID()
+const char* vtkMRMLPlotViewNode::GetPlotChartNodeID()
 {
-  return this->GetNodeReferenceID(this->GetPlotLayoutNodeReferenceRole());
+  return this->GetNodeReferenceID(this->GetPlotChartNodeReferenceRole());
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLPlotLayoutNode* vtkMRMLPlotViewNode::GetPlotLayoutNode()
+vtkMRMLPlotChartNode* vtkMRMLPlotViewNode::GetPlotChartNode()
 {
-  return vtkMRMLPlotLayoutNode::SafeDownCast(this->GetNodeReference(this->GetPlotLayoutNodeReferenceRole()));
+  return vtkMRMLPlotChartNode::SafeDownCast(this->GetNodeReference(this->GetPlotChartNodeReferenceRole()));
 }
 
 //----------------------------------------------------------------------------
@@ -138,35 +138,35 @@ void vtkMRMLPlotViewNode::ProcessMRMLEvents(vtkObject *caller, unsigned long eve
 {
   Superclass::ProcessMRMLEvents(caller, event, callData);
 
-  vtkMRMLPlotLayoutNode *pnode = this->GetPlotLayoutNode();
-  if (pnode != NULL && pnode == vtkMRMLPlotLayoutNode::SafeDownCast(caller) &&
-     (event ==  vtkCommand::ModifiedEvent || event == vtkMRMLPlotLayoutNode::PlotModifiedEvent))
+  vtkMRMLPlotChartNode *pnode = this->GetPlotChartNode();
+  if (pnode != NULL && pnode == vtkMRMLPlotChartNode::SafeDownCast(caller) &&
+     (event ==  vtkCommand::ModifiedEvent || event == vtkMRMLPlotChartNode::PlotModifiedEvent))
     {
-    this->InvokeEvent(vtkMRMLPlotViewNode::PlotLayoutNodeChangedEvent, pnode);
+    this->InvokeEvent(vtkMRMLPlotViewNode::PlotChartNodeChangedEvent, pnode);
     }
 
   return;
 }
 
 //----------------------------------------------------------------------------
-const char* vtkMRMLPlotViewNode::GetPlotLayoutNodeReferenceRole()
+const char* vtkMRMLPlotViewNode::GetPlotChartNodeReferenceRole()
 {
-  return vtkMRMLPlotViewNode::PlotLayoutNodeReferenceRole;
+  return vtkMRMLPlotViewNode::PlotChartNodeReferenceRole;
 }
 
 //----------------------------------------------------------------------------
-const char* vtkMRMLPlotViewNode::GetPlotLayoutNodeReferenceMRMLAttributeName()
+const char* vtkMRMLPlotViewNode::GetPlotChartNodeReferenceMRMLAttributeName()
 {
-    return vtkMRMLPlotViewNode::PlotLayoutNodeReferenceMRMLAttributeName;
+    return vtkMRMLPlotViewNode::PlotChartNodeReferenceMRMLAttributeName;
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLPlotViewNode::OnNodeReferenceAdded(vtkMRMLNodeReference *reference)
 {
   this->Superclass::OnNodeReferenceAdded(reference);
-  if (std::string(reference->GetReferenceRole()) == this->PlotLayoutNodeReferenceRole)
+  if (std::string(reference->GetReferenceRole()) == this->PlotChartNodeReferenceRole)
     {
-    this->InvokeEvent(vtkMRMLPlotViewNode::PlotLayoutNodeChangedEvent, reference->GetReferencedNode());
+    this->InvokeEvent(vtkMRMLPlotViewNode::PlotChartNodeChangedEvent, reference->GetReferencedNode());
     }
 }
 
@@ -174,9 +174,9 @@ void vtkMRMLPlotViewNode::OnNodeReferenceAdded(vtkMRMLNodeReference *reference)
 void vtkMRMLPlotViewNode::OnNodeReferenceModified(vtkMRMLNodeReference *reference)
 {
   this->Superclass::OnNodeReferenceModified(reference);
-  if (std::string(reference->GetReferenceRole()) == this->PlotLayoutNodeReferenceRole)
+  if (std::string(reference->GetReferenceRole()) == this->PlotChartNodeReferenceRole)
     {
-    this->InvokeEvent(vtkMRMLPlotViewNode::PlotLayoutNodeChangedEvent, reference->GetReferencedNode());
+    this->InvokeEvent(vtkMRMLPlotViewNode::PlotChartNodeChangedEvent, reference->GetReferencedNode());
     }
 }
 
@@ -184,8 +184,8 @@ void vtkMRMLPlotViewNode::OnNodeReferenceModified(vtkMRMLNodeReference *referenc
 void vtkMRMLPlotViewNode::OnNodeReferenceRemoved(vtkMRMLNodeReference *reference)
 {
   this->Superclass::OnNodeReferenceRemoved(reference);
-  if (std::string(reference->GetReferenceRole()) == this->PlotLayoutNodeReferenceRole)
+  if (std::string(reference->GetReferenceRole()) == this->PlotChartNodeReferenceRole)
     {
-    this->InvokeEvent(vtkMRMLPlotViewNode::PlotLayoutNodeChangedEvent, reference->GetReferencedNode());
+    this->InvokeEvent(vtkMRMLPlotViewNode::PlotChartNodeChangedEvent, reference->GetReferencedNode());
     }
 }
