@@ -101,7 +101,7 @@ if(Slicer_BUILD_EXTENSIONMANAGER_SUPPORT)
   list(APPEND KIT_SRCS
     qSlicerExtensionsInstallWidget.cxx
     qSlicerExtensionsInstallWidget.h
-	qSlicerExtensionsRestoreWidget.cxx
+    qSlicerExtensionsRestoreWidget.cxx
     qSlicerExtensionsRestoreWidget.h
     qSlicerExtensionsManageWidget.cxx
     qSlicerExtensionsManageWidget.h
