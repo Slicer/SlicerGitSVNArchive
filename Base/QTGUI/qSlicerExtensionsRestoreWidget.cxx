@@ -354,7 +354,7 @@ void qSlicerExtensionsRestoreWidgetPrivate
       this->progressDialog->close();
       this->headlessMode = false;
       static_cast<qSlicerApplication*>qApp->confirmRestart("All extensions restored. Please restart Slicer.");
-	  }
+    }
     else
     {
       setupList();
@@ -368,12 +368,12 @@ void qSlicerExtensionsRestoreWidgetPrivate
   int value = (((float(maxProgress) / float(nrOfExtensionsToInstall))*float(currentExtensionToInstall)) +
     ((float(received) / float(total)) * (float(maxProgress) / float(nrOfExtensionsToInstall))));
   if (this->headlessMode) {
-	  this->progressDialog->setValue(value);
+    this->progressDialog->setValue(value);
     this->progressDialog->setLabelText("Installing " + extensionName + " (" + QString::number(received) + "/" + QString::number(total) + ")");
   }
   else
   {
-	  this->progressBar->setValue(value);
+    this->progressBar->setValue(value);
   }
 }
 
@@ -499,7 +499,7 @@ void qSlicerExtensionsRestoreWidget
 void qSlicerExtensionsRestoreWidget
 ::onExtensionHistoryGatheredOnStartup(const QVariantMap& extensionInfo)
 {
-	Q_D(qSlicerExtensionsRestoreWidget);
+  Q_D(qSlicerExtensionsRestoreWidget);
   d->processExtensionsHistoryInformationOnStartup(extensionInfo);
 }
 
