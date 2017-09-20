@@ -76,6 +76,19 @@ public:
   void SetColorLogic(vtkMRMLColorLogic* newColorLogic);
   vtkMRMLColorLogic* GetColorLogic()const;
 
+  enum Layers
+  {
+    LabelLayer = 0x1,
+    ForegroundLayer = 0x2,
+    BackgroundLayer = 0x4,
+    AllLayers = LabelLayer | ForegroundLayer | BackgroundLayer
+  };
+
+  /// Propagate selected volume layer in the SelectionNode to the slice composite
+  /// nodes.
+  /// \sa Layers
+  void PropagateVolumeSelection(int layer, int fit);
+
   /// Apply the active volumes in the SelectionNode to the slice composite nodes
   /// Perform the default behavior related to selecting a volume
   /// (in this case, making it the background for all SliceCompositeNodes)
@@ -107,26 +120,18 @@ public:
   /// \sa Layers::LabelLayer
   void PropagateLabelVolumeSelection(int fit = 1);
 
-  enum Layers
-  {
-    LabelLayer = 0x1,
-    ForegroundLayer = 0x2,
-    BackgroundLayer = 0x4,
-    AllLayers = LabelLayer | ForegroundLayer | BackgroundLayer
-  };
-
-  /// Propagate selected volume layer in the SelectionNode to the slice composite
-  /// nodes.
-  /// \sa Layers
-  void PropagateVolumeSelection(int layer, int fit);
+  /// Propagate selected table in the SelectionNode to table view nodes.
+  void PropagateTableSelection();
 
   /// Fit all the volumes into their views
   /// If onlyIfPropagateVolumeSelectionAllowed is true then field of view will be reset on
   /// only those slices where propagate volume selection is allowed
+  /// \sa FitSlicesToVolume()
   void FitSliceToAll(bool onlyIfPropagateVolumeSelectionAllowed=false);
 
-  /// Propagate selected table in the SelectionNode to table view nodes.
-  void PropagateTableSelection();
+  /// Fit volume into all the views that display it.
+  /// \sa FitSliceToAll()
+  void FitSlicesToVolume(const char* volumeNodeID);
 
   /// zip the directory into a zip file
   /// Returns success or failure.
