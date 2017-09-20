@@ -176,6 +176,10 @@ Create complete segmentation on selected slices using any editor effect. You can
 - Cancel: Remove result preview. Seeds are kept unchanged, so parameters can be changed and segmentation can be restarted by clicking Initialize.
 - Apply: Overwrite seeds segments with previewed results.
 
+.. raw:: html
+
+        <iframe width="560" height="315" src="https://www.youtube.com/embed/u93kI1MG6Ic?start=8" frameborder="0" allowfullscreen></iframe>
+
 Notes:
 
 - Only visible segments are used by this effect.
