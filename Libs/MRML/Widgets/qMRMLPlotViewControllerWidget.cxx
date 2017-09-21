@@ -197,7 +197,7 @@ void qMRMLPlotViewControllerWidgetPrivate::onPlotChartNodeSelected(vtkMRMLNode *
     return;
     }
 
-  selectionNode->SetActivePlotChartID(mrmlPlotChartNode->GetID());
+  selectionNode->SetActivePlotChartID(mrmlPlotChartNode ? mrmlPlotChartNode->GetID() : "");
 }
 
 // --------------------------------------------------------------------------
