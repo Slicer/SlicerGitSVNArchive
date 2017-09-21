@@ -17,7 +17,7 @@
    <item row="1" column="0">
     <layout class="QGridLayout" name="contentLayout">
      <item row="1" column="0">
-      <widget class="qMRMLNodeComboBox" name="plotChartComboBox">
+      <widget class="qMRMLNodeComboBox" name="plotChartComboBox" native="true">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
          <horstretch>1</horstretch>
@@ -33,21 +33,21 @@
        <property name="toolTip">
         <string>Select the Plot Layout</string>
        </property>
-       <property name="nodeTypes">
+       <property name="nodeTypes" stdset="0">
         <stringlist>
          <string>vtkMRMLPlotChartNode</string>
         </stringlist>
        </property>
-       <property name="noneEnabled">
+       <property name="noneEnabled" stdset="0">
         <bool>true</bool>
        </property>
-       <property name="addEnabled">
+       <property name="addEnabled" stdset="0">
         <bool>true</bool>
        </property>
-       <property name="removeEnabled">
+       <property name="removeEnabled" stdset="0">
         <bool>false</bool>
        </property>
-       <property name="renameEnabled">
+       <property name="renameEnabled" stdset="0">
         <bool>true</bool>
        </property>
       </widget>
@@ -80,25 +80,25 @@
       </widget>
      </item>
      <item row="2" column="0">
-      <widget class="qMRMLCheckableNodeComboBox" name="plotDataComboBox">
+      <widget class="qMRMLCheckableNodeComboBox" name="plotDataComboBox" native="true">
        <property name="toolTip">
-        <string>Add/Remove Plots from the current Plot Layout</string>
+        <string>Add/Remove Plots from the current Plot Layout the plotData selected. The &quot;Default&quot; will apport any modification. The &quot;indexes&quot; values </string>
        </property>
-       <property name="nodeTypes">
+       <property name="nodeTypes" stdset="0">
         <stringlist>
          <string>vtkMRMLPlotDataNode</string>
         </stringlist>
        </property>
-       <property name="addEnabled">
+       <property name="addEnabled" stdset="0">
         <bool>false</bool>
        </property>
-       <property name="removeEnabled">
+       <property name="removeEnabled" stdset="0">
         <bool>false</bool>
        </property>
-       <property name="editEnabled">
+       <property name="editEnabled" stdset="0">
         <bool>false</bool>
        </property>
-       <property name="renameEnabled">
+       <property name="renameEnabled" stdset="0">
         <bool>false</bool>
        </property>
       </widget>
@@ -137,6 +137,23 @@
      </item>
      <item row="0" column="0">
       <layout class="QVBoxLayout" name="verticalLayout"/>
+     </item>
+     <item row="2" column="1">
+      <widget class="QComboBox" name="xAxisComboBox">
+       <property name="toolTip">
+        <string>This combobox allow to change the X-axis for all the plotData selected. The value &quot;Default&quot; will not apport any modification. The value &quot;Indexes&quot; will use simple ordinal numbers 1, 2, 3, ... as x coordinate values. For the other values, the correspective column will be used. </string>
+       </property>
+       <item>
+        <property name="text">
+         <string>Default</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Indexes</string>
+        </property>
+       </item>
+      </widget>
      </item>
     </layout>
    </item>
@@ -297,23 +314,36 @@
     <string>Show legend</string>
    </property>
   </action>
+  <action name="actionFit_to_window">
+   <property name="icon">
+    <iconset resource="../qMRMLWidgets.qrc">
+     <normaloff>:/Icons/SlicesFitToWindow.png</normaloff>:/Icons/SlicesFitToWindow.png</iconset>
+   </property>
+   <property name="text">
+    <string>Fit_to_window</string>
+   </property>
+   <property name="toolTip">
+    <string>Adjust the Plot Viewer's field of view to match the extent of the Plot axes</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
-  <customwidget>
-   <class>qMRMLCheckableNodeComboBox</class>
-   <extends>qMRMLNodeComboBox</extends>
-   <header>qMRMLCheckableNodeComboBox.h</header>
-  </customwidget>
   <customwidget>
    <class>qMRMLNodeComboBox</class>
    <extends>QWidget</extends>
    <header>qMRMLNodeComboBox.h</header>
+   <container>1</container>
   </customwidget>
   <customwidget>
    <class>ctkPopupWidget</class>
    <extends>QFrame</extends>
    <header>ctkPopupWidget.h</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>qMRMLCheckableNodeComboBox</class>
+   <extends>qMRMLNodeComboBox</extends>
+   <header>qMRMLCheckableNodeComboBox.h</header>
   </customwidget>
  </customwidgets>
  <resources>

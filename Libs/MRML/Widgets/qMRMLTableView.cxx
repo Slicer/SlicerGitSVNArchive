@@ -47,10 +47,11 @@
 #include "qMRMLTableModel.h"
 
 // MRML includes
-#include <vtkMRMLSelectionNode.h>
+#include <vtkMRMLLayoutNode.h>
 #include <vtkMRMLPlotDataNode.h>
 #include <vtkMRMLPlotChartNode.h>
 #include <vtkMRMLScene.h>
+#include <vtkMRMLSelectionNode.h>
 #include <vtkMRMLTableNode.h>
 #include <vtkMRMLTableViewNode.h>
 
@@ -530,8 +531,8 @@ void qMRMLTableView::plotSelection()
       plotDataNode = vtkMRMLPlotDataNode::SafeDownCast(node);
       this->mrmlScene()->AddNode(plotDataNode);
       plotDataNode->SetName(columnName.c_str());
-      plotDataNode->SetXColumnIndex(columnIndexs->GetValue(0));
-      plotDataNode->SetYColumnIndex(columnIndexs->GetValue(columnIndex));
+      plotDataNode->SetXColumnName(tableNode->GetColumnName(columnIndexs->GetValue(0)));
+      plotDataNode->SetYColumnName(tableNode->GetColumnName(columnIndexs->GetValue(columnIndex)));
       plotDataNode->SetAndObserveTableNodeID(tableNode->GetID());
       }
 
@@ -591,6 +592,24 @@ void qMRMLTableView::plotSelection()
     colPlots->Delete();
     colPlots = NULL;
     }
+
+  // Set a Plot Layout
+  vtkMRMLLayoutNode* layoutNode = vtkMRMLLayoutNode::SafeDownCast(
+    this->mrmlScene()->GetFirstNodeByClass("vtkMRMLLayoutNode"));
+  if (!layoutNode)
+    {
+    qCritical() << Q_FUNC_INFO << ": Unable to get layout node!";
+    return;
+    }
+  int viewArra = layoutNode->GetViewArrangement();
+  if (viewArra != vtkMRMLLayoutNode::SlicerLayoutConventionalPlotView  &&
+      viewArra != vtkMRMLLayoutNode::SlicerLayoutFourUpPlotView        &&
+      viewArra != vtkMRMLLayoutNode::SlicerLayoutFourUpPlotTableView   &&
+      viewArra != vtkMRMLLayoutNode::SlicerLayoutOneUpPlotView         &&
+      viewArra != vtkMRMLLayoutNode::SlicerLayoutThreeOverThreePlotView)
+  {
+    layoutNode->SetViewArrangement(vtkMRMLLayoutNode::SlicerLayoutConventionalPlotView);
+  }
 }
 
 //-----------------------------------------------------------------------------

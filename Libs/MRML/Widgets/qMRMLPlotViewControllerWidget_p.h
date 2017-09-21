@@ -43,6 +43,7 @@ class QAction;
 class qMRMLSceneViewMenu;
 class vtkMRMLPlotViewNode;
 class vtkMRMLPlotChartNode;
+class vtkMRMLSelectionNode;
 class QString;
 
 //-----------------------------------------------------------------------------
@@ -63,9 +64,11 @@ public:
 
   vtkWeakPointer<vtkMRMLPlotChartNode>   PlotChartNode;
   vtkWeakPointer<vtkMRMLPlotViewNode>    PlotViewNode;
+  vtkWeakPointer<vtkMRMLSelectionNode>   SelectionNode;
   qMRMLPlotView*                         PlotView;
 
-  QString                          PlotViewLabel;
+  QString                                PlotViewLabel;
+  QToolButton*                           FitToWindowToolButton;
 
   vtkMRMLPlotChartNode* GetPlotChartNodeFromView();
 
@@ -74,12 +77,19 @@ public slots:
   /// using the associated qMRMLNodeComboBox
   void onPlotChartNodeSelected(vtkMRMLNode* node);
 
+  /// Called when the Singleton SelectionNode is modified
+  void onSelectionNodeModified();
+
   /// Called after an array node is selected using the qMRMLCheckableNodeComboBox
   void onPlotDataNodesSelected();
 
   /// Called after a Plot type is selected using the qComboBox
   /// Modify all the PlotDataNode selected in the PlotChartNode
   void onPlotTypeSelected(const QString& Type);
+
+  /// Called after a Column is selected using the qComboBox
+  /// Modify all the PlotDataNode selected in the PlotChartNode
+  void onXAxisSelected(const QString& Column);
 
 protected:
   virtual void setupPopupUi();
