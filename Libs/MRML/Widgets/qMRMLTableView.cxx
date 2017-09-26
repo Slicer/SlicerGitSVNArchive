@@ -40,6 +40,7 @@
 #include <vtkIntArray.h>
 #include <vtkNew.h>
 #include <vtkStringArray.h>
+#include <vtkTable.h>
 
 // qMRML includes
 #include "qMRMLTableView.h"
@@ -500,11 +501,51 @@ void qMRMLTableView::plotSelection()
   // Remove columns/plots not selected from plotChartNode
   plotChartNode->RemoveAllPlotDataNodeIDs();
 
+  // Check the DataType of the (X-Axis) Column
+  int XColumnDataType = tableNode->GetTable()->GetColumn(columnIndexs->GetValue(0))->GetDataType();
+  if (XColumnDataType == VTK_STRING || XColumnDataType == VTK_BIT)
+    {
+    QString message = QString("The DataType of the input X-Axis Column is 'string' or 'bit'. Such formats are not accepted by Plots."
+                              " Please convert the DataType of the Column in numeric (tools are available in the Table module GUI)"
+                              " in order to procede with the plotting.");
+    qCritical() << Q_FUNC_INFO << ": " << message;
+    QMessageBox::warning(NULL, tr("Failed to create Plot"), message);
+    return;
+    }
+
+  bool unvalidatedDataTypeString = false;
+  // Check the DataType of the Y-Axis Columns
+  for (int columnIndex = 1; columnIndex < columnIndexs->GetNumberOfValues(); columnIndex++)
+    {
+    int YColumnDataType = tableNode->GetTable()->GetColumn(columnIndexs->GetValue(columnIndex))->GetDataType();
+    if (YColumnDataType == VTK_STRING || YColumnDataType == VTK_BIT)
+      {
+      unvalidatedDataTypeString = true;
+      }
+    }
+
+  if (unvalidatedDataTypeString)
+    {
+    QString message = QString("The DataType of one or more input Columns is 'string' or 'bit'. Such formats are not accepted by Plots."
+                              " Please convert the DataType of the Columns in numeric (tools are available in the Table module GUI),"
+                              " before replotting the Columns.");
+    qCritical() << Q_FUNC_INFO << ": " << message;
+    QMessageBox::warning(NULL, tr("Failed to create Plot"), message);
+    }
+
   // Add columns/plots not selected from plotChartNode
   for (int columnIndex = 1; columnIndex < columnIndexs->GetNumberOfValues(); columnIndex++)
     {
+    // Check if ColumnDataType is String and skip it if positive.
+    int ColumnDataType = tableNode->GetTable()->GetColumn(columnIndexs->GetValue(columnIndex))->GetDataType();
+    if (ColumnDataType == VTK_STRING || ColumnDataType == VTK_BIT)
+      {
+      continue;
+      }
+
     std::string columnName = tableNode->GetColumnName(columnIndexs->GetValue(columnIndex));
 
+    // Check if there is already a PlotDataNode for this Column and avoid duplication
     vtkMRMLPlotDataNode *plotDataNode = NULL;
     vtkCollection* colPlots = this->mrmlScene()->GetNodesByClassByName("vtkMRMLPlotDataNode", columnName.c_str());
 
@@ -526,6 +567,7 @@ void qMRMLTableView::plotSelection()
         }
       }
 
+    // Create a PlotDataNode if NULL
     if (plotDataNode == NULL)
       {
       vtkSmartPointer<vtkMRMLNode> node = vtkSmartPointer<vtkMRMLNode>::Take(
@@ -548,6 +590,7 @@ void qMRMLTableView::plotSelection()
       continue;
       }
 
+    // Set the type of the PlotDataNode
     std::string Type = plotChartNode->GetAttribute("Type");
     if (!Type.compare("Line"))
       {
@@ -589,6 +632,7 @@ void qMRMLTableView::plotSelection()
       plotDataNode->SetType(vtkMRMLPlotDataNode::BAR);
       }
 
+    // Add the reference of the PlotDataNode in the active PlotChartNode
     plotChartNode->AddAndObservePlotDataNodeID(plotDataNode->GetID());
 
     colPlots->Delete();

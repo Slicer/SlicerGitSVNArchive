@@ -293,6 +293,17 @@ void vtkMRMLPlotDataNode::SetInputData(vtkMRMLTableNode *tableNode,
     return;
     }
 
+  int XColumnDataType = tableNode->GetTable()->GetColumnByName(xColumnName)->GetDataType();
+  int YColumnDataType = tableNode->GetTable()->GetColumnByName(yColumnName)->GetDataType();
+
+  if (XColumnDataType == VTK_STRING || XColumnDataType == VTK_BIT ||
+      YColumnDataType == VTK_STRING || YColumnDataType == VTK_BIT)
+    {
+    vtkErrorMacro("vtkMRMLPlotDataNode::SetInputData error : input Columns "
+                  "with dataType 'string' and 'bit' are not accepted.")
+    return;
+    }
+
   this->GetPlot()->SetInputData(tableNode->GetTable(), xColumnName, yColumnName);
   this->Modified();
 }

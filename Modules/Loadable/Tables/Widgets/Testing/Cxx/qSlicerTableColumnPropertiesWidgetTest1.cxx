@@ -37,7 +37,9 @@
 // VTK includes
 #include <vtkNew.h>
 #include <vtkTable.h>
-
+#ifdef Slicer_VTK_USE_QVTKOPENGLWIDGET
+#include <QVTKOpenGLWidget.h>
+#endif
 
 int qSlicerTableColumnPropertiesWidgetTest1( int argc, char * argv [] )
 {
