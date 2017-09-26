@@ -102,6 +102,8 @@ void qMRMLPlotViewControllerWidgetPrivate::setupPopupUi()
                 SLOT(onPlotDataNodesSelected()));
   this->connect(this->plotDataComboBox, SIGNAL(nodeAddedByUser(vtkMRMLNode*)),
                 SLOT(onPlotDataNodeAdded(vtkMRMLNode*)));
+  this->connect(this->plotDataComboBox, SIGNAL(nodeAboutToBeEdited(vtkMRMLNode*)),
+                SLOT(onPlotDataNodeEdited(vtkMRMLNode*)));
 
   // Connect the Plot Type selector
   this->connect(this->plotTypeComboBox, SIGNAL(currentIndexChanged(const QString&)),
@@ -306,6 +308,23 @@ void qMRMLPlotViewControllerWidgetPrivate::onPlotDataNodeAdded(vtkMRMLNode *node
 
   // Add the reference of the PlotDataNode in the active PlotChartNode
   this->PlotChartNode->AddAndObservePlotDataNodeID(plotDataNode->GetID());
+}
+
+// --------------------------------------------------------------------------
+void qMRMLPlotViewControllerWidgetPrivate::onPlotDataNodeEdited(vtkMRMLNode *node)
+{
+  Q_Q(qMRMLPlotViewControllerWidget);
+
+  // Here implement connection with the ViewController Module
+  // In the View Controller Module will need GUI to modify
+  // the properties of the a selected PlotDataNode:
+  // 1) Set vtkTable
+  // 2) Set X-Axis
+  // 3) Set Y-Axis
+  // 4) Set color plot
+  // 5) Set Type
+  // 6) Set Markers
+  // 7) ...
 }
 
 // --------------------------------------------------------------------------

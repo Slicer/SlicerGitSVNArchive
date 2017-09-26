@@ -88,6 +88,10 @@ public slots:
   /// using the associated qMRMLNodeComboBox.
   void onPlotDataNodeAdded(vtkMRMLNode* node);
 
+  /// Called after a PlotDataNode is going to be edited
+  /// using the associated qMRMLNodeComboBox.
+  void onPlotDataNodeEdited(vtkMRMLNode* node);
+
   /// Called after a Plot type is selected using the qComboBox
   /// Modify all the PlotDataNode selected in the PlotChartNode.
   void onPlotTypeSelected(const QString& Type);
