@@ -29,6 +29,7 @@
 #include <vtkCollection.h>
 #include <vtkFloatArray.h>
 #include <vtkPlot.h>
+#include <vtkRenderingCoreEnums.h>
 #include <vtkSmartPointer.h>
 #include <vtkStringArray.h>
 #include <vtkTable.h>
@@ -69,13 +70,13 @@ qMRMLPlotViewControllerWidgetPrivate::qMRMLPlotViewControllerWidgetPrivate(
   qMRMLPlotViewControllerWidget& object)
   : Superclass(object)
 {
-  this->FitToWindowToolButton = NULL;
+  this->FitToWindowToolButton = 0;
 
-  this->PlotChartNode = NULL;
-  this->PlotViewNode = NULL;
-  this->PlotView = NULL;
+  this->PlotChartNode = 0;
+  this->PlotViewNode = 0;
+  this->PlotView = 0;
 
-  this->SelectionNode = NULL;
+  this->SelectionNode = 0;
 }
 
 //---------------------------------------------------------------------------
@@ -113,12 +114,15 @@ void qMRMLPlotViewControllerWidgetPrivate::setupPopupUi()
                    q, SLOT(showGrid(bool)));
   QObject::connect(this->actionShow_Legend, SIGNAL(toggled(bool)),
                    q, SLOT(showLegend(bool)));
+  QObject::connect(this->actionShow_Markers, SIGNAL(toggled(bool)),
+                   q, SLOT(showMarkers(bool)));
   QObject::connect(this->actionFit_to_window, SIGNAL(triggered()),
                    q, SLOT(fitPlotToAxes()));
 
   // Connect the buttons
   this->showGridToolButton->setDefaultAction(this->actionShow_Grid);
   this->showLegendToolButton->setDefaultAction(this->actionShow_Legend);
+  this->showMarkersToolButton->setDefaultAction(this->actionShow_Markers);
 
   // Connect the checkboxes
   QObject::connect(this->showTitleCheckBox, SIGNAL(toggled(bool)),
@@ -233,12 +237,7 @@ void qMRMLPlotViewControllerWidgetPrivate::onPlotDataNodesSelected()
 {
   Q_Q(qMRMLPlotViewControllerWidget);
 
-  if (!this->PlotViewNode)
-    {
-    return;
-    }
-
-  if (!this->PlotChartNode)
+  if (!this->PlotViewNode || !this->PlotChartNode)
     {
     return;
     }
@@ -417,6 +416,26 @@ void qMRMLPlotViewControllerWidget::showLegend(bool show)
 }
 
 //---------------------------------------------------------------------------
+void qMRMLPlotViewControllerWidget::showMarkers(bool show)
+{
+  Q_D(qMRMLPlotViewControllerWidget);
+
+  if(!d->PlotChartNode)
+    {
+    return;
+    }
+
+  if (show)
+    {
+    d->PlotChartNode->SetAttribute("ShowMarkers", "on");
+    }
+  else
+    {
+    d->PlotChartNode->SetAttribute("ShowMarkers", "off");
+    }
+}
+
+//---------------------------------------------------------------------------
 void qMRMLPlotViewControllerWidget::showTitle(bool show)
 {
   Q_D(qMRMLPlotViewControllerWidget);
@@ -446,7 +465,7 @@ void qMRMLPlotViewControllerWidget::fitPlotToAxes()
     return;
     }
 
-  d->PlotChartNode->SetAttribute("fitPlotToAxes", "on");
+  d->PlotChartNode->SetAttribute("FitPlotToAxes", "on");
 }
 
 //---------------------------------------------------------------------------
@@ -658,19 +677,25 @@ void qMRMLPlotViewControllerWidget::updateWidgetFromMRML()
   std::vector<std::string>::iterator it = plotDataNodesIDs.begin();
   for (; it != plotDataNodesIDs.end(); ++it)
     {
-    vtkMRMLPlotDataNode *dn = vtkMRMLPlotDataNode::SafeDownCast
+    vtkMRMLPlotDataNode *plotDataNode = vtkMRMLPlotDataNode::SafeDownCast
       (this->mrmlScene()->GetNodeByID((*it).c_str()));
-    if (dn)
+    if (plotDataNode == NULL)
       {
-      d->plotDataComboBox->setCheckState(dn, Qt::Checked);
-      int numCol = dn->GetTableNode()->GetNumberOfColumns();
-      for (int ii = 0; ii < numCol; ++ii)
+      continue;
+      }
+    d->plotDataComboBox->setCheckState(plotDataNode, Qt::Checked);
+    vtkMRMLTableNode* mrmlTableNode = plotDataNode->GetTableNode();
+    if (mrmlTableNode == NULL)
+      {
+      continue;
+      }
+    int numCol = mrmlTableNode->GetNumberOfColumns();
+    for (int ii = 0; ii < numCol; ++ii)
+      {
+      QString ColumnName = QString::fromStdString(mrmlTableNode->GetColumnName(ii));
+      if (d->xAxisComboBox->findText(ColumnName) == -1)
         {
-        QString ColumnName = QString::fromStdString(dn->GetTableNode()->GetColumnName(ii));
-        if (d->xAxisComboBox->findText(ColumnName) == -1)
-          {
-          d->xAxisComboBox->addItem(ColumnName);
-          }
+        d->xAxisComboBox->addItem(ColumnName);
         }
       }
     }
@@ -688,6 +713,9 @@ void qMRMLPlotViewControllerWidget::updateWidgetFromMRML()
 
   AttributeValue = mrmlPlotChartNode->GetAttribute("ShowLegend");
   d->actionShow_Legend->setChecked(AttributeValue && !strcmp("on", AttributeValue));
+
+  AttributeValue = mrmlPlotChartNode->GetAttribute("ShowMarkers");
+  d->actionShow_Markers->setChecked(AttributeValue && !strcmp("on", AttributeValue));
 
   // Titles, axis labels (checkboxes AND text widgets)
   AttributeValue = mrmlPlotChartNode->GetAttribute("ShowTitle");
@@ -730,7 +758,7 @@ void qMRMLPlotViewControllerWidget::updateWidgetFromMRML()
   const char *type;
   std::string stype("Line");
   type = mrmlPlotChartNode->GetAttribute("Type");
-  if (!type)
+  if (type == NULL)
     {
     // no type specified, default to "Line"
     type = stype.c_str();
@@ -745,7 +773,42 @@ void qMRMLPlotViewControllerWidget::updateWidgetFromMRML()
       }
     }
 
+  // Update selected PlotDataNodes Markers if Type is Line
+  if (!strcmp(type, "Line"))
+    {
+    AttributeValue = mrmlPlotChartNode->GetAttribute("ShowMarkers");
+    it = plotDataNodesIDs.begin();
+    for (; it != plotDataNodesIDs.end(); ++it)
+      {
+      vtkMRMLPlotDataNode *plotDataNode = vtkMRMLPlotDataNode::SafeDownCast
+        (this->mrmlScene()->GetNodeByID((*it).c_str()));
+      if (plotDataNode == NULL)
+        {
+        continue;
+        }
+      if (!strcmp("on", AttributeValue))
+        {
+        if (plotDataNode->GetMarkerStyle() == VTK_MARKER_NONE)
+          {
+          plotDataNode->SetMarkerStyle(VTK_MARKER_CIRCLE);
+          }
+        }
+      else if (!strcmp("off", AttributeValue))
+        {
+        plotDataNode->SetMarkerStyle(VTK_MARKER_NONE);
+        }
+      }
+    }
 
+  // UnCheck Markers if Type is not Line
+  if (strcmp(type, "Line"))
+    {
+    d->actionShow_Markers->setEnabled(false);
+    }
+  else
+    {
+    d->actionShow_Markers->setEnabled(true);
+    }
 }
 
 //---------------------------------------------------------------------------

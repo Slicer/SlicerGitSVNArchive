@@ -45,7 +45,7 @@ class VTK_MRML_EXPORT vtkMRMLPlotChartNode : public vtkMRMLNode
   virtual vtkMRMLNode* CreateNodeInstance() VTK_OVERRIDE;
 
   ///
-  /// Set node attributes
+  /// Set node attributes.
   virtual void ReadXMLAttributes( const char** atts) VTK_OVERRIDE;
 
   ///
@@ -53,15 +53,15 @@ class VTK_MRML_EXPORT vtkMRMLPlotChartNode : public vtkMRMLNode
   virtual void WriteXML(ostream& of, int indent) VTK_OVERRIDE;
 
   ///
-  /// Copy the node's attributes to this object
+  /// Copy the node's attributes to this object.
   virtual void Copy(vtkMRMLNode *node) VTK_OVERRIDE;
 
   ///
-  /// Get node XML tag name (like Volume, Model)
+  /// Get node XML tag name (like Volume, Model).
   virtual const char* GetNodeTagName() VTK_OVERRIDE {return "PlotChart";};
 
   ///
-  /// Method to propagate events generated in mrml
+  /// Method to propagate events generated in mrml.
   virtual void ProcessMRMLEvents(vtkObject *caller,
                                  unsigned long event,
                                  void *callData) VTK_OVERRIDE;
@@ -94,12 +94,12 @@ class VTK_MRML_EXPORT vtkMRMLPlotChartNode : public vtkMRMLNode
   void AddAndObservePlotDataNodeID(const char *plotDataNodeID);
 
   ///
-  /// Convenience method that removes the plot node ID from the list
+  /// Convenience method that removes the plot node ID from the list.
   /// \sa SetAndObserverNthPlotDataNodeID(int, const char*)
   void RemovePlotDataNodeID(const char *plotDataNodeID);
 
   ///
-  /// Convenience method that removes the Nth plot node ID from the list
+  /// Convenience method that removes the Nth plot node ID from the list.
   /// \sa SetAndObserverNthPlotDataNodeID(int, const char*)
   void RemoveNthPlotDataNodeID(int n);
 
@@ -142,15 +142,15 @@ class VTK_MRML_EXPORT vtkMRMLPlotChartNode : public vtkMRMLNode
   ///
   /// Return the index of the Nth plot node ID.
   /// If not found, it return '-1'
-  int GetNthPlotIdexFromID(const char* plotDataNodeID);
+  int GetNthPlotIndexFromID(const char* plotDataNodeID);
 
   ///
   /// Return an index to color each Plot.
   /// If not found, it return '-1'
-  vtkIdType GetColorPlotIdexFromID(const char* plotDataNodeID);
+  vtkIdType GetColorPlotIndexFromID(const char* plotDataNodeID);
 
   ///
-  /// Utility function that returns the first plot node id.
+  /// Utility function that returns the first plot node ID.
   /// \sa GetNthPlotDataNodeID(int), GetPlotDataNode()
   const char *GetPlotDataNodeID();
 
@@ -172,11 +172,11 @@ class VTK_MRML_EXPORT vtkMRMLPlotChartNode : public vtkMRMLNode
   vtkMRMLPlotDataNode* GetPlotDataNode();
 
   ///
-  /// Get the list of Plot names
+  /// Get the list of Plot names.
   virtual int GetPlotNames(std::vector<std::string> &plotDataNodeNames);
 
   ///
-  /// Get the list of Plot ids
+  /// Get the list of Plot ids.
   virtual int GetPlotIDs(std::vector<std::string> &plotDataNodeIDs);
 
   ///
@@ -201,6 +201,7 @@ class VTK_MRML_EXPORT vtkMRMLPlotChartNode : public vtkMRMLNode
   /// \li  "ShowYAxisLabel" - show y-axis label "on" or "off"
   /// \li  "ShowGrid" - show grid "on" or "off"
   /// \li  "ShowLegend" - show legend "on" or "off"
+  /// \li  "ShowMarkers" - show markers "on" or "off"
   /// \li  "FontType" - global Font for the PlotChart: "Arial", "Times", "Courier"
   /// \li  "TitleFontSize" - default: "20"
   /// \li  "AxisTitleFontSize" - default: "16"

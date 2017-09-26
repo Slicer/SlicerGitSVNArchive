@@ -467,6 +467,24 @@ void qMRMLTableView::plotSelection()
     return;
     }
 
+  // Set a Plot Layout
+  vtkMRMLLayoutNode* layoutNode = vtkMRMLLayoutNode::SafeDownCast(
+    this->mrmlScene()->GetFirstNodeByClass("vtkMRMLLayoutNode"));
+  if (!layoutNode)
+    {
+    qCritical() << Q_FUNC_INFO << ": Unable to get layout node!";
+    return;
+    }
+  int viewArra = layoutNode->GetViewArrangement();
+  if (viewArra != vtkMRMLLayoutNode::SlicerLayoutConventionalPlotView  &&
+      viewArra != vtkMRMLLayoutNode::SlicerLayoutFourUpPlotView        &&
+      viewArra != vtkMRMLLayoutNode::SlicerLayoutFourUpPlotTableView   &&
+      viewArra != vtkMRMLLayoutNode::SlicerLayoutOneUpPlotView         &&
+      viewArra != vtkMRMLLayoutNode::SlicerLayoutThreeOverThreePlotView)
+  {
+    layoutNode->SetViewArrangement(vtkMRMLLayoutNode::SlicerLayoutConventionalPlotView);
+  }
+
   vtkSmartPointer<vtkMRMLPlotChartNode> plotChartNode = vtkMRMLPlotChartNode::SafeDownCast(
     this->mrmlScene()->GetNodeByID(selectionNode->GetActivePlotChartID()));
 
@@ -614,33 +632,6 @@ void qMRMLTableView::plotSelection()
       {
       plotDataNode->SetType(vtkMRMLPlotDataNode::POINTS);
       }
-    else if (!Type.compare("Line and Scatter"))
-      {
-      plotDataNode->SetType(vtkMRMLPlotDataNode::LINE);
-
-      vtkMRMLPlotDataNode* plotDataNodeCopy = vtkMRMLPlotDataNode::SafeDownCast
-        (plotDataNode->GetNodeReference("Markups"));
-
-      if (plotDataNodeCopy)
-        {
-        plotDataNodeCopy->SetType(vtkMRMLPlotDataNode::POINTS);
-        }
-      else
-        {
-        vtkSmartPointer<vtkMRMLNode> node = vtkSmartPointer<vtkMRMLNode>::Take
-          (this->mrmlScene()->CreateNodeByClass("vtkMRMLPlotDataNode"));
-        plotDataNodeCopy = vtkMRMLPlotDataNode::SafeDownCast(node);
-        std::string namePlotDataNodeCopy = namePlotDataNode + " Markups";
-        plotDataNodeCopy->CopyWithScene(plotDataNode);
-        plotDataNodeCopy->SetName(namePlotDataNodeCopy.c_str());
-        plotDataNodeCopy->SetType(vtkMRMLPlotDataNode::POINTS);
-        this->mrmlScene()->AddNode(plotDataNodeCopy);
-        plotDataNode->AddNodeReferenceID("Markups", plotDataNodeCopy->GetID());
-        plotDataNodeCopy->AddNodeReferenceID("Markups", plotDataNode->GetID());
-        }
-
-      plotChartNode->AddAndObservePlotDataNodeID(plotDataNodeCopy->GetID());
-      }
     else if (!Type.compare("Bar"))
       {
       plotDataNode->SetType(vtkMRMLPlotDataNode::BAR);
@@ -652,24 +643,6 @@ void qMRMLTableView::plotSelection()
     colPlots->Delete();
     colPlots = NULL;
     }
-
-  // Set a Plot Layout
-  vtkMRMLLayoutNode* layoutNode = vtkMRMLLayoutNode::SafeDownCast(
-    this->mrmlScene()->GetFirstNodeByClass("vtkMRMLLayoutNode"));
-  if (!layoutNode)
-    {
-    qCritical() << Q_FUNC_INFO << ": Unable to get layout node!";
-    return;
-    }
-  int viewArra = layoutNode->GetViewArrangement();
-  if (viewArra != vtkMRMLLayoutNode::SlicerLayoutConventionalPlotView  &&
-      viewArra != vtkMRMLLayoutNode::SlicerLayoutFourUpPlotView        &&
-      viewArra != vtkMRMLLayoutNode::SlicerLayoutFourUpPlotTableView   &&
-      viewArra != vtkMRMLLayoutNode::SlicerLayoutOneUpPlotView         &&
-      viewArra != vtkMRMLLayoutNode::SlicerLayoutThreeOverThreePlotView)
-  {
-    layoutNode->SetViewArrangement(vtkMRMLLayoutNode::SlicerLayoutConventionalPlotView);
-  }
 }
 
 //-----------------------------------------------------------------------------

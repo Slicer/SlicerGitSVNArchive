@@ -431,3 +431,51 @@ int vtkMRMLPlotDataNode::GetPlotTypeFromString(const char* name)
   // unknown name
   return -1;
 }
+
+//-----------------------------------------------------------
+void vtkMRMLPlotDataNode::SetMarkerStyle(int style)
+{
+  vtkPlotPoints* plotPoints = vtkPlotPoints::SafeDownCast(this->Plot);
+  if (plotPoints == NULL)
+    {
+    return;
+    }
+
+  plotPoints->SetMarkerStyle(style);
+}
+
+//-----------------------------------------------------------
+int vtkMRMLPlotDataNode::GetMarkerStyle()
+{
+  vtkPlotPoints* plotPoints = vtkPlotPoints::SafeDownCast(this->Plot);
+  if (plotPoints == NULL)
+    {
+    return 0;
+    }
+
+  return plotPoints->GetMarkerStyle();
+}
+
+//-----------------------------------------------------------
+void vtkMRMLPlotDataNode::SetMarkerSize(int size)
+{
+  vtkPlotPoints* plotPoints = vtkPlotPoints::SafeDownCast(this->Plot);
+  if (plotPoints == NULL)
+    {
+    return;
+    }
+
+  plotPoints->SetMarkerSize(size);
+}
+
+//-----------------------------------------------------------
+int vtkMRMLPlotDataNode::GetMarkerSize()
+{
+  vtkPlotPoints* plotPoints = vtkPlotPoints::SafeDownCast(this->Plot);
+  if (plotPoints == NULL)
+    {
+    return 0;
+    }
+
+  return plotPoints->GetMarkerSize();
+}

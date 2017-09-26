@@ -16,7 +16,7 @@
   <layout class="QGridLayout" name="gridLayout_2">
    <item row="1" column="0">
     <layout class="QGridLayout" name="contentLayout">
-     <item row="1" column="0">
+     <item row="2" column="0">
       <widget class="qMRMLNodeComboBox" name="plotChartComboBox" native="true">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
@@ -52,7 +52,7 @@
        </property>
       </widget>
      </item>
-     <item row="1" column="1">
+     <item row="2" column="1">
       <widget class="QComboBox" name="plotTypeComboBox">
        <property name="toolTip">
         <string>Select a plot type (line, scatter, bar). This will modify the type of all the current activated Plots.  </string>
@@ -60,11 +60,6 @@
        <item>
         <property name="text">
          <string>Line</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>Line and Scatter</string>
         </property>
        </item>
        <item>
@@ -79,7 +74,7 @@
        </item>
       </widget>
      </item>
-     <item row="2" column="0">
+     <item row="3" column="0">
       <widget class="qMRMLCheckableNodeComboBox" name="plotDataComboBox" native="true">
        <property name="toolTip">
         <string>Add/Remove Plots from the current Plot Layout the plotData selected. The &quot;Default&quot; will apport any modification. The &quot;indexes&quot; values </string>
@@ -103,8 +98,14 @@
        </property>
       </widget>
      </item>
-     <item row="1" column="3">
+     <item row="2" column="3">
       <widget class="QToolButton" name="showLegendToolButton">
+       <property name="minimumSize">
+        <size>
+         <width>69</width>
+         <height>25</height>
+        </size>
+       </property>
        <property name="toolTip">
         <string>Show legend</string>
        </property>
@@ -119,8 +120,14 @@
        </property>
       </widget>
      </item>
-     <item row="1" column="2">
+     <item row="2" column="2">
       <widget class="QToolButton" name="showGridToolButton">
+       <property name="minimumSize">
+        <size>
+         <width>69</width>
+         <height>25</height>
+        </size>
+       </property>
        <property name="toolTip">
         <string>Show grid</string>
        </property>
@@ -138,7 +145,7 @@
      <item row="0" column="0">
       <layout class="QVBoxLayout" name="verticalLayout"/>
      </item>
-     <item row="2" column="1">
+     <item row="3" column="1">
       <widget class="QComboBox" name="xAxisComboBox">
        <property name="toolTip">
         <string>This combobox allow to change the X-axis for all the plotData selected. The value &quot;Default&quot; will not apport any modification. The value &quot;Indexes&quot; will use simple ordinal numbers 1, 2, 3, ... as x coordinate values. For the other values, the correspective column will be used. </string>
@@ -153,6 +160,28 @@
          <string>Indexes</string>
         </property>
        </item>
+      </widget>
+     </item>
+     <item row="3" column="2">
+      <widget class="QToolButton" name="showMarkersToolButton">
+       <property name="minimumSize">
+        <size>
+         <width>69</width>
+         <height>25</height>
+        </size>
+       </property>
+       <property name="toolTip">
+        <string>Show Markers for Line Plot</string>
+       </property>
+       <property name="text">
+        <string>Markers</string>
+       </property>
+       <property name="checkable">
+        <bool>true</bool>
+       </property>
+       <property name="checked">
+        <bool>false</bool>
+       </property>
       </widget>
      </item>
     </layout>
@@ -270,17 +299,6 @@
     </layout>
    </item>
   </layout>
-  <action name="actionShow_Lines">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Lines</string>
-   </property>
-   <property name="toolTip">
-    <string>Show lines</string>
-   </property>
-  </action>
   <action name="actionShow_Markers">
    <property name="checkable">
     <bool>true</bool>
@@ -344,6 +362,7 @@
    <class>qMRMLCheckableNodeComboBox</class>
    <extends>qMRMLNodeComboBox</extends>
    <header>qMRMLCheckableNodeComboBox.h</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources>

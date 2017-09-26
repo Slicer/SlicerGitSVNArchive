@@ -507,7 +507,7 @@ void qMRMLPlotViewPrivate::updateWidgetFromMRML()
       // Set color of the plot
       double color[4] = {0., 0., 0., 0.};
 
-      vtkIdType plotIndex = pln->GetColorPlotIdexFromID(plotDataNode->GetID());
+      vtkIdType plotIndex = pln->GetColorPlotIndexFromID(plotDataNode->GetID());
       if (plotIndex < 0)
         {
         plotIndex = 0;
@@ -710,10 +710,10 @@ void qMRMLPlotViewPrivate::updateWidgetFromMRML()
     axis->GetLabelProperties()->SetFontSize(StringToInt(pln->GetAttribute("AxisLabelFontSize")));
     }
 
-  if (!strcmp(pln->GetAttribute("fitPlotToAxes"), "on"))
+  if (!strcmp(pln->GetAttribute("FitPlotToAxes"), "on"))
     {
     this->RecalculateBounds();
-    pln->SetAttribute("fitPlotToAxes", "off");
+    pln->SetAttribute("FitPlotToAxes", "off");
     }
 
   // Repaint the chart scene
