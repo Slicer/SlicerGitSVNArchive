@@ -28,6 +28,7 @@
 // VTK includes
 #include <vtkCollection.h>
 #include <vtkFloatArray.h>
+#include <vtkPlot.h>
 #include <vtkSmartPointer.h>
 #include <vtkStringArray.h>
 #include <vtkTable.h>
@@ -305,24 +306,19 @@ void qMRMLPlotViewControllerWidgetPrivate::onXAxisSelected(const QString &Column
   for (int indexPlotDataNode = 0; indexPlotDataNode < numPlotDataNodes; indexPlotDataNode++)
     {
     vtkMRMLPlotDataNode* plotDataNode = this->PlotChartNode->GetNthPlotDataNode(indexPlotDataNode);
-    if (!plotDataNode)
+    if (!plotDataNode || !plotDataNode->GetPlot())
       {
       continue;
       }
-    int ColumnIndex = plotDataNode->GetTableNode()->GetColumnIndex(Column.toStdString().c_str());
-    if (!Column.compare("Indexes") && ColumnIndex == -1)
+    if (!Column.compare("Indexes"))
       {
-      vtkSmartPointer<vtkFloatArray> arrX = vtkSmartPointer<vtkFloatArray>::New();
-      arrX->SetName("Indexes");
-      int numberOfRows = plotDataNode->GetTableNode()->GetNumberOfRows();
-      arrX->SetNumberOfValues(numberOfRows);
-      for (int rowIndex = 0; rowIndex < numberOfRows; rowIndex++)
-        {
-        arrX->SetValue(rowIndex, rowIndex);
-        }
-      plotDataNode->GetTableNode()->AddColumn(arrX);
+      plotDataNode->GetPlot()->SetUseIndexForXSeries(true);
       }
-    plotDataNode->SetXColumnName(Column.toStdString());
+    else
+      {
+      plotDataNode->GetPlot()->SetUseIndexForXSeries(false);
+      plotDataNode->SetXColumnName(Column.toStdString());
+      }
     }
 }
 

@@ -502,22 +502,31 @@ void qMRMLTableView::plotSelection()
   plotChartNode->RemoveAllPlotDataNodeIDs();
 
   // Check the DataType of the (X-Axis) Column
-  int XColumnDataType = tableNode->GetTable()->GetColumn(columnIndexs->GetValue(0))->GetDataType();
-  if (XColumnDataType == VTK_STRING || XColumnDataType == VTK_BIT)
+  vtkAbstractArray* XColumn = tableNode->GetTable()->GetColumn(columnIndexs->GetValue(0));
+  if (XColumn != NULL)
     {
-    QString message = QString("The DataType of the input X-Axis Column is 'string' or 'bit'. Such formats are not accepted by Plots."
-                              " Please convert the DataType of the Column in numeric (tools are available in the Table module GUI)"
-                              " in order to procede with the plotting.");
-    qCritical() << Q_FUNC_INFO << ": " << message;
-    QMessageBox::warning(NULL, tr("Failed to create Plot"), message);
-    return;
+    int XColumnDataType = XColumn->GetDataType();
+    if (XColumnDataType == VTK_STRING || XColumnDataType == VTK_BIT)
+      {
+      QString message = QString("The DataType of the input X-Axis Column is 'string' or 'bit'. Such formats are not accepted by Plots."
+                                " Please convert the DataType of the Column in numeric (tools are available in the Table module GUI)"
+                                " in order to procede with the plotting.");
+      qCritical() << Q_FUNC_INFO << ": " << message;
+      QMessageBox::warning(NULL, tr("Failed to create Plot"), message);
+      return;
+      }
     }
 
   bool unvalidatedDataTypeString = false;
   // Check the DataType of the Y-Axis Columns
   for (int columnIndex = 1; columnIndex < columnIndexs->GetNumberOfValues(); columnIndex++)
     {
-    int YColumnDataType = tableNode->GetTable()->GetColumn(columnIndexs->GetValue(columnIndex))->GetDataType();
+    vtkAbstractArray* YColumn = tableNode->GetTable()->GetColumn(columnIndexs->GetValue(columnIndex));
+    if (YColumn == NULL)
+      {
+      continue;
+      }
+    int YColumnDataType = YColumn->GetDataType();
     if (YColumnDataType == VTK_STRING || YColumnDataType == VTK_BIT)
       {
       unvalidatedDataTypeString = true;
@@ -537,7 +546,12 @@ void qMRMLTableView::plotSelection()
   for (int columnIndex = 1; columnIndex < columnIndexs->GetNumberOfValues(); columnIndex++)
     {
     // Check if ColumnDataType is String and skip it if positive.
-    int ColumnDataType = tableNode->GetTable()->GetColumn(columnIndexs->GetValue(columnIndex))->GetDataType();
+    vtkAbstractArray* Column = tableNode->GetTable()->GetColumn(columnIndexs->GetValue(columnIndex));
+    if (Column == NULL)
+      {
+      continue;
+      }
+    int ColumnDataType = Column->GetDataType();
     if (ColumnDataType == VTK_STRING || ColumnDataType == VTK_BIT)
       {
       continue;

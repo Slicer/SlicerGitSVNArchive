@@ -293,8 +293,19 @@ void vtkMRMLPlotDataNode::SetInputData(vtkMRMLTableNode *tableNode,
     return;
     }
 
-  int XColumnDataType = tableNode->GetTable()->GetColumnByName(xColumnName)->GetDataType();
-  int YColumnDataType = tableNode->GetTable()->GetColumnByName(yColumnName)->GetDataType();
+  vtkTable* table = tableNode->GetTable();
+  vtkAbstractArray* xColumn = table->GetColumnByName(xColumnName);
+  int XColumnDataType = VTK_VOID;
+  if (xColumn != NULL)
+    {
+    XColumnDataType = xColumn->GetDataType();
+    }
+  vtkAbstractArray* yColumn = table->GetColumnByName(yColumnName);
+  int YColumnDataType = VTK_VOID;
+  if (yColumn != NULL)
+    {
+    YColumnDataType = yColumn->GetDataType();
+    }
 
   if (XColumnDataType == VTK_STRING || XColumnDataType == VTK_BIT ||
       YColumnDataType == VTK_STRING || YColumnDataType == VTK_BIT)
@@ -304,7 +315,7 @@ void vtkMRMLPlotDataNode::SetInputData(vtkMRMLTableNode *tableNode,
     return;
     }
 
-  this->GetPlot()->SetInputData(tableNode->GetTable(), xColumnName, yColumnName);
+  this->GetPlot()->SetInputData(table, xColumnName, yColumnName);
   this->Modified();
 }
 
