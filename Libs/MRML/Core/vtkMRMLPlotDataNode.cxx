@@ -55,25 +55,6 @@ const char* vtkMRMLPlotDataNode::TableNodeReferenceMRMLAttributeName = "tableNod
 //------------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLPlotDataNode);
 
-namespace
-{
-//----------------------------------------------------------------------------
-template <typename T> T StringToNumber(const char* num)
-{
-  std::stringstream ss;
-  ss << num;
-  T result;
-  return ss >> result ? result : 0;
-}
-
-//----------------------------------------------------------------------------
-int StringToInt(const char* str)
-{
-  return StringToNumber<int>(str);
-}
-
-}// end namespace
-
 //----------------------------------------------------------------------------
 vtkMRMLPlotDataNode::vtkMRMLPlotDataNode()
 {
@@ -121,7 +102,7 @@ void vtkMRMLPlotDataNode::WriteXML(ostream& of, int nIndent)
 {
   // Start by having the superclass write its information
   Superclass::WriteXML(of, nIndent);
-  of << " Type=\"" << this->GetType() << "\"";
+  of << " Type=\"" << this->GetPlotTypeAsString(this->GetType()) << "\"";
   of << " XColumnName=\"" << this->GetXColumnName() << "\"";
   of << " YColumnName=\"" << this->GetYColumnName() << "\"";
   of << " ";
@@ -142,7 +123,7 @@ void vtkMRMLPlotDataNode::ReadXMLAttributes(const char** atts)
     attValue = *(atts++);
     if (!strcmp(attName, "Type"))
       {
-      this->SetType(StringToInt(attValue));
+      this->SetType(GetPlotTypeFromString(attValue));
       }
     else if (!strcmp(attName, "XColumnName"))
       {
@@ -253,7 +234,7 @@ void vtkMRMLPlotDataNode::SetSceneReferences()
 void vtkMRMLPlotDataNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
-  os << indent << "\nType: " << this->Type;
+  os << indent << "\nPlot Type: " << this->GetPlotTypeAsString(this->Type);
   os << indent << "\nXColumnName: " << this->XColumnName;
   os << indent << "\nYColumnName: " << this->YColumnName;
   os << indent << "\nvtkPlot: " <<
@@ -415,4 +396,38 @@ void vtkMRMLPlotDataNode::SetYColumnName(vtkStdString yColumnName)
   this->YColumnName = yColumnName;
   // Set the connection between the vktTable and the vtkPlot
   this->SetInputData(this->GetTableNode());
+}
+
+//-----------------------------------------------------------
+const char* vtkMRMLPlotDataNode::GetPlotTypeAsString(int id)
+{
+  switch (id)
+    {
+    case LINE: return "Line";
+    case POINTS: return "Points";
+    case BAR: return "Bar";
+    default:
+      // invalid id
+      return "";
+    }
+}
+
+//-----------------------------------------------------------
+int vtkMRMLPlotDataNode::GetPlotTypeFromString(const char* name)
+{
+  if (name == NULL)
+    {
+    // invalid name
+    return -1;
+    }
+  for (int ii = 0; ii < 3; ii++)
+    {
+    if (strcmp(name, GetPlotTypeAsString(ii)) == 0)
+      {
+      // found a matching name
+      return ii;
+      }
+    }
+  // unknown name
+  return -1;
 }

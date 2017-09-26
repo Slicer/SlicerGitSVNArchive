@@ -173,10 +173,15 @@ public:
   /// \sa SetInputData
   virtual void SetYColumnName(vtkStdString yColumnName);
 
+  ///
+  /// Convert between ruler type ID and name
+  const char *GetPlotTypeAsString(int id);
+  int GetPlotTypeFromString(const char *name);
+
   //----------------------------------------------------------------
   /// Constructor and destructor
   //----------------------------------------------------------------
- protected:
+protected:
   vtkMRMLPlotDataNode();
   ~vtkMRMLPlotDataNode();
   vtkMRMLPlotDataNode(const vtkMRMLPlotDataNode&);
