@@ -45,7 +45,7 @@
         <bool>true</bool>
        </property>
        <property name="removeEnabled" stdset="0">
-        <bool>false</bool>
+        <bool>true</bool>
        </property>
        <property name="renameEnabled" stdset="0">
         <bool>true</bool>
