@@ -404,7 +404,7 @@ const char* vtkMRMLPlotDataNode::GetPlotTypeAsString(int id)
   switch (id)
     {
     case LINE: return "Line";
-    case POINTS: return "Points";
+    case POINTS: return "Scatter";
     case BAR: return "Bar";
     default:
       // invalid id

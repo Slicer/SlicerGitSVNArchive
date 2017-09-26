@@ -623,19 +623,8 @@ void qMRMLTableView::plotSelection()
       }
 
     // Set the type of the PlotDataNode
-    std::string Type = plotChartNode->GetAttribute("Type");
-    if (!Type.compare("Line"))
-      {
-      plotDataNode->SetType(vtkMRMLPlotDataNode::LINE);
-      }
-    else if (!Type.compare("Scatter"))
-      {
-      plotDataNode->SetType(vtkMRMLPlotDataNode::POINTS);
-      }
-    else if (!Type.compare("Bar"))
-      {
-      plotDataNode->SetType(vtkMRMLPlotDataNode::BAR);
-      }
+    const char* Type = plotChartNode->GetAttribute("Type");
+    plotDataNode->SetType(plotDataNode->GetPlotTypeFromString(Type));
 
     // Add the reference of the PlotDataNode in the active PlotChartNode
     plotChartNode->AddAndObservePlotDataNodeID(plotDataNode->GetID());

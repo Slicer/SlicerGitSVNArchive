@@ -100,6 +100,8 @@ void qMRMLPlotViewControllerWidgetPrivate::setupPopupUi()
   // Connect Plot selector
   this->connect(this->plotDataComboBox, SIGNAL(checkedNodesChanged()),
                 SLOT(onPlotDataNodesSelected()));
+  this->connect(this->plotDataComboBox, SIGNAL(nodeAddedByUser(vtkMRMLNode*)),
+                SLOT(onPlotDataNodeAdded(vtkMRMLNode*)));
 
   // Connect the Plot Type selector
   this->connect(this->plotTypeComboBox, SIGNAL(currentIndexChanged(const QString&)),
@@ -277,7 +279,33 @@ void qMRMLPlotViewControllerWidgetPrivate::onPlotDataNodesSelected()
         this->PlotChartNode->AddAndObservePlotDataNodeID(dn->GetID());
         }
       }
+  }
+}
+
+// --------------------------------------------------------------------------
+void qMRMLPlotViewControllerWidgetPrivate::onPlotDataNodeAdded(vtkMRMLNode *node)
+{
+  Q_Q(qMRMLPlotViewControllerWidget);
+
+  if (!this->PlotChartNode)
+    {
+    return;
     }
+
+  vtkMRMLPlotDataNode *plotDataNode = vtkMRMLPlotDataNode::SafeDownCast(node);
+
+  if (plotDataNode)
+    {
+    return;
+    }
+
+  q->mrmlScene()->AddNode(plotDataNode);
+
+  const char* Type = this->PlotChartNode->GetAttribute("Type");
+  plotDataNode->SetType(plotDataNode->GetPlotTypeFromString(Type));
+
+  // Add the reference of the PlotDataNode in the active PlotChartNode
+  this->PlotChartNode->AddAndObservePlotDataNodeID(plotDataNode->GetID());
 }
 
 // --------------------------------------------------------------------------

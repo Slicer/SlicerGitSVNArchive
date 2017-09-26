@@ -73,22 +73,27 @@ public:
   vtkMRMLPlotChartNode* GetPlotChartNodeFromView();
 
 public slots:
-  /// Called after a Plot node is selected
-  /// using the associated qMRMLNodeComboBox
+  /// Called after a PlotChartNode is selected
+  /// using the associated qMRMLNodeComboBox.
   void onPlotChartNodeSelected(vtkMRMLNode* node);
 
-  /// Called when the Singleton SelectionNode is modified
+  /// Called when the Singleton SelectionNode is modified.
   void onSelectionNodeModified();
 
-  /// Called after an array node is selected using the qMRMLCheckableNodeComboBox
+  /// Called after an PlotDataNode is selected
+  /// using the associated qMRMLNodeComboBox.
   void onPlotDataNodesSelected();
 
+  /// Called after a PlotDataNode is added
+  /// using the associated qMRMLNodeComboBox.
+  void onPlotDataNodeAdded(vtkMRMLNode* node);
+
   /// Called after a Plot type is selected using the qComboBox
-  /// Modify all the PlotDataNode selected in the PlotChartNode
+  /// Modify all the PlotDataNode selected in the PlotChartNode.
   void onPlotTypeSelected(const QString& Type);
 
   /// Called after a Column is selected using the qComboBox
-  /// Modify all the PlotDataNode selected in the PlotChartNode
+  /// Modify all the PlotDataNode selected in the PlotChartNode.
   void onXAxisSelected(const QString& Column);
 
 protected:

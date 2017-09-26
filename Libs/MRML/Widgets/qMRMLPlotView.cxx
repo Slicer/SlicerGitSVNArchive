@@ -526,13 +526,19 @@ void qMRMLPlotViewPrivate::updateWidgetFromMRML()
 
     bool columnXFound = false;
     bool columnYFound = false;
-    for (int columnIndex = 0; columnIndex < plotDataNode->GetTableNode()->GetNumberOfColumns(); columnIndex++)
+    vtkMRMLTableNode *mrmlTableNode = plotDataNode->GetTableNode();
+    if (!mrmlTableNode)
       {
-      if(!strcmp(plotDataNode->GetTableNode()->GetColumnName(columnIndex).c_str(), plotDataNode->GetXColumnName().c_str()))
+      continue;
+      }
+
+    for (int columnIndex = 0; columnIndex < mrmlTableNode->GetNumberOfColumns(); columnIndex++)
+      {
+      if(!strcmp(mrmlTableNode->GetColumnName(columnIndex).c_str(), plotDataNode->GetXColumnName().c_str()))
         {
         columnXFound = true;
         }
-      if(!strcmp(plotDataNode->GetTableNode()->GetColumnName(columnIndex).c_str(), plotDataNode->GetYColumnName().c_str()))
+      if(!strcmp(mrmlTableNode->GetColumnName(columnIndex).c_str(), plotDataNode->GetYColumnName().c_str()))
         {
         columnYFound = true;
         }

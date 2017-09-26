@@ -353,25 +353,7 @@ void vtkMRMLPlotChartNode::SetPlotType(const char *Type)
         {
         continue;
         }
-
-      if (!strcmp(Type,"Line"))
-        {
-        plotDataNode->SetType(vtkMRMLPlotDataNode::LINE);
-        }
-      else if (!strcmp(Type,"Scatter"))
-        {
-        plotDataNode->SetType(vtkMRMLPlotDataNode::POINTS);
-        }
-      else if (!strcmp(Type,"Bar"))
-        {
-        plotDataNode->SetType(vtkMRMLPlotDataNode::BAR);
-        }
-      else
-        {
-        vtkErrorWithObjectMacro(this, "vtkMRMLPlotChartNode::SetPlotType: Unknown PlotType"<< Type);
-        this->EndModify(wasModifying);
-        return;
-        }
+      plotDataNode->SetType(plotDataNode->GetPlotTypeFromString(Type));
       }
 
     this->SetAttribute("Type", Type);
