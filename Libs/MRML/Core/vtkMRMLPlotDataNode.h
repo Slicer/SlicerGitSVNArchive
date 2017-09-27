@@ -144,12 +144,16 @@ public:
 
   /// Get the type of the plot (line, scatter, bar).
   /// \brief vtkGetMacro
-  /// \sa SetTypeAndColor
   vtkGetMacro(Type, int);
 
   ///
   /// Set the type of the plot (line, scatter, bar).
   virtual void SetType(int type);
+
+  ///
+  /// Utility method to eet the type of
+  /// the plot (line, scatter, bar) from strings.
+  virtual void SetType(const char* type);
 
   ///
   /// Get the name of the XColumn.
@@ -158,6 +162,8 @@ public:
 
   ///
   /// Set the name of the XColumn and assure the data connection.
+  /// The value "Indexes" can not be used to point a column in a table.
+  /// Such entry will be ignored and numeric indexes will used as deafult.
   /// \brief vtkSetMacro
   /// \sa SetInputData
   virtual void SetXColumnName(vtkStdString xColumnName);
@@ -174,21 +180,39 @@ public:
   virtual void SetYColumnName(vtkStdString yColumnName);
 
   ///
-  /// Convert between ruler type ID and name
-  const char *GetPlotTypeAsString(int id);
-  int GetPlotTypeFromString(const char *name);
+  /// Convert between plot type ID and name
+  virtual const char *GetPlotTypeAsString(int id);
+  virtual int GetPlotTypeFromString(const char *name);
 
   ///
-  /// Utility methods to set/get the Marker style
+  /// Utility methods to set/get the marker style
   /// available for Line and Points Plots.
-  void SetMarkerStyle(int style);
-  int GetMarkerStyle();
+  virtual void SetMarkerStyle(int style);
+  virtual int GetMarkerStyle();
 
   ///
-  /// Utility methods to set/get the Marker style
+  /// Convert between plot markers style ID and name
+  const char *GetMarkersStyleAsString(int id);
+  int GetMarkersStyleFromString(const char *name);
+
+  ///
+  /// Utility methods to set/get the marker size
   /// available for Line and Points Plots.
-  void SetMarkerSize(int size);
-  int GetMarkerSize();
+  virtual void SetMarkerSize(float size);
+  virtual float GetMarkerSize();
+
+  ///
+  /// Utility methods to set/get the Line width
+  /// available for Line Plots.
+  virtual void SetLineWidth(float width);
+  virtual float GetLineWidth();
+
+  ///
+  /// Set/Get Color of the vtkPlot
+  virtual void SetPlotColor(double color[4]);
+  virtual void SetPlotColor(unsigned char color[4]);
+  virtual void GetPlotColor(double color[4]);
+  virtual void GetPlotColor(unsigned char color[4]);
 
   //----------------------------------------------------------------
   /// Constructor and destructor
@@ -266,7 +290,7 @@ protected:
   vtkPlot* Plot;
 
   ///
-  /// Type of Plot (line, scatter, bar)
+  /// Type of Plot (Line, Scatter, Bar).
   int Type;
 
   vtkStdString XColumnName;

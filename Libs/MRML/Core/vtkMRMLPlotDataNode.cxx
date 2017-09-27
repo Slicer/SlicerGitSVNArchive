@@ -105,7 +105,15 @@ void vtkMRMLPlotDataNode::WriteXML(ostream& of, int nIndent)
   of << " Type=\"" << this->GetPlotTypeAsString(this->GetType()) << "\"";
   of << " XColumnName=\"" << this->GetXColumnName() << "\"";
   of << " YColumnName=\"" << this->GetYColumnName() << "\"";
-  of << " ";
+  of << " MarkersStyle=\"" << this->GetMarkersStyleAsString(GetMarkerStyle()) << "\"";
+  of << " MarkersSize=\"" << this->GetMarkerSize() << "\"";
+  of << " LineWidth=\"" << this->GetLineWidth() << "\"";
+  double rgba[4];
+  this->GetPlotColor(rgba);
+  of << " ColorRed=\"" << rgba[0] << "\"";
+  of << " ColorGreen=\"" << rgba[1] << "\"";
+  of << " ColorBlue=\"" << rgba[2] << "\"";
+  of << " ColorAlpha=\"" << rgba[3] << "\"";
 }
 
 //----------------------------------------------------------------------------
@@ -114,6 +122,8 @@ void vtkMRMLPlotDataNode::ReadXMLAttributes(const char** atts)
   int disabledModify = this->StartModify();
 
   Superclass::ReadXMLAttributes(atts);
+
+  double rgba[4];
 
   const char* attName;
   const char* attValue;
@@ -133,7 +143,38 @@ void vtkMRMLPlotDataNode::ReadXMLAttributes(const char** atts)
       {
       this->SetYColumnName(attValue);
       }
-    }
+    else if (!strcmp(attName, "MarkersStyle"))
+      {
+      this->SetMarkerStyle(GetMarkersStyleFromString(attValue));
+      }
+    else if (!strcmp(attName, "MarkersSize"))
+      {
+      this->SetMarkerSize(atof(attValue));
+      }
+    else if (!strcmp(attName, "LineWidth"))
+      {
+      this->SetLineWidth(atof(attValue));
+      }
+    else if (!strcmp(attName, "ColorRed"))
+      {
+      rgba[0] = atof(attValue);
+      }
+    else if (!strcmp(attName, "ColorGreen"))
+      {
+      rgba[1] = atof(attValue);
+      }
+    else if (!strcmp(attName, "ColorBlue"))
+      {
+      rgba[2] = atof(attValue);
+      }
+    else if (!strcmp(attName, "ColorAlpha"))
+      {
+      rgba[3] = atof(attValue);
+      }
+   }
+
+  this->SetPlotColor(rgba);
+
   this->EndModify(disabledModify);
 }
 
@@ -156,6 +197,12 @@ void vtkMRMLPlotDataNode::Copy(vtkMRMLNode *anode)
   this->SetType(node->GetType());
   this->SetXColumnName(node->GetXColumnName());
   this->SetYColumnName(node->GetYColumnName());
+  this->SetMarkerStyle(node->GetMarkerStyle());
+  this->SetMarkerSize(node->GetMarkerSize());
+  this->SetLineWidth(node->GetLineWidth());
+  unsigned char rgba[4];
+  node->GetPlotColor(rgba);
+  this->SetPlotColor(rgba);
 
   this->EndModify(disabledModify);
 }
@@ -237,6 +284,16 @@ void vtkMRMLPlotDataNode::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "\nPlot Type: " << this->GetPlotTypeAsString(this->Type);
   os << indent << "\nXColumnName: " << this->XColumnName;
   os << indent << "\nYColumnName: " << this->YColumnName;
+  os << indent << "\nMarkersStyle: " <<
+        this->GetMarkersStyleAsString(this->GetMarkerStyle());
+  os << indent << "\nMarkersSize: " << this->GetMarkerSize();
+  os << indent << "\nLineWidth: " << this->GetLineWidth();
+  unsigned char rgba[4];
+  this->GetPlotColor(rgba);
+  os << indent << "\nColorRed: " << rgba[0];
+  os << indent << "\nColorGreen: " << rgba[1];
+  os << indent << "\nColorBlue: " << rgba[2];
+  os << indent << "\nColorAlpha: " << rgba[3];
   os << indent << "\nvtkPlot: " <<
     (this->Plot ? this->Plot->GetClassName() : "(none)");
   if (this->Plot)
@@ -267,7 +324,7 @@ void vtkMRMLPlotDataNode::SetInputData(vtkMRMLTableNode *tableNode,
   if (tableNode == NULL ||
       tableNode->GetTable() == NULL ||
       tableNode->GetNumberOfColumns() < 2 ||
-      this->GetPlot() == NULL ||
+      this->Plot == NULL ||
       !xColumnName.compare("(none)") ||
       !yColumnName.compare("(none)"))
     {
@@ -296,7 +353,13 @@ void vtkMRMLPlotDataNode::SetInputData(vtkMRMLTableNode *tableNode,
     return;
     }
 
-  this->GetPlot()->SetInputData(table, xColumnName, yColumnName);
+  // In the case of Indexes, SetInputData still needs a proper Column.
+  if (!xColumnName.compare("Indexes"))
+    {
+    xColumnName = table->GetColumnName(0);
+    }
+
+  this->Plot->SetInputData(table, xColumnName, yColumnName);
   this->Modified();
 }
 
@@ -319,6 +382,8 @@ bool vtkMRMLPlotDataNode::SetAndObserveTableNodeID(const char *TableNodeID)
 
   // Set the connection between the vktTable and the vtkPlot
   this->SetInputData(this->GetTableNode());
+
+  this->Modified();
 
   return true;
 }
@@ -344,16 +409,22 @@ void vtkMRMLPlotDataNode::SetType(int type)
     return;
     }
 
-  this->Type = type;
-
   int wasModifyingNode = this->StartModify();
-  switch (this->Type)
+
+  unsigned char rgba[4] = {0, 0, 0, 255};
+  if (this->Plot)
+    {
+    this->GetPlotColor(rgba);
+    }
+
+  switch (type)
   {
   case LINE:
     {
     vtkSmartPointer<vtkPlotLine> line = vtkSmartPointer<vtkPlotLine>::New();
     line->SetWidth(4.0);
-    line->GetSelectionPen()->SetColor(137., 0., 13.);
+    line->SetMarkerSize(10.0);
+    line->SetColor(rgba[0], rgba[1], rgba[2], rgba[3]);
     this->SetAndObservePlot(line);
     break;
     }
@@ -361,14 +432,14 @@ void vtkMRMLPlotDataNode::SetType(int type)
     {
     vtkSmartPointer<vtkPlotPoints> points = vtkSmartPointer<vtkPlotPoints>::New();
     points->SetMarkerSize(10.0);
-    points->GetSelectionPen()->SetColor(137., 0., 13.);
+    points->SetColor(rgba[0], rgba[1], rgba[2], rgba[3]);
     this->SetAndObservePlot(points);
     break;
     }
   case BAR:
     {
     vtkSmartPointer<vtkPlotBar> bar = vtkSmartPointer<vtkPlotBar>::New();
-    bar->GetSelectionPen()->SetColor(137., 0., 13.);
+    bar->SetColor(rgba[0], rgba[1], rgba[2], rgba[3]);
     this->SetAndObservePlot(bar);
     break;
     }
@@ -376,26 +447,61 @@ void vtkMRMLPlotDataNode::SetType(int type)
     vtkWarningMacro(<< "vtkMRMLPlotDataNode::SetType : Type not known, "
                        "no vtkPlot has been instantiate.");
     this->Plot = NULL;
-    this->Type = -1;
+    type = -1;
+    this->Modified();
   }
+
+  if (!this->XColumnName.compare("Indexes") && this->Plot)
+    {
+    this->Plot->SetUseIndexForXSeries(true);
+    }
+
+  this->Type = type;
 
   this->EndModify(wasModifyingNode);
 }
 
 //----------------------------------------------------------------------------
+void vtkMRMLPlotDataNode::SetType(const char *type)
+{
+  this->SetType(this->GetPlotTypeFromString(type));
+}
+
+//----------------------------------------------------------------------------
 void vtkMRMLPlotDataNode::SetXColumnName(vtkStdString xColumnName)
 {
+  if (this->XColumnName == xColumnName)
+    {
+    return;
+    }
+
+  if (!xColumnName.compare("Indexes") && this->Plot)
+    {
+    this->Plot->SetUseIndexForXSeries(true);
+    }
+  else if (this->Plot)
+    {
+    this->Plot->SetUseIndexForXSeries(false);
+    }
+
   this->XColumnName = xColumnName;
   // Set the connection between the vktTable and the vtkPlot
   this->SetInputData(this->GetTableNode());
+  this->Modified();
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLPlotDataNode::SetYColumnName(vtkStdString yColumnName)
 {
+  if (this->YColumnName == yColumnName)
+    {
+    return;
+    }
+
   this->YColumnName = yColumnName;
   // Set the connection between the vktTable and the vtkPlot
   this->SetInputData(this->GetTableNode());
+  this->Modified();
 }
 
 //-----------------------------------------------------------
@@ -436,7 +542,7 @@ int vtkMRMLPlotDataNode::GetPlotTypeFromString(const char* name)
 void vtkMRMLPlotDataNode::SetMarkerStyle(int style)
 {
   vtkPlotPoints* plotPoints = vtkPlotPoints::SafeDownCast(this->Plot);
-  if (plotPoints == NULL)
+  if (!plotPoints)
     {
     return;
     }
@@ -448,19 +554,56 @@ void vtkMRMLPlotDataNode::SetMarkerStyle(int style)
 int vtkMRMLPlotDataNode::GetMarkerStyle()
 {
   vtkPlotPoints* plotPoints = vtkPlotPoints::SafeDownCast(this->Plot);
-  if (plotPoints == NULL)
+  if (!plotPoints)
     {
-    return 0;
+    return VTK_MARKER_UNKNOWN;
     }
 
   return plotPoints->GetMarkerStyle();
 }
 
 //-----------------------------------------------------------
-void vtkMRMLPlotDataNode::SetMarkerSize(int size)
+const char* vtkMRMLPlotDataNode::GetMarkersStyleAsString(int id)
+{
+  switch (id)
+    {
+    case VTK_MARKER_NONE: return "None";
+    case VTK_MARKER_CROSS: return "Cross";
+    case VTK_MARKER_PLUS: return "Plus";
+    case VTK_MARKER_SQUARE: return "Square";
+    case VTK_MARKER_CIRCLE: return "Circle";
+    case VTK_MARKER_DIAMOND: return "Diamond";
+    default:
+      // invalid id
+      return "";
+    }
+}
+
+//-----------------------------------------------------------
+int vtkMRMLPlotDataNode::GetMarkersStyleFromString(const char* name)
+{
+  if (name == NULL)
+    {
+    // invalid name
+    return -1;
+    }
+  for (int ii = 0; ii < 6; ii++)
+    {
+    if (strcmp(name, GetMarkersStyleAsString(ii)) == 0)
+      {
+      // found a matching name
+      return ii;
+      }
+    }
+  // unknown name
+  return -1;
+}
+
+//-----------------------------------------------------------
+void vtkMRMLPlotDataNode::SetMarkerSize(float size)
 {
   vtkPlotPoints* plotPoints = vtkPlotPoints::SafeDownCast(this->Plot);
-  if (plotPoints == NULL)
+  if (!plotPoints)
     {
     return;
     }
@@ -469,13 +612,100 @@ void vtkMRMLPlotDataNode::SetMarkerSize(int size)
 }
 
 //-----------------------------------------------------------
-int vtkMRMLPlotDataNode::GetMarkerSize()
+float vtkMRMLPlotDataNode::GetMarkerSize()
 {
   vtkPlotPoints* plotPoints = vtkPlotPoints::SafeDownCast(this->Plot);
-  if (plotPoints == NULL)
+  if (!plotPoints)
     {
-    return 0;
+    return 10.;
     }
 
   return plotPoints->GetMarkerSize();
+}
+
+//-----------------------------------------------------------
+void vtkMRMLPlotDataNode::SetLineWidth(float width)
+{
+  vtkPlotLine* plotLine = vtkPlotLine::SafeDownCast(this->Plot);
+  if (!plotLine)
+    {
+    return;
+    }
+
+  plotLine->SetWidth(width);
+  plotLine->Modified();
+}
+
+//-----------------------------------------------------------
+float vtkMRMLPlotDataNode::GetLineWidth()
+{
+  vtkPlotLine* plotLine = vtkPlotLine::SafeDownCast(this->Plot);
+  if (!plotLine)
+    {
+    return 4.;
+    }
+
+  return plotLine->GetWidth();
+}
+
+//-----------------------------------------------------------
+void vtkMRMLPlotDataNode::SetPlotColor(double color[4])
+{
+  if (!this->Plot)
+    {
+    return;
+    }
+  this->Plot->SetColor(color[0], color[1], color[2]);
+  if (this->Plot->GetPen())
+    {
+    this->Plot->GetPen()->SetOpacityF(color[3]);
+    }
+  this->Modified();
+}
+
+//-----------------------------------------------------------
+void vtkMRMLPlotDataNode::SetPlotColor(unsigned char color[4])
+{
+  if (!this->Plot)
+    {
+    return;
+    }
+  this->Plot->SetColor(color[0], color[1], color[2], color[3]);
+  this->Modified();
+}
+
+//-----------------------------------------------------------
+void vtkMRMLPlotDataNode::GetPlotColor(double color[4])
+{
+  if (!this->Plot)
+    {
+    return;
+    }
+  double rgb[3];
+  this->Plot->GetColor(rgb);
+  color[0] = rgb[0];
+  color[1] = rgb[1];
+  color[2] = rgb[2];
+  if (this->Plot->GetPen())
+    {
+    color[3] = this->Plot->GetPen()->GetOpacity() / 255.0;
+    }
+}
+
+//-----------------------------------------------------------
+void vtkMRMLPlotDataNode::GetPlotColor(unsigned char color[4])
+{
+  if (!this->Plot)
+    {
+    return;
+    }
+  unsigned char rgb[3];
+  this->Plot->GetColor(rgb);
+  color[0] = rgb[0];
+  color[1] = rgb[1];
+  color[2] = rgb[2];
+  if (this->Plot->GetPen())
+    {
+    color[3] = this->Plot->GetPen()->GetOpacity();
+    }
 }

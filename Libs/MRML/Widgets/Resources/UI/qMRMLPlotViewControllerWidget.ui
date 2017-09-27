@@ -16,6 +16,45 @@
   <layout class="QGridLayout" name="gridLayout_2">
    <item row="1" column="0">
     <layout class="QGridLayout" name="contentLayout">
+     <item row="2" column="0">
+      <widget class="qMRMLNodeComboBox" name="plotChartComboBox">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+         <horstretch>1</horstretch>
+         <verstretch>1</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>150</width>
+         <height>25</height>
+        </size>
+       </property>
+       <property name="toolTip">
+        <string>Select the PlotChartNode which handles the general Properties of the Plot and allow to select multiple PlotDataNodes.</string>
+       </property>
+       <property name="nodeTypes">
+        <stringlist>
+         <string>vtkMRMLPlotChartNode</string>
+        </stringlist>
+       </property>
+       <property name="noneEnabled">
+        <bool>true</bool>
+       </property>
+       <property name="addEnabled">
+        <bool>true</bool>
+       </property>
+       <property name="removeEnabled">
+        <bool>true</bool>
+       </property>
+       <property name="renameEnabled">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="0">
+      <layout class="QVBoxLayout" name="verticalLayout"/>
+     </item>
      <item row="4" column="2">
       <widget class="QComboBox" name="plotTypeComboBox">
        <property name="sizePolicy">
@@ -31,8 +70,16 @@
         </size>
        </property>
        <property name="toolTip">
-        <string>Select a plot type (line, scatter, bar). This will modify the type of all the current activated Plots.  </string>
+        <string>This combobox allows to change the Type for all the active PlotDataNodes. If the value &quot;Custom&quot; is selected, each PlotDataNode has its individual value. If another value is chosen, all the PlotDataNodes referenced by the PlotChartNode will be updated with the new value. </string>
        </property>
+       <property name="currentIndex">
+        <number>0</number>
+       </property>
+       <item>
+        <property name="text">
+         <string>Custom</string>
+        </property>
+       </item>
        <item>
         <property name="text">
          <string>Line</string>
@@ -50,44 +97,8 @@
        </item>
       </widget>
      </item>
-     <item row="2" column="0">
-      <widget class="qMRMLNodeComboBox" name="plotChartComboBox" native="true">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-         <horstretch>1</horstretch>
-         <verstretch>1</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>150</width>
-         <height>25</height>
-        </size>
-       </property>
-       <property name="toolTip">
-        <string>Select the PlotChartNode which handles the general Properties of the Plot and allow to select multiple PlotDataNodes.</string>
-       </property>
-       <property name="nodeTypes" stdset="0">
-        <stringlist>
-         <string>vtkMRMLPlotChartNode</string>
-        </stringlist>
-       </property>
-       <property name="noneEnabled" stdset="0">
-        <bool>true</bool>
-       </property>
-       <property name="addEnabled" stdset="0">
-        <bool>true</bool>
-       </property>
-       <property name="removeEnabled" stdset="0">
-        <bool>true</bool>
-       </property>
-       <property name="renameEnabled" stdset="0">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
      <item row="4" column="0">
-      <widget class="qMRMLCheckableNodeComboBox" name="plotDataComboBox" native="true">
+      <widget class="qMRMLCheckableNodeComboBox" name="plotDataComboBox">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
          <horstretch>1</horstretch>
@@ -103,109 +114,24 @@
        <property name="toolTip">
         <string>Add/Remove Plots from the current Plot Layout the plotData selected. The &quot;Default&quot; will apport any modification. The &quot;indexes&quot; values </string>
        </property>
-       <property name="nodeTypes" stdset="0">
+       <property name="nodeTypes">
         <stringlist>
          <string>vtkMRMLPlotDataNode</string>
         </stringlist>
        </property>
-       <property name="addEnabled" stdset="0">
-        <bool>true</bool>
-       </property>
-       <property name="removeEnabled" stdset="0">
-        <bool>true</bool>
-       </property>
-       <property name="editEnabled" stdset="0">
-        <bool>true</bool>
-       </property>
-       <property name="renameEnabled" stdset="0">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item row="4" column="1">
-      <widget class="QComboBox" name="xAxisComboBox">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-         <horstretch>1</horstretch>
-         <verstretch>1</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>75</width>
-         <height>25</height>
-        </size>
-       </property>
-       <property name="toolTip">
-        <string>This combobox allow to change the X-axis for all the plotData selected. The value &quot;Default&quot; will not apport any modification. The value &quot;Indexes&quot; will use simple ordinal numbers 1, 2, 3, ... as x coordinate values. For the other values, the correspective column will be used. </string>
-       </property>
-       <item>
-        <property name="text">
-         <string>Default</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>Indexes</string>
-        </property>
-       </item>
-      </widget>
-     </item>
-     <item row="0" column="0">
-      <layout class="QVBoxLayout" name="verticalLayout"/>
-     </item>
-     <item row="4" column="3">
-      <widget class="QToolButton" name="showMarkersToolButton">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-         <horstretch>1</horstretch>
-         <verstretch>1</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>75</width>
-         <height>25</height>
-        </size>
-       </property>
-       <property name="toolTip">
-        <string>Show Markers for Line Plot</string>
-       </property>
-       <property name="text">
-        <string>Markers</string>
-       </property>
-       <property name="checkable">
-        <bool>true</bool>
-       </property>
-       <property name="checked">
+       <property name="noneEnabled">
         <bool>false</bool>
        </property>
-      </widget>
-     </item>
-     <item row="2" column="1">
-      <widget class="QToolButton" name="showGridToolButton">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-         <horstretch>1</horstretch>
-         <verstretch>1</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>75</width>
-         <height>25</height>
-        </size>
-       </property>
-       <property name="toolTip">
-        <string>Show grid</string>
-       </property>
-       <property name="text">
-        <string>Grid</string>
-       </property>
-       <property name="checkable">
+       <property name="addEnabled">
         <bool>true</bool>
        </property>
-       <property name="checked">
+       <property name="removeEnabled">
+        <bool>true</bool>
+       </property>
+       <property name="editEnabled">
+        <bool>true</bool>
+       </property>
+       <property name="renameEnabled">
         <bool>true</bool>
        </property>
       </widget>
@@ -236,6 +162,117 @@
        <property name="checked">
         <bool>true</bool>
        </property>
+      </widget>
+     </item>
+     <item row="4" column="1">
+      <widget class="QComboBox" name="xAxisComboBox">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+         <horstretch>1</horstretch>
+         <verstretch>1</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>75</width>
+         <height>25</height>
+        </size>
+       </property>
+       <property name="toolTip">
+        <string>This combobox allows to change the X-Axis for all the active PlotDataNodes. If the value &quot;Custom&quot; is selected, each PlotDataNode has its individual value. If another value is chosen, all the PlotDataNodes referenced by the PlotChartNode will be updated with the new value. The value &quot;Indexes&quot; will use simple ordinal numbers 1, 2, 3, ... as x coordinate values. For the other values, the correspective column will be used. </string>
+       </property>
+       <item>
+        <property name="text">
+         <string>Custom</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Indexes</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="QToolButton" name="showGridToolButton">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+         <horstretch>1</horstretch>
+         <verstretch>1</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>75</width>
+         <height>25</height>
+        </size>
+       </property>
+       <property name="toolTip">
+        <string>Show grid</string>
+       </property>
+       <property name="text">
+        <string>Grid</string>
+       </property>
+       <property name="checkable">
+        <bool>true</bool>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="3">
+      <widget class="QComboBox" name="markersComboBox">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+         <horstretch>1</horstretch>
+         <verstretch>1</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>75</width>
+         <height>25</height>
+        </size>
+       </property>
+       <property name="toolTip">
+        <string>This combobox allows to change the type of the markers for all the active PlotDataNodes. If the value &quot;Custom&quot; is selected, each PlotDataNode has its individual value. If another value is chosen, all the PlotDataNodes referenced by the PlotChartNode will be updated with the new value.</string>
+       </property>
+       <item>
+        <property name="text">
+         <string>Custom</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>None</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Cross</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Plus</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Square</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Circle</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Diamond</string>
+        </property>
+       </item>
       </widget>
      </item>
     </layout>
@@ -353,17 +390,6 @@
     </layout>
    </item>
   </layout>
-  <action name="actionShow_Markers">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Markers</string>
-   </property>
-   <property name="toolTip">
-    <string>Show markers</string>
-   </property>
-  </action>
   <action name="actionShow_Grid">
    <property name="checkable">
     <bool>true</bool>
@@ -401,6 +427,12 @@
  </widget>
  <customwidgets>
   <customwidget>
+   <class>qMRMLCheckableNodeComboBox</class>
+   <extends>qMRMLNodeComboBox</extends>
+   <header>qMRMLCheckableNodeComboBox.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
    <class>qMRMLNodeComboBox</class>
    <extends>QWidget</extends>
    <header>qMRMLNodeComboBox.h</header>
@@ -410,12 +442,6 @@
    <class>ctkPopupWidget</class>
    <extends>QFrame</extends>
    <header>ctkPopupWidget.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>qMRMLCheckableNodeComboBox</class>
-   <extends>qMRMLNodeComboBox</extends>
-   <header>qMRMLCheckableNodeComboBox.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

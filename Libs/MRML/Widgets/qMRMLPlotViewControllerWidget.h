@@ -73,9 +73,6 @@ public slots:
   /// Control the display of the legend in the chart.
   void showLegend(bool show);
 
-  /// Control the display of the markers in the chart.
-  void showMarkers(bool show);
-
   /// Control the display of the title for the chart.
   /// \sa setTitle
   void showTitle(bool show);

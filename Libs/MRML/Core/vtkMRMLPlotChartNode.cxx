@@ -51,11 +51,8 @@ vtkMRMLPlotChartNode::vtkMRMLPlotChartNode()
   this->HideFromEditors = 0;
 
   // default properties
-  this->SetAttribute("Type", "Line");
-
   this->SetAttribute("ShowGrid", "on");
   this->SetAttribute("ShowLegend", "on");
-  this->SetAttribute("ShowMarkers", "off");
 
   this->SetAttribute("ShowTitle", "on");
   this->SetAttribute("ShowXAxisLabel", "on");
@@ -73,8 +70,13 @@ vtkMRMLPlotChartNode::vtkMRMLPlotChartNode()
   this->SetAttribute("AxisTitleFontSize", "16");
   this->SetAttribute("AxisLabelFontSize", "12");
 
-  this->SetAttribute("LookupTable", "");
+  this->SetAttribute("LookupTable", "(none)");
   this->SetAttribute("FitPlotToAxes", "off");
+
+  // global properties for PlotDataNodes
+  this->SetAttribute("Type", "Custom");
+  this->SetAttribute("XAxis", "Custom");
+  this->SetAttribute("Markers", "Custom");
 
   vtkIntArray  *events = vtkIntArray::New();
   events->InsertNextValue(vtkCommand::ModifiedEvent);
@@ -330,33 +332,4 @@ int vtkMRMLPlotChartNode::GetPlotIDs(std::vector<std::string> &plotDataNodeIDs)
     }
 
   return static_cast<int>(plotDataNodeIDs.size());
-}
-
-//----------------------------------------------------------------------------
-void vtkMRMLPlotChartNode::SetPlotType(const char *Type)
-{
-    if (!this->GetScene() || !strcmp(Type, this->GetAttribute("Type")))
-      {
-      return;
-      }
-
-    int wasModifying = this->StartModify();
-    std::vector<std::string> plotDataNodesIDs;
-    this->GetPlotIDs(plotDataNodesIDs);
-
-    std::vector<std::string>::iterator it = plotDataNodesIDs.begin();
-    for (; it != plotDataNodesIDs.end(); ++it)
-      {
-      vtkMRMLPlotDataNode* plotDataNode = vtkMRMLPlotDataNode::SafeDownCast
-        (this->GetScene()->GetNodeByID((*it).c_str()));
-      if (!plotDataNode)
-        {
-        continue;
-        }
-      plotDataNode->SetType(plotDataNode->GetPlotTypeFromString(Type));
-      }
-
-    this->SetAttribute("Type", Type);
-
-    this->EndModify(wasModifying);
 }

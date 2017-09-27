@@ -180,17 +180,10 @@ class VTK_MRML_EXPORT vtkMRMLPlotChartNode : public vtkMRMLNode
   virtual int GetPlotIDs(std::vector<std::string> &plotDataNodeIDs);
 
   ///
-  /// Set the Type for all the referenced Plots.
-  /// Type is also an attribute (see below),
-  /// but this method has to be used to properly set all the referenced Plots.
-  virtual void SetPlotType(const char* Type);
-
-  ///
   /// In addition a set of properties are available for a PlotChart.
   /// These are stored as Attributes of PlotChartNode.
   /// Available properties are:
   ///
-  /// \li  "Type" - "Line", "Line and Scatter", "Scatter", "Bar"
   /// \li  "TitleName" - title ploted on the PlotChart
   /// \li  "ShowTitle" - show title "on" or "off"
   /// \li  "XAxisLabelName" - label ploted on the x-axis
@@ -201,14 +194,21 @@ class VTK_MRML_EXPORT vtkMRMLPlotChartNode : public vtkMRMLNode
   /// \li  "ShowYAxisLabel" - show y-axis label "on" or "off"
   /// \li  "ShowGrid" - show grid "on" or "off"
   /// \li  "ShowLegend" - show legend "on" or "off"
-  /// \li  "ShowMarkers" - show markers "on" or "off"
   /// \li  "FontType" - global Font for the PlotChart: "Arial", "Times", "Courier"
   /// \li  "TitleFontSize" - default: "20"
   /// \li  "AxisTitleFontSize" - default: "16"
   /// \li  "AxisLabelFontSize" - default: "12"
   /// \li  "LookupTable" colorNodeID default: NULL
   ///
-  ///  NOTE: To change the PlotType SetPlotType has to be used.
+  /// Further attributes of PlotChartNode are connected with
+  /// the PlotDataProperties. If they are have value "Custom"
+  /// then each PlotDataNode has its individual value. If another
+  /// value is chosen, all the PlotDataNodes referenced by the
+  /// PlotChartNode will be updated with the new value.
+  ///
+  /// \li  "Type" - "Custom", "Line", "Scatter", "Bar"
+  /// \li  "XAxis" - Set XAxis "Custom", "..." (list of Columns)
+  /// \li  "Markers" - show markers "Custom", "Cross", "Plus", "Square", "Circle", "Diamond"
   ///
 
   virtual const char* GetPlotDataNodeReferenceRole();

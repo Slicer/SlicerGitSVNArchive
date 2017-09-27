@@ -624,7 +624,10 @@ void qMRMLTableView::plotSelection()
 
     // Set the type of the PlotDataNode
     const char* Type = plotChartNode->GetAttribute("Type");
-    plotDataNode->SetType(plotDataNode->GetPlotTypeFromString(Type));
+    if (strcmp(Type, "Custom"))
+      {
+      plotDataNode->SetType(plotDataNode->GetPlotTypeFromString(Type));
+      }
 
     // Add the reference of the PlotDataNode in the active PlotChartNode
     plotChartNode->AddAndObservePlotDataNodeID(plotDataNode->GetID());
