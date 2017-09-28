@@ -23,24 +23,20 @@ if(Slicer_USE_CTKAPPLAUNCHER)
 
   if(NOT DEFINED CTKAPPLAUNCHER_DIR)
     SlicerMacroGetOperatingSystemArchitectureBitness(VAR_PREFIX CTKAPPLAUNCHER)
-    set(launcher_version "0.1.14")
-    set(item_id "")
+    set(launcher_version "0.1.17")
     # On windows, use i386 launcher unconditionally
     if("${CTKAPPLAUNCHER_OS}" STREQUAL "win")
       set(CTKAPPLAUNCHER_ARCHITECTURE "i386")
-      set(md5 "5511af8ea134e9d516070d85bdb890f3")
-      set(item_id "7565")
+      set(md5 "1686ed72b90f125204825e19c0ec2f97")
     elseif("${CTKAPPLAUNCHER_OS}" STREQUAL "linux")
-      set(md5 "2bdd93a8b41f245902a38429e6b20ea4")
-      set(item_id "9838")
+      set(md5 "d7336602be45494fb1e12da0fb2d6469")
     elseif("${CTKAPPLAUNCHER_OS}" STREQUAL "macosx")
-      set(md5 "06bff63508db30244467de64afae000b")
-      set(item_id "6112")
+      set(md5 "82e7536672d5251672e63ed11e7393b3")
     endif()
 
     ExternalProject_Add(${proj}
       ${${proj}_EP_ARGS}
-      URL http://packages.kitware.com/api/rest?method=midas.item.download&id=${item_id}&dummy=CTKAppLauncher-${launcher_version}-${CTKAPPLAUNCHER_OS}-${CTKAPPLAUNCHER_ARCHITECTURE}.tar.gz
+      URL https://github.com/commontk/AppLauncher/releases/download/v${launcher_version}/CTKAppLauncher-${launcher_version}-${CTKAPPLAUNCHER_OS}-${CTKAPPLAUNCHER_ARCHITECTURE}.tar.gz
       URL_MD5 ${md5}
       SOURCE_DIR ${CMAKE_BINARY_DIR}/${proj}
       CONFIGURE_COMMAND ""
