@@ -573,11 +573,12 @@ void qMRMLPlotViewInformationWidgetPrivate::onPlotDataColorChanged(const QColor 
     return;
     }
 
-
-  this->PlotDataNode->GetPlot()->SetColor(static_cast<unsigned char> (color.red()),
-                                          static_cast<unsigned char> (color.green()),
-                                          static_cast<unsigned char> (color.blue()),
-                                          static_cast<unsigned char> (color.alpha()));
+  unsigned char rgba[4];
+  rgba[0] = static_cast<unsigned char> (color.red());
+  rgba[1] = static_cast<unsigned char> (color.green());
+  rgba[2] = static_cast<unsigned char> (color.blue());
+  rgba[3] = static_cast<unsigned char> (color.alpha());
+  this->PlotDataNode->SetPlotColor(rgba);
 }
 
 // --------------------------------------------------------------------------
