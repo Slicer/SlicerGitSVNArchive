@@ -68,7 +68,7 @@ void qMRMLPlotViewInformationWidgetPrivate::setupUi(qMRMLWidget* widget)
   // PlotChart Properties
   this->connect(this->colorNodeComboBox, SIGNAL(currentNodeChanged(vtkMRMLNode*)),
                 this, SLOT(onColorNodeChanged(vtkMRMLNode*)));
-  this->connect(this->fontTypeComboBox, SIGNAL(currentTextChanged(const QString&)),
+  this->connect(this->fontTypeComboBox, SIGNAL(currentIndexChanged(const QString&)),
                 this, SLOT(onFontTypeChanged(const QString&)));
   this->connect(this->titleFontSizeDoubleSpinBox, SIGNAL(valueChanged(double)),
                 this, SLOT(onTitleFontSizeChanged(double)));
@@ -86,13 +86,13 @@ void qMRMLPlotViewInformationWidgetPrivate::setupUi(qMRMLWidget* widget)
                 this, SLOT(onPlotDataNodeChanged(vtkMRMLNode*)));
   this->connect(this->InputTableComboBox, SIGNAL(currentNodeChanged(vtkMRMLNode*)),
                 this, SLOT(onInputTableNodeChanged(vtkMRMLNode*)));
-  this->connect(this->xAxisComboBox, SIGNAL(currentTextChanged(const QString&)),
+  this->connect(this->xAxisComboBox, SIGNAL(currentIndexChanged(const QString&)),
                 this, SLOT(onXAxisChanged(const QString&)));
-  this->connect(this->yAxisComboBox, SIGNAL(currentTextChanged(const QString&)),
+  this->connect(this->yAxisComboBox, SIGNAL(currentIndexChanged(const QString&)),
                 this, SLOT(onYAxisChanged(const QString&)));
-  this->connect(this->plotTypeComboBox, SIGNAL(currentTextChanged(const QString&)),
+  this->connect(this->plotTypeComboBox, SIGNAL(currentIndexChanged(const QString&)),
                 this, SLOT(onPlotTypeChanged(const QString&)));
-  this->connect(this->markersStyleComboBox, SIGNAL(currentTextChanged(const QString&)),
+  this->connect(this->markersStyleComboBox, SIGNAL(currentIndexChanged(const QString&)),
                 this, SLOT(onMarkersStyleChanged(const QString&)));
   this->connect(this->markersSizeDoubleSpinBox, SIGNAL(valueChanged(double)),
                 this, SLOT(onMarkersSizeChanged(double)));
