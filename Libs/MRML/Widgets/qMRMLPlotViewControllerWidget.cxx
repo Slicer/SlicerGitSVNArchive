@@ -241,8 +241,6 @@ void qMRMLPlotViewControllerWidgetPrivate::onSelectionNodeModified()
 // --------------------------------------------------------------------------
 void qMRMLPlotViewControllerWidgetPrivate::onPlotDataNodesSelected()
 {
-  Q_Q(qMRMLPlotViewControllerWidget);
-
   if (!this->PlotViewNode || !this->PlotChartNode)
     {
     return;
@@ -291,7 +289,7 @@ void qMRMLPlotViewControllerWidgetPrivate::onPlotDataNodeAdded(vtkMRMLNode *node
 {
   Q_Q(qMRMLPlotViewControllerWidget);
 
-  if (!this->PlotChartNode)
+  if (!this->PlotChartNode || !q->mrmlScene())
     {
     return;
     }
@@ -345,8 +343,7 @@ void qMRMLPlotViewControllerWidgetPrivate::onPlotDataNodeEdited(vtkMRMLNode *nod
 // --------------------------------------------------------------------------
 void qMRMLPlotViewControllerWidgetPrivate::onPlotTypeChanged(const QString &Type)
 {
-  Q_Q(qMRMLPlotViewControllerWidget);
-  if (!this->PlotChartNode || !q->mrmlScene())
+  if (!this->PlotChartNode)
     {
     return;
     }
@@ -369,8 +366,6 @@ void qMRMLPlotViewControllerWidgetPrivate::onXAxisChanged(const QString &Column)
 // --------------------------------------------------------------------------
 void qMRMLPlotViewControllerWidgetPrivate::onMarkersChanged(const QString &str)
 {
-  Q_Q(qMRMLPlotViewControllerWidget);
-
   if(!this->PlotChartNode)
     {
     return;
@@ -825,7 +820,7 @@ void qMRMLPlotViewControllerWidget::updateWidgetFromMRML()
       {
       continue;
       }
-    auto plotDataNodesIndex = std::distance(plotDataNodesIDs.begin(), it);
+    int plotDataNodesIndex = std::distance(plotDataNodesIDs.begin(), it);
     plotDataNodesWasModifying[plotDataNodesIndex] = plotDataNode->StartModify();
     }
 
@@ -939,7 +934,7 @@ void qMRMLPlotViewControllerWidget::updateWidgetFromMRML()
       {
       continue;
       }
-    auto plotDataNodesIndex = std::distance(plotDataNodesIDs.begin(), it);
+    int plotDataNodesIndex = std::distance(plotDataNodesIDs.begin(), it);
     plotDataNode->EndModify(plotDataNodesWasModifying[plotDataNodesIndex]);
     }
 
