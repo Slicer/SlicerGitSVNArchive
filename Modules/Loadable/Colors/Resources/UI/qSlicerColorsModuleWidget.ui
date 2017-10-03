@@ -44,6 +44,18 @@
        <layout class="QHBoxLayout" name="horizontalLayout">
         <item>
          <widget class="qMRMLColorTableComboBox" name="ColorTableComboBox">
+          <property name="enabled">
+           <bool>true</bool>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>27</height>
+           </size>
+          </property>
+          <property name="noneEnabled">
+           <bool>true</bool>
+          </property>
           <property name="addEnabled">
            <bool>false</bool>
           </property>
@@ -214,7 +226,7 @@
         </property>
         <property name="checked">
          <bool>false</bool>
-       </property>
+        </property>
        </widget>
       </item>
       <item>
@@ -250,6 +262,7 @@
    <class>qMRMLNodeComboBox</class>
    <extends>QWidget</extends>
    <header>qMRMLNodeComboBox.h</header>
+   <container>1</container>
   </customwidget>
   <customwidget>
    <class>qSlicerWidget</class>
@@ -289,22 +302,6 @@
  </resources>
  <connections>
   <connection>
-   <sender>qSlicerColorsModuleWidget</sender>
-   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
-   <receiver>ColorTableComboBox</receiver>
-   <slot>setMRMLScene(vtkMRMLScene*)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>359</x>
-     <y>54</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>259</x>
-     <y>60</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
    <sender>DisplayCollapsibleButton</sender>
    <signal>toggled(bool)</signal>
    <receiver>DynamicSpacer</receiver>
@@ -317,22 +314,6 @@
     <hint type="destinationlabel">
      <x>231</x>
      <y>470</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>ColorTableComboBox</sender>
-   <signal>currentNodeChanged(vtkMRMLNode*)</signal>
-   <receiver>ColorView</receiver>
-   <slot>setMRMLColorNode(vtkMRMLNode*)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>210</x>
-     <y>59</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>232</x>
-     <y>224</y>
     </hint>
    </hints>
   </connection>
