@@ -273,12 +273,6 @@ bool qSlicerUtils::setPermissionsRecursively(const QString &path,
 }
 
 //-----------------------------------------------------------------------------
-bool qSlicerUtils::isRelease(const QString& version)
-{
-  return QRegExp("\\d+\\.\\d+\\.\\d+(-rc\\d+)?(-\\d+)?").exactMatch(version);
-}
-
-//-----------------------------------------------------------------------------
 QString qSlicerUtils::replaceWikiUrlVersion(const QString& text, const QString& version)
 {
   QString updatedText = text;

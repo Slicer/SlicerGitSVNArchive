@@ -1001,9 +1001,9 @@ bool qSlicerCoreApplication::isInstalled()const
 }
 
 //-----------------------------------------------------------------------------
-bool qSlicerCoreApplication::isRelease()const
+QString qSlicerCoreApplication::releaseType()const
 {
-  return qSlicerUtils::isRelease(Slicer_VERSION_FULL);
+  return QString(Slicer_RELEASE_TYPE);
 }
 
 //-----------------------------------------------------------------------------
