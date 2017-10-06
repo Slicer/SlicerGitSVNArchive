@@ -842,7 +842,7 @@ void qSlicerExtensionsManagerModelPrivate::addExtensionHistorySetting(
   const QString& extensionsHistorySettingsFile, const ExtensionMetadataType &extensionMetadata, const QString& settingsPath)
 {
   QSettings settings(extensionsHistorySettingsFile, QSettings::IniFormat);
-  QStringList& settingsInfoList = settings.value(settingsPath).toStringList();
+  QStringList settingsInfoList = settings.value(settingsPath).toStringList();
   settingsInfoList << extensionMetadata.value("extensionname").toString();
   settingsInfoList.removeDuplicates();
   settings.setValue(settingsPath, settingsInfoList);
@@ -853,7 +853,7 @@ void qSlicerExtensionsManagerModelPrivate::cancelExtensionHistorySettingRemoval(
   const QString& extensionsHistorySettingsFile, const QString& extensionName)
 {
   QSettings settings(extensionsHistorySettingsFile, QSettings::IniFormat);
-  QStringList& settingsInfoList = settings.value("ExtensionsHistory/ScheduledForRemoval").toStringList();
+  QStringList settingsInfoList = settings.value("ExtensionsHistory/ScheduledForRemoval").toStringList();
   settingsInfoList.removeOne(extensionName);
   settingsInfoList.removeDuplicates();
   settings.setValue("ExtensionsHistory/ScheduledForRemoval", settingsInfoList);
@@ -864,9 +864,9 @@ void qSlicerExtensionsManagerModelPrivate::removeScheduledExtensionHistorySettin
   const QString& extensionsHistorySettingsFile)
 {
   QSettings settings(extensionsHistorySettingsFile, QSettings::IniFormat);
-  QStringList& scheduledForRemovalList = settings.value("ExtensionsHistory/ScheduledForRemoval").toStringList();
-  QStringList& historyList = settings.value("ExtensionsHistory/Revisions/" + this->SlicerRevision).toStringList();
-  for (unsigned int i = 0; i < scheduledForRemovalList.length(); i++)
+  QStringList scheduledForRemovalList = settings.value("ExtensionsHistory/ScheduledForRemoval").toStringList();
+  QStringList historyList = settings.value("ExtensionsHistory/Revisions/" + this->SlicerRevision).toStringList();
+  for (int i = 0; i < scheduledForRemovalList.length(); i++)
   {
     historyList.removeOne(scheduledForRemovalList.at(i));
   }
@@ -883,7 +883,7 @@ QVariantMap qSlicerExtensionsManagerModelPrivate::getExtensionsInfoFromPreviousI
   QVariantMap extensionsHistoryInformation;
   QSettings settings(extensionsHistorySettingsFile, QSettings::IniFormat);
   settings.beginGroup("ExtensionsHistory/Revisions");
-  QStringList& revisions = settings.childKeys();
+  QStringList revisions = settings.childKeys();
   revisions.sort();	//revisions sorted ascending
   int lastRevision = -1;
   for (int i = revisions.length() - 1; i >= 0; i--)		//the revision with the highest number not equal the current one is considered to be the last revision
@@ -899,11 +899,11 @@ QVariantMap qSlicerExtensionsManagerModelPrivate::getExtensionsInfoFromPreviousI
     return extensionsHistoryInformation;
   }
 
-  for (unsigned int i = 0; i < revisions.length(); i++)
+  for (int i = 0; i < revisions.length(); i++)
   {
     QVariantMap curExtensionInfo;
     const QStringList& extensionNames = settings.value(revisions.at(i)).toStringList();
-    for (unsigned int j = 0; j < extensionNames.length(); j++)
+    for (int j = 0; j < extensionNames.length(); j++)
     {
       QString extensionName = extensionNames.at(j);
       QString extensionId = "";
@@ -929,9 +929,7 @@ QVariantMap qSlicerExtensionsManagerModelPrivate::getExtensionsInfoFromPreviousI
         parameters["arch"] = q->slicerArch();
         const ExtensionMetadataType& metaData = retrieveExtensionMetadata(parameters);
         extensionId = metaData.value("extension_id").toString();     //retrieve updated extension id for not installed extensions
-        const QStringList& reason = this->isExtensionCompatible(metaData, this->SlicerRevision, this->SlicerOs, this->SlicerArch);
-        isCompatible = (this->isExtensionCompatible(metaData,
-          this->SlicerRevision, this->SlicerOs, this->SlicerArch).length() == 0);
+        isCompatible = (this->isExtensionCompatible(metaData, this->SlicerRevision, this->SlicerOs, this->SlicerArch).length() == 0);
       }
       else
       {
