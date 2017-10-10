@@ -1340,7 +1340,6 @@ QString qSlicerCoreApplication::libraries()const
     "<a href=\"http://www.itk.org/\">ITK</a>, "
     "<a href=\"http://www.commontk.org/index.php/Main_Page\">CTK</a>, "
     "<a href=\"https://www.qt.io/\">Qt</a>, "
-    "<a href=\"http://www.tcl.tk\">Tcl/Tk</a>, "
     "<a href=\"http://teem.sf.net\">Teem</a>, "
     "<a href=\"http://www.python.org/\">Python</a>, "
     "<a href=\"http://dicom.offis.de/dcmtk\">DCMTK</a>, "
@@ -1353,9 +1352,9 @@ QString qSlicerCoreApplication::copyrights()const
 {
   QString copyrightsText(
     "<table align=\"center\" border=\"0\" width=\"80%\"><tr>"
-    "<td align=\"center\"><a href=\"http://slicer.org/pages/License\">Licensing Information</a></td>"
-    "<td align=\"center\"><a href=\"http://slicer.org/\">Website</a></td>"
-    "<td align=\"center\"><a href=\"http://slicer.org/pages/Acknowledgments\">Acknowledgments</a></td>"
+    "<td align=\"center\"><a href=\"https://www.slicer.org/wiki/License\">Licensing Information</a></td>"
+    "<td align=\"center\"><a href=\"https://slicer.org/\">Website</a></td>"
+    "<td align=\"center\"><a href=\"https://www.slicer.org/wiki/Documentation/4.x/Acknowledgments\">Acknowledgments</a></td>"
     "</tr></table>");
   return copyrightsText;
 }
