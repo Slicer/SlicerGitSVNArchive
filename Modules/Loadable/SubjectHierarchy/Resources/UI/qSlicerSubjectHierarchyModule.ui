@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>qSlicerSubjectHierarchyModule</class>
+ <widget class="qSlicerWidget" name="qSlicerSubjectHierarchyModule">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>283</width>
+    <height>285</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>SubjectHierarchy</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="../qSlicerSubjectHierarchyModule.qrc">
+    <normaloff>:/Icons/SubjectHierarchy.png</normaloff>:/Icons/SubjectHierarchy.png</iconset>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="spacing">
+    <number>4</number>
+   </property>
+   <property name="margin">
+    <number>4</number>
+   </property>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>qSlicerWidget</class>
+   <extends>QWidget</extends>
+   <header>qSlicerWidget.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources>
+  <include location="../qSlicerSubjectHierarchyModule.qrc"/>
+ </resources>
+ <connections/>
+</ui>

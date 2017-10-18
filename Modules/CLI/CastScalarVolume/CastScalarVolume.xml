@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<executable>
+  <category>Filtering.Arithmetic</category>
+  <title>Cast Scalar Volume</title>
+  <description><![CDATA[Cast a volume to a given data type.\nUse at your own risk when casting an input volume into a lower precision type!\nAllows casting to the same type as the input volume.]]></description>
+  <version>0.1.0.$Revision: 2104 $(alpha)</version>
+  <documentation-url>http://wiki.slicer.org/slicerWiki/index.php/Documentation/Nightly/Modules/Cast</documentation-url>
+  <license/>
+  <contributor>Nicole Aucoin (SPL, BWH), Ron Kikinis (SPL, BWH)</contributor>
+  <acknowledgements><![CDATA[This work is part of the National Alliance for Medical Image Computing (NAMIC), funded by the National Institutes of Health through the NIH Roadmap for Medical Research, Grant U54 EB005149.]]></acknowledgements>
+  <parameters>
+    <label>IO</label>
+    <description><![CDATA[Input/output parameters]]></description>
+    <image>
+      <name>InputVolume</name>
+      <label>Input Volume</label>
+      <channel>input</channel>
+      <index>0</index>
+      <description><![CDATA[Input volume, the volume to cast.]]></description>
+    </image>
+    <image reference="InputVolume">
+      <name>OutputVolume</name>
+      <label>Output Volume</label>
+      <channel>output</channel>
+      <index>1</index>
+      <description><![CDATA[Output volume, cast to the new type.]]></description>
+    </image>
+  </parameters>
+  <parameters>
+    <label>Filter Settings</label>
+    <string-enumeration>
+      <name>Type</name>
+      <label>Output Type</label>
+      <description><![CDATA[Scalar data type for the new output volume.]]></description>
+      <flag>-t</flag>
+      <longflag>--type</longflag>
+      <element>Char</element>
+      <element>UnsignedChar</element>
+      <element>Short</element>
+      <element>UnsignedShort</element>
+      <element>Int</element>
+      <element>UnsignedInt</element>
+      <element>Float</element>
+      <element>Double</element>
+      <default>UnsignedChar</default>
+    </string-enumeration>
+  </parameters>
+</executable>

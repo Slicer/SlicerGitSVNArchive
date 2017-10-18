@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<executable>
+  <category>Surface Models</category>
+  <title>Merge Models</title>
+  <description><![CDATA[Merge the polydata from two input models and output a new model with the combined polydata. Uses the vtkAppendPolyData filter. Works on .vtp and .vtk surface files.]]></description>
+  <version>$Revision$</version>
+  <documentation-url>http://wiki.slicer.org/slicerWiki/index.php/Documentation/Nightly/Modules/MergeModels</documentation-url>
+  <license/>
+  <contributor>Nicole Aucoin (SPL, BWH), Ron Kikinis (SPL, BWH), Daniel Haehn (SPL, BWH, UPenn)</contributor>
+  <acknowledgements><![CDATA[This work is part of the National Alliance for Medical Image Computing (NAMIC), funded by the National Institutes of Health through the NIH Roadmap for Medical Research, Grant U54 EB005149.]]></acknowledgements>
+  <parameters>
+    <label>IO</label>
+    <description><![CDATA[Input/output]]></description>
+    <geometry type="model">
+      <name>Model1</name>
+      <label>Model 1</label>
+      <channel>input</channel>
+      <index>1</index>
+      <description><![CDATA[Input model 1]]></description>
+    </geometry>
+    <geometry type="model">
+      <name>Model2</name>
+      <label>Model 2</label>
+      <channel>input</channel>
+      <index>2</index>
+      <description><![CDATA[Input model 2]]></description>
+    </geometry>
+    <geometry type="model" reference="Model1">
+      <name>ModelOutput</name>
+      <label>Output Model</label>
+      <channel>output</channel>
+      <index>3</index>
+      <description><![CDATA[Output model]]></description>
+    </geometry>
+  </parameters>
+</executable>

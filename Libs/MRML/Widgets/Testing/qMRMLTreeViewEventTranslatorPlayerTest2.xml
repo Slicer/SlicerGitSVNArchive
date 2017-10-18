@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<QtTesting>
+    <settings>
+        <name widget="qApp" command="applicationName" arguments=""/>
+        <version widget="qApp" command="applicationVersion" arguments=""/>
+        <geometry widget="MainWindow" command="mainWindowGeometry" arguments="01d9d0cb000100000000000600000031000001ff0000019a0000000c0000004a000001f900000194000000000000"/>
+        <state widget="MainWindow" command="mainWindowState" arguments="000000ff00000000fd00000000000001ee0000013300000004000000040000000800000008fc00000000"/>
+    </settings>
+    <events>
+        <event widget="ctkEventTranslatorPlayerWidget/centralwidget/stackedWidget/1qMRMLTreeView0" command="setCurrent" arguments="0.0.0.0"/>
+        <event widget="ctkEventTranslatorPlayerWidget/centralwidget/stackedWidget/1qMRMLTreeView0" command="decorationClicked" arguments="0.0.0.0"/>
+        <event widget="ctkEventTranslatorPlayerWidget/centralwidget/stackedWidget/1qMRMLTreeView0" command="setCurrent" arguments="0.0.1.0"/>
+        <event widget="ctkEventTranslatorPlayerWidget/centralwidget/stackedWidget/1qMRMLTreeView0" command="decorationClicked" arguments="0.0.1.0"/>
+        <event widget="ctkEventTranslatorPlayerWidget/centralwidget/stackedWidget/1qMRMLTreeView0" command="decorationClicked" arguments="0.0.1.0"/>
+        <event widget="ctkEventTranslatorPlayerWidget/centralwidget/stackedWidget/1qMRMLTreeView0" command="setCurrent" arguments="0.0.0.0"/>
+        <event widget="ctkEventTranslatorPlayerWidget/centralwidget/stackedWidget/1qMRMLTreeView0" command="decorationClicked" arguments="0.0.0.0"/>
+        <event widget="ctkEventTranslatorPlayerWidget/centralwidget/stackedWidget/1qMRMLTreeView0" command="decorationClicked" arguments="0.0.0.0"/>
+        <event widget="ctkEventTranslatorPlayerWidget/centralwidget/stackedWidget/1qMRMLTreeView0" command="setCurrent" arguments="0.0.1.0"/>
+    </events>
+</QtTesting>

@@ -1,0 +1,45 @@
+from AbstractScriptedSegmentEditorEffect import *
+from AbstractScriptedSegmentEditorLabelEffect import *
+from AbstractScriptedSegmentEditorAutoCompleteEffect import *
+
+from SegmentEditorThresholdEffect import *
+from SegmentEditorSmoothingEffect import *
+from SegmentEditorGrowFromSeedsEffect import *
+from SegmentEditorFillBetweenSlicesEffect import *
+from SegmentEditorDrawEffect import *
+from SegmentEditorLevelTracingEffect import *
+from SegmentEditorMarginEffect import *
+from SegmentEditorLogicalEffect import *
+from SegmentEditorIslandsEffect import *
+
+from SegmentEditorEffects import *
+
+import logging
+import importlib
+import traceback
+editorEffectNames = [
+  "SegmentEditorThresholdEffect",
+  "SegmentEditorSmoothingEffect",
+  "SegmentEditorGrowFromSeedsEffect",
+  "SegmentEditorFillBetweenSlicesEffect",
+  "SegmentEditorDrawEffect",
+  "SegmentEditorLevelTracingEffect",
+  "SegmentEditorMarginEffect",
+  "SegmentEditorLogicalEffect",
+  "SegmentEditorIslandsEffect"
+  ]
+
+def registerEffects():
+  import SegmentEditorEffects
+  import traceback
+  import logging
+  effectsPath = SegmentEditorEffects.__path__[0].replace('\\','/')
+  import qSlicerSegmentationsEditorEffectsPythonQt as qSlicerSegmentationsEditorEffects
+  for editorEffectName in SegmentEditorEffects.editorEffectNames:
+    try:
+      instance = qSlicerSegmentationsEditorEffects.qSlicerSegmentEditorScriptedEffect(None)
+      effectFilename = effectsPath+'/'+editorEffectName+'.py'
+      instance.setPythonSource(effectFilename)
+      instance.self().register()
+    except Exception as e:
+      logging.error(traceback.format_exc())

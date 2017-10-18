@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>qMRMLVolumeThresholdWidget</class>
+ <widget class="QWidget" name="qMRMLVolumeThresholdWidget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>300</width>
+    <height>61</height>
+   </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout">
+   <property name="margin">
+    <number>0</number>
+   </property>
+   <item row="0" column="0">
+    <widget class="QLabel" name="ThresholdLabel">
+     <property name="text">
+      <string>Threshold: </string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="1">
+    <widget class="QComboBox" name="AutoManualComboBox">
+     <item>
+      <property name="text">
+       <string>Auto</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Manual</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Off</string>
+      </property>
+     </item>
+    </widget>
+   </item>
+   <item row="1" column="0" colspan="2">
+    <widget class="ctkRangeWidget" name="VolumeThresholdRangeWidget"/>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+   <customwidget>
+     <class>ctkRangeWidget</class>
+     <extends>QWidget</extends>
+     <header>ctkRangeWidget.h</header>
+   </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>
