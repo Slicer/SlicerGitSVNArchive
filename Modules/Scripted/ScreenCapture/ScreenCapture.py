@@ -264,6 +264,14 @@ class ScreenCaptureWidget(ScriptedLoadableModuleWidget):
     self.fileNamePatternWidget.text = "image_%05d.png"
     advancedFormLayout.addRow("Image file name pattern:", self.fileNamePatternWidget)
 
+    self.maxFramesValidator = qt.QIntValidator(1, 9999)
+    self.maxFramesWidget = qt.QLineEdit()
+    self.maxFramesWidget.setToolTip(
+      "Maximum number of frames to be captured. Default: 600, maximum: 9999.")
+    self.maxFramesWidget.setValidator(self.maxFramesValidator)
+    self.maxFramesWidget.text = "600"
+    advancedFormLayout.addRow("Maximum frames:", self.maxFramesWidget)
+
     # Capture button
     self.captureButtonLabelCapture = "Capture"
     self.captureButtonLabelCancel = "Cancel"
@@ -304,9 +312,19 @@ class ScreenCaptureWidget(ScriptedLoadableModuleWidget):
     self.videoExportCheckBox.connect('toggled(bool)', self.videoFormatWidget, 'setEnabled(bool)')
     self.videoFormatWidget.connect("currentIndexChanged(int)", self.updateVideoFormat)
     self.singleStepButton.connect('toggled(bool)', self.numberOfStepsSliderWidget, 'setDisabled(bool)')
+    self.maxFramesWidget.connect('textChanged(QString)', self.maxFramesChanged)
 
     self.updateVideoFormat(0)
     self.updateViewOptions()
+
+  def maxFramesChanged(self):
+    maxFramesText = self.maxFramesWidget.text
+    # An exception is raised if maxFramesText is empty. Catch it and set it to 1 instead.
+    try:
+      maxFrames = int(maxFramesText)
+    except Exception as e:
+      maxFrames = 1
+    self.numberOfStepsSliderWidget.maximum = maxFrames
 
   def openURL(self, URL):
     qt.QDesktopServices().openUrl(qt.QUrl(URL))
