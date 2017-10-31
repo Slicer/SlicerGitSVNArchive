@@ -12,6 +12,11 @@ def quit():
   exit(EXIT_SUCCESS)
 
 def exit(status=EXIT_SUCCESS):
+  # call once because QApplication::exit() from PythonQt
+  # honors only the last-called exit status in a block.
+  if exit.__dict__.get("call_once", False): return
+  exit.__dict__["call_once"] = True
+
   from slicer import app
   app.commandOptions().runPythonAndExit = False
   app.exit(status)
