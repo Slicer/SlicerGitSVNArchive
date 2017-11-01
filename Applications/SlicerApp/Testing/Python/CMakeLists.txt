@@ -31,9 +31,16 @@ add_test(
   --testing --disable-modules --no-main-window
   --python-code "exit(slicer.util.EXIT_FAILURE)"
   )
+add_test(
+  NAME py_nomainwindow_SlicerPythonCodeDoubleExitFailureTest
+  COMMAND ${Slicer_LAUNCH_COMMAND} $<TARGET_FILE:${APP_TARGET_NAME}>
+  --disable-modules --no-main-window
+  --python-code "exit(slicer.util.EXIT_FAILURE); exit(slicer.util.EXIT_SUCCESS)"
+  )
 set_tests_properties(
     py_nomainwindow_SlicerPythonCodeExitFailureTest
     py_nomainwindow_testing_SlicerPythonCodeExitFailureTest
+    py_nomainwindow_SlicerPythonCodeDoubleExitFailureTest
   PROPERTIES WILL_FAIL TRUE
   )
 
