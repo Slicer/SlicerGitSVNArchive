@@ -1150,7 +1150,7 @@ void vtkMRMLSegmentationDisplayNode::UpdateSegmentList()
     }
   if (this->SegmentListUpdateSource == segmentation && this->SegmentListUpdateTime >= segmentation->GetMTime())
     {
-    // already up-to-date
+    // Already up-to-date
     return;
     }
   this->SegmentListUpdateTime = segmentation->GetMTime();
@@ -1169,7 +1169,7 @@ void vtkMRMLSegmentationDisplayNode::UpdateSegmentList()
     {
     if (segmentation->GetSegment(it->first) == NULL)
       {
-      // the segment does not exist in segmentation
+      // The segment does not exist in segmentation
       orphanSegmentIds.push_back(it->first);
       }
     }
