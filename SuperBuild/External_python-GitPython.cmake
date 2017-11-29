@@ -42,6 +42,10 @@ if(NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
     )
 
   # See #3749 - Delete test files causing packaging to fail on windows
+  set(${proj}_EP_PYTHONMODULE_INSTALL_TREE_CLEANUP "import os
+os.environ[\"GIT_PYTHON_GIT_EXECUTABLE\"] = \"${GIT_EXECUTABLE}\"
+"
+  )
   ExternalProject_PythonModule_InstallTreeCleanup(${proj} "git" "test")
 
 else()
