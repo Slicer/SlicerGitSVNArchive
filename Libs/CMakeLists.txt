@@ -23,7 +23,13 @@ list(APPEND dirs
   vtkAddon
   vtkTeem
   vtkITK
-  vtkSegmentationCore
+  )
+if(Slicer_BUILD_SEGMENTATION_SUPPORT)
+  list(APPEND dirs
+    vtkSegmentationCore
+    )
+endif()
+list(APPEND dirs
   FreeSurfer
   MRML/Core
   )
@@ -61,6 +67,9 @@ endif()
 
 # Qt designer plugins
 set(MRML_BUILD_QT_DESIGNER_PLUGINS ${Slicer_BUILD_QT_DESIGNER_PLUGINS})
+
+# Segmentation support
+set(MRML_BUILD_SEGMENTATION_SUPPORT ${Slicer_BUILD_SEGMENTATION_SUPPORT})
 
 # ITKFactories directories
 set(MRMLIDImageIO_ITKFACTORIES_DIR ${Slicer_ITKFACTORIES_DIR})
@@ -127,13 +136,15 @@ set(MRML_LIBRARIES ${_mrml_libraries} CACHE INTERNAL "MRML libraries" FORCE)
 #-----------------------------------------------------------------------------
 set(_vtk_wrapped_libraries
   vtkAddon
-  vtkSegmentationCore
   vtkTeem
   vtkITK
   FreeSurfer
   MRMLCore
   MRMLLogic
   )
+if(Slicer_BUILD_SEGMENTATION_SUPPORT)
+  list(APPEND _vtk_wrapped_libraries vtkSegmentationCore)
+endif()
 if(Slicer_USE_PYTHONQT AND VTK_WRAP_PYTHON)
   list(APPEND _vtk_wrapped_libraries MRMLDisplayableManager)
 endif()

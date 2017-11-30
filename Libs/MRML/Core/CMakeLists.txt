@@ -25,6 +25,11 @@ mark_as_advanced(MRML_SUPPORT_VERSION)
 option(MRML_USE_vtkTeem "Build MRML with vtkTeem support." ON)
 mark_as_advanced(MRML_USE_vtkTeem)
 
+if(NOT DEFINED MRML_BUILD_SEGMENTATION_SUPPORT)
+  option(MRML_BUILD_SEGMENTATION_SUPPORT "Build MRML with Segmentation support" ON)
+  mark_as_advanced(MRML_BUILD_SEGMENTATION_SUPPORT)
+endif()
+
 # --------------------------------------------------------------------------
 # Dependencies
 # --------------------------------------------------------------------------
@@ -67,9 +72,11 @@ set(include_dirs
   ${CMAKE_CURRENT_BINARY_DIR}
   ${vtkAddon_INCLUDE_DIRS}
   ${vtkITK_INCLUDE_DIRS}
-  ${vtkSegmentationCore_INCLUDE_DIRS}
   ${FreeSurfer_INCLUDE_DIRS}
   )
+if(MRML_BUILD_SEGMENTATION_SUPPORT)
+  list(APPEND include_dirs ${vtkSegmentationCore_INCLUDE_DIRS})
+endif()
 if(MRML_USE_vtkTeem)
   list(APPEND include_dirs ${vtkTeem_INCLUDE_DIRS})
 endif()
@@ -156,12 +163,6 @@ set(MRMLCore_SRCS
   vtkMRMLSceneViewStorageNode.cxx
   vtkMRMLScriptedModuleNode.cxx
   vtkMRMLScriptedModuleNode.h
-  vtkMRMLSegmentationNode.cxx
-  vtkMRMLSegmentationNode.h
-  vtkMRMLSegmentationDisplayNode.cxx
-  vtkMRMLSegmentationDisplayNode.h
-  vtkMRMLSegmentationStorageNode.cxx
-  vtkMRMLSegmentationStorageNode.h
   vtkMRMLSelectionNode.cxx
   vtkMRMLSliceCompositeNode.cxx
   vtkMRMLSliceNode.cxx
@@ -212,9 +213,19 @@ set(MRMLCore_SRCS
   # register code to the vtkMRMLScene constructor
   )
 
+if(MRML_BUILD_SEGMENTATION_SUPPORT)
+  list(APPEND MRMLCore_SRCS
+    vtkMRMLSegmentationNode.cxx
+    vtkMRMLSegmentationNode.h
+    vtkMRMLSegmentationDisplayNode.cxx
+    vtkMRMLSegmentationDisplayNode.h
+    vtkMRMLSegmentationStorageNode.cxx
+    vtkMRMLSegmentationStorageNode.h
+    )
+endif()
+
 if(MRML_USE_vtkTeem)
-  set(MRMLCore_SRCS
-    ${MRMLCore_SRCS}
+  list(APPEND MRMLCore_SRCS
     vtkMRMLDiffusionImageVolumeNode.cxx
     vtkMRMLDiffusionTensorVolumeDisplayNode.cxx
     vtkMRMLDiffusionTensorVolumeNode.cxx
@@ -260,12 +271,14 @@ add_library(${lib_name} ${srcs})
 set(libs
   vtkAddon
   vtkITK
-  vtkSegmentationCore
   ${ITK_LIBRARIES}
   ${VTK_LIBRARIES}
   vtkIOInfovis
   FreeSurfer
   )
+if(MRML_BUILD_SEGMENTATION_SUPPORT)
+  list(APPEND libs vtkSegmentationCore)
+endif()
 if(MRML_USE_vtkTeem)
   list(APPEND libs vtkTeem)
 endif()
@@ -381,5 +394,8 @@ endif()
 # --------------------------------------------------------------------------
 # Set INCLUDE_DIRS variable
 # --------------------------------------------------------------------------
-set(${PROJECT_NAME}_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} ${vtkAddon_INCLUDE_DIRS} ${vtkSegmentationCore_INCLUDE_DIRS}
-  CACHE INTERNAL "${PROJECT_NAME} include dirs" FORCE)
+set(_include_dirs ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} ${vtkAddon_INCLUDE_DIRS})
+if(MRML_BUILD_SEGMENTATION_SUPPORT)
+  list(APPEND _include_dirs ${vtkSegmentationCore_INCLUDE_DIRS})
+endif()
+set(${PROJECT_NAME}_INCLUDE_DIRS ${_include_dirs} CACHE INTERNAL "${PROJECT_NAME} include dirs" FORCE)

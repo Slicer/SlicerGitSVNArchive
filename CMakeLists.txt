@@ -296,6 +296,10 @@ option(Slicer_USE_QtTesting    "Integrate QtTesting framework into Slicer." ON)
 mark_as_advanced(Slicer_USE_QtTesting)
 mark_as_superbuild(Slicer_USE_QtTesting)
 
+option(Slicer_BUILD_SEGMENTATION_SUPPORT "Build Slicer with Segmentation support." ON)
+mark_as_advanced(Slicer_BUILD_SEGMENTATION_SUPPORT)
+mark_as_superbuild(Slicer_BUILD_SEGMENTATION_SUPPORT)
+
 option(Slicer_USE_SimpleITK "Build Slicer with SimpleITK support" ON)
 mark_as_superbuild(Slicer_USE_SimpleITK)
 

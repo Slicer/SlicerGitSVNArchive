@@ -5,7 +5,13 @@ set(qtmodules
   AtlasCreator
   Cameras
   Units
-  Terminologies
+  )
+if(Slicer_BUILD_SEGMENTATION_SUPPORT)
+  list(APPEND qtmodules
+    Terminologies
+    )
+endif()
+list(APPEND qtmodules
   Colors
   SubjectHierarchy
   Annotations
@@ -16,7 +22,13 @@ set(qtmodules
   #Measurements
   Models
   SceneViews
-  Segmentations
+  )
+if(Slicer_BUILD_SEGMENTATION_SUPPORT)
+  list(APPEND qtmodules
+    Segmentations
+    )
+endif()
+list(APPEND qtmodules
   SlicerWelcome
   Tables
   Reformat
