@@ -8,7 +8,14 @@
 #include <itkResampleImageFilter.h>
 #include <itkTransformFactory.h>
 #include <itkTransformFileReader.h>
+
+// SlicerExecutionModel includes
+#include <SEMConfigure.h>
+
+// ITK includes
+#ifdef SlicerExecutionModel_USE_ITKFactoryRegistration
 #include <itkFactoryRegistration.h>
+#endif
 
 // STD includes
 #include <list>
@@ -19,7 +26,9 @@
 
 int main(int argc, char * * argv)
 {
+#ifdef SlicerExecutionModel_USE_ITKFactoryRegistration
   itk::itkFactoryRegistration();
+#endif
 
   if( argc < 3 )
     {

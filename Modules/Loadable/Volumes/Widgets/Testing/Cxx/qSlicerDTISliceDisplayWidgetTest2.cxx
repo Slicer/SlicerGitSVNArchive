@@ -23,7 +23,7 @@
 #include <QTimer>
 
 // Slicer includes
-#include "vtkSlicerConfigure.h"
+#include <vtkSlicerConfigure.h> // For Slicer_* macros
 
 // Volumes includes
 #include "qSlicerDTISliceDisplayWidget.h"
@@ -43,13 +43,16 @@
 #endif
 
 // ITK includes
-#include <itkConfigure.h>
+#ifdef Slicer_USE_ITKFactoryRegistration
 #include <itkFactoryRegistration.h>
+#endif
 
 //-----------------------------------------------------------------------------
 int qSlicerDTISliceDisplayWidgetTest2( int argc, char * argv[] )
 {
+#ifdef Slicer_USE_ITKFactoryRegistration
   itk::itkFactoryRegistration();
+#endif
 
 #ifdef Slicer_VTK_USE_QVTKOPENGLWIDGET
   // Set default surface format for QVTKOpenGLWidget

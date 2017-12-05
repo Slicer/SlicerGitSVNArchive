@@ -11,13 +11,15 @@ set(GENERATECLP_USE_MD5 ON)
 
 set(dirs )
 
-list(APPEND dirs
-  ITKFactoryRegistration
-  )
-set(SlicerExecutionModel_EXTRA_EXECUTABLE_TARGET_LIBRARIES
-  ${SlicerExecutionModel_EXTRA_EXECUTABLE_TARGET_LIBRARIES} ITKFactoryRegistration
-  CACHE INTERNAL "SlicerExecutionModel extra executable target libraries" FORCE
-  )
+if(Slicer_USE_ITKFactoryRegistration)
+  list(APPEND dirs
+    ITKFactoryRegistration
+    )
+  set(SlicerExecutionModel_EXTRA_EXECUTABLE_TARGET_LIBRARIES
+    ${SlicerExecutionModel_EXTRA_EXECUTABLE_TARGET_LIBRARIES} ITKFactoryRegistration
+    CACHE INTERNAL "SlicerExecutionModel extra executable target libraries" FORCE
+    )
+endif()
 
 list(APPEND dirs
   vtkAddon

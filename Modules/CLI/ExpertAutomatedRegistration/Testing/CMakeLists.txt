@@ -24,7 +24,7 @@ add_test(NAME ${testname} COMMAND ${SEM_LAUNCH_COMMAND} $<TARGET_FILE:Generate${
   )
 set_property(TEST ${testname} PROPERTY LABELS ${CLP})
 
-
+ 
 set(testname ${CLP}TestDataRigidArgs)
 add_test(NAME ${testname} COMMAND ${SEM_LAUNCH_COMMAND} $<TARGET_FILE:Generate${CLP}TestData>
   ${frequency} ${TEMP}/${CLP}RigidArgs.mha -p 2 4 6 -o 0.02 0.04 0.06

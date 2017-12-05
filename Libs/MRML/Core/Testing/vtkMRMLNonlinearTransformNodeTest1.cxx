@@ -10,9 +10,13 @@
 
 =========================================================================auto=*/
 
+// Slicer includes
+#include <vtkSlicerConfigure.h> // For Slicer_* macros
+
 // ITK includes
-#include <itkConfigure.h>
+#ifdef Slicer_USE_ITKFactoryRegistration
 #include <itkFactoryRegistration.h>
+#endif
 
 #include "vtkOrientedBSplineTransform.h"
 #include "vtkOrientedGridTransform.h"
@@ -40,7 +44,9 @@ int TestGetTransform();
 
 int vtkMRMLNonlinearTransformNodeTest1(int argc, char * argv[] )
 {
+#ifdef Slicer_USE_ITKFactoryRegistration
   itk::itkFactoryRegistration();
+#endif
 
   const char *filename = 0;
   if (argc > 1)

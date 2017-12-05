@@ -34,12 +34,23 @@ include_directories(${include_dirs})
 # --------------------------------------------------------------------------
 # Update SlicerExecutionModel_EXTRA_INCLUDE_DIRECTORIES
 # --------------------------------------------------------------------------
-set(SlicerExecutionModel_EXTRA_INCLUDE_DIRECTORIES
+set(_include_dirs
   ${SlicerExecutionModel_EXTRA_INCLUDE_DIRECTORIES}
   ${Slicer_BaseCLI_INCLUDE_DIRS}
-  ${ITKFactoryRegistration_INCLUDE_DIRS}
+  )
+if(Slicer_USE_ITKFactoryRegistration)
+  list(APPEND _include_dirs
+    ${ITKFactoryRegistration_INCLUDE_DIRS}
+    )
+endif()
+set(SlicerExecutionModel_EXTRA_INCLUDE_DIRECTORIES
+  ${_include_dirs}
   CACHE INTERNAL "SlicerExecutionModel extra includes" FORCE
   )
+
+# --------------------------------------------------------------------------
+# Update SlicerExecutionModel_CLI_LIBRARY_WRAPPER_CXX
+# --------------------------------------------------------------------------
 set(SlicerExecutionModel_CLI_LIBRARY_WRAPPER_CXX
   ${CMAKE_CURRENT_BINARY_DIR}/SEMCommandLineLibraryWrapper.cxx
   CACHE INTERNAL "SlicerExecutionModel extra includes" FORCE

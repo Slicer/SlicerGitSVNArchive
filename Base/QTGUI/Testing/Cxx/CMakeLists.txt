@@ -10,25 +10,34 @@ if(BUILD_TESTING)
     ITKCommon
     )
   find_package(ITK 4.6 COMPONENTS ${${KIT}Testing_ITK_COMPONENTS} REQUIRED)
-  set(ITK_NO_IO_FACTORY_REGISTER_MANAGER 1) # See Libs/ITKFactoryRegistration/CMakeLists.txt
-  list(APPEND ITK_LIBRARIES ITKFactoryRegistration)
-  list(APPEND ITK_INCLUDE_DIRS
-    ${ITKFactoryRegistration_INCLUDE_DIRS}
-    )
+  if(Slicer_USE_ITKFactoryRegistration)
+    set(ITK_NO_IO_FACTORY_REGISTER_MANAGER 1) # See Libs/ITKFactoryRegistration/CMakeLists.txt
+    list(APPEND ITK_LIBRARIES ITKFactoryRegistration)
+    list(APPEND ITK_INCLUDE_DIRS
+      ${ITKFactoryRegistration_INCLUDE_DIRS}
+      )
+  endif()
   include(${ITK_USE_FILE})
 
   #-----------------------------------------------------------------------------
   set(CMAKE_TESTDRIVER_BEFORE_TESTMAIN  "
     DEBUG_LEAKS_ENABLE_EXIT_ERROR();
     TESTING_OUTPUT_INIT();
-    itk::itkFactoryRegistration();
     ")
+  if(Slicer_USE_ITKFactoryRegistration)
+    set(CMAKE_TESTDRIVER_BEFORE_TESTMAIN  "${CMAKE_TESTDRIVER_BEFORE_TESTMAIN}
+      itk::itkFactoryRegistration();
+      ")
+  endif()
 
   set(CMAKE_TESTDRIVER_AFTER_TESTMAIN  "
     TESTING_OUTPUT_ASSERT_WARNINGS_ERRORS(0);
     ")
 
-  set(EXTRA_INCLUDE "vtkMRMLDebugLeaksMacro.h\"\n\#include <itkConfigure.h>\n\#include <itkFactoryRegistration.h>\n\#include \"vtkTestingOutputWindow.h")
+  set(EXTRA_INCLUDE "vtkMRMLDebugLeaksMacro.h\"\n\#include <itkConfigure.h>\n\#include \"vtkTestingOutputWindow.h")
+  if(Slicer_USE_ITKFactoryRegistration)
+    set(EXTRA_INCLUDE "${EXTRA_INCLUDE}\"\n\#include \"itkFactoryRegistration.h")
+  endif()
 
   include_directories(${CMAKE_CURRENT_BINARY_DIR})
   set(KIT_TEST_SRCS

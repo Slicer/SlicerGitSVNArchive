@@ -45,9 +45,13 @@
 #include <vector>
 #include <string>
 
+// Slicer includes
+#include <vtkSlicerConfigure.h> // For Slicer_* macros
+
 // ITK includes
-#include <itkConfigure.h>
+#ifdef Slicer_USE_ITKFactoryRegistration
 #include <itkFactoryRegistration.h>
+#endif
 
 //-----------------------------------------------------------------------------
 bool isImageDataValid(vtkAlgorithmOutput* imageDataConnection)
@@ -79,7 +83,9 @@ bool isImageDataValid(vtkAlgorithmOutput* imageDataConnection)
 //-----------------------------------------------------------------------------
 int main( int argc, char * argv[] )
 {
+#ifdef Slicer_USE_ITKFactoryRegistration
   itk::itkFactoryRegistration();
+#endif
 
   if(argc<2)
     {

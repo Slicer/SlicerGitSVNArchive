@@ -53,7 +53,9 @@
 #include "qSlicerStyle.h"
 
 // ITK includes
+#ifdef Slicer_USE_ITKFactoryRegistration
 #include <itkFactoryRegistration.h>
+#endif
 
 // VTK includes
 //#include <vtkObject.h>
@@ -95,7 +97,9 @@ void splashMessage(QScopedPointer<QSplashScreen>& splashScreen, const QString& m
 //----------------------------------------------------------------------------
 int SlicerAppMain(int argc, char* argv[])
 {
+#ifdef Slicer_USE_ITKFactoryRegistration
   itk::itkFactoryRegistration();
+#endif
 
 #if QT_VERSION >= 0x040803
 #ifdef Q_OS_MACX
