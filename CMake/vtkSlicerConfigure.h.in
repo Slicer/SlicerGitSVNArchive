@@ -33,6 +33,7 @@
 #endif
 
 #cmakedefine Slicer_USE_IGSTK
+#cmakedefine Slicer_USE_ITKFactoryRegistration
 #cmakedefine Slicer_USE_NAVITRACK
 #cmakedefine Slicer_USE_NUMPY
 #cmakedefine Slicer_USE_PYTHONQT

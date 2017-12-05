@@ -239,6 +239,11 @@ CMAKE_DEPENDENT_OPTION(
   "Slicer_BUILD_CLI_SUPPORT" OFF
   )
 
+if(NOT DEFINED Slicer_USE_ITKFactoryRegistration)
+  set(Slicer_USE_ITKFactoryRegistration ${Slicer_BUILD_CLI_SUPPORT})
+endif()
+mark_as_superbuild(Slicer_USE_ITKFactoryRegistration:BOOL)
+
 mark_as_superbuild(Slicer_BUILD_CLI)
 CMAKE_DEPENDENT_OPTION(
   Slicer_BUILD_LEGACY_CLI "Build Slicer LEGACY_CLI Plugins" ON

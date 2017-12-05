@@ -6,9 +6,13 @@
 #include <itkImageFileReader.h>
 #include <itkImageFileWriter.h>
 
+// SlicerExecutionModel includes
+#include <SEMConfigure.h>
+
 // ITK includes
-#include <itkConfigure.h>
+#ifdef SlicerExecutionModel_USE_ITKFactoryRegistration
 #include <itkFactoryRegistration.h>
+#endif
 
 
 #include "labelMapPreprocessor.h"
@@ -19,7 +23,9 @@ getFinalMask(typename itk::Image<TPixel, 3>::Pointer img, unsigned char l, TPixe
 
 int main(int argc, char* * argv)
 {
+#ifdef SlicerExecutionModel_USE_ITKFactoryRegistration
   itk::itkFactoryRegistration();
+#endif
 
   if( argc != 7 )
     {

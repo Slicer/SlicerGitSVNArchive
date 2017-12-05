@@ -4,13 +4,19 @@
 // VTK includes
 #include <vtkImageData.h>
 
+// Slicer includes
+#include <vtkSlicerConfigure.h> //For Slicer_* macros
+
 // ITK includes
-#include <itkConfigure.h>
+#ifdef Slicer_USE_ITKFactoryRegistration
 #include <itkFactoryRegistration.h>
+#endif
 
 int main(int argc, char *argv[])
 {
+#ifdef Slicer_USE_ITKFactoryRegistration
   itk::itkFactoryRegistration();
+#endif
 
   if (argc < 2)
     {

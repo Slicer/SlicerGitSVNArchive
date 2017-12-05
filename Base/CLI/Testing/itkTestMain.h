@@ -50,7 +50,14 @@
 #include "itksys/SystemTools.hxx"
 #include "itkIntTypes.h"
 #include "itkFloatingPointExceptions.h"
+
+// Slicer includes
+#include <vtkSlicerConfigure.h> //For Slicer_* macros
+
+// ITK includes
+#ifdef Slicer_USE_ITKFactoryRegistration
 #include <itkFactoryRegistration.h>
+#endif
 
 #define ITK_TEST_DIMENSION_MAX 6
 
@@ -96,7 +103,9 @@ int main(int ac, char *av[])
   typedef std::pair<char *, char *> ComparePairType;
   std::vector<ComparePairType> compareList;
 
+#ifdef Slicer_USE_ITKFactoryRegistration
   itk::itkFactoryRegistration();
+#endif
 
   RegisterTests();
   std::string testToRun;
