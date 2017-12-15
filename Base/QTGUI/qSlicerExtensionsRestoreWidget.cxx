@@ -7,14 +7,14 @@
 #include <QDir>
 #include <QListWidget>
 #include <QDebug>
-#include <QProgressdialog>
+#include <QProgressDialog>
 #include <ctkMessageBox.h>
 #include <QStyledItemDelegate>
 #include <QPainter>
 #include <QEvent>
 #include <QApplication>
 #include <qSlicerApplication.h>
-#include <QCheckbox>
+#include <QCheckBox>
 
 // QtGUI includes
 #include "qSlicerExtensionsRestoreWidget.h"

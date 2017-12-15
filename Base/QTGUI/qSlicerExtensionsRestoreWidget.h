@@ -7,7 +7,7 @@
 
 // Qt includes
 #include <QWidget>
-#include <Qvariant>
+#include <QVariant>
 
 // QtGUI includes
 #include "qSlicerBaseQTGUIExport.h"
