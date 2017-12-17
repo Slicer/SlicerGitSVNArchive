@@ -7,7 +7,7 @@
 #include <QDir>
 #include <QListWidget>
 #include <QDebug>
-#include <QProgressdialog>
+#include <QProgressDialog>
 #include <ctkMessageBox.h>
 #include <QStyledItemDelegate>
 #include <QPainter>
@@ -86,7 +86,7 @@ public:
 
     QApplication::style()->drawControl(QStyle::CE_CheckBox, &cbOpt, painter);
   }
-  QSize sizeHint(const QStyleOptionViewItem & option, const QModelIndex & index) const{
+  QSize sizeHint(const QStyleOptionViewItem & /*option*/, const QModelIndex & /*index*/) const{
     return QSize(200, 60);
   }
 
@@ -128,7 +128,7 @@ public:
   QString checkOnStartupSettingsKey;
   QString silentInstallOnStartUpSettingsKey;
   unsigned int nrOfExtensionsToInstall;
-  int currentExtensionToInstall;
+  unsigned int currentExtensionToInstall;
   bool headlessMode;
   unsigned int maxProgress;
 
@@ -309,7 +309,7 @@ QStringList qSlicerExtensionsRestoreWidgetPrivate
 ::getSelectedExtensions()
 {
   QStringList selectedExtensions;
-  for (unsigned int i = 0; i < extensionList->count(); i++)
+  for (int i = 0; i < extensionList->count(); i++)
   {
     QListWidgetItem* currentItem = extensionList->item(i);
     if (currentItem->data(Qt::UserRole + 1).toBool())
@@ -335,7 +335,7 @@ void qSlicerExtensionsRestoreWidgetPrivate
 {
   this->extensionsToInstall = extensionIds;
   this->nrOfExtensionsToInstall = extensionsToInstall.size();
-  this->currentExtensionToInstall = -1;
+  this->currentExtensionToInstall = 0;
   downloadAndInstallNextExtension();
 }
 
@@ -344,7 +344,6 @@ void qSlicerExtensionsRestoreWidgetPrivate
 ::downloadAndInstallNextExtension()
 {
   Q_Q(qSlicerExtensionsRestoreWidget);
-  this->currentExtensionToInstall++;
   if (this->currentExtensionToInstall < this->nrOfExtensionsToInstall)
   {
     q->extensionsManagerModel()->downloadAndInstallExtension(extensionsToInstall.at(currentExtensionToInstall));
@@ -360,6 +359,7 @@ void qSlicerExtensionsRestoreWidgetPrivate
       setupList();
     }
   }
+  this->currentExtensionToInstall++;
 }
 // --------------------------------------------------------------------------
 void qSlicerExtensionsRestoreWidgetPrivate
@@ -490,7 +490,7 @@ void qSlicerExtensionsRestoreWidget::onProgressChanged(const QString& extensionN
 
 // --------------------------------------------------------------------------
 void qSlicerExtensionsRestoreWidget
-::onInstallationFinished(QString extensionName)
+::onInstallationFinished(QString /*extensionName*/)
 {
   Q_D(qSlicerExtensionsRestoreWidget);
   d->downloadAndInstallNextExtension();
@@ -504,7 +504,7 @@ void qSlicerExtensionsRestoreWidget
 }
 
 // --------------------------------------------------------------------------
-void qSlicerExtensionsRestoreWidget::onMessageLogged(const QString& text, ctkErrorLogLevel::LogLevels level)
+void qSlicerExtensionsRestoreWidget::onMessageLogged(const QString& /*text*/, ctkErrorLogLevel::LogLevels level)
 {
   QString delay = "2500";
   QString state;
