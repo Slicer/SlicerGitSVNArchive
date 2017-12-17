@@ -908,6 +908,15 @@ QVariantMap qSlicerExtensionsManagerModelPrivate::getExtensionsInfoFromPreviousI
       QString extensionName = extensionNames.at(j);
       QString extensionId = "";
 
+      //make sure that no invalid white space leads to invalid extension names
+      //also catches empty entries in [ExtensionHistory] in Slicer.ini
+      extensionName = extensionName.simplified();
+      extensionName.replace(" ", "");
+      if (extensionName.length() == 0)
+      {
+        break;
+      }
+
       curExtensionInfo.insert("UsedLastInRevision", revisions.at(i));
       if (i == lastRevision || (extensionsHistoryInformation.contains(extensionName) &&
         extensionsHistoryInformation.value(extensionName).toMap().value("WasInstalledInLastRevision").toBool()))
