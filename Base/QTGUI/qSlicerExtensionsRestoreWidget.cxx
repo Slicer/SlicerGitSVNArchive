@@ -14,7 +14,7 @@
 #include <QEvent>
 #include <QApplication>
 #include <qSlicerApplication.h>
-#include <QCheckbox>
+#include <QCheckBox>
 
 // QtGUI includes
 #include "qSlicerExtensionsRestoreWidget.h"
