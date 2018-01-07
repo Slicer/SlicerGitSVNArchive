@@ -30,7 +30,6 @@ if((NOT DEFINED VTK_DIR OR NOT DEFINED VTK_SOURCE_DIR) AND NOT ${CMAKE_PROJECT_N
 
   set(EXTERNAL_PROJECT_OPTIONAL_ARGS)
 
-  set(VTK_WRAP_TCL OFF)
   set(VTK_WRAP_PYTHON OFF)
 
   if(Slicer_USE_PYTHONQT)
@@ -86,20 +85,9 @@ if((NOT DEFINED VTK_DIR OR NOT DEFINED VTK_SOURCE_DIR) AND NOT ${CMAKE_PROJECT_N
     endif()
   endif()
 
-
   # Disable Tk when Python wrapping is enabled
   if(Slicer_USE_PYTHONQT)
     list(APPEND EXTERNAL_PROJECT_OPTIONAL_ARGS -DVTK_USE_TK:BOOL=OFF)
-  endif()
-
-  if(VTK_WRAP_TCL)
-    list(APPEND EXTERNAL_PROJECT_OPTIONAL_ARGS
-      -DTCL_INCLUDE_PATH:PATH=${TCL_INCLUDE_PATH}
-      -DTK_INCLUDE_PATH:PATH=${TK_INCLUDE_PATH}
-      -DTCL_LIBRARY:FILEPATH=${TCL_LIBRARY}
-      -DTK_LIBRARY:FILEPATH=${TK_LIBRARY}
-      -DTCL_TCLSH:FILEPATH=${TCL_TCLSH}
-      )
   endif()
 
   # Enable VTK_ENABLE_KITS only if CMake >= 3.0 is used
@@ -120,11 +108,9 @@ if((NOT DEFINED VTK_DIR OR NOT DEFINED VTK_SOURCE_DIR) AND NOT ${CMAKE_PROJECT_N
 
 set(_git_tag)
 if("${Slicer_VTK_VERSION_MAJOR}" STREQUAL "7")
-  set(_git_tag "57d826c1bcdf6cd201b1e77dd14a84d6930e3a55")
-elseif("${Slicer_VTK_VERSION_MAJOR}" STREQUAL "8")
-  set(_git_tag "71cf31677877a3a93a3d3f23ad4c400cf7dff770")
+  set(_git_tag "43f6ee36f6e28c8347768bd97df4d767da6b4ce7")
 elseif("${Slicer_VTK_VERSION_MAJOR}" STREQUAL "9")
-  set(_git_tag "e3f97b0952160c7d7c599deacd8e630eb9ebfc26")
+  set(_git_tag "887c5065ec2220be04b105ce1d966c5162e729af")
 else()
   message(FATAL_ERROR "error: Unsupported Slicer_VTK_VERSION_MAJOR: ${Slicer_VTK_VERSION_MAJOR}")
 endif()
@@ -157,7 +143,7 @@ endif()
       -DVTK_USE_PARALLEL:BOOL=ON
       -DVTK_DEBUG_LEAKS:BOOL=${VTK_DEBUG_LEAKS}
       -DVTK_LEGACY_REMOVE:BOOL=ON
-      -DVTK_WRAP_TCL:BOOL=${VTK_WRAP_TCL}
+      -DVTK_WRAP_TCL:BOOL=OFF
       #-DVTK_USE_RPATH:BOOL=ON # Unused
       -DVTK_WRAP_PYTHON:BOOL=${VTK_WRAP_PYTHON}
       -DVTK_INSTALL_RUNTIME_DIR:PATH=${Slicer_INSTALL_BIN_DIR}
@@ -198,10 +184,23 @@ endif()
     )
 
   # pythonpath
-  set(${proj}_PYTHONPATH_LAUNCHER_BUILD
-    ${VTK_DIR}/Wrapping/Python
-    ${VTK_DIR}/${_library_output_subdir}/<CMAKE_CFG_INTDIR>
-    )
+  if(Slicer_VTK_VERSION_MAJOR VERSION_GREATER 7)
+    if(UNIX)
+      set(${proj}_PYTHONPATH_LAUNCHER_BUILD
+        ${VTK_DIR}/${_library_output_subdir}/python2.7/site-packages
+        )
+    else()
+      set(${proj}_PYTHONPATH_LAUNCHER_BUILD
+        ${VTK_DIR}/${_library_output_subdir}/<CMAKE_CFG_INTDIR>/Lib/site-packages
+        )
+    endif()
+  else()
+    set(${proj}_PYTHONPATH_LAUNCHER_BUILD
+      ${VTK_DIR}/Wrapping/Python
+      ${VTK_DIR}/${_library_output_subdir}/<CMAKE_CFG_INTDIR>
+      )
+  endif()
+
   mark_as_superbuild(
     VARS ${proj}_PYTHONPATH_LAUNCHER_BUILD
     LABELS "PYTHONPATH_LAUNCHER_BUILD"

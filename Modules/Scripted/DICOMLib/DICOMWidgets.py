@@ -516,14 +516,20 @@ class DICOMDetailsBase(VTKObservationMixin, SizePositionSettingsMixin):
       try:
         os.makedirs(databaseDirectory)
       except OSError:
-        documentsLocation = qt.QDesktopServices.DocumentsLocation
-        documents = qt.QDesktopServices.storageLocation(documentsLocation)
+        try:
+          # Qt4
+          documentsLocation = qt.QDesktopServices.DocumentsLocation
+          documents = qt.QDesktopServices.storageLocation(documentsLocation)
+        except AttributeError:
+          # Qt5
+          documentsLocation = qt.QStandardPaths.DocumentsLocation
+          documents = qt.QStandardPaths.writableLocation(documentsLocation)
         databaseDirectory = os.path.join(documents, "SlicerDICOMDatabase")
         if not os.path.exists(databaseDirectory):
           os.makedirs(databaseDirectory)
         if not slicer.app.commandOptions().testingEnabled:
           message = "DICOM Database will be stored in\n\n{}\n\nUse the Local Database button in " \
-                    "the DICOM Browser to pick a different location.".format(databaseDirectory)
+                    "the DICOM Browser to pick a different location.".format(slicer.util.toVTKString(databaseDirectory))
           slicer.util.infoDisplay(message, parent=self, windowTitle='DICOM')
           self.settings.setValue('DatabaseDirectory', databaseDirectory)
 
@@ -678,8 +684,11 @@ class DICOMDetailsBase(VTKObservationMixin, SizePositionSettingsMixin):
   def getLoadablesFromFileLists(self, fileLists):
     """Take list of file lists, return loadables by plugin dictionary
     """
-
     loadablesByPlugin = {}
+    loadEnabled = False
+    if not type(fileLists) is list or len(fileLists) == 0 or not type(fileLists[0]) in [tuple, list]:
+      logging.error('File lists must contain a non-empty list of tuples/lists')
+      return loadablesByPlugin, loadEnabled
 
     allFileCount = missingFileCount = 0
     for fileList in self.fileLists:
@@ -697,7 +706,6 @@ class DICOMDetailsBase(VTKObservationMixin, SizePositionSettingsMixin):
 
     plugins = self.pluginSelector.selectedPlugins()
 
-    loadEnabled = False
     progress = slicer.util.createProgressDialog(parent=self, value=0, maximum=len(plugins))
 
     for step, pluginClass in enumerate(plugins):

@@ -76,11 +76,12 @@ public:
     ///
     /// don't do anything as it's overriding the LUTs low threshold with the
     /// scalar values' lowest value
+    using vtkLookupTable::SetRange;
     void SetRange(double, double) VTK_OVERRIDE;
     ///
     /// Given a scalar value val, return an rgba color value
     /// returns array of length 3, 0-255
-    unsigned char *MapValue(double val) VTK_OVERRIDE;
+    const unsigned char *MapValue(double val) VTK_OVERRIDE;
     ///
     /// passes val to MapValue
     void GetColor(double, double[3]) VTK_OVERRIDE;

@@ -30,9 +30,10 @@ include(SlicerCheckCMakeHTTPS)
 option(${CMAKE_PROJECT_NAME}_USE_GIT_PROTOCOL "If behind a firewall turn this off to use http instead." ON)
 set(git_protocol "git")
 if(NOT ${CMAKE_PROJECT_NAME}_USE_GIT_PROTOCOL)
-  set(git_protocol "http")
+  set(git_protocol "https")
 
   # Verify that the global git config has been updated with the expected "insteadOf" option.
+  # XXX CMake 3.8: Replace this with use of GIT_CONFIG option provided by ExternalProject
   function(_check_for_required_git_config_insteadof base insteadof)
     execute_process(
       COMMAND ${GIT_EXECUTABLE} config --global --get "url.${base}.insteadof"
@@ -48,13 +49,9 @@ if(NOT ${CMAKE_PROJECT_NAME}_USE_GIT_PROTOCOL)
 "option ${CMAKE_PROJECT_NAME}_USE_GIT_PROTOCOL set to FALSE. "
 "See http://na-mic.org/Mantis/view.php?id=2731"
 "\nYou could do so by running the command:\n"
-"  ${GIT_EXECUTABLE} config --global url.\"${base}\".insteadOf \"${insteadof}\"\n")
+"  ${GIT_EXECUTABLE} config --global url.${base}.insteadOf ${insteadof}\n")
     endif()
   endfunction()
-
-  if("${ITK_VERSION_MAJOR}" LESS 4)
-    _check_for_required_git_config_insteadof("http://itk.org/" "git://itk.org/")
-  endif()
 
 endif()
 
@@ -222,7 +219,7 @@ list(APPEND Slicer_REMOTE_DEPENDENCIES jqPlot)
 
 Slicer_Remote_Add(OpenIGTLinkIF
   GIT_REPOSITORY ${git_protocol}://github.com/Slicer/OpenIGTLinkIF.git
-  GIT_TAG 06379c2bb8581d54851a1ba299e2daf40cec2c21
+  GIT_TAG 0266aa27ad19a00f8d2b1c04736b9f3d3fb25aee
   OPTION_NAME Slicer_BUILD_OpenIGTLinkIF
   OPTION_DEPENDS "Slicer_BUILD_QTLOADABLEMODULES;Slicer_USE_OpenIGTLink"
   LABELS REMOTE_MODULE
@@ -243,7 +240,7 @@ list_conditional_append(Slicer_BUILD_MultiVolumeExplorer Slicer_REMOTE_DEPENDENC
 
 Slicer_Remote_Add(MultiVolumeImporter
   GIT_REPOSITORY ${git_protocol}://github.com/fedorov/MultiVolumeImporter.git
-  GIT_TAG a85d4566f0b292773b3f28e06305e2e4d2cf3ca2
+  GIT_TAG baa0621ac414910da17fe97dabe1fb7982fbbb62
   OPTION_NAME Slicer_BUILD_MultiVolumeImporter
   OPTION_DEPENDS "Slicer_BUILD_QTLOADABLEMODULES;Slicer_BUILD_MULTIVOLUME_SUPPORT;Slicer_USE_PYTHONQT"
   LABELS REMOTE_MODULE
@@ -261,9 +258,9 @@ list_conditional_append(Slicer_BUILD_SimpleFilters Slicer_REMOTE_DEPENDENCIES Si
 
 set(BRAINSTools_options
   BRAINSTools_SUPERBUILD:BOOL=OFF
-  BRAINSTools_CLI_LIBRARY_OUTPUT_DIRECTORY:PATH=${Slicer_BINARY_DIR}/${Slicer_BINARY_INNER_SUBDIR}/${Slicer_CLIMODULES_LIB_DIR}
-  BRAINSTools_CLI_ARCHIVE_OUTPUT_DIRECTORY:PATH=${Slicer_BINARY_DIR}/${Slicer_BINARY_INNER_SUBDIR}/${Slicer_CLIMODULES_LIB_DIR}
-  BRAINSTools_CLI_RUNTIME_OUTPUT_DIRECTORY:PATH=${Slicer_BINARY_DIR}/${Slicer_BINARY_INNER_SUBDIR}/${Slicer_CLIMODULES_BIN_DIR}
+  BRAINSTools_CLI_LIBRARY_OUTPUT_DIRECTORY:PATH=${CMAKE_BINARY_DIR}/${Slicer_BINARY_INNER_SUBDIR}/${Slicer_CLIMODULES_LIB_DIR}
+  BRAINSTools_CLI_ARCHIVE_OUTPUT_DIRECTORY:PATH=${CMAKE_BINARY_DIR}/${Slicer_BINARY_INNER_SUBDIR}/${Slicer_CLIMODULES_LIB_DIR}
+  BRAINSTools_CLI_RUNTIME_OUTPUT_DIRECTORY:PATH=${CMAKE_BINARY_DIR}/${Slicer_BINARY_INNER_SUBDIR}/${Slicer_CLIMODULES_BIN_DIR}
   BRAINSTools_CLI_INSTALL_LIBRARY_DESTINATION:PATH=${Slicer_INSTALL_CLIMODULES_LIB_DIR}
   BRAINSTools_CLI_INSTALL_ARCHIVE_DESTINATION:PATH=${Slicer_INSTALL_CLIMODULES_LIB_DIR}
   BRAINSTools_CLI_INSTALL_RUNTIME_DESTINATION:PATH=${Slicer_INSTALL_CLIMODULES_BIN_DIR}
@@ -303,10 +300,7 @@ set(BRAINSTools_options
   )
 Slicer_Remote_Add(BRAINSTools
   GIT_REPOSITORY "${git_protocol}://github.com/Slicer/BRAINSTools.git"
-  # Include patches:
-  # - for exporting "BRAINSCommonLib" (submitted to upstream as https://github.com/BRAINSia/BRAINSTools/pull/355)
-  # - for https://issues.slicer.org/view.php?id=4463 already integrated in upstream BRAINSTools
-  GIT_TAG "66db91f6d9944a5f931a58a67e195e3986c1751b" # master (from 2017-08-04, post v4.7.1)
+  GIT_TAG "c1289e6686f3fd27db2ce0ea19c36e9792e40d2a" # master (from 2017-11-29, post v4.7.1)
   OPTION_NAME Slicer_BUILD_BRAINSTOOLS
   OPTION_DEPENDS "Slicer_BUILD_CLI_SUPPORT;Slicer_BUILD_CLI"
   LABELS REMOTE_MODULE
@@ -321,7 +315,7 @@ endif()
 
 Slicer_Remote_Add(EMSegment
   SVN_REPOSITORY "http://svn.slicer.org/Slicer3/branches/Slicer4-EMSegment"
-  SVN_REVISION -r "17142"
+  SVN_REVISION -r "17143"
   OPTION_NAME Slicer_BUILD_EMSegment
   OPTION_DEPENDS "Slicer_BUILD_BRAINSTOOLS;Slicer_BUILD_QTLOADABLEMODULES;Slicer_USE_PYTHONQT_WITH_TCL"
   LABELS REMOTE_MODULE
@@ -356,7 +350,7 @@ list_conditional_append(Slicer_BUILD_CompareVolumes Slicer_REMOTE_DEPENDENCIES C
 
 Slicer_Remote_Add(LandmarkRegistration
   GIT_REPOSITORY "${git_protocol}://github.com/pieper/LandmarkRegistration"
-  GIT_TAG "a8c80bccea13979a98e967ed226a13d123a9c7ac"
+  GIT_TAG "8ff85fc303e84ad4dbf612973532f9982596c236"
   OPTION_NAME Slicer_BUILD_LandmarkRegistration
   OPTION_DEPENDS "Slicer_BUILD_CompareVolumes;Slicer_USE_PYTHONQT"
   LABELS REMOTE_MODULE
@@ -399,6 +393,28 @@ set(EXTERNAL_PROJECT_OPTIONAL_ARGS)
 if(WIN32)
   list(APPEND EXTERNAL_PROJECT_OPTIONAL_ARGS -DSlicer_SKIP_ROOT_DIR_MAX_LENGTH_CHECK:BOOL=ON)
 endif()
+
+#------------------------------------------------------------------------------
+# Customizing SlicerApp metadata
+#------------------------------------------------------------------------------
+
+# Configuring Slicer setting these variables allows to overwrite the properties
+# associated with the SlicerApp application.
+
+foreach(name IN ITEMS
+  DESCRIPTION_SUMMARY
+  DESCRIPTION_FILE
+  LAUNCHER_SPLASHSCREEN_FILE
+  APPLE_ICON_FILE
+  WIN_ICON_FILE
+  LICENSE_FILE
+  )
+  if(DEFINED SlicerApp_${name})
+    list(APPEND EXTERNAL_PROJECT_OPTIONAL_ARGS
+      -DSlicerApp_${name}:STRING=${SlicerApp_${name}}
+      )
+  endif()
+endforeach()
 
 #------------------------------------------------------------------------------
 # Slicer_EXTENSION_SOURCE_DIRS
@@ -457,7 +473,7 @@ ExternalProject_Add(${proj}
     -DSlicer_REQUIRED_C_FLAGS:STRING=${Slicer_REQUIRED_C_FLAGS}
     -DSlicer_REQUIRED_CXX_FLAGS:STRING=${Slicer_REQUIRED_CXX_FLAGS}
     -DSlicer_SUPERBUILD:BOOL=OFF
-    -DSlicer_SUPERBUILD_DIR:PATH=${Slicer_BINARY_DIR}
+    -DSlicer_SUPERBUILD_DIR:PATH=${CMAKE_BINARY_DIR}
     -D${Slicer_MAIN_PROJECT}_APPLICATION_NAME:STRING=${${Slicer_MAIN_PROJECT}_APPLICATION_NAME}
     -DSlicer_EXTENSION_SOURCE_DIRS:STRING=${Slicer_EXTENSION_SOURCE_DIRS}
     -DSlicer_EXTENSION_INSTALL_DIRS:STRING=${Slicer_EXTENSION_INSTALL_DIRS}
