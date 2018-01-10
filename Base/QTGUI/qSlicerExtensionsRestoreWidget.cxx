@@ -508,21 +508,3 @@ void qSlicerExtensionsRestoreWidget
   Q_D(qSlicerExtensionsRestoreWidget);
   d->processExtensionsHistoryInformationOnStartup(extensionInfo);
 }
-
-// --------------------------------------------------------------------------
-void qSlicerExtensionsRestoreWidget::onMessageLogged(const QString& text, ctkErrorLogLevel::LogLevels level)
-{
-  QString delay = "2500";
-  QString state;
-  if (level == ctkErrorLogLevel::Warning)
-  {
-    delay = "10000";
-    state = "warning";
-  }
-  else if (level == ctkErrorLogLevel::Critical || level == ctkErrorLogLevel::Fatal)
-  {
-    delay = "10000";
-    state = "error";
-  }
-
-}

@@ -42,7 +42,6 @@ public:
   void onProgressChanged(const QString& extensionName, qint64 received, qint64 total);
   void onInstallationFinished(QString extensionName);
   void onExtensionHistoryGatheredOnStartup(const QVariantMap&);
-  void onMessageLogged(const QString& text, ctkErrorLogLevel::LogLevels level);
 
 protected:
   QScopedPointer<qSlicerExtensionsRestoreWidgetPrivate> d_ptr;
