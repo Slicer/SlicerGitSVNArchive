@@ -116,7 +116,11 @@ class DMRIInstallWidget(ScriptedLoadableModuleWidget):
       self.applyButton.enabled = False
       return
 
-    md = emm.retrieveExtensionMetadataByName("SlicerDMRI")
+    md = emm.retrieveExtensionMetadata(
+                  {'productname': 'SlicerDMRI',
+                   'os': emm.slicerOs,
+                   'slicer_revision': emm.slicerRevision,
+                   'arch': emm.slicerArch})
 
     if not md or not md.has_key('extension_id'):
       return self.onError()
