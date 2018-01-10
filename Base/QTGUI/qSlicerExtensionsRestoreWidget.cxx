@@ -130,7 +130,6 @@ public:
   unsigned int nrOfExtensionsToInstall;
   int currentExtensionToInstall;
   bool headlessMode;
-  unsigned int maxProgress;
 
 };
 
@@ -179,11 +178,6 @@ void qSlicerExtensionsRestoreWidgetPrivate
   this->checkOnStartup->setText(QObject::tr("Check previous extensions on startup"));
   this->silentInstallOnStartup->setText(QObject::tr("Install previous extensions without request"));
 
-  this->maxProgress = 1000;
-  this->progressBar->setValue(0);
-  this->progressBar->setMaximum(maxProgress);
-  this->progressDialog->setMinimum(0);
-  this->progressDialog->setMaximum(maxProgress);
   this->progressDialog->setWindowFlags(Qt::WindowStaysOnTopHint | Qt::WindowTitleHint | Qt::CustomizeWindowHint);
 
   installButton->setText(QObject::tr("Install Selected"));
@@ -340,6 +334,10 @@ void qSlicerExtensionsRestoreWidgetPrivate
   this->extensionsToInstall = extensionIds;
   this->nrOfExtensionsToInstall = extensionsToInstall.size();
   this->currentExtensionToInstall = -1;
+
+  this->progressBar->setMaximum(this->nrOfExtensionsToInstall);
+  this->progressDialog->setMaximum(this->nrOfExtensionsToInstall);
+
   downloadAndInstallNextExtension();
 }
 
@@ -370,8 +368,7 @@ void qSlicerExtensionsRestoreWidgetPrivate
 void qSlicerExtensionsRestoreWidgetPrivate
 ::downloadProgress(const QString& extensionName, qint64 received, qint64 total)
 {
-  int value = (((float(maxProgress) / float(nrOfExtensionsToInstall))*float(currentExtensionToInstall)) +
-    ((float(received) / float(total)) * (float(maxProgress) / float(nrOfExtensionsToInstall))));
+  int value = float(currentExtensionToInstall) + (float(received) / float(total));
   if (this->headlessMode) {
     this->progressDialog->setValue(value);
     this->progressDialog->setLabelText(
