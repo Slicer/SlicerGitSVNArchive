@@ -1324,7 +1324,7 @@ bool qSlicerExtensionsManagerModel::downloadAndInstallExtension(const QString& e
   connect(task, SIGNAL(finished(qSlicerExtensionDownloadTask*)),
           this, SLOT(onInstallDownloadFinished(qSlicerExtensionDownloadTask*)));
   connect(task, SIGNAL(progress(qSlicerExtensionDownloadTask*, qint64, qint64)),
-    this, SLOT(onInstallDownloadProgress(qSlicerExtensionDownloadTask*, qint64, qint64)));
+          this, SLOT(onInstallDownloadProgress(qSlicerExtensionDownloadTask*, qint64, qint64)));
   return true;
 }
 
