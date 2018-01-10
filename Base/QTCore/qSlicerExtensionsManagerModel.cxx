@@ -524,7 +524,7 @@ void qSlicerExtensionsManagerModelPrivate::addExtensionPathToLauncherSettings(co
   QSettings settings(this->ExtensionsSettingsFilePath, QSettings::IniFormat);
   if (settings.status() != QSettings::NoError)
     {
-    this->warning(QString("Failed to open extensions settings file %1").arg(this->ExtensionsSettingsFilePath));
+    this->warning(QObject::tr("Failed to open extensions settings file %1").arg(this->ExtensionsSettingsFilePath));
     return;
     }
 
@@ -555,7 +555,7 @@ void qSlicerExtensionsManagerModelPrivate::removeExtensionPathFromLauncherSettin
   QSettings settings(this->ExtensionsSettingsFilePath, QSettings::IniFormat);
   if (settings.status() != QSettings::NoError)
     {
-    this->warning(QString("Failed to open extensions settings file: %1").arg(this->ExtensionsSettingsFilePath));
+    this->warning(QObject::tr("Failed to open extensions settings file: %1").arg(this->ExtensionsSettingsFilePath));
     return;
     }
 
@@ -586,7 +586,7 @@ bool qSlicerExtensionsManagerModelPrivate::checkExtensionsInstallDestinationPath
 {
   if (!QDir(destinationPath).exists())
     {
-    error = QString("Extensions install directory does NOT exist: <strong>%1</strong>").arg(destinationPath);
+    error = QObject::tr("Extensions install directory does NOT exist: <strong>%1</strong>").arg(destinationPath);
     return false;
     }
 
@@ -603,8 +603,8 @@ bool qSlicerExtensionsManagerModelPrivate::checkExtensionsInstallDestinationPath
       || !destinationPathInfo.isWritable()
       || !destinationPathInfo.isExecutable())
     {
-    error = QString("Extensions install directory is expected to be "
-                    "readable/writable/executable: <strong>%1</strong>").arg(destinationPath);
+    error = QObject::tr("Extensions install directory is expected to be "
+                        "readable/writable/executable: <strong>%1</strong>").arg(destinationPath);
     return false;
     }
 
