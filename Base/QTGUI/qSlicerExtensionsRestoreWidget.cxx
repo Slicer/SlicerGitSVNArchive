@@ -176,8 +176,8 @@ void qSlicerExtensionsRestoreWidgetPrivate
 
   this->extensionList->setAlternatingRowColors(true);
   this->extensionList->setItemDelegate(new qSlicerRestoreExtensionsItemDelegate(q));
-  this->checkOnStartup->setText("Check previous extensions on startup");
-  this->silentInstallOnStartup->setText("Install previous extensions without request");
+  this->checkOnStartup->setText(QObject::tr("Check previous extensions on startup"));
+  this->silentInstallOnStartup->setText(QObject::tr("Install previous extensions without request"));
 
   this->maxProgress = 1000;
   this->progressBar->setValue(0);
@@ -186,7 +186,7 @@ void qSlicerExtensionsRestoreWidgetPrivate
   this->progressDialog->setMaximum(maxProgress);
   this->progressDialog->setWindowFlags(Qt::WindowStaysOnTopHint | Qt::WindowTitleHint | Qt::CustomizeWindowHint);
 
-  installButton->setText("Install Selected");
+  installButton->setText(QObject::tr("Install Selected"));
   layoutForProgressAndButton->addWidget(this->progressBar);
   layoutForProgressAndButton->addWidget(installButton);
   layoutForSettings->addWidget(this->checkOnStartup);
@@ -244,7 +244,8 @@ void qSlicerExtensionsRestoreWidgetPrivate
       }
       else
       {
-        const QString& text = QString("%1 compatible extension(s) from a previous Slicer installation found. Do you want to install?"
+        const QString& text = QObject::tr(
+          "%1 compatible extension(s) from a previous Slicer installation found. Do you want to install? "
           "(For details see: Extension Manager > Restore Extensions)").arg(candidateIds.length());
 
         ctkMessageBox checkHistoryMessage;
@@ -287,10 +288,13 @@ void qSlicerExtensionsRestoreWidgetPrivate
     const bool isItemEnabled              = isCompatible && !isInstalled;
     const bool isItemChecked              = isItemEnabled && wasInstalledInLastRevision;
     const QString& description =
-      (isInstalled ? "currently installed" :
-      (isCompatible ? ( wasInstalledInLastRevision ? "was used in previously installed Slicer version (" + usedLastInRevision + ") " :
-      "was last used in Slicer version " + usedLastInRevision) :
-      "not compatible with current Slicer version (was last used in Slicer version " + usedLastInRevision + ")"));
+      (isInstalled
+       ? QObject::tr("currently installed")
+       : (isCompatible
+          ? (wasInstalledInLastRevision
+             ? QObject::tr("was used in previously installed Slicer version (%1)").arg(usedLastInRevision)
+             : QObject::tr("was last used in Slicer version %1").arg(usedLastInRevision))
+          : QObject::tr("not compatible with current Slicer version (was last used in Slicer version %1)").arg(usedLastInRevision)));
 
     extensionItem->setData(Qt::UserRole, currentInfo.value("ExtensionId").toString());
     extensionItem->setData(Qt::UserRole + 1, isItemChecked);
@@ -353,7 +357,8 @@ void qSlicerExtensionsRestoreWidgetPrivate
     if (this->headlessMode) {
       this->progressDialog->close();
       this->headlessMode = false;
-      static_cast<qSlicerApplication*>qApp->confirmRestart("All extensions restored. Please restart Slicer.");
+      static_cast<qSlicerApplication*>qApp->confirmRestart(
+        QObject::tr("All extensions restored. Please restart Slicer."));
     }
     else
     {
@@ -369,7 +374,11 @@ void qSlicerExtensionsRestoreWidgetPrivate
     ((float(received) / float(total)) * (float(maxProgress) / float(nrOfExtensionsToInstall))));
   if (this->headlessMode) {
     this->progressDialog->setValue(value);
-    this->progressDialog->setLabelText("Installing " + extensionName + " (" + QString::number(received) + "/" + QString::number(total) + ")");
+    this->progressDialog->setLabelText(
+      QObject::tr("Installing %1 (%2/%3)")
+      .arg(extensionName)
+      .arg(received)
+      .arg(total));
   }
   else
   {
