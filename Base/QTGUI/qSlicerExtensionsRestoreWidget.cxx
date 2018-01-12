@@ -152,7 +152,7 @@ void qSlicerExtensionsRestoreWidgetPrivate::init()
 void qSlicerExtensionsRestoreWidgetPrivate::onShow()
 {
   QSettings settings; // (this->ExtensionsManagerModel->extensionsSettingsFilePath(), QSettings::IniFormat);
-  checkOnStartup->setChecked(!settings.value(checkOnStartupSettingsKey).toBool());
+  checkOnStartup->setChecked(settings.value(checkOnStartupSettingsKey).toBool());
   silentInstallOnStartup->setChecked(settings.value(silentInstallOnStartUpSettingsKey).toBool());
   silentInstallOnStartup->setEnabled(checkOnStartup->isChecked());
 }
@@ -189,7 +189,7 @@ void qSlicerExtensionsRestoreWidgetPrivate
   mainLayout->addLayout(layoutForProgressAndButton);
   mainLayout->addLayout(layoutForSettings);
   q->setLayout(mainLayout);
-  checkOnStartupSettingsKey = "ExtensionCheckOnStartup/dontCheck";
+  checkOnStartupSettingsKey = "ExtensionCheckOnStartup/enableCheckOnStartup";
   silentInstallOnStartUpSettingsKey = "ExtensionCheckOnStartup/ifCheckInstallWithoutDialog";
 
   QObject::connect(installButton, SIGNAL(clicked()),
@@ -223,7 +223,7 @@ void qSlicerExtensionsRestoreWidgetPrivate
 {
   QSettings settings;// (this->ExtensionsManagerModel->extensionsSettingsFilePath(), QSettings::IniFormat);
 
-  bool checkOnStartup = !settings.value(this->checkOnStartupSettingsKey).toBool();
+  bool checkOnStartup = settings.value(this->checkOnStartupSettingsKey).toBool();
 
   if (checkOnStartup)
   {
@@ -252,7 +252,7 @@ void qSlicerExtensionsRestoreWidgetPrivate
         {
           this->startDownloadAndInstallExtensionsHeadless(candidateIds);
         }
-        settings.setValue(checkOnStartupSettingsKey, checkHistoryMessage.dontShowAgain());
+        settings.setValue(checkOnStartupSettingsKey, !checkHistoryMessage.dontShowAgain());
       }
     }
   }
@@ -388,7 +388,7 @@ void qSlicerExtensionsRestoreWidgetPrivate
 ::setCheckOnStartup(int state)
 {
   QSettings settings;// (this->ExtensionsManagerModel->extensionsSettingsFilePath(), QSettings::IniFormat);
-  settings.setValue(checkOnStartupSettingsKey, !bool(state));
+  settings.setValue(checkOnStartupSettingsKey, bool(state));
   this->silentInstallOnStartup->setEnabled(bool(state));
 }
 
