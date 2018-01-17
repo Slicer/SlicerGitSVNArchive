@@ -13,18 +13,18 @@
   =========================================================================auto=*/
 #include "vtkDiffusionTensorGlyph.h"
 
-#include "vtkCellArray.h"
-#include "vtkFloatArray.h"
-#include "vtkMath.h"
-#include "vtkInformation.h"
-#include "vtkInformationVector.h"
-#include <vtkNew.h>
-#include "vtkObjectFactory.h"
-#include "vtkPointData.h"
-#include <vtkStreamingDemandDrivenPipeline.h>
-#include "vtkTransform.h"
+#include "vtk/Common/DataModel/vtkCellArray.h"
+#include "vtk/Common/Core/vtkFloatArray.h"
+#include "vtk/Common/Core/vtkMath.h"
+#include "vtk/Common/Core/vtkInformation.h"
+#include "vtk/Common/Core/vtkInformationVector.h"
+#include <vtk/Common/Core/vtkNew.h>
+#include "vtk/Common/Core/vtkObjectFactory.h"
+#include "vtk/Common/DataModel/vtkPointData.h"
+#include <vtk/Common/ExecutionModel/vtkStreamingDemandDrivenPipeline.h>
+#include "vtk/Common/Transforms/vtkTransform.h"
 
-#include "vtkImageData.h"
+#include "vtk/Common/DataModel/vtkImageData.h"
 #include "vtkDiffusionTensorMathematics.h"
 
 #include <ctime>

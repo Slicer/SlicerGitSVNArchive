@@ -15,13 +15,13 @@
 #include "vtkOrientedBSplineTransform.h"
 
 // ITK includes
-#include <itkAffineTransform.h>
-#include <itkBSplineDeformableTransform.h>
+#include <itk/Modules/Core/Transform/include/itkAffineTransform.h>
+#include <itk/Modules/Core/Transform/include/itkBSplineDeformableTransform.h>
 
 // VTK includes
-#include "vtkImageData.h"
-#include "vtkMatrix4x4.h"
-#include "vtkNew.h"
+#include "vtk/Common/DataModel/vtkImageData.h"
+#include "vtk/Common/Math/vtkMatrix4x4.h"
+#include "vtk/Common/Core/vtkNew.h"
 
 typedef itk::BSplineDeformableTransform<double,3,3> itkBSplineType;
 

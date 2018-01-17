@@ -16,21 +16,21 @@ Version:   $Revision: 1.3 $
 #include "vtkMRMLColorNode.h"
 
 // VTK includes
-#include <vtkAlgorithmOutput.h>
-#include <vtkAssignAttribute.h>
-#include <vtkCellData.h>
-#include <vtkCommand.h>
-#include <vtkIntArray.h>
-#include <vtkLookupTable.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
-#include <vtkPassThrough.h>
-#include <vtkPointData.h>
-#include <vtkPointSet.h>
-#include <vtkPolyData.h>
-#include <vtkThreshold.h>
-#include <vtkUnstructuredGrid.h>
-#include <vtkVersion.h>
+#include <vtk/Common/ExecutionModel/vtkAlgorithmOutput.h>
+#include <vtk/Filters/Core/vtkAssignAttribute.h>
+#include <vtk/Common/DataModel/vtkCellData.h>
+#include <vtk/Common/Core/vtkCommand.h>
+#include <vtk/Common/Core/vtkIntArray.h>
+#include <vtk/Common/Core/vtkLookupTable.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Filters/General/vtkPassThrough.h>
+#include <vtk/Common/DataModel/vtkPointData.h>
+#include <vtk/Common/DataModel/vtkPointSet.h>
+#include <vtk/Common/DataModel/vtkPolyData.h>
+#include <vtk/Filters/Core/vtkThreshold.h>
+#include <vtk/Common/DataModel/vtkUnstructuredGrid.h>
+#include <vtk/Common/Core/vtkVersion.h>
 
 //----------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLModelDisplayNode);

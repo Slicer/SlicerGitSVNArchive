@@ -34,23 +34,23 @@
 #include <vtkMRMLSliceNode.h>
 
 // VTK includes
-#include <vtkActor2D.h>
-#include <vtkCallbackCommand.h>
-#include <vtkCellArray.h>
-#include <vtkMatrix4x4.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
-#include <vtkPoints.h>
-#include <vtkPolyData.h>
-#include <vtkPolyDataMapper2D.h>
-#include <vtkProp.h>
-#include <vtkProperty2D.h>
-#include <vtkRenderer.h>
-#include <vtkRenderWindow.h>
-#include <vtkRenderWindowInteractor.h>
-#include <vtkSmartPointer.h>
-#include <vtkWeakPointer.h>
-#include <vtkVersion.h>
+#include <vtk/Rendering/Core/vtkActor2D.h>
+#include <vtk/Common/Core/vtkCallbackCommand.h>
+#include <vtk/Common/DataModel/vtkCellArray.h>
+#include <vtk/Common/Math/vtkMatrix4x4.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkPoints.h>
+#include <vtk/Common/DataModel/vtkPolyData.h>
+#include <vtk/Rendering/Core/vtkPolyDataMapper2D.h>
+#include <vtk/Rendering/Core/vtkProp.h>
+#include <vtk/Rendering/Core/vtkProperty2D.h>
+#include <vtk/Rendering/Core/vtkRenderer.h>
+#include <vtk/Rendering/Core/vtkRenderWindow.h>
+#include <vtk/Rendering/Core/vtkRenderWindowInteractor.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/Common/Core/vtkWeakPointer.h>
+#include <vtk/Common/Core/vtkVersion.h>
 
 // STD includes
 #include <algorithm>

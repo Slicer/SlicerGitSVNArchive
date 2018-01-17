@@ -14,10 +14,10 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#include "itkImageFileWriter.h"
+#include "itk/Modules/IO/ImageBase/include/itkImageFileWriter.h"
 
-#include "itkOrientImageFilter.h"
-#include "itkChangeInformationImageFilter.h"
+#include "itk/Modules/Filtering/ImageGrid/include/itkOrientImageFilter.h"
+#include "itk/Modules/Filtering/ImageGrid/include/itkChangeInformationImageFilter.h"
 
 #include "itkPluginUtilities.h"
 #include "OrientScalarVolumeCLP.h"

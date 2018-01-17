@@ -22,9 +22,9 @@
 #define __vtkSegment_h
 
 // VTK includes
-#include <vtkObject.h>
-#include <vtkSmartPointer.h>
-#include <vtkDataObject.h>
+#include <vtk/Common/Core/vtkObject.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/Common/DataModel/vtkDataObject.h>
 
 // STD includes
 #include <vector>

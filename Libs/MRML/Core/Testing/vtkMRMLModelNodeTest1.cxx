@@ -15,10 +15,10 @@
 #include "vtkMRMLModelNode.h"
 
 // VTK includes
-#include <vtkDataSetAttributes.h>
-#include <vtkPolyData.h>
-#include <vtkSphereSource.h>
-#include <vtkUnstructuredGrid.h>
+#include <vtk/Common/DataModel/vtkDataSetAttributes.h>
+#include <vtk/Common/DataModel/vtkPolyData.h>
+#include <vtk/Filters/Sources/vtkSphereSource.h>
+#include <vtk/Common/DataModel/vtkUnstructuredGrid.h>
 
 //---------------------------------------------------------------------------
 int ExerciseBasicMethods();

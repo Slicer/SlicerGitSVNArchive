@@ -21,8 +21,8 @@
 #include "vtkSegmentationConverterFactory.h"
 
 // VTK includes
-#include <vtkObjectFactory.h>
-#include <vtkDataObject.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/DataModel/vtkDataObject.h>
 
 // SegmentationCore includes
 #include "vtkSegmentationConverterRule.h"

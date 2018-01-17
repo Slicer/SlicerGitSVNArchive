@@ -17,8 +17,8 @@
 #include "vtkEventBroker.h"
 
 // VTK includes
-#include <vtkCallbackCommand.h>
-#include <vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkCallbackCommand.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
 
 vtkStandardNewMacro(vtkObservation);
 vtkCxxSetObjectMacro(vtkObservation, CallbackCommand, vtkCallbackCommand);

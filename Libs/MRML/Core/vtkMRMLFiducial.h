@@ -19,7 +19,7 @@
 #include "vtkMRML.h"
 
 // VTK includes
-#include "vtkObject.h"
+#include "vtk/Common/Core/vtkObject.h"
 class vtkMatrix4x4;
 
 /// \brief MRML object to represent a 3D point.

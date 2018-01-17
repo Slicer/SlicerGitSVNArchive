@@ -25,7 +25,7 @@
 #include <PythonQt.h>
 
 // VTK includes
-#include <vtkPythonUtil.h>
+#include <vtk/Wrapping/PythonCore/vtkPythonUtil.h>
 
 // SlicerQt includes
 #include "qSlicerScriptedLoadableModuleWidget.h"

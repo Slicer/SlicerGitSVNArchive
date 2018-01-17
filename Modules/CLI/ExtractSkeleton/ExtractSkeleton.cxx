@@ -11,8 +11,8 @@
   See License.txt or http://www.slicer.org/copyright/copyright.txt for details.
 
 ==========================================================================*/
-#include "itkImageFileWriter.h"
-#include "itkImageFileReader.h"
+#include "itk/Modules/IO/ImageBase/include/itkImageFileWriter.h"
+#include "itk/Modules/IO/ImageBase/include/itkImageFileReader.h"
 
 #include "ExtractSkeletonCLP.h"
 

@@ -24,9 +24,9 @@
 #include "vtkMRMLTableNode.h"
 #include "vtkMRMLTableSQLiteStorageNode.h"
 
-#include "vtkFloatArray.h"
-#include "vtkTable.h"
-#include "vtkTestErrorObserver.h"
+#include "vtk/Common/Core/vtkFloatArray.h"
+#include "vtk/Common/DataModel/vtkTable.h"
+#include "vtk/Testing/Core/vtkTestErrorObserver.h"
 
 // ITKSYS includes
 #include <itksys/SystemTools.hxx>

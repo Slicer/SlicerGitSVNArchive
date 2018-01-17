@@ -14,9 +14,9 @@
 #ifndef itkDiffusionTensor3DZeroCorrection_h
 #define itkDiffusionTensor3DZeroCorrection_h
 
-#include "itkUnaryFunctorImageFilter.h"
+#include "itk/Modules/Core/Common/include/itkUnaryFunctorImageFilter.h"
 #include "vnl/vnl_math.h"
-#include <itkMatrix.h>
+#include <itk/Modules/Core/Common/include/itkMatrix.h>
 #include "itkDiffusionTensor3DExtended.h"
 #include "itkDiffusionTensor3DConstants.h"
 

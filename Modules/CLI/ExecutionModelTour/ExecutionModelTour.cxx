@@ -5,10 +5,10 @@
 #include <vtkMRMLScene.h>
 
 // VTK includes
-#include <vtkNew.h>
-#include <vtkDelimitedTextReader.h>
-#include <vtkDelimitedTextWriter.h>
-#include <vtkTable.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/IO/Infovis/vtkDelimitedTextReader.h>
+#include <vtk/IO/Core/vtkDelimitedTextWriter.h>
+#include <vtk/Common/DataModel/vtkTable.h>
 
 // Markups includes
 #include <vtkMRMLMarkupsFiducialNode.h>

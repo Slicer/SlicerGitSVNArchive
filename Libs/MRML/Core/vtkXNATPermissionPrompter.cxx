@@ -1,6 +1,6 @@
 
 #include "vtkXNATPermissionPrompter.h"
-#include "vtkCallbackCommand.h"
+#include "vtk/Common/Core/vtkCallbackCommand.h"
 
 
 vtkStandardNewMacro ( vtkXNATPermissionPrompter );

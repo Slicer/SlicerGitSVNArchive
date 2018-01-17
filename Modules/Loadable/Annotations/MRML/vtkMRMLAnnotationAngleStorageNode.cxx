@@ -1,9 +1,9 @@
 
-#include "vtkObjectFactory.h"
+#include "vtk/Common/Core/vtkObjectFactory.h"
 #include "vtkMRMLAnnotationAngleStorageNode.h"
 #include "vtkMRMLAnnotationAngleNode.h"
 #include "vtkMRMLScene.h"
-#include "vtkStringArray.h"
+#include "vtk/Common/Core/vtkStringArray.h"
 
 //----------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLAnnotationAngleStorageNode);

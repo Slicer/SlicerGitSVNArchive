@@ -18,8 +18,8 @@
 
 #include "vtkAddon.h"
 
-#include "vtkObject.h"
-#include "vtkOutputWindow.h"
+#include "vtk/Common/Core/vtkObject.h"
+#include "vtk/Common/Core/vtkOutputWindow.h"
 #include "vtkLoggingMacros.h" // for vtkInfoWithoutObjectMacro
 
 /// \brief VTK message output window class for automated testing.

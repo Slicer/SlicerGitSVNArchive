@@ -25,11 +25,11 @@
 #include <vtkMRMLSliceNode.h>
 
 // VTK includes
-#include <vtkMatrix4x4.h>
-#include <vtkObjectFactory.h>
-#include <vtkRenderer.h>
-#include <vtkRenderWindow.h>
-#include <vtkRenderWindowInteractor.h>
+#include <vtk/Common/Math/vtkMatrix4x4.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Rendering/Core/vtkRenderer.h>
+#include <vtk/Rendering/Core/vtkRenderWindow.h>
+#include <vtk/Rendering/Core/vtkRenderWindowInteractor.h>
 
 // STD includes
 #include <cassert>

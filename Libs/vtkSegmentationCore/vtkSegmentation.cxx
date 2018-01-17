@@ -29,18 +29,18 @@
 #include "vtkCalculateOversamplingFactor.h"
 
 // VTK includes
-#include <vtkBoundingBox.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
-#include <vtkMath.h>
-#include <vtkVersion.h>
-#include <vtkCallbackCommand.h>
-#include <vtkStringArray.h>
-#include <vtkAbstractTransform.h>
-#include <vtkMatrix4x4.h>
-#include <vtkTransform.h>
-#include <vtkPolyData.h>
-#include <vtkTransformPolyDataFilter.h>
+#include <vtk/Common/DataModel/vtkBoundingBox.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkMath.h>
+#include <vtk/Common/Core/vtkVersion.h>
+#include <vtk/Common/Core/vtkCallbackCommand.h>
+#include <vtk/Common/Core/vtkStringArray.h>
+#include <vtk/Common/Transforms/vtkAbstractTransform.h>
+#include <vtk/Common/Math/vtkMatrix4x4.h>
+#include <vtk/Common/Transforms/vtkTransform.h>
+#include <vtk/Common/DataModel/vtkPolyData.h>
+#include <vtk/Filters/General/vtkTransformPolyDataFilter.h>
 
 // STD includes
 #include <sstream>

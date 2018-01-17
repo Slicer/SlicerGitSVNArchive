@@ -35,13 +35,13 @@
 #include <vtkMRMLStorageNode.h>
 
 // VTK includes
-#include <vtkDataArray.h>
-#include <vtkImageAlgorithm.h>
-#include <vtkImageData.h>
-#include <vtkMatrix4x4.h>
-#include <vtkNew.h>
-#include <vtkTrivialProducer.h>
-#include <vtkWeakPointer.h>
+#include <vtk/Common/Core/vtkDataArray.h>
+#include <vtk/Common/ExecutionModel/vtkImageAlgorithm.h>
+#include <vtk/Common/DataModel/vtkImageData.h>
+#include <vtk/Common/Math/vtkMatrix4x4.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/ExecutionModel/vtkTrivialProducer.h>
+#include <vtk/Common/Core/vtkWeakPointer.h>
 
 //------------------------------------------------------------------------------
 class qMRMLVolumeInfoWidgetPrivate: public Ui_qMRMLVolumeInfoWidget

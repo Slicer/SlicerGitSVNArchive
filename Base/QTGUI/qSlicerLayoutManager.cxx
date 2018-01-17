@@ -47,8 +47,8 @@
 #include <vtkMRMLSliceLogic.h>
 
 // VTK includes
-#include <vtkInteractorObserver.h>
-#include <vtkCornerAnnotation.h>
+#include <vtk/Rendering/Core/vtkInteractorObserver.h>
+#include <vtk/Rendering/Annotation/vtkCornerAnnotation.h>
 
 //-----------------------------------------------------------------------------
 class qSlicerLayoutManagerPrivate: public qMRMLLayoutManagerPrivate

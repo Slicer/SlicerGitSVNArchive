@@ -23,9 +23,9 @@ Version:   $Revision: 1.8 $
 #include "vtkTagTable.h"
 
 // VTK includes
-#include <vtkCollection.h>
-#include <vtkObjectFactory.h>
-#include <vtkStdString.h>
+#include <vtk/Common/Core/vtkCollection.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkStdString.h>
 
 // STD includes
 #include <sstream>

@@ -31,7 +31,7 @@
 #include "vtkSegmentationCoreConfigure.h"
 
 // VTK includes
-#include <vtkPolyDataToImageStencil.h>
+#include <vtk/Imaging/Stencil/vtkPolyDataToImageStencil.h>
 
 class vtkPolyData;
 

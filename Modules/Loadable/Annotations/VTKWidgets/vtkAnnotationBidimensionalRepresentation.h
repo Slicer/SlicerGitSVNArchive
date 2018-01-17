@@ -19,7 +19,7 @@
 #include "vtkSlicerAnnotationsModuleVTKWidgetsExport.h"
 
 // VTK includes
-#include <vtkBiDimensionalRepresentation2D.h>
+#include <vtk/Interaction/Widgets/vtkBiDimensionalRepresentation2D.h>
 
 /// \ingroup Slicer_QtModules_Annotation
 class VTK_SLICER_ANNOTATIONS_MODULE_VTKWIDGETS_EXPORT

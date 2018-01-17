@@ -1,16 +1,16 @@
 
 // VTK includes
-#include <vtkActor.h>
-#include <vtkBiDimensionalWidget.h>
-#include <vtkCommand.h>
-#include <vtkInteractorEventRecorder.h>
-#include <vtkInteractorStyleSwitch.h>
-#include <vtkNew.h>
-#include <vtkPolyDataMapper.h>
-#include <vtkRenderer.h>
-#include <vtkRenderWindow.h>
-#include <vtkRenderWindowInteractor.h>
-#include <vtkSphereSource.h>
+#include <vtk/Rendering/Core/vtkActor.h>
+#include <vtk/Interaction/Widgets/vtkBiDimensionalWidget.h>
+#include <vtk/Common/Core/vtkCommand.h>
+#include <vtk/Rendering/Core/vtkInteractorEventRecorder.h>
+#include <vtk/Interaction/Style/vtkInteractorStyleSwitch.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Rendering/Core/vtkPolyDataMapper.h>
+#include <vtk/Rendering/Core/vtkRenderer.h>
+#include <vtk/Rendering/Core/vtkRenderWindow.h>
+#include <vtk/Rendering/Core/vtkRenderWindowInteractor.h>
+#include <vtk/Filters/Sources/vtkSphereSource.h>
 
 // STD includes
 #include <sstream>

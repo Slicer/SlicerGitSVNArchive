@@ -24,23 +24,23 @@
 #include "vtkMRMLTableNode.h"
 
 // VTK includes
-#include <vtkAlgorithmOutput.h>
-#include <vtkAssignAttribute.h>
-#include <vtkBrush.h>
-#include <vtkCallbackCommand.h>
-#include <vtkColorSeries.h>
-#include <vtkCommand.h>
-#include <vtkContextMapper2D.h>
+#include <vtk/Common/ExecutionModel/vtkAlgorithmOutput.h>
+#include <vtk/Filters/Core/vtkAssignAttribute.h>
+#include <vtk/Rendering/Context2D/vtkBrush.h>
+#include <vtk/Common/Core/vtkCallbackCommand.h>
+#include <vtk/Common/Color/vtkColorSeries.h>
+#include <vtk/Common/Core/vtkCommand.h>
+#include <vtk/Rendering/Context2D/vtkContextMapper2D.h>
 #include <vtkEventBroker.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
-#include <vtkStringArray.h>
-#include <vtkPen.h>
-#include <vtkPlot.h>
-#include <vtkPlotBar.h>
-#include <vtkPlotLine.h>
-#include <vtkPlotPoints.h>
-#include <vtkTable.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkStringArray.h>
+#include <vtk/Rendering/Context2D/vtkPen.h>
+#include <vtk/Charts/Core/vtkPlot.h>
+#include <vtk/Charts/Core/vtkPlotBar.h>
+#include <vtk/Charts/Core/vtkPlotLine.h>
+#include <vtk/Charts/Core/vtkPlotPoints.h>
+#include <vtk/Common/DataModel/vtkTable.h>
 
 // VTKSYS includes
 #include <vtksys/SystemTools.hxx>

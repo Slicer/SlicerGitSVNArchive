@@ -14,7 +14,7 @@
 #include "vtkFreeSurferExport.h"
 
 // VTK includes
-#include <vtkLookupTable.h>
+#include <vtk/Common/Core/vtkLookupTable.h>
 
 /// \brief A look up table for FreeSurfer colour scales.
 ///

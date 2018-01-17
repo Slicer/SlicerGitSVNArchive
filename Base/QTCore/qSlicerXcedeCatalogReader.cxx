@@ -45,11 +45,11 @@
 #include <vtkFSSurfaceHelper.h>
 
 /// VTK includes
-#include <vtkImageData.h>
-#include <vtkMatrix4x4.h>
-#include <vtkNew.h>
-#include <vtkSmartPointer.h>
-#include <vtkXMLDataParser.h>
+#include <vtk/Common/DataModel/vtkImageData.h>
+#include <vtk/Common/Math/vtkMatrix4x4.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/IO/XMLParser/vtkXMLDataParser.h>
 
 class qSlicerXcedeCatalogReaderPrivate
 {

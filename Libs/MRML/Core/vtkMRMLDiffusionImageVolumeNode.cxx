@@ -13,7 +13,7 @@ Version:   $Revision: 1.14 $
 =========================================================================auto=*/
 
 
-#include "vtkObjectFactory.h"
+#include "vtk/Common/Core/vtkObjectFactory.h"
 
 #include "vtkMRMLDiffusionImageVolumeNode.h"
 #include "vtkMRMLDiffusionWeightedVolumeNode.h"

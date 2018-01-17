@@ -37,9 +37,9 @@
 #include <vtkMRMLScene.h>
 
 // VTK includes
-#include <vtkCollection.h>
-#include <vtkRenderWindow.h>
-#include <vtkRendererCollection.h>
+#include <vtk/Common/Core/vtkCollection.h>
+#include <vtk/Rendering/Core/vtkRenderWindow.h>
+#include <vtk/Rendering/Core/vtkRendererCollection.h>
 
 //------------------------------------------------------------------------------
 // qMRMLLayoutViewFactoryPrivate methods

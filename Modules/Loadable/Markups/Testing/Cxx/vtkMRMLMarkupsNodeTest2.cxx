@@ -19,7 +19,7 @@
 #include "vtkMRMLMarkupsNode.h"
 
 // VTK includes
-#include <vtkNew.h>
+#include <vtk/Common/Core/vtkNew.h>
 #include <vtkTestingOutputWindow.h>
 
 // test copy and swap

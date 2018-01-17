@@ -4,13 +4,13 @@
 #include "vtkMRMLVolumePropertyStorageNode.h"
 
 // VTK includes
-#include <vtkCommand.h>
-#include <vtkColorTransferFunction.h>
-#include <vtkIntArray.h>
-#include <vtkObjectFactory.h>
-#include <vtkNew.h>
-#include <vtkPiecewiseFunction.h>
-#include <vtkVolumeProperty.h>
+#include <vtk/Common/Core/vtkCommand.h>
+#include <vtk/Rendering/Core/vtkColorTransferFunction.h>
+#include <vtk/Common/Core/vtkIntArray.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/DataModel/vtkPiecewiseFunction.h>
+#include <vtk/Rendering/Core/vtkVolumeProperty.h>
 
 // STD includes
 #include <algorithm>

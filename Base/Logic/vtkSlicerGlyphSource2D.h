@@ -23,9 +23,9 @@
 #define __vtkSlicerGlyphSource2D_h
 
 #include "vtkSlicerBaseLogic.h"
-#include "vtkGlyphSource2D.h"
+#include "vtk/Filters/Sources/vtkGlyphSource2D.h"
 
-#include "vtkPolyDataAlgorithm.h"
+#include "vtk/Common/ExecutionModel/vtkPolyDataAlgorithm.h"
 
 /*
   /// already defined

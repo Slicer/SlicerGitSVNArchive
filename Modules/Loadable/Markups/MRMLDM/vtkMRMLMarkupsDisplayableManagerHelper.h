@@ -34,10 +34,10 @@
 #include <vtkMRMLMarkupsNode.h>
 
 // VTK includes
-#include <vtkAbstractWidget.h>
-#include <vtkHandleWidget.h>
-#include <vtkSeedWidget.h>
-#include <vtkSmartPointer.h>
+#include <vtk/Interaction/Widgets/vtkAbstractWidget.h>
+#include <vtk/Interaction/Widgets/vtkHandleWidget.h>
+#include <vtk/Interaction/Widgets/vtkSeedWidget.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
 
 // MRML includes
 #include <vtkMRMLSliceNode.h>

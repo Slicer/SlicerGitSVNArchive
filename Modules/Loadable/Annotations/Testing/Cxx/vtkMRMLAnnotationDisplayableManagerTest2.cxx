@@ -35,12 +35,12 @@
 #include <vtkMRMLViewNode.h>
 
 // VTK includes
-#include <vtkCamera.h>
-#include <vtkNew.h>
-#include <vtkRenderer.h>
-#include <vtkRenderWindow.h>
-#include <vtkRenderWindowInteractor.h>
-#include <vtkSmartPointer.h>
+#include <vtk/Rendering/Core/vtkCamera.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Rendering/Core/vtkRenderer.h>
+#include <vtk/Rendering/Core/vtkRenderWindow.h>
+#include <vtk/Rendering/Core/vtkRenderWindowInteractor.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
 
 // STD includes
 

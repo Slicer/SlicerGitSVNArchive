@@ -15,7 +15,7 @@
 #include "vtkMRMLDisplayNode.h"
 
 // VTK includes
-#include <vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
 
 //----------------------------------------------------------------------------
 class vtkMRMLDisplayNodeTestHelper1 : public vtkMRMLDisplayNode

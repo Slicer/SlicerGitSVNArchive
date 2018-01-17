@@ -16,7 +16,7 @@
 #define __vtkITKArchetypeImageSeriesVectorReaderSeries_h
 
 #include "vtkITKArchetypeImageSeriesReader.h"
-#include <vtkVersion.h>
+#include <vtk/Common/Core/vtkVersion.h>
 namespace itk
 {
   class ProcessObject;

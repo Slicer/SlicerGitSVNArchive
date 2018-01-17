@@ -14,13 +14,13 @@
 #include "vtkMRMLCoreTestingMacros.h"
 
 // ITK includes
-#include <itkThinPlateSplineKernelTransform.h>
+#include <itk/Modules/Core/Transform/include/itkThinPlateSplineKernelTransform.h>
 
 // VTK includes
-#include "vtkImageData.h"
-#include "vtkNew.h"
-#include "vtkPoints.h"
-#include "vtkThinPlateSplineTransform.h"
+#include "vtk/Common/DataModel/vtkImageData.h"
+#include "vtk/Common/Core/vtkNew.h"
+#include "vtk/Common/Core/vtkPoints.h"
+#include "vtk/Common/Transforms/vtkThinPlateSplineTransform.h"
 
 typedef itk::ThinPlateSplineKernelTransform<double,3> itkThinPlateSplineType;
 typedef itkThinPlateSplineType::PointSetType PointSetType;

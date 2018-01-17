@@ -36,7 +36,7 @@
 
 #endif
 
-#include <vtkObject.h>
+#include <vtk/Common/Core/vtkObject.h>
 
 
 /*

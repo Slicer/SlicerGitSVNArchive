@@ -18,8 +18,8 @@
 
 #include "vtkAddon.h"
 
-#include "vtkCommand.h"
-#include "vtkGridTransform.h"
+#include "vtk/Common/Core/vtkCommand.h"
+#include "vtk/Filters/Hybrid/vtkGridTransform.h"
 
 class VTK_ADDON_EXPORT vtkOrientedGridTransform : public vtkGridTransform
 {

@@ -35,9 +35,9 @@
 #include <vtkMRMLScalarVolumeNode.h>
 
 // VTK includes
-#include <vtkImageData.h>
-#include <vtkNew.h>
-#include <vtkVersion.h>
+#include <vtk/Common/DataModel/vtkImageData.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkVersion.h>
 #ifdef Slicer_VTK_USE_QVTKOPENGLWIDGET
 #include <QVTKOpenGLWidget.h>
 #endif

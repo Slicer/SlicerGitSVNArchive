@@ -6,7 +6,7 @@
 #include "vtkMRMLAnnotationLineDisplayNode.h"
 #include "vtkMRMLScene.h"
 
-#include <vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
 
 //----------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLAnnotationSplineNode);

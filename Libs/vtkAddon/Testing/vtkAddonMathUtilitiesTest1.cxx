@@ -23,10 +23,10 @@
 #include "vtkAddonTestingMacros.h"
 
 // vtk includes
-#include <vtkMatrix3x3.h>
-#include <vtkMatrix4x4.h>
-#include <vtkNew.h>
-#include <vtkTransform.h>
+#include <vtk/Common/Math/vtkMatrix3x3.h>
+#include <vtk/Common/Math/vtkMatrix4x4.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Transforms/vtkTransform.h>
 
 
 using namespace vtkAddonTestingUtilities;

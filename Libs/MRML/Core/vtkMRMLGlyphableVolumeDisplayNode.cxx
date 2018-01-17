@@ -16,8 +16,8 @@ Version:   $Revision: 1.2 $
 #include "vtkMRMLGlyphableVolumeDisplayNode.h"
 #include "vtkMRMLScene.h"
 
-#include "vtkCallbackCommand.h"
-#include "vtkObjectFactory.h"
+#include "vtk/Common/Core/vtkCallbackCommand.h"
+#include "vtk/Common/Core/vtkObjectFactory.h"
 
 #include <sstream>
 

@@ -3,7 +3,7 @@
 
 #include "ui_qSlicerAnnotationModuleReportDialog.h"
 #include "Logic/vtkSlicerAnnotationModuleLogic.h"
-#include "vtkCollection.h"
+#include "vtk/Common/Core/vtkCollection.h"
 
 /// \ingroup Slicer_QtModules_Annotation
 class qSlicerAnnotationModuleReportDialog : public QDialog

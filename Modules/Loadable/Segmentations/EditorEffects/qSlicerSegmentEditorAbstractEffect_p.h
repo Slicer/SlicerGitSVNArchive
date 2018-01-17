@@ -38,10 +38,10 @@
 #include "qSlicerSegmentEditorAbstractEffect.h"
 
 // VTK includes
-#include <vtkWeakPointer.h>
-#include <vtkSmartPointer.h>
-#include <vtkActor2DCollection.h>
-#include <vtkProp3DCollection.h>
+#include <vtk/Common/Core/vtkWeakPointer.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/Rendering/Core/vtkActor2DCollection.h>
+#include <vtk/Rendering/Core/vtkProp3DCollection.h>
 
 // Qt includes
 #include <QObject>

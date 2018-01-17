@@ -33,9 +33,9 @@
 #include <vtkMRMLSubjectHierarchyNode.h>
 
 // VTK includes
-#include <vtkNew.h>
-#include <vtkSmartPointer.h>
-#include <vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
 
 //----------------------------------------------------------------------------
 const char* vtkSlicerSubjectHierarchyModuleLogic::CLONED_NODE_NAME_POSTFIX = " Copy";

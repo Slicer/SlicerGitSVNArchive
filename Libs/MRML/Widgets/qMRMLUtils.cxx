@@ -31,10 +31,10 @@
 #include <vtkMRMLViewNode.h>
 
 // VTK includes
-#include <vtkImageData.h>
-#include <vtkNew.h>
-#include <vtkQImageToImageSource.h>
-#include <vtkTransform.h>
+#include <vtk/Common/DataModel/vtkImageData.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Rendering/Qt/vtkQImageToImageSource.h>
+#include <vtk/Common/Transforms/vtkTransform.h>
 
 //-----------------------------------------------------------------------------
 qMRMLUtils::qMRMLUtils(QObject* _parent)

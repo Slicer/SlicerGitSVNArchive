@@ -20,7 +20,7 @@ Version:   $Revision: 1.2 $
 // MRML includes
 
 // VTK includes
-#include <vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
 
 // STD includes
 

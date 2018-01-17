@@ -1,12 +1,12 @@
 #ifndef itkTransformDeformationFieldFilter_h
 #define itkTransformDeformationFieldFilter_h
 
-#include <itkObject.h>
-#include <itkImageToImageFilter.h>
-#include <itkImage.h>
-#include <itkImageRegionIteratorWithIndex.h>
-#include <itkImageRegionConstIteratorWithIndex.h>
-#include <itkTransform.h>
+#include <itk/Modules/Core/Common/include/itkObject.h>
+#include <itk/Modules/Core/Common/include/itkImageToImageFilter.h>
+#include <itk/Modules/Core/Common/include/itkImage.h>
+#include <itk/Modules/Core/Common/include/itkImageRegionIteratorWithIndex.h>
+#include <itk/Modules/Core/Common/include/itkImageRegionConstIteratorWithIndex.h>
+#include <itk/Modules/Core/Transform/include/itkTransform.h>
 
 namespace itk
 {

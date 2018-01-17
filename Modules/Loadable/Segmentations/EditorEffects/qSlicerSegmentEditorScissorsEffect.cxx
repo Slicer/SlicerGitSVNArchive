@@ -35,27 +35,27 @@
 #include <QRadioButton>
 
 // VTK includes
-#include <vtkActor2D.h>
-#include <vtkCallbackCommand.h>
-#include <vtkCamera.h>
-#include <vtkCellArray.h>
-#include <vtkImageChangeInformation.h>
-#include <vtkImageStencilData.h>
-#include <vtkImageStencilToImage.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
-#include <vtkPoints.h>
-#include <vtkPolyData.h>
-#include <vtkPolyDataMapper2D.h>
-#include <vtkPolyDataNormals.h>
-#include <vtkPolyDataToImageStencil.h>
-#include <vtkProperty2D.h>
-#include <vtkRenderer.h>
-#include <vtkRenderWindowInteractor.h>
-#include <vtkSmartPointer.h>
-#include <vtkTransform.h>
-#include <vtkTransformPolyDataFilter.h>
-#include <vtkVector.h>
+#include <vtk/Rendering/Core/vtkActor2D.h>
+#include <vtk/Common/Core/vtkCallbackCommand.h>
+#include <vtk/Rendering/Core/vtkCamera.h>
+#include <vtk/Common/DataModel/vtkCellArray.h>
+#include <vtk/Imaging/Core/vtkImageChangeInformation.h>
+#include <vtk/Imaging/Core/vtkImageStencilData.h>
+#include <vtk/Imaging/Stencil/vtkImageStencilToImage.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkPoints.h>
+#include <vtk/Common/DataModel/vtkPolyData.h>
+#include <vtk/Rendering/Core/vtkPolyDataMapper2D.h>
+#include <vtk/Filters/Core/vtkPolyDataNormals.h>
+#include <vtk/Imaging/Stencil/vtkPolyDataToImageStencil.h>
+#include <vtk/Rendering/Core/vtkProperty2D.h>
+#include <vtk/Rendering/Core/vtkRenderer.h>
+#include <vtk/Rendering/Core/vtkRenderWindowInteractor.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/Common/Transforms/vtkTransform.h>
+#include <vtk/Filters/General/vtkTransformPolyDataFilter.h>
+#include <vtk/Common/DataModel/vtkVector.h>
 
 // MRML includes
 #include <vtkMRMLScene.h>

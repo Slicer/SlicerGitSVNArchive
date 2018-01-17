@@ -16,7 +16,7 @@ Version:   $Revision: 1.3 $
 #include "vtkMRMLClipModelsNode.h"
 
 // VTK includes
-#include <vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
 
 // STD includes
 #include <sstream>

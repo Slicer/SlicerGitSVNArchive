@@ -19,22 +19,22 @@ Version:   $Revision: 1.14 $
 #include "vtkMRMLTransformNode.h"
 
 // VTK includes
-#include <vtkAlgorithmOutput.h>
-#include <vtkAppendPolyData.h>
-#include <vtkBoundingBox.h>
-#include <vtkCallbackCommand.h>
-#include <vtkEventForwarderCommand.h>
-#include <vtkGeneralTransform.h>
-#include <vtkHomogeneousTransform.h>
-#include <vtkImageData.h>
-#include <vtkImageDataGeometryFilter.h>
-#include <vtkImageReslice.h>
-#include <vtkMathUtilities.h>
-#include <vtkMatrix4x4.h>
-#include <vtkNew.h>
-#include <vtkSmartPointer.h>
-#include <vtkTransform.h>
-#include <vtkTrivialProducer.h>
+#include <vtk/Common/ExecutionModel/vtkAlgorithmOutput.h>
+#include <vtk/Filters/Core/vtkAppendPolyData.h>
+#include <vtk/Common/DataModel/vtkBoundingBox.h>
+#include <vtk/Common/Core/vtkCallbackCommand.h>
+#include <vtk/Common/Core/vtkEventForwarderCommand.h>
+#include <vtk/Common/Transforms/vtkGeneralTransform.h>
+#include <vtk/Common/Transforms/vtkHomogeneousTransform.h>
+#include <vtk/Common/DataModel/vtkImageData.h>
+#include <vtk/Filters/Geometry/vtkImageDataGeometryFilter.h>
+#include <vtk/Imaging/Core/vtkImageReslice.h>
+#include <vtk/Common/Core/vtkMathUtilities.h>
+#include <vtk/Common/Math/vtkMatrix4x4.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/Common/Transforms/vtkTransform.h>
+#include <vtk/Common/ExecutionModel/vtkTrivialProducer.h>
 
 #include <algorithm> // For std::min
 #include <cassert>

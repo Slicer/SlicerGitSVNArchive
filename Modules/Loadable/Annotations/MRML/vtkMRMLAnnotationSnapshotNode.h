@@ -10,7 +10,7 @@
 #include "vtkMRMLAnnotationControlPointsNode.h"
 #include "vtkMRMLAnnotationNode.h"
 
-#include <vtkStdString.h>
+#include <vtk/Common/Core/vtkStdString.h>
 class vtkImageData;
 class vtkStringArray;
 class vtkMRMLStorageNode;

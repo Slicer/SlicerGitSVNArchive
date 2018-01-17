@@ -38,8 +38,8 @@
 #include <vtkMRMLVolumeNode.h>
 
 // VTK includes
-#include <vtkMultiThreader.h>
-#include <vtkNew.h>
+#include <vtk/Common/Core/vtkMultiThreader.h>
+#include <vtk/Common/Core/vtkNew.h>
 #ifdef Slicer_VTK_USE_QVTKOPENGLWIDGET
 #include <QVTKOpenGLWidget.h>
 #endif

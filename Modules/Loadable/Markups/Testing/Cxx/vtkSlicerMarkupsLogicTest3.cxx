@@ -33,7 +33,7 @@
 
 
 // VTK includes
-#include <vtkNew.h>
+#include <vtk/Common/Core/vtkNew.h>
 
 
 int vtkSlicerMarkupsLogicTest3(int , char * [] )

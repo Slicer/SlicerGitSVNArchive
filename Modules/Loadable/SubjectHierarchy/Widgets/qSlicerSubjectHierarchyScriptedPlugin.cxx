@@ -37,8 +37,8 @@
 #include <PythonQtConversion.h>
 
 // VTK includes
-#include <vtkSmartPointer.h>
-#include <vtkPythonUtil.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/Wrapping/PythonCore/vtkPythonUtil.h>
 
 //-----------------------------------------------------------------------------
 class qSlicerSubjectHierarchyScriptedPluginPrivate

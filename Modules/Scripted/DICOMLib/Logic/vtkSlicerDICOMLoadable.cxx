@@ -24,8 +24,8 @@
 #include "vtkSlicerDICOMLoadable.h"
 
 // VTK includes
-#include <vtkSmartPointer.h>
-#include <vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
 
 //------------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerDICOMLoadable);

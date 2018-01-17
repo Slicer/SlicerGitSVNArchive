@@ -21,11 +21,11 @@
 #include "vtkTopologicalHierarchy.h"
 
 // VTK includes
-#include <vtkObjectFactory.h>
-#include <vtkSmartPointer.h>
-#include <vtkNew.h>
-#include <vtkPolyDataCollection.h>
-#include <vtkIntArray.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/DataModel/vtkPolyDataCollection.h>
+#include <vtk/Common/Core/vtkIntArray.h>
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkTopologicalHierarchy);

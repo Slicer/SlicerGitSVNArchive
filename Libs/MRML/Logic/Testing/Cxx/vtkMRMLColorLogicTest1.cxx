@@ -29,10 +29,10 @@
 #include <vtkMRMLScene.h>
 
 // VTK includes
-#include <vtkColorTransferFunction.h>
-#include <vtkLookupTable.h>
-#include <vtkNew.h>
-#include <vtkTimerLog.h>
+#include <vtk/Rendering/Core/vtkColorTransferFunction.h>
+#include <vtk/Common/Core/vtkLookupTable.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/System/vtkTimerLog.h>
 
 // STD includes
 

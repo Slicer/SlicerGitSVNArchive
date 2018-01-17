@@ -16,7 +16,7 @@ Version:   $Revision: 1.2 $
 #include "vtkMRMLAtlasCreatorNode.h"
 
 // VTK includes
-#include <vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
 
 // STD includes
 #include <sstream>

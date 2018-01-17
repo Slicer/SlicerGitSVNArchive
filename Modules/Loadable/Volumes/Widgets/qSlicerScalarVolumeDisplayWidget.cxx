@@ -17,12 +17,12 @@
 #include "vtkMRMLScene.h"
 
 // VTK includes
-#include <vtkAlgorithm.h>
-#include <vtkAlgorithmOutput.h>
-#include <vtkColorTransferFunction.h>
-#include <vtkImageData.h>
-#include <vtkPointData.h>
-#include <vtkSmartPointer.h>
+#include <vtk/Common/ExecutionModel/vtkAlgorithm.h>
+#include <vtk/Common/ExecutionModel/vtkAlgorithmOutput.h>
+#include <vtk/Rendering/Core/vtkColorTransferFunction.h>
+#include <vtk/Common/DataModel/vtkImageData.h>
+#include <vtk/Common/DataModel/vtkPointData.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
 
 // STD includes
 #include <limits>

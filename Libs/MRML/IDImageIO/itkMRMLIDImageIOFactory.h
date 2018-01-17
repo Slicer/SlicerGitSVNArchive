@@ -17,8 +17,8 @@
 #ifndef itkMRMLIDImageIOFactory_h
 #define itkMRMLIDImageIOFactory_h
 
-#include "itkObjectFactoryBase.h"
-#include "itkImageIOBase.h"
+#include "itk/Modules/Core/Common/include/itkObjectFactoryBase.h"
+#include "itk/Modules/IO/ImageBase/include/itkImageIOBase.h"
 
 #include "itkMRMLIDImageIO.h"
 

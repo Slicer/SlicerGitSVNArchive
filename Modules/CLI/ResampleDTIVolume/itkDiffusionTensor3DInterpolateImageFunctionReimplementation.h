@@ -15,9 +15,9 @@
 #define itkDiffusionTensor3DInterpolateImageFunctionReimplementation_h
 
 #include "itkDiffusionTensor3DInterpolateImageFunction.h"
-#include <itkImage.h>
+#include <itk/Modules/Core/Common/include/itkImage.h>
 // #include <itkImageRegionIteratorWithIndex.h>
-#include <itkInterpolateImageFunction.h>
+#include <itk/Modules/Core/ImageFunction/include/itkInterpolateImageFunction.h>
 #include "itkSeparateComponentsOfADiffusionTensorImage.h"
 // #include <itkMutexLock.h>
 

@@ -15,10 +15,10 @@
 #pragma warning ( disable : 4786 )
 #endif
 
-#include "itkImageFileWriter.h"
+#include "itk/Modules/IO/ImageBase/include/itkImageFileWriter.h"
 #include "itkPluginUtilities.h"
 
-#include "itkGrayscaleGrindPeakImageFilter.h"
+#include "itk/Modules/Filtering/MathematicalMorphology/include/itkGrayscaleGrindPeakImageFilter.h"
 
 #include "GrayscaleGrindPeakImageFilterCLP.h"
 

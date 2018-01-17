@@ -9,9 +9,9 @@ command line processing and additional features have been added.
 #pragma warning ( disable : 4786 )
 #endif
 
-#include "itkImageFileReader.h"
-#include "itkImageFileWriter.h"
-#include "itkConnectedComponentImageFilter.h"
+#include "itk/Modules/IO/ImageBase/include/itkImageFileReader.h"
+#include "itk/Modules/IO/ImageBase/include/itkImageFileWriter.h"
+#include "itk/Modules/Segmentation/ConnectedComponents/include/itkConnectedComponentImageFilter.h"
 
 #include "ConnectedComponentCLP.h"
 #include "itkPluginUtilities.h"

@@ -17,10 +17,10 @@
 #include "vtkMRMLTransformNode.h"
 
 // VTK includes
-#include <vtkGeneralTransform.h>
-#include <vtkMatrix4x4.h>
-#include <vtkNew.h>
-#include <vtkTransform.h>
+#include <vtk/Common/Transforms/vtkGeneralTransform.h>
+#include <vtk/Common/Math/vtkMatrix4x4.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Transforms/vtkTransform.h>
 #include <vtkAddonMathUtilities.h>
 
 vtkMatrix4x4* CreateTransformMatrix(double translateX, double translateY, double translateZ, double rotateX, double rotateY, double rotateZ)

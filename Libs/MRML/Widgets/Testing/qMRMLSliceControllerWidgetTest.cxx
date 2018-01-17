@@ -37,10 +37,10 @@
 #include <vtkMRMLSliceNode.h>
 
 // VTK includes
-#include <vtkMatrix3x3.h>
-#include <vtkMatrix4x4.h>
-#include <vtkNew.h>
-#include <vtkStringArray.h>
+#include <vtk/Common/Math/vtkMatrix3x3.h>
+#include <vtk/Common/Math/vtkMatrix4x4.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkStringArray.h>
 
 // ----------------------------------------------------------------------------
 class qMRMLSliceControllerWidgetTester: public QObject

@@ -26,15 +26,15 @@
 #include "vtkOrientedImageDataResample.h"
 
 // VTK includes
-#include <vtkBoundingBox.h>
-#include <vtkImageData.h>
-#include <vtkMatrix4x4.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
-#include <vtkPolyData.h>
-#include <vtkSmartPointer.h>
-#include <vtkMath.h>
-#include <vtkDataSet.h>
+#include <vtk/Common/DataModel/vtkBoundingBox.h>
+#include <vtk/Common/DataModel/vtkImageData.h>
+#include <vtk/Common/Math/vtkMatrix4x4.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/DataModel/vtkPolyData.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/Common/Core/vtkMath.h>
+#include <vtk/Common/DataModel/vtkDataSet.h>
 
 // STD includes
 #include <algorithm>

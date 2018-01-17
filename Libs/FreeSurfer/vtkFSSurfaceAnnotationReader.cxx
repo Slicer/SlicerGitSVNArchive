@@ -17,9 +17,9 @@
 #include "vtkFSSurfaceAnnotationReader.h"
 
 // VTK includes
-#include <vtkIntArray.h>
-#include <vtkLookupTable.h>
-#include <vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkIntArray.h>
+#include <vtk/Common/Core/vtkLookupTable.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
 
 //-------------------------------------------------------------------------
 vtkStandardNewMacro(vtkFSSurfaceAnnotationReader);

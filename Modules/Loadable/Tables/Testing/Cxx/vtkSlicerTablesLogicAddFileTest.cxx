@@ -28,9 +28,9 @@
 #include <vtkMRMLScene.h>
 
 // VTK includes
-#include <vtkNew.h>
-#include <vtkPolyData.h>
-#include <vtkTable.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/DataModel/vtkPolyData.h>
+#include <vtk/Common/DataModel/vtkTable.h>
 
 #include "vtkTestingOutputWindow.h"
 #include "vtkMRMLCoreTestingMacros.h"

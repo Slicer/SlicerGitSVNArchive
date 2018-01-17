@@ -21,12 +21,12 @@
 #include "vtkMRMLGridTransformNode.h"
 #include "vtkMRMLScene.h"
 
-#include <vtkCollection.h>
-#include <vtkGeneralTransform.h>
-#include <vtkMath.h>
-#include <vtkPoints.h>
-#include <vtkPointSource.h>
-#include <vtkTransform.h>
+#include <vtk/Common/Core/vtkCollection.h>
+#include <vtk/Common/Transforms/vtkGeneralTransform.h>
+#include <vtk/Common/Core/vtkMath.h>
+#include <vtk/Common/Core/vtkPoints.h>
+#include <vtk/Filters/Sources/vtkPointSource.h>
+#include <vtk/Common/Transforms/vtkTransform.h>
 
 #include "vtkMRMLCoreTestingMacros.h"
 

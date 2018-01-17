@@ -33,31 +33,31 @@
 #include <vtkMRMLTransformNode.h>
 
 // VTK includes
-#include <vtkActor2D.h>
-#include <vtkAlgorithmOutput.h>
-#include <vtkCallbackCommand.h>
-#include <vtkDataSetSurfaceFilter.h>
+#include <vtk/Rendering/Core/vtkActor2D.h>
+#include <vtk/Common/ExecutionModel/vtkAlgorithmOutput.h>
+#include <vtk/Common/Core/vtkCallbackCommand.h>
+#include <vtk/Filters/Geometry/vtkDataSetSurfaceFilter.h>
 #include <vtkEventBroker.h>
-#include <vtkLookupTable.h>
-#include <vtkMatrix4x4.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
-#include <vtkPlane.h>
-#include <vtkPolyDataMapper2D.h>
-#include <vtkProperty2D.h>
-#include <vtkRenderer.h>
-#include <vtkSmartPointer.h>
-#include <vtkTransform.h>
-#include <vtkGeneralTransform.h>
-#include <vtkTransformFilter.h>
-#include <vtkTransformPolyDataFilter.h>
-#include <vtkWeakPointer.h>
-#include <vtkPointLocator.h>
-#include <vtkVersion.h>
+#include <vtk/Common/Core/vtkLookupTable.h>
+#include <vtk/Common/Math/vtkMatrix4x4.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/DataModel/vtkPlane.h>
+#include <vtk/Rendering/Core/vtkPolyDataMapper2D.h>
+#include <vtk/Rendering/Core/vtkProperty2D.h>
+#include <vtk/Rendering/Core/vtkRenderer.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/Common/Transforms/vtkTransform.h>
+#include <vtk/Common/Transforms/vtkGeneralTransform.h>
+#include <vtk/Filters/General/vtkTransformFilter.h>
+#include <vtk/Filters/General/vtkTransformPolyDataFilter.h>
+#include <vtk/Common/Core/vtkWeakPointer.h>
+#include <vtk/Common/DataModel/vtkPointLocator.h>
+#include <vtk/Common/Core/vtkVersion.h>
 
 // VTK includes: customization
-#include <vtkCutter.h>
-#include <vtkSampleImplicitFunctionFilter.h>
+#include <vtk/Filters/Core/vtkCutter.h>
+#include <vtk/Filters/General/vtkSampleImplicitFunctionFilter.h>
 
 // STD includes
 #include <algorithm>

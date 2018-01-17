@@ -26,9 +26,9 @@
 #include "vtkMRMLSceneViewNode.h"
 
 // VTK includes
-#include <vtkCommand.h>
-#include <vtkNew.h>
-#include <vtkSmartPointer.h>
+#include <vtk/Common/Core/vtkCommand.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
 
 //---------------------------------------------------------------------------
 int vtkMRMLSceneViewNodeEventsTest(

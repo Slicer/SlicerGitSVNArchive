@@ -30,12 +30,12 @@
 #include <vtkMRMLScene.h>
 
 // VTK includes
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
 #include <vtkMRMLTableSQLiteStorageNode.h>
-#include <vtkSmartPointer.h>
-#include <vtkSQLiteDatabase.h>
-#include <vtkStringArray.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/IO/SQL/vtkSQLiteDatabase.h>
+#include <vtk/Common/Core/vtkStringArray.h>
 
 // STD includes
 

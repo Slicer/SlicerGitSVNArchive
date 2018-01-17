@@ -15,11 +15,11 @@
 #ifndef __vtkITKImageToImageFilterUSUL_h
 #define __vtkITKImageToImageFilterUSUL_h
 
-#include "vtkImageAlgorithm.h"
+#include "vtk/Common/ExecutionModel/vtkImageAlgorithm.h"
 #include "vtkITKImageToImageFilter.h"
-#include "itkImageToImageFilter.h"
-#include "itkVTKImageExport.h"
-#include "itkVTKImageImport.h"
+#include "itk/Modules/Core/Common/include/itkImageToImageFilter.h"
+#include "itk/Modules/Bridge/VTK/include/itkVTKImageExport.h"
+#include "itk/Modules/Bridge/VTK/include/itkVTKImageImport.h"
 #include "vtkITKUtility.h"
 
 

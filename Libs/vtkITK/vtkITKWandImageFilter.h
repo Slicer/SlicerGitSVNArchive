@@ -3,7 +3,7 @@
 #define __vtkITKWandImageFilter_h
 
 #include "vtkITK.h"
-#include "vtkSimpleImageToImageFilter.h"
+#include "vtk/Common/ExecutionModel/vtkSimpleImageToImageFilter.h"
 
 /// \brief Wand tool implemented using connected threshold.
 ///

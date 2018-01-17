@@ -38,7 +38,7 @@
 #include "qSlicerSubjectHierarchyVolumeRenderingPlugin.h"
 
 // DisplayableManager initialization
-#include <vtkAutoInit.h>
+#include <vtk/Common/Core/vtkAutoInit.h>
 VTK_MODULE_INIT(vtkSlicerVolumeRenderingModuleMRMLDisplayableManager)
 
 //-----------------------------------------------------------------------------

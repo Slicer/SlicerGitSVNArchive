@@ -17,7 +17,7 @@
 
 // MRML includes
 #include "vtkMRMLStorableNode.h"
-#include "vtkVector.h"
+#include "vtk/Common/DataModel/vtkVector.h"
 class vtkMRMLTransformNode;
 
 // VTK includes

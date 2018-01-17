@@ -5,7 +5,7 @@
 #include "vtkSlicerBaseLogic.h"
 
 // VTK includes
-#include <vtkObject.h>
+#include <vtk/Common/Core/vtkObject.h>
 
 // VTKSYS includes
 #include <vtksys/SystemInformation.hxx>

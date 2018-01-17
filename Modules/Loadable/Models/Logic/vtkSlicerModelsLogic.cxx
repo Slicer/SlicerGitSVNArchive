@@ -24,12 +24,12 @@
 #include <vtkMRMLTransformNode.h>
 
 /// VTK includes
-#include <vtkAlgorithmOutput.h>
-#include <vtkGeneralTransform.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
-#include <vtkPolyDataNormals.h>
-#include <vtkSmartPointer.h>
+#include <vtk/Common/ExecutionModel/vtkAlgorithmOutput.h>
+#include <vtk/Common/Transforms/vtkGeneralTransform.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Filters/Core/vtkPolyDataNormals.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
 #include <vtkTagTable.h>
 
 /// ITK includes

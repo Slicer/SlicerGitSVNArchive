@@ -41,12 +41,12 @@
 #include <qMRMLExpandingWebView.h>
 
 // VTK includes
-#include "vtkCollection.h"
-#include "vtkImageData.h"
-#include "vtkImageResize.h"
-#include "vtkNew.h"
-#include "vtkPNGWriter.h"
-#include "vtkSmartPointer.h"
+#include "vtk/Common/Core/vtkCollection.h"
+#include "vtk/Common/DataModel/vtkImageData.h"
+#include "vtk/Imaging/Core/vtkImageResize.h"
+#include "vtk/Common/Core/vtkNew.h"
+#include "vtk/IO/Image/vtkPNGWriter.h"
+#include "vtk/Common/Core/vtkSmartPointer.h"
 
 // GUI includes
 #include "GUI/qSlicerSceneViewsModuleDialog.h"

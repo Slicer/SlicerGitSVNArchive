@@ -18,12 +18,12 @@
 #ifndef itkInitialImageToImageRegistrationMethod_h
 #define itkInitialImageToImageRegistrationMethod_h
 
-#include "itkImage.h"
-#include "itkCommand.h"
+#include "itk/Modules/Core/Common/include/itkImage.h"
+#include "itk/Modules/Core/Common/include/itkCommand.h"
 
 #include "itkImageToImageRegistrationMethod.h"
 
-#include "itkAffineTransform.h"
+#include "itk/Modules/Core/Transform/include/itkAffineTransform.h"
 
 #include "itkAnisotropicSimilarity3DTransform.h"
 #include "itkAnisotropicSimilarityLandmarkBasedTransformInitializer.h"

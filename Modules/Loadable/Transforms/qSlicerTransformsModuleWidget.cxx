@@ -46,9 +46,9 @@
 
 // VTK includes
 #include <vtkAddonMathUtilities.h>
-#include <vtkNew.h>
-#include <vtkSmartPointer.h>
-#include <vtkTransform.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/Common/Transforms/vtkTransform.h>
 
 //-----------------------------------------------------------------------------
 class qSlicerTransformsModuleWidgetPrivate: public Ui_qSlicerTransformsModuleWidget

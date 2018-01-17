@@ -1,8 +1,8 @@
 #ifndef __vtkXNATPermissionPrompter_h
 #define __vtkXNATPermissionPrompter_h
 
-#include "vtkObject.h"
-#include "vtkObjectFactory.h"
+#include "vtk/Common/Core/vtkObject.h"
+#include "vtk/Common/Core/vtkObjectFactory.h"
 #include "vtkMRML.h"
 #include "vtkPermissionPrompter.h"
 

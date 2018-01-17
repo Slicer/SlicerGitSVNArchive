@@ -22,7 +22,7 @@
 #define HAVE_CONFIG_H
 #endif
 
-#include "itkDCMTKFileReader.h"
+#include "itk/Modules/IO/DCMTK/include/itkDCMTKFileReader.h"
 #undef HAVE_SSTREAM   // 'twould be nice if people coded without using
 // incredibly generic macro names
 #include "dcmtk/config/osconfig.h" // make sure OS specific configuration is included first

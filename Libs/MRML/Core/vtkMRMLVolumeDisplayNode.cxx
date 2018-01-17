@@ -17,12 +17,12 @@ Version:   $Revision: 1.2 $
 #include "vtkMRMLVolumeNode.h"
 
 // VTK includes
-#include <vtkAlgorithm.h>
-#include <vtkAlgorithmOutput.h>
-#include <vtkCommand.h>
-#include <vtkImageData.h>
-#include <vtkImageStencilData.h>
-#include <vtkTrivialProducer.h>
+#include <vtk/Common/ExecutionModel/vtkAlgorithm.h>
+#include <vtk/Common/ExecutionModel/vtkAlgorithmOutput.h>
+#include <vtk/Common/Core/vtkCommand.h>
+#include <vtk/Common/DataModel/vtkImageData.h>
+#include <vtk/Imaging/Core/vtkImageStencilData.h>
+#include <vtk/Common/ExecutionModel/vtkTrivialProducer.h>
 
 // Initialize static member that controls resampling --
 // old comment: "This offset will be changed to 0.5 from 0.0 per 2/8/2002 Slicer

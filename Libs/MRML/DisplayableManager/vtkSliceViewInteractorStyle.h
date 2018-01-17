@@ -17,8 +17,8 @@
 #define __vtkSliceViewInteractorStyle_h
 
 // VTK includes
-#include "vtkInteractorStyleUser.h"
-#include "vtkMatrix4x4.h"
+#include "vtk/Interaction/Style/vtkInteractorStyleUser.h"
+#include "vtk/Common/Math/vtkMatrix4x4.h"
 
 // MRML includes
 #include "vtkMRMLDisplayableManagerExport.h"

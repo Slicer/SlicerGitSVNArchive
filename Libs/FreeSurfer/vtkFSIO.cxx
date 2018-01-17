@@ -16,7 +16,7 @@
 #include "vtkFSIO.h"
 
 // VTK includes
-#include <vtkByteSwap.h>
+#include <vtk/Common/Core/vtkByteSwap.h>
 
 //------------------------------------------------------------------------------
 int vtkFSIO::ReadShort (FILE* iFile, short& oShort) {

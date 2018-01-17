@@ -29,9 +29,9 @@
 #define __vtkSlicerScalarBarActor_h
 
 // VTK includes
-#include "vtkScalarBarActor.h"
-#include "vtkStringArray.h"
-#include "vtkVersion.h"
+#include "vtk/Rendering/Annotation/vtkScalarBarActor.h"
+#include "vtk/Common/Core/vtkStringArray.h"
+#include "vtk/Common/Core/vtkVersion.h"
 
 // MRMLLogic includes
 #include "vtkSlicerColorsModuleVTKWidgetsExport.h"

@@ -16,38 +16,38 @@
 #include "vtkITKArchetypeImageSeriesReader.h"
 
 // VTK includes
-#include <vtkDataArray.h>
-#include <vtkErrorCode.h>
-#include <vtkImageData.h>
-#include <vtkMath.h>
-#include <vtkMatrix4x4.h>
-#include <vtkInformation.h>
-#include <vtkInformationVector.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
-#include <vtkPointData.h>
-#include <vtkStreamingDemandDrivenPipeline.h>
+#include <vtk/Common/Core/vtkDataArray.h>
+#include <vtk/Common/Misc/vtkErrorCode.h>
+#include <vtk/Common/DataModel/vtkImageData.h>
+#include <vtk/Common/Core/vtkMath.h>
+#include <vtk/Common/Math/vtkMatrix4x4.h>
+#include <vtk/Common/Core/vtkInformation.h>
+#include <vtk/Common/Core/vtkInformationVector.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/DataModel/vtkPointData.h>
+#include <vtk/Common/ExecutionModel/vtkStreamingDemandDrivenPipeline.h>
 
 // ITK includes
-#include <itkNiftiImageIO.h>
-#include <itkNrrdImageIO.h>
-#include <itkMetaDataDictionary.h>
-#include <itkMetaDataObjectBase.h>
-#include <itkMetaDataObject.h>
-#include <itkMetaImageIO.h>
-#include <itkTimeProbe.h>
+#include <itk/Modules/IO/NIFTI/include/itkNiftiImageIO.h>
+#include <itk/Modules/IO/NRRD/include/itkNrrdImageIO.h>
+#include <itk/Modules/Core/Common/include/itkMetaDataDictionary.h>
+#include <itk/Modules/Core/Common/include/itkMetaDataObjectBase.h>
+#include <itk/Modules/Core/Common/include/itkMetaDataObject.h>
+#include <itk/Modules/IO/Meta/include/itkMetaImageIO.h>
+#include <itk/Modules/Core/Common/include/itkTimeProbe.h>
 
 // STD includes
 #include <algorithm>
 #include <vector>
 
-#include "itkArchetypeSeriesFileNames.h"
-#include "itkOrientImageFilter.h"
-#include "itkImageSeriesReader.h"
+#include "itk/Modules/IO/ImageBase/include/itkArchetypeSeriesFileNames.h"
+#include "itk/Modules/Filtering/ImageGrid/include/itkOrientImageFilter.h"
+#include "itk/Modules/IO/ImageBase/include/itkImageSeriesReader.h"
 #ifdef VTKITK_BUILD_DICOM_SUPPORT
-#include "itkDCMTKImageIO.h"
-#include "itkGDCMSeriesFileNames.h"
-#include "itkGDCMImageIO.h"
+#include "itk/Modules/IO/DCMTK/include/itkDCMTKImageIO.h"
+#include "itk/Modules/IO/GDCM/include/itkGDCMSeriesFileNames.h"
+#include "itk/Modules/IO/GDCM/include/itkGDCMImageIO.h"
 #endif
 
 vtkStandardNewMacro(vtkITKArchetypeImageSeriesReader);

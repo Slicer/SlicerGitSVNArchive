@@ -24,7 +24,7 @@
 #define __vtkSlicerTerminologyEntry_h
 
 // VTK includes
-#include <vtkObject.h>
+#include <vtk/Common/Core/vtkObject.h>
 
 // Terminology includes
 #include "vtkSlicerTerminologiesModuleLogicExport.h"

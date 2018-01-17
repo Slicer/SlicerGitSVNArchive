@@ -14,13 +14,13 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#include "itkImageFileWriter.h"
+#include "itk/Modules/IO/ImageBase/include/itkImageFileWriter.h"
 
-#include "itkMaskImageFilter.h"
-#include "itkThresholdImageFilter.h"
+#include "itk/Modules/Filtering/ImageIntensity/include/itkMaskImageFilter.h"
+#include "itk/Modules/Filtering/Thresholding/include/itkThresholdImageFilter.h"
 
-#include "itkNearestNeighborInterpolateImageFunction.h"
-#include "itkResampleImageFilter.h"
+#include "itk/Modules/Core/ImageFunction/include/itkNearestNeighborInterpolateImageFunction.h"
+#include "itk/Modules/Filtering/ImageGrid/include/itkResampleImageFilter.h"
 
 #include "itkPluginUtilities.h"
 #include "MaskScalarVolumeCLP.h"

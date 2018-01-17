@@ -14,15 +14,15 @@
 #ifndef itkDiffusionTensor3DResample_h
 #define itkDiffusionTensor3DResample_h
 
-#include <itkObject.h>
-#include <itkImageToImageFilter.h>
+#include <itk/Modules/Core/Common/include/itkObject.h>
+#include <itk/Modules/Core/Common/include/itkImageToImageFilter.h>
 #include "itkDiffusionTensor3DTransform.h"
 #include "itkDiffusionTensor3DInterpolateImageFunction.h"
-#include <itkImage.h>
-#include <itkDiffusionTensor3D.h>
-#include <itkCastImageFilter.h>
-#include <itkImageRegionIterator.h>
-#include <itkPoint.h>
+#include <itk/Modules/Core/Common/include/itkImage.h>
+#include <itk/Modules/Core/Common/include/itkDiffusionTensor3D.h>
+#include <itk/Modules/Filtering/ImageFilterBase/include/itkCastImageFilter.h>
+#include <itk/Modules/Core/Common/include/itkImageRegionIterator.h>
+#include <itk/Modules/Core/Common/include/itkPoint.h>
 
 #include "itkDiffusionTensor3DConstants.h"
 

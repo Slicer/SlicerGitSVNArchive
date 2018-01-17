@@ -12,14 +12,14 @@ Version:   $Revision: 1.3 $
 
 =========================================================================auto=*/
 
-#include "vtkObjectFactory.h"
-#include "vtkCallbackCommand.h"
-#include <vtkImageData.h>
-#include <vtkVersion.h>
+#include "vtk/Common/Core/vtkObjectFactory.h"
+#include "vtk/Common/Core/vtkCallbackCommand.h"
+#include <vtk/Common/DataModel/vtkImageData.h>
+#include <vtk/Common/Core/vtkVersion.h>
 
 #include "vtkDiffusionTensorGlyph.h"
 
-#include "vtkTransformPolyDataFilter.h"
+#include "vtk/Filters/General/vtkTransformPolyDataFilter.h"
 
 #include "vtkMRMLDiffusionTensorDisplayPropertiesNode.h"
 #include "vtkMRMLDiffusionTensorVolumeSliceDisplayNode.h"

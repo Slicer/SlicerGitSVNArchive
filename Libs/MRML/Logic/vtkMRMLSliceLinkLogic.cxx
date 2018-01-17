@@ -24,14 +24,14 @@
 #include <vtkMRMLSliceNode.h>
 
 // VTK includes
-#include <vtkCollection.h>
-#include <vtkFloatArray.h>
-#include <vtkMath.h>
-#include <vtkMatrix4x4.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
-#include <vtkSmartPointer.h>
-#include <vtkTransform.h>
+#include <vtk/Common/Core/vtkCollection.h>
+#include <vtk/Common/Core/vtkFloatArray.h>
+#include <vtk/Common/Core/vtkMath.h>
+#include <vtk/Common/Math/vtkMatrix4x4.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/Common/Transforms/vtkTransform.h>
 
 // STD includes
 #include <cassert>

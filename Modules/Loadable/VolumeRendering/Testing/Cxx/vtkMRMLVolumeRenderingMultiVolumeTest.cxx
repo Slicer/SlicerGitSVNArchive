@@ -38,16 +38,16 @@
 #include <vtkMRMLVolumePropertyNode.h>
 
 // VTK includes
-#include <vtkErrorCode.h>
-#include <vtkImageData.h>
-#include <vtkImageDifference.h>
-#include <vtkInteractorEventRecorder.h>
-#include <vtkNew.h>
-#include <vtkRenderer.h>
-#include <vtkRenderWindow.h>
-#include <vtkRenderWindowInteractor.h>
-#include <vtkVersion.h>
-#include <vtkWindowToImageFilter.h>
+#include <vtk/Common/Misc/vtkErrorCode.h>
+#include <vtk/Common/DataModel/vtkImageData.h>
+#include <vtk/Imaging/Core/vtkImageDifference.h>
+#include <vtk/Rendering/Core/vtkInteractorEventRecorder.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Rendering/Core/vtkRenderer.h>
+#include <vtk/Rendering/Core/vtkRenderWindow.h>
+#include <vtk/Rendering/Core/vtkRenderWindowInteractor.h>
+#include <vtk/Common/Core/vtkVersion.h>
+#include <vtk/Rendering/Core/vtkWindowToImageFilter.h>
 
 // STD includes
 #include <cassert>

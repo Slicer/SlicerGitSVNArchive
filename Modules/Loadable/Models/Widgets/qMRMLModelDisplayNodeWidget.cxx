@@ -34,11 +34,11 @@
 #include <vtkMRMLSelectionNode.h>
 
 // VTK includes
-#include <vtkDataArray.h>
-#include <vtkPointData.h>
-#include <vtkPointSet.h>
-#include <vtkProperty.h>
-#include <vtkSmartPointer.h>
+#include <vtk/Common/Core/vtkDataArray.h>
+#include <vtk/Common/DataModel/vtkPointData.h>
+#include <vtk/Common/DataModel/vtkPointSet.h>
+#include <vtk/Rendering/Core/vtkProperty.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
 
 static const int REPRESENTATION_POINTS = 0;
 static const int REPRESENTATION_WIREFRAME = 1;

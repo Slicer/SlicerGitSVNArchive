@@ -9,12 +9,12 @@ command line processing and additional features have been added.
 #pragma warning ( disable : 4786 )
 #endif
 
-#include "itkImageFileReader.h"
-#include "itkImageFileWriter.h"
-#include "itkExtractImageFilter.h"
-#include "itkShiftScaleImageFilter.h"
-#include "itkGDCMImageIO.h"
-#include "itkMetaDataObject.h"
+#include "itk/Modules/IO/ImageBase/include/itkImageFileReader.h"
+#include "itk/Modules/IO/ImageBase/include/itkImageFileWriter.h"
+#include "itk/Modules/Core/Common/include/itkExtractImageFilter.h"
+#include "itk/Modules/Filtering/ImageIntensity/include/itkShiftScaleImageFilter.h"
+#include "itk/Modules/IO/GDCM/include/itkGDCMImageIO.h"
+#include "itk/Modules/Core/Common/include/itkMetaDataObject.h"
 
 #include "CreateDICOMSeriesCLP.h"
 

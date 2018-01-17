@@ -34,8 +34,8 @@
 #include <QAction>
 
 // VTK includes
-#include <vtkObjectFactory.h>
-#include <vtkSmartPointer.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
 
 //----------------------------------------------------------------------------
 /// \ingroup Slicer_QtModules_SubjectHierarchy_Widgets

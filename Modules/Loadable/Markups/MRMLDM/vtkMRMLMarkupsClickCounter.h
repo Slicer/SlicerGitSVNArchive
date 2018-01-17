@@ -22,7 +22,7 @@
 #include "vtkSlicerMarkupsModuleMRMLDisplayableManagerExport.h"
 
 // VTK include
-#include <vtkObject.h>
+#include <vtk/Common/Core/vtkObject.h>
 
 /// \ingroup Slicer_QtModules_Markups
 class VTK_SLICER_MARKUPS_MODULE_MRMLDISPLAYABLEMANAGER_EXPORT vtkMRMLMarkupsClickCounter :

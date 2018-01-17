@@ -26,7 +26,7 @@
 #include "vtkSlicerAnnotationModuleLogic.h"
 
 // STD includes
-#include <vtkNew.h>
+#include <vtk/Common/Core/vtkNew.h>
 
 bool ImportTwiceTest(bool verbose);
 

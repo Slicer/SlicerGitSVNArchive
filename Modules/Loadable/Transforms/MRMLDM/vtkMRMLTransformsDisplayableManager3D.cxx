@@ -35,18 +35,18 @@
 #include <vtkMRMLViewNode.h>
 
 // VTK includes
-#include <vtkColorTransferFunction.h>
-#include <vtkDataSetAttributes.h>
-#include <vtkLookupTable.h>
-#include <vtkMatrix4x4.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
-#include <vtkPolyData.h>
-#include <vtkPolyDataMapper.h>
-#include <vtkProperty.h>
-#include <vtkRenderWindowInteractor.h>
-#include <vtkRenderer.h>
-#include <vtkSmartPointer.h>
+#include <vtk/Rendering/Core/vtkColorTransferFunction.h>
+#include <vtk/Common/DataModel/vtkDataSetAttributes.h>
+#include <vtk/Common/Core/vtkLookupTable.h>
+#include <vtk/Common/Math/vtkMatrix4x4.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/DataModel/vtkPolyData.h>
+#include <vtk/Rendering/Core/vtkPolyDataMapper.h>
+#include <vtk/Rendering/Core/vtkProperty.h>
+#include <vtk/Rendering/Core/vtkRenderWindowInteractor.h>
+#include <vtk/Rendering/Core/vtkRenderer.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
 
 //---------------------------------------------------------------------------
 vtkStandardNewMacro ( vtkMRMLTransformsDisplayableManager3D );

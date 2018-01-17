@@ -21,7 +21,7 @@
 #define __vtkAddonMathUtilities_h
 
 #include <vtkAddon.h>
-#include <vtkObject.h>
+#include <vtk/Common/Core/vtkObject.h>
 
 class vtkMatrix4x4;
 class vtkMatrix3x3;

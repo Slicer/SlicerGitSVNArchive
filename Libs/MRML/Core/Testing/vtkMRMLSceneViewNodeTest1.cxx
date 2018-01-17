@@ -16,9 +16,9 @@
 #include "vtkMRMLSceneViewNode.h"
 
 // VTK includes
-#include <vtkCollection.h>
-#include <vtkImageData.h>
-#include <vtkNew.h>
+#include <vtk/Common/Core/vtkCollection.h>
+#include <vtk/Common/DataModel/vtkImageData.h>
+#include <vtk/Common/Core/vtkNew.h>
 
 int vtkMRMLSceneViewNodeTest1(int , char * [] )
 {

@@ -26,7 +26,7 @@
 #define __vtkTopologicalHierarchy_h
 
 // VTK includes
-#include <vtkPolyDataCollection.h>
+#include <vtk/Common/DataModel/vtkPolyDataCollection.h>
 
 #include "vtkSegmentationCoreConfigure.h"
 

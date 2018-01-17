@@ -19,7 +19,7 @@
 ==============================================================================*/
 
 // Slicer includes
-#include "vtkImageGradientMagnitude.h"
+#include "vtk/Imaging/General/vtkImageGradientMagnitude.h"
 #include "vtkMRMLVolumeRenderingDisplayableManager.h"
 #include "vtkSlicerVolumeRenderingLogic.h"
 
@@ -42,26 +42,26 @@
 #include "vtkMRMLVolumeRenderingScenarioNode.h"
 
 // VTK includes
-#include <vtkAbstractTransform.h>
-#include <vtkCallbackCommand.h>
-#include "vtkFixedPointVolumeRayCastMapper.h"
-#include "vtkGPUVolumeRayCastMapper.h"
-#include "vtkImageData.h"
-#include "vtkInteractorStyle.h"
-#include "vtkLookupTable.h"
-#include "vtkMatrix4x4.h"
-#include <vtkNew.h>
-#include "vtkObjectFactory.h"
-#include "vtkPlane.h"
-#include "vtkPlanes.h"
-#include "vtkPointData.h"
-#include "vtkPoints.h"
-#include "vtkRenderWindow.h"
-#include "vtkRenderWindowInteractor.h"
-#include "vtkRenderer.h"
-#include "vtkVolume.h"
-#include "vtkVolumeProperty.h"
-#include <vtkVersion.h>
+#include <vtk/Common/Transforms/vtkAbstractTransform.h>
+#include <vtk/Common/Core/vtkCallbackCommand.h>
+#include "vtk/Rendering/Volume/vtkFixedPointVolumeRayCastMapper.h"
+#include "vtk/Rendering/Volume/vtkGPUVolumeRayCastMapper.h"
+#include "vtk/Common/DataModel/vtkImageData.h"
+#include "vtk/Rendering/Core/vtkInteractorStyle.h"
+#include "vtk/Common/Core/vtkLookupTable.h"
+#include "vtk/Common/Math/vtkMatrix4x4.h"
+#include <vtk/Common/Core/vtkNew.h>
+#include "vtk/Common/Core/vtkObjectFactory.h"
+#include "vtk/Common/DataModel/vtkPlane.h"
+#include "vtk/Common/DataModel/vtkPlanes.h"
+#include "vtk/Common/DataModel/vtkPointData.h"
+#include "vtk/Common/Core/vtkPoints.h"
+#include "vtk/Rendering/Core/vtkRenderWindow.h"
+#include "vtk/Rendering/Core/vtkRenderWindowInteractor.h"
+#include "vtk/Rendering/Core/vtkRenderer.h"
+#include "vtk/Rendering/Core/vtkVolume.h"
+#include "vtk/Rendering/Core/vtkVolumeProperty.h"
+#include <vtk/Common/Core/vtkVersion.h>
 
 // STD includes
 #include <cassert>

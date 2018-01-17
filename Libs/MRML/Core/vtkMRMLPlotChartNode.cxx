@@ -22,16 +22,16 @@
 #include <string>
 
 // VTK includes
-#include <vtkCollection.h>
-#include <vtkCommand.h>
-#include <vtkFloatArray.h>
-#include <vtkIntArray.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
-#include <vtkPlot.h>
-#include <vtkSmartPointer.h>
-#include <vtkStringArray.h>
-#include <vtkTable.h>
+#include <vtk/Common/Core/vtkCollection.h>
+#include <vtk/Common/Core/vtkCommand.h>
+#include <vtk/Common/Core/vtkFloatArray.h>
+#include <vtk/Common/Core/vtkIntArray.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Charts/Core/vtkPlot.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/Common/Core/vtkStringArray.h>
+#include <vtk/Common/DataModel/vtkTable.h>
 
 // MRML includes
 #include "vtkMRMLPlotChartNode.h"

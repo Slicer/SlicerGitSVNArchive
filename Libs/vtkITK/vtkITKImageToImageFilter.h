@@ -18,17 +18,17 @@
 #include "vtkITK.h"
 
 // ITK includes
-#include <itkCommand.h>
-#include <itkProcessObject.h>
+#include <itk/Modules/Core/Common/include/itkCommand.h>
+#include <itk/Modules/Core/Common/include/itkProcessObject.h>
 
 // VTK includes
-#include <vtkCommand.h>
-#include <vtkImageAlgorithm.h>
-#include <vtkImageCast.h>
-#include <vtkImageData.h>
-#include <vtkImageExport.h>
-#include <vtkImageImport.h>
-#include <vtkVersion.h>
+#include <vtk/Common/Core/vtkCommand.h>
+#include <vtk/Common/ExecutionModel/vtkImageAlgorithm.h>
+#include <vtk/Imaging/Core/vtkImageCast.h>
+#include <vtk/Common/DataModel/vtkImageData.h>
+#include <vtk/IO/Image/vtkImageExport.h>
+#include <vtk/IO/Image/vtkImageImport.h>
+#include <vtk/Common/Core/vtkVersion.h>
 
 #undef itkExceptionMacro
 #define itkExceptionMacro(x) \

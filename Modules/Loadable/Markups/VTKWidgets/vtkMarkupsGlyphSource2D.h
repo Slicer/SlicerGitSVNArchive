@@ -36,8 +36,8 @@
 #include "vtkSlicerBaseLogic.h"
 
 // VTK includes
-#include "vtkGlyphSource2D.h"
-#include "vtkPolyDataAlgorithm.h"
+#include "vtk/Filters/Sources/vtkGlyphSource2D.h"
+#include "vtk/Common/ExecutionModel/vtkPolyDataAlgorithm.h"
 
 /// when add new glyph types, make sure to increase the clamp
 #define VTK_STARBURST_GLYPH 12

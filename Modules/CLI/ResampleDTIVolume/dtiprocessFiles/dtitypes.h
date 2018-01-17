@@ -21,16 +21,16 @@
 #define DTITYPES_H
 
 // ITK Data types
-#include <itkImage.h>
-#include <itkVectorContainer.h>
-#include <itkVector.h>
-#include <itkCovariantVector.h>
-#include <itkDiffusionTensor3D.h>
-#include <itkAffineTransform.h>
-#include <itkDTITubeSpatialObject.h>
-#include <itkGroupSpatialObject.h>
-#include <itkRGBPixel.h>
-#include <itkVectorImage.h>
+#include <itk/Modules/Core/Common/include/itkImage.h>
+#include <itk/Modules/Core/Common/include/itkVectorContainer.h>
+#include <itk/Modules/Core/Common/include/itkVector.h>
+#include <itk/Modules/Core/Common/include/itkCovariantVector.h>
+#include <itk/Modules/Core/Common/include/itkDiffusionTensor3D.h>
+#include <itk/Modules/Core/Transform/include/itkAffineTransform.h>
+#include <itk/Modules/Core/SpatialObjects/include/itkDTITubeSpatialObject.h>
+#include <itk/Modules/Core/SpatialObjects/include/itkGroupSpatialObject.h>
+#include <itk/Modules/Core/Common/include/itkRGBPixel.h>
+#include <itk/Modules/Core/Common/include/itkVectorImage.h>
 
 // VNL Includes
 #include <vnl/vnl_matrix.h>

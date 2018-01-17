@@ -15,15 +15,15 @@
 #include "vtkSlicerGlyphSource2D.h"
 
 // VTK includes
-#include <vtkCellArray.h>
-#include <vtkCellData.h>
-#include <vtkInformation.h>
-#include <vtkInformationVector.h>
-#include <vtkMath.h>
+#include <vtk/Common/DataModel/vtkCellArray.h>
+#include <vtk/Common/DataModel/vtkCellData.h>
+#include <vtk/Common/Core/vtkInformation.h>
+#include <vtk/Common/Core/vtkInformationVector.h>
+#include <vtk/Common/Core/vtkMath.h>
 #include <vtkMRMLFiducialListNode.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
-#include <vtkVersion.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkVersion.h>
 
 vtkStandardNewMacro(vtkSlicerGlyphSource2D);
 

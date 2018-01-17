@@ -22,7 +22,7 @@
 #define __vtkMRMLDisplayableManagerFactory_h
 
 // VTK includes
-#include <vtkObject.h>
+#include <vtk/Common/Core/vtkObject.h>
 
 #include "vtkMRMLDisplayableManagerExport.h"
 

@@ -38,8 +38,8 @@
 #include <vtkMRMLPETProceduralColorNode.h>
 
 // VTK includes
-#include <vtkNew.h>
-#include <vtkSmartPointer.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
 #ifdef Slicer_VTK_USE_QVTKOPENGLWIDGET
 #include <QVTKOpenGLWidget.h>
 #endif

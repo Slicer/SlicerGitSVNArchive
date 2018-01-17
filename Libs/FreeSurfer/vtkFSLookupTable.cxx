@@ -16,7 +16,7 @@
 #include "vtkFSLookupTable.h"
 
 // VTK includes
-#include <vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
 
 //------------------------------------------------------------------------------
 vtkStandardNewMacro(vtkFSLookupTable);

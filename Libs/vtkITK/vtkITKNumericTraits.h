@@ -5,9 +5,9 @@
 #define __vtkITKNumericTraits_h
 
 #include "vtkITK.h"
-#include "vtkSystemIncludes.h"
+#include "vtk/Common/Core/vtkSystemIncludes.h"
 
-#include "itkNumericTraits.h"
+#include "itk/Modules/Core/Common/include/itkNumericTraits.h"
 
 namespace itk
 {

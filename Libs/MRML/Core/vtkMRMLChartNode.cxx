@@ -13,13 +13,13 @@
 =========================================================================auto=*/
 
 
-#include "vtkObjectFactory.h"
+#include "vtk/Common/Core/vtkObjectFactory.h"
 
 #include <sstream>
 #include <map>
 #include <string>
 
-#include <vtkStringArray.h>
+#include <vtk/Common/Core/vtkStringArray.h>
 
 #include "vtkMRMLChartNode.h"
 #include "vtkMRMLScene.h"

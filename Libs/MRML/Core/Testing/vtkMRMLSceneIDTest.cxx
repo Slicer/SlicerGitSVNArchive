@@ -24,8 +24,8 @@
 #include "vtkMRMLSliceNode.h"
 
 // VTK includes
-#include <vtkCallbackCommand.h>
-#include <vtkNew.h>
+#include <vtk/Common/Core/vtkCallbackCommand.h>
+#include <vtk/Common/Core/vtkNew.h>
 
 // STD includes
 #include <iostream>

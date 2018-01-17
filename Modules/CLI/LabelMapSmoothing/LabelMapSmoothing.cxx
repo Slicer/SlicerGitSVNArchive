@@ -11,16 +11,16 @@
   See License.txt or http://www.slicer.org/copyright/copyright.txt for details.
 
 ==========================================================================*/
-#include "itkAntiAliasBinaryImageFilter.h"
-#include "itkDiscreteGaussianImageFilter.h"
-#include "itkBinaryThresholdImageFilter.h"
-#include "itkMinimumMaximumImageFilter.h"
-#include "itkLabelStatisticsImageFilter.h"
-#include "itkRegionOfInterestImageFilter.h"
-#include "itkPasteImageFilter.h"
+#include "itk/Modules/Filtering/AntiAlias/include/itkAntiAliasBinaryImageFilter.h"
+#include "itk/Modules/Filtering/Smoothing/include/itkDiscreteGaussianImageFilter.h"
+#include "itk/Modules/Filtering/Thresholding/include/itkBinaryThresholdImageFilter.h"
+#include "itk/Modules/Filtering/ImageStatistics/include/itkMinimumMaximumImageFilter.h"
+#include "itk/Modules/Filtering/ImageStatistics/include/itkLabelStatisticsImageFilter.h"
+#include "itk/Modules/Filtering/ImageGrid/include/itkRegionOfInterestImageFilter.h"
+#include "itk/Modules/Filtering/ImageGrid/include/itkPasteImageFilter.h"
 
-#include "itkImageFileReader.h"
-#include "itkImageFileWriter.h"
+#include "itk/Modules/IO/ImageBase/include/itkImageFileReader.h"
+#include "itk/Modules/IO/ImageBase/include/itkImageFileWriter.h"
 
 #include "itkPluginFilterWatcher.h"
 

@@ -35,10 +35,10 @@
 #include <vtkAddonTestingUtilities.h>
 
 // VTK includes
-#include <vtkCallbackCommand.h>
-#include <vtkGeneralTransform.h>
-#include <vtkStringArray.h>
-#include <vtkTestErrorObserver.h>
+#include <vtk/Common/Core/vtkCallbackCommand.h>
+#include <vtk/Common/Transforms/vtkGeneralTransform.h>
+#include <vtk/Common/Core/vtkStringArray.h>
+#include <vtk/Testing/Core/vtkTestErrorObserver.h>
 #include <vtkURIHandler.h>
 
 namespace vtkMRMLCoreTestingUtilities

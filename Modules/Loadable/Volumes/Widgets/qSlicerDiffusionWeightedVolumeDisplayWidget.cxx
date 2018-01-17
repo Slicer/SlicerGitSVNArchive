@@ -28,7 +28,7 @@
 #include "vtkMRMLDiffusionWeightedVolumeDisplayNode.h"
 
 // VTK includes
-#include <vtkImageData.h>
+#include <vtk/Common/DataModel/vtkImageData.h>
 
 // STD includes
 

@@ -37,13 +37,13 @@
 #include "ctkRangeWidget.h"
 
 // VTK includes
-#include <vtkMatrix4x4.h>
-#include <vtkTransform.h>
-#include <vtkImageConstantPad.h>
-#include <vtkImageMask.h>
-#include <vtkImageThreshold.h>
-#include <vtkPolyData.h>
-#include <vtkImageMathematics.h>
+#include <vtk/Common/Math/vtkMatrix4x4.h>
+#include <vtk/Common/Transforms/vtkTransform.h>
+#include <vtk/Imaging/Core/vtkImageConstantPad.h>
+#include <vtk/Imaging/Core/vtkImageMask.h>
+#include <vtk/Imaging/Core/vtkImageThreshold.h>
+#include <vtk/Common/DataModel/vtkPolyData.h>
+#include <vtk/Imaging/Math/vtkImageMathematics.h>
 
 // Slicer includes
 #include "qMRMLSliceWidget.h"

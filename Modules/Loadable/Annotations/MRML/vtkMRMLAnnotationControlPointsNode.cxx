@@ -5,9 +5,9 @@
 #include <vtkMRMLScene.h>
 
 // VTK includes
-#include "vtkBitArray.h"
-#include "vtkObjectFactory.h"
-#include <vtkPolyData.h>
+#include "vtk/Common/Core/vtkBitArray.h"
+#include "vtk/Common/Core/vtkObjectFactory.h"
+#include <vtk/Common/DataModel/vtkPolyData.h>
 
 // STD includes
 #include <algorithm>

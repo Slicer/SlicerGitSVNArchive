@@ -19,7 +19,7 @@
 
 #include "vtkMRML.h"
 #include "vtkMRMLModelDisplayNode.h"
-#include "vtkPolyData.h"
+#include "vtk/Common/DataModel/vtkPolyData.h"
 
 class vtkTransform;
 class vtkTransformPolyDataFilter;

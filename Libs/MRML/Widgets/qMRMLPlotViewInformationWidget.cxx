@@ -35,9 +35,9 @@
 #include <vtkMRMLTableNode.h>
 
 // VTK includes
-#include <vtkPen.h>
-#include <vtkPlot.h>
-#include <vtkPlotLine.h>
+#include <vtk/Rendering/Context2D/vtkPen.h>
+#include <vtk/Charts/Core/vtkPlot.h>
+#include <vtk/Charts/Core/vtkPlotLine.h>
 
 // stream includes
 #include <sstream>

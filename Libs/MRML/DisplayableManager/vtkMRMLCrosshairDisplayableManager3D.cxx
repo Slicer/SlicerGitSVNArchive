@@ -27,18 +27,18 @@
 #include <vtkMRMLScene.h>
 
 // VTK includes
-#include <vtkActor.h>
-#include <vtkCallbackCommand.h>
-#include <vtkHandleWidget.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
-#include <vtkPointHandleRepresentation3D.h>
-#include <vtkProperty.h>
-#include <vtkRenderer.h>
-#include <vtkRenderWindow.h>
-#include <vtkRenderWindowInteractor.h>
-#include <vtkSmartPointer.h>
-#include <vtkWeakPointer.h>
+#include <vtk/Rendering/Core/vtkActor.h>
+#include <vtk/Common/Core/vtkCallbackCommand.h>
+#include <vtk/Interaction/Widgets/vtkHandleWidget.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Interaction/Widgets/vtkPointHandleRepresentation3D.h>
+#include <vtk/Rendering/Core/vtkProperty.h>
+#include <vtk/Rendering/Core/vtkRenderer.h>
+#include <vtk/Rendering/Core/vtkRenderWindow.h>
+#include <vtk/Rendering/Core/vtkRenderWindowInteractor.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/Common/Core/vtkWeakPointer.h>
 
 // STD includes
 #include <algorithm>

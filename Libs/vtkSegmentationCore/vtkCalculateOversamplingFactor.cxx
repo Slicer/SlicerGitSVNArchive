@@ -22,15 +22,15 @@
 #include "vtkCalculateOversamplingFactor.h"
 
 // VTK includes
-#include <vtkCollection.h>
-#include <vtkMatrix4x4.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
-#include <vtkTimerLog.h>
-#include <vtkPolyData.h>
-#include <vtkPiecewiseFunction.h>
-#include <vtkSmartPointer.h>
-#include <vtkVersion.h>
+#include <vtk/Common/Core/vtkCollection.h>
+#include <vtk/Common/Math/vtkMatrix4x4.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/System/vtkTimerLog.h>
+#include <vtk/Common/DataModel/vtkPolyData.h>
+#include <vtk/Common/DataModel/vtkPiecewiseFunction.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/Common/Core/vtkVersion.h>
 
 // STD includes
 #include <math.h>

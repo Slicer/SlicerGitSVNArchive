@@ -20,7 +20,7 @@
 #include "vtkSlicerEditorLibModuleLogicExport.h"
 
 // VTK includes
-#include <vtkThreadedImageAlgorithm.h>
+#include <vtk/Common/ExecutionModel/vtkThreadedImageAlgorithm.h>
 
 class vtkImageData;
 class VTK_SLICER_EDITORLIB_MODULE_LOGIC_EXPORT vtkImageLabelChange : public vtkThreadedImageAlgorithm

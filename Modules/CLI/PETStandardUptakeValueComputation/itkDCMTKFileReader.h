@@ -26,15 +26,15 @@
 
 #include <stack>
 #include <vector>
-#include "itkByteSwapper.h"
-#include "itkIntTypes.h"
+#include "itk/Modules/Core/Common/include/itkByteSwapper.h"
+#include "itk/Modules/Core/Common/include/itkIntTypes.h"
 #include "vnl/vnl_vector.h"
 #include "dcmtk/dcmdata/dcxfer.h"
 #include "dcmtk/dcmdata/dcvrds.h"
 #include "dcmtk/dcmdata/dcstack.h"
 #include "dcmtk/dcmdata/dcdatset.h"
-#include "itkMacro.h"
-#include "itkImageIOBase.h"
+#include "itk/Modules/Core/Common/include/itkMacro.h"
+#include "itk/Modules/IO/ImageBase/include/itkImageIOBase.h"
 
 class DcmSequenceOfItems;
 class DcmFileFormat;

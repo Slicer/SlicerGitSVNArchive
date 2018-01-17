@@ -14,10 +14,10 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#include "itkImageFileWriter.h"
+#include "itk/Modules/IO/ImageBase/include/itkImageFileWriter.h"
 
-#include "itkResampleImageFilter.h"
-#include "itkBSplineInterpolateImageFunction.h"
+#include "itk/Modules/Filtering/ImageGrid/include/itkResampleImageFilter.h"
+#include "itk/Modules/Core/ImageFunction/include/itkBSplineInterpolateImageFunction.h"
 #include "itkConstrainedValueMultiplicationImageFilter.h"
 
 #include "itkPluginUtilities.h"

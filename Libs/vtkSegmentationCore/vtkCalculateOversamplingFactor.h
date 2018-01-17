@@ -25,9 +25,9 @@
 #define __vtkCalculateOversamplingFactor_h
 
 // VTK includes
-#include <vtkObject.h>
-#include <vtkMassProperties.h>
-#include <vtkPolyData.h>
+#include <vtk/Common/Core/vtkObject.h>
+#include <vtk/Filters/Core/vtkMassProperties.h>
+#include <vtk/Common/DataModel/vtkPolyData.h>
 
 // SegmentationCore includes
 #include "vtkOrientedImageData.h"

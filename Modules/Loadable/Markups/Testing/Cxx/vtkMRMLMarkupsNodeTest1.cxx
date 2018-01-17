@@ -20,10 +20,10 @@
 #include "vtkMRMLMarkupsNode.h"
 
 // VTK includes
-#include <vtkIndent.h>
-#include <vtkMath.h>
-#include <vtkMatrix4x4.h>
-#include <vtkNew.h>
+#include <vtk/Common/Core/vtkIndent.h>
+#include <vtk/Common/Core/vtkMath.h>
+#include <vtk/Common/Math/vtkMatrix4x4.h>
+#include <vtk/Common/Core/vtkNew.h>
 #include <vtkTestingOutputWindow.h>
 
 // STL includes

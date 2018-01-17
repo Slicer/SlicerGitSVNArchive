@@ -44,9 +44,9 @@
 #include <vtkMRMLSliceLogic.h>
 
 /// VTK includes
-#include <vtkSmartPointer.h>
-#include <vtkWeakPointer.h>
-#include <vtkImageData.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/Common/Core/vtkWeakPointer.h>
+#include <vtk/Common/DataModel/vtkImageData.h>
 
 class QAction;
 class ctkVTKSliceView;

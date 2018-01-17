@@ -28,7 +28,7 @@
 
 #include "vtkSlicerTerminologiesModuleLogicExport.h"
 
-#include <vtkVector.h>
+#include <vtk/Common/DataModel/vtkVector.h>
 
 class vtkStringArray;
 class vtkSlicerTerminologyEntry;

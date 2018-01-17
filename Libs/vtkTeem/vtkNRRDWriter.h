@@ -2,11 +2,11 @@
 #ifndef __vtkNRRDWriter_h
 #define __vtkNRRDWriter_h
 
-#include "vtkWriter.h"
+#include "vtk/IO/Core/vtkWriter.h"
 
-#include "vtkDoubleArray.h"
-#include "vtkMatrix4x4.h"
-#include "vtkSmartPointer.h"
+#include "vtk/Common/Core/vtkDoubleArray.h"
+#include "vtk/Common/Math/vtkMatrix4x4.h"
+#include "vtk/Common/Core/vtkSmartPointer.h"
 #include "teem/nrrd.h"
 
 #include "vtkTeemConfigure.h"

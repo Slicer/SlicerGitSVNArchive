@@ -43,7 +43,7 @@
 #include <vtkMRMLSceneViewNode.h>
 
 // VTK includes
-#include <vtkRenderWindow.h>
+#include <vtk/Rendering/Core/vtkRenderWindow.h>
 
 //--------------------------------------------------------------------------
 // qMRMLThreeDViewControllerWidgetPrivate methods

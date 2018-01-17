@@ -15,8 +15,8 @@
 #include "vtkMRMLLinearTransformNode.h"
 
 // VTK includes
-#include <vtkGeneralTransform.h>
-#include <vtkNew.h>
+#include <vtk/Common/Transforms/vtkGeneralTransform.h>
+#include <vtk/Common/Core/vtkNew.h>
 
 //---------------------------------------------------------------------------
 int vtkMRMLLinearTransformNodeEventsTest(int , char * [] )

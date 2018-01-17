@@ -29,7 +29,7 @@
 #include <QMap>
 
 // MRML includes
-#include <vtkType.h>
+#include <vtk/Common/Core/vtkType.h>
 
 // DICOMLib includes
 #include "qSlicerDICOMLibModuleWidgetsExport.h"

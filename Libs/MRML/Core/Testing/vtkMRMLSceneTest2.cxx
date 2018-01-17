@@ -17,9 +17,9 @@
 #include "vtkMRMLSliceNode.h"
 
 // VTK includes
-#include <vtkCallbackCommand.h>
-#include <vtkCollection.h>
-#include <vtkXMLDataParser.h>
+#include <vtk/Common/Core/vtkCallbackCommand.h>
+#include <vtk/Common/Core/vtkCollection.h>
+#include <vtk/IO/XMLParser/vtkXMLDataParser.h>
 
 // STD includes
 #include <algorithm>

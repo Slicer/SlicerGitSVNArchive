@@ -33,7 +33,7 @@ class vtkMRMLSelectionNode;
 class vtkMRMLTransformNode;
 
 // VTK includes
-#include "vtkRenderWindow.h"
+#include "vtk/Rendering/Core/vtkRenderWindow.h"
 class vtkActor;
 class vtkActorText;
 class vtkAlgorithm;

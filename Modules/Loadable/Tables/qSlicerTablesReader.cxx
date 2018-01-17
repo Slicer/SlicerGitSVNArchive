@@ -39,8 +39,8 @@
 #include <vtkMRMLStorageNode.h>
 
 // VTK includes
-#include <vtkSmartPointer.h>
-#include <vtkSQLiteDatabase.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/IO/SQL/vtkSQLiteDatabase.h>
 
 //-----------------------------------------------------------------------------
 class qSlicerTablesReaderPrivate

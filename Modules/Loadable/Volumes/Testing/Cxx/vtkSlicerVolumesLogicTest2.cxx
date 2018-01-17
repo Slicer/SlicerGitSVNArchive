@@ -26,19 +26,19 @@
 #include <vtkMRMLScene.h>
 
 // VTK includes
-#include <vtkAlgorithmOutput.h>
-#include <vtkDataSetAttributes.h>
-#include <vtkImageData.h>
-#include <vtkNew.h>
-#include <vtkStringArray.h>
-#include <vtkSmartPointer.h>
-#include <vtkTrivialProducer.h>
-#include <vtkStreamingDemandDrivenPipeline.h>
+#include <vtk/Common/ExecutionModel/vtkAlgorithmOutput.h>
+#include <vtk/Common/DataModel/vtkDataSetAttributes.h>
+#include <vtk/Common/DataModel/vtkImageData.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkStringArray.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/Common/ExecutionModel/vtkTrivialProducer.h>
+#include <vtk/Common/ExecutionModel/vtkStreamingDemandDrivenPipeline.h>
 
 // ITK includes
-#include "itkImage.h"
-#include "itkRGBPixel.h"
-#include "itkImageFileWriter.h"
+#include "itk/Modules/Core/Common/include/itkImage.h"
+#include "itk/Modules/Core/Common/include/itkRGBPixel.h"
+#include "itk/Modules/IO/ImageBase/include/itkImageFileWriter.h"
 
 // STD includes
 #include <sstream>

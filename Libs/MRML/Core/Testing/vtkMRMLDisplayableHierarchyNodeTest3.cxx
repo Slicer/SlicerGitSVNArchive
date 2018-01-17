@@ -18,7 +18,7 @@
 #include "vtkMRMLScene.h"
 
 // VTK includes
-#include <vtkNew.h>
+#include <vtk/Common/Core/vtkNew.h>
 
 // STD includes
 #include <sstream>

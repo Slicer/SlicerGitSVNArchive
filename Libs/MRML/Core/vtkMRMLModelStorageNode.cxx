@@ -18,41 +18,41 @@
 #include "vtkMRMLScene.h"
 
 // VTK includes
-#include <vtkActor.h>
-#include <vtkBYUReader.h>
-#include <vtkCellArray.h>
-#include <vtkDataSetSurfaceFilter.h>
-#include <vtkFieldData.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
-#include <vtkOBJReader.h>
-#include <vtkOBJExporter.h>
-#include <vtkPolyDataMapper.h>
-#include <vtkPLYReader.h>
-#include <vtkPLYWriter.h>
-#include <vtkPolyDataReader.h>
-#include <vtkPolyDataWriter.h>
-#include <vtkProperty.h>
-#include <vtkRenderer.h>
-#include <vtkRenderWindow.h>
-#include <vtkSTLReader.h>
-#include <vtkSTLWriter.h>
-#include <vtkStringArray.h>
+#include <vtk/Rendering/Core/vtkActor.h>
+#include <vtk/IO/Geometry/vtkBYUReader.h>
+#include <vtk/Common/DataModel/vtkCellArray.h>
+#include <vtk/Filters/Geometry/vtkDataSetSurfaceFilter.h>
+#include <vtk/Common/DataModel/vtkFieldData.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/IO/Geometry/vtkOBJReader.h>
+#include <vtk/IO/Export/vtkOBJExporter.h>
+#include <vtk/Rendering/Core/vtkPolyDataMapper.h>
+#include <vtk/IO/PLY/vtkPLYReader.h>
+#include <vtk/IO/PLY/vtkPLYWriter.h>
+#include <vtk/IO/Legacy/vtkPolyDataReader.h>
+#include <vtk/IO/Legacy/vtkPolyDataWriter.h>
+#include <vtk/Rendering/Core/vtkProperty.h>
+#include <vtk/Rendering/Core/vtkRenderer.h>
+#include <vtk/Rendering/Core/vtkRenderWindow.h>
+#include <vtk/IO/Geometry/vtkSTLReader.h>
+#include <vtk/IO/Geometry/vtkSTLWriter.h>
+#include <vtk/Common/Core/vtkStringArray.h>
 #include <vtksys/SystemTools.hxx>
-#include <vtkTriangleFilter.h>
-#include <vtkUnstructuredGrid.h>
-#include <vtkUnstructuredGridReader.h>
-#include <vtkUnstructuredGridWriter.h>
-#include <vtkXMLPolyDataReader.h>
-#include <vtkXMLPolyDataWriter.h>
-#include <vtkXMLUnstructuredGridReader.h>
-#include <vtkXMLUnstructuredGridWriter.h>
-#include <vtkVersion.h>
+#include <vtk/Filters/Core/vtkTriangleFilter.h>
+#include <vtk/Common/DataModel/vtkUnstructuredGrid.h>
+#include <vtk/IO/Legacy/vtkUnstructuredGridReader.h>
+#include <vtk/IO/Legacy/vtkUnstructuredGridWriter.h>
+#include <vtk/IO/XML/vtkXMLPolyDataReader.h>
+#include <vtk/IO/XML/vtkXMLPolyDataWriter.h>
+#include <vtk/IO/XML/vtkXMLUnstructuredGridReader.h>
+#include <vtk/IO/XML/vtkXMLUnstructuredGridWriter.h>
+#include <vtk/Common/Core/vtkVersion.h>
 
 // ITK includes
-#include <itkDefaultDynamicMeshTraits.h>
-#include <itkSpatialObjectReader.h>
-#include <itkSpatialObjectWriter.h>
+#include <itk/Modules/Core/Common/include/itkDefaultDynamicMeshTraits.h>
+#include <itk/Modules/IO/SpatialObjects/include/itkSpatialObjectReader.h>
+#include <itk/Modules/IO/SpatialObjects/include/itkSpatialObjectWriter.h>
 
 typedef itk::DefaultDynamicMeshTraits< double , 3, 3, double > MeshTrait;
 typedef itk::Mesh<double,3,MeshTrait> floatMesh;

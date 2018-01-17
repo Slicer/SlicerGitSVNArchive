@@ -17,8 +17,8 @@
 
 #include "vtkITKArchetypeImageSeriesReader.h"
 
-#include "itkImageFileReader.h"
-#include <vtkVersion.h>
+#include "itk/Modules/IO/ImageBase/include/itkImageFileReader.h"
+#include <vtk/Common/Core/vtkVersion.h>
 
 class VTK_ITK_EXPORT vtkITKArchetypeImageSeriesVectorReaderFile : public vtkITKArchetypeImageSeriesReader
 {

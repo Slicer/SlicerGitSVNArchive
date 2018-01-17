@@ -40,7 +40,7 @@
 #include <vtkMRMLSubjectHierarchyNode.h>
 
 // VTK includes
-#include <vtkSmartPointer.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
 
 //-----------------------------------------------------------------------------
 qSlicerSubjectHierarchyAbstractPlugin::qSlicerSubjectHierarchyAbstractPlugin(QObject *parent)

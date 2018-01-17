@@ -21,12 +21,12 @@
 #include "vtkOrientedImageData.h"
 
 // VTK includes
-#include <vtkBoundingBox.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
-#include <vtkMatrix4x4.h>
-#include <vtkMath.h>
-#include <vtkMathUtilities.h>
+#include <vtk/Common/DataModel/vtkBoundingBox.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/Math/vtkMatrix4x4.h>
+#include <vtk/Common/Core/vtkMath.h>
+#include <vtk/Common/Core/vtkMathUtilities.h>
 
 // STD includes
 #include <algorithm>

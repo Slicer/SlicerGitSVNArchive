@@ -27,20 +27,20 @@
 #include <vtkMRMLViewNode.h>
 
 // VTK includes
-#include <vtkActor2D.h>
-#include <vtkAxisActor2D.h>
-#include <vtkCamera.h>
-#include <vtkMatrix4x4.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
-#include <vtkPolyData.h>
-#include <vtkPolyDataMapper.h>
-#include <vtkProperty2D.h>
-#include <vtkRenderer.h>
-#include <vtkRenderWindow.h>
-#include <vtkSmartPointer.h>
-#include <vtkTextActor.h>
-#include <vtkTextProperty.h>
+#include <vtk/Rendering/Core/vtkActor2D.h>
+#include <vtk/Rendering/Annotation/vtkAxisActor2D.h>
+#include <vtk/Rendering/Core/vtkCamera.h>
+#include <vtk/Common/Math/vtkMatrix4x4.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/DataModel/vtkPolyData.h>
+#include <vtk/Rendering/Core/vtkPolyDataMapper.h>
+#include <vtk/Rendering/Core/vtkProperty2D.h>
+#include <vtk/Rendering/Core/vtkRenderer.h>
+#include <vtk/Rendering/Core/vtkRenderWindow.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/Rendering/Core/vtkTextActor.h>
+#include <vtk/Rendering/Core/vtkTextProperty.h>
 #include <vtksys/SystemTools.hxx>
 
 // STD includes

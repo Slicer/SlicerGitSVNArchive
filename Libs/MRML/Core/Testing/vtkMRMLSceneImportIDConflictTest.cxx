@@ -25,10 +25,10 @@
 #include "vtkMRMLScene.h"
 
 // VTK includes
-#include <vtkPolyData.h>
+#include <vtk/Common/DataModel/vtkPolyData.h>
 
 // STD includes
-#include <vtkNew.h>
+#include <vtk/Common/Core/vtkNew.h>
 
 using namespace vtkMRMLCoreTestingUtilities;
 

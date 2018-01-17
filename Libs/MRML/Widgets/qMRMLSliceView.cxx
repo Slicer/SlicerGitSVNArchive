@@ -47,11 +47,11 @@
 #include <vtkMRMLScene.h>
 
 // VTK includes
-#include <vtkCollection.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
-#include <vtkRenderWindow.h>
-#include <vtkSmartPointer.h>
+#include <vtk/Common/Core/vtkCollection.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Rendering/Core/vtkRenderWindow.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
 
 //--------------------------------------------------------------------------
 // qMRMLSliceViewPrivate::vtkInternalLightBoxRendererManagerProxy class

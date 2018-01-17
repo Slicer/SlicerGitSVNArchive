@@ -3,8 +3,8 @@
 
 #include "vtkSlicerSegmentationsModuleLogicExport.h"
 
-#include <vtkImageAlgorithm.h>
-#include <vtkImageData.h>
+#include <vtk/Common/ExecutionModel/vtkImageAlgorithm.h>
+#include <vtk/Common/DataModel/vtkImageData.h>
 
 class VTK_SLICER_SEGMENTATIONS_LOGIC_EXPORT vtkImageGrowCutSegment : public vtkImageAlgorithm
 {

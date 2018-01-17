@@ -38,26 +38,26 @@
 #include <vtkMRMLViewNode.h>
 
 // VTK includes
-#include <vtkAbstractWidget.h>
-#include <vtkCallbackCommand.h>
-#include <vtkCamera.h>
-#include <vtkHandleRepresentation.h>
-#include <vtkMath.h>
-#include <vtkMatrix4x4.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
-#include <vtkPointHandleRepresentation2D.h>
-#include <vtkPropCollection.h>
-#include <vtkProperty2D.h>
-#include <vtkProperty.h>
-#include <vtkRendererCollection.h>
-#include <vtkRenderer.h>
-#include <vtkRenderWindow.h>
-#include <vtkRenderWindowInteractor.h>
-#include <vtkSeedRepresentation.h>
-#include <vtkSeedWidget.h>
-#include <vtkWidgetRepresentation.h>
-#include <vtkGeneralTransform.h>
+#include <vtk/Interaction/Widgets/vtkAbstractWidget.h>
+#include <vtk/Common/Core/vtkCallbackCommand.h>
+#include <vtk/Rendering/Core/vtkCamera.h>
+#include <vtk/Interaction/Widgets/vtkHandleRepresentation.h>
+#include <vtk/Common/Core/vtkMath.h>
+#include <vtk/Common/Math/vtkMatrix4x4.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Interaction/Widgets/vtkPointHandleRepresentation2D.h>
+#include <vtk/Rendering/Core/vtkPropCollection.h>
+#include <vtk/Rendering/Core/vtkProperty2D.h>
+#include <vtk/Rendering/Core/vtkProperty.h>
+#include <vtk/Rendering/Core/vtkRendererCollection.h>
+#include <vtk/Rendering/Core/vtkRenderer.h>
+#include <vtk/Rendering/Core/vtkRenderWindow.h>
+#include <vtk/Rendering/Core/vtkRenderWindowInteractor.h>
+#include <vtk/Interaction/Widgets/vtkSeedRepresentation.h>
+#include <vtk/Interaction/Widgets/vtkSeedWidget.h>
+#include <vtk/Interaction/Widgets/vtkWidgetRepresentation.h>
+#include <vtk/Common/Transforms/vtkGeneralTransform.h>
 
 // STD includes
 #include <algorithm>

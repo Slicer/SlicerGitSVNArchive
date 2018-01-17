@@ -15,7 +15,7 @@
 #include "vtkMRMLDiffusionTensorDisplayPropertiesNode.h"
 
 // VTK includes
-#include <vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
 
 //---------------------------------------------------------------------------
 class vtkMRMLDiffusionTensorDisplayPropertiesNodeTestHelper1 : public vtkMRMLDiffusionTensorDisplayPropertiesNode

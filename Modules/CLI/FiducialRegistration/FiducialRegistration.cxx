@@ -2,11 +2,11 @@
 #include "FiducialRegistrationCLP.h"
 
 // ITK includes
-#include <itkAffineTransform.h>
-#include <itkImage.h>
-#include <itkLandmarkBasedTransformInitializer.h>
-#include <itkSimilarity3DTransform.h>
-#include <itkTransformFileWriter.h>
+#include <itk/Modules/Core/Transform/include/itkAffineTransform.h>
+#include <itk/Modules/Core/Common/include/itkImage.h>
+#include <itk/Modules/Registration/Common/include/itkLandmarkBasedTransformInitializer.h>
+#include <itk/Modules/Core/Transform/include/itkSimilarity3DTransform.h>
+#include <itk/Modules/IO/TransformBase/include/itkTransformFileWriter.h>
 
 // STD includes
 #include <numeric>

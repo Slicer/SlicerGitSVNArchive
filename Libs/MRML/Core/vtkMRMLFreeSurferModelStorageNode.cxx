@@ -13,26 +13,26 @@ Version:   $Revision: 1.2 $
 =========================================================================auto=*/
 
 
-#include "vtkObjectFactory.h"
+#include "vtk/Common/Core/vtkObjectFactory.h"
 #include "vtkMRMLFreeSurferModelStorageNode.h"
 #include "vtkMRMLScene.h"
 
-#include "vtkPolyDataNormals.h"
-#include "vtkStripper.h"
+#include "vtk/Filters/Core/vtkPolyDataNormals.h"
+#include "vtk/Filters/Core/vtkStripper.h"
 
 #include "vtkFSSurfaceReader.h"
 #include "vtkMRMLModelNode.h"
 
-#include "vtkPolyDataWriter.h"
-#include "vtkXMLPolyDataWriter.h"
-#include "vtkPolyDataReader.h"
-#include "vtkXMLPolyDataReader.h"
+#include "vtk/IO/Legacy/vtkPolyDataWriter.h"
+#include "vtk/IO/XML/vtkXMLPolyDataWriter.h"
+#include "vtk/IO/Legacy/vtkPolyDataReader.h"
+#include "vtk/IO/XML/vtkXMLPolyDataReader.h"
 
 
 
 #include "itksys/SystemTools.hxx"
 
-#include "vtkStringArray.h"
+#include "vtk/Common/Core/vtkStringArray.h"
 
 // Initialize static member that controls resampling --
 // old comment: "This offset will be changed to 0.5 from 0.0 per 2/8/2002 Slicer

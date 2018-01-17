@@ -19,9 +19,9 @@
 #include <vtkLoggingMacros.h>
 
 // VTK includes
-#include <vtkNew.h>
-#include <vtkObject.h>
-#include <vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObject.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
 #include <vtkTestingOutputWindow.h>
 
 class vtkLoggingMacroTester : public vtkObject

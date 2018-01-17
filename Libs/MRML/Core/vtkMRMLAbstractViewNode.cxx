@@ -19,7 +19,7 @@
 ==============================================================================*/
 
 // VTK includes
-#include <vtkStringArray.h>
+#include <vtk/Common/Core/vtkStringArray.h>
 
 // MRML includes
 #include "vtkMRMLAbstractViewNode.h"

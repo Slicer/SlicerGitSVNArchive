@@ -19,7 +19,7 @@
 #include "vtkSlicerAnnotationsModuleVTKWidgetsExport.h"
 
 // VTK includes
-#include <vtkDistanceWidget.h>
+#include <vtk/Interaction/Widgets/vtkDistanceWidget.h>
 
 /// \ingroup Slicer_QtModules_Annotation
 class VTK_SLICER_ANNOTATIONS_MODULE_VTKWIDGETS_EXPORT vtkAnnotationRulerWidget

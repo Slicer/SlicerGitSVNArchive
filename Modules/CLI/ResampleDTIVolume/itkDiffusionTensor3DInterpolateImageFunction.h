@@ -14,11 +14,11 @@
 #ifndef itkDiffusionTensor3DInterpolateImageFunction_h
 #define itkDiffusionTensor3DInterpolateImageFunction_h
 
-#include <itkObject.h>
-#include "itkDiffusionTensor3D.h"
-#include <itkImage.h>
-#include <itkPoint.h>
-#include <itkImageFunction.h>
+#include <itk/Modules/Core/Common/include/itkObject.h>
+#include "itk/Modules/Core/Common/include/itkDiffusionTensor3D.h"
+#include <itk/Modules/Core/Common/include/itkImage.h>
+#include <itk/Modules/Core/Common/include/itkPoint.h>
+#include <itk/Modules/Core/ImageFunction/include/itkImageFunction.h>
 
 namespace itk
 {

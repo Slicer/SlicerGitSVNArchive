@@ -29,26 +29,26 @@
 #include <vtkMRMLViewNode.h>
 
 // VTK includes
-#include <vtkActor.h>
-#include <vtkAnnotatedCubeActor.h>
-#include <vtkAxesActor.h>
-#include <vtkBoundingBox.h>
-#include <vtkCamera.h>
-#include <vtkCaptionActor2D.h>
-#include <vtkMatrix3x3.h>
-#include <vtkMatrix4x4.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
-#include <vtkPointData.h>
-#include <vtkPolyData.h>
-#include <vtkPolyDataMapper.h>
-#include <vtkProperty.h>
-#include <vtkRenderer.h>
-#include <vtkRenderWindow.h>
-#include <vtkSmartPointer.h>
-#include <vtkTextActor.h>
-#include <vtkTextProperty.h>
-#include <vtkXMLPolyDataReader.h>
+#include <vtk/Rendering/Core/vtkActor.h>
+#include <vtk/Rendering/Annotation/vtkAnnotatedCubeActor.h>
+#include <vtk/Rendering/Annotation/vtkAxesActor.h>
+#include <vtk/Common/DataModel/vtkBoundingBox.h>
+#include <vtk/Rendering/Core/vtkCamera.h>
+#include <vtk/Rendering/Annotation/vtkCaptionActor2D.h>
+#include <vtk/Common/Math/vtkMatrix3x3.h>
+#include <vtk/Common/Math/vtkMatrix4x4.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/DataModel/vtkPointData.h>
+#include <vtk/Common/DataModel/vtkPolyData.h>
+#include <vtk/Rendering/Core/vtkPolyDataMapper.h>
+#include <vtk/Rendering/Core/vtkProperty.h>
+#include <vtk/Rendering/Core/vtkRenderer.h>
+#include <vtk/Rendering/Core/vtkRenderWindow.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/Rendering/Core/vtkTextActor.h>
+#include <vtk/Rendering/Core/vtkTextProperty.h>
+#include <vtk/IO/XML/vtkXMLPolyDataReader.h>
 #include <vtksys/SystemTools.hxx>
 
 // STD includes

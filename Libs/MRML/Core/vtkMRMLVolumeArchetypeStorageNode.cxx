@@ -33,14 +33,14 @@ Version:   $Revision: 1.6 $
 #include <vtksys/SystemTools.hxx>
 
 // VTK includes
-#include <vtkCallbackCommand.h>
-#include <vtkDataArray.h>
-#include <vtkErrorCode.h>
-#include <vtkImageChangeInformation.h>
-#include <vtkNew.h>
-#include <vtkPointData.h>
-#include <vtkSmartPointer.h>
-#include <vtkStringArray.h>
+#include <vtk/Common/Core/vtkCallbackCommand.h>
+#include <vtk/Common/Core/vtkDataArray.h>
+#include <vtk/Common/Misc/vtkErrorCode.h>
+#include <vtk/Imaging/Core/vtkImageChangeInformation.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/DataModel/vtkPointData.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/Common/Core/vtkStringArray.h>
 #include <vtksys/Directory.hxx>
 
 // STD includes

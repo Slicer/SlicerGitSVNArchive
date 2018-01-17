@@ -14,10 +14,10 @@ Version:   $Revision: 1.14 $
 
 #include "vtkMRMLBSplineTransformNode.h"
 
-#include "vtkImageData.h"
-#include "vtkObjectFactory.h"
+#include "vtk/Common/DataModel/vtkImageData.h"
+#include "vtk/Common/Core/vtkObjectFactory.h"
 #include "vtkOrientedBSplineTransform.h"
-#include "vtkNew.h"
+#include "vtk/Common/Core/vtkNew.h"
 
 //------------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLBSplineTransformNode);

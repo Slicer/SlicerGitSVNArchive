@@ -13,20 +13,20 @@
 ==========================================================================*/
 
 // ITK includes
-#include <itkBSplineDeformableTransform.h>
-#include <itkCompositeTransform.h>
-#include <itkImageFileReader.h>
-#include <itkImageFileWriter.h>
-#include <itkMetaDataObject.h>
-#include <itkNearestNeighborInterpolateImageFunction.h>
-#include <itkResampleImageFilter.h>
-#include <itkBSplineInterpolateImageFunction.h>
-#include <itkRigid3DTransform.h>
-#include <itkThinPlateSplineKernelTransform.h>
-#include <itkTransformFileReader.h>
-#include <itkVectorResampleImageFilter.h>
-#include <itkWindowedSincInterpolateImageFunction.h>
-#include <itkConstantBoundaryCondition.h>
+#include <itk/Modules/Core/Transform/include/itkBSplineDeformableTransform.h>
+#include <itk/Modules/Core/Transform/include/itkCompositeTransform.h>
+#include <itk/Modules/IO/ImageBase/include/itkImageFileReader.h>
+#include <itk/Modules/IO/ImageBase/include/itkImageFileWriter.h>
+#include <itk/Modules/Core/Common/include/itkMetaDataObject.h>
+#include <itk/Modules/Core/ImageFunction/include/itkNearestNeighborInterpolateImageFunction.h>
+#include <itk/Modules/Filtering/ImageGrid/include/itkResampleImageFilter.h>
+#include <itk/Modules/Core/ImageFunction/include/itkBSplineInterpolateImageFunction.h>
+#include <itk/Modules/Core/Transform/include/itkRigid3DTransform.h>
+#include <itk/Modules/Core/Transform/include/itkThinPlateSplineKernelTransform.h>
+#include <itk/Modules/IO/TransformBase/include/itkTransformFileReader.h>
+#include <itk/Modules/Filtering/ImageGrid/include/itkVectorResampleImageFilter.h>
+#include <itk/Modules/Core/ImageFunction/include/itkWindowedSincInterpolateImageFunction.h>
+#include <itk/Modules/Core/Common/include/itkConstantBoundaryCondition.h>
 
 // ResampleScalarVectorDWIVolume includes
 #include "ResampleScalarVectorDWIVolumeCLP.h"

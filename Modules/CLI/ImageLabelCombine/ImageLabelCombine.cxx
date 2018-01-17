@@ -11,9 +11,9 @@
   See License.txt or http://www.slicer.org/copyright/copyright.txt for details.
 
 ==========================================================================*/
-#include "itkImageFileReader.h"
-#include "itkImageFileWriter.h"
-#include "itkImageDuplicator.h"
+#include "itk/Modules/IO/ImageBase/include/itkImageFileReader.h"
+#include "itk/Modules/IO/ImageBase/include/itkImageFileWriter.h"
+#include "itk/Modules/Core/Common/include/itkImageDuplicator.h"
 
 #include "ImageLabelCombineCLP.h"
 

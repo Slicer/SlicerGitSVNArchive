@@ -25,8 +25,8 @@
 #include "vtkSlicerMarkupsModuleMRMLExport.h"
 
 // VTK includes
-#include <vtkSmartPointer.h>
-#include <vtkVector.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/Common/DataModel/vtkVector.h>
 
 class vtkStringArray;
 class vtkMatrix4x4;

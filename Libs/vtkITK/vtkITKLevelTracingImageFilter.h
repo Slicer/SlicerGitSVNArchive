@@ -3,8 +3,8 @@
 #define __vtkITKLevelTracingImageFilter_h
 
 #include "vtkITK.h"
-#include "vtkPolyDataAlgorithm.h"
-#include "vtkObjectFactory.h"
+#include "vtk/Common/ExecutionModel/vtkPolyDataAlgorithm.h"
+#include "vtk/Common/Core/vtkObjectFactory.h"
 
 /// \brief Wrapper class around itk::LevelTracingImageFilterImageFilter.
 ///

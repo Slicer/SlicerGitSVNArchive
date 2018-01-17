@@ -26,13 +26,13 @@
 #include "vtkMRMLScene.h"
 
 // VTK includes
-#include <vtkObjectFactory.h>
-#include <vtkDelimitedTextReader.h>
-#include <vtkDelimitedTextWriter.h>
-#include <vtkTable.h>
-#include <vtkStringArray.h>
-#include <vtkBitArray.h>
-#include <vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/IO/Infovis/vtkDelimitedTextReader.h>
+#include <vtk/IO/Core/vtkDelimitedTextWriter.h>
+#include <vtk/Common/DataModel/vtkTable.h>
+#include <vtk/Common/Core/vtkStringArray.h>
+#include <vtk/Common/Core/vtkBitArray.h>
+#include <vtk/Common/Core/vtkNew.h>
 #include <vtksys/SystemTools.hxx>
 
 //------------------------------------------------------------------------------

@@ -29,11 +29,11 @@
 #include <vtkMRMLViewNode.h>
 
 // VTK includes
-#include <vtkIntArray.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
-#include <vtkRenderer.h>
-#include <vtkRenderWindowInteractor.h>
+#include <vtk/Common/Core/vtkIntArray.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Rendering/Core/vtkRenderer.h>
+#include <vtk/Rendering/Core/vtkRenderWindowInteractor.h>
 
 // STD includes
 #include <cassert>

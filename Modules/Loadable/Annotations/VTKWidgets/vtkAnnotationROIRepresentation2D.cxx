@@ -17,33 +17,33 @@
 #include "vtkAnnotationROIRepresentation2D.h"
 
 // VTK includes
-#include <vtkActor2D.h>
-#include <vtkAssemblyPath.h>
-#include <vtkBox.h>
-#include <vtkCallbackCommand.h>
-#include <vtkCamera.h>
-#include <vtkCellArray.h>
-#include <vtkDoubleArray.h>
-#include <vtkFloatArray.h>
-#include <vtkInteractorObserver.h>
-#include <vtkMath.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
-#include <vtkPlane.h>
-#include <vtkPlanes.h>
-#include <vtkPoints.h>
-#include <vtkPolyData.h>
-#include <vtkPolyDataMapper2D.h>
-#include <vtkProperty2D.h>
-#include <vtkPropPicker.h>
-#include <vtkRenderer.h>
-#include <vtkRenderWindowInteractor.h>
-#include <vtkSmartPointer.h>
-#include <vtkSphereSource.h>
-#include <vtkTransform.h>
-#include <vtkTransformPolyDataFilter.h>
-#include <vtkVersion.h>
-#include <vtkWindow.h>
+#include <vtk/Rendering/Core/vtkActor2D.h>
+#include <vtk/Rendering/Core/vtkAssemblyPath.h>
+#include <vtk/Common/DataModel/vtkBox.h>
+#include <vtk/Common/Core/vtkCallbackCommand.h>
+#include <vtk/Rendering/Core/vtkCamera.h>
+#include <vtk/Common/DataModel/vtkCellArray.h>
+#include <vtk/Common/Core/vtkDoubleArray.h>
+#include <vtk/Common/Core/vtkFloatArray.h>
+#include <vtk/Rendering/Core/vtkInteractorObserver.h>
+#include <vtk/Common/Core/vtkMath.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/DataModel/vtkPlane.h>
+#include <vtk/Common/DataModel/vtkPlanes.h>
+#include <vtk/Common/Core/vtkPoints.h>
+#include <vtk/Common/DataModel/vtkPolyData.h>
+#include <vtk/Rendering/Core/vtkPolyDataMapper2D.h>
+#include <vtk/Rendering/Core/vtkProperty2D.h>
+#include <vtk/Rendering/Core/vtkPropPicker.h>
+#include <vtk/Rendering/Core/vtkRenderer.h>
+#include <vtk/Rendering/Core/vtkRenderWindowInteractor.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/Filters/Sources/vtkSphereSource.h>
+#include <vtk/Common/Transforms/vtkTransform.h>
+#include <vtk/Filters/General/vtkTransformPolyDataFilter.h>
+#include <vtk/Common/Core/vtkVersion.h>
+#include <vtk/Common/Core/vtkWindow.h>
 
 
 vtkStandardNewMacro(vtkAnnotationROIRepresentation2D);

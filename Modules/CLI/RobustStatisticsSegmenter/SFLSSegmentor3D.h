@@ -10,7 +10,7 @@
 // #include "cArray3D.h"
 
 // itk
-#include "itkImage.h"
+#include "itk/Modules/Core/Common/include/itkImage.h"
 
 template <typename TPixel>
 class CSFLSSegmentor3D : public CSFLS

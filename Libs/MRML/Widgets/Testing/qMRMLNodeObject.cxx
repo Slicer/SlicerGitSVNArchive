@@ -26,7 +26,7 @@
 #include "qMRMLNodeObject.h"
 
 /// VTK includes
-#include <vtkTimerLog.h>
+#include <vtk/Common/System/vtkTimerLog.h>
 
 //-----------------------------------------------------------------------------
 qMRMLNodeObject::qMRMLNodeObject(vtkMRMLNode* node, QObject* parent)

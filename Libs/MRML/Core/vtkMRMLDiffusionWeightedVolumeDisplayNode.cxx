@@ -16,13 +16,13 @@ Version:   $Revision: 1.2 $
 #include "vtkMRMLDiffusionWeightedVolumeDisplayNode.h"
 
 // VTK includes
-#include <vtkImageAppendComponents.h>
-#include <vtkImageData.h>
-#include <vtkImageExtractComponents.h>
-#include <vtkImageMapToWindowLevelColors.h>
-#include <vtkImageThreshold.h>
-#include <vtkObjectFactory.h>
-#include <vtkVersion.h>
+#include <vtk/Imaging/Core/vtkImageAppendComponents.h>
+#include <vtk/Common/DataModel/vtkImageData.h>
+#include <vtk/Imaging/Core/vtkImageExtractComponents.h>
+#include <vtk/Imaging/Color/vtkImageMapToWindowLevelColors.h>
+#include <vtk/Imaging/Core/vtkImageThreshold.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkVersion.h>
 
 // STD includes
 #include <sstream>

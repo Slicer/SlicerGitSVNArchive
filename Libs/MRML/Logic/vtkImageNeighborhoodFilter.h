@@ -10,7 +10,7 @@
 #ifndef __vtkImageNeighborhoodFilter_h
 #define __vtkImageNeighborhoodFilter_h
 
-#include <vtkImageSpatialAlgorithm.h>
+#include <vtk/Imaging/General/vtkImageSpatialAlgorithm.h>
 
 #include "vtkMRMLLogicExport.h"
 

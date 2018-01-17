@@ -18,10 +18,10 @@
 #ifndef itkRigidImageToImageRegistrationMethod_h
 #define itkRigidImageToImageRegistrationMethod_h
 
-#include "itkImage.h"
-#include "itkAffineTransform.h"
-#include "itkVersorRigid3DTransform.h"
-#include "itkRigid2DTransform.h"
+#include "itk/Modules/Core/Common/include/itkImage.h"
+#include "itk/Modules/Core/Transform/include/itkAffineTransform.h"
+#include "itk/Modules/Core/Transform/include/itkVersorRigid3DTransform.h"
+#include "itk/Modules/Core/Transform/include/itkRigid2DTransform.h"
 
 #include "itkOptimizedImageToImageRegistrationMethod.h"
 

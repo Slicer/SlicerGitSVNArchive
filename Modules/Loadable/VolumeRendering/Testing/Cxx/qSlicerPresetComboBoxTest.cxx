@@ -44,9 +44,9 @@
 #include <vtkMRMLViewNode.h>
 
 // VTK includes
-#include <vtkNew.h>
-#include <vtkColorTransferFunction.h>
-#include <vtkPiecewiseFunction.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Rendering/Core/vtkColorTransferFunction.h>
+#include <vtk/Common/DataModel/vtkPiecewiseFunction.h>
 
 #if QT_VERSION < 0x040700
 //static QImage pixmapCacheLoader( const QString& name, const QString &context )

@@ -7,7 +7,7 @@ class vtkCallbackCommand;
 class vtkMRMLScene;
 
 // VTK includes
-#include <vtkObject.h>
+#include <vtk/Common/Core/vtkObject.h>
 
 // STD includes
 #include <string>

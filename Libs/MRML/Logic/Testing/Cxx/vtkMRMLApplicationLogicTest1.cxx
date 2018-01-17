@@ -25,8 +25,8 @@
 #include <vtkMRMLSliceNode.h>
 
 // VTK includes
-#include <vtkCollection.h>
-#include <vtkNew.h>
+#include <vtk/Common/Core/vtkCollection.h>
+#include <vtk/Common/Core/vtkNew.h>
 
 // STD includes
 #include <string>

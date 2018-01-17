@@ -13,18 +13,18 @@
 #include <vtkMRMLInteractionNode.h>
 
 // VTK includes
-#include <vtkAbstractWidget.h>
-#include <vtkHandleRepresentation.h>
-#include <vtkLogoRepresentation.h>
-#include <vtkLogoWidget.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
-#include <vtkObject.h>
-#include <vtkPNGReader.h>
-#include <vtkProperty2D.h>
-#include <vtkProperty.h>
-#include <vtkRenderer.h>
-#include <vtkSmartPointer.h>
+#include <vtk/Interaction/Widgets/vtkAbstractWidget.h>
+#include <vtk/Interaction/Widgets/vtkHandleRepresentation.h>
+#include <vtk/Interaction/Widgets/vtkLogoRepresentation.h>
+#include <vtk/Interaction/Widgets/vtkLogoWidget.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkObject.h>
+#include <vtk/IO/Image/vtkPNGReader.h>
+#include <vtk/Rendering/Core/vtkProperty2D.h>
+#include <vtk/Rendering/Core/vtkProperty.h>
+#include <vtk/Rendering/Core/vtkRenderer.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
 
 // STD includes
 #include <string>

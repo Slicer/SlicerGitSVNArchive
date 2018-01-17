@@ -15,7 +15,7 @@
 #define itkDiffusionTensor3DRigidTransform_h
 
 #include "itkDiffusionTensor3DMatrix3x3Transform.h"
-#include <itkVersorRigid3DTransform.h>
+#include <itk/Modules/Core/Transform/include/itkVersorRigid3DTransform.h>
 
 #define PRECISION .001
 

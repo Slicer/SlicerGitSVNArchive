@@ -31,7 +31,7 @@
 #include <vtkMRMLModelNode.h>
 
 // VTK includes
-#include <vtkNew.h>
+#include <vtk/Common/Core/vtkNew.h>
 
 // Common test driver includes
 #include "qMRMLWidgetCxxTests.h"

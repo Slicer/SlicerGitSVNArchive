@@ -32,7 +32,7 @@
 #include <vtkMRMLProceduralColorNode.h>
 
 // VTK includes
-#include "vtkColorTransferFunction.h"
+#include "vtk/Rendering/Core/vtkColorTransferFunction.h"
 
 // CTK includes
 #include "ctkVTKScalarsToColorsView.h"

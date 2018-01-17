@@ -31,11 +31,11 @@
 #include <vtkMRMLSliceNode.h>
 
 // VTK includes
-#include <vtkNew.h>
-#include <vtkRenderer.h>
-#include <vtkRenderWindow.h>
-#include <vtkRenderWindowInteractor.h>
-#include <vtkNew.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Rendering/Core/vtkRenderer.h>
+#include <vtk/Rendering/Core/vtkRenderWindow.h>
+#include <vtk/Rendering/Core/vtkRenderWindowInteractor.h>
+#include <vtk/Common/Core/vtkNew.h>
 
 //----------------------------------------------------------------------------
 int vtkMRMLSliceViewDisplayableManagerFactoryTest(int vtkNotUsed(argc), char* vtkNotUsed(argv)[])

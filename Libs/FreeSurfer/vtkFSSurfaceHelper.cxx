@@ -13,8 +13,8 @@
 =========================================================================auto=*/
 #include "vtkFSSurfaceHelper.h"
 
-#include <vtkMatrix4x4.h>
-#include <vtkObjectFactory.h>
+#include <vtk/Common/Math/vtkMatrix4x4.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
 
 //-------------------------------------------------------------------------
 //----------------------------------------------------------------------------

@@ -15,7 +15,7 @@
 #include "vtkMRMLHierarchyNode.h"
 
 // VTK includes
-#include <vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
 
 //---------------------------------------------------------------------------
 class vtkMRMLHierarchyNodeTestHelper1 : public vtkMRMLHierarchyNode

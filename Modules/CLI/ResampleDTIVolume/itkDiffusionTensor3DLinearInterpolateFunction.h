@@ -15,7 +15,7 @@
 #define itkDiffusionTensor3DLinearInterpolateFunction_h
 
 #include "itkDiffusionTensor3DInterpolateImageFunctionReimplementation.h"
-#include <itkLinearInterpolateImageFunction.h>
+#include <itk/Modules/Core/ImageFunction/include/itkLinearInterpolateImageFunction.h>
 
 namespace itk
 {

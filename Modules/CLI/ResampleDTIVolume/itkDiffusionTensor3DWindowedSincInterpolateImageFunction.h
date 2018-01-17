@@ -15,9 +15,9 @@
 #define itkDiffusionTensor3DWindowedSincInterpolateImageFunction_h
 
 #include "itkDiffusionTensor3DInterpolateImageFunctionReimplementation.h"
-#include <itkWindowedSincInterpolateImageFunction.h>
-#include <itkConstantBoundaryCondition.h>
-#include <itkImage.h>
+#include <itk/Modules/Core/ImageFunction/include/itkWindowedSincInterpolateImageFunction.h>
+#include <itk/Modules/Core/Common/include/itkConstantBoundaryCondition.h>
+#include <itk/Modules/Core/Common/include/itkImage.h>
 
 namespace itk
 {

@@ -22,12 +22,12 @@
 #include <vtkDiffusionTensorMathematics.h>
 
 // VTK includes
-#include <vtkDataArray.h>
-#include <vtkImageData.h>
-#include <vtkMultiThreader.h>
-#include <vtkNew.h>
-#include <vtkPointData.h>
-#include <vtkVersion.h>
+#include <vtk/Common/Core/vtkDataArray.h>
+#include <vtk/Common/DataModel/vtkImageData.h>
+#include <vtk/Common/Core/vtkMultiThreader.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/DataModel/vtkPointData.h>
+#include <vtk/Common/Core/vtkVersion.h>
 
 //----------------------------------------------------------------------------
 int vtkDiffusionTensorMathematicsTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)[])

@@ -26,17 +26,17 @@
 #include "vtkMRMLScene.h"
 
 // VTK includes
-#include <vtkObjectFactory.h>
-#include <vtkTable.h>
-#include <vtkStringArray.h>
-#include <vtkBitArray.h>
-#include <vtkNew.h>
-#include <vtkSQLQuery.h>
-#include <vtkRowQueryToTable.h>
-#include <vtkSQLDatabase.h>
-#include <vtkSQLiteDatabase.h>
-#include <vtkSQLiteQuery.h>
-#include <vtkSmartPointer.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/DataModel/vtkTable.h>
+#include <vtk/Common/Core/vtkStringArray.h>
+#include <vtk/Common/Core/vtkBitArray.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/IO/SQL/vtkSQLQuery.h>
+#include <vtk/IO/SQL/vtkRowQueryToTable.h>
+#include <vtk/IO/SQL/vtkSQLDatabase.h>
+#include <vtk/IO/SQL/vtkSQLiteDatabase.h>
+#include <vtk/IO/SQL/vtkSQLiteQuery.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
 
 #include <vtksys/SystemTools.hxx>
 

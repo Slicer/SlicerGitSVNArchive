@@ -18,12 +18,12 @@ Version:   $Revision: 1.14 $
 #include "vtkMRMLNRRDStorageNode.h"
 #include "vtkMRMLScene.h"
 
-#include <vtkDoubleArray.h>
-#include <vtkImageData.h>
-#include <vtkImageExtractComponents.h>
-#include <vtkMatrix4x4.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkDoubleArray.h>
+#include <vtk/Common/DataModel/vtkImageData.h>
+#include <vtk/Imaging/Core/vtkImageExtractComponents.h>
+#include <vtk/Common/Math/vtkMatrix4x4.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
 
 //------------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLDiffusionWeightedVolumeNode);

@@ -15,9 +15,9 @@
 #define itkDiffusionTensor3DMatrix3x3Transform_h
 
 #include "itkDiffusionTensor3DTransform.h"
-#include <itkVector.h>
-#include <itkMatrixOffsetTransformBase.h>
-#include <itkMutexLock.h>
+#include <itk/Modules/Core/Common/include/itkVector.h>
+#include <itk/Modules/Core/Transform/include/itkMatrixOffsetTransformBase.h>
+#include <itk/Modules/Core/Common/include/itkMutexLock.h>
 
 namespace itk
 {

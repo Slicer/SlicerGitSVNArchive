@@ -11,7 +11,7 @@
 #define __vtkITKIslandMath_h
 
 #include "vtkITK.h"
-#include "vtkSimpleImageToImageFilter.h"
+#include "vtk/Common/ExecutionModel/vtkSimpleImageToImageFilter.h"
 
 /// \brief ITK-based utilities for manipulating connected regions in label maps.
 /// Limitation: The filter does not work correctly with input volume that has

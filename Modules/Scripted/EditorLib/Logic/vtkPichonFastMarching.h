@@ -13,9 +13,9 @@
 #include "vtkPichonFastMarchingPDF.h"
 
 // VTK includes
-#include <vtkImageData.h>
-#include <vtkImageAlgorithm.h>
-#include <vtkVersion.h>
+#include <vtk/Common/DataModel/vtkImageData.h>
+#include <vtk/Common/ExecutionModel/vtkImageAlgorithm.h>
+#include <vtk/Common/Core/vtkVersion.h>
 
 // STD includes
 #include <vector>

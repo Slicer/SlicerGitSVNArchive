@@ -15,12 +15,12 @@
 #include "vtkMRMLModelNode.h"
 #include "vtkMRMLScene.h"
 
-#include <vtkCylinderSource.h>
-#include <vtkGeometryFilter.h>
-#include <vtkNew.h>
-#include <vtkTriangleFilter.h>
-#include <vtkUnstructuredGrid.h>
-#include <vtkVoxel.h>
+#include <vtk/Filters/Sources/vtkCylinderSource.h>
+#include <vtk/Filters/Geometry/vtkGeometryFilter.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Filters/Core/vtkTriangleFilter.h>
+#include <vtk/Common/DataModel/vtkUnstructuredGrid.h>
+#include <vtk/Common/DataModel/vtkVoxel.h>
 
 //---------------------------------------------------------------------------
 int TestReadWriteData(vtkMRMLScene* scene, const char* extension, vtkPointSet*mesh);

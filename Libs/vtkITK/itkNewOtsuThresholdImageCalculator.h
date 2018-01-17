@@ -2,9 +2,9 @@
 #ifndef itkNewOtsuThresholdImageCalculator_h
 #define itkNewOtsuThresholdImageCalculator_h
 
-#include "itkObject.h"
-#include "itkObjectFactory.h"
-#include "itkNumericTraits.h"
+#include "itk/Modules/Core/Common/include/itkObject.h"
+#include "itk/Modules/Core/Common/include/itkObjectFactory.h"
+#include "itk/Modules/Core/Common/include/itkNumericTraits.h"
 
 namespace itk
 {

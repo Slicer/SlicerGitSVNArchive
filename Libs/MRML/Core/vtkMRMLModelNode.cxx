@@ -24,24 +24,24 @@ Version:   $Revision: 1.3 $
 #include "vtkMRMLScene.h"
 
 // VTK includes
-#include <vtkAlgorithmOutput.h>
-#include <vtkAssignAttribute.h>
-#include <vtkCallbackCommand.h>
-#include <vtkCellData.h>
-#include <vtkColorTransferFunction.h>
-#include <vtkEventForwarderCommand.h>
-#include <vtkFloatArray.h>
-#include <vtkGeneralTransform.h>
-#include <vtkMatrix4x4.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
-#include <vtkPointData.h>
-#include <vtkPolyData.h>
-#include <vtkSmartPointer.h>
-#include <vtkTransformFilter.h>
-#include <vtkTrivialProducer.h>
-#include <vtkUnstructuredGrid.h>
-#include <vtkVersion.h>
+#include <vtk/Common/ExecutionModel/vtkAlgorithmOutput.h>
+#include <vtk/Filters/Core/vtkAssignAttribute.h>
+#include <vtk/Common/Core/vtkCallbackCommand.h>
+#include <vtk/Common/DataModel/vtkCellData.h>
+#include <vtk/Rendering/Core/vtkColorTransferFunction.h>
+#include <vtk/Common/Core/vtkEventForwarderCommand.h>
+#include <vtk/Common/Core/vtkFloatArray.h>
+#include <vtk/Common/Transforms/vtkGeneralTransform.h>
+#include <vtk/Common/Math/vtkMatrix4x4.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/DataModel/vtkPointData.h>
+#include <vtk/Common/DataModel/vtkPolyData.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/Filters/General/vtkTransformFilter.h>
+#include <vtk/Common/ExecutionModel/vtkTrivialProducer.h>
+#include <vtk/Common/DataModel/vtkUnstructuredGrid.h>
+#include <vtk/Common/Core/vtkVersion.h>
 
 // STD includes
 #include <cassert>

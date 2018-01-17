@@ -41,9 +41,9 @@
 #include "vtkMRMLSceneViewNode.h"
 
 // VTK includes
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
-#include <vtkStringArray.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkStringArray.h>
 
 // STD includes
 #include <cassert>

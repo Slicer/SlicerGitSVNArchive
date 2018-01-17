@@ -19,7 +19,7 @@
 #include "vtkMRMLMarkupsDisplayNode.h"
 
 // VTK includes
-#include <vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
 
 // STL includes
 #include <sstream>

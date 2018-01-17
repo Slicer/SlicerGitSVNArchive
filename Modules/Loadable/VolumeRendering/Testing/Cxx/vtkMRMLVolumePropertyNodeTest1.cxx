@@ -23,7 +23,7 @@
 #include "vtkSlicerVolumeRenderingLogic.h"
 
 // VTK includes
-#include <vtkPiecewiseFunction.h>
+#include <vtk/Common/DataModel/vtkPiecewiseFunction.h>
 
 // STD includes
 #include <limits>

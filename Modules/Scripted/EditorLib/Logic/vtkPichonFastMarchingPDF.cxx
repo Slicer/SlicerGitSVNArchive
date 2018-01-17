@@ -11,8 +11,8 @@
 #include "vtkPichonFastMarchingPDF.h"
 
 // VTK includes
-#include <vtkMath.h>
-#include <vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkMath.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
 
 vtkPichonFastMarchingPDF::vtkPichonFastMarchingPDF( int _realizationMax )
 {

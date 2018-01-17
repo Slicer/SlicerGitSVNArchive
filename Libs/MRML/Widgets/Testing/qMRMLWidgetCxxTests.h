@@ -22,7 +22,7 @@
 // VTK includes
 #include <vtkMRMLDebugLeaksMacro.h>
 #include <vtkTestingOutputWindow.h>
-#include <vtkNew.h>
+#include <vtk/Common/Core/vtkNew.h>
 
 // ITK includes
 #include <itkConfigure.h>

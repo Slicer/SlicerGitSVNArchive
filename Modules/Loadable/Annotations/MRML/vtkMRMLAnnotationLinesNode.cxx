@@ -1,15 +1,15 @@
 #include <sstream>
 #include <algorithm>
 
-#include "vtkObjectFactory.h"
+#include "vtk/Common/Core/vtkObjectFactory.h"
 #include "vtkMRMLAnnotationLinesStorageNode.h"
 #include "vtkMRMLAnnotationLinesNode.h"
 #include "vtkMRMLAnnotationLineDisplayNode.h"
 #include "vtkMRMLScene.h"
 
-#include "vtkBitArray.h"
-#include "vtkCellArray.h"
-#include <vtkPolyData.h>
+#include "vtk/Common/Core/vtkBitArray.h"
+#include "vtk/Common/DataModel/vtkCellArray.h"
+#include <vtk/Common/DataModel/vtkPolyData.h>
 
 
 //----------------------------------------------------------------------------

@@ -29,14 +29,14 @@
 #include "vtkMRMLVolumeNode.h"
 
 // VTK includes
-#include "vtkGeneralTransform.h"
-#include "vtkImageData.h"
-#include "vtkRenderWindowInteractor.h"
-#include "vtkRenderWindow.h"
-#include "vtkRenderer.h"
-#include "vtkObjectFactory.h"
-#include "vtkCommand.h"
-#include "vtkNew.h"
+#include "vtk/Common/Transforms/vtkGeneralTransform.h"
+#include "vtk/Common/DataModel/vtkImageData.h"
+#include "vtk/Rendering/Core/vtkRenderWindowInteractor.h"
+#include "vtk/Rendering/Core/vtkRenderWindow.h"
+#include "vtk/Rendering/Core/vtkRenderer.h"
+#include "vtk/Common/Core/vtkObjectFactory.h"
+#include "vtk/Common/Core/vtkCommand.h"
+#include "vtk/Common/Core/vtkNew.h"
 
 //STL includes
 #include <algorithm>

@@ -6,8 +6,8 @@
 #include <vtksys/SystemTools.hxx>
 
 // VTK includes
-#include <vtkImageData.h>
-#include <vtkObjectFactory.h>
+#include <vtk/Common/DataModel/vtkImageData.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
 
 // STD includes
 #include <sstream>

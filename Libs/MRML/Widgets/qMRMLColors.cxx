@@ -24,9 +24,9 @@
 #include "qMRMLColors.h"
 
 // VTK includes
-#include <vtkColor.h>
+#include <vtk/Common/DataModel/vtkColor.h>
 #include "vtkMRMLColors.h"
-#include <vtkVersion.h>
+#include <vtk/Common/Core/vtkVersion.h>
 
 //------------------------------------------------------------------------------
 QColor qMRMLColors::sliceRed()

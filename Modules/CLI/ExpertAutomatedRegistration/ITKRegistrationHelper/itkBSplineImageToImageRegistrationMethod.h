@@ -18,8 +18,8 @@
 #ifndef itkBSplineImageToImageRegistrationMethod_h
 #define itkBSplineImageToImageRegistrationMethod_h
 
-#include "itkImage.h"
-#include "itkBSplineDeformableTransform.h"
+#include "itk/Modules/Core/Common/include/itkImage.h"
+#include "itk/Modules/Core/Transform/include/itkBSplineDeformableTransform.h"
 
 #include "itkOptimizedImageToImageRegistrationMethod.h"
 

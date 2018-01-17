@@ -20,14 +20,14 @@ Version:   $Revision: 1.2 $
 
 // VTK includes
 #include <vtkAddonMathUtilities.h>
-#include <vtkMath.h>
-#include <vtkMatrix3x3.h>
-#include <vtkMatrix4x4.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
-#include <vtkSmartPointer.h>
-#include <vtkStringArray.h>
-#include <vtkVector.h>
+#include <vtk/Common/Core/vtkMath.h>
+#include <vtk/Common/Math/vtkMatrix3x3.h>
+#include <vtk/Common/Math/vtkMatrix4x4.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/Common/Core/vtkStringArray.h>
+#include <vtk/Common/DataModel/vtkVector.h>
 
 
 // VNL includes

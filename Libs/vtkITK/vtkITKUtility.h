@@ -15,8 +15,8 @@
 #ifndef __vtkITKUtility_h
 #define __vtkITKUtility_h
 
-#include "vtkObjectFactory.h"
-#include "vtkSetGet.h"
+#include "vtk/Common/Core/vtkObjectFactory.h"
+#include "vtk/Common/Core/vtkSetGet.h"
 
 /**
  * This function will connect the given itk::VTKImageExport filter to

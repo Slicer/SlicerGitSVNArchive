@@ -5,11 +5,11 @@
 #include "vtkMRMLVolumeNode.h"
 
 // VTK includes
-#include <vtkCollection.h>
-#include <vtkImageData.h>
-#include <vtkMatrix4x4.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkCollection.h>
+#include <vtk/Common/DataModel/vtkImageData.h>
+#include <vtk/Common/Math/vtkMatrix4x4.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
 
 //----------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLROIListNode);

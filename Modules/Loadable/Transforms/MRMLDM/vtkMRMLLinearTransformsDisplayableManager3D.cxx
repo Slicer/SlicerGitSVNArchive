@@ -35,20 +35,20 @@
 #include <vtkMRMLViewNode.h>
 
 // VTK includes
-#include <vtkBoxRepresentation.h>
-#include <vtkBoxWidget2.h>
-#include <vtkCallbackCommand.h>
-#include <vtkCollection.h>
-#include <vtkGeneralTransform.h>
-#include <vtkLineSource.h>
-#include <vtkMatrix4x4.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
-#include <vtkPickingManager.h>
-#include <vtkRenderWindowInteractor.h>
-#include <vtkRenderer.h>
-#include <vtkSmartPointer.h>
-#include <vtkTransform.h>
+#include <vtk/Interaction/Widgets/vtkBoxRepresentation.h>
+#include <vtk/Interaction/Widgets/vtkBoxWidget2.h>
+#include <vtk/Common/Core/vtkCallbackCommand.h>
+#include <vtk/Common/Core/vtkCollection.h>
+#include <vtk/Common/Transforms/vtkGeneralTransform.h>
+#include <vtk/Filters/Sources/vtkLineSource.h>
+#include <vtk/Common/Math/vtkMatrix4x4.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Rendering/Core/vtkPickingManager.h>
+#include <vtk/Rendering/Core/vtkRenderWindowInteractor.h>
+#include <vtk/Rendering/Core/vtkRenderer.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/Common/Transforms/vtkTransform.h>
 
 const double DEFAULT_SCALE[3] = {100.0, 100.0, 100.0};
 

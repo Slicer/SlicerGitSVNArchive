@@ -3,11 +3,11 @@
 #include "vtkNRRDWriter.h"
 
 
-#include "vtkImageData.h"
-#include "vtkPointData.h"
-#include "vtkObjectFactory.h"
-#include "vtkInformation.h"
-#include <vtkVersion.h>
+#include "vtk/Common/DataModel/vtkImageData.h"
+#include "vtk/Common/DataModel/vtkPointData.h"
+#include "vtk/Common/Core/vtkObjectFactory.h"
+#include "vtk/Common/Core/vtkInformation.h"
+#include <vtk/Common/Core/vtkVersion.h>
 
 class AttributeMapType: public std::map<std::string, std::string> {};
 class AxisInfoMapType : public std::map<unsigned int, std::string> {};

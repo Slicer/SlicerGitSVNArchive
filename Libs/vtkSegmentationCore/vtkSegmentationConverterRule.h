@@ -24,7 +24,7 @@
 #include "vtkSegmentationCoreConfigure.h"
 
 // VTK includes
-#include <vtkObject.h>
+#include <vtk/Common/Core/vtkObject.h>
 
 // STD includes
 #include <map>

@@ -18,9 +18,9 @@ Version:   $Revision: 1.14 $
 #include "vtkMRMLNRRDStorageNode.h"
 
 // VTK includes
-#include <vtkImageData.h>
-#include <vtkObjectFactory.h>
-#include <vtkMatrix4x4.h>
+#include <vtk/Common/DataModel/vtkImageData.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/Math/vtkMatrix4x4.h>
 
 
 //----------------------------------------------------------------------------

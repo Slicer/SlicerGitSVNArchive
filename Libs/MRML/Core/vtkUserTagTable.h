@@ -1,8 +1,8 @@
 #ifndef __vtkUserTagTable_h
 #define __vtkUserTagTable_h
 
-#include "vtkObject.h"
-#include "vtkTable.h"
+#include "vtk/Common/Core/vtkObject.h"
+#include "vtk/Common/DataModel/vtkTable.h"
 #include "vtkMRML.h"
 
 

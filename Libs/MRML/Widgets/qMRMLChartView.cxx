@@ -47,8 +47,8 @@
 #include <vtkMRMLScene.h>
 
 // VTK includes
-#include <vtkSmartPointer.h>
-#include <vtkStringArray.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/Common/Core/vtkStringArray.h>
 
 //--------------------------------------------------------------------------
 static ctkLogger logger("org.slicer.libs.qmrmlwidgets.qMRMLChartView");

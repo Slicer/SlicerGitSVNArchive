@@ -13,9 +13,9 @@ Version:   $Revision: 1.3 $
 =========================================================================auto=*/
 #include <sstream>
 
-#include "vtkObjectFactory.h"
-#include "vtkMath.h"
-#include <vtkMatrix4x4.h>
+#include "vtk/Common/Core/vtkObjectFactory.h"
+#include "vtk/Common/Core/vtkMath.h"
+#include <vtk/Common/Math/vtkMatrix4x4.h>
 
 #include "vtkMRMLFiducial.h"
 //#include "vtkMRMLFiducialListNode.h"

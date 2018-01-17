@@ -30,8 +30,8 @@
 #include "qSlicerScriptedUtils_p.h"
 
 // VTK includes
-#include <vtkObject.h>
-#include <vtkPythonUtil.h>
+#include <vtk/Common/Core/vtkObject.h>
+#include <vtk/Wrapping/PythonCore/vtkPythonUtil.h>
 
 //-----------------------------------------------------------------------------
 class qSlicerScriptedFileWriterPrivate

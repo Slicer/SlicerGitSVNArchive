@@ -35,7 +35,7 @@
 #include <qSlicerAbstractCoreModule.h>
 
 // VTK includes
-#include <vtkSmartPointer.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
 
 // Qt includes
 #include <QDebug>

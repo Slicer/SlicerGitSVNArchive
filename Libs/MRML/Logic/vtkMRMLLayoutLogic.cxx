@@ -32,12 +32,12 @@
 #include "vtkMRMLPlotViewNode.h"
 
 // VTK includes
-#include <vtkCallbackCommand.h>
-#include <vtkCollection.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
-#include <vtkSmartPointer.h>
-#include <vtkXMLDataElement.h>
+#include <vtk/Common/Core/vtkCallbackCommand.h>
+#include <vtk/Common/Core/vtkCollection.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/Common/DataModel/vtkXMLDataElement.h>
 
 // STD includes
 #include <cassert>

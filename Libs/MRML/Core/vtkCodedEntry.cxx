@@ -10,7 +10,7 @@ or http://www.slicer.org/copyright/copyright.txt for details.
 #include "vtkCodedEntry.h"
 
 // VTK include
-#include <vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
 
 // STD include
 #include <sstream>

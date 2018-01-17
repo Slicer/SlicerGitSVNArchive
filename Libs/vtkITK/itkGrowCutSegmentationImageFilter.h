@@ -1,10 +1,10 @@
 #ifndef itkGrowCutSegmentationImageFilter_h
 #define itkGrowCutSegmentationImageFilter_h
 
-#include "itkImage.h"
-#include "itkImageToImageFilter.h"
-#include "itkSimpleDataObjectDecorator.h"
-#include "itkVectorContainer.h"
+#include "itk/Modules/Core/Common/include/itkImage.h"
+#include "itk/Modules/Core/Common/include/itkImageToImageFilter.h"
+#include "itk/Modules/Core/Common/include/itkSimpleDataObjectDecorator.h"
+#include "itk/Modules/Core/Common/include/itkVectorContainer.h"
 //#include "itkCommand.h"
 
 //#include "itkGrowCutSegmentationUpdateFilter.h"

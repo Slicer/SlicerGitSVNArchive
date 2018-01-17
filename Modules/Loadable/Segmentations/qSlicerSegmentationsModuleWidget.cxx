@@ -45,9 +45,9 @@
 #include "vtkMRMLSubjectHierarchyNode.h"
 
 // VTK includes
-#include <vtkCollection.h>
-#include <vtkNew.h>
-#include <vtkSmartPointer.h>
+#include <vtk/Common/Core/vtkCollection.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
 
 // Qt includes
 #include <QDebug>

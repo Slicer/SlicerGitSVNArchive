@@ -32,8 +32,8 @@
 #include <vtkMRMLModelNode.h>
 
 // VTK includes
-#include <vtkSmartPointer.h>
-#include <vtkPolyData.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/Common/DataModel/vtkPolyData.h>
 #ifdef Slicer_VTK_USE_QVTKOPENGLWIDGET
 #include <QVTKOpenGLWidget.h>
 #endif

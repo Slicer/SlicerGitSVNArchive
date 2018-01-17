@@ -23,7 +23,7 @@
 #include <ctkUtils.h>
 
 // VTK includes
-#include <vtkNew.h>
+#include <vtk/Common/Core/vtkNew.h>
 
 // Slicer includes
 #include "qSlicerPythonManager.h"

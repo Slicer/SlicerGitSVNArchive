@@ -36,12 +36,12 @@
 #include "vtkSegmentationConverterFactory.h"
 
 // VTK includes
-#include <vtkLookupTable.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
-#include <vtkStringArray.h>
-#include <vtkVector.h>
-#include <vtkVersion.h>
+#include <vtk/Common/Core/vtkLookupTable.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkStringArray.h>
+#include <vtk/Common/DataModel/vtkVector.h>
+#include <vtk/Common/Core/vtkVersion.h>
 
 // STD includes
 #include <algorithm>

@@ -22,7 +22,7 @@
 #define __vtkMRMLDebugLeaksMacro_h
 
 // VTK includes
-#include <vtkDebugLeaks.h>
+#include <vtk/Common/Core/vtkDebugLeaks.h>
 
 // ----------------------------------------------------------------------------
 /// turns on exiting with an error if there are leaks

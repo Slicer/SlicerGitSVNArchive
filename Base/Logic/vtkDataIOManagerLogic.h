@@ -1,10 +1,10 @@
 #ifndef __vtkDataIOManagerLogic_h
 #define __vtkDataIOManagerLogic_h
 
-#include "vtkObject.h"
-#include "vtkUnsignedLongArray.h"
-#include "vtkSmartPointer.h"
-#include "vtkIntArray.h"
+#include "vtk/Common/Core/vtkObject.h"
+#include "vtk/Common/Core/vtkUnsignedLongArray.h"
+#include "vtk/Common/Core/vtkSmartPointer.h"
+#include "vtk/Common/Core/vtkIntArray.h"
 #include "vtkMRML.h"
 
 #include "vtkSlicerModuleLogic.h"

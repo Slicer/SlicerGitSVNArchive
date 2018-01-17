@@ -25,18 +25,18 @@ Version:   $Revision: 1.14 $
 #include "vtkOrientedGridTransform.h"
 
 // VTK includes
-#include <vtkCommand.h>
-#include <vtkCollection.h>
-#include <vtkCollectionIterator.h>
-#include <vtkGeneralTransform.h>
-#include <vtkImageData.h>
-#include <vtkLinearTransform.h>
-#include <vtkHomogeneousTransform.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
-#include <vtkPoints.h>
-#include <vtkThinPlateSplineTransform.h>
-#include <vtkTransform.h>
+#include <vtk/Common/Core/vtkCommand.h>
+#include <vtk/Common/Core/vtkCollection.h>
+#include <vtk/Common/Core/vtkCollectionIterator.h>
+#include <vtk/Common/Transforms/vtkGeneralTransform.h>
+#include <vtk/Common/DataModel/vtkImageData.h>
+#include <vtk/Common/Transforms/vtkLinearTransform.h>
+#include <vtk/Common/Transforms/vtkHomogeneousTransform.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkPoints.h>
+#include <vtk/Common/Transforms/vtkThinPlateSplineTransform.h>
+#include <vtk/Common/Transforms/vtkTransform.h>
 
 // STD includes
 #include <sstream>

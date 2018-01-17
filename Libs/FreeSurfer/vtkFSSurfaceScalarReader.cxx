@@ -17,9 +17,9 @@
 #include "vtkFSSurfaceScalarReader.h"
 
 // VTK includes
-#include <vtkByteSwap.h>
-#include <vtkFloatArray.h>
-#include <vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkByteSwap.h>
+#include <vtk/Common/Core/vtkFloatArray.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
 
 //-------------------------------------------------------------------------
 vtkStandardNewMacro(vtkFSSurfaceScalarReader);

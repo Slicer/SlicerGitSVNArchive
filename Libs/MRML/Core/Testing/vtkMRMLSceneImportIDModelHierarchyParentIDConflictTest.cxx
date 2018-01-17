@@ -25,7 +25,7 @@
 #include <vector>
 
 // VTK includes
-#include <vtkNew.h>
+#include <vtk/Common/Core/vtkNew.h>
 
 // ITKSYS includes
 #include <itksys/SystemTools.hxx>

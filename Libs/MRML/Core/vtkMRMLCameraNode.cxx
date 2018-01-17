@@ -20,13 +20,13 @@ Version:   $Revision: 1.3 $
 #include "vtkMRMLViewNode.h"
 
 // VTK includes
-#include <vtkCamera.h>
-#include <vtkCallbackCommand.h>
-#include <vtkObjectFactory.h>
-#include <vtkMath.h>
-#include <vtkNew.h>
-#include <vtkRenderer.h>
-#include <vtkTransform.h>
+#include <vtk/Rendering/Core/vtkCamera.h>
+#include <vtk/Common/Core/vtkCallbackCommand.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkMath.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Rendering/Core/vtkRenderer.h>
+#include <vtk/Common/Transforms/vtkTransform.h>
 
 // STD includes
 #include <cassert>

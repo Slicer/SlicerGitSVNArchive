@@ -14,7 +14,7 @@
 #define __vtkMRMLCoreTestingMacros_h
 
 // VTK includes
-#include <vtkMath.h>
+#include <vtk/Common/Core/vtkMath.h>
 
 /// Convenience macros for unit tests.
 ///

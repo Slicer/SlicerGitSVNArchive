@@ -16,10 +16,10 @@
 #define __vtkITKImageToImageFilterF3F3_h
 
 #include "vtkITKImageToImageFilter.h"
-#include "vtkImageAlgorithm.h"
-#include "itkImageToImageFilter.h"
-#include "itkVTKImageExport.h"
-#include "itkVTKImageImport.h"
+#include "vtk/Common/ExecutionModel/vtkImageAlgorithm.h"
+#include "itk/Modules/Core/Common/include/itkImageToImageFilter.h"
+#include "itk/Modules/Bridge/VTK/include/itkVTKImageExport.h"
+#include "itk/Modules/Bridge/VTK/include/itkVTKImageImport.h"
 #include "vtkITKUtility.h"
 
 class VTK_ITK_EXPORT vtkITKImageToImageFilterF3F3 : public vtkITKImageToImageFilter

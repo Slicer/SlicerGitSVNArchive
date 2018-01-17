@@ -33,7 +33,7 @@
 #include <vtkMRMLViewNode.h>
 
 // VTK includes
-#include <vtkNew.h>
+#include <vtk/Common/Core/vtkNew.h>
 
 // ----------------------------------------------------------------------------
 class qMRMLDisplayNodeViewComboBoxTester: public QObject

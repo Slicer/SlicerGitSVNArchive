@@ -40,9 +40,9 @@
 #include "vtkMRMLTableNode.h"
 
 // VTK includes
-#include <vtkFloatArray.h>
-#include <vtkNew.h>
-#include <vtkTable.h>
+#include <vtk/Common/Core/vtkFloatArray.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/DataModel/vtkTable.h>
 #ifdef Slicer_VTK_USE_QVTKOPENGLWIDGET
 #include <QVTKOpenGLWidget.h>
 #endif

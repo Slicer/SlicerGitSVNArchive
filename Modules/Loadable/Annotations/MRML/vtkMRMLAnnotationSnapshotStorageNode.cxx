@@ -17,19 +17,19 @@
 #include "vtkMRMLScene.h"
 
 // VTK includes
-#include <vtkBMPReader.h>
-#include <vtkBMPWriter.h>
-#include <vtkImageData.h>
-#include <vtkJPEGReader.h>
-#include <vtkJPEGWriter.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
-#include <vtkPNGReader.h>
-#include <vtkPNGWriter.h>
-#include <vtkStringArray.h>
-#include <vtkTIFFReader.h>
-#include <vtkTIFFWriter.h>
-#include <vtkVersion.h>
+#include <vtk/IO/Image/vtkBMPReader.h>
+#include <vtk/IO/Image/vtkBMPWriter.h>
+#include <vtk/Common/DataModel/vtkImageData.h>
+#include <vtk/IO/Image/vtkJPEGReader.h>
+#include <vtk/IO/Image/vtkJPEGWriter.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/IO/Image/vtkPNGReader.h>
+#include <vtk/IO/Image/vtkPNGWriter.h>
+#include <vtk/Common/Core/vtkStringArray.h>
+#include <vtk/IO/Image/vtkTIFFReader.h>
+#include <vtk/IO/Image/vtkTIFFWriter.h>
+#include <vtk/Common/Core/vtkVersion.h>
 
 // ITKsys includes
 #include <itksys/SystemTools.hxx>

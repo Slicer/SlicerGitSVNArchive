@@ -2,7 +2,7 @@
 #include <vtkITKArchetypeImageSeriesVectorReaderFile.h>
 
 // VTK includes
-#include <vtkImageData.h>
+#include <vtk/Common/DataModel/vtkImageData.h>
 
 // ITK includes
 #include <itkConfigure.h>

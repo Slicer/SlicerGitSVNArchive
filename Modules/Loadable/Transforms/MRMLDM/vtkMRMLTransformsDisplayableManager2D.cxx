@@ -36,21 +36,21 @@
 #include <vtkMRMLTransformNode.h>
 
 // VTK includes
-#include <vtkActor2D.h>
-#include <vtkCallbackCommand.h>
-#include <vtkColorTransferFunction.h>
+#include <vtk/Rendering/Core/vtkActor2D.h>
+#include <vtk/Common/Core/vtkCallbackCommand.h>
+#include <vtk/Rendering/Core/vtkColorTransferFunction.h>
 #include <vtkEventBroker.h>
-#include <vtkMatrix4x4.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
-#include <vtkPolyDataMapper2D.h>
-#include <vtkProperty2D.h>
-#include <vtkRenderer.h>
-#include <vtkSmartPointer.h>
-#include <vtkTransform.h>
-#include <vtkTransformPolyDataFilter.h>
-#include <vtkWeakPointer.h>
-#include <vtkPointLocator.h>
+#include <vtk/Common/Math/vtkMatrix4x4.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Rendering/Core/vtkPolyDataMapper2D.h>
+#include <vtk/Rendering/Core/vtkProperty2D.h>
+#include <vtk/Rendering/Core/vtkRenderer.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/Common/Transforms/vtkTransform.h>
+#include <vtk/Filters/General/vtkTransformPolyDataFilter.h>
+#include <vtk/Common/Core/vtkWeakPointer.h>
+#include <vtk/Common/DataModel/vtkPointLocator.h>
 
 // STD includes
 #include <algorithm>

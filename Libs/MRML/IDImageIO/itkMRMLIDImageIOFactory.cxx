@@ -15,7 +15,7 @@
 
 =========================================================================*/
 #include "itkMRMLIDImageIOFactory.h"
-#include "itkVersion.h"
+#include "itk/Modules/Core/Common/include/itkVersion.h"
 
 
 namespace itk

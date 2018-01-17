@@ -1,4 +1,4 @@
-#include "vtkObjectFactory.h"
+#include "vtk/Common/Core/vtkObjectFactory.h"
 #include "vtkTagTable.h"
 
 #include <vtksys/SystemTools.hxx>

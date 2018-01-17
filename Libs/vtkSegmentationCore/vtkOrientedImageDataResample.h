@@ -24,7 +24,7 @@
 // Segmentation includes
 #include "vtkSegmentationCoreConfigure.h"
 
-#include "vtkObject.h"
+#include "vtk/Common/Core/vtkObject.h"
 
 class vtkImageData;
 class vtkMatrix4x4;

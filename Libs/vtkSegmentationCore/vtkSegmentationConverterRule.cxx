@@ -22,7 +22,7 @@
 #include "vtkSegmentationConverterRule.h"
 
 // VTK includes
-#include <vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
 
 //----------------------------------------------------------------------------
 vtkSegmentationConverterRule::vtkSegmentationConverterRule()

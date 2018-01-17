@@ -37,8 +37,8 @@
 #include <vtkMRMLSceneViewNode.h>
 
 // VTK includes
-#include <vtkStdString.h>
-#include <vtkStringArray.h>
+#include <vtk/Common/Core/vtkStdString.h>
+#include <vtk/Common/Core/vtkStringArray.h>
 
 //-----------------------------------------------------------------------------
 class qSlicerNodeWriterPrivate

@@ -1,6 +1,6 @@
-#include "itkImageFileWriter.h"
-#include "itkDiffusionTensor3D.h"
-#include "itkMetaDataObject.h"
+#include "itk/Modules/IO/ImageBase/include/itkImageFileWriter.h"
+#include "itk/Modules/Core/Common/include/itkDiffusionTensor3D.h"
+#include "itk/Modules/Core/Common/include/itkMetaDataObject.h"
 
 #include "itkPluginUtilities.h"
 

@@ -26,22 +26,22 @@
 #include "vtkMRMLTransformNode.h"
 
 // VTK includes
-#include <vtkAlgorithm.h>
-#include <vtkAlgorithmOutput.h>
-#include <vtkAssignAttribute.h>
+#include <vtk/Common/ExecutionModel/vtkAlgorithm.h>
+#include <vtk/Common/ExecutionModel/vtkAlgorithmOutput.h>
+#include <vtk/Filters/Core/vtkAssignAttribute.h>
 #include <vtkDiffusionTensorMathematics.h>
-#include <vtkFloatArray.h>
-#include <vtkGeneralTransform.h>
-#include <vtkImageData.h>
-#include <vtkImageReslice.h>
-#include <vtkInformation.h>
-#include <vtkInformationVector.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
-#include <vtkPointData.h>
-#include <vtkTrivialProducer.h>
-#include <vtkTransform.h>
-#include <vtkVersion.h>
+#include <vtk/Common/Core/vtkFloatArray.h>
+#include <vtk/Common/Transforms/vtkGeneralTransform.h>
+#include <vtk/Common/DataModel/vtkImageData.h>
+#include <vtk/Imaging/Core/vtkImageReslice.h>
+#include <vtk/Common/Core/vtkInformation.h>
+#include <vtk/Common/Core/vtkInformationVector.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/DataModel/vtkPointData.h>
+#include <vtk/Common/ExecutionModel/vtkTrivialProducer.h>
+#include <vtk/Common/Transforms/vtkTransform.h>
+#include <vtk/Common/Core/vtkVersion.h>
 #include <vtkAddonMathUtilities.h>
 
 //

@@ -35,7 +35,7 @@
 #include <vtkObservation.h>
 
 // VTK includes
-#include <vtkCallbackCommand.h>
+#include <vtk/Common/Core/vtkCallbackCommand.h>
 
 // STD includes
 #ifdef HAVE_STDINT_H

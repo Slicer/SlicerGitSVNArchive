@@ -14,17 +14,17 @@
 #include <vtkMRMLInteractionNode.h>
 
 // VTK includes
-#include <vtkAbstractWidget.h>
-#include <vtkAngleRepresentation3D.h>
-#include <vtkAngleWidget.h>
-#include <vtkHandleRepresentation.h>
-#include <vtkHandleWidget.h>
-#include <vtkInteractorEventRecorder.h>
-#include <vtkObjectFactory.h>
-#include <vtkObject.h>
-#include <vtkProperty.h>
-#include <vtkSmartPointer.h>
-#include <vtkSphereHandleRepresentation.h>
+#include <vtk/Interaction/Widgets/vtkAbstractWidget.h>
+#include <vtk/Interaction/Widgets/vtkAngleRepresentation3D.h>
+#include <vtk/Interaction/Widgets/vtkAngleWidget.h>
+#include <vtk/Interaction/Widgets/vtkHandleRepresentation.h>
+#include <vtk/Interaction/Widgets/vtkHandleWidget.h>
+#include <vtk/Rendering/Core/vtkInteractorEventRecorder.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkObject.h>
+#include <vtk/Rendering/Core/vtkProperty.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/Interaction/Widgets/vtkSphereHandleRepresentation.h>
 
 // Math includes
 #define _USE_MATH_DEFINES

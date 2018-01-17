@@ -14,7 +14,7 @@ Version:   $Revision: 1.0 $
 #include <sstream>
 #include <vtksys/SystemTools.hxx>
 
-#include "vtkObjectFactory.h"
+#include "vtk/Common/Core/vtkObjectFactory.h"
 
 #include "vtkMRMLFreeSurferProceduralColorNode.h"
 #include "vtkMRMLLogic.h"

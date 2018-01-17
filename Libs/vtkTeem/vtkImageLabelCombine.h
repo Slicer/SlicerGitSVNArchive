@@ -16,11 +16,11 @@
 #ifndef __vtkImageLabelCombine_h
 #define __vtkImageLabelCombine_h
 
-#include <vtkVersion.h>
+#include <vtk/Common/Core/vtkVersion.h>
 
 #include "vtkTeemConfigure.h"
 
-#include "vtkThreadedImageAlgorithm.h"
+#include "vtk/Common/ExecutionModel/vtkThreadedImageAlgorithm.h"
 
 /// \brief Add, subtract, multiply, divide, invert, sin, cos, exp, log.
 ///

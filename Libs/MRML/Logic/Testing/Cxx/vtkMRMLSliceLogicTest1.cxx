@@ -22,8 +22,8 @@
 #include <vtkMRMLSliceCompositeNode.h>
 
 // VTK includes
-#include <vtkImageBlend.h>
-#include <vtkNew.h>
+#include <vtk/Imaging/Core/vtkImageBlend.h>
+#include <vtk/Common/Core/vtkNew.h>
 
 #include "vtkMRMLCoreTestingMacros.h"
 

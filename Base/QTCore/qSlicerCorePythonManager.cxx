@@ -36,8 +36,8 @@
 #include "vtkSlicerConfigure.h"
 
 // VTK includes
-#include <vtkPythonUtil.h>
-#include <vtkVersion.h>
+#include <vtk/Wrapping/PythonCore/vtkPythonUtil.h>
+#include <vtk/Common/Core/vtkVersion.h>
 
 //-----------------------------------------------------------------------------
 qSlicerCorePythonManager::qSlicerCorePythonManager(QObject* _parent)

@@ -15,8 +15,8 @@
 
 #include "vtkTestingOutputWindow.h"
 
-#include "vtkObjectFactory.h"
-#include "vtkNew.h"
+#include "vtk/Common/Core/vtkObjectFactory.h"
+#include "vtk/Common/Core/vtkNew.h"
 
 //-----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkTestingOutputWindow);

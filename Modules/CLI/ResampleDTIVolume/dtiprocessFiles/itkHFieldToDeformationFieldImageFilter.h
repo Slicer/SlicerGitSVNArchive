@@ -19,7 +19,7 @@
 #ifndef itkHFieldToDeformationFieldImageFilter_h
 #define itkHFieldToDeformationFieldImageFilter_h
 
-#include <itkImageToImageFilter.h>
+#include <itk/Modules/Core/Common/include/itkImageToImageFilter.h>
 
 namespace itk
 {

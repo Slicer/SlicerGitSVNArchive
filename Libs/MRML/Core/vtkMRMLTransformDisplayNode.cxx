@@ -21,8 +21,8 @@
 ==============================================================================*/
 
 
-#include "vtkObjectFactory.h"
-#include "vtkCallbackCommand.h"
+#include "vtk/Common/Core/vtkObjectFactory.h"
+#include "vtk/Common/Core/vtkCallbackCommand.h"
 
 #include "vtkMRMLTransformDisplayNode.h"
 
@@ -34,9 +34,9 @@
 #include "vtkMRMLSliceNode.h"
 #include "vtkMRMLVolumeNode.h"
 
-#include <vtkColorTransferFunction.h>
-#include <vtkIntArray.h>
-#include <vtkNew.h>
+#include <vtk/Rendering/Core/vtkColorTransferFunction.h>
+#include <vtk/Common/Core/vtkIntArray.h>
+#include <vtk/Common/Core/vtkNew.h>
 #include <vtkMRMLProceduralColorNode.h>
 
 #include <sstream>

@@ -26,15 +26,15 @@
 #include "vtkMRMLScene.h"
 
 // VTK includes
-#include <vtkAssignAttribute.h>
-#include <vtkDataSetAttributes.h>
-#include <vtkFloatArray.h>
-#include <vtkImageData.h>
-#include <vtkImageInterpolator.h>
-#include <vtkImageReslice.h>
-#include <vtkNew.h>
-#include <vtkPointData.h>
-#include <vtkTrivialProducer.h>
+#include <vtk/Filters/Core/vtkAssignAttribute.h>
+#include <vtk/Common/DataModel/vtkDataSetAttributes.h>
+#include <vtk/Common/Core/vtkFloatArray.h>
+#include <vtk/Common/DataModel/vtkImageData.h>
+#include <vtk/Imaging/Core/vtkImageInterpolator.h>
+#include <vtk/Imaging/Core/vtkImageReslice.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/DataModel/vtkPointData.h>
+#include <vtk/Common/ExecutionModel/vtkTrivialProducer.h>
 
 namespace
 {

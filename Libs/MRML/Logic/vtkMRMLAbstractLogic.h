@@ -19,8 +19,8 @@ class vtkMRMLNode;
 class vtkMRMLScene;
 
 // VTK includes
-#include <vtkCommand.h>
-#include <vtkObject.h>
+#include <vtk/Common/Core/vtkCommand.h>
+#include <vtk/Common/Core/vtkObject.h>
 class vtkIntArray;
 class vtkFloatArray;
 

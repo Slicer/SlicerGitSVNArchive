@@ -1,10 +1,10 @@
 #ifndef itkLevelTracingImageFilter_h
 #define itkLevelTracingImageFilter_h
 
-#include "itkImage.h"
-#include "itkImageToImageFilter.h"
-#include "itkSimpleDataObjectDecorator.h"
-#include "itkChainCodePath.h"
+#include "itk/Modules/Core/Common/include/itkImage.h"
+#include "itk/Modules/Core/Common/include/itkImageToImageFilter.h"
+#include "itk/Modules/Core/Common/include/itkSimpleDataObjectDecorator.h"
+#include "itk/Modules/Filtering/Path/include/itkChainCodePath.h"
 
 namespace itk
 {

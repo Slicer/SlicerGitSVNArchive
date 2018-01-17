@@ -45,8 +45,8 @@
 #include "vtkMRMLLayoutLogic.h"
 
 // VTK includes
-#include <vtkCollection.h>
-#include <vtkSmartPointer.h>
+#include <vtk/Common/Core/vtkCollection.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
 
 //-----------------------------------------------------------------------------
 class qSlicerViewControllersModuleWidgetPrivate:

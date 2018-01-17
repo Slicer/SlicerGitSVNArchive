@@ -7,12 +7,12 @@
 #include "vtkMRMLScene.h"
 
 // VTK includes
-#include <vtkCommand.h>
-#include <vtkBitArray.h>
-#include <vtkObjectFactory.h>
-#include <vtkPointData.h>
-#include <vtkPolyData.h>
-#include <vtkStringArray.h>
+#include <vtk/Common/Core/vtkCommand.h>
+#include <vtk/Common/Core/vtkBitArray.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/DataModel/vtkPointData.h>
+#include <vtk/Common/DataModel/vtkPolyData.h>
+#include <vtk/Common/Core/vtkStringArray.h>
 
 // STD includes
 #include <sstream>

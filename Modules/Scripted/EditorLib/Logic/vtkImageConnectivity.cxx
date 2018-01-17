@@ -8,10 +8,10 @@
 =========================================================================auto=*/
 #include "vtkImageConnectivity.h"
 
-#include "vtkObjectFactory.h"
-#include "vtkImageData.h"
-#include <vtkInformation.h>
-#include <vtkStreamingDemandDrivenPipeline.h>
+#include "vtk/Common/Core/vtkObjectFactory.h"
+#include "vtk/Common/DataModel/vtkImageData.h"
+#include <vtk/Common/Core/vtkInformation.h>
+#include <vtk/Common/ExecutionModel/vtkStreamingDemandDrivenPipeline.h>
 
 #include <limits.h>
 #include <assert.h>

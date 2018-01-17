@@ -14,11 +14,11 @@
 #include "vtkImageLabelOutline.h"
 
 // VTK includes
-#include <vtkInformation.h>
-#include "vtkObjectFactory.h"
-#include "vtkImageData.h"
-#include <vtkStreamingDemandDrivenPipeline.h>
-#include <vtkVersion.h>
+#include <vtk/Common/Core/vtkInformation.h>
+#include "vtk/Common/Core/vtkObjectFactory.h"
+#include "vtk/Common/DataModel/vtkImageData.h"
+#include <vtk/Common/ExecutionModel/vtkStreamingDemandDrivenPipeline.h>
+#include <vtk/Common/Core/vtkVersion.h>
 
 //------------------------------------------------------------------------------
 vtkStandardNewMacro(vtkImageLabelOutline);

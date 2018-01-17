@@ -39,17 +39,17 @@
 #include <vtkMRMLAnnotationROINode.h>
 
 // VTK includes
-#include <vtkBoundingBox.h>
-#include <vtkGeneralTransform.h>
-#include <vtkImageData.h>
-#include <vtkImageClip.h>
-#include <vtkNew.h>
-#include <vtkMatrix4x4.h>
-#include <vtkMatrix3x3.h>
-#include <vtkObjectFactory.h>
-#include <vtkSmartPointer.h>
-#include <vtkTransform.h>
-#include <vtkVersion.h>
+#include <vtk/Common/DataModel/vtkBoundingBox.h>
+#include <vtk/Common/Transforms/vtkGeneralTransform.h>
+#include <vtk/Common/DataModel/vtkImageData.h>
+#include <vtk/Imaging/Core/vtkImageClip.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Math/vtkMatrix4x4.h>
+#include <vtk/Common/Math/vtkMatrix3x3.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/Common/Transforms/vtkTransform.h>
+#include <vtk/Common/Core/vtkVersion.h>
 
 #include <vtkAddonMathUtilities.h>
 

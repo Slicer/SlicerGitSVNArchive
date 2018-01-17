@@ -24,7 +24,7 @@
 #include <QMessageBox>
 #include <QModelIndex>
 
-#include <vtkCallbackCommand.h>
+#include <vtk/Common/Core/vtkCallbackCommand.h>
 
 // qMRMLWidgets
 #include "qMRMLSceneModelHierarchyModel.h"
@@ -44,7 +44,7 @@
 #include "vtkMRMLScene.h"
 
 // VTK includes
-#include <vtkNew.h>
+#include <vtk/Common/Core/vtkNew.h>
 
 #include <vtkMRMLDisplayableHierarchyLogic.h>
 

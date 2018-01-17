@@ -22,10 +22,10 @@
 #include "vtkMRMLScene.h"
 #include "vtkMRMLTableNode.h"
 
-#include "vtkFloatArray.h"
-#include "vtkPlot.h"
-#include "vtkTable.h"
-#include "vtkTestErrorObserver.h"
+#include "vtk/Common/Core/vtkFloatArray.h"
+#include "vtk/Charts/Core/vtkPlot.h"
+#include "vtk/Common/DataModel/vtkTable.h"
+#include "vtk/Testing/Core/vtkTestErrorObserver.h"
 
 #include "vtkMRMLCoreTestingMacros.h"
 

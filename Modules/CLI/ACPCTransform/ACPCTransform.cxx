@@ -20,10 +20,10 @@
 #include <vtkMRMLScene.h>
 
 // VTK includes
-#include <vtkMath.h>
-#include <vtkNew.h>
-#include <vtkPolyData.h>
-#include <vtkTransform.h>
+#include <vtk/Common/Core/vtkMath.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/DataModel/vtkPolyData.h>
+#include <vtk/Common/Transforms/vtkTransform.h>
 
 // Use an anonymous namespace to keep class types and function names
 // from colliding when module is used as shared object module.  Every

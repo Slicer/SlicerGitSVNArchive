@@ -30,10 +30,10 @@
 #include <vtkMRMLRemoteIOLogic.h>
 
 // VTK includes
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
-#include <vtkPointData.h>
-#include <vtkPolyData.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/DataModel/vtkPointData.h>
+#include <vtk/Common/DataModel/vtkPolyData.h>
 
 // ITKSYS includes
 #include <itksys/SystemTools.hxx>

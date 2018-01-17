@@ -43,12 +43,12 @@
 #include <vtkMRMLColorTableNode.h>
 
 // VTK includes
-#include <vtkRenderWindow.h>
-#include <vtkRenderer.h>
-#include <vtkImageMapper.h>
-#include <vtkProperty2D.h>
-#include <vtkActor2D.h>
-#include <vtkVersion.h>
+#include <vtk/Rendering/Core/vtkRenderWindow.h>
+#include <vtk/Rendering/Core/vtkRenderer.h>
+#include <vtk/Rendering/Core/vtkImageMapper.h>
+#include <vtk/Rendering/Core/vtkProperty2D.h>
+#include <vtk/Rendering/Core/vtkActor2D.h>
+#include <vtk/Common/Core/vtkVersion.h>
 #ifdef Slicer_VTK_USE_QVTKOPENGLWIDGET
 #include <QVTKOpenGLWidget.h>
 #else

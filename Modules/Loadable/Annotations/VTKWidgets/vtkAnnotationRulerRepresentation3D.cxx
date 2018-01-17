@@ -2,23 +2,23 @@
 #include "vtkAnnotationRulerRepresentation3D.h"
 
 // VTK includes
-#include <vtkAxisActor2D.h>
-#include <vtkBox.h>
-#include <vtkCylinderSource.h>
-#include <vtkDoubleArray.h>
-#include <vtkFollower.h>
-#include <vtkGlyph3D.h>
-#include <vtkHandleRepresentation.h>
-#include <vtkMath.h>
-#include <vtkObjectFactory.h>
-#include <vtkPointData.h>
-#include <vtkPoints.h>
-#include <vtkRenderer.h>
-#include <vtkTransform.h>
-#include <vtkTransformPolyDataFilter.h>
-#include <vtkVectorText.h>
-#include <vtkVersion.h>
-#include <vtkWindow.h>
+#include <vtk/Rendering/Annotation/vtkAxisActor2D.h>
+#include <vtk/Common/DataModel/vtkBox.h>
+#include <vtk/Filters/Sources/vtkCylinderSource.h>
+#include <vtk/Common/Core/vtkDoubleArray.h>
+#include <vtk/Rendering/Core/vtkFollower.h>
+#include <vtk/Filters/Core/vtkGlyph3D.h>
+#include <vtk/Interaction/Widgets/vtkHandleRepresentation.h>
+#include <vtk/Common/Core/vtkMath.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/DataModel/vtkPointData.h>
+#include <vtk/Common/Core/vtkPoints.h>
+#include <vtk/Rendering/Core/vtkRenderer.h>
+#include <vtk/Common/Transforms/vtkTransform.h>
+#include <vtk/Filters/General/vtkTransformPolyDataFilter.h>
+#include <vtk/Rendering/FreeType/vtkVectorText.h>
+#include <vtk/Common/Core/vtkVersion.h>
+#include <vtk/Common/Core/vtkWindow.h>
 
 //---------------------------------------------------------------------------
 vtkStandardNewMacro (vtkAnnotationRulerRepresentation3D);

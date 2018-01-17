@@ -3,8 +3,8 @@
 #include "SFLSRobustStatSegmentor3DLabelMap_single.h"
 
 // ITK includes
-#include <itkImageFileReader.h>
-#include <itkImageFileWriter.h>
+#include <itk/Modules/IO/ImageBase/include/itkImageFileReader.h>
+#include <itk/Modules/IO/ImageBase/include/itkImageFileWriter.h>
 
 // ITK includes
 #include <itkConfigure.h>

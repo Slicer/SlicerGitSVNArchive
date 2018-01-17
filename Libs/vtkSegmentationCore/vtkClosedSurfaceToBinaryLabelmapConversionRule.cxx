@@ -28,19 +28,19 @@
 #include "vtkLoggingMacros.h"
 
 // VTK includes
-#include <vtkObjectFactory.h>
-#include <vtkVersion.h>
-#include <vtkSmartPointer.h>
-#include <vtkNew.h>
-#include <vtkPolyData.h>
-#include <vtkTransform.h>
-#include <vtkTransformPolyDataFilter.h>
-#include <vtkImageCast.h>
-#include <vtkImageStencil.h>
-#include <vtkPolyDataNormals.h>
-#include <vtkStripper.h>
-#include <vtkTriangleFilter.h>
-#include <vtkPolyDataToImageStencil.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkVersion.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/DataModel/vtkPolyData.h>
+#include <vtk/Common/Transforms/vtkTransform.h>
+#include <vtk/Filters/General/vtkTransformPolyDataFilter.h>
+#include <vtk/Imaging/Core/vtkImageCast.h>
+#include <vtk/Imaging/Stencil/vtkImageStencil.h>
+#include <vtk/Filters/Core/vtkPolyDataNormals.h>
+#include <vtk/Filters/Core/vtkStripper.h>
+#include <vtk/Filters/Core/vtkTriangleFilter.h>
+#include <vtk/Imaging/Stencil/vtkPolyDataToImageStencil.h>
 
 // STD includes
 #include <sstream>

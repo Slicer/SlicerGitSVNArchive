@@ -5,8 +5,8 @@
 #include "vtkITK.h"
 
 // VTK includes
-#include <vtkImageAlgorithm.h>
-#include <vtkVersion.h>
+#include <vtk/Common/ExecutionModel/vtkImageAlgorithm.h>
+#include <vtk/Common/Core/vtkVersion.h>
 
 class vtkImageData;
 

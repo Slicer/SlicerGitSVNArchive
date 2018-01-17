@@ -22,20 +22,20 @@
 #include <vtkOrientedImageData.h>
 
 // VTK includes
-#include <vtkObjectFactory.h>
-#include <vtkPolyData.h>
-#include <vtkVersion.h>
-#include <vtkMarchingCubes.h>
-#include <vtkDecimatePro.h>
-#include <vtkSmoothPolyDataFilter.h>
-#include <vtkTransform.h>
-#include <vtkTransformPolyDataFilter.h>
-#include <vtkImageConstantPad.h>
-#include <vtkImageChangeInformation.h>
-#include <vtkImageReslice.h>
-#include <vtkImageResize.h>
-#include <vtkFieldData.h>
-#include <vtkDoubleArray.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/DataModel/vtkPolyData.h>
+#include <vtk/Common/Core/vtkVersion.h>
+#include <vtk/Filters/Core/vtkMarchingCubes.h>
+#include <vtk/Filters/Core/vtkDecimatePro.h>
+#include <vtk/Filters/Core/vtkSmoothPolyDataFilter.h>
+#include <vtk/Common/Transforms/vtkTransform.h>
+#include <vtk/Filters/General/vtkTransformPolyDataFilter.h>
+#include <vtk/Imaging/Core/vtkImageConstantPad.h>
+#include <vtk/Imaging/Core/vtkImageChangeInformation.h>
+#include <vtk/Imaging/Core/vtkImageReslice.h>
+#include <vtk/Imaging/Core/vtkImageResize.h>
+#include <vtk/Common/DataModel/vtkFieldData.h>
+#include <vtk/Common/Core/vtkDoubleArray.h>
 
 
 #include "vtkFractionalLabelmapToClosedSurfaceConversionRule.h"

@@ -43,10 +43,10 @@
 #include <vtkMRMLSliceNode.h>
 
 // VTK includes
-#include <vtkObjectFactory.h>
-#include <vtkSmartPointer.h>
-#include <vtkCollection.h>
-#include <vtkImageData.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/Common/Core/vtkCollection.h>
+#include <vtk/Common/DataModel/vtkImageData.h>
 
 // Qt includes
 #include <QDebug>

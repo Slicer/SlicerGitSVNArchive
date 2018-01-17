@@ -19,7 +19,7 @@
 
 #include "deformationfieldio.h"
 #include <string>
-#include <itkImageFileReader.h>
+#include <itk/Modules/IO/ImageBase/include/itkImageFileReader.h>
 #include "itkHFieldToDeformationFieldImageFilter.h"
 
 DeformationImageType::Pointer readDeformationField(std::string warpfile, DeformationFieldType dft)

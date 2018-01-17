@@ -16,9 +16,9 @@
 #define __vtkITKArchetypeDiffusionTensorImageReaderFile_h
 
 #include "vtkITKArchetypeImageSeriesReader.h"
-#include <vtkVersion.h>
+#include <vtk/Common/Core/vtkVersion.h>
 
-#include "itkImageFileReader.h"
+#include "itk/Modules/IO/ImageBase/include/itkImageFileReader.h"
 
 class VTK_ITK_EXPORT vtkITKArchetypeDiffusionTensorImageReaderFile
   : public vtkITKArchetypeImageSeriesReader

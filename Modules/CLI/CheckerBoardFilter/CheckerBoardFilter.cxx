@@ -14,11 +14,11 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#include "itkResampleImageFilter.h"
-#include "itkImageFileWriter.h"
+#include "itk/Modules/Filtering/ImageGrid/include/itkResampleImageFilter.h"
+#include "itk/Modules/IO/ImageBase/include/itkImageFileWriter.h"
 #include "itkPluginUtilities.h"
 
-#include "itkCheckerBoardImageFilter.h"
+#include "itk/Modules/Filtering/ImageCompare/include/itkCheckerBoardImageFilter.h"
 
 #include "CheckerBoardFilterCLP.h"
 

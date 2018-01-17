@@ -19,7 +19,7 @@
 #include "itkImageToImageRegistrationMethodTestingHelper.h"
 
 // ITK includes
-#include <itkImage.h>
+#include <itk/Modules/Core/Common/include/itkImage.h>
 #include <metaCommand.h>
 
 

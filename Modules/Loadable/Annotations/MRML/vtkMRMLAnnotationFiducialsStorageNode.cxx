@@ -9,9 +9,9 @@
 #include "vtkMRMLScene.h"
 
 // VTK includes
-#include "vtkObjectFactory.h"
-#include "vtkStringArray.h"
-#include "vtkSmartPointer.h"
+#include "vtk/Common/Core/vtkObjectFactory.h"
+#include "vtk/Common/Core/vtkStringArray.h"
+#include "vtk/Common/Core/vtkSmartPointer.h"
 
 // STd includes
 

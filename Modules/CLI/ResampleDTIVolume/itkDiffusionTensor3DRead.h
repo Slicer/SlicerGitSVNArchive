@@ -14,14 +14,14 @@
 #ifndef itkDiffusionTensor3DRead_h
 #define itkDiffusionTensor3DRead_h
 
-#include <itkObject.h>
-#include <itkMetaDataObject.h>
-#include <itkImage.h>
-#include <itkMatrix.h>
-#include <itkImageFileReader.h>
-#include <itkNrrdImageIO.h>
-#include <itkImageIOBase.h>
-#include <itkDiffusionTensor3D.h>
+#include <itk/Modules/Core/Common/include/itkObject.h>
+#include <itk/Modules/Core/Common/include/itkMetaDataObject.h>
+#include <itk/Modules/Core/Common/include/itkImage.h>
+#include <itk/Modules/Core/Common/include/itkMatrix.h>
+#include <itk/Modules/IO/ImageBase/include/itkImageFileReader.h>
+#include <itk/Modules/IO/NRRD/include/itkNrrdImageIO.h>
+#include <itk/Modules/IO/ImageBase/include/itkImageIOBase.h>
+#include <itk/Modules/Core/Common/include/itkDiffusionTensor3D.h>
 
 namespace itk
 {

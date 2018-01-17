@@ -17,8 +17,8 @@
 #ifndef itkConstrainedValueMultiplicationImageFilter_h
 #define itkConstrainedValueMultiplicationImageFilter_h
 
-#include "itkBinaryFunctorImageFilter.h"
-#include "itkNumericTraits.h"
+#include "itk/Modules/Filtering/ImageFilterBase/include/itkBinaryFunctorImageFilter.h"
+#include "itk/Modules/Core/Common/include/itkNumericTraits.h"
 
 namespace itk
 {

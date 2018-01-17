@@ -36,8 +36,8 @@
 #include <vtkMRMLSelectionNode.h>
 
 // VTK includes
-#include <vtkSmartPointer.h>
-#include <vtkStringArray.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/Common/Core/vtkStringArray.h>
 
 //-----------------------------------------------------------------------------
 class qSlicerVolumesReaderPrivate

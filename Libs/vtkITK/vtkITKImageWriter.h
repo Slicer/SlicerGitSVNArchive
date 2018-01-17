@@ -15,13 +15,13 @@
 #ifndef __vtkITKImageWriter_h
 #define __vtkITKImageWriter_h
 
-#include "vtkImageAlgorithm.h"
-#include "vtkImageData.h"
-#include "vtkObjectFactory.h"
-#include "vtkMatrix4x4.h"
+#include "vtk/Common/ExecutionModel/vtkImageAlgorithm.h"
+#include "vtk/Common/DataModel/vtkImageData.h"
+#include "vtk/Common/Core/vtkObjectFactory.h"
+#include "vtk/Common/Math/vtkMatrix4x4.h"
 
 #include "vtkITK.h"
-#include "itkImageIOBase.h"
+#include "itk/Modules/IO/ImageBase/include/itkImageIOBase.h"
 
 class vtkStringArray;
 

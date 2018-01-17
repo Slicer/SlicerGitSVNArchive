@@ -27,7 +27,7 @@
 #endif
 
 #if defined(MRMLDisplayableManager_AUTOINIT)
-#include <vtkAutoInit.h>
+#include <vtk/Common/Core/vtkAutoInit.h>
 VTK_AUTOINIT(MRMLDisplayableManager)
 #endif
 

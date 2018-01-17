@@ -41,12 +41,12 @@
 #include "ui_qMRMLScreenShotDialog.h"
 
 // VTK includes
-#include <vtkImageData.h>
-#include <vtkNew.h>
-#include <vtkRendererCollection.h>
-#include <vtkRenderLargeImage.h>
-#include <vtkRenderWindow.h>
-#include <vtkSmartPointer.h>
+#include <vtk/Common/DataModel/vtkImageData.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Rendering/Core/vtkRendererCollection.h>
+#include <vtk/Filters/Hybrid/vtkRenderLargeImage.h>
+#include <vtk/Rendering/Core/vtkRenderWindow.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
 
 //-----------------------------------------------------------------------------
 class qMRMLScreenShotDialogPrivate : public Ui_qMRMLScreenShotDialog

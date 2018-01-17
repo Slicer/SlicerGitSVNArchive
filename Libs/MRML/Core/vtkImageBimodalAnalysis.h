@@ -19,7 +19,7 @@
 #include "vtkMRML.h"
 
 // VTK includes
-#include <vtkImageAlgorithm.h>
+#include <vtk/Common/ExecutionModel/vtkImageAlgorithm.h>
 
 #define VTK_BIMODAL_MODALITY_CT 0
 #define VTK_BIMODAL_MODALITY_MR 1

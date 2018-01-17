@@ -13,11 +13,11 @@
 ==========================================================================*/
 
 #include "vtkITKMorphologicalContourInterpolator.h"
-#include "vtkObjectFactory.h"
+#include "vtk/Common/Core/vtkObjectFactory.h"
 
-#include "vtkDataArray.h"
-#include "vtkPointData.h"
-#include "vtkImageData.h"
+#include "vtk/Common/Core/vtkDataArray.h"
+#include "vtk/Common/DataModel/vtkPointData.h"
+#include "vtk/Common/DataModel/vtkImageData.h"
 
 #include "itkMorphologicalContourInterpolator.h"
 

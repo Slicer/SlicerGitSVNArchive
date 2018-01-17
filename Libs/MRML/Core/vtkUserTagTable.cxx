@@ -1,12 +1,12 @@
 
 #include <iostream>
 #include <sstream>
-#include "vtkObject.h"
-#include "vtkObjectFactory.h"
+#include "vtk/Common/Core/vtkObject.h"
+#include "vtk/Common/Core/vtkObjectFactory.h"
 #include "vtkUserTagTable.h"
-#include "vtkIdTypeArray.h"
-#include "vtkVariant.h"
-#include "vtkStringArray.h"
+#include "vtk/Common/Core/vtkIdTypeArray.h"
+#include "vtk/Common/Core/vtkVariant.h"
+#include "vtk/Common/Core/vtkStringArray.h"
 #include <vtksys/SystemTools.hxx>
 
 vtkStandardNewMacro ( vtkUserTagTable );

@@ -26,7 +26,7 @@ class vtkImageData;
 class vtkMatrix4x4;
 
 // ITK includes
-#include "itkMetaDataDictionary.h"
+#include "itk/Modules/Core/Common/include/itkMetaDataDictionary.h"
 
 /// \brief MRML node for representing a volume (image stack).
 ///

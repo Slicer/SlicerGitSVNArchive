@@ -33,8 +33,8 @@
 
 
 // VTK includes
-#include <vtkNew.h>
-#include "vtkPolyData.h"
+#include <vtk/Common/Core/vtkNew.h>
+#include "vtk/Common/DataModel/vtkPolyData.h"
 
 int vtkMarkupsAnnotationSceneTest(int argc, char * argv[] )
 {

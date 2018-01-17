@@ -18,10 +18,10 @@
 #ifndef itkAnisotropicSimilarityLandmarkBasedTransformInitializer_h
 #define itkAnisotropicSimilarityLandmarkBasedTransformInitializer_h
 
-#include "itkObject.h"
-#include "itkObjectFactory.h"
+#include "itk/Modules/Core/Common/include/itkObject.h"
+#include "itk/Modules/Core/Common/include/itkObjectFactory.h"
 #include "itkAnisotropicSimilarity3DTransform.h"
-#include "itkRigid2DTransform.h"
+#include "itk/Modules/Core/Transform/include/itkRigid2DTransform.h"
 #include <vector>
 #include <iostream>
 

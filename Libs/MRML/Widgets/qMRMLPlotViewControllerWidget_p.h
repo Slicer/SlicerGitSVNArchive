@@ -37,7 +37,7 @@
 #include "ui_qMRMLPlotViewControllerWidget.h"
 
 // VTK includes
-#include <vtkWeakPointer.h>
+#include <vtk/Common/Core/vtkWeakPointer.h>
 
 class QAction;
 class qMRMLSceneViewMenu;

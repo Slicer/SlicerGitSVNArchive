@@ -37,10 +37,10 @@
 #include <vtkMRMLScene.h>
 
 // VTK includes
-#include <vtkNew.h>
-#include <vtkSmartPointer.h>
-#include <vtkCollection.h>
-#include <vtkWeakPointer.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/Common/Core/vtkCollection.h>
+#include <vtk/Common/Core/vtkWeakPointer.h>
 
 
 //--------------------------------------------------------------------------

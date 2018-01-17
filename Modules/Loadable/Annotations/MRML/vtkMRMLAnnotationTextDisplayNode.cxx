@@ -1,7 +1,7 @@
 #include <sstream>
 
-#include "vtkObjectFactory.h"
-#include <vtkStdString.h>
+#include "vtk/Common/Core/vtkObjectFactory.h"
+#include <vtk/Common/Core/vtkStdString.h>
 
 #include "vtkMRMLAnnotationTextDisplayNode.h"
 

@@ -20,7 +20,7 @@
 #include "vtkMRMLScene.h"
 
 // VTK includes
-#include <vtkNew.h>
+#include <vtk/Common/Core/vtkNew.h>
 
 // test more general hierachy uses, with different displayable node types
 int vtkMRMLDisplayableHierarchyNodeTest2(int , char * [] )

@@ -18,10 +18,10 @@
 
 #include "vtkMRMLScene.h"
 // VTK includes
-#include <vtkRenderer.h>
-#include <vtkRenderWindow.h>
-#include <vtkRenderWindowInteractor.h>
-#include <vtkCamera.h>
+#include <vtk/Rendering/Core/vtkRenderer.h>
+#include <vtk/Rendering/Core/vtkRenderWindow.h>
+#include <vtk/Rendering/Core/vtkRenderWindowInteractor.h>
+#include <vtk/Rendering/Core/vtkCamera.h>
 
 // STD includes
 #include <sstream>

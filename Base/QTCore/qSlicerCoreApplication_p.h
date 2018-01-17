@@ -43,7 +43,7 @@
 #include "qSlicerCoreApplication.h"
 
 // VTK includes
-#include <vtkSmartPointer.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
 
 class vtkCacheManager;
 class vtkDataIOManagerLogic;

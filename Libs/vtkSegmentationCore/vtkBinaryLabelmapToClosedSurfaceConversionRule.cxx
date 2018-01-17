@@ -24,19 +24,19 @@
 #include "vtkOrientedImageData.h"
 
 // VTK includes
-#include <vtkDecimatePro.h>
-#include <vtkDiscreteMarchingCubes.h>
-#include <vtkImageChangeInformation.h>
-#include <vtkImageConstantPad.h>
-#include <vtkImageThreshold.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
-#include <vtkPolyData.h>
-#include <vtkPolyDataNormals.h>
-#include <vtkTransform.h>
-#include <vtkTransformPolyDataFilter.h>
-#include <vtkVersion.h>
-#include <vtkWindowedSincPolyDataFilter.h>
+#include <vtk/Filters/Core/vtkDecimatePro.h>
+#include <vtk/Filters/General/vtkDiscreteMarchingCubes.h>
+#include <vtk/Imaging/Core/vtkImageChangeInformation.h>
+#include <vtk/Imaging/Core/vtkImageConstantPad.h>
+#include <vtk/Imaging/Core/vtkImageThreshold.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/DataModel/vtkPolyData.h>
+#include <vtk/Filters/Core/vtkPolyDataNormals.h>
+#include <vtk/Common/Transforms/vtkTransform.h>
+#include <vtk/Filters/General/vtkTransformPolyDataFilter.h>
+#include <vtk/Common/Core/vtkVersion.h>
+#include <vtk/Filters/Core/vtkWindowedSincPolyDataFilter.h>
 
 //----------------------------------------------------------------------------
 vtkSegmentationConverterRuleNewMacro(vtkBinaryLabelmapToClosedSurfaceConversionRule);

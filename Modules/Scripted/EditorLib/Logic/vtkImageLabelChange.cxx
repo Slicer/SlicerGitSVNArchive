@@ -7,8 +7,8 @@
 
 =========================================================================auto=*/
 #include "vtkImageLabelChange.h"
-#include "vtkObjectFactory.h"
-#include "vtkImageData.h"
+#include "vtk/Common/Core/vtkObjectFactory.h"
+#include "vtk/Common/DataModel/vtkImageData.h"
 
 //------------------------------------------------------------------------------
 vtkStandardNewMacro(vtkImageLabelChange);

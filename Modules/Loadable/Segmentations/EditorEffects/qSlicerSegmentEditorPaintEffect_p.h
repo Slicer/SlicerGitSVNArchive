@@ -38,13 +38,13 @@
 #include "qSlicerSegmentEditorPaintEffect.h"
 
 // VTK includes
-#include <vtkCutter.h>
-#include <vtkCylinderSource.h>
-#include <vtkSmartPointer.h>
-#include <vtkSphereSource.h>
-#include <vtkTransform.h>
-#include <vtkTransformPolyDataFilter.h>
-#include <vtkWeakPointer.h>
+#include <vtk/Filters/Core/vtkCutter.h>
+#include <vtk/Filters/Sources/vtkCylinderSource.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/Filters/Sources/vtkSphereSource.h>
+#include <vtk/Common/Transforms/vtkTransform.h>
+#include <vtk/Filters/General/vtkTransformPolyDataFilter.h>
+#include <vtk/Common/Core/vtkWeakPointer.h>
 
 // Qt includes
 #include <QObject>

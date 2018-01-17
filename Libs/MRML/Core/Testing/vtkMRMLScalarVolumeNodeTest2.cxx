@@ -26,8 +26,8 @@
 #include "vtkMRMLScene.h"
 
 // VTK includes
-#include <vtkImageData.h>
-#include <vtkNew.h>
+#include <vtk/Common/DataModel/vtkImageData.h>
+#include <vtk/Common/Core/vtkNew.h>
 
 int vtkMRMLScalarVolumeNodeTest2(int , char * [] )
 {

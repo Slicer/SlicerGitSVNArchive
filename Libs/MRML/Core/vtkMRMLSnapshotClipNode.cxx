@@ -18,8 +18,8 @@ Version:   $Revision: 1.14 $
 #include "vtkMRMLScene.h"
 
 // VTK includes
-#include <vtkCollection.h>
-#include <vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkCollection.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
 
 // STD includes
 #include <sstream>

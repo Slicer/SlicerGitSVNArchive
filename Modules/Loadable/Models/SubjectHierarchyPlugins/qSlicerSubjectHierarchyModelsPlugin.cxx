@@ -31,9 +31,9 @@
 #include <vtkMRMLModelDisplayNode.h>
 
 // VTK includes
-#include <vtkObjectFactory.h>
-#include <vtkSmartPointer.h>
-#include <vtkPolyData.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/Common/DataModel/vtkPolyData.h>
 
 // Qt includes
 #include <QDebug>

@@ -20,7 +20,7 @@
 class vtkMRMLScene;
 
 // VTK includes
-#include <vtkObject.h>
+#include <vtk/Common/Core/vtkObject.h>
 
 /// \brief Class that manages adding and deleting of observers with events.
 ///

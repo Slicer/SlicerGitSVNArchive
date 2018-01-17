@@ -29,24 +29,24 @@
 #include "vtkNRRDReader.h"
 
 // VTK includes
-#include "vtkBitArray.h"
-#include "vtkCharArray.h"
-#include "vtkDoubleArray.h"
-#include "vtkFloatArray.h"
-#include "vtkImageData.h"
-#include <vtkInformation.h>
-#include <vtkInformationVector.h>
-#include "vtkIntArray.h"
-#include "vtkLongArray.h"
-#include "vtkMath.h"
-#include "vtkNew.h"
-#include "vtkObjectFactory.h"
-#include "vtkShortArray.h"
-#include <vtkStreamingDemandDrivenPipeline.h>
-#include "vtkUnsignedCharArray.h"
-#include "vtkUnsignedShortArray.h"
-#include "vtkUnsignedIntArray.h"
-#include "vtkUnsignedLongArray.h"
+#include "vtk/Common/Core/vtkBitArray.h"
+#include "vtk/Common/Core/vtkCharArray.h"
+#include "vtk/Common/Core/vtkDoubleArray.h"
+#include "vtk/Common/Core/vtkFloatArray.h"
+#include "vtk/Common/DataModel/vtkImageData.h"
+#include <vtk/Common/Core/vtkInformation.h>
+#include <vtk/Common/Core/vtkInformationVector.h>
+#include "vtk/Common/Core/vtkIntArray.h"
+#include "vtk/Common/Core/vtkLongArray.h"
+#include "vtk/Common/Core/vtkMath.h"
+#include "vtk/Common/Core/vtkNew.h"
+#include "vtk/Common/Core/vtkObjectFactory.h"
+#include "vtk/Common/Core/vtkShortArray.h"
+#include <vtk/Common/ExecutionModel/vtkStreamingDemandDrivenPipeline.h>
+#include "vtk/Common/Core/vtkUnsignedCharArray.h"
+#include "vtk/Common/Core/vtkUnsignedShortArray.h"
+#include "vtk/Common/Core/vtkUnsignedIntArray.h"
+#include "vtk/Common/Core/vtkUnsignedLongArray.h"
 #include <vtksys/SystemTools.hxx>
 
 // Teem includes

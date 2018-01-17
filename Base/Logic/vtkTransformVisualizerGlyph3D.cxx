@@ -26,16 +26,16 @@
 #include <vector>
 
 // VTK includes
-#include <vtkGlyph3D.h>
-#include <vtkObjectFactory.h>
-#include <vtkSmartPointer.h>
-#include <vtkCell.h>
-#include <vtkInformation.h>
-#include <vtkInformationVector.h>
-#include <vtkMath.h>
-#include <vtkNew.h>
-#include <vtkPointData.h>
-#include <vtkTransform.h>
+#include <vtk/Filters/Core/vtkGlyph3D.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/Common/DataModel/vtkCell.h>
+#include <vtk/Common/Core/vtkInformation.h>
+#include <vtk/Common/Core/vtkInformationVector.h>
+#include <vtk/Common/Core/vtkMath.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/DataModel/vtkPointData.h>
+#include <vtk/Common/Transforms/vtkTransform.h>
 
 static const int ARRAY_INDEX_SCALARS=0;
 static const int ARRAY_INDEX_VECTORS=1;

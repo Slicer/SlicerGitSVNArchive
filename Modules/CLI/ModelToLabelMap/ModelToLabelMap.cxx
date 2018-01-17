@@ -19,23 +19,23 @@
 #include "ModelToLabelMapCLP.h"
 
 // ITK includes
-#include "itkBinaryBallStructuringElement.h"
-#include "itkBinaryErodeImageFilter.h"
-#include "itkBinaryDilateImageFilter.h"
-#include "itkBinaryThresholdImageFunction.h"
-#include "itkFloodFilledImageFunctionConditionalIterator.h"
-#include "itkImageFileWriter.h"
+#include "itk/Modules/Filtering/MathematicalMorphology/include/itkBinaryBallStructuringElement.h"
+#include "itk/Modules/Filtering/BinaryMathematicalMorphology/include/itkBinaryErodeImageFilter.h"
+#include "itk/Modules/Filtering/BinaryMathematicalMorphology/include/itkBinaryDilateImageFilter.h"
+#include "itk/Modules/Core/ImageFunction/include/itkBinaryThresholdImageFunction.h"
+#include "itk/Modules/Core/Common/include/itkFloodFilledImageFunctionConditionalIterator.h"
+#include "itk/Modules/IO/ImageBase/include/itkImageFileWriter.h"
 #include "itkPluginUtilities.h"
 #include <itksys/SystemTools.hxx>
 
 // VTK includes
-#include <vtkDebugLeaks.h>
-#include <vtkNew.h>
-#include <vtkSmartPointer.h>
-#include <vtkPolyDataPointSampler.h>
-#include <vtkPolyDataReader.h>
-#include <vtkXMLPolyDataReader.h>
-#include <vtkVersion.h>
+#include <vtk/Common/Core/vtkDebugLeaks.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/Filters/Modeling/vtkPolyDataPointSampler.h>
+#include <vtk/IO/Legacy/vtkPolyDataReader.h>
+#include <vtk/IO/XML/vtkXMLPolyDataReader.h>
+#include <vtk/Common/Core/vtkVersion.h>
 
 typedef itk::Image<unsigned char, 3> LabelImageType;
 

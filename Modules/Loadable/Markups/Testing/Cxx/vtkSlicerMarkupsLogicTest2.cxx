@@ -21,7 +21,7 @@
 #include "vtkSlicerMarkupsLogic.h"
 
 // VTK includes
-#include <vtkNew.h>
+#include <vtk/Common/Core/vtkNew.h>
 #include <vtkTestingOutputWindow.h>
 
 static void PrintLabels(vtkMRMLMarkupsNode *m)

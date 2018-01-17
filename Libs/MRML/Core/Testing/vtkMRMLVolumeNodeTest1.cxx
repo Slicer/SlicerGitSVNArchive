@@ -16,10 +16,10 @@
 #include "vtkMRMLVolumeNode.h"
 
 // VTK includes
-#include <vtkImageData.h>
-#include <vtkMatrix4x4.h>
-#include <vtkObjectFactory.h>
-#include <vtkPolyData.h>
+#include <vtk/Common/DataModel/vtkImageData.h>
+#include <vtk/Common/Math/vtkMatrix4x4.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/DataModel/vtkPolyData.h>
 
 // STD includes
 #include <list>

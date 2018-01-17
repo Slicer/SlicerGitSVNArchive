@@ -33,7 +33,7 @@
 #include <vtkMRMLSelectionNode.h>
 
 // VTK includes
-#include <vtkCollection.h>
+#include <vtk/Common/Core/vtkCollection.h>
 
 // STD includes
 

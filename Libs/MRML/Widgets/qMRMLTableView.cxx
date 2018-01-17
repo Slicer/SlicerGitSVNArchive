@@ -36,11 +36,11 @@
 #include <ctkPopupWidget.h>
 
 // VTK includes
-#include <vtkCollection.h>
-#include <vtkIntArray.h>
-#include <vtkNew.h>
-#include <vtkStringArray.h>
-#include <vtkTable.h>
+#include <vtk/Common/Core/vtkCollection.h>
+#include <vtk/Common/Core/vtkIntArray.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkStringArray.h>
+#include <vtk/Common/DataModel/vtkTable.h>
 
 // qMRML includes
 #include "qMRMLTableView.h"

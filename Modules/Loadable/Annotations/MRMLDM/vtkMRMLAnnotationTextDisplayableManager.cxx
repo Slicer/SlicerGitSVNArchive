@@ -16,21 +16,21 @@
 #include <vtkMRMLSliceNode.h>
 
 // VTK includes
-#include <vtkAbstractWidget.h>
-#include <vtkCaptionActor2D.h>
-#include <vtkCaptionRepresentation.h>
-#include <vtkCaptionWidget.h>
-#include <vtkCoordinate.h>
-#include <vtkHandleRepresentation.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
-#include <vtkProperty.h>
-#include <vtkRenderer.h>
-#include <vtkRenderWindow.h>
-#include <vtkRenderWindowInteractor.h>
-#include <vtkSmartPointer.h>
-#include <vtkTextActor.h>
-#include <vtkTextProperty.h>
+#include <vtk/Interaction/Widgets/vtkAbstractWidget.h>
+#include <vtk/Rendering/Annotation/vtkCaptionActor2D.h>
+#include <vtk/Interaction/Widgets/vtkCaptionRepresentation.h>
+#include <vtk/Interaction/Widgets/vtkCaptionWidget.h>
+#include <vtk/Rendering/Core/vtkCoordinate.h>
+#include <vtk/Interaction/Widgets/vtkHandleRepresentation.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Rendering/Core/vtkProperty.h>
+#include <vtk/Rendering/Core/vtkRenderer.h>
+#include <vtk/Rendering/Core/vtkRenderWindow.h>
+#include <vtk/Rendering/Core/vtkRenderWindowInteractor.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/Rendering/Core/vtkTextActor.h>
+#include <vtk/Rendering/Core/vtkTextProperty.h>
 
 // STD includes
 #include <string>

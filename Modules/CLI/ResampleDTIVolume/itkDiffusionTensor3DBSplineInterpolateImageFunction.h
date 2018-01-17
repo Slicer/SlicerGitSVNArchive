@@ -15,8 +15,8 @@
 #define itkDiffusionTensor3DBSplineInterpolateImageFunction_h
 
 #include "itkDiffusionTensor3DInterpolateImageFunctionReimplementation.h"
-#include <itkBSplineInterpolateImageFunction.h>
-#include <itkImage.h>
+#include <itk/Modules/Core/ImageFunction/include/itkBSplineInterpolateImageFunction.h>
+#include <itk/Modules/Core/Common/include/itkImage.h>
 
 namespace itk
 {

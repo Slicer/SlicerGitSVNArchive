@@ -16,27 +16,27 @@
 #include "vtkITKImageWriter.h"
 
 // VTK includes
-#include <vtkFloatArray.h>
-#include <vtkImageExport.h>
-#include <vtkImageFlip.h>
-#include <vtkInformation.h>
-#include <vtkInformationVector.h>
+#include <vtk/Common/Core/vtkFloatArray.h>
+#include <vtk/IO/Image/vtkImageExport.h>
+#include <vtk/Imaging/Core/vtkImageFlip.h>
+#include <vtk/Common/Core/vtkInformation.h>
+#include <vtk/Common/Core/vtkInformationVector.h>
 #include <vtkITKUtility.h>
-#include <vtkNew.h>
-#include <vtkPointData.h>
-#include <vtkStreamingDemandDrivenPipeline.h>
-#include <vtkVersion.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/DataModel/vtkPointData.h>
+#include <vtk/Common/ExecutionModel/vtkStreamingDemandDrivenPipeline.h>
+#include <vtk/Common/Core/vtkVersion.h>
 
 // VTKsys includes
 #include <vtksys/SystemTools.hxx>
 
 // ITK includes
-#include <itkDiffusionTensor3D.h>
-#include <itkImageFileWriter.h>
-#include <itkMetaDataDictionary.h>
-#include <itkMetaDataObject.h>
-#include <itkMetaDataObjectBase.h>
-#include <itkVTKImageImport.h>
+#include <itk/Modules/Core/Common/include/itkDiffusionTensor3D.h>
+#include <itk/Modules/IO/ImageBase/include/itkImageFileWriter.h>
+#include <itk/Modules/Core/Common/include/itkMetaDataDictionary.h>
+#include <itk/Modules/Core/Common/include/itkMetaDataObject.h>
+#include <itk/Modules/Core/Common/include/itkMetaDataObjectBase.h>
+#include <itk/Modules/Bridge/VTK/include/itkVTKImageImport.h>
 
 
 vtkStandardNewMacro(vtkITKImageWriter);

@@ -34,8 +34,8 @@
 #include "qMRMLNodeComboBox.h"
 
 // VTK includes
-#include <vtkMatrix4x4.h>
-#include <vtkWeakPointer.h>
+#include <vtk/Common/Math/vtkMatrix4x4.h>
+#include <vtk/Common/Core/vtkWeakPointer.h>
 
 // Qt includes
 #include <QDebug>

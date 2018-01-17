@@ -15,25 +15,25 @@
 #include <vtkITKArchetypeImageSeriesScalarReader.h>
 
 // VTK includes
-#include <vtkGlobFileNames.h>
-#include <vtkImageAccumulate.h>
-#include <vtkImageData.h>
-#include <vtkImageThreshold.h>
-#include <vtkImageToImageStencil.h>
-#include <vtkNew.h>
-#include <vtkVersion.h>
+#include <vtk/IO/Core/vtkGlobFileNames.h>
+#include <vtk/Imaging/Statistics/vtkImageAccumulate.h>
+#include <vtk/Common/DataModel/vtkImageData.h>
+#include <vtk/Imaging/Core/vtkImageThreshold.h>
+#include <vtk/Imaging/Stencil/vtkImageToImageStencil.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkVersion.h>
 
 // ITK includes
-#include <itkGDCMImageIO.h>
-#include <itkGDCMSeriesFileNames.h>
-#include <itkImageFileWriter.h>
-#include <itkImageSeriesReader.h>
-#include <itkImageSeriesReader.h>
-#include <itkMetaDataDictionary.h>
-#include <itkNumericSeriesFileNames.h>
+#include <itk/Modules/IO/GDCM/include/itkGDCMImageIO.h>
+#include <itk/Modules/IO/GDCM/include/itkGDCMSeriesFileNames.h>
+#include <itk/Modules/IO/ImageBase/include/itkImageFileWriter.h>
+#include <itk/Modules/IO/ImageBase/include/itkImageSeriesReader.h>
+#include <itk/Modules/IO/ImageBase/include/itkImageSeriesReader.h>
+#include <itk/Modules/Core/Common/include/itkMetaDataDictionary.h>
+#include <itk/Modules/IO/ImageBase/include/itkNumericSeriesFileNames.h>
 
 #undef HAVE_SSTREAM // stupid DCMTK Header issue
-#include "itkDCMTKFileReader.h"
+#include "itk/Modules/IO/DCMTK/include/itkDCMTKFileReader.h"
 
 // ...
 // ...............................................................................................

@@ -17,12 +17,12 @@
 #include <vtkMRMLSliceNode.h>
 
 // VTK includes
-#include <vtkNew.h>
-#include <vtkRenderWindow.h>
-#include <vtkRenderWindowInteractor.h>
-#include <vtkRenderer.h>
-#include <vtkSmartPointer.h>
-#include <vtkTesting.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Rendering/Core/vtkRenderWindow.h>
+#include <vtk/Rendering/Core/vtkRenderWindowInteractor.h>
+#include <vtk/Rendering/Core/vtkRenderer.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/Testing/Rendering/vtkTesting.h>
 
 // STD includes
 

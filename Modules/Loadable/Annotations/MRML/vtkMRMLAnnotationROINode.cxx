@@ -9,17 +9,17 @@
 #include "vtkMRMLTransformNode.h"
 
 // VTK includes
-#include <vtkBoundingBox.h>
-#include <vtkDoubleArray.h>
-#include <vtkGeneralTransform.h>
-#include <vtkHomogeneousTransform.h>
-#include <vtkMath.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
-#include <vtkVectorOperators.h>
-#include <vtkPlanes.h>
-#include <vtkPolyData.h>
-#include <vtkSmartPointer.h>
+#include <vtk/Common/DataModel/vtkBoundingBox.h>
+#include <vtk/Common/Core/vtkDoubleArray.h>
+#include <vtk/Common/Transforms/vtkGeneralTransform.h>
+#include <vtk/Common/Transforms/vtkHomogeneousTransform.h>
+#include <vtk/Common/Core/vtkMath.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/DataModel/vtkVectorOperators.h>
+#include <vtk/Common/DataModel/vtkPlanes.h>
+#include <vtk/Common/DataModel/vtkPolyData.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
 
 // STD includes
 #include <sstream>

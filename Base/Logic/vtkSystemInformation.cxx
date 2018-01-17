@@ -1,5 +1,5 @@
 #include "vtkSystemInformation.h"
-#include <vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
 
 vtkStandardNewMacro(vtkSystemInformation);
 

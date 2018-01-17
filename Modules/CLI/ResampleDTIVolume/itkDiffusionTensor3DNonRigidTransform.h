@@ -17,7 +17,7 @@
 #include "itkDiffusionTensor3DTransform.h"
 #include "itkDiffusionTensor3DFSAffineTransform.h"
 #include "itkDiffusionTensor3DPPDAffineTransform.h"
-#include <itkTransform.h>
+#include <itk/Modules/Core/Transform/include/itkTransform.h>
 
 namespace itk
 {

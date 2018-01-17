@@ -25,7 +25,7 @@
 
 // VTK includes
 #include "vtkMRMLScene.h"
-#include "vtkSmartPointer.h"
+#include "vtk/Common/Core/vtkSmartPointer.h"
 
 //-----------------------------------------------------------------------------
 class qSlicerObjectPrivate

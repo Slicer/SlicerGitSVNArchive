@@ -30,7 +30,7 @@
 #include <ctkUtils.h>
 
 // VTK includes
-#include <vtkNew.h>
+#include <vtk/Common/Core/vtkNew.h>
 
 /// Segmentations includes
 #include "qSlicerIOOptions_p.h"

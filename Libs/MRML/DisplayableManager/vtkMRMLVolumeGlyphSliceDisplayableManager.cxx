@@ -30,14 +30,14 @@
 #include <vtkMRMLSliceNode.h>
 
 // VTK includes
-#include <vtkActor2D.h>
-#include <vtkCallbackCommand.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
-#include <vtkPolyDataMapper2D.h>
-#include <vtkRenderer.h>
-#include <vtkWeakPointer.h>
-#include <vtkVersion.h>
+#include <vtk/Rendering/Core/vtkActor2D.h>
+#include <vtk/Common/Core/vtkCallbackCommand.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Rendering/Core/vtkPolyDataMapper2D.h>
+#include <vtk/Rendering/Core/vtkRenderer.h>
+#include <vtk/Common/Core/vtkWeakPointer.h>
+#include <vtk/Common/Core/vtkVersion.h>
 
 // STD includes
 #include <algorithm>

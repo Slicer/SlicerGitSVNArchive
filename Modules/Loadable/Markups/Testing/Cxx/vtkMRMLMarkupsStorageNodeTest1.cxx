@@ -22,10 +22,10 @@
 #include "vtkMRMLMarkupsNode.h"
 #include "vtkURIHandler.h"
 #include "vtkMRMLScene.h"
-#include "vtkPolyData.h"
+#include "vtk/Common/DataModel/vtkPolyData.h"
 
 // VTK includes
-#include <vtkNew.h>
+#include <vtk/Common/Core/vtkNew.h>
 
 
 int vtkMRMLMarkupsStorageNodeTest1(int vtkNotUsed(argc), char * vtkNotUsed(argv)[] )

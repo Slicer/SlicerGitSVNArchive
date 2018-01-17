@@ -17,9 +17,9 @@ Version:   $Revision: 1.14 $
 #include "vtkMRMLVectorVolumeNode.h"
 #include "vtkMRMLVolumeArchetypeStorageNode.h"
 
-#include "vtkNew.h"
-#include "vtkObjectFactory.h"
-#include "vtkImageExtractComponents.h"
+#include "vtk/Common/Core/vtkNew.h"
+#include "vtk/Common/Core/vtkObjectFactory.h"
+#include "vtk/Imaging/Core/vtkImageExtractComponents.h"
 
 
 //----------------------------------------------------------------------------

@@ -15,7 +15,7 @@
 #include "vtkFreeSurferExport.h"
 
 // VTK includes
-#include <vtkDataReader.h>
+#include <vtk/IO/Legacy/vtkDataReader.h>
 
 class vtkIntArray;
 class vtkLookupTable;

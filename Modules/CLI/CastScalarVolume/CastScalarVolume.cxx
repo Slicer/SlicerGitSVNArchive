@@ -14,9 +14,9 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#include "itkImageFileWriter.h"
+#include "itk/Modules/IO/ImageBase/include/itkImageFileWriter.h"
 
-#include "itkCastImageFilter.h"
+#include "itk/Modules/Filtering/ImageFilterBase/include/itkCastImageFilter.h"
 
 #include "itkPluginUtilities.h"
 #include "CastScalarVolumeCLP.h"

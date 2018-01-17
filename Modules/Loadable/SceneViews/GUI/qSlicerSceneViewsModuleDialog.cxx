@@ -15,8 +15,8 @@
 #include <vtkMRMLScene.h>
 
 // VTK includes
-#include <vtkImageData.h>
-#include <vtkStdString.h>
+#include <vtk/Common/DataModel/vtkImageData.h>
+#include <vtk/Common/Core/vtkStdString.h>
 
 // STD includes
 #include <vector>

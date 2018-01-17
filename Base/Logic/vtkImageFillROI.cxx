@@ -9,13 +9,13 @@
 #include "vtkImageFillROI.h"
 
 // VTK includes
-#include <vtkImageData.h>
-#include <vtkInformation.h>
-#include <vtkInformationVector.h>
-#include <vtkObjectFactory.h>
-#include <vtkPoints.h>
-#include <vtkStreamingDemandDrivenPipeline.h>
-#include <vtkVersion.h>
+#include <vtk/Common/DataModel/vtkImageData.h>
+#include <vtk/Common/Core/vtkInformation.h>
+#include <vtk/Common/Core/vtkInformationVector.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkPoints.h>
+#include <vtk/Common/ExecutionModel/vtkStreamingDemandDrivenPipeline.h>
+#include <vtk/Common/Core/vtkVersion.h>
 
 vtkCxxSetObjectMacro(vtkImageFillROI,Points,vtkPoints);
 

@@ -11,7 +11,7 @@
 #define __vtkITKMorphologicalContourInterpolator_h
 
 #include "vtkITK.h"
-#include "vtkSimpleImageToImageFilter.h"
+#include "vtk/Common/ExecutionModel/vtkSimpleImageToImageFilter.h"
 
 /// \brief Wrapper class around itk::MorphologicalContourInterpolator.
 class VTK_ITK_EXPORT vtkITKMorphologicalContourInterpolator : public vtkSimpleImageToImageFilter

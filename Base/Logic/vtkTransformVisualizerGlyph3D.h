@@ -25,7 +25,7 @@
 
 #include "vtkSlicerBaseLogic.h"
 
-#include "vtkGlyph3D.h"
+#include "vtk/Filters/Core/vtkGlyph3D.h"
 
 /// \brief Specialized glyph3d filter optimized for visualizing transforms
 ///

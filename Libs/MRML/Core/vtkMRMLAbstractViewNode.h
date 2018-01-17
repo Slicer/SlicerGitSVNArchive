@@ -22,7 +22,7 @@
 #define __vtkMRMLAbstractViewNode_h
 
 // VTK includes
-#include <vtkSmartPointer.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
 
 // MRML includes
 #include "vtkMRMLNode.h"

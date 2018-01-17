@@ -27,13 +27,13 @@
 #include <vtkMRMLVolumeArchetypeStorageNode.h>
 
 // VTK includes
-#include <vtkColorTransferFunction.h>
-#include <vtkImageData.h>
-#include <vtkImageReslice.h>
-#include <vtkImageMapToColors.h>
-#include <vtkImageAppendComponents.h>
-#include <vtkNew.h>
-#include <vtkVersion.h>
+#include <vtk/Rendering/Core/vtkColorTransferFunction.h>
+#include <vtk/Common/DataModel/vtkImageData.h>
+#include <vtk/Imaging/Core/vtkImageReslice.h>
+#include <vtk/Imaging/Core/vtkImageMapToColors.h>
+#include <vtk/Imaging/Core/vtkImageAppendComponents.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkVersion.h>
 
 // ITK includes
 #include <itkConfigure.h>

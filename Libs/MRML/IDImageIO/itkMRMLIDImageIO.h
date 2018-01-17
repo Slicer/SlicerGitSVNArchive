@@ -14,11 +14,11 @@
 #pragma warning ( disable : 4786 )
 #endif
 
-#include <vtkVersion.h>
+#include <vtk/Common/Core/vtkVersion.h>
 
 #include "itkMRMLIDIOExport.h"
 
-#include "itkImageIOBase.h"
+#include "itk/Modules/IO/ImageBase/include/itkImageIOBase.h"
 
 class vtkMRMLVolumeNode;
 class vtkMRMLDiffusionWeightedVolumeNode;

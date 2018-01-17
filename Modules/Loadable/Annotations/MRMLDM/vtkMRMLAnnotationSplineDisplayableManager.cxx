@@ -14,16 +14,16 @@
 #include <vtkMRMLInteractionNode.h>
 
 // VTK includes
-#include <vtkObject.h>
-#include <vtkObjectFactory.h>
-#include <vtkSmartPointer.h>
-#include <vtkProperty.h>
-#include <vtkSplineWidget2.h>
-#include <vtkRenderer.h>
-#include <vtkHandleRepresentation.h>
-#include <vtkSplineRepresentation.h>
-#include <vtkInteractorEventRecorder.h>
-#include <vtkAbstractWidget.h>
+#include <vtk/Common/Core/vtkObject.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/Rendering/Core/vtkProperty.h>
+#include <vtk/Interaction/Widgets/vtkSplineWidget2.h>
+#include <vtk/Rendering/Core/vtkRenderer.h>
+#include <vtk/Interaction/Widgets/vtkHandleRepresentation.h>
+#include <vtk/Interaction/Widgets/vtkSplineRepresentation.h>
+#include <vtk/Rendering/Core/vtkInteractorEventRecorder.h>
+#include <vtk/Interaction/Widgets/vtkAbstractWidget.h>
 
 // std includes
 #include <string>

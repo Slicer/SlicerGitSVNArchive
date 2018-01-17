@@ -15,24 +15,24 @@
 #include "vtkITKArchetypeImageSeriesScalarReader.h"
 
 // VTK includes
-#include <vtkAOSDataArrayTemplate.h>
-#include <vtkCommand.h>
-#include <vtkDataArray.h>
-#include <vtkErrorCode.h>
-#include <vtkImageData.h>
-#include <vtkInformation.h>
-#include <vtkInformationVector.h>
-#include <vtkObjectFactory.h>
-#include <vtkPointData.h>
-#include <vtkStreamingDemandDrivenPipeline.h>
-#include <vtkVersion.h>
+#include <vtk/Common/Core/vtkAOSDataArrayTemplate.h>
+#include <vtk/Common/Core/vtkCommand.h>
+#include <vtk/Common/Core/vtkDataArray.h>
+#include <vtk/Common/Misc/vtkErrorCode.h>
+#include <vtk/Common/DataModel/vtkImageData.h>
+#include <vtk/Common/Core/vtkInformation.h>
+#include <vtk/Common/Core/vtkInformationVector.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/DataModel/vtkPointData.h>
+#include <vtk/Common/ExecutionModel/vtkStreamingDemandDrivenPipeline.h>
+#include <vtk/Common/Core/vtkVersion.h>
 
 // ITK includes
-#include <itkOrientImageFilter.h>
-#include <itkImageSeriesReader.h>
+#include <itk/Modules/Filtering/ImageGrid/include/itkOrientImageFilter.h>
+#include <itk/Modules/IO/ImageBase/include/itkImageSeriesReader.h>
 #ifdef VTKITK_BUILD_DICOM_SUPPORT
-#include <itkDCMTKImageIO.h>
-#include <itkGDCMImageIO.h>
+#include <itk/Modules/IO/DCMTK/include/itkDCMTKImageIO.h>
+#include <itk/Modules/IO/GDCM/include/itkGDCMImageIO.h>
 #endif
 
 vtkStandardNewMacro(vtkITKArchetypeImageSeriesScalarReader);

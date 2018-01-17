@@ -20,12 +20,12 @@ Version:   $Revision: 1.3 $
 #include "vtkMRMLTransformNode.h"
 
 // VTK includes
-#include <vtkAbstractTransform.h>
-#include <vtkCollection.h>
-#include <vtkMath.h>
-#include <vtkMatrix4x4.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
+#include <vtk/Common/Transforms/vtkAbstractTransform.h>
+#include <vtk/Common/Core/vtkCollection.h>
+#include <vtk/Common/Core/vtkMath.h>
+#include <vtk/Common/Math/vtkMatrix4x4.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
 
 // STD includes
 #include <sstream>

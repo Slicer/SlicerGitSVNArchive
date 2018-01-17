@@ -13,7 +13,7 @@
 =========================================================================auto=*/
 #include "vtkImageNeighborhoodFilter.h"
 
-#include "vtkObjectFactory.h"
+#include "vtk/Common/Core/vtkObjectFactory.h"
 
 //------------------------------------------------------------------------------
 vtkStandardNewMacro(vtkImageNeighborhoodFilter);

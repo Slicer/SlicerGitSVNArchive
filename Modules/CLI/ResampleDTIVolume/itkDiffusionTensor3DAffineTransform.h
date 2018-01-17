@@ -15,7 +15,7 @@
 #define itkDiffusionTensor3DAffineTransform_h
 
 #include "itkDiffusionTensor3DMatrix3x3Transform.h"
-#include <itkAffineTransform.h>
+#include <itk/Modules/Core/Transform/include/itkAffineTransform.h>
 
 namespace itk
 {

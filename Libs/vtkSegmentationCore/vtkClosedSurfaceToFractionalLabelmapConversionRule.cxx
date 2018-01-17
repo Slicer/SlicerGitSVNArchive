@@ -24,11 +24,11 @@
 #include "vtkPolyDataToFractionalLabelmapFilter.h"
 
 // VTK includes
-#include <vtkSmartPointer.h>
-#include <vtkPolyData.h>
-#include <vtkDoubleArray.h>
-#include <vtkIntArray.h>
-#include <vtkFieldData.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/Common/DataModel/vtkPolyData.h>
+#include <vtk/Common/Core/vtkDoubleArray.h>
+#include <vtk/Common/Core/vtkIntArray.h>
+#include <vtk/Common/DataModel/vtkFieldData.h>
 
 //----------------------------------------------------------------------------
 vtkSegmentationConverterRuleNewMacro(vtkClosedSurfaceToFractionalLabelmapConversionRule);

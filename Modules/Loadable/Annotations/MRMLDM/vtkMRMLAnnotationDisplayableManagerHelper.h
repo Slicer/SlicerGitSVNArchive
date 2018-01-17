@@ -26,10 +26,10 @@ class vtkMRMLAnnotationNode;
 class vtkMRMLInteractionNode;
 
 // VTK includes
-#include <vtkHandleWidget.h>
-#include <vtkLineWidget2.h>
-#include <vtkSeedWidget.h>
-#include <vtkSmartPointer.h>
+#include <vtk/Interaction/Widgets/vtkHandleWidget.h>
+#include <vtk/Interaction/Widgets/vtkLineWidget2.h>
+#include <vtk/Interaction/Widgets/vtkSeedWidget.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
 
 // STD includes
 #include <map>

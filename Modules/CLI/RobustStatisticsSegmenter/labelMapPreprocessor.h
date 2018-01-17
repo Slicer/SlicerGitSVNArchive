@@ -1,8 +1,8 @@
 #ifndef LABELMAPPREPROCESSOR_H
 #define LABELMAPPREPROCESSOR_H
 
-#include "itkImage.h"
-#include "itkImageRegionIterator.h"
+#include "itk/Modules/Core/Common/include/itkImage.h"
+#include "itk/Modules/Core/Common/include/itkImageRegionIterator.h"
 
 #include <algorithm>
 

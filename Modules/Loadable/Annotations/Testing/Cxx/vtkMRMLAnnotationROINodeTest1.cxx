@@ -7,9 +7,9 @@
 #include <vtkMRMLTransformNode.h>
 
 // VTK includes
-#include <vtkPlane.h>
-#include <vtkPlanes.h>
-#include <vtkTransform.h>
+#include <vtk/Common/DataModel/vtkPlane.h>
+#include <vtk/Common/DataModel/vtkPlanes.h>
+#include <vtk/Common/Transforms/vtkTransform.h>
 
 /* this test has been adopted from vtkMRMLAnnotationAngleTest1 by
  * Andrey Fedorov to demonstrate some of the problems observed with the ROI

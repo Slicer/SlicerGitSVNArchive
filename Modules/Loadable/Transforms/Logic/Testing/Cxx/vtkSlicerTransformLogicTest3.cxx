@@ -18,8 +18,8 @@
 #include "vtkMRMLTransformNode.h"
 
 // VTK includes
-#include <vtkNew.h>
-#include <vtkPolyDataReader.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/IO/Legacy/vtkPolyDataReader.h>
 
 namespace
 {

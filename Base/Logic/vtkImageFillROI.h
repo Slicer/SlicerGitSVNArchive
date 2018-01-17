@@ -25,7 +25,7 @@
 #include "vtkSlicerBaseLogic.h"
 
 // VTK includes
-#include <vtkImageAlgorithm.h>
+#include <vtk/Common/ExecutionModel/vtkImageAlgorithm.h>
 
 #define SHAPE_POLYGON 1
 #define SHAPE_LINES   2

@@ -22,8 +22,8 @@
 #include "vtkMRMLScene.h"
 #include "vtkSlicerVersionConfigure.h"
 
-#include "vtkObjectFactory.h"
-#include "vtkStringArray.h"
+#include "vtk/Common/Core/vtkObjectFactory.h"
+#include "vtk/Common/Core/vtkStringArray.h"
 #include <vtksys/SystemTools.hxx>
 
 #include <sstream>

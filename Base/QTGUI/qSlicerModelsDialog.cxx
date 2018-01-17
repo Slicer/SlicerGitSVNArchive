@@ -27,9 +27,9 @@
 #include "qSlicerModelsDialog_p.h"
 
 // VTK includes
-#include "vtkCollection.h"
+#include "vtk/Common/Core/vtkCollection.h"
 #include "vtkMRMLNode.h"
-#include "vtkNew.h"
+#include "vtk/Common/Core/vtkNew.h"
 
 //-----------------------------------------------------------------------------
 qSlicerModelsDialogPrivate::qSlicerModelsDialogPrivate(qSlicerModelsDialog& object, QWidget* _parentWidget)

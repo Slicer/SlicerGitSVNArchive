@@ -29,25 +29,25 @@
 #include <vtkMRMLSliceCompositeNode.h>
 
 // VTK includes
-#include <vtkAlgorithmOutput.h>
-#include <vtkCallbackCommand.h>
-#include <vtkCollection.h>
-#include <vtkImageBlend.h>
-#include <vtkImageResample.h>
-#include <vtkImageCast.h>
-#include <vtkImageData.h>
-#include <vtkImageMathematics.h>
-#include <vtkImageReslice.h>
-#include <vtkInformation.h>
-#include <vtkMath.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
-#include <vtkPlaneSource.h>
-#include <vtkPolyDataCollection.h>
-#include <vtkSmartPointer.h>
-#include <vtkStringArray.h>
-#include <vtkTransform.h>
-#include <vtkVersion.h>
+#include <vtk/Common/ExecutionModel/vtkAlgorithmOutput.h>
+#include <vtk/Common/Core/vtkCallbackCommand.h>
+#include <vtk/Common/Core/vtkCollection.h>
+#include <vtk/Imaging/Core/vtkImageBlend.h>
+#include <vtk/Imaging/Core/vtkImageResample.h>
+#include <vtk/Imaging/Core/vtkImageCast.h>
+#include <vtk/Common/DataModel/vtkImageData.h>
+#include <vtk/Imaging/Math/vtkImageMathematics.h>
+#include <vtk/Imaging/Core/vtkImageReslice.h>
+#include <vtk/Common/Core/vtkInformation.h>
+#include <vtk/Common/Core/vtkMath.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Filters/Sources/vtkPlaneSource.h>
+#include <vtk/Common/DataModel/vtkPolyDataCollection.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/Common/Core/vtkStringArray.h>
+#include <vtk/Common/Transforms/vtkTransform.h>
+#include <vtk/Common/Core/vtkVersion.h>
 
 // VTKAddon includes
 #include <vtkAddonMathUtilities.h>

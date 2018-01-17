@@ -35,7 +35,7 @@
 class QToolButton;
 
 // VTK includes
-#include <vtkWeakPointer.h>
+#include <vtk/Common/Core/vtkWeakPointer.h>
 
 // CTK includes
 #include <ctkPimpl.h>
@@ -46,7 +46,7 @@ class ctkPopupWidget;
 #include "qMRMLPlotView.h"
 
 // vtk includes
-#include <vtkSmartPointer.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
 
 class vtkMRMLPlotViewNode;
 class vtkMRMLPlotChartNode;

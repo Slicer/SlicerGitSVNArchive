@@ -45,10 +45,10 @@
 #include "vtkSlicerEditorLibModuleLogicExport.h"
 
 // VTK includes
-#include <vtkImageAlgorithm.h>
-#include <vtkImageData.h>
-#include <vtkMatrix4x4.h>
-#include <vtkVersion.h>
+#include <vtk/Common/ExecutionModel/vtkImageAlgorithm.h>
+#include <vtk/Common/DataModel/vtkImageData.h>
+#include <vtk/Common/Math/vtkMatrix4x4.h>
+#include <vtk/Common/Core/vtkVersion.h>
 
 class VTK_SLICER_EDITORLIB_MODULE_LOGIC_EXPORT vtkImageSlicePaint : public vtkObject
 {

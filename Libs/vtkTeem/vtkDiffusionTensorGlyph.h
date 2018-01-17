@@ -17,8 +17,8 @@
 
 #include "vtkTeemConfigure.h"
 
-#include "vtkTensorGlyph.h"
-#include <vtkVersion.h>
+#include "vtk/Filters/Core/vtkTensorGlyph.h"
+#include <vtk/Common/Core/vtkVersion.h>
 
 class vtkImageData;
 class vtkMatrix4x4;

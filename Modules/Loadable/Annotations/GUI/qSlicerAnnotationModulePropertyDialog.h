@@ -6,7 +6,7 @@
 
 #include "qSlicerAbstractModuleWidget.h"
 
-#include "vtkStdString.h"
+#include "vtk/Common/Core/vtkStdString.h"
 
 class vtkSlicerAnnotationModuleLogic;
 class vtkMRMLAnnotationLinesNode;

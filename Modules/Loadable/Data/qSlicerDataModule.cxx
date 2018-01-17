@@ -45,7 +45,7 @@
 #include <vtkSlicerCamerasModuleLogic.h>
 
 // VTK includes
-#include <vtkSmartPointer.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
 
 //-----------------------------------------------------------------------------
 #if (QT_VERSION < QT_VERSION_CHECK(5, 0, 0))

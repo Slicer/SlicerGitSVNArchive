@@ -3,14 +3,14 @@
 #include <iostream>
 #include <vector>
 
-#include <vtkInformation.h>
-#include <vtkInformationVector.h>
+#include <vtk/Common/Core/vtkInformation.h>
+#include <vtk/Common/Core/vtkInformationVector.h>
 #include <vtkLoggingMacros.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
-#include <vtkSmartPointer.h>
-#include <vtkStreamingDemandDrivenPipeline.h>
-#include <vtkTimerLog.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/Common/ExecutionModel/vtkStreamingDemandDrivenPipeline.h>
+#include <vtk/Common/System/vtkTimerLog.h>
 
 #include "FibHeap.h"
 

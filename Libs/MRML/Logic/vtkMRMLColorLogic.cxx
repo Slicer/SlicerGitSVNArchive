@@ -25,13 +25,13 @@
 #include "vtkMRMLScene.h"
 
 // VTK sys includes
-#include <vtkLookupTable.h>
+#include <vtk/Common/Core/vtkLookupTable.h>
 #include <vtksys/SystemTools.hxx>
 
 // VTK includes
-#include <vtkColorTransferFunction.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
+#include <vtk/Rendering/Core/vtkColorTransferFunction.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
 
 // STD includes
 #include <algorithm>

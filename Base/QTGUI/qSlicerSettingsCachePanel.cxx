@@ -32,7 +32,7 @@
 #include <vtkCacheManager.h>
 
 // VTK includes
-#include <vtkCommand.h>
+#include <vtk/Common/Core/vtkCommand.h>
 
 // --------------------------------------------------------------------------
 // qSlicerSettingsCachePanelPrivate

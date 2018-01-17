@@ -22,9 +22,9 @@
 #include "vtkMRMLScene.h"
 
 // VTK includes
-#include <vtkBoundingBox.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
+#include <vtk/Common/DataModel/vtkBoundingBox.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
 
 // STD includes
 #include <sstream>

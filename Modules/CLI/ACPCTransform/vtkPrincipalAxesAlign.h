@@ -13,9 +13,9 @@
 ==========================================================================*/
 #ifndef __vtk_principal_axes_align_h
 #define __vtk_principal_axes_align_h
-#include <vtkPolyDataAlgorithm.h>
-#include <vtkSetGet.h>
-#include <vtkVersion.h>
+#include <vtk/Common/ExecutionModel/vtkPolyDataAlgorithm.h>
+#include <vtk/Common/Core/vtkSetGet.h>
+#include <vtk/Common/Core/vtkVersion.h>
 // ---------------------------------------------------------
 // Author: Axel Krauth
 //

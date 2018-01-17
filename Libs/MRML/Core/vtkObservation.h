@@ -20,7 +20,7 @@
 class vtkEventBroker;
 
 // VTK includes
-#include <vtkObject.h>
+#include <vtk/Common/Core/vtkObject.h>
 class vtkCallbackCommand;
 
 // STD includes

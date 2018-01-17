@@ -17,10 +17,10 @@
 #include "vtkObservation.h"
 
 // VTK includes
-#include <vtkCallbackCommand.h>
-#include <vtkCollection.h>
-#include <vtkObjectFactory.h>
-#include <vtkTimerLog.h>
+#include <vtk/Common/Core/vtkCallbackCommand.h>
+#include <vtk/Common/Core/vtkCollection.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/System/vtkTimerLog.h>
 
 vtkCxxSetObjectMacro(vtkEventBroker, TimerLog, vtkTimerLog);
 

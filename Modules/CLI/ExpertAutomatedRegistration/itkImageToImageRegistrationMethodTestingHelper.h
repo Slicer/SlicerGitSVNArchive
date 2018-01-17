@@ -15,10 +15,10 @@
 #ifndef itkImageToImageRegistrationMethodTestingHelper_h
 #define itkImageToImageRegistrationMethodTestingHelper_h
 
-#include "itkImageFileReader.h"
-#include "itkImageFileWriter.h"
-#include "itkResampleImageFilter.h"
-#include "itkTestingComparisonImageFilter.h"
+#include "itk/Modules/IO/ImageBase/include/itkImageFileReader.h"
+#include "itk/Modules/IO/ImageBase/include/itkImageFileWriter.h"
+#include "itk/Modules/Filtering/ImageGrid/include/itkResampleImageFilter.h"
+#include "itk/Modules/Core/TestKernel/include/itkTestingComparisonImageFilter.h"
 
 namespace itk
 {

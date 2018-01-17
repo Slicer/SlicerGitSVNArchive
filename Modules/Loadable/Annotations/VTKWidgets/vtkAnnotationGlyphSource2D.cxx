@@ -23,15 +23,15 @@
 #include <vtkMRMLFiducialListNode.h>
 
 // VTK includes
-#include <vtkCellArray.h>
-#include <vtkCellData.h>
-#include <vtkInformation.h>
-#include <vtkInformationVector.h>
-#include <vtkMath.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
-#include <vtkPolyData.h>
-#include <vtkUnsignedCharArray.h>
+#include <vtk/Common/DataModel/vtkCellArray.h>
+#include <vtk/Common/DataModel/vtkCellData.h>
+#include <vtk/Common/Core/vtkInformation.h>
+#include <vtk/Common/Core/vtkInformationVector.h>
+#include <vtk/Common/Core/vtkMath.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/DataModel/vtkPolyData.h>
+#include <vtk/Common/Core/vtkUnsignedCharArray.h>
 
 vtkStandardNewMacro(vtkAnnotationGlyphSource2D);
 

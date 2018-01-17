@@ -12,14 +12,14 @@ Version:   $Revision: 1.3 $
 
 =========================================================================auto=*/
 
-#include "vtkAlgorithmOutput.h"
-#include "vtkObjectFactory.h"
-#include "vtkCallbackCommand.h"
-#include "vtkTransform.h"
-#include "vtkImageData.h"
-#include "vtkPolyData.h"
+#include "vtk/Common/ExecutionModel/vtkAlgorithmOutput.h"
+#include "vtk/Common/Core/vtkObjectFactory.h"
+#include "vtk/Common/Core/vtkCallbackCommand.h"
+#include "vtk/Common/Transforms/vtkTransform.h"
+#include "vtk/Common/DataModel/vtkImageData.h"
+#include "vtk/Common/DataModel/vtkPolyData.h"
 
-#include "vtkTransformPolyDataFilter.h"
+#include "vtk/Filters/General/vtkTransformPolyDataFilter.h"
 
 #include "vtkMRMLGlyphableVolumeSliceDisplayNode.h"
 #include <sstream>

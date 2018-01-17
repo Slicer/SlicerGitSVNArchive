@@ -9,7 +9,7 @@ class vtkDataTransfer;
 class vtkMRMLNode;
 
 // VTK includes
-#include <vtkObject.h>
+#include <vtk/Common/Core/vtkObject.h>
 class vtkCallbackCommand;
 class vtkCollection;
 

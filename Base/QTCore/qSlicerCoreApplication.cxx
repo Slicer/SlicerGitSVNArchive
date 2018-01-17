@@ -102,7 +102,7 @@
 #include <ctkAppLauncherSettings.h>
 
 // VTK includes
-#include <vtkNew.h>
+#include <vtk/Common/Core/vtkNew.h>
 #include <vtksys/SystemTools.hxx>
 
 // Slicer includes

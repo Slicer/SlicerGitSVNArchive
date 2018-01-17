@@ -27,10 +27,10 @@
 #include <vtkMRMLUnitNode.h>
 
 // VTK includes
-#include <vtkCallbackCommand.h>
-#include <vtkCommand.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkCallbackCommand.h>
+#include <vtk/Common/Core/vtkCommand.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
 
 // STD includes
 #include <cassert>

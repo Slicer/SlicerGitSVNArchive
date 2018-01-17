@@ -24,10 +24,10 @@
 #include "vtkMRMLSelectionNode.h"
 
 // VTK includes
-#include <vtkAssignAttribute.h>
-#include <vtkCommand.h>
-#include <vtkIntArray.h>
-#include <vtkObjectFactory.h>
+#include <vtk/Filters/Core/vtkAssignAttribute.h>
+#include <vtk/Common/Core/vtkCommand.h>
+#include <vtk/Common/Core/vtkIntArray.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
 
 // VTKSYS includes
 #include <vtksys/SystemTools.hxx>

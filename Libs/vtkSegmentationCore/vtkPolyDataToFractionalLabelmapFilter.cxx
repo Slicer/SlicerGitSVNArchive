@@ -26,19 +26,19 @@
 #include <vtkSegmentationConverter.h>
 
 // VTK includes
-#include <vtkTransform.h>
-#include <vtkImageStencilData.h>
-#include <vtkPolyData.h>
-#include <vtkInformation.h>
-#include <vtkInformationVector.h>
-#include <vtkStreamingDemandDrivenPipeline.h>
-#include <vtkTransformPolyDataFilter.h>
-#include <vtkNew.h>
-#include <vtkPolyDataNormals.h>
-#include <vtkTriangleFilter.h>
-#include <vtkStripper.h>
-#include <vtkImageStencil.h>
-#include <vtkImageCast.h>
+#include <vtk/Common/Transforms/vtkTransform.h>
+#include <vtk/Imaging/Core/vtkImageStencilData.h>
+#include <vtk/Common/DataModel/vtkPolyData.h>
+#include <vtk/Common/Core/vtkInformation.h>
+#include <vtk/Common/Core/vtkInformationVector.h>
+#include <vtk/Common/ExecutionModel/vtkStreamingDemandDrivenPipeline.h>
+#include <vtk/Filters/General/vtkTransformPolyDataFilter.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Filters/Core/vtkPolyDataNormals.h>
+#include <vtk/Filters/Core/vtkTriangleFilter.h>
+#include <vtk/Filters/Core/vtkStripper.h>
+#include <vtk/Imaging/Stencil/vtkImageStencil.h>
+#include <vtk/Imaging/Core/vtkImageCast.h>
 
 // std includes
 #include <map>

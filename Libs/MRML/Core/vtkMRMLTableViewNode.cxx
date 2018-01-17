@@ -27,8 +27,8 @@
 #include "vtkMRMLTableNode.h"
 
 // VTK includes
-#include <vtkCommand.h> // for vtkCommand::ModifiedEvent
-#include <vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkCommand.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
 
 // STD includes
 #include <sstream>

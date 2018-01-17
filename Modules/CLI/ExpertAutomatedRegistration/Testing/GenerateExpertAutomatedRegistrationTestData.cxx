@@ -1,13 +1,13 @@
 
 // ITK includes
-#include <itkAffineTransform.h>
-#include <itkBSplineDeformableTransform.h>
-#include <itkEuler3DTransform.h>
-#include <itkImageFileWriter.h>
-#include <itkImage.h>
-#include <itkResampleImageFilter.h>
-#include <itkTransformFactory.h>
-#include <itkTransformFileReader.h>
+#include <itk/Modules/Core/Transform/include/itkAffineTransform.h>
+#include <itk/Modules/Core/Transform/include/itkBSplineDeformableTransform.h>
+#include <itk/Modules/Core/Transform/include/itkEuler3DTransform.h>
+#include <itk/Modules/IO/ImageBase/include/itkImageFileWriter.h>
+#include <itk/Modules/Core/Common/include/itkImage.h>
+#include <itk/Modules/Filtering/ImageGrid/include/itkResampleImageFilter.h>
+#include <itk/Modules/IO/TransformFactory/include/itkTransformFactory.h>
+#include <itk/Modules/IO/TransformBase/include/itkTransformFileReader.h>
 #include <itkFactoryRegistration.h>
 
 // STD includes

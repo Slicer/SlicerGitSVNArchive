@@ -39,10 +39,10 @@
 #include "vtkMRMLVolumeNode.h"
 
 // VTK includes
-#include <vtkCamera.h>
-#include <vtkMath.h>
-#include <vtkNew.h>
-#include <vtkTransform.h>
+#include <vtk/Rendering/Core/vtkCamera.h>
+#include <vtk/Common/Core/vtkMath.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Transforms/vtkTransform.h>
 
 //------------------------------------------------------------------------------
 class qSlicerReformatModuleWidgetPrivate :

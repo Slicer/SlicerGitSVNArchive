@@ -20,14 +20,14 @@
 
 #include "TestGridTransformRegistrationCLP.h"
 
-#include "itkOrientImageFilter.h"
-#include "itkResampleImageFilter.h"
+#include "itk/Modules/Filtering/ImageGrid/include/itkOrientImageFilter.h"
+#include "itk/Modules/Filtering/ImageGrid/include/itkResampleImageFilter.h"
 
-#include "itkImageFileWriter.h"
+#include "itk/Modules/IO/ImageBase/include/itkImageFileWriter.h"
 
 #include "itkPluginUtilities.h"
 
-#include "itkTimeProbesCollectorBase.h"
+#include "itk/Modules/Core/Common/include/itkTimeProbesCollectorBase.h"
 
 // Use an anonymous namespace to keep class types and function names
 // from colliding when module is used as shared object module.  Every

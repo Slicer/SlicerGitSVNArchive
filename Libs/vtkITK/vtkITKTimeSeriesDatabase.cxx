@@ -13,10 +13,10 @@
 ==========================================================================*/
 #include "vtkITKTimeSeriesDatabase.h"
 
-#include <vtkInformation.h>
-#include <vtkInformationVector.h>
-#include <vtkStreamingDemandDrivenPipeline.h>
-#include <vtkUnsignedLongArray.h>
+#include <vtk/Common/Core/vtkInformation.h>
+#include <vtk/Common/Core/vtkInformationVector.h>
+#include <vtk/Common/ExecutionModel/vtkStreamingDemandDrivenPipeline.h>
+#include <vtk/Common/Core/vtkUnsignedLongArray.h>
 
 vtkStandardNewMacro(vtkITKTimeSeriesDatabase);
 int vtkITKTimeSeriesDatabase::RequestInformation(

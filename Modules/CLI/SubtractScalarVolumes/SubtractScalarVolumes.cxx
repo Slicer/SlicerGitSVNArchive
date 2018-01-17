@@ -15,11 +15,11 @@
 
 =========================================================================*/
 
-#include "itkImageFileWriter.h"
+#include "itk/Modules/IO/ImageBase/include/itkImageFileWriter.h"
 
-#include "itkResampleImageFilter.h"
-#include "itkBSplineInterpolateImageFunction.h"
-#include "itkConstrainedValueDifferenceImageFilter.h"
+#include "itk/Modules/Filtering/ImageGrid/include/itkResampleImageFilter.h"
+#include "itk/Modules/Core/ImageFunction/include/itkBSplineInterpolateImageFunction.h"
+#include "itk/Modules/Filtering/ImageIntensity/include/itkConstrainedValueDifferenceImageFilter.h"
 
 #include "itkPluginUtilities.h"
 #include "SubtractScalarVolumesCLP.h"

@@ -18,7 +18,7 @@
 #include "vtkMRMLStorableNode.h"
 
 // VTK includes
-#include <vtkStdString.h>
+#include <vtk/Common/Core/vtkStdString.h>
 class vtkCollection;
 class vtkImageData;
 

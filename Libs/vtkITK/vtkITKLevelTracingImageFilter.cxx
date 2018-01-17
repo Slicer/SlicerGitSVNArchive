@@ -16,15 +16,15 @@ PURPOSE.  See the above copyright notice for more information.
 #include "vtkITKLevelTracingImageFilter.h"
 #include "itkLevelTracingImageFilter.h"
 
-#include "vtkCellArray.h"
-#include "vtkInformation.h"
-#include "vtkInformationVector.h"
-#include "vtkPointData.h"
-#include "vtkStructuredPoints.h"
-#include "vtkStreamingDemandDrivenPipeline.h"
-#include "vtkSmartPointer.h"
+#include "vtk/Common/DataModel/vtkCellArray.h"
+#include "vtk/Common/Core/vtkInformation.h"
+#include "vtk/Common/Core/vtkInformationVector.h"
+#include "vtk/Common/DataModel/vtkPointData.h"
+#include "vtk/Common/DataModel/vtkStructuredPoints.h"
+#include "vtk/Common/ExecutionModel/vtkStreamingDemandDrivenPipeline.h"
+#include "vtk/Common/Core/vtkSmartPointer.h"
 
-#include "itkExtractImageFilter.h"
+#include "itk/Modules/Core/Common/include/itkExtractImageFilter.h"
 
 vtkStandardNewMacro(vtkITKLevelTracingImageFilter);
 

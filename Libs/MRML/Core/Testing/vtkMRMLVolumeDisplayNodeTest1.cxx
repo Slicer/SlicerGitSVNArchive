@@ -15,7 +15,7 @@
 #include "vtkMRMLVolumeDisplayNode.h"
 
 // VTK includes
-#include <vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
 
 //---------------------------------------------------------------------------
 class vtkMRMLVolumeDisplayNodeTestHelper1 : public vtkMRMLVolumeDisplayNode

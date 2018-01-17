@@ -26,8 +26,8 @@
 #include "vtkSlicerModuleLogic.h"
 
 // VTK includes
-#include "vtkObject.h"
-#include "vtkObjectFactory.h"
+#include "vtk/Common/Core/vtkObject.h"
+#include "vtk/Common/Core/vtkObjectFactory.h"
 
 class VTK_SLICER_BASE_LOGIC_EXPORT vtkSlicerScriptedLoadableModuleLogic :
   public vtkSlicerModuleLogic

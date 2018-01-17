@@ -55,7 +55,7 @@
 #include "qMRMLItemDelegate.h"
 
 // VTK includes
-#include <vtkIdList.h>
+#include <vtk/Common/Core/vtkIdList.h>
 
 //------------------------------------------------------------------------------
 /// \ingroup Slicer_QtModules_SubjectHierarchy

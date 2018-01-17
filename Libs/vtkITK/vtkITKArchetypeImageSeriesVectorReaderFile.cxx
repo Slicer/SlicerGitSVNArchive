@@ -16,17 +16,17 @@
 #include "vtkITKArchetypeImageSeriesVectorReaderFile.h"
 
 // VTK includes
-#include <vtkAOSDataArrayTemplate.h>
-#include <vtkCommand.h>
-#include <vtkDataArray.h>
-#include <vtkErrorCode.h>
-#include <vtkImageData.h>
-#include <vtkObjectFactory.h>
-#include <vtkPointData.h>
+#include <vtk/Common/Core/vtkAOSDataArrayTemplate.h>
+#include <vtk/Common/Core/vtkCommand.h>
+#include <vtk/Common/Core/vtkDataArray.h>
+#include <vtk/Common/Misc/vtkErrorCode.h>
+#include <vtk/Common/DataModel/vtkImageData.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/DataModel/vtkPointData.h>
 
 // ITK includes
-#include <itkImageFileReader.h>
-#include <itkOrientImageFilter.h>
+#include <itk/Modules/IO/ImageBase/include/itkImageFileReader.h>
+#include <itk/Modules/Filtering/ImageGrid/include/itkOrientImageFilter.h>
 
 vtkStandardNewMacro(vtkITKArchetypeImageSeriesVectorReaderFile);
 

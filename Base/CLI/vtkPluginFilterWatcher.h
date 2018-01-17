@@ -5,8 +5,8 @@
 #include <ModuleProcessInformation.h>
 
 // VTK includes
-#include <vtkCommand.h>
-#include <vtkAlgorithm.h>
+#include <vtk/Common/Core/vtkCommand.h>
+#include <vtk/Common/ExecutionModel/vtkAlgorithm.h>
 
 #include "vtkSlicerBaseCLIExport.h"
 

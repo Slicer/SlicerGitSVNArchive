@@ -17,9 +17,9 @@ Version:   $Revision: 1.14 $
 
 // VTK includes
 #include <vtkOrientedGridTransform.h>
-#include <vtkImageData.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
+#include <vtk/Common/DataModel/vtkImageData.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
 
 // STD includes
 #include <sstream>

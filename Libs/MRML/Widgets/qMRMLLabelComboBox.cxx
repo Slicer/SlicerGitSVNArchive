@@ -14,7 +14,7 @@
 #include <vtkMRMLColorNode.h>
 
 // VTK includes
-#include <vtkLookupTable.h>
+#include <vtk/Common/Core/vtkLookupTable.h>
 
 //-----------------------------------------------------------------------------
 class qMRMLLabelComboBoxPrivate

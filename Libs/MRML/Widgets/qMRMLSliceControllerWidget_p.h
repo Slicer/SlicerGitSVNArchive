@@ -45,11 +45,11 @@
 #include <vtkMRMLSliceLogic.h>
 
 /// VTK includes
-#include <vtkAlgorithmOutput.h>
-#include <vtkCollection.h>
-#include <vtkImageData.h>
-#include <vtkSmartPointer.h>
-#include <vtkWeakPointer.h>
+#include <vtk/Common/ExecutionModel/vtkAlgorithmOutput.h>
+#include <vtk/Common/Core/vtkCollection.h>
+#include <vtk/Common/DataModel/vtkImageData.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/Common/Core/vtkWeakPointer.h>
 
 class ctkSignalMapper;
 class ctkDoubleSpinBox;

@@ -1,5 +1,5 @@
 
-#include "vtkObjectFactory.h"
+#include "vtk/Common/Core/vtkObjectFactory.h"
 #include "vtkMRMLAnnotationTextNode.h"
 
 

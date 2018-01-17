@@ -27,13 +27,13 @@
 #include <QHBoxLayout>
 
 // VTK includes
-#include <vtkCollection.h>
-#include <vtkFloatArray.h>
-#include <vtkPlot.h>
-#include <vtkPlotLine.h>
-#include <vtkSmartPointer.h>
-#include <vtkStringArray.h>
-#include <vtkTable.h>
+#include <vtk/Common/Core/vtkCollection.h>
+#include <vtk/Common/Core/vtkFloatArray.h>
+#include <vtk/Charts/Core/vtkPlot.h>
+#include <vtk/Charts/Core/vtkPlotLine.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/Common/Core/vtkStringArray.h>
+#include <vtk/Common/DataModel/vtkTable.h>
 
 // CTK includes
 #include <ctkLogger.h>

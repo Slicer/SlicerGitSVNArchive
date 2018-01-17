@@ -21,14 +21,14 @@
 #include "MergeModelsCLP.h"
 
 // VTK includes
-#include <vtkAlgorithmOutput.h>
-#include <vtkAppendPolyData.h>
-#include <vtkDebugLeaks.h>
-#include <vtkPolyDataReader.h>
-#include <vtkPolyDataWriter.h>
-#include <vtkXMLPolyDataReader.h>
-#include <vtkXMLPolyDataWriter.h>
-#include <vtkVersion.h>
+#include <vtk/Common/ExecutionModel/vtkAlgorithmOutput.h>
+#include <vtk/Filters/Core/vtkAppendPolyData.h>
+#include <vtk/Common/Core/vtkDebugLeaks.h>
+#include <vtk/IO/Legacy/vtkPolyDataReader.h>
+#include <vtk/IO/Legacy/vtkPolyDataWriter.h>
+#include <vtk/IO/XML/vtkXMLPolyDataReader.h>
+#include <vtk/IO/XML/vtkXMLPolyDataWriter.h>
+#include <vtk/Common/Core/vtkVersion.h>
 #include <vtksys/SystemTools.hxx>
 
 int main( int argc, char * argv[] )

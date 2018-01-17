@@ -32,7 +32,7 @@
 #include <QVTKOpenGLWidget.h>
 #endif
 
-#include <vtkTimerLog.h>
+#include <vtk/Common/System/vtkTimerLog.h>
 
 // STD includes
 

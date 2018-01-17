@@ -18,8 +18,8 @@
 #ifndef itkImageToImageRegistrationHelper_h
 #define itkImageToImageRegistrationHelper_h
 
-#include "itkImage.h"
-#include "itkCommand.h"
+#include "itk/Modules/Core/Common/include/itkImage.h"
+#include "itk/Modules/Core/Common/include/itkCommand.h"
 
 #include "itkImageToImageRegistrationMethod.h"
 #include "itkInitialImageToImageRegistrationMethod.h"

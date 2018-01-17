@@ -47,11 +47,11 @@
 #include <vtkMRMLScene.h>
 
 // VTK includes
-#include <vtkColorTransferFunction.h>
-#include <vtkLookupTable.h>
-#include <vtkRenderer.h>
-#include <vtkRenderWindow.h>
-#include <vtkScalarBarWidget.h>
+#include <vtk/Rendering/Core/vtkColorTransferFunction.h>
+#include <vtk/Common/Core/vtkLookupTable.h>
+#include <vtk/Rendering/Core/vtkRenderer.h>
+#include <vtk/Rendering/Core/vtkRenderWindow.h>
+#include <vtk/Interaction/Widgets/vtkScalarBarWidget.h>
 
 //-----------------------------------------------------------------------------
 class qSlicerColorsModuleWidgetPrivate: public Ui_qSlicerColorsModuleWidget

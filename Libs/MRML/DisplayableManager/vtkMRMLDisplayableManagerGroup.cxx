@@ -32,13 +32,13 @@
 #include <vtkMRMLNode.h>
 
 // VTK includes
-#include <vtkCallbackCommand.h>
-#include <vtkDebugLeaks.h>
-#include <vtkObjectFactory.h>
-#include <vtkRenderer.h>
-#include <vtkRenderWindow.h>
-#include <vtkSmartPointer.h>
-#include <vtkWeakPointer.h>
+#include <vtk/Common/Core/vtkCallbackCommand.h>
+#include <vtk/Common/Core/vtkDebugLeaks.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Rendering/Core/vtkRenderer.h>
+#include <vtk/Rendering/Core/vtkRenderWindow.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/Common/Core/vtkWeakPointer.h>
 
 // STD includes
 #include <algorithm>

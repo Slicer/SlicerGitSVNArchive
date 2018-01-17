@@ -17,10 +17,10 @@ Version:   $Revision: 1.11 $
 #include "vtkMRMLScene.h"
 
 // VTK includes
-#include <vtkCallbackCommand.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
-#include <vtkStringArray.h>
+#include <vtk/Common/Core/vtkCallbackCommand.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkStringArray.h>
 
 // VTKSYS includes
 #include <vtksys/SystemTools.hxx>

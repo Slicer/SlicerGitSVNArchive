@@ -30,7 +30,7 @@
 #include "vtkTeemConfigure.h"
 
 // VTK includes
-#include <vtkThreadedImageAlgorithm.h>
+#include <vtk/Common/ExecutionModel/vtkThreadedImageAlgorithm.h>
 
 class vtkMatrix4x4;
 class vtkImageData;

@@ -19,10 +19,10 @@
 #include <cmath>
 
 #include <vtkAddonMathUtilities.h>
-#include <vtkMath.h>
-#include <vtkMatrix3x3.h>
-#include <vtkMatrix4x4.h>
-#include <vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkMath.h>
+#include <vtk/Common/Math/vtkMatrix3x3.h>
+#include <vtk/Common/Math/vtkMatrix4x4.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
 #include <vtksys/RegularExpression.hxx>
 #include <vtkLoggingMacros.h>
 

@@ -26,10 +26,10 @@
 #include "vtkMRMLSceneViewNode.h"
 
 // VTK includes
-#include <vtkCollection.h>
-#include <vtkNew.h>
-#include <vtkSmartPointer.h>
-#include <vtkTimerLog.h>
+#include <vtk/Common/Core/vtkCollection.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/Common/System/vtkTimerLog.h>
 
 namespace
 {

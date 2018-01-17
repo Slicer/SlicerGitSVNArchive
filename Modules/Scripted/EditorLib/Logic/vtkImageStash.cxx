@@ -14,8 +14,8 @@
 =========================================================================*/
 #include "vtkImageStash.h"
 
-#include "vtkPointData.h"
-#include "vtkObjectFactory.h"
+#include "vtk/Common/DataModel/vtkPointData.h"
+#include "vtk/Common/Core/vtkObjectFactory.h"
 
 vtkStandardNewMacro(vtkImageStash);
 

@@ -16,14 +16,14 @@ PURPOSE.  See the above copyright notice for more information.
 #include "vtkITKLevelTracing3DImageFilter.h"
 #include "itkLevelTracingImageFilter.h"
 
-#include "vtkInformation.h"
-#include "vtkInformationVector.h"
-#include "vtkPointData.h"
-#include "vtkPolyData.h"
-#include "vtkStructuredPoints.h"
-#include "vtkStreamingDemandDrivenPipeline.h"
-#include "vtkSmartPointer.h"
-#include <vtkVersion.h>
+#include "vtk/Common/Core/vtkInformation.h"
+#include "vtk/Common/Core/vtkInformationVector.h"
+#include "vtk/Common/DataModel/vtkPointData.h"
+#include "vtk/Common/DataModel/vtkPolyData.h"
+#include "vtk/Common/DataModel/vtkStructuredPoints.h"
+#include "vtk/Common/ExecutionModel/vtkStreamingDemandDrivenPipeline.h"
+#include "vtk/Common/Core/vtkSmartPointer.h"
+#include <vtk/Common/Core/vtkVersion.h>
 
 
 vtkStandardNewMacro(vtkITKLevelTracing3DImageFilter);

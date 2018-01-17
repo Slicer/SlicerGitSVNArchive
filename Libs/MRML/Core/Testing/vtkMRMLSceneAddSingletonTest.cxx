@@ -26,7 +26,7 @@
 #include "vtkMRMLSceneViewNode.h"
 
 // STD includes
-#include <vtkNew.h>
+#include <vtk/Common/Core/vtkNew.h>
 
 //---------------------------------------------------------------------------
 int vtkMRMLSceneAddSingletonTest(int vtkNotUsed(argc), char * vtkNotUsed(argv) [])

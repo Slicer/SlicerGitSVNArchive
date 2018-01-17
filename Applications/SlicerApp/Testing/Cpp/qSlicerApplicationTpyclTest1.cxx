@@ -30,9 +30,9 @@
 #include "qSlicerPythonManager.h"
 
 // VTK includes
-#include <vtkNew.h>
-#include <vtkStringArray.h>
-#include <vtkTable.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkStringArray.h>
+#include <vtk/Common/DataModel/vtkTable.h>
 
 // STD includes
 #include <cstdlib>

@@ -27,7 +27,7 @@
 #include "vtkMRMLMarkupsNode.h"
 
 // VTK includes
-#include <vtkSmartPointer.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
 
 /// \brief MRML node to represent a fiducial markup
 /// Fiducial Markups nodes contain a list of fiducial points.

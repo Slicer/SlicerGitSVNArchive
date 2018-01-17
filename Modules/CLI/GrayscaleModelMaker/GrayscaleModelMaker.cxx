@@ -14,23 +14,23 @@ Version:   $Revision$
 
 #include "GrayscaleModelMakerCLP.h"
 #include "vtkITKArchetypeImageSeriesScalarReader.h"
-#include "vtkImageData.h"
-#include "vtkMarchingCubes.h"
-#include "vtkWindowedSincPolyDataFilter.h"
-#include "vtkTransform.h"
-#include "vtkDecimatePro.h"
-#include "vtkTransformPolyDataFilter.h"
-#include "vtkReverseSense.h"
-#include "vtkPolyDataNormals.h"
-#include "vtkStripper.h"
-#include "vtkXMLPolyDataWriter.h"
-#include "vtkImageChangeInformation.h"
+#include "vtk/Common/DataModel/vtkImageData.h"
+#include "vtk/Filters/Core/vtkMarchingCubes.h"
+#include "vtk/Filters/Core/vtkWindowedSincPolyDataFilter.h"
+#include "vtk/Common/Transforms/vtkTransform.h"
+#include "vtk/Filters/Core/vtkDecimatePro.h"
+#include "vtk/Filters/General/vtkTransformPolyDataFilter.h"
+#include "vtk/Filters/Core/vtkReverseSense.h"
+#include "vtk/Filters/Core/vtkPolyDataNormals.h"
+#include "vtk/Filters/Core/vtkStripper.h"
+#include "vtk/IO/XML/vtkXMLPolyDataWriter.h"
+#include "vtk/Imaging/Core/vtkImageChangeInformation.h"
 
 #include "vtkPluginFilterWatcher.h"
 #include "ModuleDescriptionParser.h"
 #include "ModuleDescription.h"
-#include "vtkDebugLeaks.h"
-#include <vtkVersion.h>
+#include "vtk/Common/Core/vtkDebugLeaks.h"
+#include <vtk/Common/Core/vtkVersion.h>
 
 int main(int argc, char * argv[])
 {

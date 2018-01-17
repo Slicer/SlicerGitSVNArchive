@@ -38,7 +38,7 @@
 class QAction;
 
 // VTK includes
-#include <vtkWeakPointer.h>
+#include <vtk/Common/Core/vtkWeakPointer.h>
 
 // CTK includes
 #include <ctkPimpl.h>

@@ -19,12 +19,12 @@
 ==============================================================================*/
 
 // VTK includes
-#include <vtkNew.h>
-#include <vtkVersion.h>
-#include <vtkPolyData.h>
-#include <vtkSphereSource.h>
-#include <vtkMatrix4x4.h>
-#include <vtkImageAccumulate.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkVersion.h>
+#include <vtk/Common/DataModel/vtkPolyData.h>
+#include <vtk/Filters/Sources/vtkSphereSource.h>
+#include <vtk/Common/Math/vtkMatrix4x4.h>
+#include <vtk/Imaging/Statistics/vtkImageAccumulate.h>
 
 // SegmentationCore includes
 #include "vtkSegmentation.h"

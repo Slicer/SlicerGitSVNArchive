@@ -19,7 +19,7 @@
 #include "vtkSlicerAnnotationsModuleVTKWidgetsExport.h"
 
 // VTK includes
-#include <vtkDistanceRepresentation3D.h>
+#include <vtk/Interaction/Widgets/vtkDistanceRepresentation3D.h>
 
 /// \ingroup Slicer_QtModules_Annotation
 class VTK_SLICER_ANNOTATIONS_MODULE_VTKWIDGETS_EXPORT

@@ -19,27 +19,27 @@
 #include "vtkMRMLTransformNode.h"
 
 // VTK includes
-#include <vtkImageData.h>
-#include <vtkPoints.h>
-#include <vtkThinPlateSplineTransform.h>
-#include <vtkTransform.h>
+#include <vtk/Common/DataModel/vtkImageData.h>
+#include <vtk/Common/Core/vtkPoints.h>
+#include <vtk/Common/Transforms/vtkThinPlateSplineTransform.h>
+#include <vtk/Common/Transforms/vtkTransform.h>
 
 // ITK includes
-#include <itkAffineTransform.h>
-#include <itkBSplineDeformableTransform.h> // ITKv3 style
-#include <itkBSplineTransform.h> // ITKv4 style
-#include <itkCompositeTransform.h>
-#include <itkCompositeTransformIOHelper.h>
-#include <itkDisplacementFieldTransform.h>
-#include <itkIdentityTransform.h>
-#include <itkTransformFileWriter.h>
-#include <itkTransformFileReader.h>
-#include <itkImageFileReader.h>
-#include <itkImageFileWriter.h>
-#include <itkTranslationTransform.h>
-#include <itkScaleTransform.h>
-#include <itkTransformFactory.h>
-#include <itkThinPlateSplineKernelTransform.h>
+#include <itk/Modules/Core/Transform/include/itkAffineTransform.h>
+#include <itk/Modules/Core/Transform/include/itkBSplineDeformableTransform.h>
+#include <itk/Modules/Core/Transform/include/itkBSplineTransform.h>
+#include <itk/Modules/Core/Transform/include/itkCompositeTransform.h>
+#include <itk/Modules/IO/TransformBase/include/itkCompositeTransformIOHelper.h>
+#include <itk/Modules/Filtering/DisplacementField/include/itkDisplacementFieldTransform.h>
+#include <itk/Modules/Core/Transform/include/itkIdentityTransform.h>
+#include <itk/Modules/IO/TransformBase/include/itkTransformFileWriter.h>
+#include <itk/Modules/IO/TransformBase/include/itkTransformFileReader.h>
+#include <itk/Modules/IO/ImageBase/include/itkImageFileReader.h>
+#include <itk/Modules/IO/ImageBase/include/itkImageFileWriter.h>
+#include <itk/Modules/Core/Transform/include/itkTranslationTransform.h>
+#include <itk/Modules/Core/Transform/include/itkScaleTransform.h>
+#include <itk/Modules/IO/TransformFactory/include/itkTransformFactory.h>
+#include <itk/Modules/Core/Transform/include/itkThinPlateSplineKernelTransform.h>
 
 // Constants and typedefs
 

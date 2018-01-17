@@ -41,10 +41,10 @@
 #include <vtkMRMLSliceNode.h>
 
 // VTK includes
-#include <vtkCollection.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
-#include <vtkWeakPointer.h>
+#include <vtk/Common/Core/vtkCollection.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkWeakPointer.h>
 #ifdef Slicer_VTK_USE_QVTKOPENGLWIDGET
 #include <QVTKOpenGLWidget.h>
 #endif

@@ -31,8 +31,8 @@
 #include "vtkSlicerAnnotationsModuleVTKWidgetsExport.h"
 
 // VTK includes
-#include <vtkGlyphSource2D.h>
-#include <vtkPolyDataAlgorithm.h>
+#include <vtk/Filters/Sources/vtkGlyphSource2D.h>
+#include <vtk/Common/ExecutionModel/vtkPolyDataAlgorithm.h>
 
 /*
   /// already defined

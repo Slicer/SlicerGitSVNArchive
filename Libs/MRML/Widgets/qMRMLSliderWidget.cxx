@@ -34,7 +34,7 @@
 #include <cmath>
 
 // VTK includes
-#include <vtkCommand.h>
+#include <vtk/Common/Core/vtkCommand.h>
 
 // --------------------------------------------------------------------------
 class qMRMLSliderWidgetPrivate

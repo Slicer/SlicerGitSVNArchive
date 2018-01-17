@@ -1,10 +1,10 @@
 #ifndef itkWarpTransform3D_h
 #define itkWarpTransform3D_h
 
-#include <itkTransform.h>
+#include <itk/Modules/Core/Transform/include/itkTransform.h>
 #include "dtiprocessFiles/dtitypes.h"
-#include <itkImage.h>
-#include "itkConstNeighborhoodIterator.h"
+#include <itk/Modules/Core/Common/include/itkImage.h>
+#include "itk/Modules/Core/Common/include/itkConstNeighborhoodIterator.h"
 
 namespace itk
 {

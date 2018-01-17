@@ -15,7 +15,7 @@
 #include <ModuleProcessInformation.h>
 
 // ITK includes
-#include <itkSimpleFilterWatcher.h>
+#include <itk/Modules/Core/Common/include/itkSimpleFilterWatcher.h>
 
 namespace itk
 {

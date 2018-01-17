@@ -7,9 +7,9 @@
 #ifndef __vtkImageRectangularSource_h
 #define __vtkImageRectangularSource_h
 
-#include "vtkImageAlgorithm.h"
+#include "vtk/Common/ExecutionModel/vtkImageAlgorithm.h"
 #include "vtkSlicerBaseLogic.h"
-#include <vtkVersion.h>
+#include <vtk/Common/Core/vtkVersion.h>
 
 class  VTK_SLICER_BASE_LOGIC_EXPORT vtkImageRectangularSource : public vtkImageAlgorithm
 {

@@ -33,20 +33,20 @@
 #include <vtkMRMLSliceNode.h>
 
 // VTK includes
-#include <vtkCamera.h>
-#include <vtkErrorCode.h>
-#include <vtkImageData.h>
-#include <vtkInteractorEventRecorder.h>
-#include <vtkNew.h>
-#include <vtkPNGWriter.h>
-#include <vtkRegressionTestImage.h>
-#include <vtkRenderer.h>
-#include <vtkRendererCollection.h>
-#include <vtkRenderWindow.h>
-#include <vtkRenderWindowInteractor.h>
-#include <vtkSmartPointer.h>
-#include <vtkSphereSource.h>
-#include <vtkWindowToImageFilter.h>
+#include <vtk/Rendering/Core/vtkCamera.h>
+#include <vtk/Common/Misc/vtkErrorCode.h>
+#include <vtk/Common/DataModel/vtkImageData.h>
+#include <vtk/Rendering/Core/vtkInteractorEventRecorder.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/IO/Image/vtkPNGWriter.h>
+#include <vtk/Testing/Rendering/vtkRegressionTestImage.h>
+#include <vtk/Rendering/Core/vtkRenderer.h>
+#include <vtk/Rendering/Core/vtkRendererCollection.h>
+#include <vtk/Rendering/Core/vtkRenderWindow.h>
+#include <vtk/Rendering/Core/vtkRenderWindowInteractor.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/Filters/Sources/vtkSphereSource.h>
+#include <vtk/Rendering/Core/vtkWindowToImageFilter.h>
 
 // STD includes
 bool TestBatchRemoveDisplayNode();

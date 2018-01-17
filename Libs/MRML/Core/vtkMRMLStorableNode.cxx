@@ -19,7 +19,7 @@ Version:   $Revision: 1.3 $
 #include "vtkTagTable.h"
 
 // VTK includes
-#include <vtkCallbackCommand.h>
+#include <vtk/Common/Core/vtkCallbackCommand.h>
 
 // STD includes
 #include <sstream>

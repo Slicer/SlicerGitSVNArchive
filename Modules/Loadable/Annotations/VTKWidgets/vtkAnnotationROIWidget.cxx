@@ -18,16 +18,16 @@
 #include "vtkAnnotationROIRepresentation.h"
 
 // VTK includes
-#include "vtkCommand.h"
-#include "vtkCallbackCommand.h"
-#include "vtkRenderWindowInteractor.h"
-#include "vtkObjectFactory.h"
-#include "vtkWidgetEventTranslator.h"
-#include "vtkWidgetCallbackMapper.h"
-#include "vtkEvent.h"
-#include "vtkWidgetEvent.h"
-#include "vtkRenderWindow.h"
-#include "vtkRenderer.h"
+#include "vtk/Common/Core/vtkCommand.h"
+#include "vtk/Common/Core/vtkCallbackCommand.h"
+#include "vtk/Rendering/Core/vtkRenderWindowInteractor.h"
+#include "vtk/Common/Core/vtkObjectFactory.h"
+#include "vtk/Interaction/Widgets/vtkWidgetEventTranslator.h"
+#include "vtk/Interaction/Widgets/vtkWidgetCallbackMapper.h"
+#include "vtk/Interaction/Widgets/vtkEvent.h"
+#include "vtk/Interaction/Widgets/vtkWidgetEvent.h"
+#include "vtk/Rendering/Core/vtkRenderWindow.h"
+#include "vtk/Rendering/Core/vtkRenderer.h"
 
 
 vtkStandardNewMacro(vtkAnnotationROIWidget);

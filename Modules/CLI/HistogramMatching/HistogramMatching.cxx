@@ -20,10 +20,10 @@
 
 //
 
-#include "itkImageFileWriter.h"
+#include "itk/Modules/IO/ImageBase/include/itkImageFileWriter.h"
 #include "itkPluginUtilities.h"
 
-#include "itkHistogramMatchingImageFilter.h"
+#include "itk/Modules/Filtering/ImageIntensity/include/itkHistogramMatchingImageFilter.h"
 
 #include "HistogramMatchingCLP.h"
 

@@ -49,9 +49,9 @@
 #include <vtkMRMLScene.h>
 
 // VTK includes
-#include <vtkCollection.h>
-#include <vtkCollectionIterator.h>
-#include <vtkWeakPointer.h>
+#include <vtk/Common/Core/vtkCollection.h>
+#include <vtk/Common/Core/vtkCollectionIterator.h>
+#include <vtk/Common/Core/vtkWeakPointer.h>
 
 //------------------------------------------------------------------------------
 qMRMLTreeViewPrivate::qMRMLTreeViewPrivate(qMRMLTreeView& object)

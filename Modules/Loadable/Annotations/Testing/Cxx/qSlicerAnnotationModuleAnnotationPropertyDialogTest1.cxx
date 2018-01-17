@@ -9,7 +9,7 @@
 #include "vtkMRMLAnnotationRulerNode.h"
 
 // VTK includes
-#include <vtkSmartPointer.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
 
 vtkSmartPointer<vtkMRMLAnnotationRulerNode> m_rulerCopy;
 vtkSmartPointer<vtkMRMLAnnotationAngleNode> m_angleCopy;

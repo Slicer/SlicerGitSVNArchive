@@ -36,7 +36,7 @@
 #include "vtkMRMLScalarVolumeDisplayNode.h"
 
 // VTK includes
-#include <vtkImageData.h>
+#include <vtk/Common/DataModel/vtkImageData.h>
 
 // --------------------------------------------------------------------------
 qMRMLVolumeWidgetPrivate

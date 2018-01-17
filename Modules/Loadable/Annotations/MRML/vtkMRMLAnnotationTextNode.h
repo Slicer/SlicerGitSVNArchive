@@ -12,7 +12,7 @@
 #include "vtkSlicerAnnotationsModuleMRMLExport.h"
 #include "vtkMRMLAnnotationControlPointsNode.h"
 
-#include <vtkStdString.h>
+#include <vtk/Common/Core/vtkStdString.h>
 class vtkStringArray;
 
 /// \ingroup Slicer_QtModules_Annotation

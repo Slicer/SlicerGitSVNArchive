@@ -23,18 +23,18 @@ Version:   $Revision: 1.2 $
 #include <vtkDiffusionTensorMathematics.h>
 
 // VTK includes
-#include <vtkImageAppendComponents.h>
-#include <vtkImageCast.h>
-#include <vtkImageData.h>
-#include <vtkImageExtractComponents.h>
-#include <vtkImageLogic.h>
-#include <vtkImageMathematics.h>
-#include <vtkImageMapToWindowLevelColors.h>
-#include <vtkImageShiftScale.h>
-#include <vtkImageThreshold.h>
-#include <vtkObjectFactory.h>
-#include <vtkSphereSource.h>
-#include <vtkVersion.h>
+#include <vtk/Imaging/Core/vtkImageAppendComponents.h>
+#include <vtk/Imaging/Core/vtkImageCast.h>
+#include <vtk/Common/DataModel/vtkImageData.h>
+#include <vtk/Imaging/Core/vtkImageExtractComponents.h>
+#include <vtk/Imaging/Math/vtkImageLogic.h>
+#include <vtk/Imaging/Math/vtkImageMathematics.h>
+#include <vtk/Imaging/Color/vtkImageMapToWindowLevelColors.h>
+#include <vtk/Imaging/Core/vtkImageShiftScale.h>
+#include <vtk/Imaging/Core/vtkImageThreshold.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Filters/Sources/vtkSphereSource.h>
+#include <vtk/Common/Core/vtkVersion.h>
 
 // STD includes
 

@@ -16,7 +16,7 @@
 #define __vtkITKGradientAnisotropicDiffusionImageFilter_h
 
 #include "vtkITKImageToImageFilterFF.h"
-#include "itkGradientAnisotropicDiffusionImageFilter.h"
+#include "itk/Modules/Filtering/AnisotropicSmoothing/include/itkGradientAnisotropicDiffusionImageFilter.h"
 
 /// \brief Wrapper class around itk::GradientAnisotropicDiffusionImageFilterImageFilter.
 ///

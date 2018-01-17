@@ -12,11 +12,11 @@
 
 ==========================================================================*/
 
-#include "itkConfidenceConnectedImageFilter.h"
-#include "itkCastImageFilter.h"
-#include "itkCurvatureFlowImageFilter.h"
-#include "itkImageFileReader.h"
-#include "itkImageFileWriter.h"
+#include "itk/Modules/Segmentation/RegionGrowing/include/itkConfidenceConnectedImageFilter.h"
+#include "itk/Modules/Filtering/ImageFilterBase/include/itkCastImageFilter.h"
+#include "itk/Modules/Filtering/CurvatureFlow/include/itkCurvatureFlowImageFilter.h"
+#include "itk/Modules/IO/ImageBase/include/itkImageFileReader.h"
+#include "itk/Modules/IO/ImageBase/include/itkImageFileWriter.h"
 #include "itkPluginFilterWatcher.h"
 
 #include "SimpleRegionGrowingSegmentationCLP.h"

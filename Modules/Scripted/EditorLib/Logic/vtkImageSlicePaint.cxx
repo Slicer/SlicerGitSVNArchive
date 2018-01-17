@@ -15,9 +15,9 @@
 #include "vtkImageSlicePaint.h"
 
 // VTK includes
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
-#include <vtkVersion.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkVersion.h>
 
 
 vtkStandardNewMacro(vtkImageSlicePaint);

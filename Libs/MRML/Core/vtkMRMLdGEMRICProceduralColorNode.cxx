@@ -16,8 +16,8 @@ Version:   $Revision: 1.0 $
 #include "vtkMRMLdGEMRICProceduralColorNode.h"
 
 // VTK includes
-#include <vtkColorTransferFunction.h>
-#include <vtkObjectFactory.h>
+#include <vtk/Rendering/Core/vtkColorTransferFunction.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
 
 //------------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLdGEMRICProceduralColorNode);

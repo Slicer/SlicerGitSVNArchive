@@ -16,9 +16,9 @@
 // VotingBinaryHoleFillImageFilter.cxx example that is distributed
 // with the ITK.
 
-#include "itkImageFileReader.h"
-#include "itkImageFileWriter.h"
-#include "itkVotingBinaryHoleFillingImageFilter.h"
+#include "itk/Modules/IO/ImageBase/include/itkImageFileReader.h"
+#include "itk/Modules/IO/ImageBase/include/itkImageFileWriter.h"
+#include "itk/Modules/Segmentation/LabelVoting/include/itkVotingBinaryHoleFillingImageFilter.h"
 #include "itkPluginFilterWatcher.h"
 
 #include "VotingBinaryHoleFillingImageFilterCLP.h"

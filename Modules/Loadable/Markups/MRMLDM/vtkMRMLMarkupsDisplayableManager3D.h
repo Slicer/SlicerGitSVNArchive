@@ -29,8 +29,8 @@
 #include <vtkMRMLAbstractThreeDViewDisplayableManager.h>
 
 // VTK includes
-#include <vtkHandleWidget.h>
-#include <vtkSeedWidget.h>
+#include <vtk/Interaction/Widgets/vtkHandleWidget.h>
+#include <vtk/Interaction/Widgets/vtkSeedWidget.h>
 
 class vtkMRMLMarkupsNode;
 class vtkSlicerViewerWidget;

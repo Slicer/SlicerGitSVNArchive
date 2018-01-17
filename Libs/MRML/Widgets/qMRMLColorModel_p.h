@@ -42,8 +42,8 @@ class QStandardItemModel;
 class vtkMRMLColorNode;
 
 // VTK includes
-#include <vtkCallbackCommand.h>
-#include <vtkSmartPointer.h>
+#include <vtk/Common/Core/vtkCallbackCommand.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
 
 //------------------------------------------------------------------------------
 // qMRMLColorModelPrivate

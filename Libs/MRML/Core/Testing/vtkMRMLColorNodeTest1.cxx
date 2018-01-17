@@ -16,8 +16,8 @@
 #include "vtkMRMLCoreTestingMacros.h"
 
 // VTK includes
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
 
 /// \brief Concrete implementation of vtkMRMLColorNode
 class vtkMRMLColorNodeTestHelper1 : public vtkMRMLColorNode

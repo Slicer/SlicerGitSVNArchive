@@ -14,8 +14,8 @@
 #ifndef itkDiffusionTensor3DExtended_h
 #define itkDiffusionTensor3DExtended_h
 
-#include <itkDiffusionTensor3D.h>
-#include <itkMatrix.h>
+#include <itk/Modules/Core/Common/include/itkDiffusionTensor3D.h>
+#include <itk/Modules/Core/Common/include/itkMatrix.h>
 
 namespace itk
 {

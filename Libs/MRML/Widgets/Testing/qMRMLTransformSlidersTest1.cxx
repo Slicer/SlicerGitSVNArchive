@@ -5,9 +5,9 @@
 #include "vtkSlicerConfigure.h"
 
 // VTK includes
-#include <vtkMatrix4x4.h>
+#include <vtk/Common/Math/vtkMatrix4x4.h>
 #include <vtkMRMLTransformNode.h>
-#include <vtkNew.h>
+#include <vtk/Common/Core/vtkNew.h>
 #ifdef Slicer_VTK_USE_QVTKOPENGLWIDGET
 #include <QVTKOpenGLWidget.h>
 #endif

@@ -24,9 +24,9 @@
 #include "vtkMRMLScene.h"
 #include "vtkMRMLTableNode.h"
 #include "vtkMRMLTableStorageNode.h"
-#include "vtkDoubleArray.h"
-#include "vtkStringArray.h"
-#include "vtkTable.h"
+#include "vtk/Common/Core/vtkDoubleArray.h"
+#include "vtk/Common/Core/vtkStringArray.h"
+#include "vtk/Common/DataModel/vtkTable.h"
 
 #include <vtksys/SystemTools.hxx>
 

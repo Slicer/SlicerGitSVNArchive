@@ -25,12 +25,12 @@
 
 
 // VTK includes
-#include <vtkPolyDataToImageStencil.h>
-#include <vtkSmartPointer.h>
-#include <vtkCellArray.h>
-#include <vtkSetGet.h>
-#include <vtkMatrix4x4.h>
-#include <vtkCellLocator.h>
+#include <vtk/Imaging/Stencil/vtkPolyDataToImageStencil.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/Common/DataModel/vtkCellArray.h>
+#include <vtk/Common/Core/vtkSetGet.h>
+#include <vtk/Common/Math/vtkMatrix4x4.h>
+#include <vtk/Common/DataModel/vtkCellLocator.h>
 
 // Segmentations includes
 #include <vtkOrientedImageData.h>

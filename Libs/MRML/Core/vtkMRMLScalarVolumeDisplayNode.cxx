@@ -20,23 +20,23 @@ Version:   $Revision: 1.2 $
 #include "vtkMRMLVolumeNode.h"
 
 // VTK includes
-#include <vtkAlgorithmOutput.h>
-#include <vtkCallbackCommand.h>
-#include <vtkColorTransferFunction.h>
-#include <vtkImageAccumulate.h>
-#include <vtkImageAppendComponents.h>
-#include <vtkImageExtractComponents.h>
+#include <vtk/Common/ExecutionModel/vtkAlgorithmOutput.h>
+#include <vtk/Common/Core/vtkCallbackCommand.h>
+#include <vtk/Rendering/Core/vtkColorTransferFunction.h>
+#include <vtk/Imaging/Statistics/vtkImageAccumulate.h>
+#include <vtk/Imaging/Core/vtkImageAppendComponents.h>
+#include <vtk/Imaging/Core/vtkImageExtractComponents.h>
 #include <vtkImageBimodalAnalysis.h>
-#include <vtkImageCast.h>
-#include <vtkImageData.h>
-#include <vtkImageLogic.h>
-#include <vtkImageMapToWindowLevelColors.h>
-#include <vtkImageStencil.h>
-#include <vtkImageThreshold.h>
-#include <vtkObjectFactory.h>
-#include <vtkLookupTable.h>
-#include <vtkPointData.h>
-#include <vtkVersion.h>
+#include <vtk/Imaging/Core/vtkImageCast.h>
+#include <vtk/Common/DataModel/vtkImageData.h>
+#include <vtk/Imaging/Math/vtkImageLogic.h>
+#include <vtk/Imaging/Color/vtkImageMapToWindowLevelColors.h>
+#include <vtk/Imaging/Stencil/vtkImageStencil.h>
+#include <vtk/Imaging/Core/vtkImageThreshold.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkLookupTable.h>
+#include <vtk/Common/DataModel/vtkPointData.h>
+#include <vtk/Common/Core/vtkVersion.h>
 
 
 // STD includes

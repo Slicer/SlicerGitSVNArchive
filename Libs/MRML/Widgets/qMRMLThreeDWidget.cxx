@@ -35,7 +35,7 @@
 #include "qMRMLThreeDWidget.h"
 
 // VTK includes
-#include <vtkCollection.h>
+#include <vtk/Common/Core/vtkCollection.h>
 
 //--------------------------------------------------------------------------
 // qMRMLSliceViewPrivate

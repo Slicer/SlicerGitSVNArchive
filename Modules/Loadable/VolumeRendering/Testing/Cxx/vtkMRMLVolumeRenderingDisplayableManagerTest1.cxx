@@ -40,18 +40,18 @@
 #include <vtkMRMLVolumePropertyNode.h>
 
 // VTK includes
-#include <vtkCamera.h>
-#include <vtkErrorCode.h>
-#include <vtkImageData.h>
-#include <vtkInteractorEventRecorder.h>
-#include <vtkNew.h>
-#include <vtkPNGWriter.h>
-#include <vtkRegressionTestImage.h>
-#include <vtkRenderer.h>
-#include <vtkRenderWindow.h>
-#include <vtkRenderWindowInteractor.h>
-#include <vtkGPUVolumeRayCastMapper.h>
-#include <vtkWindowToImageFilter.h>
+#include <vtk/Rendering/Core/vtkCamera.h>
+#include <vtk/Common/Misc/vtkErrorCode.h>
+#include <vtk/Common/DataModel/vtkImageData.h>
+#include <vtk/Rendering/Core/vtkInteractorEventRecorder.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/IO/Image/vtkPNGWriter.h>
+#include <vtk/Testing/Rendering/vtkRegressionTestImage.h>
+#include <vtk/Rendering/Core/vtkRenderer.h>
+#include <vtk/Rendering/Core/vtkRenderWindow.h>
+#include <vtk/Rendering/Core/vtkRenderWindowInteractor.h>
+#include <vtk/Rendering/Volume/vtkGPUVolumeRayCastMapper.h>
+#include <vtk/Rendering/Core/vtkWindowToImageFilter.h>
 
 // STD includes
 

@@ -1,8 +1,8 @@
 #ifndef __vtkSlicerTask_h
 #define __vtkSlicerTask_h
 
-#include "vtkObject.h"
-#include "vtkSmartPointer.h"
+#include "vtk/Common/Core/vtkObject.h"
+#include "vtk/Common/Core/vtkSmartPointer.h"
 #include "vtkMRMLAbstractLogic.h"
 #include "vtkSlicerBaseLogic.h"
 

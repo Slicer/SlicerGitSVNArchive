@@ -31,14 +31,14 @@
 #include <vtkMRMLVolumePropertyNode.h>
 
 // VTK includes
-#include <vtkSmartPointer.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
 #ifdef Slicer_VTK_USE_QVTKOPENGLWIDGET
 #include <QVTKOpenGLWidget.h>
 #endif
 
 // this test only works on VTKv6 and later
 
-#include <vtkAutoInit.h>
+#include <vtk/Common/Core/vtkAutoInit.h>
 #if defined(Slicer_VTK_RENDERING_USE_OpenGL2_BACKEND)
 VTK_MODULE_INIT(vtkRenderingContextOpenGL2);
 #else

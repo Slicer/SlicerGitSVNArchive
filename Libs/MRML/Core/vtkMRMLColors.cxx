@@ -22,8 +22,8 @@
 #include "vtkMRMLColors.h"
 
 // VTK includes
-#include <vtkColor.h>
-#include <vtkVersion.h>
+#include <vtk/Common/DataModel/vtkColor.h>
+#include <vtk/Common/Core/vtkVersion.h>
 
 // STD includes
 #include <sstream>

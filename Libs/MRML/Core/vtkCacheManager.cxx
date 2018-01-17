@@ -7,8 +7,8 @@
 #include <vtksys/Directory.hxx>
 #include <vtksys/SystemTools.hxx>
 
-#include <vtkCallbackCommand.h>
-#include <vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkCallbackCommand.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
 
 vtkStandardNewMacro ( vtkCacheManager );
 

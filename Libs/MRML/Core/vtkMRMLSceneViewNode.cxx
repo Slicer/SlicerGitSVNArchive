@@ -22,10 +22,10 @@ Version:   $Revision: 1.14 $
 #include <vtksys/SystemTools.hxx>
 
 // VTK includes
-#include <vtkCollection.h>
-#include <vtkImageData.h>
-#include <vtkObjectFactory.h>
-#include <vtkSmartPointer.h>
+#include <vtk/Common/Core/vtkCollection.h>
+#include <vtk/Common/DataModel/vtkImageData.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
 
 // STD includes
 #include <cassert>

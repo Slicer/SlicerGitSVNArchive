@@ -1,7 +1,7 @@
 #ifndef itkMRMLIDIOPlugin_h
 #define itkMRMLIDIOPlugin_h
 
-#include "itkObjectFactoryBase.h"
+#include "itk/Modules/Core/Common/include/itkObjectFactoryBase.h"
 
 #ifdef WIN32
 #ifdef MRMLIDIOPlugin_EXPORTS

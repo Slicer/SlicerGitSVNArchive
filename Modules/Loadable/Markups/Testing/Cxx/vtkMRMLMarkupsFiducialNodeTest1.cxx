@@ -22,8 +22,8 @@
 #include "vtkURIHandler.h"
 
 // VTK includes
-#include <vtkNew.h>
-#include <vtkPolyData.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/DataModel/vtkPolyData.h>
 
 int vtkMRMLMarkupsFiducialNodeTest1(int , char * [] )
 {

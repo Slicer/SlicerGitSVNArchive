@@ -19,7 +19,7 @@
 ==============================================================================*/
 
 // VTK includes
-#include <vtkCommand.h>
+#include <vtk/Common/Core/vtkCommand.h>
 
 // STD includes
 #include <map>

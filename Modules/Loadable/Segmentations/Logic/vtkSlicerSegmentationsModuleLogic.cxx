@@ -35,23 +35,23 @@
 #include "vtkSlicerTerminologyEntry.h"
 
 // VTK includes
-#include <vtkCallbackCommand.h>
-#include <vtkDataObject.h>
-#include <vtkGeneralTransform.h>
-#include <vtkImageAccumulate.h>
-#include <vtkImageConstantPad.h>
-#include <vtkImageMathematics.h>
-#include <vtkImageThreshold.h>
-#include <vtkLookupTable.h>
-#include <vtkMatrix4x4.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
-#include <vtkPointData.h>
-#include <vtkPolyData.h>
-#include <vtkStringArray.h>
-#include <vtkTransform.h>
-#include <vtkTransformPolyDataFilter.h>
-#include <vtkTrivialProducer.h>
+#include <vtk/Common/Core/vtkCallbackCommand.h>
+#include <vtk/Common/DataModel/vtkDataObject.h>
+#include <vtk/Common/Transforms/vtkGeneralTransform.h>
+#include <vtk/Imaging/Statistics/vtkImageAccumulate.h>
+#include <vtk/Imaging/Core/vtkImageConstantPad.h>
+#include <vtk/Imaging/Math/vtkImageMathematics.h>
+#include <vtk/Imaging/Core/vtkImageThreshold.h>
+#include <vtk/Common/Core/vtkLookupTable.h>
+#include <vtk/Common/Math/vtkMatrix4x4.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/DataModel/vtkPointData.h>
+#include <vtk/Common/DataModel/vtkPolyData.h>
+#include <vtk/Common/Core/vtkStringArray.h>
+#include <vtk/Common/Transforms/vtkTransform.h>
+#include <vtk/Filters/General/vtkTransformPolyDataFilter.h>
+#include <vtk/Common/ExecutionModel/vtkTrivialProducer.h>
 #include <vtksys/SystemTools.hxx>
 
 // MRML includes

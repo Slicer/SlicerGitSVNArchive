@@ -23,9 +23,9 @@
 #include "vtkMRMLTableNode.h"
 #include "vtkMRMLTableStorageNode.h"
 
-#include "vtkStringArray.h"
-#include "vtkTable.h"
-#include "vtkTestErrorObserver.h"
+#include "vtk/Common/Core/vtkStringArray.h"
+#include "vtk/Common/DataModel/vtkTable.h"
+#include "vtk/Testing/Core/vtkTestErrorObserver.h"
 
 #include "vtkMRMLCoreTestingMacros.h"
 

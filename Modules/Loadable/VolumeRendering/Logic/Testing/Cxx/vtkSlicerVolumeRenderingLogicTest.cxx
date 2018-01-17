@@ -29,9 +29,9 @@
 #include <vtkMRMLVolumeNode.h>
 
 // VTK includes
-#include <vtkImageData.h>
-#include <vtkNew.h>
-#include <vtkSmartPointer.h>
+#include <vtk/Common/DataModel/vtkImageData.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
 
 //----------------------------------------------------------------------------
 int testDefaultRenderingMethod(const std::string& moduleShareDirectory);

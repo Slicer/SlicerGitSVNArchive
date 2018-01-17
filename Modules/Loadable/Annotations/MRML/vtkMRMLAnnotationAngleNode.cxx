@@ -6,9 +6,9 @@
 #include "vtkMRMLAnnotationLineDisplayNode.h"
 #include "vtkMRMLAnnotationAngleStorageNode.h"
 
-#include <vtkAbstractTransform.h>
-#include <vtkObjectFactory.h>
-#include <vtkMatrix4x4.h>
+#include <vtk/Common/Transforms/vtkAbstractTransform.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/Math/vtkMatrix4x4.h>
 
 //----------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLAnnotationAngleNode);

@@ -26,7 +26,7 @@
 #include "vtkMRMLScene.h"
 
 // VTK includes
-#include <vtkTimerLog.h>
+#include <vtk/Common/System/vtkTimerLog.h>
 
 // STD includes
 

@@ -25,7 +25,7 @@
 #include <vtkMRMLCameraNode.h>
 
 // VTK includes
-#include <vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
 
 // STD includes
 #include <cassert>

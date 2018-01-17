@@ -31,7 +31,7 @@
 #include "vtkSegment.h"
 
 // VYK includes
-#include <vtkWeakPointer.h>
+#include <vtk/Common/Core/vtkWeakPointer.h>
 
 // Qt includes
 #include <QDebug>

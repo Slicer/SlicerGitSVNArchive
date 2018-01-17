@@ -15,12 +15,12 @@
 #include "vtkPrincipalAxesAlign.h"
 
 // VTK includes
-#include <vtkImageData.h>
-#include <vtkMath.h>
-#include <vtkObjectFactory.h>
-#include <vtkPolyData.h>
-#include <vtkStreamingDemandDrivenPipeline.h>
-#include <vtkVersion.h>
+#include <vtk/Common/DataModel/vtkImageData.h>
+#include <vtk/Common/Core/vtkMath.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/DataModel/vtkPolyData.h>
+#include <vtk/Common/ExecutionModel/vtkStreamingDemandDrivenPipeline.h>
+#include <vtk/Common/Core/vtkVersion.h>
 
 //----------------------------------------------------------------------------
 int vtkPrincipalAxesAlign::RequestData(vtkInformation* vtkNotUsed(request),

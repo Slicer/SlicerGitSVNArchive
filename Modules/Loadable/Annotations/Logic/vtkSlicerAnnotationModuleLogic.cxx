@@ -33,11 +33,11 @@
 #include <vtkSlicerFiducialsLogic.h>
 
 // VTK includes
-#include <vtkImageData.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
-#include <vtkPNGWriter.h>
-#include <vtkVersion.h>
+#include <vtk/Common/DataModel/vtkImageData.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/IO/Image/vtkPNGWriter.h>
+#include <vtk/Common/Core/vtkVersion.h>
 
 // STD includes
 #include <algorithm>

@@ -19,11 +19,11 @@ Version:   $Revision: 1.14 $
 #include "vtkMRMLVolumeArchetypeStorageNode.h"
 
 // VTK includes
-#include <vtkDataArray.h>
-#include <vtkObjectFactory.h>
-#include <vtkImageData.h>
-#include <vtkNew.h>
-#include <vtkPointData.h>
+#include <vtk/Common/Core/vtkDataArray.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/DataModel/vtkImageData.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/DataModel/vtkPointData.h>
 
 //----------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLScalarVolumeNode);

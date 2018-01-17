@@ -25,15 +25,15 @@
 #include "vtkMRMLTableStorageNode.h"
 
 // VTK includes
-#include <vtkBitArray.h>
-#include <vtkCharArray.h>
-#include <vtkCommand.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
-#include <vtkSignedCharArray.h>
-#include <vtkStringArray.h>
-#include <vtkTable.h>
-#include <vtkUnsignedCharArray.h>
+#include <vtk/Common/Core/vtkBitArray.h>
+#include <vtk/Common/Core/vtkCharArray.h>
+#include <vtk/Common/Core/vtkCommand.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkSignedCharArray.h>
+#include <vtk/Common/Core/vtkStringArray.h>
+#include <vtk/Common/DataModel/vtkTable.h>
+#include <vtk/Common/Core/vtkUnsignedCharArray.h>
 
 // VTKSYS includes
 #include <vtksys/SystemTools.hxx>

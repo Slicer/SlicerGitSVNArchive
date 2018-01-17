@@ -29,10 +29,10 @@
 #include <vtkMRMLTransformNode.h>
 
 // VTK includes
-#include <vtkNew.h>
-#include <vtkSmartPointer.h>
-#include <vtkTransform.h>
-#include <vtkWeakPointer.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/Common/Transforms/vtkTransform.h>
+#include <vtk/Common/Core/vtkWeakPointer.h>
 
 //-----------------------------------------------------------------------------
 class qMRMLMatrixWidgetPrivate

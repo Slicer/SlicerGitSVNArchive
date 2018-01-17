@@ -5,20 +5,20 @@
 #include <vtkNRRDReader.h>
 
 // VTK includes
-#include <vtkImageData.h>
-#include <vtkNew.h>
-#include <vtkPolyData.h>
-#include <vtkPolyDataReader.h>
-#include <vtkPolyDataWriter.h>
-#include <vtkProbeFilter.h>
-#include <vtkTransform.h>
-#include <vtkTransformFilter.h>
-#include <vtkUnstructuredGridReader.h>
-#include <vtkUnstructuredGridWriter.h>
-#include <vtkXMLPolyDataReader.h>
-#include <vtkXMLPolyDataWriter.h>
-#include <vtkXMLUnstructuredGridReader.h>
-#include <vtkXMLUnstructuredGridWriter.h>
+#include <vtk/Common/DataModel/vtkImageData.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/DataModel/vtkPolyData.h>
+#include <vtk/IO/Legacy/vtkPolyDataReader.h>
+#include <vtk/IO/Legacy/vtkPolyDataWriter.h>
+#include <vtk/Filters/Core/vtkProbeFilter.h>
+#include <vtk/Common/Transforms/vtkTransform.h>
+#include <vtk/Filters/General/vtkTransformFilter.h>
+#include <vtk/IO/Legacy/vtkUnstructuredGridReader.h>
+#include <vtk/IO/Legacy/vtkUnstructuredGridWriter.h>
+#include <vtk/IO/XML/vtkXMLPolyDataReader.h>
+#include <vtk/IO/XML/vtkXMLPolyDataWriter.h>
+#include <vtk/IO/XML/vtkXMLUnstructuredGridReader.h>
+#include <vtk/IO/XML/vtkXMLUnstructuredGridWriter.h>
 
 #include <vtksys/SystemTools.hxx>
 

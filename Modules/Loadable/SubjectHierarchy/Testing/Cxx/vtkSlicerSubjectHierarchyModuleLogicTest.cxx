@@ -24,12 +24,12 @@
 #include "vtkSlicerSubjectHierarchyModuleLogic.h"
 
 // VTK includes
-#include <vtkCollection.h>
-#include <vtkPolyData.h>
-#include <vtkPoints.h>
-#include <vtkMatrix4x4.h>
-#include <vtkNew.h>
-#include <vtkSmartPointer.h>
+#include <vtk/Common/Core/vtkCollection.h>
+#include <vtk/Common/DataModel/vtkPolyData.h>
+#include <vtk/Common/Core/vtkPoints.h>
+#include <vtk/Common/Math/vtkMatrix4x4.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
 
 // MRML includes
 #include "vtkMRMLScene.h"

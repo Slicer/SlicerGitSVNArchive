@@ -1,10 +1,10 @@
 
-#include "vtkObjectFactory.h"
+#include "vtk/Common/Core/vtkObjectFactory.h"
 #include "vtkMRMLAnnotationRulerStorageNode.h"
 #include "vtkMRMLAnnotationRulerNode.h"
 //#include "vtkMRMLHierarchyNode.h"
 #include "vtkMRMLScene.h"
-#include "vtkStringArray.h"
+#include "vtk/Common/Core/vtkStringArray.h"
 
 //----------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLAnnotationRulerStorageNode);

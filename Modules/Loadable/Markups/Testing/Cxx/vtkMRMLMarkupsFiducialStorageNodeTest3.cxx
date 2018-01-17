@@ -22,10 +22,10 @@
 #include "vtkMRMLMarkupsFiducialNode.h"
 #include "vtkURIHandler.h"
 #include "vtkMRMLScene.h"
-#include "vtkPolyData.h"
+#include "vtk/Common/DataModel/vtkPolyData.h"
 
 // VTK includes
-#include <vtkNew.h>
+#include <vtk/Common/Core/vtkNew.h>
 
 
 int vtkMRMLMarkupsFiducialStorageNodeTest3(int argc, char * argv[] )

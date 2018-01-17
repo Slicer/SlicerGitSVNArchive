@@ -36,23 +36,23 @@
 #include <vtkMRMLViewNode.h>
 
 // VTK includes
-#include <vtkAbstractWidget.h>
-#include <vtkFollower.h>
-#include <vtkHandleRepresentation.h>
-#include <vtkInteractorStyle.h>
-#include <vtkMath.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
-#include <vtkOrientedPolygonalHandleRepresentation3D.h>
-#include <vtkPickingManager.h>
-#include <vtkProperty2D.h>
-#include <vtkProperty.h>
-#include <vtkRenderer.h>
-#include <vtkRenderWindowInteractor.h>
-#include <vtkSeedWidget.h>
-#include <vtkSmartPointer.h>
-#include <vtkSeedRepresentation.h>
-#include <vtkSphereSource.h>
+#include <vtk/Interaction/Widgets/vtkAbstractWidget.h>
+#include <vtk/Rendering/Core/vtkFollower.h>
+#include <vtk/Interaction/Widgets/vtkHandleRepresentation.h>
+#include <vtk/Rendering/Core/vtkInteractorStyle.h>
+#include <vtk/Common/Core/vtkMath.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Interaction/Widgets/vtkOrientedPolygonalHandleRepresentation3D.h>
+#include <vtk/Rendering/Core/vtkPickingManager.h>
+#include <vtk/Rendering/Core/vtkProperty2D.h>
+#include <vtk/Rendering/Core/vtkProperty.h>
+#include <vtk/Rendering/Core/vtkRenderer.h>
+#include <vtk/Rendering/Core/vtkRenderWindowInteractor.h>
+#include <vtk/Interaction/Widgets/vtkSeedWidget.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/Interaction/Widgets/vtkSeedRepresentation.h>
+#include <vtk/Filters/Sources/vtkSphereSource.h>
 
 // STD includes
 #include <sstream>

@@ -14,7 +14,7 @@ or http://www.slicer.org/copyright/copyright.txt for details.
 #include "vtkMRML.h"
 
 // VTK includes
-#include <vtkObject.h>
+#include <vtk/Common/Core/vtkObject.h>
 
 /// \brief Simple class for storing standard coded entries (coding scheme, value, meaning triplets)
 ///

@@ -49,22 +49,22 @@
 #include <vtkMRMLTableNode.h>
 
 // VTK includes
-#include <vtkAxis.h>
-#include <vtkBrush.h>
-#include <vtkChartLegend.h>
-#include <vtkChartXY.h>
-#include <vtkCollection.h>
-#include <vtkColorSeries.h>
-#include <vtkContextMouseEvent.h>
-#include <vtkContextScene.h>
-#include <vtkContextView.h>
-#include <vtkNew.h>
-#include <vtkPen.h>
-#include <vtkPlot.h>
-#include <vtkRenderer.h>
-#include <vtkSelection.h>
-#include <vtkStringArray.h>
-#include <vtkTextProperty.h>
+#include <vtk/Charts/Core/vtkAxis.h>
+#include <vtk/Rendering/Context2D/vtkBrush.h>
+#include <vtk/Charts/Core/vtkChartLegend.h>
+#include <vtk/Charts/Core/vtkChartXY.h>
+#include <vtk/Common/Core/vtkCollection.h>
+#include <vtk/Common/Color/vtkColorSeries.h>
+#include <vtk/Rendering/Context2D/vtkContextMouseEvent.h>
+#include <vtk/Rendering/Context2D/vtkContextScene.h>
+#include <vtk/Views/Context2D/vtkContextView.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Rendering/Context2D/vtkPen.h>
+#include <vtk/Charts/Core/vtkPlot.h>
+#include <vtk/Rendering/Core/vtkRenderer.h>
+#include <vtk/Common/DataModel/vtkSelection.h>
+#include <vtk/Common/Core/vtkStringArray.h>
+#include <vtk/Rendering/Core/vtkTextProperty.h>
 
 //--------------------------------------------------------------------------
 // qMRMLPlotViewPrivate methods

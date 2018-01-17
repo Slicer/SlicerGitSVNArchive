@@ -45,8 +45,8 @@
 #include <vtkMRMLVolumePropertyNode.h>
 
 // VTK includes
-#include <vtkColorTransferFunction.h>
-#include <vtkVolumeProperty.h>
+#include <vtk/Rendering/Core/vtkColorTransferFunction.h>
+#include <vtk/Rendering/Core/vtkVolumeProperty.h>
 
 // STD includes
 #include <cassert>

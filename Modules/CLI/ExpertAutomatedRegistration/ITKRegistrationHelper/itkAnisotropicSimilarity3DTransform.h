@@ -19,7 +19,7 @@
 #define itkAnisotropicSimilarity3DTransform_h
 
 #include <iostream>
-#include "itkVersorRigid3DTransform.h"
+#include "itk/Modules/Core/Transform/include/itkVersorRigid3DTransform.h"
 
 namespace itk
 {

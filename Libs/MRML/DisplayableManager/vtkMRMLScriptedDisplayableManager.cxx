@@ -19,7 +19,7 @@
 ==============================================================================*/
 
 // Python includes
-#include <vtkPython.h>
+#include <vtk/Utilities/Python/vtkPython.h>
 
 // MRMLDisplayableManager includes
 #include "vtkMRMLScriptedDisplayableManager.h"
@@ -31,9 +31,9 @@
 #include <vtksys/SystemTools.hxx>
 
 // VTK includes
-#include <vtkObjectFactory.h>
-#include <vtkPythonUtil.h>
-#include <vtkSmartPointer.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Wrapping/PythonCore/vtkPythonUtil.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
 
 // STD includes
 

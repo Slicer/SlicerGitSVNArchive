@@ -13,17 +13,17 @@
 ==========================================================================*/
 
 #include "vtkITKIslandMath.h"
-#include "vtkObjectFactory.h"
+#include "vtk/Common/Core/vtkObjectFactory.h"
 
-#include "vtkDataArray.h"
-#include "vtkPointData.h"
-#include "vtkImageData.h"
-#include "vtkAlgorithm.h"
-#include <vtkVersion.h>
+#include "vtk/Common/Core/vtkDataArray.h"
+#include "vtk/Common/DataModel/vtkPointData.h"
+#include "vtk/Common/DataModel/vtkImageData.h"
+#include "vtk/Common/ExecutionModel/vtkAlgorithm.h"
+#include <vtk/Common/Core/vtkVersion.h>
 
-#include "itkConnectedComponentImageFilter.h"
-#include "itkRelabelComponentImageFilter.h"
-#include "itkCommand.h"
+#include "itk/Modules/Segmentation/ConnectedComponents/include/itkConnectedComponentImageFilter.h"
+#include "itk/Modules/Segmentation/ConnectedComponents/include/itkRelabelComponentImageFilter.h"
+#include "itk/Modules/Core/Common/include/itkCommand.h"
 
 vtkStandardNewMacro(vtkITKIslandMath);
 

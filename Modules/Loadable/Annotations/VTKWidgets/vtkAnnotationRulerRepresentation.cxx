@@ -3,13 +3,13 @@
 #include "vtkAnnotationRulerRepresentation.h"
 
 // VTK includes
-#include <vtkAxisActor2D.h>
-#include <vtkHandleRepresentation.h>
-#include <vtkMath.h>
-#include <vtkObjectFactory.h>
-#include <vtkRenderer.h>
-#include <vtkWindow.h>
-#include <vtkTextProperty.h>
+#include <vtk/Rendering/Annotation/vtkAxisActor2D.h>
+#include <vtk/Interaction/Widgets/vtkHandleRepresentation.h>
+#include <vtk/Common/Core/vtkMath.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Rendering/Core/vtkRenderer.h>
+#include <vtk/Common/Core/vtkWindow.h>
+#include <vtk/Rendering/Core/vtkTextProperty.h>
 
 //---------------------------------------------------------------------------
 vtkStandardNewMacro (vtkAnnotationRulerRepresentation);

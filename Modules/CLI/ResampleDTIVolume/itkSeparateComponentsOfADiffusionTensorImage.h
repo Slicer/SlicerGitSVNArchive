@@ -14,11 +14,11 @@
 #ifndef itkSeparateComponentsOfADiffusionTensorImage_h
 #define itkSeparateComponentsOfADiffusionTensorImage_h
 
-#include <itkImageToImageFilter.h>
-#include <itkImage.h>
-#include <itkDiffusionTensor3D.h>
-#include <itkImageRegionIterator.h>
-#include <itkImageRegionConstIterator.h>
+#include <itk/Modules/Core/Common/include/itkImageToImageFilter.h>
+#include <itk/Modules/Core/Common/include/itkImage.h>
+#include <itk/Modules/Core/Common/include/itkDiffusionTensor3D.h>
+#include <itk/Modules/Core/Common/include/itkImageRegionIterator.h>
+#include <itk/Modules/Core/Common/include/itkImageRegionConstIterator.h>
 
 namespace itk
 {

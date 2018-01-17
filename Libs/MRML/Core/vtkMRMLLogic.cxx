@@ -9,7 +9,7 @@
 #include "vtkMRMLLogic.h"
 
 // VTK includes
-#include <vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
 #include <vtksys/SystemTools.hxx>
 
 // STD includes

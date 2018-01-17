@@ -4,8 +4,8 @@
 
 #include "SFLSRobustStatSegmentor3DLabelMap_single.h"
 
-#include "itkImageFileReader.h"
-#include "itkImageFileWriter.h"
+#include "itk/Modules/IO/ImageBase/include/itkImageFileReader.h"
+#include "itk/Modules/IO/ImageBase/include/itkImageFileWriter.h"
 
 #include "labelMapPreprocessor.h"
 

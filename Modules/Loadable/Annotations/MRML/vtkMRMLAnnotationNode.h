@@ -19,7 +19,7 @@ class vtkMRMLSliceNode;
 class vtkMRMLAnnotationTextDisplayNode;
 
 // VTK includes
-#include <vtkSmartPointer.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
 class vtkCellArray;
 class vtkPoints;
 class vtkStringArray;

@@ -32,22 +32,22 @@
 #include <vtkMRMLViewNode.h>
 
 // VTK includes
-#include <vtkActor.h>
-#include <vtkCallbackCommand.h>
-#include <vtkColor.h>
-#include <vtkImageData.h>
-#include <vtkImplicitPlaneWidget2.h>
-#include <vtkImplicitPlaneRepresentation.h>
-#include <vtkMath.h>
-#include <vtkMatrix4x4.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
-#include <vtkPolyDataMapper.h>
-#include <vtkProperty.h>
-#include <vtkRenderer.h>
-#include <vtkRenderWindowInteractor.h>
+#include <vtk/Rendering/Core/vtkActor.h>
+#include <vtk/Common/Core/vtkCallbackCommand.h>
+#include <vtk/Common/DataModel/vtkColor.h>
+#include <vtk/Common/DataModel/vtkImageData.h>
+#include <vtk/Interaction/Widgets/vtkImplicitPlaneWidget2.h>
+#include <vtk/Interaction/Widgets/vtkImplicitPlaneRepresentation.h>
+#include <vtk/Common/Core/vtkMath.h>
+#include <vtk/Common/Math/vtkMatrix4x4.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Rendering/Core/vtkPolyDataMapper.h>
+#include <vtk/Rendering/Core/vtkProperty.h>
+#include <vtk/Rendering/Core/vtkRenderer.h>
+#include <vtk/Rendering/Core/vtkRenderWindowInteractor.h>
 #include <vtkThreeDViewInteractorStyle.h>
-#include <vtkTransform.h>
+#include <vtk/Common/Transforms/vtkTransform.h>
 
 // STD includes
 #include <algorithm>

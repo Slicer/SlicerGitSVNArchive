@@ -33,10 +33,10 @@
 #include <vtkSlicerVolumeRenderingLogic.h>
 
 // VTK includes
-#include <vtkGPUInfo.h>
-#include <vtkGPUInfoList.h>
-#include <vtkNew.h>
-#include <vtkSmartPointer.h>
+#include <vtk/Rendering/Core/vtkGPUInfo.h>
+#include <vtk/Rendering/Core/vtkGPUInfoList.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
 
 // --------------------------------------------------------------------------
 // qSlicerVolumeRenderingSettingsPanelPrivate

@@ -211,7 +211,7 @@
   }
 
 // Commonly used headers in tests
-#include "vtkNew.h"
+#include "vtk/Common/Core/vtkNew.h"
 #include "vtkTestingOutputWindow.h"
 
 #endif

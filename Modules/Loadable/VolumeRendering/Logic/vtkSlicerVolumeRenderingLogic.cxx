@@ -40,14 +40,14 @@
 #include <itksys/SystemTools.hxx>
 
 // VTK includes
-#include <vtkColorTransferFunction.h>
-#include <vtkImageData.h>
-#include <vtkLookupTable.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
-#include <vtkPiecewiseFunction.h>
-#include <vtkPointData.h>
-#include <vtkVolumeProperty.h>
+#include <vtk/Rendering/Core/vtkColorTransferFunction.h>
+#include <vtk/Common/DataModel/vtkImageData.h>
+#include <vtk/Common/Core/vtkLookupTable.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/DataModel/vtkPiecewiseFunction.h>
+#include <vtk/Common/DataModel/vtkPointData.h>
+#include <vtk/Rendering/Core/vtkVolumeProperty.h>
 
 #if defined(Slicer_VTK_RENDERING_USE_OpenGL_BACKEND)
 #include <vtkOpenGLExtensionManager.h>

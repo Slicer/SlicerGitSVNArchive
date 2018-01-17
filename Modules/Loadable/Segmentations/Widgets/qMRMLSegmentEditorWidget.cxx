@@ -42,21 +42,21 @@
 #include "qSlicerSegmentEditorEffectFactory.h"
 
 // VTK includes
-#include <vtkAlgorithmOutput.h>
-#include <vtkCallbackCommand.h>
-#include <vtkCollection.h>
-#include <vtkDataArray.h>
-#include <vtkGeneralTransform.h>
-#include <vtkImageThreshold.h>
-#include <vtkInteractorObserver.h>
-#include <vtkNew.h>
-#include <vtkPointData.h>
-#include <vtkRenderer.h>
-#include <vtkRendererCollection.h>
-#include <vtkRenderWindow.h>
-#include <vtkRenderWindowInteractor.h>
-#include <vtkSmartPointer.h>
-#include <vtkWeakPointer.h>
+#include <vtk/Common/ExecutionModel/vtkAlgorithmOutput.h>
+#include <vtk/Common/Core/vtkCallbackCommand.h>
+#include <vtk/Common/Core/vtkCollection.h>
+#include <vtk/Common/Core/vtkDataArray.h>
+#include <vtk/Common/Transforms/vtkGeneralTransform.h>
+#include <vtk/Imaging/Core/vtkImageThreshold.h>
+#include <vtk/Rendering/Core/vtkInteractorObserver.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/DataModel/vtkPointData.h>
+#include <vtk/Rendering/Core/vtkRenderer.h>
+#include <vtk/Rendering/Core/vtkRendererCollection.h>
+#include <vtk/Rendering/Core/vtkRenderWindow.h>
+#include <vtk/Rendering/Core/vtkRenderWindowInteractor.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/Common/Core/vtkWeakPointer.h>
 
 // Slicer includes
 #include <vtkMRMLSliceLogic.h>

@@ -6,7 +6,7 @@
 class vtkTagTable;
 
 // VTK includes
-#include <vtkCollection.h>
+#include <vtk/Common/Core/vtkCollection.h>
 
 class VTK_MRML_EXPORT vtkTagTableCollection : public vtkCollection
 {

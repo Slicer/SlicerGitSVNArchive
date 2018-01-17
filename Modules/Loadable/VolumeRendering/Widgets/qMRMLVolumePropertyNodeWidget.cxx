@@ -28,7 +28,7 @@
 #include <vtkMRMLVolumePropertyNode.h>
 
 // VTK includes
-#include <vtkVolumeProperty.h>
+#include <vtk/Rendering/Core/vtkVolumeProperty.h>
 
 //-----------------------------------------------------------------------------
 class qMRMLVolumePropertyNodeWidgetPrivate

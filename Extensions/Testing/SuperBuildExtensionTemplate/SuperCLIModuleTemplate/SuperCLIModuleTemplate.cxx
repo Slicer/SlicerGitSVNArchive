@@ -1,6 +1,6 @@
-#include "itkImageFileWriter.h"
+#include "itk/Modules/IO/ImageBase/include/itkImageFileWriter.h"
 
-#include "itkSmoothingRecursiveGaussianImageFilter.h"
+#include "itk/Modules/Filtering/Smoothing/include/itkSmoothingRecursiveGaussianImageFilter.h"
 
 #include "itkPluginUtilities.h"
 

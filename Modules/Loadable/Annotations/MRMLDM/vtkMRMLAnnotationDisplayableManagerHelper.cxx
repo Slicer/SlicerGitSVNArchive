@@ -7,16 +7,16 @@
 #include "vtkMRMLAnnotationDisplayableManagerHelper.h"
 
 // VTK includes
-#include <vtkAbstractWidget.h>
-#include <vtkHandleWidget.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
-#include <vtkProperty.h>
-#include <vtkRenderWindowInteractor.h>
-#include <vtkSeedRepresentation.h>
-#include <vtkSeedWidget.h>
-#include <vtkSmartPointer.h>
-#include <vtkSphereHandleRepresentation.h>
+#include <vtk/Interaction/Widgets/vtkAbstractWidget.h>
+#include <vtk/Interaction/Widgets/vtkHandleWidget.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Rendering/Core/vtkProperty.h>
+#include <vtk/Rendering/Core/vtkRenderWindowInteractor.h>
+#include <vtk/Interaction/Widgets/vtkSeedRepresentation.h>
+#include <vtk/Interaction/Widgets/vtkSeedWidget.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/Interaction/Widgets/vtkSphereHandleRepresentation.h>
 
 // MRML includes
 #include <vtkMRMLInteractionNode.h>

@@ -1,8 +1,8 @@
 #include <sstream>
 
-#include "vtkObjectFactory.h"
+#include "vtk/Common/Core/vtkObjectFactory.h"
 #include "vtkMRMLAnnotationFiducialNode.h"
-#include <vtkPolyData.h>
+#include <vtk/Common/DataModel/vtkPolyData.h>
 
 //----------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLAnnotationFiducialNode);

@@ -16,8 +16,8 @@
 #include "vtkFSSurfaceLabelReader.h"
 
 // VTK includes
-#include <vtkFloatArray.h>
-#include <vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkFloatArray.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
 
 //-------------------------------------------------------------------------
 vtkStandardNewMacro(vtkFSSurfaceLabelReader);

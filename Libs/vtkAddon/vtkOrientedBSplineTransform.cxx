@@ -9,10 +9,10 @@
 
 #include "vtkOrientedBSplineTransform.h"
 
-#include "vtkImageData.h"
-#include "vtkMath.h"
-#include "vtkMatrix4x4.h"
-#include "vtkObjectFactory.h"
+#include "vtk/Common/DataModel/vtkImageData.h"
+#include "vtk/Common/Core/vtkMath.h"
+#include "vtk/Common/Math/vtkMatrix4x4.h"
+#include "vtk/Common/Core/vtkObjectFactory.h"
 
 #include <math.h>
 

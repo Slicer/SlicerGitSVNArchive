@@ -13,12 +13,12 @@
 =========================================================================auto=*/
 
 // VTK includes
-#include <vtkCallbackCommand.h>
-#include <vtkIntArray.h>
-#include <vtkFloatArray.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
-#include <vtkUnsignedLongArray.h>
+#include <vtk/Common/Core/vtkCallbackCommand.h>
+#include <vtk/Common/Core/vtkIntArray.h>
+#include <vtk/Common/Core/vtkFloatArray.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkUnsignedLongArray.h>
 
 // MRML includes
 #include "vtkEventBroker.h"

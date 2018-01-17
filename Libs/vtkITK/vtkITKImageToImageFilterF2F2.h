@@ -16,15 +16,15 @@
 #define __vtkITKImageToImageFilterF2F2_h
 
 #include "vtkITKImageToImageFilter.h"
-#include "vtkImageAlgorithm.h"
-#include "vtkImageAppendComponents.h"
-#include "itkImageToImageFilter.h"
+#include "vtk/Common/ExecutionModel/vtkImageAlgorithm.h"
+#include "vtk/Imaging/Core/vtkImageAppendComponents.h"
+#include "itk/Modules/Core/Common/include/itkImageToImageFilter.h"
 #include "itkSplitImageFilter.h"
-#include "itkJoinImageFilter.h"
-#include "itkVTKImageExport.h"
-#include "itkVTKImageImport.h"
+#include "itk/Modules/Filtering/ImageCompose/include/itkJoinImageFilter.h"
+#include "itk/Modules/Bridge/VTK/include/itkVTKImageExport.h"
+#include "itk/Modules/Bridge/VTK/include/itkVTKImageImport.h"
 #include "vtkITKUtility.h"
-#include <vtkVersion.h>
+#include <vtk/Common/Core/vtkVersion.h>
 
 class VTK_ITK_EXPORT vtkITKImageToImageFilterF2F2 : public vtkITKImageToImageFilter
 {

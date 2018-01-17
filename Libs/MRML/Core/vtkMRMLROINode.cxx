@@ -1,12 +1,12 @@
 #include <sstream>
 
-#include "vtkObjectFactory.h"
-#include <vtkGeneralTransform.h>
-#include "vtkPlanes.h"
-#include "vtkPoints.h"
-#include "vtkDoubleArray.h"
+#include "vtk/Common/Core/vtkObjectFactory.h"
+#include <vtk/Common/Transforms/vtkGeneralTransform.h>
+#include "vtk/Common/DataModel/vtkPlanes.h"
+#include "vtk/Common/Core/vtkPoints.h"
+#include "vtk/Common/Core/vtkDoubleArray.h"
 
-#include "vtkMath.h"
+#include "vtk/Common/Core/vtkMath.h"
 
 #include "vtkMRMLROINode.h"
 #include "vtkMRMLTransformNode.h"

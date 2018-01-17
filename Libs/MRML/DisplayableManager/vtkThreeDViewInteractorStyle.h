@@ -21,9 +21,9 @@
 #include "vtkMRMLCameraNode.h"
 
 // VTK includes
-#include "vtkObject.h"
-#include "vtkInteractorStyle.h"
-#include "vtkSmartPointer.h"
+#include "vtk/Common/Core/vtkObject.h"
+#include "vtk/Rendering/Core/vtkInteractorStyle.h"
+#include "vtk/Common/Core/vtkSmartPointer.h"
 
 #include "vtkMRMLDisplayableManagerExport.h"
 

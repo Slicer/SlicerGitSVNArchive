@@ -16,7 +16,7 @@
 #include "vtkMRMLStorableNode.h"
 
 // VTK includes
-#include <vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
 
 //---------------------------------------------------------------------------
 class vtkMRMLStorableNodeTestHelper1 : public vtkMRMLStorableNode

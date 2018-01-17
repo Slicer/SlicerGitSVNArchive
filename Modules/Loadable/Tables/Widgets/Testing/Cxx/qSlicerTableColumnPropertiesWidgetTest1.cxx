@@ -29,8 +29,8 @@
 #include "qSlicerTableColumnPropertiesWidget.h"
 
 // MRML includes
-#include "vtkDoubleArray.h"
-#include "vtkFloatArray.h"
+#include "vtk/Common/Core/vtkDoubleArray.h"
+#include "vtk/Common/Core/vtkFloatArray.h"
 #include "vtkMRMLScene.h"
 #include "vtkMRMLTableNode.h"
 
@@ -38,8 +38,8 @@
 #include "vtkSlicerConfigure.h"
 
 // VTK includes
-#include <vtkNew.h>
-#include <vtkTable.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/DataModel/vtkTable.h>
 #ifdef Slicer_VTK_USE_QVTKOPENGLWIDGET
 #include <QVTKOpenGLWidget.h>
 #endif

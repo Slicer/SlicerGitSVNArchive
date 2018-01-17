@@ -53,8 +53,8 @@
 #include <vtkMRMLSliceCompositeNode.h>
 
 // VTK includes
-#include <vtkNew.h>
-#include <vtkStringArray.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkStringArray.h>
 
 //--------------------------------------------------------------------------
 // qMRMLSliceViewPrivate methods

@@ -24,21 +24,21 @@
 #include "vtkOrientedImageData.h"
 
 // VTK includes
-#include <vtkAppendPolyData.h>
-#include <vtkBoundingBox.h>
-#include <vtkGeneralTransform.h>
-#include <vtkImageReslice.h>
-#include <vtkImageConstantPad.h>
-#include <vtkMatrix4x4.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
-#include <vtkPlaneSource.h>
-#include <vtkPointData.h>
-#include <vtkSmartPointer.h>
-#include <vtkTransform.h>
-#include <vtkTransformPolyDataFilter.h>
+#include <vtk/Filters/Core/vtkAppendPolyData.h>
+#include <vtk/Common/DataModel/vtkBoundingBox.h>
+#include <vtk/Common/Transforms/vtkGeneralTransform.h>
+#include <vtk/Imaging/Core/vtkImageReslice.h>
+#include <vtk/Imaging/Core/vtkImageConstantPad.h>
+#include <vtk/Common/Math/vtkMatrix4x4.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Filters/Sources/vtkPlaneSource.h>
+#include <vtk/Common/DataModel/vtkPointData.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/Common/Transforms/vtkTransform.h>
+#include <vtk/Filters/General/vtkTransformPolyDataFilter.h>
 #include <vtkVersionMacros.h>
-#include <vtkVector.h>
+#include <vtk/Common/DataModel/vtkVector.h>
 
 // STD includes
 #include <algorithm>

@@ -2,9 +2,9 @@
 #ifndef itkTimeSeriesDatabase_h
 #define itkTimeSeriesDatabase_h
 
-#include <itkImage.h>
-#include <itkArray.h>
-#include <itkImageSource.h>
+#include <itk/Modules/Core/Common/include/itkImage.h>
+#include <itk/Modules/Core/Common/include/itkArray.h>
+#include <itk/Modules/Core/Common/include/itkImageSource.h>
 #include <iostream>
 #include <fstream>
 #include <itkTimeSeriesDatabaseHelper.h>

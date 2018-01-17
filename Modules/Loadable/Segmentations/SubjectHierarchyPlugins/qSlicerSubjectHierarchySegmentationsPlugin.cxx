@@ -47,8 +47,8 @@
 #include <vtkMRMLModelDisplayNode.h>
 
 // VTK includes
-#include <vtkCollection.h>
-#include <vtkNew.h>
+#include <vtk/Common/Core/vtkCollection.h>
+#include <vtk/Common/Core/vtkNew.h>
 
 //-----------------------------------------------------------------------------
 /// \ingroup Slicer_QtModules_SubjectHierarchy_Widgets

@@ -29,22 +29,22 @@
 #include <vtkMRMLVolumeArchetypeStorageNode.h>
 
 // VTK includes
-#include <vtkAlgorithmOutput.h>
-#include <vtkImageAppendComponents.h>
-#include <vtkImageData.h>
-#include <vtkImageStencil.h>
-#include <vtkImageMapToColors.h>
-#include <vtkImageMapToWindowLevelColors.h>
-#include <vtkImageReslice.h>
-#include <vtkImageThreshold.h>
-#include <vtkImageViewer2.h>
-#include <vtkLookupTable.h>
-#include <vtkNew.h>
-#include <vtkRenderWindow.h>
-#include <vtkRenderWindowInteractor.h>
-#include <vtkScalarsToColors.h>
-#include <vtkTimerLog.h>
-#include <vtkVersion.h>
+#include <vtk/Common/ExecutionModel/vtkAlgorithmOutput.h>
+#include <vtk/Imaging/Core/vtkImageAppendComponents.h>
+#include <vtk/Common/DataModel/vtkImageData.h>
+#include <vtk/Imaging/Stencil/vtkImageStencil.h>
+#include <vtk/Imaging/Core/vtkImageMapToColors.h>
+#include <vtk/Imaging/Color/vtkImageMapToWindowLevelColors.h>
+#include <vtk/Imaging/Core/vtkImageReslice.h>
+#include <vtk/Imaging/Core/vtkImageThreshold.h>
+#include <vtk/Interaction/Image/vtkImageViewer2.h>
+#include <vtk/Common/Core/vtkLookupTable.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Rendering/Core/vtkRenderWindow.h>
+#include <vtk/Rendering/Core/vtkRenderWindowInteractor.h>
+#include <vtk/Common/Core/vtkScalarsToColors.h>
+#include <vtk/Common/System/vtkTimerLog.h>
+#include <vtk/Common/Core/vtkVersion.h>
 
 // ITK includes
 #include <itkConfigure.h>

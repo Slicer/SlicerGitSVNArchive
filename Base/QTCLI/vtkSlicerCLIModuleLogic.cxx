@@ -32,12 +32,12 @@
 #include <vtkMRMLTransformNode.h>
 
 // VTK includes
-#include <vtkCallbackCommand.h>
-#include <vtkIntArray.h>
-#include <vtkMultiThreader.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
-#include <vtkStringArray.h>
+#include <vtk/Common/Core/vtkCallbackCommand.h>
+#include <vtk/Common/Core/vtkIntArray.h>
+#include <vtk/Common/Core/vtkMultiThreader.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkStringArray.h>
 #include <vtksys/SystemTools.hxx>
 
 // ITKSYS includes

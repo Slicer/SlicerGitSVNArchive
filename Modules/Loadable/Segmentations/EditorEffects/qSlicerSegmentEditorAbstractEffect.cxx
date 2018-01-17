@@ -58,19 +58,19 @@
 #include "vtkMRMLSubjectHierarchyNode.h"
 
 // VTK includes
-#include <vtkImageConstantPad.h>
-#include <vtkImageMask.h>
-#include <vtkImageShiftScale.h>
-#include <vtkImageThreshold.h>
-#include <vtkMatrix4x4.h>
-#include <vtkNew.h>
-#include <vtkProp.h>
-#include <vtkRenderer.h>
-#include <vtkRendererCollection.h>
-#include <vtkRenderWindow.h>
-#include <vtkRenderWindowInteractor.h>
-#include <vtkSmartPointer.h>
-#include <vtkWeakPointer.h>
+#include <vtk/Imaging/Core/vtkImageConstantPad.h>
+#include <vtk/Imaging/Core/vtkImageMask.h>
+#include <vtk/Imaging/Core/vtkImageShiftScale.h>
+#include <vtk/Imaging/Core/vtkImageThreshold.h>
+#include <vtk/Common/Math/vtkMatrix4x4.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Rendering/Core/vtkProp.h>
+#include <vtk/Rendering/Core/vtkRenderer.h>
+#include <vtk/Rendering/Core/vtkRendererCollection.h>
+#include <vtk/Rendering/Core/vtkRenderWindow.h>
+#include <vtk/Rendering/Core/vtkRenderWindowInteractor.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/Common/Core/vtkWeakPointer.h>
 
 #include <vtkOrientedImageDataResample.h>
 

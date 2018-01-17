@@ -21,7 +21,7 @@
 #include "vtkMRMLLightBoxRendererManagerProxy.h"
 
 // VTK includes
-#include <vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
 
 //---------------------------------------------------------------------------
 vtkStandardNewMacro(vtkMRMLLightBoxRendererManagerProxy );

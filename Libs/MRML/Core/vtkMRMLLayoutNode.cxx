@@ -2,9 +2,9 @@
 #include <sstream>
 
 // VTK includes
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
-#include <vtkXMLDataParser.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/IO/XMLParser/vtkXMLDataParser.h>
 
 // MRML includes
 #include "vtkMRMLLayoutNode.h"

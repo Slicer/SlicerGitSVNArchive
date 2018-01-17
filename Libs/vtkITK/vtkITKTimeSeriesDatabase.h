@@ -17,13 +17,13 @@
 
 #include <vector>
 
-#include "vtkImageData.h"
-#include "vtkPointData.h"
-#include "vtkImageAlgorithm.h"
+#include "vtk/Common/DataModel/vtkImageData.h"
+#include "vtk/Common/DataModel/vtkPointData.h"
+#include "vtk/Common/ExecutionModel/vtkImageAlgorithm.h"
 #include "itkTimeSeriesDatabase.h"
-#include "vtkImageImport.h"
-#include "itkVTKImageExport.h"
-#include <vtkVersion.h>
+#include "vtk/IO/Image/vtkImageImport.h"
+#include "itk/Modules/Bridge/VTK/include/itkVTKImageExport.h"
+#include <vtk/Common/Core/vtkVersion.h>
 
 #include "vtkITK.h"
 #include "vtkITKUtility.h"

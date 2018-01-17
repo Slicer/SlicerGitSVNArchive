@@ -31,36 +31,36 @@
 #include "vtkMRMLSegmentationDisplayNode.h"
 
 // VTK includes
-#include <vtkDataObject.h>
-#include <vtkDoubleArray.h>
-#include <vtkFieldData.h>
-#include <vtkImageAppendComponents.h>
-#include <vtkImageCast.h>
-#include <vtkImageConstantPad.h>
-#include <vtkImageExtractComponents.h>
-#include <vtkInformation.h>
-#include <vtkInformationIntegerVectorKey.h>
-#include <vtkInformationStringKey.h>
-#include <vtkMultiBlockDataSet.h>
-#include <vtkNew.h>
+#include <vtk/Common/DataModel/vtkDataObject.h>
+#include <vtk/Common/Core/vtkDoubleArray.h>
+#include <vtk/Common/DataModel/vtkFieldData.h>
+#include <vtk/Imaging/Core/vtkImageAppendComponents.h>
+#include <vtk/Imaging/Core/vtkImageCast.h>
+#include <vtk/Imaging/Core/vtkImageConstantPad.h>
+#include <vtk/Imaging/Core/vtkImageExtractComponents.h>
+#include <vtk/Common/Core/vtkInformation.h>
+#include <vtk/Common/Core/vtkInformationIntegerVectorKey.h>
+#include <vtk/Common/Core/vtkInformationStringKey.h>
+#include <vtk/Common/DataModel/vtkMultiBlockDataSet.h>
+#include <vtk/Common/Core/vtkNew.h>
 #include <vtkNRRDReader.h>
 #include <vtkNRRDWriter.h>
-#include <vtkObjectFactory.h>
-#include <vtkPolyData.h>
-#include <vtkStringArray.h>
-#include <vtkTransform.h>
-#include <vtkXMLMultiBlockDataWriter.h>
-#include <vtkXMLMultiBlockDataReader.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/DataModel/vtkPolyData.h>
+#include <vtk/Common/Core/vtkStringArray.h>
+#include <vtk/Common/Transforms/vtkTransform.h>
+#include <vtk/IO/XML/vtkXMLMultiBlockDataWriter.h>
+#include <vtk/IO/XML/vtkXMLMultiBlockDataReader.h>
 #include <vtksys/SystemTools.hxx>
 
 #ifdef SUPPORT_4D_SPATIAL_NRRD
 // ITK includes
-#include <itkExceptionObject.h>
-#include <itkImageFileWriter.h>
-#include <itkImageFileReader.h>
-#include <itkMetaDataDictionary.h>
-#include <itkMetaDataObject.h>
-#include <itkNrrdImageIO.h>
+#include <itk/Modules/Core/Common/include/itkExceptionObject.h>
+#include <itk/Modules/IO/ImageBase/include/itkImageFileWriter.h>
+#include <itk/Modules/IO/ImageBase/include/itkImageFileReader.h>
+#include <itk/Modules/Core/Common/include/itkMetaDataDictionary.h>
+#include <itk/Modules/Core/Common/include/itkMetaDataObject.h>
+#include <itk/Modules/IO/NRRD/include/itkNrrdImageIO.h>
 #endif
 
 // STL & C++ includes

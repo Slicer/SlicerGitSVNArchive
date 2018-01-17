@@ -22,9 +22,9 @@
 #include <vtkMRMLScene.h>
 
 // VTK includes
-#include <vtkIntArray.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkIntArray.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
 
 // STD includes
 #include <cassert>

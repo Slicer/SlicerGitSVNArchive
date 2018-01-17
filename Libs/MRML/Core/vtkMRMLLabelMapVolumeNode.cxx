@@ -24,11 +24,11 @@
 #include "vtkMRMLScene.h"
 
 // VTK includes
-#include <vtkDataArray.h>
-#include <vtkImageData.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
-#include <vtkPointData.h>
+#include <vtk/Common/Core/vtkDataArray.h>
+#include <vtk/Common/DataModel/vtkImageData.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/DataModel/vtkPointData.h>
 
 //----------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLLabelMapVolumeNode);

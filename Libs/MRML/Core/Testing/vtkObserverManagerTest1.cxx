@@ -15,10 +15,10 @@
 #include "vtkMRMLModelNode.h"
 
 // VTK includes
-#include <vtkCallbackCommand.h>
-#include <vtkIntArray.h>
-#include <vtkNew.h>
-#include <vtkSmartPointer.h>
+#include <vtk/Common/Core/vtkCallbackCommand.h>
+#include <vtk/Common/Core/vtkIntArray.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
 
 struct callBackDataStruct{
   std::string testString;

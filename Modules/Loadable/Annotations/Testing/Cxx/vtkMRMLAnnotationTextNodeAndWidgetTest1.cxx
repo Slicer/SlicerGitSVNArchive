@@ -28,18 +28,18 @@
 #include <vtkMRMLViewNode.h>
 
 // VTK includes
-#include <vtkErrorCode.h>
-#include <vtkInteractorEventRecorder.h>
-#include <vtkNew.h>
-#include <vtkPNGWriter.h>
-#include <vtkRegressionTestImage.h>
-#include <vtkRenderer.h>
-#include <vtkRenderWindow.h>
-#include <vtkRenderWindowInteractor.h>
-#include <vtkSmartPointer.h>
-#include <vtkTextRepresentation.h>
-#include <vtkTextWidget.h>
-#include <vtkWindowToImageFilter.h>
+#include <vtk/Common/Misc/vtkErrorCode.h>
+#include <vtk/Rendering/Core/vtkInteractorEventRecorder.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/IO/Image/vtkPNGWriter.h>
+#include <vtk/Testing/Rendering/vtkRegressionTestImage.h>
+#include <vtk/Rendering/Core/vtkRenderer.h>
+#include <vtk/Rendering/Core/vtkRenderWindow.h>
+#include <vtk/Rendering/Core/vtkRenderWindowInteractor.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/Interaction/Widgets/vtkTextRepresentation.h>
+#include <vtk/Interaction/Widgets/vtkTextWidget.h>
+#include <vtk/Rendering/Core/vtkWindowToImageFilter.h>
 
 
 // STD includes

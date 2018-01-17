@@ -16,8 +16,8 @@ Version:   $Revision: 1.2 $
 #include "vtkMRMLVolumeRenderingScenarioNode.h"
 
 // VTK includes
-#include <vtkCommand.h>
-#include <vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkCommand.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
 
 // STD includes
 

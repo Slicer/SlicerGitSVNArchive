@@ -25,28 +25,28 @@
 #include <vtkMRMLUnitNode.h>
 
 // VTK includes
-#include <vtkAbstractWidget.h>
-#include <vtkAxisActor2D.h>
-#include <vtkCubeSource.h>
-#include <vtkFollower.h>
-#include <vtkGlyph3D.h>
-#include <vtkHandleRepresentation.h>
-#include <vtkInteractorEventRecorder.h>
-#include <vtkLineRepresentation.h>
-#include <vtkMath.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
-#include <vtkObject.h>
-#include <vtkPickingManager.h>
-#include <vtkPointHandleRepresentation2D.h>
-#include <vtkPointHandleRepresentation3D.h>
-#include <vtkProperty2D.h>
-#include <vtkProperty.h>
-#include <vtkRenderer.h>
-#include <vtkRenderWindow.h>
-#include <vtkRenderWindowInteractor.h>
-#include <vtkSmartPointer.h>
-#include <vtkTextProperty.h>
+#include <vtk/Interaction/Widgets/vtkAbstractWidget.h>
+#include <vtk/Rendering/Annotation/vtkAxisActor2D.h>
+#include <vtk/Filters/Sources/vtkCubeSource.h>
+#include <vtk/Rendering/Core/vtkFollower.h>
+#include <vtk/Filters/Core/vtkGlyph3D.h>
+#include <vtk/Interaction/Widgets/vtkHandleRepresentation.h>
+#include <vtk/Rendering/Core/vtkInteractorEventRecorder.h>
+#include <vtk/Interaction/Widgets/vtkLineRepresentation.h>
+#include <vtk/Common/Core/vtkMath.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkObject.h>
+#include <vtk/Rendering/Core/vtkPickingManager.h>
+#include <vtk/Interaction/Widgets/vtkPointHandleRepresentation2D.h>
+#include <vtk/Interaction/Widgets/vtkPointHandleRepresentation3D.h>
+#include <vtk/Rendering/Core/vtkProperty2D.h>
+#include <vtk/Rendering/Core/vtkProperty.h>
+#include <vtk/Rendering/Core/vtkRenderer.h>
+#include <vtk/Rendering/Core/vtkRenderWindow.h>
+#include <vtk/Rendering/Core/vtkRenderWindowInteractor.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/Rendering/Core/vtkTextProperty.h>
 
 // std includes
 #include <string>

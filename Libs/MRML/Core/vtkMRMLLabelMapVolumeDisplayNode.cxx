@@ -17,12 +17,12 @@ Version:   $Revision: 1.2 $
 #include "vtkMRMLScene.h"
 
 // VTK includes
-#include <vtkImageData.h>
-#include <vtkImageMapToColors.h>
-#include <vtkLookupTable.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
-#include <vtkVersion.h>
+#include <vtk/Common/DataModel/vtkImageData.h>
+#include <vtk/Imaging/Core/vtkImageMapToColors.h>
+#include <vtk/Common/Core/vtkLookupTable.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkVersion.h>
 
 // STD includes
 #include <cassert>

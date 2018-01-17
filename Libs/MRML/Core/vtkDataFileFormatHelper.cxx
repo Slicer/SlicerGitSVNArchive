@@ -1,8 +1,8 @@
 #include "vtkDataFileFormatHelper.h"
 
 
-#include <vtkObjectFactory.h>
-#include <vtkStringArray.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkStringArray.h>
 #include <vtksys/SystemTools.hxx>
 
 #include <set>
@@ -10,7 +10,7 @@
 #define USE_TEMP_ITK_FILEFORMAT_TABLE
 
 #ifdef USE_TEMP_ITK_FILEFORMAT_TABLE
-#include "itkImageIOBase.h"
+#include "itk/Modules/IO/ImageBase/include/itkImageIOBase.h"
 
 ITKImageFileFormat FileFormatTable[] =
 {

@@ -29,7 +29,7 @@
 #include <QHBoxLayout>
 
 // VTK includes
-#include <vtkStringArray.h>
+#include <vtk/Common/Core/vtkStringArray.h>
 
 // CTK includes
 #include <ctkLogger.h>

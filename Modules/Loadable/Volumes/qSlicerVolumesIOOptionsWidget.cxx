@@ -26,7 +26,7 @@
 #include <ctkUtils.h>
 
 // VTK includes
-#include <vtkNew.h>
+#include <vtk/Common/Core/vtkNew.h>
 
 /// Volumes includes
 #include "qSlicerIOOptions_p.h"

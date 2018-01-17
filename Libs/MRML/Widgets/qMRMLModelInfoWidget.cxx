@@ -29,14 +29,14 @@
 #include <vtkMRMLModelNode.h>
 
 // VTK includes
-#include <vtkCellData.h>
-#include <vtkGeometryFilter.h>
-#include <vtkMassProperties.h>
-#include <vtkPointData.h>
-#include <vtkSmartPointer.h>
-#include <vtkTriangleFilter.h>
-#include <vtkUnstructuredGrid.h>
-#include <vtkVersion.h>
+#include <vtk/Common/DataModel/vtkCellData.h>
+#include <vtk/Filters/Geometry/vtkGeometryFilter.h>
+#include <vtk/Filters/Core/vtkMassProperties.h>
+#include <vtk/Common/DataModel/vtkPointData.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/Filters/Core/vtkTriangleFilter.h>
+#include <vtk/Common/DataModel/vtkUnstructuredGrid.h>
+#include <vtk/Common/Core/vtkVersion.h>
 
 //------------------------------------------------------------------------------
 class qMRMLModelInfoWidgetPrivate: public Ui_qMRMLModelInfoWidget

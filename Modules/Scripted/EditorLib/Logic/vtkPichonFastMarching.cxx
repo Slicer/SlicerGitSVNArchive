@@ -14,12 +14,12 @@
 #include "vtkPichonFastMarching.h"
 
 // VTK includes
-#include <vtkInformation.h>
-#include <vtkDataArray.h>
-#include <vtkMath.h>
-#include <vtkObjectFactory.h>
-#include <vtkPointData.h>
-#include <vtkStreamingDemandDrivenPipeline.h>
+#include <vtk/Common/Core/vtkInformation.h>
+#include <vtk/Common/Core/vtkDataArray.h>
+#include <vtk/Common/Core/vtkMath.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/DataModel/vtkPointData.h>
+#include <vtk/Common/ExecutionModel/vtkStreamingDemandDrivenPipeline.h>
 
 ///////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////

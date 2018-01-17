@@ -41,10 +41,10 @@
 #include "vtkMRMLSelectionNode.h"
 
 // VTK includes
-#include <vtkCommand.h>
-#include <vtkCollection.h>
-#include <vtkNew.h>
-#include <vtkSmartPointer.h>
+#include <vtk/Common/Core/vtkCommand.h>
+#include <vtk/Common/Core/vtkCollection.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
 
 //-----------------------------------------------------------------------------
 /// \ingroup Slicer_QtModules_Annotation

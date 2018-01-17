@@ -17,13 +17,13 @@
 #include "vtkFSSurfaceReader.h"
 
 // VTK includes
-#include <vtkObjectFactory.h>
-#include <vtkByteSwap.h>
-#include <vtkCellArray.h>
-#include <vtkInformation.h>
-#include <vtkInformationVector.h>
-#include <vtkPolyData.h>
-#include <vtkStreamingDemandDrivenPipeline.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkByteSwap.h>
+#include <vtk/Common/DataModel/vtkCellArray.h>
+#include <vtk/Common/Core/vtkInformation.h>
+#include <vtk/Common/Core/vtkInformationVector.h>
+#include <vtk/Common/DataModel/vtkPolyData.h>
+#include <vtk/Common/ExecutionModel/vtkStreamingDemandDrivenPipeline.h>
 
 //-------------------------------------------------------------------------
 vtkStandardNewMacro(vtkFSSurfaceReader);

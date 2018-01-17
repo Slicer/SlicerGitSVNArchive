@@ -1,11 +1,11 @@
 
-#include "vtkObjectFactory.h"
+#include "vtk/Common/Core/vtkObjectFactory.h"
 #include "vtkMRMLAnnotationControlPointsStorageNode.h"
 #include "vtkMRMLAnnotationPointDisplayNode.h"
 #include "vtkMRMLAnnotationControlPointsNode.h"
 //#include "vtkMRMLHierarchyNode.h"
 #include "vtkMRMLScene.h"
-#include "vtkStringArray.h"
+#include "vtk/Common/Core/vtkStringArray.h"
 
 // KP: Deal with TEXT - annotation label
 

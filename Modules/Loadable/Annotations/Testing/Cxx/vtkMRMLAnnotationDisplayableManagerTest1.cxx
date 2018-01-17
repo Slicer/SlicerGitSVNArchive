@@ -34,13 +34,13 @@
 #include <vtkMRMLViewNode.h>
 
 // VTK includes
-#include <vtkRenderer.h>
-#include <vtkRenderWindow.h>
-#include <vtkRenderWindowInteractor.h>
-#include <vtkCamera.h>
+#include <vtk/Rendering/Core/vtkRenderer.h>
+#include <vtk/Rendering/Core/vtkRenderWindow.h>
+#include <vtk/Rendering/Core/vtkRenderWindowInteractor.h>
+#include <vtk/Rendering/Core/vtkCamera.h>
 
 // DisplayableManager initialization
-#include <vtkAutoInit.h>
+#include <vtk/Common/Core/vtkAutoInit.h>
 VTK_MODULE_INIT(vtkSlicerAnnotationsModuleMRMLDisplayableManager)
 
 //----------------------------------------------------------------------------

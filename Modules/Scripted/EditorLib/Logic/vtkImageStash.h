@@ -21,10 +21,10 @@
 #include "vtkSlicerEditorLibModuleLogicExport.h"
 
 // VTK includes
-#include <vtkImageData.h>
-#include <vtkMultiThreader.h>
-#include <vtkUnsignedCharArray.h>
-#include <vtkZLibDataCompressor.h>
+#include <vtk/Common/DataModel/vtkImageData.h>
+#include <vtk/Common/Core/vtkMultiThreader.h>
+#include <vtk/Common/Core/vtkUnsignedCharArray.h>
+#include <vtk/IO/Core/vtkZLibDataCompressor.h>
 
 class VTK_SLICER_EDITORLIB_MODULE_LOGIC_EXPORT vtkImageStash : public vtkObject
 {

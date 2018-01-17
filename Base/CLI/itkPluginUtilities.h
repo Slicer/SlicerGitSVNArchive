@@ -2,9 +2,9 @@
 #define itkPluginUtilities_h
 
 // ITK includes
-#include <itkContinuousIndex.h>
-#include <itkImage.h>
-#include <itkImageFileReader.h>
+#include <itk/Modules/Core/Common/include/itkContinuousIndex.h>
+#include <itk/Modules/Core/Common/include/itkImage.h>
+#include <itk/Modules/IO/ImageBase/include/itkImageFileReader.h>
 #include <itkPluginFilterWatcher.h>
 
 // STD includes

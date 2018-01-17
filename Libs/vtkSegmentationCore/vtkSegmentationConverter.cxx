@@ -26,12 +26,12 @@
 #include "vtkSegmentationConverterRule.h"
 
 // VTK includes
-#include <vtkObjectFactory.h>
-#include <vtkSmartPointer.h>
-#include <vtkMatrix4x4.h>
-#include <vtkImageData.h>
-#include <vtkTransform.h>
-#include <vtkVariant.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/Common/Math/vtkMatrix4x4.h>
+#include <vtk/Common/DataModel/vtkImageData.h>
+#include <vtk/Common/Transforms/vtkTransform.h>
+#include <vtk/Common/Core/vtkVariant.h>
 
 // STD includes
 #include <sstream>

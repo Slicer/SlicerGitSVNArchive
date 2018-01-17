@@ -31,20 +31,20 @@
 #include <vtkMRMLDisplayableNode.h>
 
 // VTK includes
-#include <vtkBoundingBox.h>
-#include <vtkCallbackCommand.h>
-#include <vtkCamera.h>
-#include <vtkFollower.h>
-#include <vtkMath.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
-#include <vtkOutlineSource.h>
-#include <vtkPolyDataMapper.h>
-#include <vtkProperty.h>
-#include <vtkRenderer.h>
-#include <vtkRenderWindow.h>
-#include <vtkSmartPointer.h>
-#include <vtkVectorText.h>
+#include <vtk/Common/DataModel/vtkBoundingBox.h>
+#include <vtk/Common/Core/vtkCallbackCommand.h>
+#include <vtk/Rendering/Core/vtkCamera.h>
+#include <vtk/Rendering/Core/vtkFollower.h>
+#include <vtk/Common/Core/vtkMath.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Filters/Sources/vtkOutlineSource.h>
+#include <vtk/Rendering/Core/vtkPolyDataMapper.h>
+#include <vtk/Rendering/Core/vtkProperty.h>
+#include <vtk/Rendering/Core/vtkRenderer.h>
+#include <vtk/Rendering/Core/vtkRenderWindow.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/Rendering/FreeType/vtkVectorText.h>
 
 // STD includes
 

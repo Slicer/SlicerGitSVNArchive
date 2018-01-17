@@ -26,8 +26,8 @@
 #include "vtkThreeDViewInteractorStyle.h"
 
 // VTK includes
-#include <vtkObjectFactory.h>
-#include <vtkRenderWindowInteractor.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Rendering/Core/vtkRenderWindowInteractor.h>
 
 // STD includes
 #include <cassert>

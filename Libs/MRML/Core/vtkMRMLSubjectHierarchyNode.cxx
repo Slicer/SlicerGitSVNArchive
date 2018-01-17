@@ -30,12 +30,12 @@
 #include "vtkMRMLTransformNode.h"
 
 // VTK includes
-#include <vtkCollection.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
-#include <vtkSmartPointer.h>
-#include <vtkWeakPointer.h>
-#include <vtkCallbackCommand.h>
+#include <vtk/Common/Core/vtkCollection.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/Common/Core/vtkWeakPointer.h>
+#include <vtk/Common/Core/vtkCallbackCommand.h>
 
 // STD includes
 #include <sstream>

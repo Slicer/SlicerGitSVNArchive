@@ -17,8 +17,8 @@ Version:   $Revision: 1.2 $
 #include "vtkMRMLDoubleArrayStorageNode.h"
 
 // VTK includes
-#include <vtkDoubleArray.h>
-#include <vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkDoubleArray.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
 
 // STD includes
 #include <sstream>

@@ -29,8 +29,8 @@
 #include <vtkMRMLDisplayNode.h>
 
 // VTK includes
-#include <vtkProperty.h>
-#include <vtkSmartPointer.h>
+#include <vtk/Rendering/Core/vtkProperty.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
 
 //------------------------------------------------------------------------------
 class qMRMLDisplayNodeWidgetPrivate: public Ui_qMRMLDisplayNodeWidget

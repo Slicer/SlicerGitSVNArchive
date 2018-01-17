@@ -18,16 +18,16 @@
 // MRML includes
 #include "vtkMRML.h"
 #include "vtkObserverManager.h"
-#include "vtkIdTypeArray.h"
-#include "vtkIntArray.h"
+#include "vtk/Common/Core/vtkIdTypeArray.h"
+#include "vtk/Common/Core/vtkIntArray.h"
 
 class vtkMRMLScene;
 class vtkStringArray;
 
 // VTK includes
-#include <vtkObject.h>
-#include <vtkSmartPointer.h>
-#include <vtkWeakPointer.h>
+#include <vtk/Common/Core/vtkObject.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/Common/Core/vtkWeakPointer.h>
 class vtkCallbackCommand;
 
 // Slicer VTK add-on includes

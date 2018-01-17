@@ -16,11 +16,11 @@ Version:   $Revision: 1.0 $
 #include "vtkMRMLDiffusionTensorDisplayPropertiesNode.h"
 
 // VTK includes
-#include <vtkAlgorithmOutput.h>
-#include <vtkLineSource.h>
-#include <vtkObjectFactory.h>
-#include <vtkSphereSource.h>
-#include <vtkTubeFilter.h>
+#include <vtk/Common/ExecutionModel/vtkAlgorithmOutput.h>
+#include <vtk/Filters/Sources/vtkLineSource.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Filters/Sources/vtkSphereSource.h>
+#include <vtk/Filters/Core/vtkTubeFilter.h>
 
 // STD includes
 #include <sstream>

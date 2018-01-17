@@ -16,10 +16,10 @@
 =========================================================================*/
 
 // ITK includes
-#include "itkChangeLabelImageFilter.h"
-#include "itkImageFileWriter.h"
-#include "itkMaskNegatedImageFilter.h"
-#include "itkThresholdImageFilter.h"
+#include "itk/Modules/Filtering/ImageLabel/include/itkChangeLabelImageFilter.h"
+#include "itk/Modules/IO/ImageBase/include/itkImageFileWriter.h"
+#include "itk/Modules/Filtering/ImageIntensity/include/itkMaskNegatedImageFilter.h"
+#include "itk/Modules/Filtering/Thresholding/include/itkThresholdImageFilter.h"
 
 #include "itkPluginUtilities.h"
 #include "ThresholdScalarVolumeCLP.h"

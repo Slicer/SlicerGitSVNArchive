@@ -17,10 +17,10 @@
 #ifndef itkImageRegionMomentsCalculator_h
 #define itkImageRegionMomentsCalculator_h
 
-#include "itkAffineTransform.h"
-#include "itkMacro.h"
-#include "itkImage.h"
-#include "itkSpatialObject.h"
+#include "itk/Modules/Core/Transform/include/itkAffineTransform.h"
+#include "itk/Modules/Core/Common/include/itkMacro.h"
+#include "itk/Modules/Core/Common/include/itkImage.h"
+#include "itk/Modules/Core/SpatialObjects/include/itkSpatialObject.h"
 
 #include "vnl/vnl_vector_fixed.h"
 #include "vnl/vnl_matrix_fixed.h"

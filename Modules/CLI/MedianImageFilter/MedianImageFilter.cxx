@@ -15,8 +15,8 @@
 
 =========================================================================*/
 #include "itkPluginUtilities.h"
-#include "itkImageFileWriter.h"
-#include "itkMedianImageFilter.h"
+#include "itk/Modules/IO/ImageBase/include/itkImageFileWriter.h"
+#include "itk/Modules/Filtering/Smoothing/include/itkMedianImageFilter.h"
 
 #include "MedianImageFilterCLP.h"
 

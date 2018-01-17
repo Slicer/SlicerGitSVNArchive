@@ -24,8 +24,8 @@
 #define __vtkSlicerDICOMLoadable_h
 
 // VTK includes
-#include <vtkObject.h>
-#include <vtkStringArray.h>
+#include <vtk/Common/Core/vtkObject.h>
+#include <vtk/Common/Core/vtkStringArray.h>
 
 #include "vtkSlicerDICOMLibModuleLogicExport.h"
 

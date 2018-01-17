@@ -24,7 +24,7 @@
 #include "vtkSlicerTerminologyType.h"
 
 // VTK includes
-#include <vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
 
 //------------------------------------------------------------------------------
 int vtkSlicerTerminologyType::INVALID_COLOR[3] = {127, 127, 127};

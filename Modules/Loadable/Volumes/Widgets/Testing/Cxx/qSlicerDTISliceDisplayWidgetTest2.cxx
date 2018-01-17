@@ -34,10 +34,10 @@
 #include <vtkMRMLDiffusionTensorDisplayPropertiesNode.h>
 
 // VTK includes
-#include <vtkSmartPointer.h>
-#include <vtkImageData.h>
-#include <vtkNew.h>
-#include <vtkTrivialProducer.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/Common/DataModel/vtkImageData.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/ExecutionModel/vtkTrivialProducer.h>
 #ifdef Slicer_VTK_USE_QVTKOPENGLWIDGET
 #include <QVTKOpenGLWidget.h>
 #endif

@@ -46,10 +46,10 @@
 #include <vtkMRMLCrosshairNode.h>
 
 // VTK includes
-#include <vtkCollection.h>
-#include <vtkNew.h>
-#include <vtkRenderer.h>
-#include <vtkSmartPointer.h>
+#include <vtk/Common/Core/vtkCollection.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Rendering/Core/vtkRenderer.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
 
 //--------------------------------------------------------------------------
 // qMRMLThreeDViewPrivate methods

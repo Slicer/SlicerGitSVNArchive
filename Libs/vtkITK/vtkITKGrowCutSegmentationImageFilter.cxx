@@ -7,18 +7,18 @@
 #include "vtkITKGrowCutSegmentationImageFilter.h"
 
 // VTK includes
-#include <vtkImageCast.h>
-#include <vtkImageData.h>
-#include <vtkInformation.h>
-#include <vtkInformationVector.h>
-#include <vtkObjectFactory.h>
-#include <vtkStreamingDemandDrivenPipeline.h>
-#include <vtkVersion.h>
+#include <vtk/Imaging/Core/vtkImageCast.h>
+#include <vtk/Common/DataModel/vtkImageData.h>
+#include <vtk/Common/Core/vtkInformation.h>
+#include <vtk/Common/Core/vtkInformationVector.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/ExecutionModel/vtkStreamingDemandDrivenPipeline.h>
+#include <vtk/Common/Core/vtkVersion.h>
 
 // ITK includes
 #include <itkGrowCutSegmentationImageFilter.h>
-#include <itkImageRegionIteratorWithIndex.h>
-#include <itkRegionOfInterestImageFilter.h>
+#include <itk/Modules/Core/Common/include/itkImageRegionIteratorWithIndex.h>
+#include <itk/Modules/Filtering/ImageGrid/include/itkRegionOfInterestImageFilter.h>
 
 //-----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkITKGrowCutSegmentationImageFilter);

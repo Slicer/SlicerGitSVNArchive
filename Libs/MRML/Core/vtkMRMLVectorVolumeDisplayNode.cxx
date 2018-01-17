@@ -16,16 +16,16 @@ Version:   $Revision: 1.2 $
 #include "vtkMRMLVectorVolumeDisplayNode.h"
 
 // VTK includes
-#include <vtkObjectFactory.h>
-#include <vtkImageAppendComponents.h>
-#include <vtkImageCast.h>
-#include <vtkImageData.h>
-#include <vtkImageExtractComponents.h>
-#include <vtkImageRGBToHSI.h>
-#include <vtkImageShiftScale.h>
-#include <vtkImageStencil.h>
-#include <vtkImageThreshold.h>
-#include <vtkVersion.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Imaging/Core/vtkImageAppendComponents.h>
+#include <vtk/Imaging/Core/vtkImageCast.h>
+#include <vtk/Common/DataModel/vtkImageData.h>
+#include <vtk/Imaging/Core/vtkImageExtractComponents.h>
+#include <vtk/Imaging/Color/vtkImageRGBToHSI.h>
+#include <vtk/Imaging/Core/vtkImageShiftScale.h>
+#include <vtk/Imaging/Stencil/vtkImageStencil.h>
+#include <vtk/Imaging/Core/vtkImageThreshold.h>
+#include <vtk/Common/Core/vtkVersion.h>
 
 // STD includes
 #include <sstream>

@@ -18,8 +18,8 @@
 #include "vtkSlicerEditorLibModuleLogicExport.h"
 
 // VTK includes
-#include <vtkImageAlgorithm.h>
-#include <vtkVersion.h>
+#include <vtk/Common/ExecutionModel/vtkImageAlgorithm.h>
+#include <vtk/Common/Core/vtkVersion.h>
 
 #define CONNECTIVITY_IDENTIFY 1
 #define CONNECTIVITY_REMOVE 2

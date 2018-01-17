@@ -6,11 +6,11 @@
   or http://www.slicer.org/copyright/copyright.txt for details.
 
 =========================================================================auto=*/
-#include <vtkInformation.h>
+#include <vtk/Common/Core/vtkInformation.h>
 #include "vtkImageErode.h"
-#include "vtkObjectFactory.h"
-#include <vtkStreamingDemandDrivenPipeline.h>
-#include <vtkVersion.h>
+#include "vtk/Common/Core/vtkObjectFactory.h"
+#include <vtk/Common/ExecutionModel/vtkStreamingDemandDrivenPipeline.h>
+#include <vtk/Common/Core/vtkVersion.h>
 
 #ifndef NDEBUG
 #include <ctime>

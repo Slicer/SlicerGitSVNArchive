@@ -18,9 +18,9 @@ Version:   $Revision: 1.0 $
 #include "vtkMRMLStorageNode.h"
 
 // VTK includes
-#include <vtkLookupTable.h>
-#include <vtkObjectFactory.h>
-#include <vtkSmartPointer.h>
+#include <vtk/Common/Core/vtkLookupTable.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
 
 // STD includes
 #include <cassert>

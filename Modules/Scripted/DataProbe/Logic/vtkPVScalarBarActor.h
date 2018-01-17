@@ -32,10 +32,10 @@
 #ifndef __vtkPVScalarBarActor_h
 #define __vtkPVScalarBarActor_h
 
-#include "vtkScalarBarActor.h"
+#include "vtk/Rendering/Annotation/vtkScalarBarActor.h"
 #include "vtkSlicerDataProbeModuleLogicExport.h"
 
-#include "vtkSmartPointer.h" // For ivars
+#include "vtk/Common/Core/vtkSmartPointer.h"
 #include <vector> // For ivars
 
 class VTK_SLICER_DATAPROBELIB_MODULE_LOGIC_EXPORT vtkPVScalarBarActor : public vtkScalarBarActor

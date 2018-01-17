@@ -18,8 +18,8 @@
 #ifndef itkImageToImageRegistrationMethod_h
 #define itkImageToImageRegistrationMethod_h
 
-#include "itkSpatialObject.h"
-#include "itkImageRegistrationMethod.h"
+#include "itk/Modules/Core/SpatialObjects/include/itkSpatialObject.h"
+#include "itk/Modules/Registration/Common/include/itkImageRegistrationMethod.h"
 
 namespace itk
 {

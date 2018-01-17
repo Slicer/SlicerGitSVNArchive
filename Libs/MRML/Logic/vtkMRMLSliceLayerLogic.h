@@ -43,9 +43,9 @@
 #include "vtkMRMLDiffusionTensorVolumeNode.h"
 
 // VTK includes
-#include <vtkImageLogic.h>
-#include <vtkImageExtractComponents.h>
-#include <vtkVersion.h>
+#include <vtk/Imaging/Math/vtkImageLogic.h>
+#include <vtk/Imaging/Core/vtkImageExtractComponents.h>
+#include <vtk/Common/Core/vtkVersion.h>
 
 class vtkAssignAttribute;
 class vtkImageReslice;

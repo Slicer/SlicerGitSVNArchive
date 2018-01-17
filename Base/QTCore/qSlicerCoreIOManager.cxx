@@ -38,10 +38,10 @@
 #include <vtkMRMLStorageNode.h>
 
 // VTK includes
-#include <vtkCollection.h>
+#include <vtk/Common/Core/vtkCollection.h>
 #include <vtkDataFileFormatHelper.h> // for GetFileExtensionFromFormatString()
-#include <vtkNew.h>
-#include <vtkStringArray.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkStringArray.h>
 
 //-----------------------------------------------------------------------------
 class qSlicerCoreIOManagerPrivate

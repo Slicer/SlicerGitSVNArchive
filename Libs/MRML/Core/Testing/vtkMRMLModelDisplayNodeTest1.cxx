@@ -17,14 +17,14 @@
 #include "vtkMRMLScene.h"
 
 // VTK includes
-#include <vtkGeometryFilter.h>
-#include <vtkNew.h>
-#include <vtkPoints.h>
-#include <vtkPointData.h>
-#include <vtkPolyData.h>
-#include <vtkShortArray.h>
-#include <vtkUnstructuredGrid.h>
-#include <vtkVoxel.h>
+#include <vtk/Filters/Geometry/vtkGeometryFilter.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkPoints.h>
+#include <vtk/Common/DataModel/vtkPointData.h>
+#include <vtk/Common/DataModel/vtkPolyData.h>
+#include <vtk/Common/Core/vtkShortArray.h>
+#include <vtk/Common/DataModel/vtkUnstructuredGrid.h>
+#include <vtk/Common/DataModel/vtkVoxel.h>
 
 namespace
 {

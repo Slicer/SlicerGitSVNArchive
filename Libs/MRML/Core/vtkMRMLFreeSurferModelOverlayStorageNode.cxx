@@ -30,14 +30,14 @@ Version:   $Revision: 1.2 $
 #include "vtkITKArchetypeImageSeriesScalarReader.h"
 
 // VTK includes
-#include <vtkCollection.h>
-#include <vtkFloatArray.h>
-#include <vtkImageData.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
-#include <vtkPointData.h>
-#include <vtkPolyData.h>
-#include <vtkStringArray.h>
+#include <vtk/Common/Core/vtkCollection.h>
+#include <vtk/Common/Core/vtkFloatArray.h>
+#include <vtk/Common/DataModel/vtkImageData.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/DataModel/vtkPointData.h>
+#include <vtk/Common/DataModel/vtkPolyData.h>
+#include <vtk/Common/Core/vtkStringArray.h>
 #include <vtksys/SystemTools.hxx>
 
 // ITKSys includes

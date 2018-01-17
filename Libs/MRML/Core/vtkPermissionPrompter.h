@@ -5,7 +5,7 @@
 #include "vtkMRML.h"
 
 // VTK includes
-#include <vtkObject.h>
+#include <vtk/Common/Core/vtkObject.h>
 
 class VTK_MRML_EXPORT vtkPermissionPrompter : public vtkObject
 {

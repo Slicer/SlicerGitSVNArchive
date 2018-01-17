@@ -19,7 +19,7 @@
 #include "vtkSlicerAnnotationsModuleMRMLDisplayableManagerExport.h"
 
 // VTK include
-#include <vtkObject.h>
+#include <vtk/Common/Core/vtkObject.h>
 
 /// \ingroup Slicer_QtModules_Annotation
 class VTK_SLICER_ANNOTATIONS_MODULE_MRMLDISPLAYABLEMANAGER_EXPORT

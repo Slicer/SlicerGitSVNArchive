@@ -94,7 +94,7 @@
 #include "vtkSlicerAnnotationsModuleVTKWidgetsExport.h"
 
 // VTK includes
-#include <vtkAbstractWidget.h>
+#include <vtk/Interaction/Widgets/vtkAbstractWidget.h>
 
 class vtkAnnotationROIRepresentation;
 class vtkHandleWidget;

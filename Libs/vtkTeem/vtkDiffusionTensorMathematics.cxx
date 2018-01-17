@@ -18,16 +18,16 @@
 #endif
 
 // But, if you are on VS6.0 you don't get the define...
-#include "vtkDataArray.h"
-#include "vtkInformation.h"
-#include "vtkInformationVector.h"
-#include "vtkImageData.h"
-#include "vtkStreamingDemandDrivenPipeline.h"
+#include "vtk/Common/Core/vtkDataArray.h"
+#include "vtk/Common/Core/vtkInformation.h"
+#include "vtk/Common/Core/vtkInformationVector.h"
+#include "vtk/Common/DataModel/vtkImageData.h"
+#include "vtk/Common/ExecutionModel/vtkStreamingDemandDrivenPipeline.h"
 #include "vtkDiffusionTensorMathematics.h"
-#include "vtkMath.h"
-#include "vtkObjectFactory.h"
-#include "vtkTransform.h"
-#include "vtkPointData.h"
+#include "vtk/Common/Core/vtkMath.h"
+#include "vtk/Common/Core/vtkObjectFactory.h"
+#include "vtk/Common/Transforms/vtkTransform.h"
+#include "vtk/Common/DataModel/vtkPointData.h"
 #ifndef M_SQRT2
 #define M_SQRT2    1.41421356237309504880168872421      /* sqrt(2) */
 #endif

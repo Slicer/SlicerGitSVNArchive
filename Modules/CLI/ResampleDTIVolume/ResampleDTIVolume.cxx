@@ -19,7 +19,7 @@
 #include "itkDiffusionTensor3DLinearInterpolateFunction.h"
 #include "itkDiffusionTensor3DWindowedSincInterpolateImageFunction.h"
 #include "itkDiffusionTensor3DBSplineInterpolateImageFunction.h"
-#include <itkTransformFileReader.h>
+#include <itk/Modules/IO/TransformBase/include/itkTransformFileReader.h>
 #include "ResampleDTIVolumeCLP.h"
 #include "itkDiffusionTensor3DZeroCorrection.h"
 #include "itkDiffusionTensor3DAbsCorrection.h"
@@ -29,8 +29,8 @@
 #include "dtiprocessFiles/deformationfieldio.h"
 #include "itkWarpTransform3D.h"
 #include "itkTransformDeformationFieldFilter.h"
-#include <itkVectorResampleImageFilter.h>
-#include <itkBSplineDeformableTransform.h>
+#include <itk/Modules/Filtering/ImageGrid/include/itkVectorResampleImageFilter.h>
+#include <itk/Modules/Core/Transform/include/itkBSplineDeformableTransform.h>
 
 // Use an anonymous namespace to keep class types and function names
 // from colliding when module is used as shared object module.  Every

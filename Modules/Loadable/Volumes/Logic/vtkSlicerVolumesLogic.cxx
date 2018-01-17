@@ -41,21 +41,21 @@
 #include "vtkMRMLTransformNode.h"
 
 // VTK includes
-#include <vtkCallbackCommand.h>
-#include <vtkGeneralTransform.h>
-#include <vtkImageData.h>
-#include <vtkImageThreshold.h>
-#include <vtkMathUtilities.h>
-#include <vtkMatrix4x4.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
-#include <vtkSmartPointer.h>
-#include <vtkStringArray.h>
+#include <vtk/Common/Core/vtkCallbackCommand.h>
+#include <vtk/Common/Transforms/vtkGeneralTransform.h>
+#include <vtk/Common/DataModel/vtkImageData.h>
+#include <vtk/Imaging/Core/vtkImageThreshold.h>
+#include <vtk/Common/Core/vtkMathUtilities.h>
+#include <vtk/Common/Math/vtkMatrix4x4.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/Common/Core/vtkStringArray.h>
 #include <vtksys/SystemTools.hxx>
-#include <vtkVersion.h>
-#include <vtkWeakPointer.h>
-#include <vtkImageReslice.h>
-#include <vtkTransform.h>
+#include <vtk/Common/Core/vtkVersion.h>
+#include <vtk/Common/Core/vtkWeakPointer.h>
+#include <vtk/Imaging/Core/vtkImageReslice.h>
+#include <vtk/Common/Transforms/vtkTransform.h>
 
 /// CTK includes
 /// to avoid CTK includes which pull in a dependency on Qt, rehome some CTK

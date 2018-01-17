@@ -51,8 +51,8 @@
 #include "vtkSlicerMarkupsLogic.h"
 
 // VTK includes
-#include <vtkMath.h>
-#include <vtkNew.h>
+#include <vtk/Common/Core/vtkMath.h>
+#include <vtk/Common/Core/vtkNew.h>
 
 #include <math.h>
 

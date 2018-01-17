@@ -3,15 +3,15 @@
 #include "vtkAnnotationBidimensionalRepresentation.h"
 
 // VTK includes
-#include <vtkAxisActor2D.h>
-#include <vtkCellArray.h>
-#include <vtkHandleRepresentation.h>
-#include <vtkMath.h>
-#include <vtkObjectFactory.h>
-#include <vtkPoints.h>
-#include <vtkRenderer.h>
-#include <vtkTextMapper.h>
-#include <vtkWindow.h>
+#include <vtk/Rendering/Annotation/vtkAxisActor2D.h>
+#include <vtk/Common/DataModel/vtkCellArray.h>
+#include <vtk/Interaction/Widgets/vtkHandleRepresentation.h>
+#include <vtk/Common/Core/vtkMath.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkPoints.h>
+#include <vtk/Rendering/Core/vtkRenderer.h>
+#include <vtk/Rendering/Core/vtkTextMapper.h>
+#include <vtk/Common/Core/vtkWindow.h>
 
 // STD includes
 #include <sstream>

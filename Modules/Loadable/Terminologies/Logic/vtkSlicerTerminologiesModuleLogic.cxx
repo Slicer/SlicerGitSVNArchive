@@ -34,13 +34,13 @@
 #include "vtkLoggingMacros.h"
 
 // VTK includes
-#include <vtkNew.h>
-#include <vtkSmartPointer.h>
-#include <vtkObjectFactory.h>
-#include <vtkStringArray.h>
-#include <vtkVariant.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkStringArray.h>
+#include <vtk/Common/Core/vtkVariant.h>
 #include <vtksys/SystemTools.hxx>
-#include <vtkDirectory.h>
+#include <vtk/Common/System/vtkDirectory.h>
 
 // STD includes
 #include <algorithm>

@@ -16,9 +16,9 @@ Version:   $Revision: 1.14 $
 #include "vtkMRMLLinearTransformNode.h"
 
 // VTK includes
-#include <vtkMatrix4x4.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
+#include <vtk/Common/Math/vtkMatrix4x4.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
 
 // STD includes
 #include <sstream>

@@ -80,12 +80,12 @@ Version:   $Revision: 1.18 $
 #endif
 
 // VTK includes
-#include <vtkCallbackCommand.h>
-#include <vtkCollection.h>
-#include <vtkDebugLeaks.h>
-#include <vtkErrorCode.h>
-#include <vtkObjectFactory.h>
-#include <vtkSmartPointer.h>
+#include <vtk/Common/Core/vtkCallbackCommand.h>
+#include <vtk/Common/Core/vtkCollection.h>
+#include <vtk/Common/Core/vtkDebugLeaks.h>
+#include <vtk/Common/Misc/vtkErrorCode.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
 
 // VTKSYS includes
 #include <vtksys/RegularExpression.hxx>

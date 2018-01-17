@@ -17,11 +17,11 @@ Version:   $Revision: 1.0 $
 #include "vtkMRMLProceduralColorStorageNode.h"
 
 // VTK includes
-#include <vtkColorTransferFunction.h>
-#include <vtkCommand.h>
+#include <vtk/Rendering/Core/vtkColorTransferFunction.h>
+#include <vtk/Common/Core/vtkCommand.h>
 #include <vtkEventBroker.h>
-#include <vtkLookupTable.h>
-#include <vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkLookupTable.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
 
 // STD includes
 #include <sstream>

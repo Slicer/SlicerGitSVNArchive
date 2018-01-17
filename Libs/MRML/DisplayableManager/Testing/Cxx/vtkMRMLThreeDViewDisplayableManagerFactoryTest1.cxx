@@ -29,15 +29,15 @@
 #include <vtkMRMLViewNode.h>
 
 // VTK includes
-#include <vtkNew.h>
-#include <vtkRenderWindow.h>
-#include <vtkRenderWindowInteractor.h>
-#include <vtkRenderer.h>
-#include <vtkSmartPointer.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Rendering/Core/vtkRenderWindow.h>
+#include <vtk/Rendering/Core/vtkRenderWindowInteractor.h>
+#include <vtk/Rendering/Core/vtkRenderer.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
 
 // Initialize object factory
 #define MRMLDisplayableManagerCxxTests_AUTOINIT 1(MRMLDisplayableManagerCxxTests)
-#include <vtkAutoInit.h>
+#include <vtk/Common/Core/vtkAutoInit.h>
 VTK_AUTOINIT(MRMLDisplayableManagerCxxTests)
 
 //----------------------------------------------------------------------------

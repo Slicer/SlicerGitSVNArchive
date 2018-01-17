@@ -36,7 +36,7 @@
 #include "qMRMLVolumeWidget.h"
 
 // VTK includes
-#include <vtkWeakPointer.h>
+#include <vtk/Common/Core/vtkWeakPointer.h>
 
 class ctkPopupWidget;
 class ctkRangeWidget;

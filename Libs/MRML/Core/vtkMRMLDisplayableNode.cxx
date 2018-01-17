@@ -21,8 +21,8 @@ Version:   $Revision: 1.3 $
 //#include "vtkMRMLVolumeNode.h"
 
 // VTK includes
-#include <vtkCallbackCommand.h>
-#include <vtkMath.h>
+#include <vtk/Common/Core/vtkCallbackCommand.h>
+#include <vtk/Common/Core/vtkMath.h>
 
 // STD includes
 #include <algorithm>

@@ -17,8 +17,8 @@
 #ifndef itkNewOtsuThresholdImageFilter_h
 #define itkNewOtsuThresholdImageFilter_h
 
-#include "itkImageToImageFilter.h"
-#include "itkFixedArray.h"
+#include "itk/Modules/Core/Common/include/itkImageToImageFilter.h"
+#include "itk/Modules/Core/Common/include/itkFixedArray.h"
 
 namespace itk
 {

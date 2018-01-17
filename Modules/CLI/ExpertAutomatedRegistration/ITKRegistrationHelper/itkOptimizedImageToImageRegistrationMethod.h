@@ -18,7 +18,7 @@
 #ifndef itkOptimizedImageToImageRegistrationMethod_h
 #define itkOptimizedImageToImageRegistrationMethod_h
 
-#include "itkImage.h"
+#include "itk/Modules/Core/Common/include/itkImage.h"
 
 #include "itkImageToImageRegistrationMethod.h"
 

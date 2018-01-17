@@ -34,15 +34,15 @@
 #include <iostream>
 
 #include "vtkTeemConfigure.h"
-#include "vtkMedicalImageReader2.h"
+#include "vtk/IO/Image/vtkMedicalImageReader2.h"
 
 //#include "vtkDataObject.h"
 //#include "vtkImageData.h"
 
-#include <vtkMatrix4x4.h>
-#include <vtkPointData.h>
-#include <vtkSmartPointer.h>
-#include <vtkVersion.h>
+#include <vtk/Common/Math/vtkMatrix4x4.h>
+#include <vtk/Common/DataModel/vtkPointData.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/Common/Core/vtkVersion.h>
 
 #include "teem/nrrd.h"
 

@@ -22,14 +22,14 @@
 #include "vtkMRMLSliceNode.h"
 
 // VTK includes
-#include <vtkCamera.h>
-#include <vtkCellPicker.h>
-#include <vtkCallbackCommand.h>
-#include <vtkMath.h>
-#include <vtkObjectFactory.h>
-#include <vtkPoints.h>
-#include <vtkRenderWindowInteractor.h>
-#include <vtkRenderer.h>
+#include <vtk/Rendering/Core/vtkCamera.h>
+#include <vtk/Rendering/Core/vtkCellPicker.h>
+#include <vtk/Common/Core/vtkCallbackCommand.h>
+#include <vtk/Common/Core/vtkMath.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkPoints.h>
+#include <vtk/Rendering/Core/vtkRenderWindowInteractor.h>
+#include <vtk/Rendering/Core/vtkRenderer.h>
 #include <vtkMRMLInteractionNode.h>
 
 

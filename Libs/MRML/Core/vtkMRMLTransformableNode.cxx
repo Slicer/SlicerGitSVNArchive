@@ -20,12 +20,12 @@ Version:   $Revision: 1.14 $
 #include "vtkMRMLTransformNode.h"
 
 // VTK includes
-#include <vtkCommand.h>
-#include <vtkGeneralTransform.h>
-#include <vtkIntArray.h>
-#include <vtkNew.h>
-#include <vtkTransform.h>
-#include <vtkMatrix4x4.h>
+#include <vtk/Common/Core/vtkCommand.h>
+#include <vtk/Common/Transforms/vtkGeneralTransform.h>
+#include <vtk/Common/Core/vtkIntArray.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Transforms/vtkTransform.h>
+#include <vtk/Common/Math/vtkMatrix4x4.h>
 
 const char* vtkMRMLTransformableNode::TransformNodeReferenceRole = "transform";
 const char* vtkMRMLTransformableNode::TransformNodeReferenceMRMLAttributeName = "transformNodeRef";

@@ -16,11 +16,11 @@ Version:   $Revision: 1.2 $
 #include "vtkMRMLVolumePropertyStorageNode.h"
 #include "vtkMRMLScene.h"
 
-#include <vtkColorTransferFunction.h>
-#include <vtkObjectFactory.h>
-#include <vtkPiecewiseFunction.h>
-#include <vtkStringArray.h>
-#include <vtkVolumeProperty.h>
+#include <vtk/Rendering/Core/vtkColorTransferFunction.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/DataModel/vtkPiecewiseFunction.h>
+#include <vtk/Common/Core/vtkStringArray.h>
+#include <vtk/Rendering/Core/vtkVolumeProperty.h>
 
 #include <sstream>
 

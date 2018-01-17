@@ -10,7 +10,7 @@
 #ifndef __vtkAddon_h
 #define __vtkAddon_h
 
-#include <vtkVersion.h>
+#include <vtk/Common/Core/vtkVersion.h>
 
 #include "vtkAddonExport.h"
 

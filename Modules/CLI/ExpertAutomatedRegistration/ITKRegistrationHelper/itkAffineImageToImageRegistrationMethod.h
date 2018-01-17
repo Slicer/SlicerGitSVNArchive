@@ -18,8 +18,8 @@
 #ifndef itkAffineImageToImageRegistrationMethod_h
 #define itkAffineImageToImageRegistrationMethod_h
 
-#include "itkImage.h"
-#include "itkAffineTransform.h"
+#include "itk/Modules/Core/Common/include/itkImage.h"
+#include "itk/Modules/Core/Transform/include/itkAffineTransform.h"
 
 #include "itkOptimizedImageToImageRegistrationMethod.h"
 

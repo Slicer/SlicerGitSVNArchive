@@ -15,12 +15,12 @@ PURPOSE.  See the above copyright notice for more information.
 =========================================================================*/
 #include "vtkITKWandImageFilter.h"
 
-#include "vtkDataArray.h"
-#include "vtkObjectFactory.h"
-#include "vtkPointData.h"
-#include "vtkImageData.h"
+#include "vtk/Common/Core/vtkDataArray.h"
+#include "vtk/Common/Core/vtkObjectFactory.h"
+#include "vtk/Common/DataModel/vtkPointData.h"
+#include "vtk/Common/DataModel/vtkImageData.h"
 
-#include "itkConnectedThresholdImageFilter.h"
+#include "itk/Modules/Segmentation/RegionGrowing/include/itkConnectedThresholdImageFilter.h"
 
 vtkStandardNewMacro(vtkITKWandImageFilter);
 

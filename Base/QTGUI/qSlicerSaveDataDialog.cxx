@@ -45,7 +45,7 @@
 
 /// MRML includes
 #include <vtkCacheManager.h>
-#include <vtkCollection.h>
+#include <vtk/Common/Core/vtkCollection.h>
 #include <vtkDataFileFormatHelper.h> // for GetFileExtensionFromFormatString()
 //#include <vtkMRMLHierarchyNode.h>
 #include <vtkMRMLScene.h>
@@ -53,9 +53,9 @@
 #include <vtkMRMLSceneViewNode.h>
 
 /// VTK includes
-#include <vtkStringArray.h>
-#include <vtkSmartPointer.h>
-#include <vtkImageData.h>
+#include <vtk/Common/Core/vtkStringArray.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/Common/DataModel/vtkImageData.h>
 
 // STD includes
 #include <cstring> // for strlen

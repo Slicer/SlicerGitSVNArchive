@@ -17,7 +17,7 @@
 #include "vtkSlicerEditorLibModuleLogicExport.h"
 
 // VTK includes
-#include <vtkImageData.h>
+#include <vtk/Common/DataModel/vtkImageData.h>
 #include <vtkImageNeighborhoodFilter.h>
 
 class VTK_SLICER_EDITORLIB_MODULE_LOGIC_EXPORT vtkImageErode : public vtkImageNeighborhoodFilter

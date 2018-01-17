@@ -27,8 +27,8 @@
 #include <vtkMRMLScene.h>
 
 // VTK includes
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
 
 // STD includes
 #include <iostream>

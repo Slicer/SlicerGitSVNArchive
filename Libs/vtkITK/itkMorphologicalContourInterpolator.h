@@ -18,10 +18,10 @@
 #ifndef itkMorphologicalContourInterpolator_h
 #define itkMorphologicalContourInterpolator_h
 
-#include "itkBinaryThresholdImageFilter.h"
-#include "itkConnectedComponentImageFilter.h"
-#include "itkExtractImageFilter.h"
-#include "itkImageToImageFilter.h"
+#include "itk/Modules/Filtering/Thresholding/include/itkBinaryThresholdImageFilter.h"
+#include "itk/Modules/Segmentation/ConnectedComponents/include/itkConnectedComponentImageFilter.h"
+#include "itk/Modules/Core/Common/include/itkExtractImageFilter.h"
+#include "itk/Modules/Core/Common/include/itkImageToImageFilter.h"
 #include "itksys/hash_map.hxx"
 
 namespace itk

@@ -33,14 +33,14 @@
 #include "qSlicerTransformsReader.h"
 
 // VTK includes
-#include "vtkSmartPointer.h"
+#include "vtk/Common/Core/vtkSmartPointer.h"
 
 // SubjectHierarchy Plugins includes
 #include "qSlicerSubjectHierarchyPluginHandler.h"
 #include "qSlicerSubjectHierarchyTransformsPlugin.h"
 
 // DisplayableManager initialization
-#include <vtkAutoInit.h>
+#include <vtk/Common/Core/vtkAutoInit.h>
 VTK_MODULE_INIT(vtkSlicerTransformsModuleMRMLDisplayableManager)
 
 //-----------------------------------------------------------------------------

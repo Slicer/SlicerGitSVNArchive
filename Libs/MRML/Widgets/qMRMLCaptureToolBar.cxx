@@ -39,8 +39,8 @@
 #include <vtkMRMLScene.h>
 
 // VTK includes
-#include <vtkSmartPointer.h>
-#include <vtkWeakPointer.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/Common/Core/vtkWeakPointer.h>
 
 //-----------------------------------------------------------------------------
 class qMRMLCaptureToolBarPrivate

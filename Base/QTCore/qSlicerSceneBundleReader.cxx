@@ -36,7 +36,7 @@
 #include <vtkMRMLApplicationLogic.h>
 
 // VTK includes
-#include <vtkNew.h>
+#include <vtk/Common/Core/vtkNew.h>
 
 // VTKSYS includes
 #include <vtksys/SystemTools.hxx>

@@ -26,7 +26,7 @@
 #include "vtkMRMLMarkupsDisplayNode.h"
 #include "vtkSlicerMarkupsLogic.h"
 // VTK includes
-#include <vtkNew.h>
+#include <vtk/Common/Core/vtkNew.h>
 #include <vtkTestingOutputWindow.h>
 
 int vtkSlicerMarkupsLogicTest1(int , char * [] )

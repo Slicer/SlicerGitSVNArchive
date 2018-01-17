@@ -22,9 +22,9 @@ Version:   $Revision: 1.2 $
 #include "vtkMRMLMultiVolumeRenderingDisplayNode.h"
 
 // VTK includes
-#include <vtkCommand.h>
-#include <vtkIntArray.h>
-#include <vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkCommand.h>
+#include <vtk/Common/Core/vtkIntArray.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
 
 //#include "vtkMatrix4x4.h"
 #include <sstream>

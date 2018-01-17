@@ -41,11 +41,11 @@
 #include "vtkMRMLTableViewNode.h"
 
 // VTK includes
-#include <vtkCollection.h>
-#include <vtkImageData.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
-#include <vtkSmartPointer.h>
+#include <vtk/Common/Core/vtkCollection.h>
+#include <vtk/Common/DataModel/vtkImageData.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
 
 // VTKSYS includes
 #include <vtksys/SystemTools.hxx>

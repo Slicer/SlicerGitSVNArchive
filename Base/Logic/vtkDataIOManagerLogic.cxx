@@ -11,9 +11,9 @@
 #include <vtkURIHandler.h>
 
 // VTK includes
-#include <vtkCallbackCommand.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkCallbackCommand.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
 
 // VTKsys includes
 #include <vtksys/SystemTools.hxx>

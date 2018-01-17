@@ -25,11 +25,11 @@
 #include <vtkMRMLApplicationLogic.h>
 
 // VTK includes
-#include <vtkCollection.h>
+#include <vtk/Common/Core/vtkCollection.h>
 
 // ITK includes
-#include <itkMultiThreader.h>
-#include <itkMutexLock.h>
+#include <itk/Modules/Core/Common/include/itkMultiThreader.h>
+#include <itk/Modules/Core/Common/include/itkMutexLock.h>
 
 class vtkMRMLSelectionNode;
 class vtkMRMLInteractionNode;

@@ -22,10 +22,10 @@ Version:   $Revision: 1.2 $
 #include <ModuleParameter.h>
 
 // VTK includes
-#include <vtkCommand.h>
-#include <vtkIntArray.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkCommand.h>
+#include <vtk/Common/Core/vtkIntArray.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
 
 // STD includes
 #include <sstream>

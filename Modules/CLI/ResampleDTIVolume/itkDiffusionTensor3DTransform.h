@@ -14,12 +14,12 @@
 #ifndef itkDiffusionTensor3DTransform_h
 #define itkDiffusionTensor3DTransform_h
 
-#include <itkObject.h>
+#include <itk/Modules/Core/Common/include/itkObject.h>
 #include "itkDiffusionTensor3DExtended.h"
-#include <itkPoint.h>
+#include <itk/Modules/Core/Common/include/itkPoint.h>
 #include "itkMatrixExtended.h"
-#include <itkNumericTraits.h>
-#include <itkTransform.h>
+#include <itk/Modules/Core/Common/include/itkNumericTraits.h>
+#include <itk/Modules/Core/Transform/include/itkTransform.h>
 
 namespace itk
 {

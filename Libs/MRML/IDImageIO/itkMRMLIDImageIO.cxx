@@ -13,7 +13,7 @@ Version:   $Revision: 1.18 $
 =========================================================================auto=*/
 
 #include "itkMRMLIDImageIO.h"
-#include "itkMetaDataObject.h"
+#include "itk/Modules/Core/Common/include/itkMetaDataObject.h"
 
 // MRML includes
 #include "vtkMRMLDiffusionTensorVolumeNode.h"
@@ -22,10 +22,10 @@ Version:   $Revision: 1.18 $
 #include "vtkMRMLScene.h"
 
 // VTK includes
-#include <vtkDataArray.h>
-#include <vtkImageData.h>
-#include <vtkMatrix4x4.h>
-#include <vtkPointData.h>
+#include <vtk/Common/Core/vtkDataArray.h>
+#include <vtk/Common/DataModel/vtkImageData.h>
+#include <vtk/Common/Math/vtkMatrix4x4.h>
+#include <vtk/Common/DataModel/vtkPointData.h>
 
 namespace itk {
 //----------------------------------------------------------------------------

@@ -7,8 +7,8 @@
 #include <vtkMRMLSceneViewNode.h>
 
 // VTK includes
-#include <vtkImageData.h>
-#include <vtkSmartPointer.h>
+#include <vtk/Common/DataModel/vtkImageData.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
 #include <vtkTestingOutputWindow.h>
 
 

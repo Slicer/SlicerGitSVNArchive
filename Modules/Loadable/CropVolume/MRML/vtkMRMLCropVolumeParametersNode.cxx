@@ -8,10 +8,10 @@ or http://www.slicer.org/copyright/copyright.txt for details.
 =========================================================================auto=*/
 
 // VTK includes
-#include <vtkCommand.h>
-#include <vtkIntArray.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkCommand.h>
+#include <vtk/Common/Core/vtkIntArray.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
 
 // MRML includes
 #include "vtkMRMLVolumeNode.h"

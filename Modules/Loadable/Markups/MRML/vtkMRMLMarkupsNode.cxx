@@ -26,15 +26,15 @@
 #include "vtkMRMLScene.h"
 
 // VTK includes
-#include <vtkAbstractTransform.h>
-#include <vtkBitArray.h>
-#include <vtkCommand.h>
-#include <vtkMatrix4x4.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
-#include <vtkPointData.h>
-#include <vtkPolyData.h>
-#include <vtkStringArray.h>
+#include <vtk/Common/Transforms/vtkAbstractTransform.h>
+#include <vtk/Common/Core/vtkBitArray.h>
+#include <vtk/Common/Core/vtkCommand.h>
+#include <vtk/Common/Math/vtkMatrix4x4.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/DataModel/vtkPointData.h>
+#include <vtk/Common/DataModel/vtkPolyData.h>
+#include <vtk/Common/Core/vtkStringArray.h>
 
 // STD includes
 #include <sstream>

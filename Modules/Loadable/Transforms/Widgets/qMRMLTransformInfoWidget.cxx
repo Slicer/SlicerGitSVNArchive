@@ -31,9 +31,9 @@
 #include <vtkMRMLScene.h>
 
 // VTK includes
-#include <vtkMath.h>
-#include <vtkTransform.h>
-#include <vtkWeakPointer.h>
+#include <vtk/Common/Core/vtkMath.h>
+#include <vtk/Common/Transforms/vtkTransform.h>
+#include <vtk/Common/Core/vtkWeakPointer.h>
 
 //------------------------------------------------------------------------------
 class qMRMLTransformInfoWidgetPrivate: public Ui_qMRMLTransformInfoWidget

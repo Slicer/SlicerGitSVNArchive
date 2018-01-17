@@ -15,13 +15,13 @@
 #include "vtkOrientedGridTransform.h"
 
 // ITK includes
-#include <itkAffineTransform.h>
-#include <itkDisplacementFieldTransform.h>
+#include <itk/Modules/Core/Transform/include/itkAffineTransform.h>
+#include <itk/Modules/Filtering/DisplacementField/include/itkDisplacementFieldTransform.h>
 
 // VTK includes
-#include "vtkImageData.h"
-#include "vtkMatrix4x4.h"
-#include "vtkNew.h"
+#include "vtk/Common/DataModel/vtkImageData.h"
+#include "vtk/Common/Math/vtkMatrix4x4.h"
+#include "vtk/Common/Core/vtkNew.h"
 
 typedef double itkVectorComponentType;
 typedef itk::Vector<itkVectorComponentType, 3> itkVectorPixelType;

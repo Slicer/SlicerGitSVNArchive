@@ -39,7 +39,7 @@
 #include "qSlicerApplication.h"
 
 // VTK includes
-#include <vtkCallbackCommand.h>
+#include <vtk/Common/Core/vtkCallbackCommand.h>
 
 //----------------------------------------------------------------------------
 qSlicerSubjectHierarchyPluginHandler *qSlicerSubjectHierarchyPluginHandler::m_Instance = NULL;

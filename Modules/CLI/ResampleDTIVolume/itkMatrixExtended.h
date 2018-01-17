@@ -14,7 +14,7 @@
 #ifndef itkMatrixExtended_h
 #define itkMatrixExtended_h
 
-#include "itkMatrix.h"
+#include "itk/Modules/Core/Common/include/itkMatrix.h"
 
 namespace itk
 {

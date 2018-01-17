@@ -18,10 +18,10 @@ Version:   $Revision: 1.0 $
 #include "vtkMRMLScene.h"
 
 // VTK includes
-#include <vtkCommand.h>
-#include <vtkLookupTable.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkCommand.h>
+#include <vtk/Common/Core/vtkLookupTable.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
 
 // STD includes
 #include <sstream>

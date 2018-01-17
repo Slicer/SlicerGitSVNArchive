@@ -6,8 +6,8 @@
 #include "vtkRemoteIO.h"
 
 // VTK includes
-#include <vtkObject.h>
-#include <vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkObject.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
 
 // MRML includes
 #include "vtkURIHandler.h"

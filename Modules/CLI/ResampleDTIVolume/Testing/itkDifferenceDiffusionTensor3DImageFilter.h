@@ -15,12 +15,12 @@
 #ifndef itkDifferenceDiffusionTensor3DImageFilter_h
 #define itkDifferenceDiffusionTensor3DImageFilter_h
 
-#include "itkImageToImageFilter.h"
-#include "itkDiffusionTensor3D.h"
-#include "itkNumericTraits.h"
-#include "itkArray.h"
-#include "itkMatrix.h"
-#include "itkMetaDataObject.h"
+#include "itk/Modules/Core/Common/include/itkImageToImageFilter.h"
+#include "itk/Modules/Core/Common/include/itkDiffusionTensor3D.h"
+#include "itk/Modules/Core/Common/include/itkNumericTraits.h"
+#include "itk/Modules/Core/Common/include/itkArray.h"
+#include "itk/Modules/Core/Common/include/itkMatrix.h"
+#include "itk/Modules/Core/Common/include/itkMetaDataObject.h"
 
 namespace itk
 {

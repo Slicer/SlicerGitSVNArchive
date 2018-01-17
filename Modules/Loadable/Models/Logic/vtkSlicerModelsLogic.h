@@ -20,7 +20,7 @@
 #include "vtkSlicerModelsModuleLogicExport.h"
 
 // VTK includes
-#include <vtkVersion.h>
+#include <vtk/Common/Core/vtkVersion.h>
 
 class vtkMRMLModelNode;
 class vtkMRMLStorageNode;

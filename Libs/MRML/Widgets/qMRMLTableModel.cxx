@@ -32,10 +32,10 @@
 #include <vtkMRMLTableNode.h>
 
 // VTK includes
-#include <vtkCallbackCommand.h>
-#include <vtkSmartPointer.h>
-#include <vtkTable.h>
-#include <vtkBitArray.h>
+#include <vtk/Common/Core/vtkCallbackCommand.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/Common/DataModel/vtkTable.h>
+#include <vtk/Common/Core/vtkBitArray.h>
 
 static int UserRoleValueType = Qt::UserRole + 1;
 

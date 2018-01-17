@@ -19,13 +19,13 @@ Version:   $Revision$
 #include "vtkITK.h"
 
 // VTK includes
-#include "vtkImageAlgorithm.h"
+#include "vtk/Common/ExecutionModel/vtkImageAlgorithm.h"
 class vtkMatrix4x4;
 
 // ITK includes
-#include "itkImageIOBase.h"
-#include "itkMetaDataDictionary.h"
-#include "itkSpatialOrientation.h"
+#include "itk/Modules/IO/ImageBase/include/itkImageIOBase.h"
+#include "itk/Modules/Core/Common/include/itkMetaDataDictionary.h"
+#include "itk/Modules/Core/Common/include/itkSpatialOrientation.h"
 
 // STD includes
 #include <algorithm>

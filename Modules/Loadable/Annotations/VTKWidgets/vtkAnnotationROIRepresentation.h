@@ -38,7 +38,7 @@
 #include "vtkSlicerAnnotationsModuleVTKWidgetsExport.h"
 
 // VTK includes
-#include "vtkWidgetRepresentation.h"
+#include "vtk/Interaction/Widgets/vtkWidgetRepresentation.h"
 
 class vtkActor;
 class vtkBox;

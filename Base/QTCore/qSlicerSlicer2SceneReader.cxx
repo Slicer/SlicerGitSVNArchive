@@ -48,13 +48,13 @@
 #include <vtkMRMLSelectionNode.h>
 
 /// VTK includes
-#include <vtkImageReader.h>
-#include <vtkLookupTable.h>
-#include <vtkMatrix4x4.h>
-#include <vtkNew.h>
-#include <vtkSmartPointer.h>
-#include <vtkStringArray.h>
-#include <vtkXMLDataParser.h>
+#include <vtk/IO/Image/vtkImageReader.h>
+#include <vtk/Common/Core/vtkLookupTable.h>
+#include <vtk/Common/Math/vtkMatrix4x4.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/Common/Core/vtkStringArray.h>
+#include <vtk/IO/XMLParser/vtkXMLDataParser.h>
 
 //-----------------------------------------------------------------------------
 namespace

@@ -28,9 +28,9 @@
 #include <vtkMRMLApplicationLogic.h>
 #include <vtkMRMLSliceLogic.h>
 
-#include <vtkNew.h>
-#include <vtkMatrix4x4.h>
-#include <vtkImageData.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Math/vtkMatrix4x4.h>
+#include <vtk/Common/DataModel/vtkImageData.h>
 
 
 // MRML includes

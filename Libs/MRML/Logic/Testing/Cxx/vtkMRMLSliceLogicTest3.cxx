@@ -29,14 +29,14 @@
 #include <vtkMRMLVolumeArchetypeStorageNode.h>
 
 // VTK includes
-#include <vtkAlgorithmOutput.h>
-#include <vtkImageData.h>
-#include <vtkImageViewer2.h>
-#include <vtkNew.h>
-#include <vtkRenderWindow.h>
-#include <vtkRenderWindowInteractor.h>
-#include <vtkTimerLog.h>
-#include <vtkVersion.h>
+#include <vtk/Common/ExecutionModel/vtkAlgorithmOutput.h>
+#include <vtk/Common/DataModel/vtkImageData.h>
+#include <vtk/Interaction/Image/vtkImageViewer2.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Rendering/Core/vtkRenderWindow.h>
+#include <vtk/Rendering/Core/vtkRenderWindowInteractor.h>
+#include <vtk/Common/System/vtkTimerLog.h>
+#include <vtk/Common/Core/vtkVersion.h>
 
 // ITK includes
 #include <itkConfigure.h>

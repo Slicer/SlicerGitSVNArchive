@@ -20,11 +20,11 @@ Version:   $Revision: 1.3 $
 #include "vtkMRMLScene.h"
 
 // VTK includes
-#include <vtkAlgorithmOutput.h>
-#include <vtkAssignAttribute.h>
-#include <vtkCallbackCommand.h>
-#include <vtkCollection.h>
-#include <vtkImageData.h>
+#include <vtk/Common/ExecutionModel/vtkAlgorithmOutput.h>
+#include <vtk/Filters/Core/vtkAssignAttribute.h>
+#include <vtk/Common/Core/vtkCallbackCommand.h>
+#include <vtk/Common/Core/vtkCollection.h>
+#include <vtk/Common/DataModel/vtkImageData.h>
 
 // STD includes
 #include <algorithm>

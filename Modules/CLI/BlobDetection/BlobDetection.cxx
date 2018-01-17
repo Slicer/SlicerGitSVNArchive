@@ -9,10 +9,10 @@ command line processing and additional features have been added.
 #pragma warning ( disable : 4786 )
 #endif
 
-#include "itkImageFileReader.h"
-#include "itkImageFileWriter.h"
-#include "itkHessianToObjectnessMeasureImageFilter.h"
-#include "itkMultiScaleHessianBasedMeasureImageFilter.h"
+#include "itk/Modules/IO/ImageBase/include/itkImageFileReader.h"
+#include "itk/Modules/IO/ImageBase/include/itkImageFileWriter.h"
+#include "itk/Modules/Filtering/ImageFeature/include/itkHessianToObjectnessMeasureImageFilter.h"
+#include "itk/Modules/Nonunit/Review/include/itkMultiScaleHessianBasedMeasureImageFilter.h"
 
 #include "BlobDetectionCLP.h"
 #include "itkPluginUtilities.h"

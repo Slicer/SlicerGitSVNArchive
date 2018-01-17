@@ -23,7 +23,7 @@
 
 // qMRMLWidget includes
 #include "qMRMLViewControllerBar.h"
-#include <vtkVersion.h>
+#include <vtk/Common/Core/vtkVersion.h>
 
 class QButtonGroup;
 class qMRMLSliceControllerWidgetPrivate;

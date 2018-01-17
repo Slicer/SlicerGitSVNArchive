@@ -19,9 +19,9 @@ Version:   $Revision: 1.2 $
 #include "vtkMRMLUnitNode.h"
 
 // VTK includes
-#include <vtkCommand.h>
-#include <vtkObjectFactory.h>
-#include <vtkStdString.h>
+#include <vtk/Common/Core/vtkCommand.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkStdString.h>
 
 // STD includes
 

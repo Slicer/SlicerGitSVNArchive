@@ -29,11 +29,11 @@
 #include "vtkMRMLVolumeNode.h"
 
 // VTK includes
-#include <vtkMath.h>
-#include <vtkMatrix4x4.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
-#include <vtkTransform.h>
+#include <vtk/Common/Core/vtkMath.h>
+#include <vtk/Common/Math/vtkMatrix4x4.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/Transforms/vtkTransform.h>
 
 // STD includes
 #include <algorithm>

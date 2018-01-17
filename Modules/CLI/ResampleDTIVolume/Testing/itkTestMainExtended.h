@@ -33,27 +33,27 @@
 // in a lookup table.   By including this file, it creates a main function
 // that calls RegisterTests() then looks up the function pointer for the test
 // specified on the command line.
-#include "itkWin32Header.h"
+#include "itk/Modules/Core/Common/include/itkWin32Header.h"
 #include <map>
 #include <string>
 #include <iostream>
 #include <fstream>
-#include "itkMultiThreader.h"
-#include "itkImage.h"
-#include "itkImageFileReader.h"
-#include "itkImageFileWriter.h"
-#include "itkImageRegionConstIterator.h"
-#include "itkSubtractImageFilter.h"
-#include "itkRescaleIntensityImageFilter.h"
-#include "itkExtractImageFilter.h"
-#include "itkTestingComparisonImageFilter.h"
+#include "itk/Modules/Core/Common/include/itkMultiThreader.h"
+#include "itk/Modules/Core/Common/include/itkImage.h"
+#include "itk/Modules/IO/ImageBase/include/itkImageFileReader.h"
+#include "itk/Modules/IO/ImageBase/include/itkImageFileWriter.h"
+#include "itk/Modules/Core/Common/include/itkImageRegionConstIterator.h"
+#include "itk/Modules/Filtering/ImageIntensity/include/itkSubtractImageFilter.h"
+#include "itk/Modules/Filtering/ImageIntensity/include/itkRescaleIntensityImageFilter.h"
+#include "itk/Modules/Core/Common/include/itkExtractImageFilter.h"
+#include "itk/Modules/Core/TestKernel/include/itkTestingComparisonImageFilter.h"
 #include "itkDifferenceDiffusionTensor3DImageFilter.h"
-#include "itkDiffusionTensor3D.h"
-#include "itkImageRegion.h"
+#include "itk/Modules/Core/Common/include/itkDiffusionTensor3D.h"
+#include "itk/Modules/Core/Common/include/itkImageRegion.h"
 #include "itksys/SystemTools.hxx"
-#include "itkIntTypes.h"
-#include "itkFloatingPointExceptions.h"
-#include <itkTensorFractionalAnisotropyImageFilter.h>
+#include "itk/Modules/Core/Common/include/itkIntTypes.h"
+#include "itk/Modules/Core/Common/include/itkFloatingPointExceptions.h"
+#include <itk/Modules/Filtering/DiffusionTensorImage/include/itkTensorFractionalAnisotropyImageFilter.h>
 #include "itkPluginUtilities.h"
 #include <itkFactoryRegistration.h>
 

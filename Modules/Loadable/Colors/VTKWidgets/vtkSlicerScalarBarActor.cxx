@@ -24,17 +24,17 @@
 #include "vtkSlicerScalarBarActor.h"
 
 // VTK includes
-#include <vtkObjectFactory.h>
-#include <vtkPolyDataMapper2D.h>
-#include <vtkScalarsToColors.h>
-#include <vtkTextMapper.h>
-#include <vtkTextProperty.h>
-#include <vtkViewport.h>
-#include <vtkLookupTable.h>
-#include <vtkSmartPointer.h>
-#include <vtkScalarBarActorInternal.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Rendering/Core/vtkPolyDataMapper2D.h>
+#include <vtk/Common/Core/vtkScalarsToColors.h>
+#include <vtk/Rendering/Core/vtkTextMapper.h>
+#include <vtk/Rendering/Core/vtkTextProperty.h>
+#include <vtk/Rendering/Core/vtkViewport.h>
+#include <vtk/Common/Core/vtkLookupTable.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/Rendering/Annotation/vtkScalarBarActorInternal.h>
 #include <vtksys/RegularExpression.hxx>
-#include <vtkTextActor.h>
+#include <vtk/Rendering/Core/vtkTextActor.h>
 
 #include <stdio.h> // for snprintf
 

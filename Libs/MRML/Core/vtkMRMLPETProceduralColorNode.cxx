@@ -1,9 +1,9 @@
 
-#include "vtkObjectFactory.h"
+#include "vtk/Common/Core/vtkObjectFactory.h"
 
 #include "vtkMRMLPETProceduralColorNode.h"
 
-#include "vtkColorTransferFunction.h"
+#include "vtk/Rendering/Core/vtkColorTransferFunction.h"
 
 //----------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLPETProceduralColorNode);

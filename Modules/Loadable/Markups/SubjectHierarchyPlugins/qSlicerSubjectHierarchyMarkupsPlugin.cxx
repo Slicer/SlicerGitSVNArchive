@@ -37,8 +37,8 @@
 #include "qMRMLNodeComboBox.h"
 
 // VTK includes
-#include <vtkObjectFactory.h>
-#include <vtkSmartPointer.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
 
 // Qt includes
 #include <QDebug>

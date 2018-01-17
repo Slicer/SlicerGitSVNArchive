@@ -31,8 +31,8 @@
 #include "vtkMRMLAbstractThreeDViewDisplayableManager.h"
 
 // VTK includes
-#include <vtkCollection.h>
-#include <vtkNew.h>
+#include <vtk/Common/Core/vtkCollection.h>
+#include <vtk/Common/Core/vtkNew.h>
 #ifdef Slicer_VTK_USE_QVTKOPENGLWIDGET
 #include <QVTKOpenGLWidget.h>
 #endif

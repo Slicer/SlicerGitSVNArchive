@@ -19,13 +19,13 @@ Version:   $Revision: 1.2 $
 #include "vtkOrientedGridTransform.h"
 
 // VTK includes
-#include <vtkCollection.h>
-#include <vtkGeneralTransform.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
-#include <vtkSmartPointer.h>
-#include <vtkStringArray.h>
-#include <vtkVersion.h>
+#include <vtk/Common/Core/vtkCollection.h>
+#include <vtk/Common/Transforms/vtkGeneralTransform.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/Common/Core/vtkStringArray.h>
+#include <vtk/Common/Core/vtkVersion.h>
 #include "vtksys/SystemTools.hxx"
 
 #include "vtkITKTransformConverter.h"

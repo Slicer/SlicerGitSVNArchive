@@ -31,7 +31,7 @@
 #include <vtkMRMLColorNode.h>
 
 // VTK includes
-#include <vtkScalarsToColors.h>
+#include <vtk/Common/Core/vtkScalarsToColors.h>
 
 //------------------------------------------------------------------------------
 class qMRMLSceneColorTableModelPrivate

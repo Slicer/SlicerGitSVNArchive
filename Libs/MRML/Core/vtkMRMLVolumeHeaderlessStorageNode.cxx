@@ -23,17 +23,17 @@ Version:   $Revision: 1.3 $
 
 // ITK includes
 #include "vtkITKImageWriter.h"
-#include <itkArchetypeSeriesFileNames.h>
+#include <itk/Modules/IO/ImageBase/include/itkArchetypeSeriesFileNames.h>
 
 // VTK includes
-#include <vtkCallbackCommand.h>
-#include <vtkImageChangeInformation.h>
-#include <vtkStringArray.h>
-#include <vtkImageReader2.h>
-#include <vtkImageAppend.h>
-#include <vtkImageFlip.h>
-#include <vtkNew.h>
-#include <vtkVersion.h>
+#include <vtk/Common/Core/vtkCallbackCommand.h>
+#include <vtk/Imaging/Core/vtkImageChangeInformation.h>
+#include <vtk/Common/Core/vtkStringArray.h>
+#include <vtk/IO/Image/vtkImageReader2.h>
+#include <vtk/Filters/Core/vtkImageAppend.h>
+#include <vtk/Imaging/Core/vtkImageFlip.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkVersion.h>
 
 //----------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLVolumeHeaderlessStorageNode);

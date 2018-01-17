@@ -31,7 +31,7 @@
 #include <vtkMRMLDoubleArrayNode.h>
 
 // VTK includes
-#include <vtkSmartPointer.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
 
 //-----------------------------------------------------------------------------
 class qSlicerDoubleArraysReaderPrivate

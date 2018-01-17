@@ -23,7 +23,7 @@
 
 // CTK includes
 #include <ctkPimpl.h>
-#include <vtkVersion.h>
+#include <vtk/Common/Core/vtkVersion.h>
 
 // qMRMLWidget includes
 #include "qMRMLWidget.h"

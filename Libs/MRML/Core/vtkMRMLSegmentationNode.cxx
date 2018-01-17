@@ -37,20 +37,20 @@
 #include <vtkMRMLScalarVolumeNode.h>
 
 // VTK includes
-#include <vtkBoundingBox.h>
-#include <vtkCallbackCommand.h>
-#include <vtkGeneralTransform.h>
-#include <vtkHomogeneousTransform.h>
-#include <vtkIntArray.h>
-#include <vtkLookupTable.h>
-#include <vtkMath.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
-#include <vtkPointData.h>
-#include <vtkSmartPointer.h>
-#include <vtkStringArray.h>
-#include <vtkMatrix4x4.h>
-#include <vtkTransform.h>
+#include <vtk/Common/DataModel/vtkBoundingBox.h>
+#include <vtk/Common/Core/vtkCallbackCommand.h>
+#include <vtk/Common/Transforms/vtkGeneralTransform.h>
+#include <vtk/Common/Transforms/vtkHomogeneousTransform.h>
+#include <vtk/Common/Core/vtkIntArray.h>
+#include <vtk/Common/Core/vtkLookupTable.h>
+#include <vtk/Common/Core/vtkMath.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/DataModel/vtkPointData.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/Common/Core/vtkStringArray.h>
+#include <vtk/Common/Math/vtkMatrix4x4.h>
+#include <vtk/Common/Transforms/vtkTransform.h>
 
 // STD includes
 #include <algorithm>

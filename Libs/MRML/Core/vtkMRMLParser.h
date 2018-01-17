@@ -21,7 +21,7 @@ class vtkMRMLNode;
 class vtkMRMLScene;
 
 // VTK includes
-#include "vtkXMLParser.h"
+#include "vtk/IO/XMLParser/vtkXMLParser.h"
 class vtkCollection;
 
 // STD includes

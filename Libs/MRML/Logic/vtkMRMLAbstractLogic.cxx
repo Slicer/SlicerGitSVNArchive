@@ -21,9 +21,9 @@
 #include "vtkMRMLScene.h"
 
 // VTK includes
-#include <vtkCallbackCommand.h>
-#include <vtkObjectFactory.h>
-#include <vtkSmartPointer.h>
+#include <vtk/Common/Core/vtkCallbackCommand.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
 
 // STD includes
 #include <cassert>

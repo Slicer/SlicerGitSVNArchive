@@ -26,7 +26,7 @@
 #include <vtkMRMLScene.h>
 
 /// VTK includes
-#include <vtkCollection.h>
+#include <vtk/Common/Core/vtkCollection.h>
 
 //-----------------------------------------------------------------------------
 class qSlicerIOManagerPrivate

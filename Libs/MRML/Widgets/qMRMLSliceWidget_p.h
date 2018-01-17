@@ -41,7 +41,7 @@
 #include "ui_qMRMLSliceWidget.h"
 
 // VTK include
-#include <vtkSmartPointer.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
 
 class vtkMRMLDisplayableManagerGroup;
 class QResizeEvent;

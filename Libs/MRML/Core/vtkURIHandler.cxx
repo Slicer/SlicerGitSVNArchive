@@ -3,7 +3,7 @@
 #include "vtkPermissionPrompter.h"
 
 // VTK includes
-#include <vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
 
 vtkStandardNewMacro ( vtkURIHandler );
 vtkCxxSetObjectMacro( vtkURIHandler, PermissionPrompter, vtkPermissionPrompter );

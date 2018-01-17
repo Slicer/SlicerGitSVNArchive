@@ -22,9 +22,9 @@ Version:   $Revision: 1.1.1.1 $
 #include "vtkMRMLScene.h"
 
 // VTK includes
-#include <vtkCommand.h>
-#include <vtkNew.h>
-#include <vtkStringArray.h>
+#include <vtk/Common/Core/vtkCommand.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkStringArray.h>
 #include <vtkURIHandler.h>
 
 // VTKSYS includes

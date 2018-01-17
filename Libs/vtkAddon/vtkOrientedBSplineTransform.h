@@ -29,7 +29,7 @@
 
 #include "vtkAddon.h"
 
-#include "vtkBSplineTransform.h"
+#include "vtk/Filters/Hybrid/vtkBSplineTransform.h"
 
 class VTK_ADDON_EXPORT vtkOrientedBSplineTransform : public vtkBSplineTransform
 {

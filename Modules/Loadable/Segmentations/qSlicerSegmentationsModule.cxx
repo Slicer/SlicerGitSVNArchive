@@ -63,7 +63,7 @@
 #include <QDebug>
 
 // DisplayableManager initialization
-#include <vtkAutoInit.h>
+#include <vtk/Common/Core/vtkAutoInit.h>
 VTK_MODULE_INIT(vtkSlicerSegmentationsModuleMRMLDisplayableManager)
 
 //-----------------------------------------------------------------------------

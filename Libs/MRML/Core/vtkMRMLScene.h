@@ -23,8 +23,8 @@ Version:   $Revision: 1.18 $
 #include "vtkMRML.h"
 
 // VTK includes
-#include <vtkObject.h>
-#include <vtkSmartPointer.h>
+#include <vtk/Common/Core/vtkObject.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
 
 // STD includes
 #include <list>

@@ -22,25 +22,25 @@
 #include <vtkMRMLTransformNode.h>
 
 // VTK includes
-#include <vtkAbstractWidget.h>
-#include <vtkActor2D.h>
-#include <vtkCubeSource.h>
-#include <vtkCutter.h>
-#include <vtkHandleRepresentation.h>
-#include <vtkMath.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
-#include <vtkObject.h>
-#include <vtkPickingManager.h>
-#include <vtkPlane.h>
-#include <vtkPolyData.h>
-#include <vtkPolyDataMapper2D.h>
-#include <vtkProperty.h>
-#include <vtkRenderer.h>
+#include <vtk/Interaction/Widgets/vtkAbstractWidget.h>
+#include <vtk/Rendering/Core/vtkActor2D.h>
+#include <vtk/Filters/Sources/vtkCubeSource.h>
+#include <vtk/Filters/Core/vtkCutter.h>
+#include <vtk/Interaction/Widgets/vtkHandleRepresentation.h>
+#include <vtk/Common/Core/vtkMath.h>
+#include <vtk/Common/Core/vtkNew.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Common/Core/vtkObject.h>
+#include <vtk/Rendering/Core/vtkPickingManager.h>
+#include <vtk/Common/DataModel/vtkPlane.h>
+#include <vtk/Common/DataModel/vtkPolyData.h>
+#include <vtk/Rendering/Core/vtkPolyDataMapper2D.h>
+#include <vtk/Rendering/Core/vtkProperty.h>
+#include <vtk/Rendering/Core/vtkRenderer.h>
 // for picking
-#include <vtkRenderWindowInteractor.h>
-#include <vtkTransform.h>
-#include <vtkTransformPolyDataFilter.h>
+#include <vtk/Rendering/Core/vtkRenderWindowInteractor.h>
+#include <vtk/Common/Transforms/vtkTransform.h>
+#include <vtk/Filters/General/vtkTransformPolyDataFilter.h>
 
 // std includes
 #include <string>

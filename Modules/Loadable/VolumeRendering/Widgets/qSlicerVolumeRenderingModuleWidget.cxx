@@ -44,12 +44,12 @@
 #include "vtkMRMLVolumePropertyNode.h"
 
 // VTK includes
-#include <vtkImageData.h>
-#include <vtkColorTransferFunction.h>
-#include <vtkPiecewiseFunction.h>
-#include <vtkVector.h>
-#include <vtkVolumeProperty.h>
-#include <vtkWeakPointer.h>
+#include <vtk/Common/DataModel/vtkImageData.h>
+#include <vtk/Rendering/Core/vtkColorTransferFunction.h>
+#include <vtk/Common/DataModel/vtkPiecewiseFunction.h>
+#include <vtk/Common/DataModel/vtkVector.h>
+#include <vtk/Rendering/Core/vtkVolumeProperty.h>
+#include <vtk/Common/Core/vtkWeakPointer.h>
 
 // STD includes
 #include <cassert>

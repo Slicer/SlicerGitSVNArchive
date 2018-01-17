@@ -22,17 +22,17 @@
 #include <vtkMRMLScene.h>
 
 // VTK includes
-#include <vtkAbstractWidget.h>
-#include <vtkHandleRepresentation.h>
-#include <vtkPointHandleRepresentation2D.h>
-#include <vtkMath.h>
-#include <vtkInteractorEventRecorder.h>
-#include <vtkObjectFactory.h>
-#include <vtkProperty.h>
-#include <vtkProperty2D.h>
-#include <vtkRenderer.h>
-#include <vtkSmartPointer.h>
-#include <vtkTextProperty.h>
+#include <vtk/Interaction/Widgets/vtkAbstractWidget.h>
+#include <vtk/Interaction/Widgets/vtkHandleRepresentation.h>
+#include <vtk/Interaction/Widgets/vtkPointHandleRepresentation2D.h>
+#include <vtk/Common/Core/vtkMath.h>
+#include <vtk/Rendering/Core/vtkInteractorEventRecorder.h>
+#include <vtk/Common/Core/vtkObjectFactory.h>
+#include <vtk/Rendering/Core/vtkProperty.h>
+#include <vtk/Rendering/Core/vtkProperty2D.h>
+#include <vtk/Rendering/Core/vtkRenderer.h>
+#include <vtk/Common/Core/vtkSmartPointer.h>
+#include <vtk/Rendering/Core/vtkTextProperty.h>
 
 // STD includes
 #include <string>
