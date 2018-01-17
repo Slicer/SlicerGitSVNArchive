@@ -596,6 +596,7 @@ def getNodes(pattern="*", scene=None, useLists=False):
   If multiple node share the same name, using ``useLists=False`` (default behavior)
   returns only the last node with that name. If ``useLists=True``, it returns
   a dictionary of lists of nodes.
+  Throws ValueError exception if node is not found that matches the specified pattern.
   """
   import slicer, collections, fnmatch
   nodes = collections.OrderedDict()
@@ -612,6 +613,8 @@ def getNodes(pattern="*", scene=None, useLists=False):
         nodes.setdefault(node.GetName(), []).append(node)
       else:
         nodes[node.GetName()] = node
+  if not nodes:
+    raise ValueError("could not find nodes in the scene by name or id '%s'" % pattern)
   return nodes
 
 def getNode(pattern="*", index=0, scene=None):
