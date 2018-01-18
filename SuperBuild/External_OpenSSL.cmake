@@ -46,14 +46,17 @@ if(NOT DEFINED OPENSSL_LIBRARIES
   #------------------------------------------------------------------------------
   if(UNIX)
 
-    set(OPENSSL_DOWNLOAD_VERSION "1.0.1e" CACHE STRING "Version of OpenSSL source package to download")
-    set_property(CACHE OPENSSL_DOWNLOAD_VERSION PROPERTY STRINGS "1.0.1e" "1.0.1l")
+    set(OPENSSL_DOWNLOAD_VERSION "1.0.2m" CACHE STRING "Version of OpenSSL source package to download")
+    set_property(CACHE OPENSSL_DOWNLOAD_VERSION PROPERTY STRINGS "1.0.1e" "1.0.1l" "1.0.2m")
 
     set(OpenSSL_1.0.1e_URL http://packages.kitware.com/download/item/6172/openssl-1.0.1e.tar.gz)
     set(OpenSSL_1.0.1e_MD5 66bf6f10f060d561929de96f9dfe5b8c)
 
     set(OpenSSL_1.0.1l_URL http://packages.kitware.com/download/item/7669/openssl-1.0.1l.tar.gz)
     set(OpenSSL_1.0.1l_MD5 cdb22925fc9bc97ccbf1e007661f2aa6)
+
+    set(OpenSSL_1.0.2m_URL https://packages.kitware.com/download/bitstream/10460/openssl-1.0.2m.tar.gz)
+    set(OpenSSL_1.0.2m_MD5 10e9e37f492094b9ef296f68f24a7666)
 
     if(NOT DEFINED OpenSSL_${OPENSSL_DOWNLOAD_VERSION}_URL)
       message(FATAL_ERROR "There is no source version of OpenSSL ${OPENSSL_DOWNLOAD_VERSION} available.
