@@ -38,3 +38,6 @@ description This is an example of extension having a SuperBuild structure.
 
 # Space separated list of urls
 screenshoturls http://wiki.slicer.org/slicerWiki/images/b/b3/Slicer-r19441-SuperBuildLoadableExtensionTemplate-screenshot.png
+
+# Space separated list of tags indicating build system features that are required to build this extension
+tags        NA

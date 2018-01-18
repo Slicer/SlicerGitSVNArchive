@@ -97,6 +97,22 @@ foreach(EXTENSION_NAME ${EXTENSION_LIST})
   set(EXTENSION_SCREENSHOTURLS ${EXTENSION_EXT_SCREENSHOTURLS})
   set(EXTENSION_ENABLED ${EXTENSION_EXT_ENABLED})
   set(EXTENSION_DEPENDS ${EXTENSION_EXT_DEPENDS})
+  set(EXTENSION_TAGS ${EXTENSION_EXT_TAGS})
+
+  # Compare EXTENSION_TAGS (needed by extension) to CTEST_BUILDSYSTEM_TAGS (available on this build machine)
+  set(_skip OFF)
+  foreach(_tag ${EXTENSION_TAGS})
+    list(FIND CTEST_BUILDSYSTEM_TAGS ${_tag} _tag_found)
+    if(_tag_found EQUAL -1)
+      set(_skip_tag ${_tag})
+      set(_skip ON)
+    endif()
+  endforeach()
+
+  if(_skip)
+    message("${EXTENSION_NAME} skipped due to unavailable build system feature: ${_skip_tag}")
+    continue()
+  endif()
 
   # Ensure extensions depending on this extension can lookup the corresponding
   # _DIR and _BUILD_SUBDIRECTORY variables.

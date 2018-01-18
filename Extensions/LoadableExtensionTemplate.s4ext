@@ -42,3 +42,6 @@ screenshoturls http://www.example.com/Slicer/Extensions/LoadableExtensionTemplat
 
 # 0 or 1: Define if the extension should be enabled after its installation.
 enabled 1
+
+# Space separated list of tags indicating build system features that are required to build this extension
+tags        NA

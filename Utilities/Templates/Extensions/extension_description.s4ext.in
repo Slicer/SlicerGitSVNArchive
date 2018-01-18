@@ -42,3 +42,6 @@ screenshoturls ${MY_EXTENSION_SCREENSHOTURLS}
 
 # 0 or 1: Define if the extension should be enabled after its installation.
 enabled ${MY_EXTENSION_ENABLED}
+
+# Space separated list of tags indicating build system features that are required to build this extension
+tags ${MY_EXTENSION_TAGS}

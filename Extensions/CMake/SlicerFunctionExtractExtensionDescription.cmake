@@ -43,6 +43,7 @@ endif()
 #  <var-prefix>_EXT_DESCRIPTION - one line description
 #  <var-prefix>_EXT_SCREENSHOTURLS - space separated list of urls
 #  <var-prefix>_EXT_ENABLED - indicate if the extension should be enabled after its installation (default is 1)
+#  <var-prefix>_EXT_TAGS - a list of tags used to indicate build system requirements
 #
 
 function(slicerFunctionExtractExtensionDescription)
@@ -90,7 +91,7 @@ function(slicerFunctionExtractExtensionDescription)
     string(REGEX REPLACE "[ \t\r\n]+$" "" str "${str}")
     set(ext_${upper_case_token} ${str})
 
-    if(${token} STREQUAL "depends")
+    if(${token} STREQUAL "depends" OR ${token} STREQUAL "tags")
       string(REGEX REPLACE "^NA$" "" ext_${upper_case_token} "${ext_${upper_case_token}}")
       string(REPLACE " " ";" ext_${upper_case_token} "${ext_${upper_case_token}}")
     endif()
@@ -128,6 +129,7 @@ function(slicer_extract_extension_description_test)
     SCREENSHOTURLS
     ENABLED
     STATUS
+    TAGS
     )
 
   set(expected_BUILD_SUBDIRECTORY ".")
@@ -142,6 +144,7 @@ function(slicer_extract_extension_description_test)
   set(expected_SCMURL "git://github.com/jcfr/SlicerToKiwiExporter.git")
   set(expected_SCREENSHOTURLS "http://www.slicer.org/slicerWiki/images/9/9e/SlicerToKiwiExporter_Kiwiviewer_8.PNG http://www.slicer.org/slicerWiki/images/a/ab/SlicerToKiwiExporter_Kiwiviewer_9.PNG http://www.slicer.org/slicerWiki/images/9/9a/SlicerToKiwiExporter_SaveDialog_Select-file-format_1.png")
   set(expected_STATUS "")
+  set(expected_TAGS "")
 
   # Extract extension description without depends
   set(test_s4ext ${CMAKE_CURRENT_BINARY_DIR}/slicer_extract_extension_description_without_depends_test.s4ext)
@@ -158,7 +161,8 @@ scm ${expected_SCM}
 scmrevision ${expected_SCMREVISION}
 scmurl ${expected_SCMURL}
 screenshoturls ${expected_SCREENSHOTURLS}
-status ${expected_STATUS}")
+status ${expected_STATUS}
+tags ${expected_TAGS}")
 
   slicerFunctionExtractExtensionDescription(
     EXTENSION_FILE ${test_s4ext}
@@ -196,7 +200,8 @@ scm ${expected_SCM}
 scmrevision ${expected_SCMREVISION}
 scmurl ${expected_SCMURL}
 screenshoturls ${expected_SCREENSHOTURLS}
-status ${expected_STATUS}")
+status ${expected_STATUS}
+tags ${expected_TAGS}")
 
   slicerFunctionExtractExtensionDescription(
     EXTENSION_FILE ${test_s4ext}

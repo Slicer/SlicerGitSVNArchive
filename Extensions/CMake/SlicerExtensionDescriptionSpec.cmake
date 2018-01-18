@@ -135,6 +135,11 @@ _define_metadata("STATUS"
   0
   "")
 
+_define_metadata("TAGS"
+  "Space separated list of tags indicating build system requirements"
+  0
+  "NA")
+
 set(Slicer_EXT_REQUIRED_METADATA_NAMES )
 set(Slicer_EXT_OPTIONAL_METADATA_NAMES )
 foreach(name IN LISTS Slicer_EXT_METADATA_NAMES)
@@ -215,6 +220,7 @@ function(slicer_extension_description_spec_defaults_test)
     SCREENSHOTURLS
     ENABLED
     STATUS
+    TAGS
     )
   foreach(name IN LISTS required optonal)
     foreach(varsuffix IN ITEMS "REQUIRED" "DEFAULT" "DESCRIPTION")

@@ -142,6 +142,7 @@ class ExtensionDescription(object):
       self._setProjectAttribute("enabled", p, default="1")
       self._setProjectAttribute("depends", p, default="NA")
       self._setProjectAttribute("build_subdirectory", p, default=".")
+      self._setProjectAttribute("tags", p, default="NA")
 
       self._setProjectAttribute("iconurl", p)
       self._setProjectAttribute("screenshoturls", p)
@@ -262,6 +263,7 @@ class ExtensionDescription(object):
     dictio["MY_EXTENSION_DESCRIPTION"] = getattr(self, "description")
     dictio["MY_EXTENSION_SCREENSHOTURLS"] = getattr(self, "screenshoturls")
     dictio["MY_EXTENSION_ENABLED"] = getattr(self, "enabled")
+    dictio["MY_EXTENSION_TAGS"] = getattr(self, "tags")
 
     if self.DESCRIPTION_FILE_TEMPLATE is not None:
       extDescriptFile = open(self.DESCRIPTION_FILE_TEMPLATE,'r')

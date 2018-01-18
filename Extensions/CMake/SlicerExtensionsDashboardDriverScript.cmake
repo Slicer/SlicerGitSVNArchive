@@ -203,6 +203,7 @@ setIfNotDefined(MIDAS_PACKAGE_URL "http://slicer.kitware.com/midas3")
 setIfNotDefined(MIDAS_PACKAGE_EMAIL "MIDAS_PACKAGE_EMAIL-NOTDEFINED" OBFUSCATE)
 setIfNotDefined(MIDAS_PACKAGE_API_KEY "MIDAS_PACKAGE_API_KEY-NOTDEFINED" OBFUSCATE)
 setIfNotDefined(CTEST_DROP_SITE "slicer.cdash.org")
+setIfNotDefined(CTEST_BUILDSYSTEM_TAGS "")
 
 #-----------------------------------------------------------------------------
 # The following variable can be used while testing the driver scripts
@@ -412,6 +413,7 @@ MIDAS_PACKAGE_EMAIL:STRING=${MIDAS_PACKAGE_EMAIL}
 MIDAS_PACKAGE_API_KEY:STRING=${MIDAS_PACKAGE_API_KEY}
 Slicer_DIR:PATH=${Slicer_DIR}
 Slicer_UPLOAD_EXTENSIONS:BOOL=${Slicer_UPLOAD_EXTENSIONS}
+CTEST_BUILDSYSTEM_TAGS:STRING=${CTEST_BUILDSYSTEM_TAGS}
 ${Slicer_EXTENSION_DESCRIPTION_DIR_CMAKECACHE}
 ${ADDITIONAL_CMAKECACHE_OPTION}
 ")
