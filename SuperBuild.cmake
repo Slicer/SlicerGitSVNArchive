@@ -121,10 +121,6 @@ set(Slicer_DEPENDENCIES
 
 set(CURL_ENABLE_SSL ${Slicer_USE_PYTHONQT_WITH_OPENSSL})
 
-if(Slicer_USE_OpenIGTLink)
-  list(APPEND Slicer_DEPENDENCIES OpenIGTLink)
-endif()
-
 if(Slicer_USE_SimpleITK)
   list(APPEND Slicer_DEPENDENCIES SimpleITK)
 endif()
@@ -216,15 +212,6 @@ Slicer_Remote_Add(jqPlot
   LABELS FIND_PACKAGE
   )
 list(APPEND Slicer_REMOTE_DEPENDENCIES jqPlot)
-
-Slicer_Remote_Add(OpenIGTLinkIF
-  GIT_REPOSITORY ${git_protocol}://github.com/Slicer/OpenIGTLinkIF.git
-  GIT_TAG 0266aa27ad19a00f8d2b1c04736b9f3d3fb25aee
-  OPTION_NAME Slicer_BUILD_OpenIGTLinkIF
-  OPTION_DEPENDS "Slicer_BUILD_QTLOADABLEMODULES;Slicer_USE_OpenIGTLink"
-  LABELS REMOTE_MODULE
-  )
-list_conditional_append(Slicer_BUILD_OpenIGTLinkIF Slicer_REMOTE_DEPENDENCIES OpenIGTLinkIF)
 
 option(Slicer_BUILD_MULTIVOLUME_SUPPORT "Build MultiVolume support." ON)
 mark_as_advanced(Slicer_BUILD_MULTIVOLUME_SUPPORT)
