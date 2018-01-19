@@ -139,10 +139,7 @@ set(CTEST_CUSTOM_WARNING_EXCEPTION
 
   # EMSegment
   "warning: the use of .mktemp. is dangerous, better use .mkstemp."
-
-  # Libs/OpenIGTLink
-  "(OpenIGTLink|openigtlink).[Ss]ource.igtl"
-
+  
   # Libs/tclap
   "tclap.include.tclap.*Arg.h.*warning C4512"
 
