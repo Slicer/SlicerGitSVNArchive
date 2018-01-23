@@ -544,8 +544,8 @@ macro(slicerMacroBuildApplication)
       if(${Slicer_REQUIRED_QT_VERSION} VERSION_GREATER_EQUAL 5 AND NOT QT_DESIGNER_EXECUTABLE)
         find_package(Qt5 COMPONENTS Designer QUIET)
         if(Qt5Designer_FOUND)
-          # This is not perfect, but I cannot find a way for the CMake configuration to provide me with a path to the exe
-          # I'd prefer it if find_package(Qt5...) populated a variable like Qt5Designer_EXECUTABLE or similar.
+          # Since Qt only provides a CMake module to find the designer library, we work
+          # around this limitation by deducting the path of the designer executable.
           if(EXISTS ${_qt5Designer_install_prefix}/bin/designer${CMAKE_EXECUTABLE_SUFFIX}
             set(QT_DESIGNER_EXECUTABLE ${_qt5Designer_install_prefix}/bin/designer${CMAKE_EXECUTABLE_SUFFIX})
           endif()
