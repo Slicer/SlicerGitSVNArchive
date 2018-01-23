@@ -540,7 +540,19 @@ macro(slicerMacroBuildApplication)
       # Define list of extra 'application to launch' to associate with the launcher
       # within the build tree
       set(extraApplicationToLaunchListForBuildTree)
-      if(EXISTS "${QT_DESIGNER_EXECUTABLE}")
+
+      if(${Slicer_REQUIRED_QT_VERSION} VERSION_GREATER_EQUAL 5 AND NOT QT_DESIGNER_EXECUTABLE)
+        find_package(Qt5 COMPONENTS Designer QUIET)
+        if(Qt5Designer_FOUND)
+          # This is not perfect, but I cannot find a way for the CMake configuration to provide me with a path to the exe
+          # I'd prefer it if find_package(Qt5...) populated a variable like Qt5Designer_EXECUTABLE or similar.
+          if(EXISTS ${_qt5Designer_install_prefix}/bin/designer${CMAKE_EXECUTABLE_SUFFIX}
+            set(QT_DESIGNER_EXECUTABLE ${_qt5Designer_install_prefix}/bin/designer${CMAKE_EXECUTABLE_SUFFIX})
+          endif()
+        endif()
+      endif()
+
+      if(EXISTS ${QT_DESIGNER_EXECUTABLE})
         ctkAppLauncherAppendExtraAppToLaunchToList(
           LONG_ARG designer
           HELP "Start Qt designer using Slicer plugins"
