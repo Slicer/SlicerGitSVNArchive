@@ -422,6 +422,11 @@ foreach(name IN ITEMS
   endif()
 endforeach()
 
+# Respect top-level setting to request creation of compile_commands.json
+if(DEFINED CMAKE_EXPORT_COMPILE_COMMANDS)
+  list(APPEND EXTERNAL_PROJECT_OPTIONAL_ARGS -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=${CMAKE_EXPORT_COMPILE_COMMANDS})
+endif()
+
 #------------------------------------------------------------------------------
 # Slicer_EXTENSION_SOURCE_DIRS
 #------------------------------------------------------------------------------
