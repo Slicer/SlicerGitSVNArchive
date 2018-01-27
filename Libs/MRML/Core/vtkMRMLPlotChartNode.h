@@ -79,6 +79,15 @@ class VTK_MRML_EXPORT vtkMRMLPlotChartNode : public vtkMRMLNode
     PlotModifiedEvent = 17000,
     };
 
+  /// Properties used by SetPropertyToAllPlots and GetPropertyFromAllPlots methods.
+  enum PlotDataNodeProperty
+  {
+    PlotType,
+    PlotXColumnName,
+    PlotYColumnName,
+    PlotMarkerStyle
+  };
+
   //----------------------------------------------------------------
   /// Access methods
   //----------------------------------------------------------------
@@ -200,18 +209,15 @@ class VTK_MRML_EXPORT vtkMRMLPlotChartNode : public vtkMRMLNode
   /// \li  "AxisLabelFontSize" - default: "12"
   /// \li  "LookupTable" colorNodeID default: NULL
   ///
-  /// Further attributes of PlotChartNode are connected with
-  /// the PlotDataProperties. If they are have value "Custom"
-  /// then each PlotDataNode has its individual value. If another
-  /// value is chosen, all the PlotDataNodes referenced by the
-  /// PlotChartNode will be updated with the new value.
-  ///
-  /// \li  "Type" - "Custom", "Line", "Scatter", "Bar"
-  /// \li  "XAxis" - Set XAxis "Custom", "..." (list of Columns)
-  /// \li  "Markers" - show markers "Custom", "Cross", "Plus", "Square", "Circle", "Diamond"
-  ///
 
   virtual const char* GetPlotDataNodeReferenceRole();
+
+  /// Helper function to set common properties for all associated plot data nodes
+  void SetPropertyToAllPlots(PlotDataNodeProperty plotProperty, const char* value);
+
+  /// Helper function to get common properties from all associated plot data nodes.
+  /// If property is not the same in all plots then empty string is returned.
+  std::string GetPropertyFromAllPlots(PlotDataNodeProperty plotProperty);
 
  protected:
   //----------------------------------------------------------------

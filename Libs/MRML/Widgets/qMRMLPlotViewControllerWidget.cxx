@@ -226,6 +226,7 @@ void qMRMLPlotViewControllerWidgetPrivate::onPlotChartNodeSelected(vtkMRMLNode *
   q->updateWidgetFromMRML();
 }
 
+
 // --------------------------------------------------------------------------
 void qMRMLPlotViewControllerWidgetPrivate::onPlotDataNodesSelected()
 {

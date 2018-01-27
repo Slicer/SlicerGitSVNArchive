@@ -333,3 +333,120 @@ int vtkMRMLPlotChartNode::GetPlotIDs(std::vector<std::string> &plotDataNodeIDs)
 
   return static_cast<int>(plotDataNodeIDs.size());
 }
+
+// --------------------------------------------------------------------------
+void vtkMRMLPlotChartNode::SetPropertyToAllPlots(PlotDataNodeProperty plotProperty, const char* value)
+{
+  if (!this->GetScene())
+    {
+    vtkErrorMacro("vtkMRMLPlotChartNode::SetPropertyToAllPlots failed: invalid scene");
+    return;
+    }
+
+  int numPlotDataNodes = this->GetNumberOfNodeReferences(this->GetPlotDataNodeReferenceRole());
+
+  std::vector<int> plotDataNodesWasModifying(numPlotDataNodes, 0);
+
+  // Update all plot nodes and invoke modified events at the end
+
+  for (int plotIndex = 0; plotIndex < numPlotDataNodes; plotIndex++)
+    {
+    vtkMRMLPlotDataNode *plotDataNode = vtkMRMLPlotDataNode::SafeDownCast(this->GetNthNodeReference(this->GetPlotDataNodeReferenceRole(), plotIndex));
+    if (!plotDataNode)
+      {
+      continue;
+      }
+    plotDataNodesWasModifying[plotIndex] = plotDataNode->StartModify();
+
+    if (plotProperty == PlotType)
+      {
+      plotDataNode->SetType(value);
+      }
+    else if (plotProperty == PlotXColumnName)
+      {
+      plotDataNode->SetXColumnName(value);
+      }
+    else if (plotProperty == PlotYColumnName)
+      {
+      plotDataNode->SetYColumnName(value);
+      }
+    else if (plotProperty == PlotMarkerStyle)
+      {
+      plotDataNode->SetMarkerStyle(plotDataNode->GetMarkersStyleFromString(value));
+      }
+    }
+
+  for (int plotIndex = 0; plotIndex < numPlotDataNodes; plotIndex++)
+    {
+    vtkMRMLPlotDataNode *plotDataNode = vtkMRMLPlotDataNode::SafeDownCast(this->GetNthNodeReference(this->GetPlotDataNodeReferenceRole(), plotIndex));
+    if (!plotDataNode)
+      {
+      continue;
+      }
+    plotDataNode->EndModify(plotDataNodesWasModifying[plotIndex]);
+  }
+}
+
+// --------------------------------------------------------------------------
+std::string vtkMRMLPlotChartNode::GetPropertyFromAllPlots(PlotDataNodeProperty plotProperty)
+{
+  if (!this->GetScene())
+    {
+    vtkErrorMacro("vtkMRMLPlotChartNode::GetPropertyFromAllPlots failed: invalid scene");
+    return "";
+    }
+
+  int numPlotDataNodes = this->GetNumberOfNodeReferences(this->GetPlotDataNodeReferenceRole());
+
+  if (numPlotDataNodes < 1)
+    {
+    return "";
+    }
+
+  std::string commonPropertyValue;
+  bool commonPropertyDefined = false;
+
+  for (int plotIndex = 0; plotIndex < numPlotDataNodes; plotIndex++)
+    {
+    vtkMRMLPlotDataNode *plotDataNode = vtkMRMLPlotDataNode::SafeDownCast(this->GetNthNodeReference(this->GetPlotDataNodeReferenceRole(), plotIndex));
+    if (!plotDataNode)
+      {
+      continue;
+      }
+
+    // Get property value
+    std::string propertyValue;
+    if (plotProperty == PlotType)
+      {
+      propertyValue = plotDataNode->GetPlotTypeAsString(plotDataNode->GetType());
+      }
+    else if (plotProperty == PlotXColumnName)
+      {
+      propertyValue = plotDataNode->GetXColumnName();
+      }
+    else if (plotProperty == PlotYColumnName)
+      {
+      propertyValue = plotDataNode->GetYColumnName();
+      }
+    else if (plotProperty == PlotMarkerStyle)
+      {
+      propertyValue = plotDataNode->GetMarkersStyleAsString(plotDataNode->GetMarkerStyle());
+      }
+
+    if (commonPropertyDefined)
+      {
+      if (propertyValue != commonPropertyValue)
+        {
+        // not all plot nodes have the same property value
+        return "";
+        }
+      }
+    else
+      {
+      commonPropertyDefined = true;
+      commonPropertyValue = propertyValue;
+      }
+    }
+
+  return commonPropertyValue;
+}
