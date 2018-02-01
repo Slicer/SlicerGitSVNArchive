@@ -78,6 +78,9 @@ public slots:
   /// Set the current \a viewNode to observe.
   void setMRMLPlotViewNode(vtkMRMLPlotViewNode* newPlotViewNode);
 
+  /// Change axis limits to show all content.
+  void fitToContent();
+
 signals:
 
   /// When designing custom qMRMLWidget in the designer, you can connect the

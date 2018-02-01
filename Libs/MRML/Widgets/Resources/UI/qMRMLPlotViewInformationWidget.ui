@@ -444,17 +444,22 @@
         </property>
         <item>
          <property name="text">
-          <string>Line</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
           <string>Scatter</string>
          </property>
         </item>
         <item>
          <property name="text">
           <string>Bar</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Pie</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Box</string>
          </property>
         </item>
        </widget>

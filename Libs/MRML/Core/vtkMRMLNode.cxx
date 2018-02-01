@@ -1070,6 +1070,30 @@ const char * vtkMRMLNode::URLDecodeString(const char *inString)
   return (this->GetTempURLString());
 }
 
+//----------------------------------------------------------------------------
+std::string vtkMRMLNode::XMLAttributeEncodeString(const std::string& inString)
+{
+  std::string outString = inString;
+  vtksys::SystemTools::ReplaceString(outString, "&", "&amp;");
+  vtksys::SystemTools::ReplaceString(outString, "\"", "&quot;");
+  vtksys::SystemTools::ReplaceString(outString, "'", "&apos;");
+  vtksys::SystemTools::ReplaceString(outString, "<", "&lt;");
+  vtksys::SystemTools::ReplaceString(outString, ">", "&gt;");
+  return outString;
+}
+
+//----------------------------------------------------------------------------
+std::string vtkMRMLNode::XMLAttributeDecodeString(const std::string& inString)
+{
+  std::string outString = inString;
+  vtksys::SystemTools::ReplaceString(outString, "&quot;", "\"");
+  vtksys::SystemTools::ReplaceString(outString, "&apos;", "'");
+  vtksys::SystemTools::ReplaceString(outString, "&lt;", "<");
+  vtksys::SystemTools::ReplaceString(outString, "&gt;", ">");
+  vtksys::SystemTools::ReplaceString(outString, "&amp;", "&");
+  return outString;
+}
+
 //// Reference API
 
 //-----------------------------------------------------------

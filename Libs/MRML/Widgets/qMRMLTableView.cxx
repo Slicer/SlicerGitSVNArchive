@@ -547,6 +547,11 @@ void qMRMLTableView::plotSelection()
     selectionNode->SetActivePlotChartID(plotChartNode->GetID());
     }
 
+  std::string plotType;
+  plotChartNode->GetPropertyFromAllPlotDataNodes(vtkMRMLPlotChartNode::PlotType, plotType);
+  std::string plotMarkerStyle;
+  plotChartNode->GetPropertyFromAllPlotDataNodes(vtkMRMLPlotChartNode::PlotMarkerStyle, plotMarkerStyle);
+
   // Remove columns/plots not selected from plotChartNode
   plotChartNode->RemoveAllPlotDataNodeIDs();
 
@@ -554,7 +559,7 @@ void qMRMLTableView::plotSelection()
     {
     std::string yColumnName = tableNode->GetColumnName(*columnIndexIt);
 
-    // Check if there is already a PlotDataNode for this Column and avoid duplication
+    // Check if there is already a PlotDataNode that has the same name as this Column and reuse that to avoid node duplication
     vtkSmartPointer<vtkCollection> colPlots = vtkSmartPointer<vtkCollection>::Take(
       this->mrmlScene()->GetNodesByClassByName("vtkMRMLPlotDataNode", yColumnName.c_str()));
     if (colPlots == NULL)
@@ -592,10 +597,13 @@ void qMRMLTableView::plotSelection()
       }
 
     // Set the type of the PlotDataNode
-    const char* Type = plotChartNode->GetAttribute("Type");
-    if (strcmp(Type, "Custom"))
+    if (!plotType.empty())
       {
-      plotDataNode->SetType(plotDataNode->GetPlotTypeFromString(Type));
+      plotDataNode->SetPlotType(plotDataNode->GetPlotTypeFromString(plotType.c_str()));
+      }
+    if (!plotMarkerStyle.empty())
+      {
+      plotDataNode->SetMarkerStyle(plotDataNode->GetMarkerStyleFromString(plotMarkerStyle.c_str()));
       }
 
     // Add the reference of the PlotDataNode in the active PlotChartNode

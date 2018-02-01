@@ -79,53 +79,51 @@ class VTK_MRML_EXPORT vtkMRMLPlotChartNode : public vtkMRMLNode
     PlotModifiedEvent = 17000,
     };
 
+  /// Properties used by SetPropertyToAllPlotDataNodes() and GetPropertyFromAllPlotDataNodes() methods.
+  enum PlotDataNodeProperty
+  {
+    PlotType,
+    PlotXColumnName,
+    PlotYColumnName,
+    PlotMarkerStyle
+  };
+
   //----------------------------------------------------------------
   /// Access methods
   //----------------------------------------------------------------
 
   ///
-  /// Convenience method that sets the first plot node ID.
-  /// \sa SetAndObserverNthPlotDataNodeID(int, const char*)
-  void SetAndObservePlotDataNodeID(const char *plotDataNodeID);
+  /// Convenience method that returns the ID of the first plot data node in the chart.
+  /// \sa GetNthPlotDataNodeID(int), GetPlotDataNode()
+  const char *GetPlotDataNodeID();
 
   ///
-  /// Convenience method that adds a plot node ID at the end of the list.
-  /// \sa SetAndObserverNthPlotDataNodeID(int, const char*)
-  void AddAndObservePlotDataNodeID(const char *plotDataNodeID);
+  /// Convenience method that returns the first plot data node.
+  /// \sa GetNthPlotDataNode(int), GetPlotDataNodeID()
+  vtkMRMLPlotDataNode* GetPlotDataNode();
 
   ///
-  /// Convenience method that removes the plot node ID from the list.
-  /// \sa SetAndObserverNthPlotDataNodeID(int, const char*)
-  void RemovePlotDataNodeID(const char *plotDataNodeID);
+  /// Return the ID of n-th plot data node ID. Or 0 if no such node exist.
+  const char *GetNthPlotDataNodeID(int n);
 
   ///
-  /// Convenience method that removes the Nth plot node ID from the list.
-  /// \sa SetAndObserverNthPlotDataNodeID(int, const char*)
-  void RemoveNthPlotDataNodeID(int n);
+  /// Get associated plot data node. Can be 0 in temporary states; e.g. if
+  /// the plot node has no scene, or if the associated plot is not
+  /// yet into the scene.
+  vtkMRMLPlotDataNode* GetNthPlotDataNode(int n);
 
   ///
-  /// Remove all plot node IDs and associated plot nodes.
-  void RemoveAllPlotDataNodeIDs();
+  /// Return the index of the Nth plot node ID.
+  /// If not found, it returns -1.
+  int GetPlotDataNodeIndexFromID(const char* plotDataNodeID);
 
   ///
-  /// Set and observe the Nth plot node ID in the list.
-  /// If n is larger than the number of plot nodes, the plot node ID
-  /// is added at the end of the list. If PlotDataNodeID is 0, the node ID is
-  /// removed from the list.
-  /// When a node ID is set (added or changed), its corresponding node is
-  /// searched (slow) into the scene and cached for fast future access.
-  /// It is possible however that the node is not yet into the scene (due to
-  /// some temporary state (at loading time for example). UpdateScene() can
-  /// later be called to retrieve the plot nodes from the scene
-  /// (automatically done when loading a scene). Get(Nth)PlotDataNode() also
-  /// scan the scene if the node was not yet cached.
-  /// \sa SetAndObservePlotDataNodeID(const char*),
-  /// AddAndObservePlotDataNodeID(const char *), RemoveNthPlotDataNodeID(int)
-  void SetAndObserveNthPlotDataNodeID(int n, const char *plotDataNodeID);
+  /// Get IDs of all associated plot data nodes.
+  virtual int GetPlotDataNodeIDs(std::vector<std::string> &plotDataNodeIDs);
 
   ///
-  /// Return true if PlotDataNodeID is in the plot node ID list.
-  bool HasPlotDataNodeID(const char* plotDataNodeID);
+  /// Get names of all associated plot data nodes.
+  virtual int GetPlotDataNodeNames(std::vector<std::string> &plotDataNodeNames);
 
   ///
   /// Return the number of plot node IDs (and plot nodes as they always
@@ -133,99 +131,125 @@ class VTK_MRML_EXPORT vtkMRMLPlotChartNode : public vtkMRMLNode
   int GetNumberOfPlotDataNodes();
 
   ///
-  /// Return the string of the Nth plot node ID. Or 0 if no such
-  /// node exist.
-  /// Warning, a temporary char generated from a std::string::c_str()
-  /// is returned.
-  const char *GetNthPlotDataNodeID(int n);
+  /// Adds a plot data node to the chart.
+  /// \sa SetAndObserverNthPlotDataNodeID(int, const char*)
+  void AddAndObservePlotDataNodeID(const char *plotDataNodeID);
 
   ///
-  /// Return the index of the Nth plot node ID.
-  /// If not found, it return '-1'
-  int GetNthPlotIndexFromID(const char* plotDataNodeID);
+  /// Convenience method that sets the first plot data node in the chart.
+  /// \sa SetAndObserverNthPlotDataNodeID(int, const char*)
+  void SetAndObservePlotDataNodeID(const char *plotDataNodeID);
 
   ///
-  /// Return an index to color each Plot.
-  /// If not found, it return '-1'
-  vtkIdType GetColorPlotIndexFromID(const char* plotDataNodeID);
+  /// Set and observe the Nth plot data node ID in the list.
+  /// If n is larger than the number of plot nodes, the plot node ID
+  /// is added at the end of the list. If PlotDataNodeID is 0, the node ID is
+  /// removed from the list.
+  /// \sa SetAndObservePlotDataNodeID(const char*),
+  /// AddAndObservePlotDataNodeID(const char *), RemoveNthPlotDataNodeID(int)
+  void SetAndObserveNthPlotDataNodeID(int n, const char *plotDataNodeID);
 
   ///
-  /// Utility function that returns the first plot node ID.
-  /// \sa GetNthPlotDataNodeID(int), GetPlotDataNode()
-  const char *GetPlotDataNodeID();
+  /// Removes a plot data node from the chart.
+  /// \sa SetAndObserverNthPlotDataNodeID(int, const char*)
+  void RemovePlotDataNodeID(const char *plotDataNodeID);
 
   ///
-  /// Get associated plot MRML node. Can be 0 in temporary states; e.g. if
-  /// the plot node has no scene, or if the associated plot is not
-  /// yet into the scene.
-  /// If not cached, it internally scans (slow) the scene to search for the
-  /// associated plot node ID.
-  /// If the plot node is no longer in the scene (GetScene() == 0), it
-  /// happens after the node is removed from the scene (scene->RemoveNode(dn),
-  /// the returned plot node is 0.
-  /// \sa GetNthPlotDataNodeByClass()
-  vtkMRMLPlotDataNode* GetNthPlotDataNode(int n);
+  /// Removes n-th plot data node from the chart.
+  /// \sa SetAndObserverNthPlotDataNodeID(int, const char*)
+  void RemoveNthPlotDataNodeID(int n);
 
   ///
-  /// Utility function that returns the first plot node.
-  /// \sa GetNthPlotDataNode(int), GetPlotDataNodeID()
-  vtkMRMLPlotDataNode* GetPlotDataNode();
+  /// Remove all plot data nodes from the chart.
+  void RemoveAllPlotDataNodeIDs();
 
   ///
-  /// Get the list of Plot names.
-  virtual int GetPlotNames(std::vector<std::string> &plotDataNodeNames);
+  /// Return true if PlotDataNodeID is in the plot node ID list.
+  bool HasPlotDataNodeID(const char* plotDataNodeID);
 
-  ///
-  /// Get the list of Plot ids.
-  virtual int GetPlotIDs(std::vector<std::string> &plotDataNodeIDs);
 
-  ///
-  /// In addition a set of properties are available for a PlotChart.
-  /// These are stored as Attributes of PlotChartNode.
-  /// Available properties are:
-  ///
-  /// \li  "TitleName" - title ploted on the PlotChart
-  /// \li  "ShowTitle" - show title "on" or "off"
-  /// \li  "XAxisLabelName" - label ploted on the x-axis
-  /// \li  "ShowXAxisLabel" - show x-axis label "on" or "off"
-  /// \li  "ClickAndDragAlongX" - set the action along x-axis "on" or "off"
-  /// \li  "ClickAndDragAlongY" - set the action along y-axis "on" or "off"
-  /// \li  "YAxisLabelName" - label ploted on the y-axis
-  /// \li  "ShowYAxisLabel" - show y-axis label "on" or "off"
-  /// \li  "ShowGrid" - show grid "on" or "off"
-  /// \li  "ShowLegend" - show legend "on" or "off"
-  /// \li  "FontType" - global Font for the PlotChart: "Arial", "Times", "Courier"
-  /// \li  "TitleFontSize" - default: "20"
-  /// \li  "AxisTitleFontSize" - default: "16"
-  /// \li  "AxisLabelFontSize" - default: "12"
-  /// \li  "LookupTable" colorNodeID default: NULL
-  ///
-  /// Further attributes of PlotChartNode are connected with
-  /// the PlotDataProperties. If they are have value "Custom"
-  /// then each PlotDataNode has its individual value. If another
-  /// value is chosen, all the PlotDataNodes referenced by the
-  /// PlotChartNode will be updated with the new value.
-  ///
-  /// \li  "Type" - "Custom", "Line", "Scatter", "Bar"
-  /// \li  "XAxis" - Set XAxis "Custom", "..." (list of Columns)
-  /// \li  "Markers" - show markers "Custom", "Cross", "Plus", "Square", "Circle", "Diamond"
-  ///
+  /// Title of the chart
+  vtkSetStringMacro(Title);
+  vtkGetStringMacro(Title);
 
+  /// Title font size. Default: 20.
+  vtkSetMacro(TitleFontSize, int);
+  vtkGetMacro(TitleFontSize, int);
+
+  /// Show title of the chart
+  vtkBooleanMacro(TitleVisibility, bool);
+  vtkGetMacro(TitleVisibility, bool);
+  vtkSetMacro(TitleVisibility, bool);
+
+  /// Show horizontal and vertical grid lines
+  vtkBooleanMacro(GridVisibility, bool);
+  vtkGetMacro(GridVisibility, bool);
+  vtkSetMacro(GridVisibility, bool);
+
+  /// Show horizontal and vertical grid lines
+  vtkBooleanMacro(LegendVisibility, bool);
+  vtkGetMacro(LegendVisibility, bool);
+  vtkSetMacro(LegendVisibility, bool);
+
+  /// Title of X axis
+  vtkSetStringMacro(XAxisTitle);
+  vtkGetStringMacro(XAxisTitle);
+
+  /// Show title of X axis
+  vtkBooleanMacro(XAxisTitleVisibility, bool);
+  vtkGetMacro(XAxisTitleVisibility, bool);
+  vtkSetMacro(XAxisTitleVisibility, bool);
+
+  /// Title of Y axis
+  vtkSetStringMacro(YAxisTitle);
+  vtkGetStringMacro(YAxisTitle);
+
+  /// Show title of Y axis
+  vtkBooleanMacro(YAxisTitleVisibility, bool);
+  vtkGetMacro(YAxisTitleVisibility, bool);
+  vtkSetMacro(YAxisTitleVisibility, bool);
+
+  /// Axis title font size. Default: 16.
+  vtkSetMacro(AxisTitleFontSize, int);
+  vtkGetMacro(AxisTitleFontSize, int);
+
+  /// Axis label font size. Default: 12.
+  vtkSetMacro(AxisLabelFontSize, int);
+  vtkGetMacro(AxisLabelFontSize, int);
+
+  /// Font type for all text in the chart: "Arial", "Times", "Courier"
+  vtkSetStringMacro(FontType);
+  vtkGetStringMacro(FontType);
+
+  /// Enable click and drag along X axis
+  vtkBooleanMacro(ClickAndDragAlongX, bool);
+  vtkGetMacro(ClickAndDragAlongX, bool);
+  vtkSetMacro(ClickAndDragAlongX, bool);
+
+  /// Enable click and drag along Y axis
+  vtkBooleanMacro(ClickAndDragAlongY, bool);
+  vtkGetMacro(ClickAndDragAlongY, bool);
+  vtkSetMacro(ClickAndDragAlongY, bool);
+
+  /// Node reference role used for storing plot data node references
   virtual const char* GetPlotDataNodeReferenceRole();
+
+  /// Helper function to set common properties for all associated plot data nodes
+  void SetPropertyToAllPlotDataNodes(PlotDataNodeProperty plotProperty, const char* value);
+
+  /// Helper function to get common properties from all associated plot data nodes.
+  /// Returns false if property is not the same in all plots.
+  /// value contains the value found in the first plot data node.
+  bool GetPropertyFromAllPlotDataNodes(PlotDataNodeProperty plotProperty, std::string& value);
 
  protected:
   //----------------------------------------------------------------
-  /// Constructor and destroctor
+  /// Constructor and destructor
   //----------------------------------------------------------------
   vtkMRMLPlotChartNode();
   ~vtkMRMLPlotChartNode();
   vtkMRMLPlotChartNode(const vtkMRMLPlotChartNode&);
   void operator=(const vtkMRMLPlotChartNode&);
-
-  static const char* PlotDataNodeReferenceRole;
-  static const char* PlotDataNodeReferenceMRMLAttributeName;
-
-  virtual const char* GetPlotDataNodeReferenceMRMLAttributeName();
 
   ///
   /// Called when a node reference ID is added (list size increased).
@@ -238,6 +262,23 @@ class VTK_MRML_EXPORT vtkMRMLPlotChartNode : public vtkMRMLNode
   ///
   /// Called after a node reference ID is removed (list size decreased).
   virtual void OnNodeReferenceRemoved(vtkMRMLNodeReference *reference) VTK_OVERRIDE;
+
+  static const char* PlotDataNodeReferenceRole;
+
+  char *Title;
+  int TitleFontSize;
+  bool TitleVisibility;
+  bool GridVisibility;
+  bool LegendVisibility;
+  char* XAxisTitle;
+  bool XAxisTitleVisibility;
+  char* YAxisTitle;
+  bool YAxisTitleVisibility;
+  int AxisTitleFontSize;
+  int AxisLabelFontSize;
+  char* FontType;
+  bool ClickAndDragAlongX;
+  bool ClickAndDragAlongY;
 };
 
 #endif

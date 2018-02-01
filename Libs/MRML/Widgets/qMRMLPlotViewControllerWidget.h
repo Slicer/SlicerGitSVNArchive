@@ -68,14 +68,14 @@ public slots:
   void setMRMLPlotViewNode(vtkMRMLPlotViewNode* PlotViewNode);
 
   /// Control the display of a grid in the chart.
-  void showGrid(bool show);
+  void gridVisibility(bool show);
 
   /// Control the display of the legend in the chart.
-  void showLegend(bool show);
+  void legendVisibility(bool show);
 
   /// Control the display of the title for the chart.
   /// \sa setTitle
-  void showTitle(bool show);
+  void TitleVisibility(bool show);
 
   /// Adjust the chart viewer's field of view to match
   /// the extent of the chart axes.
@@ -90,7 +90,7 @@ public slots:
   void showYAxisLabel(bool show);
 
   /// Set the title.
-  /// \sa showTitle
+  /// \sa TitleVisibility
   void setTitle(const QString& str);
 
   /// Set the label along the X-Axis.

@@ -33,6 +33,7 @@
 
 // Qt includes
 class QToolButton;
+#include <QMap>
 
 // VTK includes
 #include <vtkWeakPointer.h>
@@ -47,12 +48,15 @@ class ctkPopupWidget;
 
 // vtk includes
 #include <vtkSmartPointer.h>
+class vtkPlot;
 
+class vtkMRMLPlotDataNode;
 class vtkMRMLPlotViewNode;
 class vtkMRMLPlotChartNode;
 class vtkMRMLColorLogic;
 class vtkMRMLColorNode;
 class vtkObject;
+class vtkPlot;
 class vtkStringArray;
 
 //-----------------------------------------------------------------------------
@@ -71,6 +75,12 @@ public:
 
   void setMRMLScene(vtkMRMLScene* scene);
   vtkMRMLScene *mrmlScene();
+
+  vtkMRMLPlotDataNode* plotDataNodeFromPlot(vtkPlot* plot);
+
+  // Tries to update the existing plot. If returns NULL then it means the existing plot must be deleted.
+  // If returned plot differs from the existin plot, then existing plot must be replaced by the returned one.
+  vtkSmartPointer<vtkPlot> updatePlotFromPlotDataNode(vtkMRMLPlotDataNode* plotDataNode, vtkPlot* existingPlot);
 
 public slots:
   /// Handle MRML scene event
@@ -96,6 +106,10 @@ protected:
 
   QToolButton*                       PinButton;
   ctkPopupWidget*                    PopupWidget;
+
+  bool                               UpdatingWidgetFromMRML;
+
+  QMap< vtkPlot*, QString > MapPlotToPlotDataNodeID;
 };
 
 #endif

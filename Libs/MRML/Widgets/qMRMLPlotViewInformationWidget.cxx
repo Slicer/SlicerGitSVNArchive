@@ -109,10 +109,10 @@ void qMRMLPlotViewInformationWidgetPrivate::setupUi(qMRMLWidget* widget)
                 this, SLOT(onPlotDataNodeChanged(vtkMRMLNode*)));
   this->connect(this->InputTableComboBox, SIGNAL(currentNodeChanged(vtkMRMLNode*)),
                 this, SLOT(onInputTableNodeChanged(vtkMRMLNode*)));
-  this->connect(this->xAxisComboBox, SIGNAL(currentIndexChanged(const QString&)),
-                this, SLOT(onXAxisChanged(const QString&)));
-  this->connect(this->yAxisComboBox, SIGNAL(currentIndexChanged(const QString&)),
-                this, SLOT(onYAxisChanged(const QString&)));
+  this->connect(this->xAxisComboBox, SIGNAL(currentIndexChanged(int)),
+                this, SLOT(onXAxisChanged(int)));
+  this->connect(this->yAxisComboBox, SIGNAL(currentIndexChanged(int)),
+                this, SLOT(onYAxisChanged(int)));
   this->connect(this->plotTypeComboBox, SIGNAL(currentIndexChanged(const QString&)),
                 this, SLOT(onPlotTypeChanged(const QString&)));
   this->connect(this->markersStyleComboBox, SIGNAL(currentIndexChanged(const QString&)),
@@ -177,30 +177,18 @@ void qMRMLPlotViewInformationWidgetPrivate::updateWidgetFromMRMLPlotViewNode()
     return;
     }
 
-  const char *AttributeValue;
+  const char *attributeValue = mrmlPlotChartNode->GetAttribute("LookupTable");
+  this->colorNodeComboBox->setCurrentNodeID(attributeValue);
 
-  AttributeValue = mrmlPlotChartNode->GetAttribute("LookupTable");
-  this->colorNodeComboBox->setCurrentNodeID(AttributeValue);
+  this->fontTypeComboBox->setCurrentIndex(this->fontTypeComboBox->findText(
+    mrmlPlotChartNode->GetFontType() ? mrmlPlotChartNode->GetFontType() : ""));
 
-  AttributeValue = mrmlPlotChartNode->GetAttribute("FontType");
-  // After Qt5 migration, the next line can be replaced by this call:
-  // d->fontTypeComboBox->setCurrentText(AttributeValue);
-  this->fontTypeComboBox->setCurrentIndex(this->fontTypeComboBox->findText(AttributeValue));
+  this->titleFontSizeDoubleSpinBox->setValue(mrmlPlotChartNode->GetTitleFontSize());
+  this->axisTitleFontSizeDoubleSpinBox->setValue(mrmlPlotChartNode->GetAxisTitleFontSize());
+  this->axisLabelFontSizeDoubleSpinBox->setValue(mrmlPlotChartNode->GetAxisLabelFontSize());
 
-  AttributeValue = mrmlPlotChartNode->GetAttribute("TitleFontSize");
-  this->titleFontSizeDoubleSpinBox->setValue(atof(AttributeValue));
-
-  AttributeValue = mrmlPlotChartNode->GetAttribute("AxisTitleFontSize");
-  this->axisTitleFontSizeDoubleSpinBox->setValue(atof(AttributeValue));
-
-  AttributeValue = mrmlPlotChartNode->GetAttribute("AxisLabelFontSize");
-  this->axisLabelFontSizeDoubleSpinBox->setValue(atof(AttributeValue));
-
-  AttributeValue = mrmlPlotChartNode->GetAttribute("ClickAndDragAlongX");
-  this->clickAndDragXCheckBox->setChecked(AttributeValue && !strcmp("on", AttributeValue));
-
-  AttributeValue = mrmlPlotChartNode->GetAttribute("ClickAndDragAlongY");
-  this->clickAndDragYCheckBox->setChecked(AttributeValue && !strcmp("on", AttributeValue));
+  this->clickAndDragXCheckBox->setChecked(mrmlPlotChartNode->GetClickAndDragAlongX());
+  this->clickAndDragYCheckBox->setChecked(mrmlPlotChartNode->GetClickAndDragAlongY());
 }
 
 // --------------------------------------------------------------------------
@@ -229,15 +217,7 @@ void qMRMLPlotViewInformationWidgetPrivate::activateClickAndDragX(bool activate)
     {
     return;
     }
-
-  if (activate)
-    {
-    mrmlPlotChartNode->SetAttribute("ClickAndDragAlongX", "on");
-    }
-  else
-    {
-    mrmlPlotChartNode->SetAttribute("ClickAndDragAlongX", "off");
-    }
+  mrmlPlotChartNode->SetClickAndDragAlongX(activate);
 }
 
 // --------------------------------------------------------------------------
@@ -248,15 +228,7 @@ void qMRMLPlotViewInformationWidgetPrivate::activateClickAndDragY(bool activate)
     {
     return;
     }
-
-  if (activate)
-    {
-    mrmlPlotChartNode->SetAttribute("ClickAndDragAlongY", "on");
-    }
-  else
-    {
-    mrmlPlotChartNode->SetAttribute("ClickAndDragAlongY", "off");
-    }
+  mrmlPlotChartNode->SetClickAndDragAlongY(activate);
 }
 
 // --------------------------------------------------------------------------
@@ -267,8 +239,7 @@ void qMRMLPlotViewInformationWidgetPrivate::onFontTypeChanged(const QString &typ
     {
     return;
     }
-
-  mrmlPlotChartNode->SetAttribute("FontType", type.toStdString().c_str());
+  mrmlPlotChartNode->SetFontType(type.toStdString().c_str());
 }
 
 // --------------------------------------------------------------------------
@@ -279,8 +250,7 @@ void qMRMLPlotViewInformationWidgetPrivate::onTitleFontSizeChanged(double size)
     {
     return;
     }
-
-  mrmlPlotChartNode->SetAttribute("TitleFontSize", (DoubleToString(size).c_str()));
+  mrmlPlotChartNode->SetTitleFontSize(size);
 }
 
 // --------------------------------------------------------------------------
@@ -291,8 +261,7 @@ void qMRMLPlotViewInformationWidgetPrivate::onAxisTitleFontSizeChanged(double si
     {
     return;
     }
-
-  mrmlPlotChartNode->SetAttribute("AxisTitleFontSize", (DoubleToString(size).c_str()));
+  mrmlPlotChartNode->SetAxisTitleFontSize(size);
 }
 
 // --------------------------------------------------------------------------
@@ -303,8 +272,7 @@ void qMRMLPlotViewInformationWidgetPrivate::onAxisLabelFontSizeChanged(double si
     {
     return;
     }
-
-  mrmlPlotChartNode->SetAttribute("AxisLabelFontSize", (DoubleToString(size).c_str()));
+  mrmlPlotChartNode->SetAxisLabelFontSize(size);
 }
 
 // --------------------------------------------------------------------------
@@ -351,132 +319,83 @@ void qMRMLPlotViewInformationWidgetPrivate::updateWidgetFromMRMLPlotDataNode()
   this->yAxisComboBox->clear();
   if (mrmlTableNode)
     {
-    if (this->xAxisComboBox->findText("Indexes") == -1)
+    if (this->xAxisComboBox->findData(QString()) == -1)
       {
-      this->xAxisComboBox->addItem("Indexes");
+      this->xAxisComboBox->addItem("Indexes", QString());
       }
     for (int ColumnIndex = 0; ColumnIndex < mrmlTableNode->GetNumberOfColumns(); ColumnIndex++)
       {
       std::string columnName = mrmlTableNode->GetColumnName(ColumnIndex).c_str();
-      if (this->xAxisComboBox->findText(columnName.c_str()) == -1)
+      if (this->xAxisComboBox->findData(QString(columnName.c_str())) == -1)
         {
-        this->xAxisComboBox->addItem(columnName.c_str());
+        this->xAxisComboBox->addItem(columnName.c_str(), QString(columnName.c_str()));
         }
-      if (this->yAxisComboBox->findText(columnName.c_str()) == -1)
+      if (this->yAxisComboBox->findData(QString(columnName.c_str())) == -1)
         {
-        this->yAxisComboBox->addItem(columnName.c_str());
+        this->yAxisComboBox->addItem(columnName.c_str(), QString(columnName.c_str()));
         }
       }
     }
 
   std::string xAxisName = this->PlotDataNode->GetXColumnName();
-  int xAxisIndex = this->xAxisComboBox->findText(xAxisName.c_str());
+  int xAxisIndex = this->xAxisComboBox->findData(QString(xAxisName.c_str()));
   if (xAxisIndex < 0)
     {
-    this->xAxisComboBox->addItem(xAxisName.c_str());
-    xAxisIndex = this->xAxisComboBox->findText(xAxisName.c_str());
+    this->yAxisComboBox->addItem(xAxisName.c_str(), QString(xAxisName.c_str()));
+    xAxisIndex = this->xAxisComboBox->findData(QString(xAxisName.c_str()));
     }
   this->xAxisComboBox->setCurrentIndex(xAxisIndex);
 
   std::string yAxisName = this->PlotDataNode->GetYColumnName();
-  int yAxisIndex = this->yAxisComboBox->findText(yAxisName.c_str());
+  int yAxisIndex = this->yAxisComboBox->findData(QString(yAxisName.c_str()));
   if (yAxisIndex < 0)
     {
-    this->yAxisComboBox->addItem(yAxisName.c_str());
-    yAxisIndex = this->yAxisComboBox->findText(yAxisName.c_str());
+    this->yAxisComboBox->addItem(yAxisName.c_str(), QString(yAxisName.c_str()));
+    yAxisIndex = this->yAxisComboBox->findData(QString(yAxisName.c_str()));
     }
   this->yAxisComboBox->setCurrentIndex(yAxisIndex);
 
   this->xAxisComboBox->blockSignals(xAxisBlockSignals);
   this->yAxisComboBox->blockSignals(yAxisBlockSignals);
 
-  vtkMRMLPlotChartNode* mrmlPlotChartNode = this->GetPlotChartNodeFromView();
-  if (mrmlPlotChartNode)
-    {
-    const char *xAxis = mrmlPlotChartNode->GetAttribute("XAxis");
-    if (!strcmp(xAxis, "Custom"))
-      {
-      this->xAxisComboBox->setEnabled(true);
-      }
-    else
-      {
-      this->xAxisComboBox->setEnabled(false);
-      }
-    }
-
   // Update the PlotType ComboBox
-  const char* plotType = this->PlotDataNode->GetPlotTypeAsString(this->PlotDataNode->GetType());
+  bool wasBlocked = this->plotTypeComboBox->blockSignals(true);
+  const char* plotType = this->PlotDataNode->GetPlotTypeAsString(this->PlotDataNode->GetPlotType());
   // After Qt5 migration, the next line can be replaced by this call:
   // this->plotTypeComboBox->setCurrentText(plotType);
   this->plotTypeComboBox->setCurrentIndex(this->plotTypeComboBox->findText(plotType));
-
-  if (mrmlPlotChartNode)
-    {
-    const char *type = mrmlPlotChartNode->GetAttribute("Type");
-    if (!strcmp(type, "Custom"))
-      {
-      this->plotTypeComboBox->setEnabled(true);
-      }
-    else
-      {
-      this->plotTypeComboBox->setEnabled(false);
-      }
-    }
+  this->plotTypeComboBox->blockSignals(wasBlocked);
 
   // Update Markers Style
-  const char* plotMarkersStyle = this->PlotDataNode->GetMarkersStyleAsString(this->PlotDataNode->GetMarkerStyle());
+  wasBlocked = this->markersStyleComboBox->blockSignals(true);
+  const char* plotMarkersStyle = this->PlotDataNode->GetMarkerStyleAsString(this->PlotDataNode->GetMarkerStyle());
   // After Qt5 migration, the next line can be replaced by this call:
   // this->markersStyleComboBox->setCurrentText(plotMarkersStyle);
   this->markersStyleComboBox->setCurrentIndex(this->markersStyleComboBox->findText(plotMarkersStyle));
+  this->markersStyleComboBox->setEnabled(this->PlotDataNode->GetPlotType() == vtkMRMLPlotDataNode::SCATTER);
+  this->markersStyleComboBox->blockSignals(wasBlocked);
 
   // Update Markers Size
+  wasBlocked = this->markersSizeDoubleSpinBox->blockSignals(true);
   this->markersSizeDoubleSpinBox->setValue(this->PlotDataNode->GetMarkerSize());
-
-  // UnEnable Markers Style and Size if the type of the plot is Bar
-  vtkPlot *plot = this->PlotDataNode->GetPlot();
-  vtkPlotPoints *plotPoints = vtkPlotPoints::SafeDownCast(plot);
-  if (plotPoints)
-    {
-    this->markersStyleComboBox->setEnabled(true);
-    this->markersSizeDoubleSpinBox->setEnabled(true);
-    }
-  else
-    {
-    this->markersStyleComboBox->setEnabled(false);
-    this->markersSizeDoubleSpinBox->setEnabled(false);
-    }
-
-  if (mrmlPlotChartNode)
-    {
-    const char *markers = mrmlPlotChartNode->GetAttribute("Markers");
-    if (strcmp(markers, "Custom"))
-      {
-      this->markersStyleComboBox->setEnabled(false);
-      }
-    }
+  this->markersSizeDoubleSpinBox->setEnabled(this->PlotDataNode->GetPlotType() == vtkMRMLPlotDataNode::SCATTER);
+  this->markersSizeDoubleSpinBox->blockSignals(wasBlocked);
 
   // Update Line Width
+  wasBlocked = this->lineWidthDoubleSpinBox->blockSignals(true);
   this->lineWidthDoubleSpinBox->setValue(this->PlotDataNode->GetLineWidth());
-
-  // UnEnable Markers Style and Size if the type of the plot is Bar
-  vtkPlotLine *plotLine = vtkPlotLine::SafeDownCast(plot);
-  if (plotLine)
-    {
-    this->lineWidthDoubleSpinBox->setEnabled(true);
-    }
-  else
-    {
-    this->lineWidthDoubleSpinBox->setEnabled(false);
-    }
+  this->lineWidthDoubleSpinBox->setEnabled(this->PlotDataNode->GetPlotType() != vtkMRMLPlotDataNode::BAR);
+  this->lineWidthDoubleSpinBox->blockSignals(wasBlocked);
 
   // Update PlotDataColorPickerButton
-  unsigned char rgba[4];
-  this->PlotDataNode->GetPlotColor(rgba);
-  color.setRed(static_cast<int> (rgba[0]));
-  color.setGreen(static_cast<int> (rgba[1]));
-  color.setBlue(static_cast<int> (rgba[2]));
-  color.setAlpha(static_cast<int> (rgba[3]));
+  wasBlocked = this->plotDataColorPickerButton->blockSignals(true);
+  double* rgb = this->PlotDataNode->GetColor();
+  color.setRedF(rgb[0]);
+  color.setGreenF(rgb[1]);
+  color.setBlueF(rgb[2]);
+  color.setAlphaF(this->PlotDataNode->GetOpacity());
   this->plotDataColorPickerButton->setColor(color);
+  this->plotDataColorPickerButton->blockSignals(wasBlocked);
 }
 
 // --------------------------------------------------------------------------
@@ -518,25 +437,25 @@ void qMRMLPlotViewInformationWidgetPrivate::onInputTableNodeChanged(vtkMRMLNode 
 }
 
 // --------------------------------------------------------------------------
-void qMRMLPlotViewInformationWidgetPrivate::onXAxisChanged(const QString &xAxis)
+void qMRMLPlotViewInformationWidgetPrivate::onXAxisChanged(int index)
 {
   if (!this->PlotDataNode)
     {
     return;
     }
 
-  this->PlotDataNode->SetXColumnName(xAxis.toStdString());
+  this->PlotDataNode->SetXColumnName(this->xAxisComboBox->itemData(index).toString().toLatin1().constData());
 }
 
 // --------------------------------------------------------------------------
-void qMRMLPlotViewInformationWidgetPrivate::onYAxisChanged(const QString &yAxis)
+void qMRMLPlotViewInformationWidgetPrivate::onYAxisChanged(int index)
 {
   if (!this->PlotDataNode)
     {
     return;
     }
 
-  this->PlotDataNode->SetYColumnName(yAxis.toStdString());
+  this->PlotDataNode->SetYColumnName(this->yAxisComboBox->itemData(index).toString().toLatin1().constData());
 }
 
 // --------------------------------------------------------------------------
@@ -547,7 +466,7 @@ void qMRMLPlotViewInformationWidgetPrivate::onPlotTypeChanged(const QString &typ
     return;
     }
 
-  this->PlotDataNode->SetType(type.toStdString().c_str());
+  this->PlotDataNode->SetPlotType(type.toStdString().c_str());
 }
 
 // --------------------------------------------------------------------------
@@ -559,7 +478,7 @@ void qMRMLPlotViewInformationWidgetPrivate::onMarkersStyleChanged(const QString 
     }
 
   this->PlotDataNode->SetMarkerStyle(this->PlotDataNode->
-    GetMarkersStyleFromString(style.toStdString().c_str()));
+    GetMarkerStyleFromString(style.toStdString().c_str()));
 }
 
 // --------------------------------------------------------------------------
@@ -587,17 +506,13 @@ void qMRMLPlotViewInformationWidgetPrivate::onLineWidthChanged(double width)
 // --------------------------------------------------------------------------
 void qMRMLPlotViewInformationWidgetPrivate::onPlotDataColorChanged(const QColor & color)
 {
-  if (!this->PlotDataNode || !this->PlotDataNode->GetPlot())
+  if (!this->PlotDataNode)
     {
     return;
     }
-
-  unsigned char rgba[4];
-  rgba[0] = static_cast<unsigned char> (color.red());
-  rgba[1] = static_cast<unsigned char> (color.green());
-  rgba[2] = static_cast<unsigned char> (color.blue());
-  rgba[3] = static_cast<unsigned char> (color.alpha());
-  this->PlotDataNode->SetPlotColor(rgba);
+  double rgb[3] = { color.redF() , color.greenF() , color.blueF() };
+  this->PlotDataNode->SetColor(rgb);
+  this->PlotDataNode->SetOpacity(color.alphaF());
 }
 
 // --------------------------------------------------------------------------

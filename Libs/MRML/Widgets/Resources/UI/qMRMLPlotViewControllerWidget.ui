@@ -70,21 +70,11 @@
         </size>
        </property>
        <property name="toolTip">
-        <string>This combobox allows to change the Type for all the active PlotDataNodes. If the value &quot;Custom&quot; is selected, each PlotDataNode has its individual value. If another value is chosen, all the PlotDataNodes referenced by the PlotChartNode will be updated with the new value. </string>
+        <string>This combobox allows to change the Type for all the active PlotDataNodes. If a value is chosen, all the PlotDataNodes referenced by the PlotChartNode will be updated with the new value. </string>
        </property>
        <property name="currentIndex">
         <number>0</number>
        </property>
-       <item>
-        <property name="text">
-         <string>Custom</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>Line</string>
-        </property>
-       </item>
        <item>
         <property name="text">
          <string>Scatter</string>
@@ -93,6 +83,16 @@
        <item>
         <property name="text">
          <string>Bar</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Pie</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Box</string>
         </property>
        </item>
       </widget>
@@ -179,18 +179,8 @@
         </size>
        </property>
        <property name="toolTip">
-        <string>This combobox allows to change the X-Axis for all the active PlotDataNodes. If the value &quot;Custom&quot; is selected, each PlotDataNode has its individual value. If another value is chosen, all the PlotDataNodes referenced by the PlotChartNode will be updated with the new value. The value &quot;Indexes&quot; will use simple ordinal numbers 1, 2, 3, ... as x coordinate values. For the other values, the correspective column will be used. </string>
+        <string>This combobox allows to change the X-Axis for all the active PlotDataNodes. If a value is chosen, all the PlotDataNodes referenced by the PlotChartNode will be updated with the new value. The value &quot;Indexes&quot; will use simple ordinal numbers 0, 1, 2, 3, ... as x coordinate values.</string>
        </property>
-       <item>
-        <property name="text">
-         <string>Custom</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>Indexes</string>
-        </property>
-       </item>
       </widget>
      </item>
      <item row="2" column="1">
@@ -236,13 +226,8 @@
         </size>
        </property>
        <property name="toolTip">
-        <string>This combobox allows to change the type of the markers for all the active PlotDataNodes. If the value &quot;Custom&quot; is selected, each PlotDataNode has its individual value. If another value is chosen, all the PlotDataNodes referenced by the PlotChartNode will be updated with the new value.</string>
+        <string>This combobox allows to change the type of the markers for all the active PlotDataNodes. If a value is chosen, all the PlotDataNodes referenced by the PlotChartNode will be updated with the new value.</string>
        </property>
-       <item>
-        <property name="text">
-         <string>Custom</string>
-        </property>
-       </item>
        <item>
         <property name="text">
          <string>None</string>

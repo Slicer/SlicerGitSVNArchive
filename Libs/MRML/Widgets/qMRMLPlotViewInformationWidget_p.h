@@ -107,10 +107,10 @@ public slots:
   void onInputTableNodeChanged(vtkMRMLNode* node);
 
   /// Change the x-Axis of the plot.
-  void onXAxisChanged(const QString& xAxis);
+  void onXAxisChanged(int index);
 
   /// Change the y-Axis of the plot.
-  void onYAxisChanged(const QString& yAxis);
+  void onYAxisChanged(int index);
 
   /// Change the type of plot (Line, Scatter, Bar).
   void onPlotTypeChanged(const QString& type);

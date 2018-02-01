@@ -35,9 +35,6 @@ int vtkMRMLPlotDataNodeTest1(int , char * [] )
   EXERCISE_ALL_BASIC_MRML_METHODS(plotDataNode.GetPointer());
   scene->AddNode(plotDataNode.GetPointer());
 
-  vtkPlot* plot1 = plotDataNode->GetPlot();
-  CHECK_NOT_NULL(plot1);
-
   // Create a vtkTable
   vtkNew<vtkTable> table;
 
@@ -67,9 +64,7 @@ int vtkMRMLPlotDataNodeTest1(int , char * [] )
   // Set and Observe the MRMLTableNode
   plotDataNode->SetAndObserveTableNodeID(tableNode->GetID());
 
-  plotDataNode->SetType(vtkMRMLPlotDataNode::BAR);
-  vtkPlot* plot2 = plotDataNode->GetPlot();
-  CHECK_NOT_NULL(plot2);
+  plotDataNode->SetPlotType(vtkMRMLPlotDataNode::BAR);
 
   plotDataNode->SetXColumnName(arrX->GetName());
   plotDataNode->SetYColumnName(arrC->GetName());

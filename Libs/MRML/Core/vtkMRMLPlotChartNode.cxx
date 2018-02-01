@@ -40,53 +40,36 @@
 #include "vtkMRMLTableNode.h"
 
 const char* vtkMRMLPlotChartNode::PlotDataNodeReferenceRole = "plotData";
-const char* vtkMRMLPlotChartNode::PlotDataNodeReferenceMRMLAttributeName = "plotDataNodeRef";
 
 //----------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLPlotChartNode);
 
 //----------------------------------------------------------------------------
 vtkMRMLPlotChartNode::vtkMRMLPlotChartNode()
+: Title(NULL)
+, TitleFontSize(20)
+, TitleVisibility(true)
+, GridVisibility(true)
+, LegendVisibility(true)
+, XAxisTitle(NULL)
+, XAxisTitleVisibility(true)
+, YAxisTitle(NULL)
+, YAxisTitleVisibility(true)
+, AxisTitleFontSize(16)
+, AxisLabelFontSize(12)
+, FontType(NULL)
+, ClickAndDragAlongX(true)
+, ClickAndDragAlongY(true)
 {
   this->HideFromEditors = 0;
 
-  // default properties
-  this->SetAttribute("ShowGrid", "on");
-  this->SetAttribute("ShowLegend", "on");
+  this->SetFontType("Arial");
 
-  this->SetAttribute("ShowTitle", "on");
-  this->SetAttribute("ShowXAxisLabel", "on");
-  this->SetAttribute("ShowYAxisLabel", "on");
-
-  this->SetAttribute("TitleName", "");
-  this->SetAttribute("XAxisLabelName", "");
-  this->SetAttribute("YAxisLabelName", "");
-
-  this->SetAttribute("ClickAndDragAlongX", "on");
-  this->SetAttribute("ClickAndDragAlongY", "on");
-
-  this->SetAttribute("FontType", "Arial");
-  this->SetAttribute("TitleFontSize", "20");
-  this->SetAttribute("AxisTitleFontSize", "16");
-  this->SetAttribute("AxisLabelFontSize", "12");
-
-  this->SetAttribute("LookupTable", "(none)");
-  this->SetAttribute("FitPlotToAxes", "off");
-
-  // global properties for PlotDataNodes
-  this->SetAttribute("Type", "Custom");
-  this->SetAttribute("XAxis", "Custom");
-  this->SetAttribute("Markers", "Custom");
-
-  vtkIntArray  *events = vtkIntArray::New();
+  vtkNew<vtkIntArray>  events;
   events->InsertNextValue(vtkCommand::ModifiedEvent);
   events->InsertNextValue(vtkMRMLPlotChartNode::PlotModifiedEvent);
   events->InsertNextValue(vtkMRMLPlotDataNode::TableModifiedEvent);
-
-  this->AddNodeReferenceRole(this->GetPlotDataNodeReferenceRole(),
-                             this->GetPlotDataNodeReferenceMRMLAttributeName(),
-                             events);
-  events->Delete();
+  this->AddNodeReferenceRole(this->GetPlotDataNodeReferenceRole(), NULL, events.GetPointer());
 }
 
 
@@ -99,12 +82,6 @@ vtkMRMLPlotChartNode::~vtkMRMLPlotChartNode()
 const char* vtkMRMLPlotChartNode::GetPlotDataNodeReferenceRole()
 {
   return vtkMRMLPlotChartNode::PlotDataNodeReferenceRole;
-}
-
-//----------------------------------------------------------------------------
-const char* vtkMRMLPlotChartNode::GetPlotDataNodeReferenceMRMLAttributeName()
-{
-  return vtkMRMLPlotChartNode::PlotDataNodeReferenceMRMLAttributeName;
 }
 
 //----------------------------------------------------------------------------
@@ -142,6 +119,23 @@ void vtkMRMLPlotChartNode::WriteXML(ostream& of, int nIndent)
 {
   // Start by having the superclass write its information
   Superclass::WriteXML(of, nIndent);
+
+  vtkMRMLWriteXMLBeginMacro(of)
+  vtkMRMLWriteXMLStringMacro(title, Title)
+  vtkMRMLWriteXMLIntMacro(titleFontSize, TitleFontSize)
+  vtkMRMLWriteXMLBooleanMacro(TitleVisibility, TitleVisibility)
+  vtkMRMLWriteXMLBooleanMacro(gridVisibility, GridVisibility)
+  vtkMRMLWriteXMLBooleanMacro(legendVisibility, LegendVisibility)
+  vtkMRMLWriteXMLStringMacro(xAxisTitle, XAxisTitle)
+  vtkMRMLWriteXMLBooleanMacro(xAxisTitleVisibility, XAxisTitleVisibility)
+  vtkMRMLWriteXMLStringMacro(yAxisTitle, YAxisTitle)
+  vtkMRMLWriteXMLBooleanMacro(yAxisTitleVisibility, YAxisTitleVisibility)
+  vtkMRMLWriteXMLIntMacro(axisTitleFontSize, AxisTitleFontSize)
+  vtkMRMLWriteXMLIntMacro(axisLabelFontSize, AxisLabelFontSize)
+  vtkMRMLWriteXMLStringMacro(fontType, FontType)
+  vtkMRMLWriteXMLBooleanMacro(clickAndDragAlongX, ClickAndDragAlongX)
+  vtkMRMLWriteXMLBooleanMacro(clickAndDragAlongY, ClickAndDragAlongY)
+  vtkMRMLWriteXMLEndMacro()
 }
 
 //----------------------------------------------------------------------------
@@ -150,6 +144,23 @@ void vtkMRMLPlotChartNode::ReadXMLAttributes(const char** atts)
   int disabledModify = this->StartModify();
 
   vtkMRMLNode::ReadXMLAttributes(atts);
+
+  vtkMRMLReadXMLBeginMacro(atts)
+  vtkMRMLReadXMLStringMacro(title, Title)
+  vtkMRMLReadXMLIntMacro(titleFontSize, TitleFontSize)
+  vtkMRMLReadXMLBooleanMacro(TitleVisibility, TitleVisibility)
+  vtkMRMLReadXMLBooleanMacro(gridVisibility, GridVisibility)
+  vtkMRMLReadXMLBooleanMacro(legendVisibility, LegendVisibility)
+  vtkMRMLReadXMLStringMacro(xAxisTitle, XAxisTitle)
+  vtkMRMLReadXMLBooleanMacro(xAxisTitleVisibility, XAxisTitleVisibility)
+  vtkMRMLReadXMLStringMacro(yAxisTitle, YAxisTitle)
+  vtkMRMLReadXMLBooleanMacro(yAxisTitleVisibility, YAxisTitleVisibility)
+  vtkMRMLReadXMLIntMacro(axisTitleFontSize, AxisTitleFontSize)
+  vtkMRMLReadXMLIntMacro(axisLabelFontSize, AxisLabelFontSize)
+  vtkMRMLReadXMLStringMacro(fontType, FontType)
+  vtkMRMLReadXMLBooleanMacro(clickAndDragAlongX, ClickAndDragAlongX)
+  vtkMRMLReadXMLBooleanMacro(clickAndDragAlongY, ClickAndDragAlongY)
+  vtkMRMLReadXMLEndMacro()
 
   this->EndModify(disabledModify);
 }
@@ -163,6 +174,23 @@ void vtkMRMLPlotChartNode::Copy(vtkMRMLNode *anode)
 
   Superclass::Copy(anode);
 
+  vtkMRMLCopyBeginMacro(anode, vtkMRMLPlotChartNode)
+  vtkMRMLCopyStringMacro(Title)
+  vtkMRMLCopyIntMacro(TitleFontSize)
+  vtkMRMLCopyBooleanMacro(TitleVisibility)
+  vtkMRMLCopyBooleanMacro(GridVisibility)
+  vtkMRMLCopyBooleanMacro(LegendVisibility)
+  vtkMRMLCopyStringMacro(XAxisTitle)
+  vtkMRMLCopyBooleanMacro(XAxisTitleVisibility)
+  vtkMRMLCopyStringMacro(YAxisTitle)
+  vtkMRMLCopyBooleanMacro(YAxisTitleVisibility)
+  vtkMRMLCopyIntMacro(AxisTitleFontSize)
+  vtkMRMLCopyIntMacro(AxisLabelFontSize)
+  vtkMRMLCopyStringMacro(FontType)
+  vtkMRMLCopyBooleanMacro(ClickAndDragAlongX)
+  vtkMRMLCopyBooleanMacro(ClickAndDragAlongY)
+  vtkMRMLCopyEndMacro()
+
   this->EndModify(disabledModify);
 }
 
@@ -170,6 +198,23 @@ void vtkMRMLPlotChartNode::Copy(vtkMRMLNode *anode)
 void vtkMRMLPlotChartNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   vtkMRMLNode::PrintSelf(os,indent);
+
+  vtkMRMLPrintBeginMacro(os, indent)
+  vtkMRMLPrintStringMacro(Title)
+  vtkMRMLPrintIntMacro(TitleFontSize)
+  vtkMRMLPrintBooleanMacro(TitleVisibility)
+  vtkMRMLPrintBooleanMacro(GridVisibility)
+  vtkMRMLPrintBooleanMacro(LegendVisibility)
+  vtkMRMLPrintStringMacro(XAxisTitle)
+  vtkMRMLPrintBooleanMacro(XAxisTitleVisibility)
+  vtkMRMLPrintStringMacro(YAxisTitle)
+  vtkMRMLPrintBooleanMacro(YAxisTitleVisibility)
+  vtkMRMLPrintIntMacro(AxisTitleFontSize)
+  vtkMRMLPrintIntMacro(AxisLabelFontSize)
+  vtkMRMLPrintStringMacro(FontType)
+  vtkMRMLPrintBooleanMacro(ClickAndDragAlongX)
+  vtkMRMLPrintBooleanMacro(ClickAndDragAlongY)
+  vtkMRMLPrintEndMacro();
 }
 
 //----------------------------------------------------------------------------
@@ -192,7 +237,7 @@ void vtkMRMLPlotChartNode::RemovePlotDataNodeID(const char *plotDataNodeID)
     return;
     }
 
-  this->RemoveNthPlotDataNodeID(this->GetNthPlotIndexFromID(plotDataNodeID));
+  this->RemoveNthPlotDataNodeID(this->GetPlotDataNodeIndexFromID(plotDataNodeID));
 }
 
 //----------------------------------------------------------------------------
@@ -232,7 +277,7 @@ const char* vtkMRMLPlotChartNode::GetNthPlotDataNodeID(int n)
 }
 
 //----------------------------------------------------------------------------
-int vtkMRMLPlotChartNode::GetNthPlotIndexFromID(const char *plotDataNodeID)
+int vtkMRMLPlotChartNode::GetPlotDataNodeIndexFromID(const char *plotDataNodeID)
 {
   if (!plotDataNodeID)
     {
@@ -254,12 +299,6 @@ int vtkMRMLPlotChartNode::GetNthPlotIndexFromID(const char *plotDataNodeID)
     }
 
   return -1;
-}
-
-//----------------------------------------------------------------------------
-vtkIdType vtkMRMLPlotChartNode::GetColorPlotIndexFromID(const char *plotDataNodeID)
-{
-  return this->GetNthPlotIndexFromID(plotDataNodeID);
 }
 
 //----------------------------------------------------------------------------
@@ -304,7 +343,7 @@ void vtkMRMLPlotChartNode::ProcessMRMLEvents(vtkObject *caller,
 }
 
 //----------------------------------------------------------------------------
-int vtkMRMLPlotChartNode::GetPlotNames(std::vector<std::string> &plotDataNodeNames)
+int vtkMRMLPlotChartNode::GetPlotDataNodeNames(std::vector<std::string> &plotDataNodeNames)
 {
   plotDataNodeNames.clear();
   int numPlotDataNodes = this->GetNumberOfNodeReferences(this->GetPlotDataNodeReferenceRole());
@@ -322,7 +361,7 @@ int vtkMRMLPlotChartNode::GetPlotNames(std::vector<std::string> &plotDataNodeNam
 }
 
 //----------------------------------------------------------------------------
-int vtkMRMLPlotChartNode::GetPlotIDs(std::vector<std::string> &plotDataNodeIDs)
+int vtkMRMLPlotChartNode::GetPlotDataNodeIDs(std::vector<std::string> &plotDataNodeIDs)
 {
   plotDataNodeIDs.clear();
   int numPlotDataNodes = this->GetNumberOfNodeReferences(this->GetPlotDataNodeReferenceRole());
@@ -332,4 +371,121 @@ int vtkMRMLPlotChartNode::GetPlotIDs(std::vector<std::string> &plotDataNodeIDs)
     }
 
   return static_cast<int>(plotDataNodeIDs.size());
+}
+
+// --------------------------------------------------------------------------
+void vtkMRMLPlotChartNode::SetPropertyToAllPlotDataNodes(PlotDataNodeProperty plotProperty, const char* value)
+{
+  if (!this->GetScene())
+    {
+    vtkErrorMacro("vtkMRMLPlotChartNode::SetPropertyToAllPlotDataNodes failed: invalid scene");
+    return;
+    }
+
+  int numPlotDataNodes = this->GetNumberOfNodeReferences(this->GetPlotDataNodeReferenceRole());
+
+  std::vector<int> plotDataNodesWasModifying(numPlotDataNodes, 0);
+
+  // Update all plot nodes and invoke modified events at the end
+
+  for (int plotIndex = 0; plotIndex < numPlotDataNodes; plotIndex++)
+    {
+    vtkMRMLPlotDataNode *plotDataNode = vtkMRMLPlotDataNode::SafeDownCast(this->GetNthNodeReference(this->GetPlotDataNodeReferenceRole(), plotIndex));
+    if (!plotDataNode)
+      {
+      continue;
+      }
+    plotDataNodesWasModifying[plotIndex] = plotDataNode->StartModify();
+
+    if (plotProperty == PlotType)
+      {
+      plotDataNode->SetPlotType(value);
+      }
+    else if (plotProperty == PlotXColumnName)
+      {
+      plotDataNode->SetXColumnName(value);
+      }
+    else if (plotProperty == PlotYColumnName)
+      {
+      plotDataNode->SetYColumnName(value);
+      }
+    else if (plotProperty == PlotMarkerStyle)
+      {
+      plotDataNode->SetMarkerStyle(plotDataNode->GetMarkerStyleFromString(value));
+      }
+    }
+
+  for (int plotIndex = 0; plotIndex < numPlotDataNodes; plotIndex++)
+    {
+    vtkMRMLPlotDataNode *plotDataNode = vtkMRMLPlotDataNode::SafeDownCast(this->GetNthNodeReference(this->GetPlotDataNodeReferenceRole(), plotIndex));
+    if (!plotDataNode)
+      {
+      continue;
+      }
+    plotDataNode->EndModify(plotDataNodesWasModifying[plotIndex]);
+  }
+}
+
+// --------------------------------------------------------------------------
+bool vtkMRMLPlotChartNode::GetPropertyFromAllPlotDataNodes(PlotDataNodeProperty plotProperty, std::string& value)
+{
+  value.clear();
+  if (!this->GetScene())
+    {
+    vtkErrorMacro("vtkMRMLPlotChartNode::GetPropertyFromAllPlotDataNodes failed: invalid scene");
+    return false;
+    }
+
+  int numPlotDataNodes = this->GetNumberOfNodeReferences(this->GetPlotDataNodeReferenceRole());
+
+  if (numPlotDataNodes < 1)
+    {
+    return false;
+    }
+
+  bool commonPropertyDefined = false;
+
+  for (int plotIndex = 0; plotIndex < numPlotDataNodes; plotIndex++)
+    {
+    vtkMRMLPlotDataNode *plotDataNode = vtkMRMLPlotDataNode::SafeDownCast(this->GetNthNodeReference(this->GetPlotDataNodeReferenceRole(), plotIndex));
+    if (!plotDataNode)
+      {
+      continue;
+      }
+
+    // Get property value
+    std::string propertyValue;
+    if (plotProperty == PlotType)
+      {
+      propertyValue = plotDataNode->GetPlotTypeAsString(plotDataNode->GetPlotType());
+      }
+    else if (plotProperty == PlotXColumnName)
+      {
+      propertyValue = plotDataNode->GetXColumnName();
+      }
+    else if (plotProperty == PlotYColumnName)
+      {
+      propertyValue = plotDataNode->GetYColumnName();
+      }
+    else if (plotProperty == PlotMarkerStyle)
+      {
+      propertyValue = plotDataNode->GetMarkerStyleAsString(plotDataNode->GetMarkerStyle());
+      }
+
+    if (commonPropertyDefined)
+      {
+      if (propertyValue != value)
+        {
+        // not all plot nodes have the same property value
+        return false;
+        }
+      }
+    else
+      {
+      commonPropertyDefined = true;
+      value = propertyValue;
+      }
+    }
+
+  return true;
 }

@@ -89,11 +89,11 @@ public slots:
 
   /// Called after a Plot type is selected using the qComboBox
   /// Modify all the PlotDataNode selected in the PlotChartNode.
-  void onPlotTypeChanged(const QString& Type);
+  void onPlotTypeChanged(const QString& type);
 
   /// Called after a Column is selected using the qComboBox
   /// Modify all the PlotDataNode selected in the PlotChartNode.
-  void onXAxisChanged(const QString& Column);
+  void onXAxisChanged(int index);
 
   /// Called after a Markers' option is selected using the qComboBox
   /// Modify all the PlotDataNode selected in the PlotChartNode.

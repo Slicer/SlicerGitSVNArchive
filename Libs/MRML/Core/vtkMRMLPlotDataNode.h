@@ -36,11 +36,9 @@ class vtkTable;
 
 /// \brief MRML node to represent a vtkPlot object
 ///
-/// Plot nodes describe the properties of a single plot.
-/// In addition, takes care of references for the input
-/// (one vtkTable from vtkMRMLTableNode).
-/// To be viewed the node has to be added in the reference list
-/// of a vtkMRMLPlotViewNode.
+/// Plot nodes describe the properties of a single plot:
+/// input data (one or two columns of a table node),
+/// and display properties (plot type, marker style, color, etc).
 class VTK_MRML_EXPORT vtkMRMLPlotDataNode : public vtkMRMLNode
 {
 public:
@@ -50,9 +48,11 @@ public:
   // Description:
   // Enum of the available plot types
   enum {
-    LINE,
-    POINTS,
+    SCATTER,
     BAR,
+    PIE,
+    BOX,
+    PLOT_TYPE_LAST // must be last
   };
 
   void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
@@ -78,13 +78,13 @@ public:
   ///
   /// Set and observe Table node ID.
   /// \sa TableNodeID, GetTableNodeID(), SetInputData()
-  virtual bool SetAndObserveTableNodeID(const char *TableNodeID);
+  virtual void SetAndObserveTableNodeID(const char *tableNodeID);
 
   ///
   /// Set and observe Table node ID.
   /// Utility method that conveniently takes a string instead of a char*.
   /// \sa TableNodeID, GetTableNodeID(), SetInputData()
-  virtual bool SetAndObserveTableNodeID(const std::string& TableNodeID);
+  virtual void SetAndObserveTableNodeID(const std::string& tableNodeID);
 
   ///
   /// Get associated Table MRML noide.
@@ -107,77 +107,32 @@ public:
   /// Get referenced transform node id
   const char *GetTableNodeID();
 
-  ///
-  /// Updates other nodes in the scene depending on this node
-  /// or updates this node if it depends on other nodes when the scene is read in
-  /// This method is called automatically by XML parser after all nodes are created.
-  virtual void UpdateScene(vtkMRMLScene * scene) VTK_OVERRIDE;
-
-  ///
-  /// Updates this node if it depends on other nodes when the scene is read in
-  /// This method is called by scene when a node added to a scene.
-  virtual void OnNodeAddedToScene() VTK_OVERRIDE;
-
-  ///
-  /// Update the stored reference to another node in the scene.
-  virtual void UpdateReferenceID(const char *oldID, const char *newID) VTK_OVERRIDE;
-
-  /// \brief Update the references of the node to the scene.
-  ///
-  /// \note You must unsure that a valid scene is set before calling
-  /// SetSceneReferences().
-  virtual void SetSceneReferences() VTK_OVERRIDE;
-
   //----------------------------------------------------------------
   /// Get and Set Macros
   //----------------------------------------------------------------
 
-  ///
-  /// Set and observe a vtkPlot.
-  /// \sa SetInputData()
-  virtual void SetAndObservePlot(vtkPlot* plot);
-
-  ///
-  /// \brief vtkGetObjectMacro
-  /// Get observed plot
-  vtkGetObjectMacro(Plot, vtkPlot);
-
-  /// Get the type of the plot (line, scatter, bar).
+  /// Get/Set the type of the plot (line, scatter, bar).
   /// \brief vtkGetMacro
-  vtkGetMacro(Type, int);
+  vtkGetMacro(PlotType, int);
+  vtkSetMacro(PlotType, int);
 
   ///
-  /// Set the type of the plot (line, scatter, bar).
-  virtual void SetType(int type);
-
-  ///
-  /// Utility method to eet the type of
+  /// Convenience method to set the type of
   /// the plot (line, scatter, bar) from strings.
-  virtual void SetType(const char* type);
+  virtual void SetPlotType(const char* type);
+
+  /// Get/Set the name of the X column in the referenced table.
+  /// If the value is empty then item indices (0, 1, 2, ...) will be used as X values.
+  vtkGetMacro(XColumnName, std::string);
+  vtkSetMacro(XColumnName, std::string);
+
+  /// Returns true if item indices (0, 1, 2, ...) is used as X values.
+  bool IsXColumnIndex();
 
   ///
-  /// Get the name of the XColumn.
-  /// \brief vtkGetMacro
-  vtkGetMacro(XColumnName, vtkStdString);
-
-  ///
-  /// Set the name of the XColumn and assure the data connection.
-  /// The value "Indexes" can not be used to point a column in a table.
-  /// Such entry will be ignored and numeric indexes will used as deafult.
-  /// \brief vtkSetMacro
-  /// \sa SetInputData
-  virtual void SetXColumnName(vtkStdString xColumnName);
-
-  ///
-  /// Get the name of the YColumn.
-  /// \brief vtkGetMacro
-  vtkGetMacro(YColumnName, vtkStdString);
-
-  ///
-  /// Set the name of the YColumn and assure the data connection.
-  /// \brief vtkSetMacro
-  /// \sa SetInputData
-  virtual void SetYColumnName(vtkStdString yColumnName);
+  /// Get the name of the Y column in the referenced table.
+  vtkGetMacro(YColumnName, std::string);
+  vtkSetMacro(YColumnName, std::string);
 
   ///
   /// Convert between plot type ID and name
@@ -187,32 +142,35 @@ public:
   ///
   /// Utility methods to set/get the marker style
   /// available for Line and Points Plots.
-  virtual void SetMarkerStyle(int style);
-  virtual int GetMarkerStyle();
+  vtkGetMacro(MarkerStyle, int);
+  vtkSetMacro(MarkerStyle, int);
 
   ///
   /// Convert between plot markers style ID and name
-  const char *GetMarkersStyleAsString(int id);
-  int GetMarkersStyleFromString(const char *name);
+  const char *GetMarkerStyleAsString(int id);
+  int GetMarkerStyleFromString(const char *name);
 
   ///
   /// Utility methods to set/get the marker size
   /// available for Line and Points Plots.
-  virtual void SetMarkerSize(float size);
-  virtual float GetMarkerSize();
+  vtkGetMacro(MarkerSize, float);
+  vtkSetMacro(MarkerSize, float);
 
   ///
   /// Utility methods to set/get the Line width
   /// available for Line Plots.
-  virtual void SetLineWidth(float width);
-  virtual float GetLineWidth();
+  vtkGetMacro(LineWidth, float);
+  vtkSetMacro(LineWidth, float);
 
   ///
-  /// Set/Get Color of the vtkPlot
-  virtual void SetPlotColor(double color[4]);
-  virtual void SetPlotColor(unsigned char color[4]);
-  virtual void GetPlotColor(double color[4]);
-  virtual void GetPlotColor(unsigned char color[4]);
+  /// Set/Get Color of the line and markers of the plot
+  vtkGetVectorMacro(Color, double, 3);
+  vtkSetVectorMacro(Color, double, 3);
+
+  ///
+  /// Get set line opacity
+  vtkGetMacro(Opacity, double);
+  vtkSetMacro(Opacity, double);
 
   //----------------------------------------------------------------
   /// Constructor and destructor
@@ -268,33 +226,25 @@ protected:
   /// Externally CopyWithScene has to be called.
   virtual void Copy(vtkMRMLNode *node) VTK_OVERRIDE;
 
-  /// Set input data from a vtkTable.
-  /// This method is called internally everytime
-  /// that a new vtkPlot or vtkMRMLTable has been
-  /// set and observed.
-  /// \sa vtkPlot->SetInputData()
-  virtual void SetInputData(vtkMRMLTableNode* tableNode,
-                            vtkStdString xColumnName,
-                            vtkStdString yColumnName);
-
-  /// Utility method for setting InputData without
-  /// providing the XColumnIndex and YColumnIndex parameters.
-  /// \sa GetXColumnIndex(), GetYColumnIndex()
-  /// \def default are 0, 1
-  virtual void SetInputData(vtkMRMLTableNode* tableNode);
-
   //----------------------------------------------------------------
   /// Data
   //----------------------------------------------------------------
  protected:
-  vtkPlot* Plot;
 
   ///
   /// Type of Plot (Line, Scatter, Bar).
-  int Type;
+  int PlotType;
 
-  vtkStdString XColumnName;
-  vtkStdString YColumnName;
+  std::string XColumnName;
+  std::string YColumnName;
+
+  float LineWidth;
+
+  float MarkerSize;
+  int MarkerStyle;
+
+  double Color[3];
+  double Opacity;
 };
 
 #endif
