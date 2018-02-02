@@ -89,9 +89,9 @@ signals:
   void mrmlSceneChanged(vtkMRMLScene*);
 
   /// Signal emitted when a data point or more has been selected. Returns
-  /// the MRMLPlotDataNodes IDs and the correspective arrays with
+  /// the MRMLPlotSeriesNodes IDs and the correspective arrays with
   /// the data points ids (vtkIdTypeArray).
-  void dataSelected(vtkStringArray* mrmlPlotDataIDs, vtkCollection* selectionCol);
+  void dataSelected(vtkStringArray* mrmlPlotSeriesIDs, vtkCollection* selectionCol);
 
 protected:
   QScopedPointer<qMRMLPlotViewPrivate> d_ptr;

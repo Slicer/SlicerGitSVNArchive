@@ -49,7 +49,7 @@
 
 // MRML includes
 #include <vtkMRMLLayoutNode.h>
-#include <vtkMRMLPlotDataNode.h>
+#include <vtkMRMLPlotSeriesNode.h>
 #include <vtkMRMLPlotChartNode.h>
 #include <vtkMRMLPlotViewNode.h>
 #include <vtkRenderingCoreEnums.h> // for VTK_MARKER_SQUARE
@@ -512,14 +512,14 @@ void qMRMLTableView::plotSelection()
     }
 
   // If there are more than one columns selected then use the first one as X column
-  int plotType = vtkMRMLPlotDataNode::LINE;
+  int plotType = vtkMRMLPlotSeriesNode::LINE;
   std::string xColumnName;
   if (columnIndices.size() > 1)
     {
     vtkAbstractArray* xColumn = tableNode->GetTable()->GetColumn(columnIndices[0]);
     if (xColumn->GetDataType() != VTK_STRING)
       {
-      plotType = vtkMRMLPlotDataNode::SCATTER;
+      plotType = vtkMRMLPlotSeriesNode::SCATTER;
       }
     xColumnName = xColumn->GetName();
     columnIndices.pop_front();
@@ -569,70 +569,70 @@ void qMRMLTableView::plotSelection()
     }
 
   std::string plotMarkerStyle;
-  plotChartNode->GetPropertyFromAllPlotDataNodes(vtkMRMLPlotChartNode::PlotMarkerStyle, plotMarkerStyle);
+  plotChartNode->GetPropertyFromAllPlotSeriesNodes(vtkMRMLPlotChartNode::PlotMarkerStyle, plotMarkerStyle);
 
   // Remove columns/plots not selected from plotChartNode
-  plotChartNode->RemoveAllPlotDataNodeIDs();
+  plotChartNode->RemoveAllPlotSeriesNodeIDs();
 
   for (std::deque<int>::iterator columnIndexIt = columnIndices.begin(); columnIndexIt != columnIndices.end(); ++columnIndexIt)
     {
     std::string yColumnName = tableNode->GetColumnName(*columnIndexIt);
 
-    // Check if there is already a PlotDataNode that has the same name as this Column and reuse that to avoid node duplication
+    // Check if there is already a PlotSeriesNode that has the same name as this Column and reuse that to avoid node duplication
     vtkSmartPointer<vtkCollection> colPlots = vtkSmartPointer<vtkCollection>::Take(
-      this->mrmlScene()->GetNodesByClassByName("vtkMRMLPlotDataNode", yColumnName.c_str()));
+      this->mrmlScene()->GetNodesByClassByName("vtkMRMLPlotSeriesNode", yColumnName.c_str()));
     if (colPlots == NULL)
       {
       continue;
       }
-    vtkMRMLPlotDataNode *plotDataNode = NULL;
+    vtkMRMLPlotSeriesNode *plotSeriesNode = NULL;
     for (int plotIndex = 0; plotIndex < colPlots->GetNumberOfItems(); plotIndex++)
       {
-      plotDataNode = vtkMRMLPlotDataNode::SafeDownCast(colPlots->GetItemAsObject(plotIndex));
-      if (plotDataNode != NULL)
+      plotSeriesNode = vtkMRMLPlotSeriesNode::SafeDownCast(colPlots->GetItemAsObject(plotIndex));
+      if (plotSeriesNode != NULL)
         {
         break;
         }
       }
 
-    // Create a PlotDataNode if a usable node has not been found
-    if (plotDataNode == NULL)
+    // Create a PlotSeriesNode if a usable node has not been found
+    if (plotSeriesNode == NULL)
       {
-      plotDataNode = vtkMRMLPlotDataNode::SafeDownCast(this->mrmlScene()->AddNewNodeByClass(
-        "vtkMRMLPlotDataNode", yColumnName.c_str()));
+      plotSeriesNode = vtkMRMLPlotSeriesNode::SafeDownCast(this->mrmlScene()->AddNewNodeByClass(
+        "vtkMRMLPlotSeriesNode", yColumnName.c_str()));
       }
-    if (plotType == vtkMRMLPlotDataNode::SCATTER)
+    if (plotType == vtkMRMLPlotSeriesNode::SCATTER)
       {
-      plotDataNode->SetXColumnName(xColumnName);
+      plotSeriesNode->SetXColumnName(xColumnName);
       }
     else
       {
-      plotDataNode->SetLabelColumnName(xColumnName);
-      plotDataNode->SetMarkerStyle(VTK_MARKER_SQUARE);
+      plotSeriesNode->SetLabelColumnName(xColumnName);
+      plotSeriesNode->SetMarkerStyle(VTK_MARKER_SQUARE);
       }
-    plotDataNode->SetYColumnName(yColumnName);
-    plotDataNode->SetAndObserveTableNodeID(tableNode->GetID());
+    plotSeriesNode->SetYColumnName(yColumnName);
+    plotSeriesNode->SetAndObserveTableNodeID(tableNode->GetID());
 
-    std::string namePlotDataNode = plotDataNode->GetName();
-    std::size_t found = namePlotDataNode.find("Markups");
+    std::string namePlotSeriesNode = plotSeriesNode->GetName();
+    std::size_t found = namePlotSeriesNode.find("Markups");
     if (found != std::string::npos)
       {
-      plotChartNode->RemovePlotDataNodeID(plotDataNode->GetID());
-      plotDataNode->GetNodeReference("Markups")->RemoveNodeReferenceIDs("Markups");
-      this->mrmlScene()->RemoveNode(plotDataNode);
+      plotChartNode->RemovePlotSeriesNodeID(plotSeriesNode->GetID());
+      plotSeriesNode->GetNodeReference("Markups")->RemoveNodeReferenceIDs("Markups");
+      this->mrmlScene()->RemoveNode(plotSeriesNode);
       continue;
       }
 
-    // Set the type of the PlotDataNode
-    plotDataNode->SetPlotType(plotType);
+    // Set the type of the PlotSeriesNode
+    plotSeriesNode->SetPlotType(plotType);
 
     if (!plotMarkerStyle.empty())
       {
-      plotDataNode->SetMarkerStyle(plotDataNode->GetMarkerStyleFromString(plotMarkerStyle.c_str()));
+      plotSeriesNode->SetMarkerStyle(plotSeriesNode->GetMarkerStyleFromString(plotMarkerStyle.c_str()));
       }
 
-    // Add the reference of the PlotDataNode in the active PlotChartNode
-    plotChartNode->AddAndObservePlotDataNodeID(plotDataNode->GetID());
+    // Add the reference of the PlotSeriesNode in the active PlotChartNode
+    plotChartNode->AddAndObservePlotSeriesNodeID(plotSeriesNode->GetID());
     }
 }
 

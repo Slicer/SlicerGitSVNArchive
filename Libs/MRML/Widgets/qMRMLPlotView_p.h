@@ -50,7 +50,7 @@ class ctkPopupWidget;
 #include <vtkSmartPointer.h>
 class vtkPlot;
 
-class vtkMRMLPlotDataNode;
+class vtkMRMLPlotSeriesNode;
 class vtkMRMLPlotViewNode;
 class vtkMRMLPlotChartNode;
 class vtkMRMLColorLogic;
@@ -76,11 +76,11 @@ public:
   void setMRMLScene(vtkMRMLScene* scene);
   vtkMRMLScene *mrmlScene();
 
-  vtkMRMLPlotDataNode* plotDataNodeFromPlot(vtkPlot* plot);
+  vtkMRMLPlotSeriesNode* plotSeriesNodeFromPlot(vtkPlot* plot);
 
   // Tries to update the existing plot. If returns NULL then it means the existing plot must be deleted.
   // If returned plot differs from the existin plot, then existing plot must be replaced by the returned one.
-  vtkSmartPointer<vtkPlot> updatePlotFromPlotDataNode(vtkMRMLPlotDataNode* plotDataNode, vtkPlot* existingPlot);
+  vtkSmartPointer<vtkPlot> updatePlotFromPlotSeriesNode(vtkMRMLPlotSeriesNode* plotSeriesNode, vtkPlot* existingPlot);
 
 public slots:
   /// Handle MRML scene event
@@ -109,7 +109,7 @@ protected:
 
   bool                               UpdatingWidgetFromMRML;
 
-  QMap< vtkPlot*, QString > MapPlotToPlotDataNodeID;
+  QMap< vtkPlot*, QString > MapPlotToPlotSeriesNodeID;
 };
 
 #endif

@@ -31,7 +31,7 @@
         </size>
        </property>
        <property name="toolTip">
-        <string>Select the PlotChartNode which handles the general Properties of the Plot and allow to select multiple PlotDataNodes.</string>
+        <string>Select the PlotChartNode which handles the general Properties of the Plot and allow to select multiple PlotSeriesNodes.</string>
        </property>
        <property name="nodeTypes">
         <stringlist>
@@ -70,7 +70,7 @@
         </size>
        </property>
        <property name="toolTip">
-        <string>This combobox allows to change the Type for all the active PlotDataNodes. If a value is chosen, all the PlotDataNodes referenced by the PlotChartNode will be updated with the new value. </string>
+        <string>This combobox allows to change the Type for all the active PlotSeriesNodes. If a value is chosen, all the PlotSeriesNodes referenced by the PlotChartNode will be updated with the new value. </string>
        </property>
        <property name="currentIndex">
         <number>0</number>
@@ -93,7 +93,7 @@
       </widget>
      </item>
      <item row="4" column="0">
-      <widget class="qMRMLCheckableNodeComboBox" name="plotDataComboBox">
+      <widget class="qMRMLCheckableNodeComboBox" name="plotSeriesComboBox">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
          <horstretch>1</horstretch>
@@ -107,11 +107,11 @@
         </size>
        </property>
        <property name="toolTip">
-        <string>Add/Remove Plots from the current Plot Layout the plotData selected. The &quot;Default&quot; will apport any modification. The &quot;indexes&quot; values </string>
+        <string>Add/Remove plots data series to/from the current chart.</string>
        </property>
        <property name="nodeTypes">
         <stringlist>
-         <string>vtkMRMLPlotDataNode</string>
+         <string>vtkMRMLPlotSeriesNode</string>
         </stringlist>
        </property>
        <property name="noneEnabled">
@@ -174,7 +174,7 @@
         </size>
        </property>
        <property name="toolTip">
-        <string>This combobox allows to change the X-Axis for all the active PlotDataNodes. If a value is chosen, all the PlotDataNodes referenced by the PlotChartNode will be updated with the new value. The value &quot;Indexes&quot; will use simple ordinal numbers 0, 1, 2, 3, ... as x coordinate values.</string>
+        <string>This combobox allows to change the X-Axis for all the active PlotSeriesNodes. If a value is chosen, all the PlotSeriesNodes referenced by the PlotChartNode will be updated with the new value. The value &quot;Indexes&quot; will use simple ordinal numbers 0, 1, 2, 3, ... as x coordinate values.</string>
        </property>
       </widget>
      </item>
@@ -221,7 +221,7 @@
         </size>
        </property>
        <property name="toolTip">
-        <string>This combobox allows to change the type of the markers for all the active PlotDataNodes. If a value is chosen, all the PlotDataNodes referenced by the PlotChartNode will be updated with the new value.</string>
+        <string>This combobox allows to change the type of the markers for all the active PlotSeriesNodes. If a value is chosen, all the PlotSeriesNodes referenced by the PlotChartNode will be updated with the new value.</string>
        </property>
        <item>
         <property name="text">

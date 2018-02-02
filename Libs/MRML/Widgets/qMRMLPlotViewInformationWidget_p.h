@@ -47,7 +47,7 @@
 class QAction;
 class ctkVTKPlotViewView;
 class vtkMRMLPlotChartNode;
-class vtkMRMLPlotDataNode;
+class vtkMRMLPlotSeriesNode;
 class vtkMRMLPlotViewNode;
 class vtkObject;
 
@@ -95,12 +95,12 @@ public slots:
   /// Activate Click and Drag for y-Axis.
   void activateClickAndDragY(bool activate);
 
-  /// Update widget state using the associated MRML PlotData node.
-  void updateWidgetFromMRMLPlotDataNode();
+  /// Update widget state using the associated MRML PlotSeries node.
+  void updateWidgetFromMRMLPlotSeriesNode();
 
-  /// Called after a PlotDataNode is selected
+  /// Called after a PlotSeriesNode is selected
   /// using the associated qMRMLNodeComboBox.
-  void onPlotDataNodeChanged(vtkMRMLNode* node);
+  void onPlotSeriesNodeChanged(vtkMRMLNode* node);
 
   /// Called after a TableNode is selected
   /// using the associated qMRMLNodeComboBox.
@@ -130,17 +130,17 @@ public slots:
   /// Change line widht for Line and Scatter plots.
   void onLineWidthChanged(double width);
 
-  /// Change the color of a single PlotDataNode.
-  void onPlotDataColorChanged(const QColor& color);
+  /// Change the color of a single PlotSeriesNode.
+  void onPlotSeriesColorChanged(const QColor& color);
 
-  /// Copy the current PlotDataNode.
+  /// Copy the current PlotSeriesNode.
   /// Additionally, the node reference will be added
   /// to the active PlotChartNode.
-  void onCopyPlotDataNodeClicked();
+  void onCopyPlotSeriesNodeClicked();
 
 public:
   vtkWeakPointer<vtkMRMLPlotViewNode>    PlotViewNode;
-  vtkWeakPointer<vtkMRMLPlotDataNode>    PlotDataNode;
+  vtkWeakPointer<vtkMRMLPlotSeriesNode>    PlotSeriesNode;
 
 };
 

@@ -40,7 +40,7 @@
 #include "qMRMLPlotView_p.h"
 
 // MRML includes
-#include <vtkMRMLPlotDataNode.h>
+#include <vtkMRMLPlotSeriesNode.h>
 #include <vtkMRMLPlotChartNode.h>
 #include <vtkMRMLPlotViewNode.h>
 #include <vtkMRMLColorLogic.h>
@@ -218,45 +218,45 @@ void qMRMLPlotViewPrivate::setMRMLScene(vtkMRMLScene* newScene)
 }
 
 // --------------------------------------------------------------------------
-vtkMRMLPlotDataNode* qMRMLPlotViewPrivate::plotDataNodeFromPlot(vtkPlot* plot)
+vtkMRMLPlotSeriesNode* qMRMLPlotViewPrivate::plotSeriesNodeFromPlot(vtkPlot* plot)
 {
   if (plot == NULL)
     {
     return NULL;
     }
-  QMap< vtkPlot*, QString >::iterator plotIt = this->MapPlotToPlotDataNodeID.find(plot);
-  if (plotIt == this->MapPlotToPlotDataNodeID.end())
+  QMap< vtkPlot*, QString >::iterator plotIt = this->MapPlotToPlotSeriesNodeID.find(plot);
+  if (plotIt == this->MapPlotToPlotSeriesNodeID.end())
     {
     return NULL;
     }
-  QString plotDataNodeID = plotIt.value();
-  if (plotDataNodeID.isEmpty())
+  QString plotSeriesNodeID = plotIt.value();
+  if (plotSeriesNodeID.isEmpty())
     {
     return NULL;
     }
-  vtkMRMLPlotDataNode* plotDataNode = vtkMRMLPlotDataNode::SafeDownCast(this->mrmlScene()->GetNodeByID(plotDataNodeID.toLatin1().constData()));
-  if (plotDataNode == NULL)
+  vtkMRMLPlotSeriesNode* plotSeriesNode = vtkMRMLPlotSeriesNode::SafeDownCast(this->mrmlScene()->GetNodeByID(plotSeriesNodeID.toLatin1().constData()));
+  if (plotSeriesNode == NULL)
     {
     // node is not in the scene anymore
-    this->MapPlotToPlotDataNodeID.erase(plotIt);
+    this->MapPlotToPlotSeriesNodeID.erase(plotIt);
     }
-  return plotDataNode;
+  return plotSeriesNode;
 }
 
 // --------------------------------------------------------------------------
-vtkSmartPointer<vtkPlot> qMRMLPlotViewPrivate::updatePlotFromPlotDataNode(vtkMRMLPlotDataNode* plotDataNode, vtkPlot* existingPlot)
+vtkSmartPointer<vtkPlot> qMRMLPlotViewPrivate::updatePlotFromPlotSeriesNode(vtkMRMLPlotSeriesNode* plotSeriesNode, vtkPlot* existingPlot)
 {
-  if (plotDataNode == NULL)
+  if (plotSeriesNode == NULL)
     {
     return NULL;
     }
-  vtkMRMLTableNode* tableNode = plotDataNode->GetTableNode();
+  vtkMRMLTableNode* tableNode = plotSeriesNode->GetTableNode();
   if (tableNode == NULL || tableNode->GetTable() == NULL)
     {
     return NULL;
     }
   vtkTable *table = tableNode->GetTable();
-  std::string yColumnName = plotDataNode->GetYColumnName();
+  std::string yColumnName = plotSeriesNode->GetYColumnName();
   if (yColumnName.empty())
     {
     return NULL;
@@ -273,16 +273,16 @@ vtkSmartPointer<vtkPlot> qMRMLPlotViewPrivate::updatePlotFromPlotDataNode(vtkMRM
     return NULL;
     }
 
-  std::string xColumnName = plotDataNode->GetXColumnName();
+  std::string xColumnName = plotSeriesNode->GetXColumnName();
   vtkAbstractArray* xColumn = NULL;
   if (!xColumnName.empty())
     {
     xColumn = table->GetColumnByName(xColumnName.c_str());
     }
 
-  int plotType = plotDataNode->GetPlotType();
+  int plotType = plotSeriesNode->GetPlotType();
 
-  if (plotType == vtkMRMLPlotDataNode::SCATTER)
+  if (plotType == vtkMRMLPlotSeriesNode::SCATTER)
     {
     if (!xColumn)
       {
@@ -299,14 +299,14 @@ vtkSmartPointer<vtkPlot> qMRMLPlotViewPrivate::updatePlotFromPlotDataNode(vtkMRM
   vtkSmartPointer<vtkPlot> newPlot = existingPlot;
   switch (plotType)
     {
-    case vtkMRMLPlotDataNode::SCATTER:
-    case vtkMRMLPlotDataNode::LINE:
+    case vtkMRMLPlotSeriesNode::SCATTER:
+    case vtkMRMLPlotSeriesNode::LINE:
       if (!existingPlot || !existingPlot->IsA("vtkPlotLine"))
         {
         newPlot = vtkSmartPointer<vtkPlotLine>::New();
         }
       break;
-    case vtkMRMLPlotDataNode::BAR:
+    case vtkMRMLPlotSeriesNode::BAR:
       if (!existingPlot || !existingPlot->IsA("vtkPlotBar"))
         {
         newPlot = vtkSmartPointer<vtkPlotBar>::New();
@@ -317,20 +317,20 @@ vtkSmartPointer<vtkPlot> qMRMLPlotViewPrivate::updatePlotFromPlotDataNode(vtkMRM
     }
 
   // Common properties
-  newPlot->SetWidth(plotDataNode->GetLineWidth());
-  double* color = plotDataNode->GetColor();
+  newPlot->SetWidth(plotSeriesNode->GetLineWidth());
+  double* color = plotSeriesNode->GetColor();
   newPlot->SetColor(color[0], color[1], color[2]);
-  newPlot->SetOpacity(plotDataNode->GetOpacity());
+  newPlot->SetOpacity(plotSeriesNode->GetOpacity());
   if (newPlot->GetPen())
     {
-    newPlot->GetPen()->SetOpacityF(plotDataNode->GetOpacity());
-    if (plotType == vtkMRMLPlotDataNode::BAR)
+    newPlot->GetPen()->SetOpacityF(plotSeriesNode->GetOpacity());
+    if (plotType == vtkMRMLPlotSeriesNode::BAR)
       {
       newPlot->GetPen()->SetLineType(vtkPen::SOLID_LINE);
       }
     else
       {
-      newPlot->GetPen()->SetLineType(plotDataNode->GetLineStyle());
+      newPlot->GetPen()->SetLineType(plotSeriesNode->GetLineStyle());
       }
     }
 
@@ -339,19 +339,19 @@ vtkSmartPointer<vtkPlot> qMRMLPlotViewPrivate::updatePlotFromPlotDataNode(vtkMRM
   vtkPlotBar* plotBar = vtkPlotBar::SafeDownCast(newPlot);
   if (plotLine)
     {
-    plotLine->SetMarkerSize(plotDataNode->GetMarkerSize());
-    plotLine->SetMarkerStyle(plotDataNode->GetMarkerStyle());
+    plotLine->SetMarkerSize(plotSeriesNode->GetMarkerSize());
+    plotLine->SetMarkerStyle(plotSeriesNode->GetMarkerStyle());
     }
 
   vtkStringArray* labelArray = NULL;
-  std::string labelColumnName = plotDataNode->GetLabelColumnName();
+  std::string labelColumnName = plotSeriesNode->GetLabelColumnName();
   if (!labelColumnName.empty())
     {
     labelArray = vtkStringArray::SafeDownCast(table->GetColumnByName(labelColumnName.c_str()));
     }
   newPlot->SetIndexedLabels(labelArray);
 
-  if (plotType == vtkMRMLPlotDataNode::SCATTER)
+  if (plotType == vtkMRMLPlotSeriesNode::SCATTER)
     {
     newPlot->SetUseIndexForXSeries(false);
     newPlot->SetInputData(table, xColumnName, yColumnName);
@@ -536,7 +536,7 @@ void qMRMLPlotViewPrivate::emitSelection()
     return;
     }
 
-  vtkNew<vtkStringArray> mrmlPlotDataIDs;
+  vtkNew<vtkStringArray> mrmlPlotSeriesIDs;
   vtkNew<vtkCollection> selectionCol;
 
   for (int plotIndex = 0; plotIndex < q->chart()->GetNumberOfPlots(); plotIndex++)
@@ -555,16 +555,16 @@ void qMRMLPlotViewPrivate::emitSelection()
     if (selection->GetNumberOfValues() > 0)
       {
       selectionCol->AddItem(selection);
-      vtkMRMLPlotDataNode* plotDataNode = this->plotDataNodeFromPlot(plot);
-      if (plotDataNode)
+      vtkMRMLPlotSeriesNode* plotSeriesNode = this->plotSeriesNodeFromPlot(plot);
+      if (plotSeriesNode)
         {
         // valid plot data node found
-        mrmlPlotDataIDs->InsertNextValue(plotDataNode->GetID());
+        mrmlPlotSeriesIDs->InsertNextValue(plotSeriesNode->GetID());
         }
       }
     }
   // emit the signal
-  emit q->dataSelected(mrmlPlotDataIDs.GetPointer(), selectionCol.GetPointer());
+  emit q->dataSelected(mrmlPlotSeriesIDs.GetPointer(), selectionCol.GetPointer());
 }
 
 // --------------------------------------------------------------------------
@@ -604,7 +604,7 @@ void qMRMLPlotViewPrivate::updateWidgetFromMRML()
         }
       q->removePlot(q->chart()->GetPlot(0));
       }
-    this->MapPlotToPlotDataNodeID.clear();
+    this->MapPlotToPlotSeriesNodeID.clear();
     this->UpdatingWidgetFromMRML = false;
     return;
     }
@@ -636,43 +636,43 @@ void qMRMLPlotViewPrivate::updateWidgetFromMRML()
     return;
     }
 
-  vtkSmartPointer<vtkCollection> allPlotDataNodesInScene = vtkSmartPointer<vtkCollection>::Take
-    (this->mrmlScene()->GetNodesByClass("vtkMRMLPlotDataNode"));
+  vtkSmartPointer<vtkCollection> allPlotSeriesNodesInScene = vtkSmartPointer<vtkCollection>::Take
+    (this->mrmlScene()->GetNodesByClass("vtkMRMLPlotSeriesNode"));
 
-  std::vector<std::string> plotDataNodesIDs;
-  plotChartNode->GetPlotDataNodeIDs(plotDataNodesIDs);
+  std::vector<std::string> plotSeriesNodesIDs;
+  plotChartNode->GetPlotSeriesNodeIDs(plotSeriesNodesIDs);
 
   // Plot data nodes that should not be added to the chart
   // because they are already added or because they should not be added
   // (as not all necessary table data are available).
-  std::set< vtkMRMLPlotDataNode* > plotDataNodesNotToAdd;
+  std::set< vtkMRMLPlotSeriesNode* > plotSeriesNodesNotToAdd;
 
   // Remove plots from chart that are no longer needed or available
-  for (int chartPlotDataNodesIndex = q->chart()->GetNumberOfPlots()-1; chartPlotDataNodesIndex >= 0; chartPlotDataNodesIndex--)
+  for (int chartPlotSeriesNodesIndex = q->chart()->GetNumberOfPlots()-1; chartPlotSeriesNodesIndex >= 0; chartPlotSeriesNodesIndex--)
     {
-    vtkPlot *plot = q->chart()->GetPlot(chartPlotDataNodesIndex);
+    vtkPlot *plot = q->chart()->GetPlot(chartPlotSeriesNodesIndex);
     if (!plot)
       {
       continue;
       }
     // If it is NULL then it means that there is no usable associated plot data node
     // and so the plot should be removed.
-    vtkMRMLPlotDataNode* plotDataNode = this->plotDataNodeFromPlot(plot);
-    if (plotDataNode != NULL)
+    vtkMRMLPlotSeriesNode* plotSeriesNode = this->plotSeriesNodeFromPlot(plot);
+    if (plotSeriesNode != NULL)
       {
-      plotDataNodesNotToAdd.insert(plotDataNode);
-      if (std::find(plotDataNodesIDs.begin(), plotDataNodesIDs.end(),
-        plotDataNode->GetID()) == plotDataNodesIDs.end())
+      plotSeriesNodesNotToAdd.insert(plotSeriesNode);
+      if (std::find(plotSeriesNodesIDs.begin(), plotSeriesNodesIDs.end(),
+        plotSeriesNode->GetID()) == plotSeriesNodesIDs.end())
         {
         // plot data node is no longer associated with this chart
-        plotDataNode = NULL;
+        plotSeriesNode = NULL;
         }
       }
 
     bool deletePlot = true;
-    if (plotDataNode)
+    if (plotSeriesNode)
       {
-      vtkSmartPointer<vtkPlot> newPlot = this->updatePlotFromPlotDataNode(plotDataNode, plot);
+      vtkSmartPointer<vtkPlot> newPlot = this->updatePlotFromPlotSeriesNode(plotSeriesNode, plot);
       if (newPlot == plot)
         {
         // keep current plot
@@ -680,7 +680,7 @@ void qMRMLPlotViewPrivate::updateWidgetFromMRML()
         }
       else
         {
-        this->MapPlotToPlotDataNodeID[plot] = plotDataNode->GetID();
+        this->MapPlotToPlotSeriesNodeID[plot] = plotSeriesNode->GetID();
         q->addPlot(newPlot);
         }
       }
@@ -698,25 +698,25 @@ void qMRMLPlotViewPrivate::updateWidgetFromMRML()
         }
 
       q->removePlot(plot);
-      this->MapPlotToPlotDataNodeID.remove(plot);
+      this->MapPlotToPlotSeriesNodeID.remove(plot);
       }
     }
 
   // Add missing plots to the chart
-  for (std::vector<std::string>::iterator it = plotDataNodesIDs.begin(); it != plotDataNodesIDs.end(); ++it)
+  for (std::vector<std::string>::iterator it = plotSeriesNodesIDs.begin(); it != plotSeriesNodesIDs.end(); ++it)
     {
-    vtkMRMLPlotDataNode* plotDataNode = vtkMRMLPlotDataNode::SafeDownCast(this->mrmlScene()->GetNodeByID(it->c_str()));
-    if (!plotDataNode || plotDataNodesNotToAdd.find(plotDataNode) != plotDataNodesNotToAdd.end())
+    vtkMRMLPlotSeriesNode* plotSeriesNode = vtkMRMLPlotSeriesNode::SafeDownCast(this->mrmlScene()->GetNodeByID(it->c_str()));
+    if (!plotSeriesNode || plotSeriesNodesNotToAdd.find(plotSeriesNode) != plotSeriesNodesNotToAdd.end())
       {
       // node is invalid or need not to be added
       continue;
       }
-    vtkSmartPointer<vtkPlot> newPlot = this->updatePlotFromPlotDataNode(plotDataNode, NULL);
+    vtkSmartPointer<vtkPlot> newPlot = this->updatePlotFromPlotSeriesNode(plotSeriesNode, NULL);
     if (!newPlot)
       {
       continue;
       }
-    this->MapPlotToPlotDataNodeID[newPlot] = plotDataNode->GetID();
+    this->MapPlotToPlotSeriesNodeID[newPlot] = plotSeriesNode->GetID();
     q->addPlot(newPlot);
     }
 
@@ -836,8 +836,8 @@ void qMRMLPlotView::setMRMLPlotViewNode(vtkMRMLPlotViewNode* newPlotViewNode)
   d->qvtkReconnect(d->MRMLPlotViewNode, newPlotViewNode,
     vtkMRMLPlotViewNode::PlotChartNodeChangedEvent, d, SLOT(updateWidgetFromMRML()));
 
-  // connect on PlotDataNodeChangedEvent (e.g. PlotView is looking at a
-  // different PlotDataNode
+  // connect on PlotSeriesNodeChangedEvent (e.g. PlotView is looking at a
+  // different PlotSeriesNode
   d->qvtkReconnect(d->MRMLPlotViewNode, newPlotViewNode,
     vtkMRMLPlotViewNode::PlotChartNodeChangedEvent, d, SLOT(onPlotChartNodeChanged()));
 

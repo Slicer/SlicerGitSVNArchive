@@ -49,7 +49,7 @@
 // MRML includes
 #include <vtkMRMLScene.h>
 #include <vtkMRMLDoubleArrayNode.h>
-#include <vtkMRMLPlotDataNode.h>
+#include <vtkMRMLPlotSeriesNode.h>
 #include <vtkMRMLPlotChartNode.h>
 #include <vtkMRMLPlotViewNode.h>
 #include <vtkMRMLSceneViewNode.h>
@@ -97,12 +97,12 @@ void qMRMLPlotViewControllerWidgetPrivate::setupPopupUi()
                 SLOT(onPlotChartNodeSelected(vtkMRMLNode*)));
 
   // Connect Plot selector
-  this->connect(this->plotDataComboBox, SIGNAL(checkedNodesChanged()),
-                SLOT(onPlotDataNodesSelected()));
-  this->connect(this->plotDataComboBox, SIGNAL(nodeAddedByUser(vtkMRMLNode*)),
-                SLOT(onPlotDataNodeAdded(vtkMRMLNode*)));
-  this->connect(this->plotDataComboBox, SIGNAL(nodeAboutToBeEdited(vtkMRMLNode*)),
-                SLOT(onPlotDataNodeEdited(vtkMRMLNode*)));
+  this->connect(this->plotSeriesComboBox, SIGNAL(checkedNodesChanged()),
+                SLOT(onPlotSeriesNodesSelected()));
+  this->connect(this->plotSeriesComboBox, SIGNAL(nodeAddedByUser(vtkMRMLNode*)),
+                SLOT(onPlotSeriesNodeAdded(vtkMRMLNode*)));
+  this->connect(this->plotSeriesComboBox, SIGNAL(nodeAboutToBeEdited(vtkMRMLNode*)),
+                SLOT(onPlotSeriesNodeEdited(vtkMRMLNode*)));
 
   // Connect the Plot Type selector
   this->connect(this->plotTypeComboBox, SIGNAL(currentIndexChanged(const QString&)),
@@ -155,7 +155,7 @@ void qMRMLPlotViewControllerWidgetPrivate::setupPopupUi()
 
   // Connect the scene
   QObject::connect(q, SIGNAL(mrmlSceneChanged(vtkMRMLScene*)),
-                   this->plotDataComboBox, SLOT(setMRMLScene(vtkMRMLScene*)));
+                   this->plotSeriesComboBox, SLOT(setMRMLScene(vtkMRMLScene*)));
 
   QObject::connect(q, SIGNAL(mrmlSceneChanged(vtkMRMLScene*)),
                    this->plotChartComboBox, SLOT(setMRMLScene(vtkMRMLScene*)));
@@ -224,27 +224,27 @@ void qMRMLPlotViewControllerWidgetPrivate::onPlotChartNodeSelected(vtkMRMLNode *
 
 
 // --------------------------------------------------------------------------
-void qMRMLPlotViewControllerWidgetPrivate::onPlotDataNodesSelected()
+void qMRMLPlotViewControllerWidgetPrivate::onPlotSeriesNodesSelected()
 {
   if (!this->PlotViewNode || !this->PlotChartNode)
     {
     return;
     }
 
-  std::vector<std::string> plotDataNodesIDs;
-  this->PlotChartNode->GetPlotDataNodeIDs(plotDataNodesIDs);
+  std::vector<std::string> plotSeriesNodesIDs;
+  this->PlotChartNode->GetPlotSeriesNodeIDs(plotSeriesNodesIDs);
 
   // loop over arrays in the widget
-  for (int idx = 0; idx < this->plotDataComboBox->nodeCount(); idx++)
+  for (int idx = 0; idx < this->plotSeriesComboBox->nodeCount(); idx++)
     {
-    vtkMRMLPlotDataNode *dn = vtkMRMLPlotDataNode::SafeDownCast(this->plotDataComboBox->nodeFromIndex(idx));
+    vtkMRMLPlotSeriesNode *dn = vtkMRMLPlotSeriesNode::SafeDownCast(this->plotSeriesComboBox->nodeFromIndex(idx));
 
-    bool checked = (this->plotDataComboBox->checkState(dn) == Qt::Checked);
+    bool checked = (this->plotSeriesComboBox->checkState(dn) == Qt::Checked);
 
     // is the node in the Plot?
     bool found = false;
-    std::vector<std::string>::iterator it = plotDataNodesIDs.begin();
-    for (; it != plotDataNodesIDs.end(); ++it)
+    std::vector<std::string>::iterator it = plotSeriesNodesIDs.begin();
+    for (; it != plotSeriesNodesIDs.end(); ++it)
       {
       if (!strcmp(dn->GetID(), (*it).c_str()))
         {
@@ -252,7 +252,7 @@ void qMRMLPlotViewControllerWidgetPrivate::onPlotDataNodesSelected()
           {
           // plot is not checked but currently in the LayoutPlot, remove it
           // (might want to cache the old name in case user adds it back)
-          this->PlotChartNode->RemovePlotDataNodeID((*it).c_str());
+          this->PlotChartNode->RemovePlotSeriesNodeID((*it).c_str());
           }
         found = true;
         break;
@@ -263,14 +263,14 @@ void qMRMLPlotViewControllerWidgetPrivate::onPlotDataNodesSelected()
       if (checked)
         {
         // plot is checked but not currently in the LayoutPlot, add it
-        this->PlotChartNode->AddAndObservePlotDataNodeID(dn->GetID());
+        this->PlotChartNode->AddAndObservePlotSeriesNodeID(dn->GetID());
         }
       }
   }
 }
 
 // --------------------------------------------------------------------------
-void qMRMLPlotViewControllerWidgetPrivate::onPlotDataNodeAdded(vtkMRMLNode *node)
+void qMRMLPlotViewControllerWidgetPrivate::onPlotSeriesNodeAdded(vtkMRMLNode *node)
 {
   Q_Q(qMRMLPlotViewControllerWidget);
 
@@ -279,21 +279,21 @@ void qMRMLPlotViewControllerWidgetPrivate::onPlotDataNodeAdded(vtkMRMLNode *node
     return;
     }
 
-  vtkMRMLPlotDataNode *plotDataNode = vtkMRMLPlotDataNode::SafeDownCast(node);
+  vtkMRMLPlotSeriesNode *plotSeriesNode = vtkMRMLPlotSeriesNode::SafeDownCast(node);
 
-  if (plotDataNode)
+  if (plotSeriesNode)
     {
     return;
     }
 
-  q->mrmlScene()->AddNode(plotDataNode);
+  q->mrmlScene()->AddNode(plotSeriesNode);
 
-  // Add the reference of the PlotDataNode in the active PlotChartNode
-  this->PlotChartNode->AddAndObservePlotDataNodeID(plotDataNode->GetID());
+  // Add the reference of the PlotSeriesNode in the active PlotChartNode
+  this->PlotChartNode->AddAndObservePlotSeriesNodeID(plotSeriesNode->GetID());
 }
 
 // --------------------------------------------------------------------------
-void qMRMLPlotViewControllerWidgetPrivate::onPlotDataNodeEdited(vtkMRMLNode *node)
+void qMRMLPlotViewControllerWidgetPrivate::onPlotSeriesNodeEdited(vtkMRMLNode *node)
 {
   if (node == NULL)
     {
@@ -304,7 +304,7 @@ void qMRMLPlotViewControllerWidgetPrivate::onPlotDataNodeEdited(vtkMRMLNode *nod
                             " the ViewController Module. Additional editing options"
                             " are available under the Advanced menu.").arg(node->GetName());
   qWarning() << Q_FUNC_INFO << ": " << message;
-  QMessageBox::warning(NULL, tr("Edit PlotDataNode"), message);
+  QMessageBox::warning(NULL, tr("Edit PlotSeriesNode"), message);
 }
 
 // --------------------------------------------------------------------------
@@ -314,7 +314,7 @@ void qMRMLPlotViewControllerWidgetPrivate::onPlotTypeChanged(const QString &type
     {
     return;
     }
-  this->PlotChartNode->SetPropertyToAllPlotDataNodes(vtkMRMLPlotChartNode::PlotType,
+  this->PlotChartNode->SetPropertyToAllPlotSeriesNodes(vtkMRMLPlotChartNode::PlotType,
     type.toLatin1().constData());
 }
 
@@ -327,7 +327,7 @@ void qMRMLPlotViewControllerWidgetPrivate::onXAxisChanged(int index)
     }
   if (index >= 0)
     {
-    this->PlotChartNode->SetPropertyToAllPlotDataNodes(vtkMRMLPlotChartNode::PlotXColumnName,
+    this->PlotChartNode->SetPropertyToAllPlotSeriesNodes(vtkMRMLPlotChartNode::PlotXColumnName,
       this->xAxisComboBox->itemData(index).toString().toLatin1().constData());
     }
 }
@@ -339,7 +339,7 @@ void qMRMLPlotViewControllerWidgetPrivate::onMarkersChanged(const QString &marke
     {
     return;
     }
-  this->PlotChartNode->SetPropertyToAllPlotDataNodes(vtkMRMLPlotChartNode::PlotMarkerStyle,
+  this->PlotChartNode->SetPropertyToAllPlotSeriesNodes(vtkMRMLPlotChartNode::PlotMarkerStyle,
     markerStyle.toLatin1().constData());
 }
 
@@ -613,43 +613,43 @@ void qMRMLPlotViewControllerWidget::updateWidgetFromMRML()
     d->xAxisLabelLineEdit->clear();
     d->yAxisLabelLineEdit->clear();
 
-    bool plotBlockSignals = d->plotDataComboBox->blockSignals(true);
-    for (int idx = 0; idx < d->plotDataComboBox->nodeCount(); idx++)
+    bool plotBlockSignals = d->plotSeriesComboBox->blockSignals(true);
+    for (int idx = 0; idx < d->plotSeriesComboBox->nodeCount(); idx++)
       {
-      d->plotDataComboBox->setCheckState(d->plotDataComboBox->nodeFromIndex(idx),
+      d->plotSeriesComboBox->setCheckState(d->plotSeriesComboBox->nodeFromIndex(idx),
                                          Qt::Unchecked);
       }
-    d->plotDataComboBox->blockSignals(plotBlockSignals);
+    d->plotSeriesComboBox->blockSignals(plotBlockSignals);
 
     return;
     }
 
   // Plot and x axis selector
   bool xAxisComboBoxBlockSignals = d->xAxisComboBox->blockSignals(true);
-  bool plotBlockSignals = d->plotDataComboBox->blockSignals(true);
+  bool plotBlockSignals = d->plotSeriesComboBox->blockSignals(true);
 
-  for (int idx = 0; idx < d->plotDataComboBox->nodeCount(); idx++)
+  for (int idx = 0; idx < d->plotSeriesComboBox->nodeCount(); idx++)
     {
-    vtkMRMLNode* node = d->plotDataComboBox->nodeFromIndex(idx);
-    d->plotDataComboBox->setCheckState(node, Qt::Unchecked);
+    vtkMRMLNode* node = d->plotSeriesComboBox->nodeFromIndex(idx);
+    d->plotSeriesComboBox->setCheckState(node, Qt::Unchecked);
     }
 
   d->xAxisComboBox->clear();
   d->xAxisComboBox->addItem("(none)", QString());
 
-  std::vector<std::string> plotDataNodesIDs;
-  mrmlPlotChartNode->GetPlotDataNodeIDs(plotDataNodesIDs);
-  for (std::vector<std::string>::iterator it = plotDataNodesIDs.begin();
-    it != plotDataNodesIDs.end(); ++it)
+  std::vector<std::string> plotSeriesNodesIDs;
+  mrmlPlotChartNode->GetPlotSeriesNodeIDs(plotSeriesNodesIDs);
+  for (std::vector<std::string>::iterator it = plotSeriesNodesIDs.begin();
+    it != plotSeriesNodesIDs.end(); ++it)
     {
-    vtkMRMLPlotDataNode *plotDataNode = vtkMRMLPlotDataNode::SafeDownCast
+    vtkMRMLPlotSeriesNode *plotSeriesNode = vtkMRMLPlotSeriesNode::SafeDownCast
       (this->mrmlScene()->GetNodeByID((*it).c_str()));
-    if (plotDataNode == NULL)
+    if (plotSeriesNode == NULL)
       {
       continue;
       }
-    d->plotDataComboBox->setCheckState(plotDataNode, Qt::Checked);
-    vtkMRMLTableNode* mrmlTableNode = plotDataNode->GetTableNode();
+    d->plotSeriesComboBox->setCheckState(plotSeriesNode, Qt::Checked);
+    vtkMRMLTableNode* mrmlTableNode = plotSeriesNode->GetTableNode();
     if (mrmlTableNode == NULL)
       {
       continue;
@@ -666,7 +666,7 @@ void qMRMLPlotViewControllerWidget::updateWidgetFromMRML()
     }
 
   std::string xColumnName;
-  if (mrmlPlotChartNode->GetPropertyFromAllPlotDataNodes(vtkMRMLPlotChartNode::PlotXColumnName, xColumnName))
+  if (mrmlPlotChartNode->GetPropertyFromAllPlotSeriesNodes(vtkMRMLPlotChartNode::PlotXColumnName, xColumnName))
     {
     d->xAxisComboBox->setCurrentIndex(d->xAxisComboBox->findData(xColumnName.c_str()));
     }
@@ -677,7 +677,7 @@ void qMRMLPlotViewControllerWidget::updateWidgetFromMRML()
 
 
   d->xAxisComboBox->blockSignals(xAxisComboBoxBlockSignals);
-  d->plotDataComboBox->blockSignals(plotBlockSignals);
+  d->plotSeriesComboBox->blockSignals(plotBlockSignals);
 
   d->actionShow_Grid->setChecked(mrmlPlotChartNode->GetGridVisibility());
   d->actionShow_Legend->setChecked(mrmlPlotChartNode->GetLegendVisibility());
@@ -696,7 +696,7 @@ void qMRMLPlotViewControllerWidget::updateWidgetFromMRML()
 
   wasBlocked = d->plotTypeComboBox->blockSignals(true);
   std::string plotType;
-  if (mrmlPlotChartNode->GetPropertyFromAllPlotDataNodes(vtkMRMLPlotChartNode::PlotType, plotType))
+  if (mrmlPlotChartNode->GetPropertyFromAllPlotSeriesNodes(vtkMRMLPlotChartNode::PlotType, plotType))
     {
     d->plotTypeComboBox->setCurrentIndex(d->plotTypeComboBox->findText(plotType.c_str()));
     }
@@ -708,7 +708,7 @@ void qMRMLPlotViewControllerWidget::updateWidgetFromMRML()
 
   wasBlocked = d->markersComboBox->blockSignals(true);
   std::string markerStyle;
-  if (mrmlPlotChartNode->GetPropertyFromAllPlotDataNodes(vtkMRMLPlotChartNode::PlotMarkerStyle, markerStyle))
+  if (mrmlPlotChartNode->GetPropertyFromAllPlotSeriesNodes(vtkMRMLPlotChartNode::PlotMarkerStyle, markerStyle))
     {
     d->markersComboBox->setCurrentIndex(d->markersComboBox->findText(markerStyle.c_str()));
     }
@@ -736,12 +736,12 @@ void qMRMLPlotViewControllerWidget::setMRMLScene(vtkMRMLScene* newScene)
   // meaning that there is no current node anymore. It's not true, it just means
   // that the current node was not in the combo box list menu before.
   bool plotChartBlockSignals = d->plotChartComboBox->blockSignals(true);
-  bool plotBlockSignals = d->plotDataComboBox->blockSignals(true);
+  bool plotBlockSignals = d->plotSeriesComboBox->blockSignals(true);
 
   this->Superclass::setMRMLScene(newScene);
 
   d->plotChartComboBox->blockSignals(plotChartBlockSignals);
-  d->plotDataComboBox->blockSignals(plotBlockSignals);
+  d->plotSeriesComboBox->blockSignals(plotBlockSignals);
 
   if (this->mrmlScene())
     {

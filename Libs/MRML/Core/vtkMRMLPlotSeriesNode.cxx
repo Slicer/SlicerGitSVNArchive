@@ -18,7 +18,7 @@
 ==============================================================================*/
 
 // MRML includes
-#include "vtkMRMLPlotDataNode.h"
+#include "vtkMRMLPlotSeriesNode.h"
 #include "vtkMRMLScene.h"
 #include "vtkMRMLSelectionNode.h"
 #include "vtkMRMLTableNode.h"
@@ -49,14 +49,14 @@
 #include <algorithm>
 #include <sstream>
 
-const char* vtkMRMLPlotDataNode::TableNodeReferenceRole = "table";
-const char* vtkMRMLPlotDataNode::TableNodeReferenceMRMLAttributeName = "tableNodeRef";
+const char* vtkMRMLPlotSeriesNode::TableNodeReferenceRole = "table";
+const char* vtkMRMLPlotSeriesNode::TableNodeReferenceMRMLAttributeName = "tableNodeRef";
 
 //------------------------------------------------------------------------------
-vtkMRMLNodeNewMacro(vtkMRMLPlotDataNode);
+vtkMRMLNodeNewMacro(vtkMRMLPlotSeriesNode);
 
 //----------------------------------------------------------------------------
-vtkMRMLPlotDataNode::vtkMRMLPlotDataNode()
+vtkMRMLPlotSeriesNode::vtkMRMLPlotSeriesNode()
   : PlotType(SCATTER)
   , LineWidth(2)
   , MarkerSize(7)
@@ -71,31 +71,31 @@ vtkMRMLPlotDataNode::vtkMRMLPlotDataNode()
 
   vtkNew<vtkIntArray> events;
   events->InsertNextValue(vtkCommand::ModifiedEvent);
-  events->InsertNextValue(vtkMRMLPlotDataNode::TableModifiedEvent);
+  events->InsertNextValue(vtkMRMLPlotSeriesNode::TableModifiedEvent);
   this->AddNodeReferenceRole(this->GetTableNodeReferenceRole(),
                              this->GetTableNodeReferenceMRMLAttributeName(),
                              events.GetPointer());
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLPlotDataNode::~vtkMRMLPlotDataNode()
+vtkMRMLPlotSeriesNode::~vtkMRMLPlotSeriesNode()
 {
 }
 
 //----------------------------------------------------------------------------
-const char *vtkMRMLPlotDataNode::GetTableNodeReferenceRole()
+const char *vtkMRMLPlotSeriesNode::GetTableNodeReferenceRole()
 {
-  return vtkMRMLPlotDataNode::TableNodeReferenceRole;
+  return vtkMRMLPlotSeriesNode::TableNodeReferenceRole;
 }
 
 //----------------------------------------------------------------------------
-const char *vtkMRMLPlotDataNode::GetTableNodeReferenceMRMLAttributeName()
+const char *vtkMRMLPlotSeriesNode::GetTableNodeReferenceMRMLAttributeName()
 {
-  return vtkMRMLPlotDataNode::TableNodeReferenceMRMLAttributeName;
+  return vtkMRMLPlotSeriesNode::TableNodeReferenceMRMLAttributeName;
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLPlotDataNode::WriteXML(ostream& of, int nIndent)
+void vtkMRMLPlotSeriesNode::WriteXML(ostream& of, int nIndent)
 {
   // Start by having the superclass write its information
   Superclass::WriteXML(of, nIndent);
@@ -115,7 +115,7 @@ void vtkMRMLPlotDataNode::WriteXML(ostream& of, int nIndent)
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLPlotDataNode::ReadXMLAttributes(const char** atts)
+void vtkMRMLPlotSeriesNode::ReadXMLAttributes(const char** atts)
 {
   int disabledModify = this->StartModify();
 
@@ -140,13 +140,13 @@ void vtkMRMLPlotDataNode::ReadXMLAttributes(const char** atts)
 //----------------------------------------------------------------------------
 // Copy the node's attributes to this object.
 //
-void vtkMRMLPlotDataNode::Copy(vtkMRMLNode *anode)
+void vtkMRMLPlotSeriesNode::Copy(vtkMRMLNode *anode)
 {
   int disabledModify = this->StartModify();
 
   Superclass::Copy(anode);
 
-  vtkMRMLCopyBeginMacro(anode, vtkMRMLPlotDataNode)
+  vtkMRMLCopyBeginMacro(anode, vtkMRMLPlotSeriesNode)
   vtkMRMLCopyEnumMacro(PlotType)
   vtkMRMLCopyStdStringMacro(XColumnName)
   vtkMRMLCopyStdStringMacro(YColumnName)
@@ -163,7 +163,7 @@ void vtkMRMLPlotDataNode::Copy(vtkMRMLNode *anode)
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLPlotDataNode::PrintSelf(ostream& os, vtkIndent indent)
+void vtkMRMLPlotSeriesNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
 
@@ -182,13 +182,13 @@ void vtkMRMLPlotDataNode::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLPlotDataNode::ProcessMRMLEvents(vtkObject *caller, unsigned long event, void *callData)
+void vtkMRMLPlotSeriesNode::ProcessMRMLEvents(vtkObject *caller, unsigned long event, void *callData)
 {
   Superclass::ProcessMRMLEvents(caller, event, callData);
 
   if (caller == NULL ||
       (event != vtkCommand::ModifiedEvent &&
-       event != vtkMRMLPlotDataNode::TableModifiedEvent))
+       event != vtkMRMLPlotSeriesNode::TableModifiedEvent))
     {
     return;
     }
@@ -198,47 +198,47 @@ void vtkMRMLPlotDataNode::ProcessMRMLEvents(vtkObject *caller, unsigned long eve
   if (callerTable != NULL && tnode != NULL && tnode == callerTable &&
       event == vtkCommand::ModifiedEvent)
     {
-    this->InvokeCustomModifiedEvent(vtkMRMLPlotDataNode::TableModifiedEvent, callerTable);
+    this->InvokeCustomModifiedEvent(vtkMRMLPlotSeriesNode::TableModifiedEvent, callerTable);
     }
 
   return;
 }
 
 //----------------------------------------------------------------------------
-const char *vtkMRMLPlotDataNode::GetTableNodeID()
+const char *vtkMRMLPlotSeriesNode::GetTableNodeID()
 {
   return this->GetNodeReferenceID(this->GetTableNodeReferenceRole());
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLPlotDataNode::SetAndObserveTableNodeID(const char *tableNodeID)
+void vtkMRMLPlotSeriesNode::SetAndObserveTableNodeID(const char *tableNodeID)
 {
   // Set and Observe the MRMLTable reference
   this->SetAndObserveNodeReferenceID(this->GetTableNodeReferenceRole(), tableNodeID);
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLPlotDataNode::SetAndObserveTableNodeID(const std::string &tableNodeID)
+void vtkMRMLPlotSeriesNode::SetAndObserveTableNodeID(const std::string &tableNodeID)
 {
   return this->SetAndObserveTableNodeID(tableNodeID.c_str());
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLTableNode *vtkMRMLPlotDataNode::GetTableNode()
+vtkMRMLTableNode *vtkMRMLPlotSeriesNode::GetTableNode()
 {
   return vtkMRMLTableNode::SafeDownCast(
     this->GetNodeReference(this->GetTableNodeReferenceRole()));
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLPlotDataNode::SetPlotType(const char *type)
+void vtkMRMLPlotSeriesNode::SetPlotType(const char *type)
 {
   this->SetPlotType(this->GetPlotTypeFromString(type));
 }
 
 
 //-----------------------------------------------------------
-const char* vtkMRMLPlotDataNode::GetPlotTypeAsString(int id)
+const char* vtkMRMLPlotSeriesNode::GetPlotTypeAsString(int id)
 {
   switch (id)
     {
@@ -252,7 +252,7 @@ const char* vtkMRMLPlotDataNode::GetPlotTypeAsString(int id)
 }
 
 //-----------------------------------------------------------
-int vtkMRMLPlotDataNode::GetPlotTypeFromString(const char* name)
+int vtkMRMLPlotSeriesNode::GetPlotTypeFromString(const char* name)
 {
   if (name == NULL)
     {
@@ -272,7 +272,7 @@ int vtkMRMLPlotDataNode::GetPlotTypeFromString(const char* name)
 }
 
 //-----------------------------------------------------------
-const char* vtkMRMLPlotDataNode::GetMarkerStyleAsString(int id)
+const char* vtkMRMLPlotSeriesNode::GetMarkerStyleAsString(int id)
 {
   switch (id)
     {
@@ -289,7 +289,7 @@ const char* vtkMRMLPlotDataNode::GetMarkerStyleAsString(int id)
 }
 
 //-----------------------------------------------------------
-int vtkMRMLPlotDataNode::GetMarkerStyleFromString(const char* name)
+int vtkMRMLPlotSeriesNode::GetMarkerStyleFromString(const char* name)
 {
   if (name == NULL)
     {
@@ -309,7 +309,7 @@ int vtkMRMLPlotDataNode::GetMarkerStyleFromString(const char* name)
 }
 
 //-----------------------------------------------------------
-const char* vtkMRMLPlotDataNode::GetLineStyleAsString(int id)
+const char* vtkMRMLPlotSeriesNode::GetLineStyleAsString(int id)
 {
   switch (id)
     {
@@ -326,7 +326,7 @@ const char* vtkMRMLPlotDataNode::GetLineStyleAsString(int id)
 }
 
 //-----------------------------------------------------------
-int vtkMRMLPlotDataNode::GetLineStyleFromString(const char* name)
+int vtkMRMLPlotSeriesNode::GetLineStyleFromString(const char* name)
 {
   if (name == NULL)
     {

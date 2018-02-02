@@ -75,28 +75,28 @@ public slots:
   /// using the associated qMRMLNodeComboBox.
   void onPlotChartNodeSelected(vtkMRMLNode* node);
 
-  /// Called after an PlotDataNode is selected
+  /// Called after an PlotSeriesNode is selected
   /// using the associated qMRMLNodeComboBox.
-  void onPlotDataNodesSelected();
+  void onPlotSeriesNodesSelected();
 
-  /// Called after a PlotDataNode is added
+  /// Called after a PlotSeriesNode is added
   /// using the associated qMRMLNodeComboBox.
-  void onPlotDataNodeAdded(vtkMRMLNode* node);
+  void onPlotSeriesNodeAdded(vtkMRMLNode* node);
 
-  /// Called after a PlotDataNode is going to be edited
+  /// Called after a PlotSeriesNode is going to be edited
   /// using the associated qMRMLNodeComboBox.
-  void onPlotDataNodeEdited(vtkMRMLNode* node);
+  void onPlotSeriesNodeEdited(vtkMRMLNode* node);
 
   /// Called after a Plot type is selected using the qComboBox
-  /// Modify all the PlotDataNode selected in the PlotChartNode.
+  /// Modify all the PlotSeriesNode selected in the PlotChartNode.
   void onPlotTypeChanged(const QString& type);
 
   /// Called after a Column is selected using the qComboBox
-  /// Modify all the PlotDataNode selected in the PlotChartNode.
+  /// Modify all the PlotSeriesNode selected in the PlotChartNode.
   void onXAxisChanged(int index);
 
   /// Called after a Markers' option is selected using the qComboBox
-  /// Modify all the PlotDataNode selected in the PlotChartNode.
+  /// Modify all the PlotSeriesNode selected in the PlotChartNode.
   void onMarkersChanged(const QString& str);
 
 protected:

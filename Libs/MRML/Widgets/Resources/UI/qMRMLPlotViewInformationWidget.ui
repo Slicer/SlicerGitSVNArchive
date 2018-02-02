@@ -273,7 +273,7 @@
     </widget>
    </item>
    <item row="5" column="0" colspan="2">
-    <widget class="ctkCollapsibleButton" name="PlotDataPropertiesFrame" native="true">
+    <widget class="ctkCollapsibleButton" name="PlotSeriesPropertiesFrame" native="true">
      <property name="enabled">
       <bool>true</bool>
      </property>
@@ -296,7 +296,7 @@
       <string/>
      </property>
      <property name="text" stdset="0">
-      <string>PlotData Properties</string>
+      <string>Plot Data Series Properties</string>
      </property>
      <property name="collapsed" stdset="0">
       <bool>false</bool>
@@ -306,7 +306,7 @@
        <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
       </property>
       <item row="0" column="0">
-       <widget class="QLabel" name="plotDataNodeLabel">
+       <widget class="QLabel" name="plotSeriesNodeLabel">
         <property name="minimumSize">
          <size>
           <width>0</width>
@@ -319,7 +319,7 @@
        </widget>
       </item>
       <item row="0" column="1">
-       <widget class="qMRMLNodeComboBox" name="plotDataNodeComboBox" native="true">
+       <widget class="qMRMLNodeComboBox" name="plotSeriesNodeComboBox" native="true">
         <property name="enabled">
          <bool>true</bool>
         </property>
@@ -331,7 +331,7 @@
         </property>
         <property name="nodeTypes" stdset="0">
          <stringlist>
-          <string>vtkMRMLPlotDataNode</string>
+          <string>vtkMRMLPlotSeriesNode</string>
          </stringlist>
         </property>
         <property name="noneEnabled" stdset="0">
@@ -720,7 +720,7 @@
        </widget>
       </item>
       <item row="10" column="0">
-       <widget class="QLabel" name="plotDataColorLabel">
+       <widget class="QLabel" name="plotSeriesColorLabel">
         <property name="minimumSize">
          <size>
           <width>0</width>
@@ -733,7 +733,7 @@
        </widget>
       </item>
       <item row="10" column="1">
-       <widget class="ctkColorPickerButton" name="plotDataColorPickerButton">
+       <widget class="ctkColorPickerButton" name="plotSeriesColorPickerButton">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
           <horstretch>0</horstretch>
@@ -768,9 +768,9 @@
        </widget>
       </item>
       <item row="11" column="0" colspan="2">
-       <widget class="ctkPushButton" name="copyPlotDataNodePushButton">
+       <widget class="ctkPushButton" name="copyPlotSeriesNodePushButton">
         <property name="text">
-         <string>Copy PlotDataNode</string>
+         <string>Copy PlotSeriesNode</string>
         </property>
        </widget>
       </item>
@@ -843,7 +843,7 @@
   <connection>
    <sender>qMRMLPlotViewInformationWidget</sender>
    <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
-   <receiver>plotDataNodeComboBox</receiver>
+   <receiver>plotSeriesNodeComboBox</receiver>
    <slot>setMRMLScene(vtkMRMLScene*)</slot>
    <hints>
     <hint type="sourcelabel">

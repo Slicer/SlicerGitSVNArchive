@@ -24,7 +24,7 @@
 
 class vtkCollection;
 class vtkDataObject;
-class vtkMRMLPlotDataNode;
+class vtkMRMLPlotSeriesNode;
 class vtkStringArray;
 
 #include <string>
@@ -73,14 +73,14 @@ class VTK_MRML_EXPORT vtkMRMLPlotChartNode : public vtkMRMLNode
   /// Note that when SetAndObserve(Nth)NodeID() is called with an ID that
   /// has not yet any associated plot node in the scene, then
   /// plotModifiedEvent is not fired until found for the first time in
-  /// the scene, e.g. Get(Nth)PlotDataNode(), UpdateScene()...
+  /// the scene, e.g. Get(Nth)PlotSeriesNode(), UpdateScene()...
   enum
     {
     PlotModifiedEvent = 17000,
     };
 
-  /// Properties used by SetPropertyToAllPlotDataNodes() and GetPropertyFromAllPlotDataNodes() methods.
-  enum PlotDataNodeProperty
+  /// Properties used by SetPropertyToAllPlotSeriesNodes() and GetPropertyFromAllPlotSeriesNodes() methods.
+  enum PlotSeriesNodeProperty
   {
     PlotType,
     PlotXColumnName,
@@ -94,78 +94,78 @@ class VTK_MRML_EXPORT vtkMRMLPlotChartNode : public vtkMRMLNode
 
   ///
   /// Convenience method that returns the ID of the first plot data node in the chart.
-  /// \sa GetNthPlotDataNodeID(int), GetPlotDataNode()
-  const char *GetPlotDataNodeID();
+  /// \sa GetNthPlotSeriesNodeID(int), GetPlotSeriesNode()
+  const char *GetPlotSeriesNodeID();
 
   ///
   /// Convenience method that returns the first plot data node.
-  /// \sa GetNthPlotDataNode(int), GetPlotDataNodeID()
-  vtkMRMLPlotDataNode* GetPlotDataNode();
+  /// \sa GetNthPlotSeriesNode(int), GetPlotSeriesNodeID()
+  vtkMRMLPlotSeriesNode* GetPlotSeriesNode();
 
   ///
   /// Return the ID of n-th plot data node ID. Or 0 if no such node exist.
-  const char *GetNthPlotDataNodeID(int n);
+  const char *GetNthPlotSeriesNodeID(int n);
 
   ///
   /// Get associated plot data node. Can be 0 in temporary states; e.g. if
   /// the plot node has no scene, or if the associated plot is not
   /// yet into the scene.
-  vtkMRMLPlotDataNode* GetNthPlotDataNode(int n);
+  vtkMRMLPlotSeriesNode* GetNthPlotSeriesNode(int n);
 
   ///
   /// Return the index of the Nth plot node ID.
   /// If not found, it returns -1.
-  int GetPlotDataNodeIndexFromID(const char* plotDataNodeID);
+  int GetPlotSeriesNodeIndexFromID(const char* plotSeriesNodeID);
 
   ///
   /// Get IDs of all associated plot data nodes.
-  virtual int GetPlotDataNodeIDs(std::vector<std::string> &plotDataNodeIDs);
+  virtual int GetPlotSeriesNodeIDs(std::vector<std::string> &plotSeriesNodeIDs);
 
   ///
   /// Get names of all associated plot data nodes.
-  virtual int GetPlotDataNodeNames(std::vector<std::string> &plotDataNodeNames);
+  virtual int GetPlotSeriesNodeNames(std::vector<std::string> &plotSeriesNodeNames);
 
   ///
   /// Return the number of plot node IDs (and plot nodes as they always
   /// have the same size).
-  int GetNumberOfPlotDataNodes();
+  int GetNumberOfPlotSeriesNodes();
 
   ///
   /// Adds a plot data node to the chart.
-  /// \sa SetAndObserverNthPlotDataNodeID(int, const char*)
-  void AddAndObservePlotDataNodeID(const char *plotDataNodeID);
+  /// \sa SetAndObserverNthPlotSeriesNodeID(int, const char*)
+  void AddAndObservePlotSeriesNodeID(const char *plotSeriesNodeID);
 
   ///
   /// Convenience method that sets the first plot data node in the chart.
-  /// \sa SetAndObserverNthPlotDataNodeID(int, const char*)
-  void SetAndObservePlotDataNodeID(const char *plotDataNodeID);
+  /// \sa SetAndObserverNthPlotSeriesNodeID(int, const char*)
+  void SetAndObservePlotSeriesNodeID(const char *plotSeriesNodeID);
 
   ///
   /// Set and observe the Nth plot data node ID in the list.
   /// If n is larger than the number of plot nodes, the plot node ID
-  /// is added at the end of the list. If PlotDataNodeID is 0, the node ID is
+  /// is added at the end of the list. If PlotSeriesNodeID is 0, the node ID is
   /// removed from the list.
-  /// \sa SetAndObservePlotDataNodeID(const char*),
-  /// AddAndObservePlotDataNodeID(const char *), RemoveNthPlotDataNodeID(int)
-  void SetAndObserveNthPlotDataNodeID(int n, const char *plotDataNodeID);
+  /// \sa SetAndObservePlotSeriesNodeID(const char*),
+  /// AddAndObservePlotSeriesNodeID(const char *), RemoveNthPlotSeriesNodeID(int)
+  void SetAndObserveNthPlotSeriesNodeID(int n, const char *plotSeriesNodeID);
 
   ///
   /// Removes a plot data node from the chart.
-  /// \sa SetAndObserverNthPlotDataNodeID(int, const char*)
-  void RemovePlotDataNodeID(const char *plotDataNodeID);
+  /// \sa SetAndObserverNthPlotSeriesNodeID(int, const char*)
+  void RemovePlotSeriesNodeID(const char *plotSeriesNodeID);
 
   ///
   /// Removes n-th plot data node from the chart.
-  /// \sa SetAndObserverNthPlotDataNodeID(int, const char*)
-  void RemoveNthPlotDataNodeID(int n);
+  /// \sa SetAndObserverNthPlotSeriesNodeID(int, const char*)
+  void RemoveNthPlotSeriesNodeID(int n);
 
   ///
   /// Remove all plot data nodes from the chart.
-  void RemoveAllPlotDataNodeIDs();
+  void RemoveAllPlotSeriesNodeIDs();
 
   ///
-  /// Return true if PlotDataNodeID is in the plot node ID list.
-  bool HasPlotDataNodeID(const char* plotDataNodeID);
+  /// Return true if PlotSeriesNodeID is in the plot node ID list.
+  bool HasPlotSeriesNodeID(const char* plotSeriesNodeID);
 
 
   /// Title of the chart
@@ -232,15 +232,15 @@ class VTK_MRML_EXPORT vtkMRMLPlotChartNode : public vtkMRMLNode
   vtkSetMacro(ClickAndDragAlongY, bool);
 
   /// Node reference role used for storing plot data node references
-  virtual const char* GetPlotDataNodeReferenceRole();
+  virtual const char* GetPlotSeriesNodeReferenceRole();
 
   /// Helper function to set common properties for all associated plot data nodes
-  void SetPropertyToAllPlotDataNodes(PlotDataNodeProperty plotProperty, const char* value);
+  void SetPropertyToAllPlotSeriesNodes(PlotSeriesNodeProperty plotProperty, const char* value);
 
   /// Helper function to get common properties from all associated plot data nodes.
   /// Returns false if property is not the same in all plots.
   /// value contains the value found in the first plot data node.
-  bool GetPropertyFromAllPlotDataNodes(PlotDataNodeProperty plotProperty, std::string& value);
+  bool GetPropertyFromAllPlotSeriesNodes(PlotSeriesNodeProperty plotProperty, std::string& value);
 
  protected:
   //----------------------------------------------------------------
@@ -263,7 +263,7 @@ class VTK_MRML_EXPORT vtkMRMLPlotChartNode : public vtkMRMLNode
   /// Called after a node reference ID is removed (list size decreased).
   virtual void OnNodeReferenceRemoved(vtkMRMLNodeReference *reference) VTK_OVERRIDE;
 
-  static const char* PlotDataNodeReferenceRole;
+  static const char* PlotSeriesNodeReferenceRole;
 
   char *Title;
   int TitleFontSize;

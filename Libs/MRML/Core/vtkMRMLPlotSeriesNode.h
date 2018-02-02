@@ -17,8 +17,8 @@
 
 ==============================================================================*/
 
-#ifndef __vtkMRMLPlotDataNode_h
-#define __vtkMRMLPlotDataNode_h
+#ifndef __vtkMRMLPlotSeriesNode_h
+#define __vtkMRMLPlotSeriesNode_h
 
 #include <string>
 #include <vector>
@@ -39,11 +39,11 @@ class vtkTable;
 /// Plot nodes describe the properties of a single plot:
 /// input data (one or two columns of a table node),
 /// and display properties (plot type, marker style, color, etc).
-class VTK_MRML_EXPORT vtkMRMLPlotDataNode : public vtkMRMLNode
+class VTK_MRML_EXPORT vtkMRMLPlotSeriesNode : public vtkMRMLNode
 {
 public:
-  static vtkMRMLPlotDataNode *New();
-  vtkTypeMacro(vtkMRMLPlotDataNode,vtkMRMLNode);
+  static vtkMRMLPlotSeriesNode *New();
+  vtkTypeMacro(vtkMRMLPlotSeriesNode,vtkMRMLNode);
 
   // Description:
   // Enum of the available plot types
@@ -72,7 +72,7 @@ public:
 
   ///
   /// Get node XML tag name (like Volume, Model).
-  virtual const char* GetNodeTagName() VTK_OVERRIDE { return "PlotData"; };
+  virtual const char* GetNodeTagName() VTK_OVERRIDE { return "PlotSeries"; };
 
   ///
   /// Set and observe Table node ID.
@@ -191,10 +191,10 @@ public:
   /// Constructor and destructor
   //----------------------------------------------------------------
 protected:
-  vtkMRMLPlotDataNode();
-  ~vtkMRMLPlotDataNode();
-  vtkMRMLPlotDataNode(const vtkMRMLPlotDataNode&);
-  void operator=(const vtkMRMLPlotDataNode&);
+  vtkMRMLPlotSeriesNode();
+  ~vtkMRMLPlotSeriesNode();
+  vtkMRMLPlotSeriesNode(const vtkMRMLPlotSeriesNode&);
+  void operator=(const vtkMRMLPlotSeriesNode&);
 
   static const char* TableNodeReferenceRole;
   static const char* TableNodeReferenceMRMLAttributeName;
@@ -209,7 +209,7 @@ protected:
     Superclass::OnNodeReferenceAdded(reference);
     if (std::string(reference->GetReferenceRole()) == this->TableNodeReferenceRole)
       {
-      this->InvokeCustomModifiedEvent(vtkMRMLPlotDataNode::TableModifiedEvent, reference->GetReferencedNode());
+      this->InvokeCustomModifiedEvent(vtkMRMLPlotSeriesNode::TableModifiedEvent, reference->GetReferencedNode());
       }
   }
 
@@ -220,7 +220,7 @@ protected:
     Superclass::OnNodeReferenceModified(reference);
     if (std::string(reference->GetReferenceRole()) == this->TableNodeReferenceRole)
     {
-      this->InvokeCustomModifiedEvent(vtkMRMLPlotDataNode::TableModifiedEvent, reference->GetReferencedNode());
+      this->InvokeCustomModifiedEvent(vtkMRMLPlotSeriesNode::TableModifiedEvent, reference->GetReferencedNode());
     }
   }
 
@@ -231,7 +231,7 @@ protected:
     Superclass::OnNodeReferenceRemoved(reference);
     if (std::string(reference->GetReferenceRole()) == this->TableNodeReferenceRole)
     {
-      this->InvokeCustomModifiedEvent(vtkMRMLPlotDataNode::TableModifiedEvent, reference->GetReferencedNode());
+      this->InvokeCustomModifiedEvent(vtkMRMLPlotSeriesNode::TableModifiedEvent, reference->GetReferencedNode());
     }
   }
 
