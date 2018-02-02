@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>388</width>
-    <height>756</height>
+    <height>699</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,7 +17,16 @@
    <property name="fieldGrowthPolicy">
     <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
    </property>
-   <property name="margin">
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
     <number>0</number>
    </property>
    <item row="0" column="0">
@@ -52,7 +61,7 @@
     </widget>
    </item>
    <item row="3" column="0" colspan="2">
-    <widget class="ctkCollapsibleButton" name="PlotChartPropertiesFrame">
+    <widget class="ctkCollapsibleButton" name="PlotChartPropertiesFrame" native="true">
      <property name="enabled">
       <bool>true</bool>
      </property>
@@ -74,10 +83,10 @@
      <property name="toolTip">
       <string/>
      </property>
-     <property name="text">
+     <property name="text" stdset="0">
       <string>PlotChart Properties</string>
      </property>
-     <property name="collapsed">
+     <property name="collapsed" stdset="0">
       <bool>false</bool>
      </property>
      <layout class="QFormLayout" name="formLayout_14">
@@ -101,7 +110,7 @@
        </widget>
       </item>
       <item row="0" column="1">
-       <widget class="qMRMLColorTableComboBox" name="colorNodeComboBox">
+       <widget class="qMRMLColorTableComboBox" name="colorNodeComboBox" native="true">
         <property name="enabled">
          <bool>true</bool>
         </property>
@@ -111,13 +120,13 @@
           <height>27</height>
          </size>
         </property>
-        <property name="noneEnabled">
+        <property name="noneEnabled" stdset="0">
          <bool>true</bool>
         </property>
-        <property name="addEnabled">
+        <property name="addEnabled" stdset="0">
          <bool>false</bool>
         </property>
-        <property name="removeEnabled">
+        <property name="removeEnabled" stdset="0">
          <bool>false</bool>
         </property>
        </widget>
@@ -174,8 +183,8 @@
        </widget>
       </item>
       <item row="2" column="1">
-       <widget class="ctkDoubleSpinBox" name="titleFontSizeDoubleSpinBox">
-        <property name="value">
+       <widget class="ctkDoubleSpinBox" name="titleFontSizeDoubleSpinBox" native="true">
+        <property name="value" stdset="0">
          <double>20.000000000000000</double>
         </property>
        </widget>
@@ -194,8 +203,8 @@
        </widget>
       </item>
       <item row="3" column="1">
-       <widget class="ctkDoubleSpinBox" name="axisTitleFontSizeDoubleSpinBox">
-        <property name="value">
+       <widget class="ctkDoubleSpinBox" name="axisTitleFontSizeDoubleSpinBox" native="true">
+        <property name="value" stdset="0">
          <double>16.000000000000000</double>
         </property>
        </widget>
@@ -208,8 +217,8 @@
        </widget>
       </item>
       <item row="4" column="1">
-       <widget class="ctkDoubleSpinBox" name="axisLabelFontSizeDoubleSpinBox">
-        <property name="value">
+       <widget class="ctkDoubleSpinBox" name="axisLabelFontSizeDoubleSpinBox" native="true">
+        <property name="value" stdset="0">
          <double>12.000000000000000</double>
         </property>
        </widget>
@@ -264,7 +273,7 @@
     </widget>
    </item>
    <item row="5" column="0" colspan="2">
-    <widget class="ctkCollapsibleButton" name="PlotDataPropertiesFrame">
+    <widget class="ctkCollapsibleButton" name="PlotDataPropertiesFrame" native="true">
      <property name="enabled">
       <bool>true</bool>
      </property>
@@ -286,17 +295,57 @@
      <property name="toolTip">
       <string/>
      </property>
-     <property name="text">
+     <property name="text" stdset="0">
       <string>PlotData Properties</string>
      </property>
-     <property name="collapsed">
+     <property name="collapsed" stdset="0">
       <bool>false</bool>
      </property>
      <layout class="QFormLayout" name="formLayout_15">
       <property name="fieldGrowthPolicy">
        <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
       </property>
-      <item row="2" column="0">
+      <item row="0" column="0">
+       <widget class="QLabel" name="plotDataNodeLabel">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>27</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>Plot Data:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="qMRMLNodeComboBox" name="plotDataNodeComboBox" native="true">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>27</height>
+         </size>
+        </property>
+        <property name="nodeTypes" stdset="0">
+         <stringlist>
+          <string>vtkMRMLPlotDataNode</string>
+         </stringlist>
+        </property>
+        <property name="noneEnabled" stdset="0">
+         <bool>false</bool>
+        </property>
+        <property name="editEnabled" stdset="0">
+         <bool>false</bool>
+        </property>
+        <property name="renameEnabled" stdset="0">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
        <widget class="QLabel" name="InputTableLabel">
         <property name="minimumSize">
          <size>
@@ -309,8 +358,8 @@
         </property>
        </widget>
       </item>
-      <item row="2" column="1">
-       <widget class="qMRMLNodeComboBox" name="InputTableComboBox">
+      <item row="1" column="1">
+       <widget class="qMRMLNodeComboBox" name="InputTableComboBox" native="true">
         <property name="enabled">
          <bool>true</bool>
         </property>
@@ -323,29 +372,76 @@
         <property name="toolTip">
          <string/>
         </property>
-        <property name="nodeTypes">
+        <property name="nodeTypes" stdset="0">
          <stringlist>
           <string>vtkMRMLTableNode</string>
          </stringlist>
         </property>
-        <property name="showHidden">
+        <property name="showHidden" stdset="0">
          <bool>true</bool>
         </property>
-        <property name="noneEnabled">
+        <property name="noneEnabled" stdset="0">
          <bool>true</bool>
         </property>
-        <property name="addEnabled">
+        <property name="addEnabled" stdset="0">
          <bool>true</bool>
         </property>
-        <property name="removeEnabled">
+        <property name="removeEnabled" stdset="0">
          <bool>true</bool>
         </property>
-        <property name="editEnabled">
+        <property name="editEnabled" stdset="0">
          <bool>false</bool>
         </property>
-        <property name="renameEnabled">
+        <property name="renameEnabled" stdset="0">
          <bool>true</bool>
         </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="plotTypeLabel">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>27</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>Plot Type:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QComboBox" name="plotTypeComboBox">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+          <horstretch>1</horstretch>
+          <verstretch>1</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>75</width>
+          <height>27</height>
+         </size>
+        </property>
+        <property name="toolTip">
+         <string/>
+        </property>
+        <item>
+         <property name="text">
+          <string>scatter</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>line</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>bar</string>
+         </property>
+        </item>
        </widget>
       </item>
       <item row="3" column="0">
@@ -357,7 +453,7 @@
          </size>
         </property>
         <property name="text">
-         <string>X-Axis:</string>
+         <string>X Axis Column:</string>
         </property>
        </widget>
       </item>
@@ -381,7 +477,7 @@
        </widget>
       </item>
       <item row="4" column="0">
-       <widget class="QLabel" name="yAxisLabel">
+       <widget class="QLabel" name="labelsLabel">
         <property name="minimumSize">
          <size>
           <width>0</width>
@@ -389,12 +485,12 @@
          </size>
         </property>
         <property name="text">
-         <string>Y-Axis:</string>
+         <string>Labels Column:</string>
         </property>
        </widget>
       </item>
       <item row="4" column="1">
-       <widget class="QComboBox" name="yAxisComboBox">
+       <widget class="QComboBox" name="labelsComboBox">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
           <horstretch>1</horstretch>
@@ -413,7 +509,7 @@
        </widget>
       </item>
       <item row="5" column="0">
-       <widget class="QLabel" name="plotTypeLabel">
+       <widget class="QLabel" name="yAxisLabel">
         <property name="minimumSize">
          <size>
           <width>0</width>
@@ -421,12 +517,12 @@
          </size>
         </property>
         <property name="text">
-         <string>Plot Type:</string>
+         <string>Y Axis Column:</string>
         </property>
        </widget>
       </item>
       <item row="5" column="1">
-       <widget class="QComboBox" name="plotTypeComboBox">
+       <widget class="QComboBox" name="yAxisComboBox">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
           <horstretch>1</horstretch>
@@ -442,26 +538,6 @@
         <property name="toolTip">
          <string/>
         </property>
-        <item>
-         <property name="text">
-          <string>Scatter</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Bar</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Pie</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Box</string>
-         </property>
-        </item>
        </widget>
       </item>
       <item row="6" column="0">
@@ -474,53 +550,6 @@
         </property>
         <property name="text">
          <string>Markers Style:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="plotDataNodeLabel">
-        <property name="minimumSize">
-         <size>
-          <width>0</width>
-          <height>27</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>PlotDataNode:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1">
-       <widget class="qMRMLNodeComboBox" name="plotDataNodeComboBox">
-        <property name="enabled">
-         <bool>true</bool>
-        </property>
-        <property name="minimumSize">
-         <size>
-          <width>0</width>
-          <height>27</height>
-         </size>
-        </property>
-        <property name="nodeTypes">
-         <stringlist>
-          <string>vtkMRMLPlotDataNode</string>
-         </stringlist>
-        </property>
-        <property name="noneEnabled">
-         <bool>true</bool>
-        </property>
-        <property name="editEnabled">
-         <bool>false</bool>
-        </property>
-        <property name="renameEnabled">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="12" column="0" colspan="2">
-       <widget class="ctkPushButton" name="copyPlotDataNodePushButton">
-        <property name="text">
-         <string>Copy PlotDataNode</string>
         </property>
        </widget>
       </item>
@@ -546,32 +575,32 @@
         </property>
         <item>
          <property name="text">
-          <string>None</string>
+          <string>none</string>
          </property>
         </item>
         <item>
          <property name="text">
-          <string>Cross</string>
+          <string>cross</string>
          </property>
         </item>
         <item>
          <property name="text">
-          <string>Plus</string>
+          <string>plus</string>
          </property>
         </item>
         <item>
          <property name="text">
-          <string>Square</string>
+          <string>square</string>
          </property>
         </item>
         <item>
          <property name="text">
-          <string>Circle</string>
+          <string>circle</string>
          </property>
         </item>
         <item>
          <property name="text">
-          <string>Diamond</string>
+          <string>diamond</string>
          </property>
         </item>
        </widget>
@@ -590,19 +619,81 @@
        </widget>
       </item>
       <item row="7" column="1">
-       <widget class="ctkDoubleSpinBox" name="markersSizeDoubleSpinBox">
+       <widget class="ctkDoubleSpinBox" name="markersSizeDoubleSpinBox" native="true">
         <property name="minimumSize">
          <size>
           <width>0</width>
           <height>27</height>
          </size>
         </property>
-        <property name="value">
+        <property name="value" stdset="0">
          <double>10.000000000000000</double>
         </property>
        </widget>
       </item>
       <item row="8" column="0">
+       <widget class="QLabel" name="lineStyleLabel">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>27</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>Line Style:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="8" column="1">
+       <widget class="QComboBox" name="lineStyleComboBox">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+          <horstretch>1</horstretch>
+          <verstretch>1</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>75</width>
+          <height>27</height>
+         </size>
+        </property>
+        <property name="toolTip">
+         <string/>
+        </property>
+        <item>
+         <property name="text">
+          <string>none</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>solid</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>dash</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>dot</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>dash-dot</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>dash-dot-dot</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item row="9" column="0">
        <widget class="QLabel" name="lineWidthLabel">
         <property name="minimumSize">
          <size>
@@ -615,20 +706,20 @@
         </property>
        </widget>
       </item>
-      <item row="8" column="1">
-       <widget class="ctkDoubleSpinBox" name="lineWidthDoubleSpinBox">
+      <item row="9" column="1">
+       <widget class="ctkDoubleSpinBox" name="lineWidthDoubleSpinBox" native="true">
         <property name="minimumSize">
          <size>
           <width>0</width>
           <height>27</height>
          </size>
         </property>
-        <property name="value">
+        <property name="value" stdset="0">
          <double>4.000000000000000</double>
         </property>
        </widget>
       </item>
-      <item row="9" column="0">
+      <item row="10" column="0">
        <widget class="QLabel" name="plotDataColorLabel">
         <property name="minimumSize">
          <size>
@@ -641,7 +732,7 @@
         </property>
        </widget>
       </item>
-      <item row="9" column="1">
+      <item row="10" column="1">
        <widget class="ctkColorPickerButton" name="plotDataColorPickerButton">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -664,15 +755,22 @@
         <property name="flat">
          <bool>false</bool>
         </property>
-        <property name="color">
+        <property name="color" stdset="0">
          <color>
           <red>85</red>
           <green>170</green>
           <blue>255</blue>
          </color>
         </property>
-        <property name="displayColorName">
+        <property name="displayColorName" stdset="0">
          <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="11" column="0" colspan="2">
+       <widget class="ctkPushButton" name="copyPlotDataNodePushButton">
+        <property name="text">
+         <string>Copy PlotDataNode</string>
         </property>
        </widget>
       </item>
@@ -682,11 +780,6 @@
   </layout>
  </widget>
  <customwidgets>
-  <customwidget>
-   <class>qMRMLColorTableComboBox</class>
-   <extends>qMRMLNodeComboBox</extends>
-   <header>qMRMLColorTableComboBox.h</header>
-  </customwidget>
   <customwidget>
    <class>qMRMLNodeComboBox</class>
    <extends>QWidget</extends>
@@ -719,6 +812,12 @@
    <class>ctkPushButton</class>
    <extends>QPushButton</extends>
    <header>ctkPushButton.h</header>
+  </customwidget>
+  <customwidget>
+   <class>qMRMLColorTableComboBox</class>
+   <extends>qMRMLNodeComboBox</extends>
+   <header>qMRMLColorTableComboBox.h</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources>

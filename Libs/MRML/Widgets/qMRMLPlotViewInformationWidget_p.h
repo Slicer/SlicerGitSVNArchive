@@ -109,10 +109,13 @@ public slots:
   /// Change the x-Axis of the plot.
   void onXAxisChanged(int index);
 
+  /// Change the labels of the plot.
+  void onLabelsChanged(int index);
+
   /// Change the y-Axis of the plot.
   void onYAxisChanged(int index);
 
-  /// Change the type of plot (Line, Scatter, Bar).
+  /// Change the type of plot (scatter, line, bar).
   void onPlotTypeChanged(const QString& type);
 
   /// Change markers style for Line and Scatter plots.
@@ -121,7 +124,10 @@ public slots:
   /// Change markers size for Line and Scatter plots.
   void onMarkersSizeChanged(double size);
 
-  /// Change line widht for Line plots.
+  /// Change line style for Line and Scatter plots.
+  void onLineStyleChanged(const QString &style);
+
+  /// Change line widht for Line and Scatter plots.
   void onLineWidthChanged(double width);
 
   /// Change the color of a single PlotDataNode.

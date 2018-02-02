@@ -635,7 +635,7 @@ void qMRMLPlotViewControllerWidget::updateWidgetFromMRML()
     }
 
   d->xAxisComboBox->clear();
-  d->xAxisComboBox->addItem("Indexes", QString());
+  d->xAxisComboBox->addItem("(none)", QString());
 
   std::vector<std::string> plotDataNodesIDs;
   mrmlPlotChartNode->GetPlotDataNodeIDs(plotDataNodesIDs);

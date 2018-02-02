@@ -111,6 +111,8 @@ void qMRMLPlotViewInformationWidgetPrivate::setupUi(qMRMLWidget* widget)
                 this, SLOT(onInputTableNodeChanged(vtkMRMLNode*)));
   this->connect(this->xAxisComboBox, SIGNAL(currentIndexChanged(int)),
                 this, SLOT(onXAxisChanged(int)));
+  this->connect(this->labelsComboBox, SIGNAL(currentIndexChanged(int)),
+                this, SLOT(onLabelsChanged(int)));
   this->connect(this->yAxisComboBox, SIGNAL(currentIndexChanged(int)),
                 this, SLOT(onYAxisChanged(int)));
   this->connect(this->plotTypeComboBox, SIGNAL(currentIndexChanged(const QString&)),
@@ -119,6 +121,8 @@ void qMRMLPlotViewInformationWidgetPrivate::setupUi(qMRMLWidget* widget)
                 this, SLOT(onMarkersStyleChanged(const QString&)));
   this->connect(this->markersSizeDoubleSpinBox, SIGNAL(valueChanged(double)),
                 this, SLOT(onMarkersSizeChanged(double)));
+  this->connect(this->lineStyleComboBox, SIGNAL(currentIndexChanged(const QString&)),
+                this, SLOT(onLineStyleChanged(const QString&)));
   this->connect(this->lineWidthDoubleSpinBox, SIGNAL(valueChanged(double)),
                 this, SLOT(onLineWidthChanged(double)));
   this->connect(this->plotDataColorPickerButton, SIGNAL(colorChanged(const QColor&)),
@@ -297,6 +301,7 @@ void qMRMLPlotViewInformationWidgetPrivate::updateWidgetFromMRMLPlotDataNode()
     this->plotDataNodeComboBox->setCurrentNode(NULL);
     this->InputTableComboBox->setCurrentNode(NULL);
     this->xAxisComboBox->clear();
+    this->labelsComboBox->clear();
     this->yAxisComboBox->clear();
     this->plotTypeComboBox->setCurrentIndex(0);
     this->markersStyleComboBox->setCurrentIndex(0);
@@ -313,26 +318,43 @@ void qMRMLPlotViewInformationWidgetPrivate::updateWidgetFromMRMLPlotDataNode()
 
   // Update the xAxis and yAxis ComboBoxes
   bool xAxisBlockSignals = this->xAxisComboBox->blockSignals(true);
+  bool labelsBlockSignals = this->labelsComboBox->blockSignals(true);
   bool yAxisBlockSignals = this->yAxisComboBox->blockSignals(true);
 
   this->xAxisComboBox->clear();
+  this->labelsComboBox->clear();
   this->yAxisComboBox->clear();
   if (mrmlTableNode)
     {
     if (this->xAxisComboBox->findData(QString()) == -1)
       {
-      this->xAxisComboBox->addItem("Indexes", QString());
+      this->xAxisComboBox->addItem("(none)", QString());
       }
-    for (int ColumnIndex = 0; ColumnIndex < mrmlTableNode->GetNumberOfColumns(); ColumnIndex++)
+    if (this->labelsComboBox->findData(QString()) == -1)
       {
-      std::string columnName = mrmlTableNode->GetColumnName(ColumnIndex).c_str();
-      if (this->xAxisComboBox->findData(QString(columnName.c_str())) == -1)
+      this->labelsComboBox->addItem("(none)", QString());
+      }
+    for (int columnIndex = 0; columnIndex < mrmlTableNode->GetNumberOfColumns(); columnIndex++)
+      {
+      std::string columnName = mrmlTableNode->GetColumnName(columnIndex);
+      int columnType = mrmlTableNode->GetColumnType(columnName);
+      if (columnType == VTK_STRING)
         {
-        this->xAxisComboBox->addItem(columnName.c_str(), QString(columnName.c_str()));
+        if (this->labelsComboBox->findData(QString(columnName.c_str())) == -1)
+          {
+          this->labelsComboBox->addItem(columnName.c_str(), QString(columnName.c_str()));
+          }
         }
-      if (this->yAxisComboBox->findData(QString(columnName.c_str())) == -1)
+      else if (columnType != VTK_BIT)
         {
-        this->yAxisComboBox->addItem(columnName.c_str(), QString(columnName.c_str()));
+        if (this->xAxisComboBox->findData(QString(columnName.c_str())) == -1)
+          {
+          this->xAxisComboBox->addItem(columnName.c_str(), QString(columnName.c_str()));
+          }
+        if (this->yAxisComboBox->findData(QString(columnName.c_str())) == -1)
+          {
+          this->yAxisComboBox->addItem(columnName.c_str(), QString(columnName.c_str()));
+          }
         }
       }
     }
@@ -341,10 +363,19 @@ void qMRMLPlotViewInformationWidgetPrivate::updateWidgetFromMRMLPlotDataNode()
   int xAxisIndex = this->xAxisComboBox->findData(QString(xAxisName.c_str()));
   if (xAxisIndex < 0)
     {
-    this->yAxisComboBox->addItem(xAxisName.c_str(), QString(xAxisName.c_str()));
+    this->xAxisComboBox->addItem(xAxisName.c_str(), QString(xAxisName.c_str()));
     xAxisIndex = this->xAxisComboBox->findData(QString(xAxisName.c_str()));
     }
   this->xAxisComboBox->setCurrentIndex(xAxisIndex);
+
+  std::string labelsName = this->PlotDataNode->GetLabelColumnName();
+  int labelsIndex = this->labelsComboBox->findData(QString(labelsName.c_str()));
+  if (labelsIndex < 0)
+    {
+    this->labelsComboBox->addItem(xAxisName.c_str(), QString(labelsName.c_str()));
+    labelsIndex = this->labelsComboBox->findData(QString(labelsName.c_str()));
+    }
+  this->labelsComboBox->setCurrentIndex(labelsIndex);
 
   std::string yAxisName = this->PlotDataNode->GetYColumnName();
   int yAxisIndex = this->yAxisComboBox->findData(QString(yAxisName.c_str()));
@@ -356,7 +387,10 @@ void qMRMLPlotViewInformationWidgetPrivate::updateWidgetFromMRMLPlotDataNode()
   this->yAxisComboBox->setCurrentIndex(yAxisIndex);
 
   this->xAxisComboBox->blockSignals(xAxisBlockSignals);
+  this->labelsComboBox->blockSignals(labelsBlockSignals);
   this->yAxisComboBox->blockSignals(yAxisBlockSignals);
+
+  this->xAxisComboBox->setEnabled(this->PlotDataNode->GetPlotType() == vtkMRMLPlotDataNode::SCATTER);
 
   // Update the PlotType ComboBox
   bool wasBlocked = this->plotTypeComboBox->blockSignals(true);
@@ -372,19 +406,36 @@ void qMRMLPlotViewInformationWidgetPrivate::updateWidgetFromMRMLPlotDataNode()
   // After Qt5 migration, the next line can be replaced by this call:
   // this->markersStyleComboBox->setCurrentText(plotMarkersStyle);
   this->markersStyleComboBox->setCurrentIndex(this->markersStyleComboBox->findText(plotMarkersStyle));
-  this->markersStyleComboBox->setEnabled(this->PlotDataNode->GetPlotType() == vtkMRMLPlotDataNode::SCATTER);
+  this->markersStyleComboBox->setEnabled(
+    this->PlotDataNode->GetPlotType() == vtkMRMLPlotDataNode::SCATTER
+    || this->PlotDataNode->GetPlotType() == vtkMRMLPlotDataNode::LINE);
   this->markersStyleComboBox->blockSignals(wasBlocked);
 
   // Update Markers Size
   wasBlocked = this->markersSizeDoubleSpinBox->blockSignals(true);
   this->markersSizeDoubleSpinBox->setValue(this->PlotDataNode->GetMarkerSize());
-  this->markersSizeDoubleSpinBox->setEnabled(this->PlotDataNode->GetPlotType() == vtkMRMLPlotDataNode::SCATTER);
+  this->markersSizeDoubleSpinBox->setEnabled(
+    this->PlotDataNode->GetPlotType() == vtkMRMLPlotDataNode::SCATTER
+    || this->PlotDataNode->GetPlotType() == vtkMRMLPlotDataNode::LINE);
   this->markersSizeDoubleSpinBox->blockSignals(wasBlocked);
+
+  // Update Line Style
+  wasBlocked = this->lineStyleComboBox->blockSignals(true);
+  const char* plotLineStyle = this->PlotDataNode->GetLineStyleAsString(this->PlotDataNode->GetLineStyle());
+  // After Qt5 migration, the next line can be replaced by this call:
+  // this->markersStyleComboBox->setCurrentText(plotMarkersStyle);
+  this->lineStyleComboBox->setCurrentIndex(this->lineStyleComboBox->findText(plotLineStyle));
+  this->lineStyleComboBox->setEnabled(
+    this->PlotDataNode->GetPlotType() == vtkMRMLPlotDataNode::SCATTER
+    || this->PlotDataNode->GetPlotType() == vtkMRMLPlotDataNode::LINE);
+  this->lineStyleComboBox->blockSignals(wasBlocked);
 
   // Update Line Width
   wasBlocked = this->lineWidthDoubleSpinBox->blockSignals(true);
   this->lineWidthDoubleSpinBox->setValue(this->PlotDataNode->GetLineWidth());
-  this->lineWidthDoubleSpinBox->setEnabled(this->PlotDataNode->GetPlotType() != vtkMRMLPlotDataNode::BAR);
+  this->lineWidthDoubleSpinBox->setEnabled(
+    this->PlotDataNode->GetPlotType() == vtkMRMLPlotDataNode::SCATTER
+    || this->PlotDataNode->GetPlotType() == vtkMRMLPlotDataNode::LINE);
   this->lineWidthDoubleSpinBox->blockSignals(wasBlocked);
 
   // Update PlotDataColorPickerButton
@@ -448,6 +499,17 @@ void qMRMLPlotViewInformationWidgetPrivate::onXAxisChanged(int index)
 }
 
 // --------------------------------------------------------------------------
+void qMRMLPlotViewInformationWidgetPrivate::onLabelsChanged(int index)
+{
+  if (!this->PlotDataNode)
+  {
+    return;
+  }
+
+  this->PlotDataNode->SetLabelColumnName(this->labelsComboBox->itemData(index).toString().toLatin1().constData());
+}
+
+// --------------------------------------------------------------------------
 void qMRMLPlotViewInformationWidgetPrivate::onYAxisChanged(int index)
 {
   if (!this->PlotDataNode)
@@ -490,6 +552,18 @@ void qMRMLPlotViewInformationWidgetPrivate::onMarkersSizeChanged(double size)
     }
 
   this->PlotDataNode->SetMarkerSize(size);
+}
+
+// --------------------------------------------------------------------------
+void qMRMLPlotViewInformationWidgetPrivate::onLineStyleChanged(const QString &style)
+{
+  if (!this->PlotDataNode)
+    {
+    return;
+    }
+
+  this->PlotDataNode->SetLineStyle(this->PlotDataNode->
+    GetLineStyleFromString(style.toStdString().c_str()));
 }
 
 // --------------------------------------------------------------------------

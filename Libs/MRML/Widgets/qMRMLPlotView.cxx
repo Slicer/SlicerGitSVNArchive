@@ -63,8 +63,6 @@
 #include <vtkPlot.h>
 #include <vtkPlotLine.h>
 #include <vtkPlotBar.h>
-#include <vtkPlotPie.h>
-#include <vtkPlotBox.h>
 #include <vtkRenderer.h>
 #include <vtkSelection.h>
 #include <vtkStringArray.h>
@@ -274,27 +272,35 @@ vtkSmartPointer<vtkPlot> qMRMLPlotViewPrivate::updatePlotFromPlotDataNode(vtkMRM
     qWarning() << Q_FUNC_INFO << ": Y column has unsupported data type: 'string' or 'bit'";
     return NULL;
     }
+
   std::string xColumnName = plotDataNode->GetXColumnName();
   vtkAbstractArray* xColumn = NULL;
   if (!xColumnName.empty())
     {
     xColumn = table->GetColumnByName(xColumnName.c_str());
-    if (xColumn)
-      {
-      int xColumnType = xColumn->GetDataType();
-      if (xColumnType == VTK_STRING || xColumnType == VTK_BIT)
-        {
-        qWarning() << Q_FUNC_INFO << ": X column has unsupported data type: 'string' or 'bit'";
-        return NULL;
-        }
-      }
     }
 
   int plotType = plotDataNode->GetPlotType();
+
+  if (plotType == vtkMRMLPlotDataNode::SCATTER)
+    {
+    if (!xColumn)
+      {
+      return NULL;
+      }
+    int xColumnType = xColumn->GetDataType();
+    if (xColumnType == VTK_STRING || xColumnType == VTK_BIT)
+      {
+      qWarning() << Q_FUNC_INFO << ": X column has unsupported data type for scatter plot: 'string' or 'bit'";
+      return NULL;
+      }
+    }
+
   vtkSmartPointer<vtkPlot> newPlot = existingPlot;
   switch (plotType)
     {
     case vtkMRMLPlotDataNode::SCATTER:
+    case vtkMRMLPlotDataNode::LINE:
       if (!existingPlot || !existingPlot->IsA("vtkPlotLine"))
         {
         newPlot = vtkSmartPointer<vtkPlotLine>::New();
@@ -305,18 +311,6 @@ vtkSmartPointer<vtkPlot> qMRMLPlotViewPrivate::updatePlotFromPlotDataNode(vtkMRM
         {
         newPlot = vtkSmartPointer<vtkPlotBar>::New();
         }
-      break;
-    case vtkMRMLPlotDataNode::PIE:
-      if (!existingPlot || !existingPlot->IsA("vtkPlotPie"))
-      {
-        newPlot = vtkSmartPointer<vtkPlotPie>::New();
-      }
-      break;
-    case vtkMRMLPlotDataNode::BOX:
-      if (!existingPlot || !existingPlot->IsA("vtkPlotBox"))
-      {
-        newPlot = vtkSmartPointer<vtkPlotBox>::New();
-      }
       break;
     default:
       return NULL;
@@ -330,31 +324,65 @@ vtkSmartPointer<vtkPlot> qMRMLPlotViewPrivate::updatePlotFromPlotDataNode(vtkMRM
   if (newPlot->GetPen())
     {
     newPlot->GetPen()->SetOpacityF(plotDataNode->GetOpacity());
+    if (plotType == vtkMRMLPlotDataNode::BAR)
+      {
+      newPlot->GetPen()->SetLineType(vtkPen::SOLID_LINE);
+      }
+    else
+      {
+      newPlot->GetPen()->SetLineType(plotDataNode->GetLineStyle());
+      }
     }
 
   // Type-specific properties
   vtkPlotLine* plotLine = vtkPlotLine::SafeDownCast(newPlot);
   vtkPlotBar* plotBar = vtkPlotBar::SafeDownCast(newPlot);
-  vtkPlotPie* plotPie = vtkPlotPie::SafeDownCast(newPlot);
-  vtkPlotBox* plotBox = vtkPlotBox::SafeDownCast(newPlot);
   if (plotLine)
     {
     plotLine->SetMarkerSize(plotDataNode->GetMarkerSize());
     plotLine->SetMarkerStyle(plotDataNode->GetMarkerStyle());
     }
 
-  if (plotDataNode->IsXColumnIndex())
+  vtkStringArray* labelArray = NULL;
+  std::string labelColumnName = plotDataNode->GetLabelColumnName();
+  if (!labelColumnName.empty())
     {
-    // In the case of Indexes, SetInputData still needs a proper Column.
-    xColumnName = yColumnName;
-    newPlot->SetUseIndexForXSeries(true);
+    labelArray = vtkStringArray::SafeDownCast(table->GetColumnByName(labelColumnName.c_str()));
+    }
+  newPlot->SetIndexedLabels(labelArray);
+
+  if (plotType == vtkMRMLPlotDataNode::SCATTER)
+    {
+    newPlot->SetUseIndexForXSeries(false);
+    newPlot->SetInputData(table, xColumnName, yColumnName);
+    if (labelArray)
+      {
+      newPlot->SetTooltipLabelFormat("%l = (%x, %y) %i");
+      }
+    else
+      {
+      newPlot->SetTooltipLabelFormat("%l = (%x, %y)");
+      }
+    std::string label = std::string("(") + xColumnName + ", " + yColumnName + ")";
+    newPlot->SetLabel(label);
     }
   else
     {
-    newPlot->SetUseIndexForXSeries(false);
+    newPlot->SetUseIndexForXSeries(true);
+    // In the case of Indexes, SetInputData still needs a proper Column.
+    newPlot->SetInputData(table, yColumnName, yColumnName);
+    if (labelArray)
+      {
+      newPlot->SetTooltipLabelFormat("%i: %l = %y");
+      }
+    else
+      {
+      newPlot->SetTooltipLabelFormat("%l = %y");
+      }
+    newPlot->SetLabel(yColumnName);
     }
 
-  newPlot->SetInputData(table, xColumnName, yColumnName);
+  // TODO: set labels as axis text using vtkAxis::SetCustomTickPositions(vtkDoubleArray *positions, vtkStringArray *labels)
 
   return newPlot;
 }
@@ -637,30 +665,6 @@ void qMRMLPlotViewPrivate::updateWidgetFromMRML()
         plotDataNode->GetID()) == plotDataNodesIDs.end())
         {
         // plot data node is no longer associated with this chart
-        plotDataNode = NULL;
-        }
-      }
-    if (plotDataNode != NULL)
-      {
-      // Check if the plot data node content is valid
-      vtkMRMLTableNode *mrmlTableNode = plotDataNode->GetTableNode();
-      if (mrmlTableNode != NULL)
-        {
-        if (!plotDataNode->IsXColumnIndex()
-          && mrmlTableNode->GetColumnIndex(plotDataNode->GetXColumnName()) < 0)
-          {
-          // x column is not available in the source table anymore
-          plotDataNode = NULL;
-          }
-        else if (mrmlTableNode->GetColumnIndex(plotDataNode->GetYColumnName()) < 0)
-          {
-          // y column is not available in the source table anymore
-          plotDataNode = NULL;
-          }
-        }
-      else
-        {
-        // Data table is not defined
         plotDataNode = NULL;
         }
       }

@@ -51,6 +51,8 @@
 #include <vtkMRMLLayoutNode.h>
 #include <vtkMRMLPlotDataNode.h>
 #include <vtkMRMLPlotChartNode.h>
+#include <vtkMRMLPlotViewNode.h>
+#include <vtkRenderingCoreEnums.h> // for VTK_MARKER_SQUARE
 #include <vtkMRMLScene.h>
 #include <vtkMRMLSelectionNode.h>
 #include <vtkMRMLTableNode.h>
@@ -479,9 +481,19 @@ void qMRMLTableView::plotSelection()
       QMessageBox::warning(NULL, tr("Failed to create Plot"), message);
       }
     int columnDataType = column->GetDataType();
-    if (columnDataType == VTK_STRING || columnDataType == VTK_BIT)
+    if (columnDataType == VTK_BIT)
       {
-      QString message = QString("Type of column %1 is 'string' or 'bit'. Plotting of these types are currently not supported."
+      QString message = QString("Type of column %1 is 'bit'. Plotting of these types are currently not supported."
+        " Please convert the data type of this column to numeric using Table module's Column properties section,"
+        " or select different columns for plotting.").arg(column->GetName());
+      qCritical() << Q_FUNC_INFO << ": " << message;
+      QMessageBox::warning(NULL, tr("Failed to create Plot"), message);
+      return;
+      }
+    if (columnDataType == VTK_STRING && !columnIndices.empty())
+      {
+      // only the first column is allowed to be string type
+      QString message = QString("Type of column %1 is 'string'. Only first selected column may be string type (to be used for labels)."
         " Please convert the data type of this column to numeric using Table module's Column properties section,"
         " or select different columns for plotting.").arg(column->GetName());
       qCritical() << Q_FUNC_INFO << ": " << message;
@@ -499,13 +511,16 @@ void qMRMLTableView::plotSelection()
     return;
     }
 
-  // Check the DataType of the (X-Axis) Column
-  std::string xColumnName = "Indexes";
-  // We need to provide a valid pointer to an array, even if we use Y axis indices
-  vtkAbstractArray* xColumn = tableNode->GetTable()->GetColumn(columnIndices[0]);
+  // If there are more than one columns selected then use the first one as X column
+  int plotType = vtkMRMLPlotDataNode::LINE;
+  std::string xColumnName;
   if (columnIndices.size() > 1)
     {
-    // If there are more than one columns selected then use the first one as X column
+    vtkAbstractArray* xColumn = tableNode->GetTable()->GetColumn(columnIndices[0]);
+    if (xColumn->GetDataType() != VTK_STRING)
+      {
+      plotType = vtkMRMLPlotDataNode::SCATTER;
+      }
     xColumnName = xColumn->GetName();
     columnIndices.pop_front();
     }
@@ -547,8 +562,12 @@ void qMRMLTableView::plotSelection()
     selectionNode->SetActivePlotChartID(plotChartNode->GetID());
     }
 
-  std::string plotType;
-  plotChartNode->GetPropertyFromAllPlotDataNodes(vtkMRMLPlotChartNode::PlotType, plotType);
+  vtkMRMLPlotViewNode* plotViewNode = vtkMRMLPlotViewNode::SafeDownCast(this->mrmlScene()->GetSingletonNode("PlotView1", "vtkMRMLPlotViewNode"));
+  if (plotViewNode && plotViewNode->GetDoPropagatePlotChartSelection())
+    {
+    plotViewNode->SetPlotChartNodeID(plotChartNode->GetID());
+    }
+
   std::string plotMarkerStyle;
   plotChartNode->GetPropertyFromAllPlotDataNodes(vtkMRMLPlotChartNode::PlotMarkerStyle, plotMarkerStyle);
 
@@ -581,10 +600,18 @@ void qMRMLTableView::plotSelection()
       {
       plotDataNode = vtkMRMLPlotDataNode::SafeDownCast(this->mrmlScene()->AddNewNodeByClass(
         "vtkMRMLPlotDataNode", yColumnName.c_str()));
-      plotDataNode->SetXColumnName(xColumnName);
-      plotDataNode->SetYColumnName(yColumnName);
-      plotDataNode->SetAndObserveTableNodeID(tableNode->GetID());
       }
+    if (plotType == vtkMRMLPlotDataNode::SCATTER)
+      {
+      plotDataNode->SetXColumnName(xColumnName);
+      }
+    else
+      {
+      plotDataNode->SetLabelColumnName(xColumnName);
+      plotDataNode->SetMarkerStyle(VTK_MARKER_SQUARE);
+      }
+    plotDataNode->SetYColumnName(yColumnName);
+    plotDataNode->SetAndObserveTableNodeID(tableNode->GetID());
 
     std::string namePlotDataNode = plotDataNode->GetName();
     std::size_t found = namePlotDataNode.find("Markups");
@@ -597,10 +624,8 @@ void qMRMLTableView::plotSelection()
       }
 
     // Set the type of the PlotDataNode
-    if (!plotType.empty())
-      {
-      plotDataNode->SetPlotType(plotDataNode->GetPlotTypeFromString(plotType.c_str()));
-      }
+    plotDataNode->SetPlotType(plotType);
+
     if (!plotMarkerStyle.empty())
       {
       plotDataNode->SetMarkerStyle(plotDataNode->GetMarkerStyleFromString(plotMarkerStyle.c_str()));

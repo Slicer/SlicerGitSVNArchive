@@ -39,7 +39,7 @@
         </stringlist>
        </property>
        <property name="noneEnabled">
-        <bool>true</bool>
+        <bool>false</bool>
        </property>
        <property name="addEnabled">
         <bool>true</bool>
@@ -77,22 +77,17 @@
        </property>
        <item>
         <property name="text">
-         <string>Scatter</string>
+         <string>scatter</string>
         </property>
        </item>
        <item>
         <property name="text">
-         <string>Bar</string>
+         <string>line</string>
         </property>
        </item>
        <item>
         <property name="text">
-         <string>Pie</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>Box</string>
+         <string>bar</string>
         </property>
        </item>
       </widget>
@@ -230,32 +225,32 @@
        </property>
        <item>
         <property name="text">
-         <string>None</string>
+         <string>none</string>
         </property>
        </item>
        <item>
         <property name="text">
-         <string>Cross</string>
+         <string>cross</string>
         </property>
        </item>
        <item>
         <property name="text">
-         <string>Plus</string>
+         <string>plus</string>
         </property>
        </item>
        <item>
         <property name="text">
-         <string>Square</string>
+         <string>square</string>
         </property>
        </item>
        <item>
         <property name="text">
-         <string>Circle</string>
+         <string>circle</string>
         </property>
        </item>
        <item>
         <property name="text">
-         <string>Diamond</string>
+         <string>diamond</string>
         </property>
        </item>
       </widget>

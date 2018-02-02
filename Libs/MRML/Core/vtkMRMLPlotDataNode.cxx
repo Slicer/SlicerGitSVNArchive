@@ -61,6 +61,7 @@ vtkMRMLPlotDataNode::vtkMRMLPlotDataNode()
   , LineWidth(2)
   , MarkerSize(7)
   , MarkerStyle(VTK_MARKER_NONE)
+  , LineStyle(vtkPen::SOLID_LINE)
   , Opacity(1.0)
 {
   this->HideFromEditors = 0;
@@ -103,8 +104,10 @@ void vtkMRMLPlotDataNode::WriteXML(ostream& of, int nIndent)
   vtkMRMLWriteXMLEnumMacro(plotType, PlotType)
   vtkMRMLWriteXMLStdStringMacro(xColumnName, XColumnName)
   vtkMRMLWriteXMLStdStringMacro(yColumnName, YColumnName)
+  vtkMRMLWriteXMLStdStringMacro(labelColumnName, LabelColumnName)
   vtkMRMLWriteXMLEnumMacro(markerStyle, MarkerStyle)
   vtkMRMLWriteXMLFloatMacro(markerSize, MarkerSize)
+  vtkMRMLWriteXMLEnumMacro(lineStyle, LineStyle)
   vtkMRMLWriteXMLFloatMacro(lineWidth, LineWidth)
   vtkMRMLWriteXMLVectorMacro(color, Color, double, 3)
   vtkMRMLWriteXMLFloatMacro(opacity, Opacity)
@@ -122,8 +125,10 @@ void vtkMRMLPlotDataNode::ReadXMLAttributes(const char** atts)
   vtkMRMLReadXMLEnumMacro(plotType, PlotType)
   vtkMRMLReadXMLStdStringMacro(xColumnName, XColumnName)
   vtkMRMLReadXMLStdStringMacro(yColumnName, YColumnName)
+  vtkMRMLReadXMLStdStringMacro(labelColumnName, LabelColumnName)
   vtkMRMLReadXMLEnumMacro(markerStyle, MarkerStyle)
   vtkMRMLReadXMLFloatMacro(markerSize, MarkerSize)
+  vtkMRMLReadXMLEnumMacro(lineStyle, LineStyle)
   vtkMRMLReadXMLFloatMacro(lineWidth, LineWidth)
   vtkMRMLReadXMLVectorMacro(color, Color, double, 3)
   vtkMRMLReadXMLFloatMacro(opacity, Opacity)
@@ -145,8 +150,10 @@ void vtkMRMLPlotDataNode::Copy(vtkMRMLNode *anode)
   vtkMRMLCopyEnumMacro(PlotType)
   vtkMRMLCopyStdStringMacro(XColumnName)
   vtkMRMLCopyStdStringMacro(YColumnName)
+  vtkMRMLCopyStdStringMacro(LabelColumnName)
   vtkMRMLCopyEnumMacro(MarkerStyle)
   vtkMRMLCopyFloatMacro(MarkerSize)
+  vtkMRMLCopyEnumMacro(LineStyle)
   vtkMRMLCopyFloatMacro(LineWidth)
   vtkMRMLCopyVectorMacro(Color, double, 3)
   vtkMRMLCopyFloatMacro(Opacity)
@@ -164,8 +171,10 @@ void vtkMRMLPlotDataNode::PrintSelf(ostream& os, vtkIndent indent)
   vtkMRMLPrintEnumMacro(PlotType)
   vtkMRMLPrintStdStringMacro(XColumnName)
   vtkMRMLPrintStdStringMacro(YColumnName)
+  vtkMRMLPrintStdStringMacro(LabelColumnName)
   vtkMRMLPrintEnumMacro(MarkerStyle)
   vtkMRMLPrintFloatMacro(MarkerSize)
+  vtkMRMLPrintEnumMacro(LineStyle)
   vtkMRMLPrintFloatMacro(LineWidth)
   vtkMRMLPrintVectorMacro(Color, double, 3)
   vtkMRMLPrintFloatMacro(Opacity)
@@ -233,10 +242,9 @@ const char* vtkMRMLPlotDataNode::GetPlotTypeAsString(int id)
 {
   switch (id)
     {
-    case SCATTER: return "Scatter";
-    case BAR: return "Bar";
-    case PIE: return "Pie";
-    case BOX: return "Box";
+    case SCATTER: return "scatter";
+    case LINE: return "line";
+    case BAR: return "bar";
     default:
       // invalid id
       return "";
@@ -268,12 +276,12 @@ const char* vtkMRMLPlotDataNode::GetMarkerStyleAsString(int id)
 {
   switch (id)
     {
-    case VTK_MARKER_NONE: return "None";
-    case VTK_MARKER_CROSS: return "Cross";
-    case VTK_MARKER_PLUS: return "Plus";
-    case VTK_MARKER_SQUARE: return "Square";
-    case VTK_MARKER_CIRCLE: return "Circle";
-    case VTK_MARKER_DIAMOND: return "Diamond";
+    case VTK_MARKER_NONE: return "none";
+    case VTK_MARKER_CROSS: return "cross";
+    case VTK_MARKER_PLUS: return "plus";
+    case VTK_MARKER_SQUARE: return "square";
+    case VTK_MARKER_CIRCLE: return "circle";
+    case VTK_MARKER_DIAMOND: return "diamond";
     default:
       // invalid id
       return "";
@@ -301,7 +309,38 @@ int vtkMRMLPlotDataNode::GetMarkerStyleFromString(const char* name)
 }
 
 //-----------------------------------------------------------
-bool vtkMRMLPlotDataNode::IsXColumnIndex()
+const char* vtkMRMLPlotDataNode::GetLineStyleAsString(int id)
 {
-  return (this->GetXColumnName().empty());
+  switch (id)
+    {
+    case vtkPen::NO_PEN: return "none";
+    case vtkPen::SOLID_LINE: return "solid";
+    case vtkPen::DASH_LINE: return "dash";
+    case vtkPen::DOT_LINE: return "dot";
+    case vtkPen::DASH_DOT_LINE: return "dash-dot";
+    case vtkPen::DASH_DOT_DOT_LINE: return "dash-dot-dot";
+    default:
+      // invalid id
+      return "";
+    }
+}
+
+//-----------------------------------------------------------
+int vtkMRMLPlotDataNode::GetLineStyleFromString(const char* name)
+{
+  if (name == NULL)
+    {
+    // invalid name
+    return -1;
+    }
+  for (int ii = 0; ii <= vtkPen::DASH_DOT_DOT_LINE; ii++)
+    {
+    if (strcmp(name, GetLineStyleAsString(ii)) == 0)
+      {
+      // found a matching name
+      return ii;
+      }
+    }
+  // unknown name
+  return -1;
 }

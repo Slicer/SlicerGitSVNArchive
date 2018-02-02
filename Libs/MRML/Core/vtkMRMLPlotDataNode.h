@@ -49,9 +49,8 @@ public:
   // Enum of the available plot types
   enum {
     SCATTER,
+    LINE,
     BAR,
-    PIE,
-    BOX,
     PLOT_TYPE_LAST // must be last
   };
 
@@ -111,28 +110,32 @@ public:
   /// Get and Set Macros
   //----------------------------------------------------------------
 
-  /// Get/Set the type of the plot (line, scatter, bar).
+  /// Get/Set the type of the plot (scatter, line, bar).
+  /// Scatter: X and Y columns define X and Y coordinates of points
+  /// Line: line points are equally spaced along X axis, Y column defines height of each point
+  /// Bar: vertical bars equally spaced along X axis, Y column defines height of each bar
   /// \brief vtkGetMacro
   vtkGetMacro(PlotType, int);
   vtkSetMacro(PlotType, int);
 
   ///
   /// Convenience method to set the type of
-  /// the plot (line, scatter, bar) from strings.
+  /// the plot (scatter, line, bar) from strings.
   virtual void SetPlotType(const char* type);
 
-  /// Get/Set the name of the X column in the referenced table.
-  /// If the value is empty then item indices (0, 1, 2, ...) will be used as X values.
+  /// Get the name of the Y column in the referenced table (for scatter plots).
   vtkGetMacro(XColumnName, std::string);
   vtkSetMacro(XColumnName, std::string);
-
-  /// Returns true if item indices (0, 1, 2, ...) is used as X values.
-  bool IsXColumnIndex();
 
   ///
   /// Get the name of the Y column in the referenced table.
   vtkGetMacro(YColumnName, std::string);
   vtkSetMacro(YColumnName, std::string);
+
+  /// Get/Set the name of the X (for scatter plot)
+  /// or labels (for line or bar plot) column in the referenced table.
+  vtkGetMacro(LabelColumnName, std::string);
+  vtkSetMacro(LabelColumnName, std::string);
 
   ///
   /// Convert between plot type ID and name
@@ -155,6 +158,18 @@ public:
   /// available for Line and Points Plots.
   vtkGetMacro(MarkerSize, float);
   vtkSetMacro(MarkerSize, float);
+
+  ///
+  /// Set/get the line style.
+  /// Values defined in vtkPen (NO_PEN, SOLID_LINE, DASH_LINE,
+  /// DOT_LINE, DASH_DOT_LINE, DASH_DOT_DOT_LINE).
+  vtkGetMacro(LineStyle, int);
+  vtkSetMacro(LineStyle, int);
+
+  ///
+  /// Convert between line style ID and name
+  const char *GetLineStyleAsString(int id);
+  int GetLineStyleFromString(const char *name);
 
   ///
   /// Utility methods to set/get the Line width
@@ -232,13 +247,15 @@ protected:
  protected:
 
   ///
-  /// Type of Plot (Line, Scatter, Bar).
+  /// Type of Plot (scatter, line, bar).
   int PlotType;
 
   std::string XColumnName;
   std::string YColumnName;
+  std::string LabelColumnName;
 
   float LineWidth;
+  int LineStyle;
 
   float MarkerSize;
   int MarkerStyle;
