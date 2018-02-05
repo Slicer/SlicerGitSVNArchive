@@ -190,8 +190,22 @@
     <description><![CDATA[Parameters that describe point sets.]]></description>
     <point multiple="true" coordinateSystem="ras">
       <name>seed</name>
-      <label>Seeds</label>
-      <longflag>--seed</longflag>
+      <label>Seeds RAS</label>
+      <longflag>--seed_ras</longflag>
+      <description><![CDATA[Lists of points in the CLI correspond to slicer fiducial lists]]></description>
+      <default>0,0,0</default>
+    </point>
+    <point multiple="true" coordinateSystem="lps">
+      <name>seed_lps</name>
+      <label>Seeds LPS</label>
+      <longflag>--seed_lps</longflag>
+      <description><![CDATA[Lists of points in the CLI correspond to slicer fiducial lists]]></description>
+      <default>0,0,0</default>
+    </point>
+    <point multiple="true" coordinateSystem="ijk">
+      <name>seed_ijk</name>
+      <label>Seeds IJK</label>
+      <longflag>--seed_ijk</longflag>
       <description><![CDATA[Lists of points in the CLI correspond to slicer fiducial lists]]></description>
       <default>0,0,0</default>
     </point>

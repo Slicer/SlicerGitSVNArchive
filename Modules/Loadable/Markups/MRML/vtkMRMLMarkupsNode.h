@@ -20,6 +20,7 @@
 
 // MRML includes
 #include "vtkMRMLDisplayableNode.h"
+class vtkMRMLVolumeNode;
 
 // Markups includes
 #include "vtkSlicerMarkupsModuleMRMLExport.h"
@@ -94,7 +95,7 @@ public:
 
   /// Write this node's information to a vector of strings for passing to a CLI,
   /// precede each datum with the prefix if not an empty string
-  /// coordinateSystemFlag = 0 for RAS, 1 for LPS
+  /// coordinateSystemFlag = 0 for RAS, 1 for LPS, 2 for IJK
   /// multipleFlag = 1 for the whole list, 1 for the first selected markup
   virtual void WriteCLI(std::vector<std::string>& commandLine,
                         std::string prefix, int coordinateSystem = 0,
@@ -202,6 +203,10 @@ public:
   void GetMarkupPoint(int markupIndex, int pointIndex, double point[3]);
   /// Get points in LPS coordinate system
   void GetMarkupPointLPS(int markupIndex, int pointIndex, double point[3]);
+  /// Get points in IJK coordinate system
+  /// \sa SetAndObserveReferenceImageNodeID
+  void GetMarkupPointIJK(int markupIndex, int pointIndex, double point[3]);
+
   /// Return a three element double giving the world position (any parent
   /// transform on the markup applied to the return of GetMarkupPoint.
   /// Returns 0 on failure, 1 on success.
@@ -234,6 +239,11 @@ public:
   /// Set a point in a markup using LPS coordinate system, converting to RAS
   /// \sa SetMarkupPoint
   void SetMarkupPointLPS(const int markupIndex, const int pointIndex, const double x, const double y, const double z);
+  /// Set a point in a markup using IJK coordinate system, converting to RAS
+  /// \sa SetMarkupPoint
+  /// \sa SetAndObserveReferenceImageNodeID
+  void SetMarkupPointIJK(const int markupIndex, const int pointIndex, const double x, const double y, const double z);
+
   /// Set the markupIndex markup's point pointIndex to xyz transformed
   /// by the inverse of the transform to world for the node.
   /// Calls SetMarkupPoint after transforming the passed in coordinate
@@ -341,11 +351,31 @@ public:
   /// scene. Returns false if n out of bounds, true on success.
   bool ResetNthMarkupID(int n);
 
+  virtual const char* GetReferenceImageNodeReferenceRole();
+
+  /// Get ID of the reference image associated with this markups node.
+  /// \sa SetAndObserveReferenceImageNodeID
+  const char* GetReferenceImageNodeID();
+
+  /// Associate this markups node with a reference image.
+  ///
+  /// This is required to successfully use method converting to/from IJK
+  /// coordinate system.
+  ///
+  /// \sa SetMarkupPointIJK, GetMarkupPointIJK, WriteCLI
+  /// \sa GetReferenceImageNodeID
+  void SetAndObserveReferenceImageNodeID(const char* referenceImageNodeID);
+
 protected:
   vtkMRMLMarkupsNode();
   ~vtkMRMLMarkupsNode();
   vtkMRMLMarkupsNode(const vtkMRMLMarkupsNode&);
   void operator=(const vtkMRMLMarkupsNode&);
+
+  static const char* ReferenceImageNodeReferenceRole;
+  static const char* ReferenceImageNodeReferenceMRMLAttributeName;
+
+  virtual const char* GetReferenceImageNodeReferenceMRMLAttributeName();
 
   vtkStringArray *TextList;
 

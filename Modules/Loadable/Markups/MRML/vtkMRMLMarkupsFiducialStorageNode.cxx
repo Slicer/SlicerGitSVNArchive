@@ -330,11 +330,10 @@ int vtkMRMLMarkupsFiducialStorageNode::ReadDataInternal(vtkMRMLNode *refNode)
               }
             else
               {
-              // IJK not implemented yet, assume RAS
-              markupsNode->SetMarkupPoint(thisMarkupNumber,0,x,y,z);
+              markupsNode->SetMarkupPointIJK(thisMarkupNumber,0,x,y,z);
               }
 
-            // orientatation
+            // orientation
             getline(ss, component, ',');
             ow = atof(component.c_str());
             getline(ss, component, ',');

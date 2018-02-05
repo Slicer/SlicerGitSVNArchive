@@ -21,6 +21,7 @@
 #include "vtkMRMLMarkupsNode.h"
 #include "vtkMRMLMarkupsStorageNode.h"
 #include "vtkMRMLTransformNode.h"
+#include "vtkMRMLVolumeNode.h"
 
 // Slicer MRML includes
 #include "vtkMRMLScene.h"
@@ -40,6 +41,9 @@
 #include <sstream>
 #include <algorithm>
 
+const char* vtkMRMLMarkupsNode::ReferenceImageNodeReferenceRole = "referenceImage";
+const char* vtkMRMLMarkupsNode::ReferenceImageNodeReferenceMRMLAttributeName = "referenceImageNodeRef";
+
 //----------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLMarkupsNode);
 
@@ -51,12 +55,27 @@ vtkMRMLMarkupsNode::vtkMRMLMarkupsNode()
   this->Locked = 0;
   this->MarkupLabelFormat = std::string("%N-%d");
   this->MaximumNumberOfMarkups = 0;
+
+  this->AddNodeReferenceRole(this->GetReferenceImageNodeReferenceRole(),
+                             this->GetReferenceImageNodeReferenceMRMLAttributeName());
 }
 
 //----------------------------------------------------------------------------
 vtkMRMLMarkupsNode::~vtkMRMLMarkupsNode()
 {
   this->TextList->Delete();
+}
+
+//----------------------------------------------------------------------------
+const char* vtkMRMLMarkupsNode::GetReferenceImageNodeReferenceRole()
+{
+  return vtkMRMLMarkupsNode::ReferenceImageNodeReferenceRole;
+}
+
+//----------------------------------------------------------------------------
+const char* vtkMRMLMarkupsNode::GetReferenceImageNodeReferenceMRMLAttributeName()
+{
+  return vtkMRMLMarkupsNode::ReferenceImageNodeReferenceMRMLAttributeName;
 }
 
 //----------------------------------------------------------------------------
@@ -574,6 +593,30 @@ void vtkMRMLMarkupsNode::GetMarkupPointLPS(int markupIndex, int pointIndex, doub
 }
 
 //-----------------------------------------------------------
+void vtkMRMLMarkupsNode::GetMarkupPointIJK(int markupIndex, int pointIndex, double point[3])
+{
+  if (this->GetReferenceImageNodeID() == NULL)
+    {
+    vtkErrorMacro("GetMarkupPointIJK: Can not convert coordinate from RAS to IJK because "
+                  "markup is not associated with a reference image");
+    return;
+    }
+  vtkMRMLVolumeNode* referenceImage = vtkMRMLVolumeNode::SafeDownCast(
+        this->GetScene()->GetNodeByID(this->GetReferenceImageNodeID()));
+
+  vtkVector3d vectorPoint = this->GetMarkupPointVector(markupIndex, pointIndex);
+  double rasPoint[4] = { vectorPoint.GetX(), vectorPoint.GetY(), vectorPoint.GetZ(), 1.0 };
+  double ijkPoint[4];
+  vtkNew<vtkMatrix4x4> rasToIJK;
+  referenceImage->GetRASToIJKMatrix(rasToIJK.GetPointer());
+  rasToIJK->MultiplyPoint(rasPoint, ijkPoint);
+
+  point[0] = ijkPoint[0];
+  point[1] = ijkPoint[1];
+  point[2] = ijkPoint[2];
+}
+
+//-----------------------------------------------------------
 int vtkMRMLMarkupsNode::GetMarkupPointWorld(int markupIndex, int pointIndex, double worldxyz[4])
 {
   vtkVector3d world;
@@ -744,6 +787,41 @@ void vtkMRMLMarkupsNode::SetMarkupPointLPS(const int markupIndex, const int poin
   a = -y;
   s = z;
   this->SetMarkupPoint(markupIndex, pointIndex, r, a, s);
+}
+
+//-----------------------------------------------------------
+void vtkMRMLMarkupsNode::SetMarkupPointIJK(const int markupIndex, const int pointIndex,
+                                           const double x, const double y, const double z)
+{
+  if (this->GetReferenceImageNodeID() == NULL)
+    {
+    vtkErrorMacro("SetMarkupPointIJK: Can not convert coordinate from IJK to RAS because "
+                  "markup is not associated with a reference image");
+    return;
+    }
+
+  vtkMRMLVolumeNode* referenceImage = vtkMRMLVolumeNode::SafeDownCast(
+        this->GetScene()->GetNodeByID(this->GetReferenceImageNodeID()));
+
+  double ijkPoint[4] = { x, y, z, 1.0 };
+  double rasPoint[4];
+  vtkNew<vtkMatrix4x4> ijkToRAS;
+  referenceImage->GetIJKToRASMatrix(ijkToRAS.GetPointer());
+  ijkToRAS->MultiplyPoint(ijkPoint, rasPoint);
+
+  this->SetMarkupPoint(markupIndex, pointIndex, rasPoint[0], rasPoint[1], rasPoint[2]);
+}
+
+//----------------------------------------------------------------------------
+const char* vtkMRMLMarkupsNode::GetReferenceImageNodeID()
+{
+  return this->GetNodeReferenceID(this->GetReferenceImageNodeReferenceRole());
+}
+
+//-----------------------------------------------------------
+void vtkMRMLMarkupsNode::SetAndObserveReferenceImageNodeID(const char* referenceImageNodeID)
+{
+  this->SetAndObserveNodeReferenceID(this->GetReferenceImageNodeReferenceRole(), referenceImageNodeID);
 }
 
 //-----------------------------------------------------------
@@ -1135,11 +1213,16 @@ WriteCLI(std::vector<std::string>& commandLine, std::string prefix,
 
   int numMarkups = this->GetNumberOfMarkups();
 
-  // check if the coordinate system flag is set to LPS, otherwise assume RAS
+  // check the coordinate system flag
   bool useLPS = false;
+  bool useIJK = false;
   if (coordinateSystem == 1)
     {
     useLPS = true;
+    }
+  else if (coordinateSystem == 2)
+    {
+    useIJK = true;
     }
 
   // loop over the markups
@@ -1157,6 +1240,10 @@ WriteCLI(std::vector<std::string>& commandLine, std::string prefix,
         if (useLPS)
           {
           this->GetMarkupPointLPS(m, n, point);
+          }
+        else if (useIJK)
+          {
+          this->GetMarkupPointIJK(m, n, point);
           }
         else
           {
