@@ -317,11 +317,43 @@ function(fixup_bundle_with_plugins app)
   set(inner_re "${inner_re}|pyw|pyx|raw|sample|so|supp|tcl|txt|ui|xml|exe|mexw32|mexw64")
   set(GP_IS_FILE_EXECUTABLE_EXCLUDE_REGEX "\\.(${inner_re})$")
 
-  fixup_bundle(
-    "${app_dir}"
-    "${libs}"
-    "${libs_path}"
-    )
+  if(NOT APPLE)
+    fixup_bundle(
+      "${app_dir}"
+      "${libs}"
+      "${libs_path}"
+      )
+  else()
+    set(bundle_config "${Slicer_BUILD_DIR}/CMake/SlicerCPackBundleFixup/bundle_config.txt")
+
+    file(WRITE ${bundle_config}
+"slicer_build='${Slicer_BUILD_DIR}'
+slicer_superbuild='${Slicer_SUPERBUILD_DIR}'
+app_name='${app_name}'
+app_dir='${app_dir}'
+libs='${libs}'
+libs_path='${libs_path}'
+slicer_lib_dir='@Slicer_LIB_DIR@'
+itkfactories_dir='@Slicer_ITKFACTORIES_DIR@'
+qtmodules_dir='@Slicer_QTLOADABLEMODULES_LIB_DIR@'
+qtplugins_dir='@Slicer_QtPlugins_DIR@'
+climodules_dir='@Slicer_CLIMODULES_LIB_DIR@'
+python_stdlib_dir='${PYTHON_STDLIB_SUBDIR}'
+python_sitepackages_dir='${PYTHON_SITE_PACKAGES_SUBDIR}'
+fixup_path='@fixup_path@'
+")
+
+  file(GLOB_RECURSE bundle_python FALSE "${app_dir}*/python-real")
+  if(DEFINED bundle_python-NOTFOUND)
+    message(FATAL_ERROR "Unable to locate python in app_dir: ${app_dir}")
+  endif()
+
+  message(INFO "Running BundlePython app packaging step!")
+  message(INFO "  using python: ${bundle_python}")
+
+  execute_process(COMMAND "${bundle_python}" "@Slicer_SOURCE_DIR@/Utilities/Scripts/BundleFixup.py" "${bundle_config}")
+  endif()
+
 endfunction()
 
 set(app_name "@Slicer_MAIN_PROJECT_APPLICATION_NAME@.app")
