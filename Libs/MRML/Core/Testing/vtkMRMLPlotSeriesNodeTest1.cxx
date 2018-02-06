@@ -64,7 +64,7 @@ int vtkMRMLPlotSeriesNodeTest1(int , char * [] )
   // Set and Observe the MRMLTableNode
   plotSeriesNode->SetAndObserveTableNodeID(tableNode->GetID());
 
-  plotSeriesNode->SetPlotType(vtkMRMLPlotSeriesNode::BAR);
+  plotSeriesNode->SetPlotType(vtkMRMLPlotSeriesNode::PlotTypeBar);
 
   plotSeriesNode->SetXColumnName(arrX->GetName());
   plotSeriesNode->SetYColumnName(arrC->GetName());

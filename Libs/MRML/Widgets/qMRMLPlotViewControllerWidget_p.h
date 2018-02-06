@@ -83,21 +83,12 @@ public slots:
   /// using the associated qMRMLNodeComboBox.
   void onPlotSeriesNodeAdded(vtkMRMLNode* node);
 
-  /// Called after a PlotSeriesNode is going to be edited
-  /// using the associated qMRMLNodeComboBox.
-  void onPlotSeriesNodeEdited(vtkMRMLNode* node);
+  /// Called after a Plot type is selected using the qComboBox.
+  /// Changes type of all associated plots.
+  void onPlotTypeChanged(int);
 
-  /// Called after a Plot type is selected using the qComboBox
-  /// Modify all the PlotSeriesNode selected in the PlotChartNode.
-  void onPlotTypeChanged(const QString& type);
-
-  /// Called after a Column is selected using the qComboBox
-  /// Modify all the PlotSeriesNode selected in the PlotChartNode.
-  void onXAxisChanged(int index);
-
-  /// Called after a Markers' option is selected using the qComboBox
-  /// Modify all the PlotSeriesNode selected in the PlotChartNode.
-  void onMarkersChanged(const QString& str);
+  /// Called after interactino mode is changed by using the qComboBox.
+  void onInteractionModeChanged(int);
 
 protected:
   virtual void setupPopupUi();

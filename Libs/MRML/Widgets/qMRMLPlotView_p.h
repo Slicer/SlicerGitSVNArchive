@@ -41,7 +41,7 @@ class QToolButton;
 // CTK includes
 #include <ctkPimpl.h>
 #include <ctkVTKObject.h>
-class ctkPopupWidget;
+//class ctkPopupWidget;
 
 // qMRML includes
 #include "qMRMLPlotView.h"
@@ -53,8 +53,6 @@ class vtkPlot;
 class vtkMRMLPlotSeriesNode;
 class vtkMRMLPlotViewNode;
 class vtkMRMLPlotChartNode;
-class vtkMRMLColorLogic;
-class vtkMRMLColorNode;
 class vtkObject;
 class vtkPlot;
 class vtkStringArray;
@@ -91,21 +89,19 @@ public slots:
   void onPlotChartNodeChanged();
 
   void RecalculateBounds();
-  void switchSelectionMode();
+  void switchInteractionMode();
   void switchLeftAndMiddleClick();
 
   void emitSelection();
 
 protected:
 
-  vtkMRMLScene*                      MRMLScene;
-  vtkMRMLPlotViewNode*               MRMLPlotViewNode;
-  vtkMRMLPlotChartNode*              MRMLPlotChartNode;
+  vtkWeakPointer<vtkMRMLScene>         MRMLScene;
+  vtkWeakPointer<vtkMRMLPlotViewNode>  MRMLPlotViewNode;
+  vtkWeakPointer<vtkMRMLPlotChartNode> MRMLPlotChartNode;
 
-  vtkWeakPointer<vtkMRMLColorLogic>  ColorLogic;
-
-  QToolButton*                       PinButton;
-  ctkPopupWidget*                    PopupWidget;
+  //QToolButton*                       PinButton;
+//  ctkPopupWidget*                    PopupWidget;
 
   bool                               UpdatingWidgetFromMRML;
 

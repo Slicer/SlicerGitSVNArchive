@@ -17,8 +17,10 @@
 
 ==============================================================================*/
 
-// MRML includes
 #include "vtkMRMLPlotSeriesNode.h"
+
+// MRML includes
+#include "vtkMRMLColorTableNode.h "
 #include "vtkMRMLScene.h"
 #include "vtkMRMLSelectionNode.h"
 #include "vtkMRMLTableNode.h"
@@ -28,14 +30,12 @@
 #include <vtkAssignAttribute.h>
 #include <vtkBrush.h>
 #include <vtkCallbackCommand.h>
-#include <vtkColorSeries.h>
 #include <vtkCommand.h>
 #include <vtkContextMapper2D.h>
 #include <vtkEventBroker.h>
 #include <vtkNew.h>
 #include <vtkObjectFactory.h>
 #include <vtkStringArray.h>
-#include <vtkPen.h>
 #include <vtkPlot.h>
 #include <vtkPlotBar.h>
 #include <vtkPlotLine.h>
@@ -57,11 +57,11 @@ vtkMRMLNodeNewMacro(vtkMRMLPlotSeriesNode);
 
 //----------------------------------------------------------------------------
 vtkMRMLPlotSeriesNode::vtkMRMLPlotSeriesNode()
-  : PlotType(SCATTER)
+  : PlotType(PlotTypeLine)
   , LineWidth(2)
   , MarkerSize(7)
-  , MarkerStyle(VTK_MARKER_NONE)
-  , LineStyle(vtkPen::SOLID_LINE)
+  , MarkerStyle(MarkerStyleCircle)
+  , LineStyle(LineStyleSolid)
   , Opacity(1.0)
 {
   this->HideFromEditors = 0;
@@ -242,9 +242,10 @@ const char* vtkMRMLPlotSeriesNode::GetPlotTypeAsString(int id)
 {
   switch (id)
     {
-    case SCATTER: return "scatter";
-    case LINE: return "line";
-    case BAR: return "bar";
+    case PlotTypeLine: return "Line";
+    case PlotTypeBar: return "Bar";
+    case PlotTypeScatter: return "Scatter";
+    case PlotTypeScatterBar: return "ScatterBar";
     default:
       // invalid id
       return "";
@@ -259,7 +260,7 @@ int vtkMRMLPlotSeriesNode::GetPlotTypeFromString(const char* name)
     // invalid name
     return -1;
     }
-  for (int ii = 0; ii < PLOT_TYPE_LAST; ii++)
+  for (int ii = 0; ii < PlotType_Last; ii++)
     {
     if (strcmp(name, GetPlotTypeAsString(ii)) == 0)
       {
@@ -276,12 +277,12 @@ const char* vtkMRMLPlotSeriesNode::GetMarkerStyleAsString(int id)
 {
   switch (id)
     {
-    case VTK_MARKER_NONE: return "none";
-    case VTK_MARKER_CROSS: return "cross";
-    case VTK_MARKER_PLUS: return "plus";
-    case VTK_MARKER_SQUARE: return "square";
-    case VTK_MARKER_CIRCLE: return "circle";
-    case VTK_MARKER_DIAMOND: return "diamond";
+    case MarkerStyleNone: return "none";
+    case MarkerStyleCross: return "cross";
+    case MarkerStylePlus: return "plus";
+    case MarkerStyleSquare: return "square";
+    case MarkerStyleCircle: return "circle";
+    case MarkerStyleDiamond: return "diamond";
     default:
       // invalid id
       return "";
@@ -296,7 +297,7 @@ int vtkMRMLPlotSeriesNode::GetMarkerStyleFromString(const char* name)
     // invalid name
     return -1;
     }
-  for (int ii = 0; ii < VTK_MARKER_UNKNOWN; ii++)
+  for (int ii = 0; ii < MarkerStyle_Last; ii++)
     {
     if (strcmp(name, GetMarkerStyleAsString(ii)) == 0)
       {
@@ -313,12 +314,12 @@ const char* vtkMRMLPlotSeriesNode::GetLineStyleAsString(int id)
 {
   switch (id)
     {
-    case vtkPen::NO_PEN: return "none";
-    case vtkPen::SOLID_LINE: return "solid";
-    case vtkPen::DASH_LINE: return "dash";
-    case vtkPen::DOT_LINE: return "dot";
-    case vtkPen::DASH_DOT_LINE: return "dash-dot";
-    case vtkPen::DASH_DOT_DOT_LINE: return "dash-dot-dot";
+    case LineStyleNone: return "none";
+    case LineStyleSolid: return "solid";
+    case LineStyleDash: return "dash";
+    case LineStyleDot: return "dot";
+    case LineStyleDashDot: return "dash-dot";
+    case LineStyleDashDotDot: return "dash-dot-dot";
     default:
       // invalid id
       return "";
@@ -333,7 +334,7 @@ int vtkMRMLPlotSeriesNode::GetLineStyleFromString(const char* name)
     // invalid name
     return -1;
     }
-  for (int ii = 0; ii <= vtkPen::DASH_DOT_DOT_LINE; ii++)
+  for (int ii = 0; ii < LineStyle_Last; ii++)
     {
     if (strcmp(name, GetLineStyleAsString(ii)) == 0)
       {
@@ -343,4 +344,79 @@ int vtkMRMLPlotSeriesNode::GetLineStyleFromString(const char* name)
     }
   // unknown name
   return -1;
+}
+
+//-----------------------------------------------------------
+bool vtkMRMLPlotSeriesNode::IsXColumnRequired()
+{
+  return (this->PlotType == PlotTypeScatter || this->PlotType == PlotTypeScatterBar);
+}
+
+//-----------------------------------------------------------
+void vtkMRMLPlotSeriesNode::SetUniqueColor(const char* colorTableNodeID)
+{
+  if (this->GetScene() == NULL)
+    {
+    vtkGenericWarningMacro("vtkMRMLPlotSeriesNode::GenerateUniqueColor failed: node is not added to scene");
+    return;
+    }
+  if (colorTableNodeID == NULL)
+    {
+    colorTableNodeID = "vtkMRMLColorTableNodeRandom";
+    }
+  vtkMRMLColorTableNode* colorTableNode = vtkMRMLColorTableNode::SafeDownCast(this->GetScene()->GetNodeByID(colorTableNodeID));
+  if (colorTableNode == NULL)
+    {
+    vtkGenericWarningMacro("vtkMRMLPlotSeriesNode::GenerateUniqueColor failed: color table node by ID "
+      << (colorTableNodeID ? colorTableNodeID : "(none)") << " not found in scene");
+    return;
+    }
+  std::vector< vtkMRMLNode* > seriesNodes;
+  this->GetScene()->GetNodesByClass("vtkMRMLPlotSeriesNode", seriesNodes);
+  int numberOfColors = colorTableNode->GetNumberOfColors();
+  if (numberOfColors < 1)
+    {
+    vtkGenericWarningMacro("vtkMRMLPlotSeriesNode::GenerateUniqueColor failed: color table node "
+      << (colorTableNodeID ? colorTableNodeID : "(none)") << " is empty");
+    return;
+    }
+  double color[4] = { 0,0,0,0 };
+  bool isColorUnique = false;
+  for (int colorIndex = 0; colorIndex < numberOfColors; colorIndex++)
+    {
+    colorTableNode->GetColor(colorIndex, color);
+    isColorUnique = true;
+    for (std::vector< vtkMRMLNode* >::iterator seriesNodeIt = seriesNodes.begin(); seriesNodeIt != seriesNodes.end(); ++seriesNodeIt)
+      {
+      vtkMRMLPlotSeriesNode* seriesNode = vtkMRMLPlotSeriesNode::SafeDownCast(*seriesNodeIt);
+      if (!seriesNode)
+        {
+        continue;
+        }
+      if (seriesNode == this)
+        {
+        continue;
+        }
+      double* foundColor = seriesNode->GetColor();
+      if (fabs(foundColor[0] - color[0]) < 0.1
+        && fabs(foundColor[1] - color[1]) < 0.1
+        && fabs(foundColor[2] - color[2]) < 0.1)
+        {
+        isColorUnique = false;
+        break;
+        }
+      }
+    if (isColorUnique)
+      {
+      break;
+      }
+    }
+  if (!isColorUnique)
+    {
+    // Run out of colors, which means that there are more series than entries
+    // in the color table. Use sequential indices to have approximately
+    // uniform distribution.
+    colorTableNode->GetColor(seriesNodes.size() % numberOfColors, color);
+    }
+  this->SetColor(color);
 }

@@ -1272,6 +1272,11 @@ vtkMRMLNode* vtkMRMLScene::AddNewNodeByClass(
     }
   vtkSmartPointer<vtkMRMLNode> nodeToAdd =
       vtkSmartPointer<vtkMRMLNode>::Take(this->CreateNodeByClass(className.c_str()));
+  if (nodeToAdd == NULL)
+    {
+    vtkErrorMacro("AddNewNodeByClass: failed to create node by class " << className);
+    return NULL;
+    }
   if (!nodeBaseName.empty())
     {
     nodeToAdd->SetName(nodeBaseName.c_str());

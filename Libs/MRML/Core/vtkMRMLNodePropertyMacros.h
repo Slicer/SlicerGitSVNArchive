@@ -39,7 +39,7 @@
   xmlWriteOutputStream << " " #xmlAttributeName "=\""; \
   if (Get##propertyName() != NULL) \
     { \
-    xmlWriteOutputStream << vtkMRMLNode::XMLAttributeEncodeString(Get##propertyName##AsString(Get##propertyName())) << "\""; \
+    xmlWriteOutputStream << vtkMRMLNode::XMLAttributeEncodeString(Get##propertyName##AsString(Get##propertyName())); \
     } \
   xmlWriteOutputStream << "\"";
 

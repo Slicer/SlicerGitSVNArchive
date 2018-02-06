@@ -59,6 +59,7 @@
 #include <vtkMRMLTableViewNode.h>
 
 // STL includes
+#include <algorithm>
 #include <deque>
 
 #define CTK_CHECK_AND_RETURN_IF_FAIL(FUNC) \
@@ -463,71 +464,90 @@ void qMRMLTableView::plotSelection()
     return;
     }
 
+  // Validate type of selected columns
+  int stringColumnIndex = -1; // one string column is allowed (to be used as point labels)
+  std::deque<int> columnIndices;
   qMRMLTableModel* mrmlModel = tableModel();
   QItemSelectionModel* selection = selectionModel();
-  std::deque<int> columnIndices;
-  for (int columnIndex = 0; columnIndex < mrmlModel->columnCount(); columnIndex++)
+  QModelIndexList selectedColumns = selection->selectedIndexes();
+  for (int i = 0; i< selectedColumns.count(); i++)
     {
-    if (!selection->columnIntersectsSelection(columnIndex, QModelIndex()))
+    QModelIndex index = selectedColumns.at(i);
+    int columnIndex = index.column();
+    if (std::find(columnIndices.begin(), columnIndices.end(), columnIndex) == columnIndices.end()
+      && columnIndex != stringColumnIndex)
       {
-      // no items are selected in this entire column, skip it
-      continue;
+      // found new column in selection
+      vtkAbstractArray* column = tableNode->GetTable()->GetColumn(columnIndex);
+      if (!column || !column->GetName())
+        {
+        QString message = QString("Column %1 is invalid. Failed to generate a plot").arg(columnIndex);
+        qCritical() << Q_FUNC_INFO << ": " << message;
+        QMessageBox::warning(NULL, tr("Failed to create Plot"), message);
+        return;
+        }
+      int columnDataType = column->GetDataType();
+      if (columnDataType == VTK_BIT)
+        {
+        QString message = QString("Type of column %1 is 'bit'. Plotting of these types are currently not supported."
+          " Please convert the data type of this column to numeric using Table module's Column properties section,"
+          " or select different columns for plotting.").arg(column->GetName());
+        qCritical() << Q_FUNC_INFO << ": " << message;
+        QMessageBox::warning(NULL, tr("Failed to create Plot"), message);
+        return;
+        }
+      if (columnDataType == VTK_STRING)
+        {
+        if (stringColumnIndex < 0)
+          {
+          // no string columns so far, use this
+          stringColumnIndex = columnIndex;
+          }
+        else
+          {
+          QString message = QString("Multiple 'string' type of columns are selected for plotting (%1, %2) but only one is allowed."
+            " Please change selection or convert data type of this column to numeric using Table module's 'Column properties' section."
+            ).arg(tableNode->GetColumnName(stringColumnIndex).c_str(), column->GetName());
+          qCritical() << Q_FUNC_INFO << ": " << message;
+          QMessageBox::warning(NULL, tr("Failed to create Plot"), message);
+          return;
+          }
+        }
+      else
+        {
+        columnIndices.push_back(columnIndex);
+        }
       }
-    vtkAbstractArray* column = tableNode->GetTable()->GetColumn(columnIndex);
-    if (!column || !column->GetName())
-      {
-      QString message = QString("Column %1 is invalid. Failed to generate a plot").arg(columnIndex);
-      qCritical() << Q_FUNC_INFO << ": " << message;
-      QMessageBox::warning(NULL, tr("Failed to create Plot"), message);
-      }
-    int columnDataType = column->GetDataType();
-    if (columnDataType == VTK_BIT)
-      {
-      QString message = QString("Type of column %1 is 'bit'. Plotting of these types are currently not supported."
-        " Please convert the data type of this column to numeric using Table module's Column properties section,"
-        " or select different columns for plotting.").arg(column->GetName());
-      qCritical() << Q_FUNC_INFO << ": " << message;
-      QMessageBox::warning(NULL, tr("Failed to create Plot"), message);
-      return;
-      }
-    if (columnDataType == VTK_STRING && !columnIndices.empty())
-      {
-      // only the first column is allowed to be string type
-      QString message = QString("Type of column %1 is 'string'. Only first selected column may be string type (to be used for labels)."
-        " Please convert the data type of this column to numeric using Table module's Column properties section,"
-        " or select different columns for plotting.").arg(column->GetName());
-      qCritical() << Q_FUNC_INFO << ": " << message;
-      QMessageBox::warning(NULL, tr("Failed to create Plot"), message);
-      return;
-      }
-    columnIndices.push_back(columnIndex);
     }
-
   if (columnIndices.size() == 0)
     {
-    QString message = QString("To generate a plot, please select at least one cell in the table");
+    QString message = QString("A single 'string' type column is selected."
+      " Please change selection or convert data type of this column to numeric using Table module's 'Column properties' section.");
     qCritical() << Q_FUNC_INFO << ": " << message;
     QMessageBox::warning(NULL, tr("Failed to plot data"), message);
     return;
     }
 
-  // If there are more than one columns selected then use the first one as X column
-  int plotType = vtkMRMLPlotSeriesNode::LINE;
+  // Determine which column to be used as X axis
+  int plotType = vtkMRMLPlotSeriesNode::PlotTypeLine;
   std::string xColumnName;
-  if (columnIndices.size() > 1)
+  if (stringColumnIndex >= 0)
     {
-    vtkAbstractArray* xColumn = tableNode->GetTable()->GetColumn(columnIndices[0]);
-    if (xColumn->GetDataType() != VTK_STRING)
-      {
-      plotType = vtkMRMLPlotSeriesNode::SCATTER;
-      }
-    xColumnName = xColumn->GetName();
+    // there was a string column, create a line plot
+    xColumnName = tableNode->GetColumnName(stringColumnIndex);
+    }
+  else if (columnIndices.size()>1)
+    {
+    // there was no string column and there are at least two columns,
+    // create scatter plot(s) using the first selected column as X axis
+    plotType = vtkMRMLPlotSeriesNode::PlotTypeScatter;
+    xColumnName = tableNode->GetColumnName(columnIndices[0]);
     columnIndices.pop_front();
     }
 
+  // Make current plot chart active and visible
   vtkMRMLSelectionNode* selectionNode = vtkMRMLSelectionNode::SafeDownCast(
   this->mrmlScene()->GetNodeByID("vtkMRMLSelectionNodeSingleton"));
-
   if (!selectionNode)
     {
     qWarning() << "qMRMLTableView::plotSelection failed: invalid selection Node";
@@ -600,8 +620,9 @@ void qMRMLTableView::plotSelection()
       {
       plotSeriesNode = vtkMRMLPlotSeriesNode::SafeDownCast(this->mrmlScene()->AddNewNodeByClass(
         "vtkMRMLPlotSeriesNode", yColumnName.c_str()));
+      plotSeriesNode->SetUniqueColor();
       }
-    if (plotType == vtkMRMLPlotSeriesNode::SCATTER)
+    if (plotType == vtkMRMLPlotSeriesNode::PlotTypeScatter)
       {
       plotSeriesNode->SetXColumnName(xColumnName);
       }

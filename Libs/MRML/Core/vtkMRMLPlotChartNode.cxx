@@ -58,8 +58,6 @@ vtkMRMLPlotChartNode::vtkMRMLPlotChartNode()
 , AxisTitleFontSize(16)
 , AxisLabelFontSize(12)
 , FontType(NULL)
-, ClickAndDragAlongX(true)
-, ClickAndDragAlongY(true)
 {
   this->HideFromEditors = 0;
 
@@ -133,8 +131,6 @@ void vtkMRMLPlotChartNode::WriteXML(ostream& of, int nIndent)
   vtkMRMLWriteXMLIntMacro(axisTitleFontSize, AxisTitleFontSize)
   vtkMRMLWriteXMLIntMacro(axisLabelFontSize, AxisLabelFontSize)
   vtkMRMLWriteXMLStringMacro(fontType, FontType)
-  vtkMRMLWriteXMLBooleanMacro(clickAndDragAlongX, ClickAndDragAlongX)
-  vtkMRMLWriteXMLBooleanMacro(clickAndDragAlongY, ClickAndDragAlongY)
   vtkMRMLWriteXMLEndMacro()
 }
 
@@ -158,8 +154,6 @@ void vtkMRMLPlotChartNode::ReadXMLAttributes(const char** atts)
   vtkMRMLReadXMLIntMacro(axisTitleFontSize, AxisTitleFontSize)
   vtkMRMLReadXMLIntMacro(axisLabelFontSize, AxisLabelFontSize)
   vtkMRMLReadXMLStringMacro(fontType, FontType)
-  vtkMRMLReadXMLBooleanMacro(clickAndDragAlongX, ClickAndDragAlongX)
-  vtkMRMLReadXMLBooleanMacro(clickAndDragAlongY, ClickAndDragAlongY)
   vtkMRMLReadXMLEndMacro()
 
   this->EndModify(disabledModify);
@@ -187,8 +181,6 @@ void vtkMRMLPlotChartNode::Copy(vtkMRMLNode *anode)
   vtkMRMLCopyIntMacro(AxisTitleFontSize)
   vtkMRMLCopyIntMacro(AxisLabelFontSize)
   vtkMRMLCopyStringMacro(FontType)
-  vtkMRMLCopyBooleanMacro(ClickAndDragAlongX)
-  vtkMRMLCopyBooleanMacro(ClickAndDragAlongY)
   vtkMRMLCopyEndMacro()
 
   this->EndModify(disabledModify);
@@ -212,8 +204,6 @@ void vtkMRMLPlotChartNode::PrintSelf(ostream& os, vtkIndent indent)
   vtkMRMLPrintIntMacro(AxisTitleFontSize)
   vtkMRMLPrintIntMacro(AxisLabelFontSize)
   vtkMRMLPrintStringMacro(FontType)
-  vtkMRMLPrintBooleanMacro(ClickAndDragAlongX)
-  vtkMRMLPrintBooleanMacro(ClickAndDragAlongY)
   vtkMRMLPrintEndMacro();
 }
 

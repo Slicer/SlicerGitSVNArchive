@@ -221,16 +221,6 @@ class VTK_MRML_EXPORT vtkMRMLPlotChartNode : public vtkMRMLNode
   vtkSetStringMacro(FontType);
   vtkGetStringMacro(FontType);
 
-  /// Enable click and drag along X axis
-  vtkBooleanMacro(ClickAndDragAlongX, bool);
-  vtkGetMacro(ClickAndDragAlongX, bool);
-  vtkSetMacro(ClickAndDragAlongX, bool);
-
-  /// Enable click and drag along Y axis
-  vtkBooleanMacro(ClickAndDragAlongY, bool);
-  vtkGetMacro(ClickAndDragAlongY, bool);
-  vtkSetMacro(ClickAndDragAlongY, bool);
-
   /// Node reference role used for storing plot data node references
   virtual const char* GetPlotSeriesNodeReferenceRole();
 
@@ -277,8 +267,6 @@ class VTK_MRML_EXPORT vtkMRMLPlotChartNode : public vtkMRMLNode
   int AxisTitleFontSize;
   int AxisLabelFontSize;
   char* FontType;
-  bool ClickAndDragAlongX;
-  bool ClickAndDragAlongY;
 };
 
 #endif

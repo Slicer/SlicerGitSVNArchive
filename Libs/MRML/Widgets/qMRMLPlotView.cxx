@@ -33,7 +33,7 @@
 // CTK includes
 #include <ctkAxesWidget.h>
 #include <ctkLogger.h>
-#include <ctkPopupWidget.h>
+//#include <ctkPopupWidget.h>
 
 // qMRML includes
 #include "qMRMLColors.h"
@@ -43,8 +43,6 @@
 #include <vtkMRMLPlotSeriesNode.h>
 #include <vtkMRMLPlotChartNode.h>
 #include <vtkMRMLPlotViewNode.h>
-#include <vtkMRMLColorLogic.h>
-#include <vtkMRMLColorNode.h>
 #include <vtkMRMLScene.h>
 #include <vtkMRMLTableNode.h>
 
@@ -54,7 +52,6 @@
 #include <vtkChartLegend.h>
 #include <vtkChartXY.h>
 #include <vtkCollection.h>
-#include <vtkColorSeries.h>
 #include <vtkContextMouseEvent.h>
 #include <vtkContextScene.h>
 #include <vtkContextView.h>
@@ -64,6 +61,7 @@
 #include <vtkPlotLine.h>
 #include <vtkPlotBar.h>
 #include <vtkRenderer.h>
+#include <vtkRenderWindow.h>
 #include <vtkSelection.h>
 #include <vtkStringArray.h>
 #include <vtkTable.h>
@@ -79,9 +77,8 @@ qMRMLPlotViewPrivate::qMRMLPlotViewPrivate(qMRMLPlotView& object)
   this->MRMLScene = 0;
   this->MRMLPlotViewNode = 0;
   this->MRMLPlotChartNode = 0;
-  this->ColorLogic = 0;
-  this->PinButton = 0;
-  this->PopupWidget = 0;
+  //this->PinButton = 0;
+//  this->PopupWidget = 0;
   this->UpdatingWidgetFromMRML = false;
 }
 
@@ -114,22 +111,16 @@ void qMRMLPlotViewPrivate::init()
 {
   Q_Q(qMRMLPlotView);
 
-  // Let the QWebView expand in both directions
-  q->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-
-  this->PopupWidget = new ctkPopupWidget;
+/*  this->PopupWidget = new ctkPopupWidget;
   QHBoxLayout* popupLayout = new QHBoxLayout;
   popupLayout->addWidget(new QToolButton);
   this->PopupWidget->setLayout(popupLayout);
+  */
 
   if (!q->chart())
     {
     return;
     }
-
-  q->chart()->SetActionToButton(vtkChart::SELECT, vtkContextMouseEvent::LEFT_BUTTON);
-  q->chart()->SetActionToButton(vtkChart::PAN, vtkContextMouseEvent::MIDDLE_BUTTON);
-  q->chart()->SetActionToButton(vtkChart::ZOOM, vtkContextMouseEvent::RIGHT_BUTTON);
 
   qvtkConnect(q->chart(), vtkCommand::SelectionChangedEvent, this, SLOT(emitSelection()));
 
@@ -280,9 +271,7 @@ vtkSmartPointer<vtkPlot> qMRMLPlotViewPrivate::updatePlotFromPlotSeriesNode(vtkM
     xColumn = table->GetColumnByName(xColumnName.c_str());
     }
 
-  int plotType = plotSeriesNode->GetPlotType();
-
-  if (plotType == vtkMRMLPlotSeriesNode::SCATTER)
+  if (plotSeriesNode->IsXColumnRequired())
     {
     if (!xColumn)
       {
@@ -297,16 +286,18 @@ vtkSmartPointer<vtkPlot> qMRMLPlotViewPrivate::updatePlotFromPlotSeriesNode(vtkM
     }
 
   vtkSmartPointer<vtkPlot> newPlot = existingPlot;
+  int plotType = plotSeriesNode->GetPlotType();
   switch (plotType)
     {
-    case vtkMRMLPlotSeriesNode::SCATTER:
-    case vtkMRMLPlotSeriesNode::LINE:
+    case vtkMRMLPlotSeriesNode::PlotTypeScatter:
+    case vtkMRMLPlotSeriesNode::PlotTypeLine:
       if (!existingPlot || !existingPlot->IsA("vtkPlotLine"))
         {
         newPlot = vtkSmartPointer<vtkPlotLine>::New();
         }
       break;
-    case vtkMRMLPlotSeriesNode::BAR:
+    case vtkMRMLPlotSeriesNode::PlotTypeBar:
+    case vtkMRMLPlotSeriesNode::PlotTypeScatterBar:
       if (!existingPlot || !existingPlot->IsA("vtkPlotBar"))
         {
         newPlot = vtkSmartPointer<vtkPlotBar>::New();
@@ -324,13 +315,25 @@ vtkSmartPointer<vtkPlot> qMRMLPlotViewPrivate::updatePlotFromPlotSeriesNode(vtkM
   if (newPlot->GetPen())
     {
     newPlot->GetPen()->SetOpacityF(plotSeriesNode->GetOpacity());
-    if (plotType == vtkMRMLPlotSeriesNode::BAR)
+    if (plotType == vtkMRMLPlotSeriesNode::PlotTypeBar)
       {
       newPlot->GetPen()->SetLineType(vtkPen::SOLID_LINE);
       }
     else
       {
-      newPlot->GetPen()->SetLineType(plotSeriesNode->GetLineStyle());
+      int lineStyleVtk = vtkPen::NO_PEN;
+      switch (plotSeriesNode->GetLineStyle())
+      {
+      case vtkMRMLPlotSeriesNode::LineStyleNone: lineStyleVtk = vtkPen::NO_PEN; break;
+      case vtkMRMLPlotSeriesNode::LineStyleSolid: lineStyleVtk = vtkPen::SOLID_LINE; break;
+      case vtkMRMLPlotSeriesNode::LineStyleDash: lineStyleVtk = vtkPen::DASH_LINE; break;
+      case vtkMRMLPlotSeriesNode::LineStyleDot: lineStyleVtk = vtkPen::DOT_LINE; break;
+      case vtkMRMLPlotSeriesNode::LineStyleDashDot: lineStyleVtk = vtkPen::DASH_DOT_LINE; break;
+      case vtkMRMLPlotSeriesNode::LineStyleDashDotDot: lineStyleVtk = vtkPen::DASH_DOT_DOT_LINE; break;
+      default:
+        lineStyleVtk = vtkPen::NO_PEN;
+      }
+      newPlot->GetPen()->SetLineType(lineStyleVtk);
       }
     }
 
@@ -340,7 +343,20 @@ vtkSmartPointer<vtkPlot> qMRMLPlotViewPrivate::updatePlotFromPlotSeriesNode(vtkM
   if (plotLine)
     {
     plotLine->SetMarkerSize(plotSeriesNode->GetMarkerSize());
-    plotLine->SetMarkerStyle(plotSeriesNode->GetMarkerStyle());
+
+    int markerStyleVtk = VTK_MARKER_UNKNOWN;
+    switch (plotSeriesNode->GetMarkerStyle())
+      {
+      case vtkMRMLPlotSeriesNode::MarkerStyleNone: markerStyleVtk = VTK_MARKER_NONE; break;
+      case vtkMRMLPlotSeriesNode::MarkerStyleCross: markerStyleVtk = VTK_MARKER_CROSS; break;
+      case vtkMRMLPlotSeriesNode::MarkerStylePlus: markerStyleVtk = VTK_MARKER_PLUS; break;
+      case vtkMRMLPlotSeriesNode::MarkerStyleSquare: markerStyleVtk = VTK_MARKER_SQUARE; break;
+      case vtkMRMLPlotSeriesNode::MarkerStyleCircle: markerStyleVtk = VTK_MARKER_CIRCLE; break;
+      case vtkMRMLPlotSeriesNode::MarkerStyleDiamond: markerStyleVtk = VTK_MARKER_DIAMOND; break;
+      default:
+        markerStyleVtk = VTK_MARKER_UNKNOWN;
+      }
+    plotLine->SetMarkerStyle(markerStyleVtk);
     }
 
   vtkStringArray* labelArray = NULL;
@@ -351,7 +367,7 @@ vtkSmartPointer<vtkPlot> qMRMLPlotViewPrivate::updatePlotFromPlotSeriesNode(vtkM
     }
   newPlot->SetIndexedLabels(labelArray);
 
-  if (plotType == vtkMRMLPlotSeriesNode::SCATTER)
+  if (plotSeriesNode->IsXColumnRequired())
     {
     newPlot->SetUseIndexForXSeries(false);
     newPlot->SetInputData(table, xColumnName, yColumnName);
@@ -363,8 +379,6 @@ vtkSmartPointer<vtkPlot> qMRMLPlotViewPrivate::updatePlotFromPlotSeriesNode(vtkM
       {
       newPlot->SetTooltipLabelFormat("%l = (%x, %y)");
       }
-    std::string label = std::string("(") + xColumnName + ", " + yColumnName + ")";
-    newPlot->SetLabel(label);
     }
   else
     {
@@ -379,6 +393,14 @@ vtkSmartPointer<vtkPlot> qMRMLPlotViewPrivate::updatePlotFromPlotSeriesNode(vtkM
       {
       newPlot->SetTooltipLabelFormat("%l = %y");
       }
+    }
+
+  if (plotSeriesNode->GetName())
+    {
+    newPlot->SetLabel(plotSeriesNode->GetName());
+    }
+  else
+    {
     newPlot->SetLabel(yColumnName);
     }
 
@@ -420,6 +442,8 @@ void qMRMLPlotViewPrivate::onPlotChartNodeChanged()
     vtkCommand::ModifiedEvent, this, SLOT(updateWidgetFromMRML()));
 
   this->MRMLPlotChartNode = newPlotChartNode;
+
+  this->updateWidgetFromMRML();
 }
 
 // --------------------------------------------------------------------------
@@ -436,35 +460,17 @@ void qMRMLPlotViewPrivate::RecalculateBounds()
 }
 
 // --------------------------------------------------------------------------
-void qMRMLPlotViewPrivate::switchSelectionMode()
+void qMRMLPlotViewPrivate::switchInteractionMode()
 {
   Q_Q(qMRMLPlotView);
 
-  if (!q->chart())
+  if (!this->MRMLPlotViewNode)
     {
     return;
     }
-
-  int buttonSelect, buttonSelectPoly, buttonSelectClickAndDrag;
-  buttonSelect = q->chart()->GetActionToButton(vtkChart::SELECT);
-  buttonSelectPoly = q->chart()->GetActionToButton(vtkChart::SELECT_POLYGON);
-  buttonSelectClickAndDrag = q->chart()->GetActionToButton(vtkChart::CLICK_AND_DRAG);
-  if (buttonSelect > 0 && buttonSelectPoly < 0 && buttonSelectClickAndDrag < 0)
-    {
-    q->chart()->SetActionToButton(vtkChart::SELECT_POLYGON, vtkContextMouseEvent::LEFT_BUTTON);
-    }
-  else if (buttonSelect < 0 && buttonSelectPoly > 0 && buttonSelectClickAndDrag < 0)
-    {
-    q->chart()->SetActionToButton(vtkChart::CLICK_AND_DRAG, vtkContextMouseEvent::LEFT_BUTTON);
-    }
-  else if (buttonSelect < 0 && buttonSelectPoly < 0 && buttonSelectClickAndDrag > 0)
-    {
-    q->chart()->SetActionToButton(vtkChart::SELECT, vtkContextMouseEvent::LEFT_BUTTON);
-    }
-  else if (buttonSelectClickAndDrag < 0 && buttonSelectPoly < 0 && buttonSelect < 0)
-    {
-    q->chart()->SetActionToButton(vtkChart::SELECT, vtkContextMouseEvent::LEFT_BUTTON);
-  }
+  int interactionMode = this->MRMLPlotViewNode->GetInteractionMode();
+  interactionMode = (interactionMode + 1) % vtkMRMLPlotViewNode::InteractionMode_Last;
+  this->MRMLPlotViewNode->SetInteractionMode(interactionMode);
 }
 
 // --------------------------------------------------------------------------
@@ -476,7 +482,7 @@ void qMRMLPlotViewPrivate::switchLeftAndMiddleClick()
     {
     return;
     }
-
+  /*
   int buttonPan, buttonSelect, buttonSelectPoly, buttonSelectClickAndDrag;
   buttonPan = q->chart()->GetActionToButton(vtkChart::PAN);
   buttonSelect = q->chart()->GetActionToButton(vtkChart::SELECT);
@@ -514,7 +520,7 @@ void qMRMLPlotViewPrivate::switchLeftAndMiddleClick()
       {
       q->chart()->SetActionToButton(vtkChart::CLICK_AND_DRAG, vtkContextMouseEvent::LEFT_BUTTON);
       }
-    }
+    }*/
 }
 
 // --------------------------------------------------------------------------
@@ -585,6 +591,36 @@ void qMRMLPlotViewPrivate::updateWidgetFromMRML()
     return;
     }
 
+  // Set interaction mode
+  int interactionMode = this->MRMLPlotViewNode->GetInteractionMode();
+  switch (interactionMode)
+  {
+  case vtkMRMLPlotViewNode::InteractionModePanView:
+    q->chart()->SetActionToButton(vtkChart::PAN, vtkContextMouseEvent::LEFT_BUTTON);
+    q->chart()->SetActionToButton(vtkChart::ZOOM, vtkContextMouseEvent::MIDDLE_BUTTON);
+    q->chart()->SetActionToButton(vtkChart::ZOOM_AXIS, vtkContextMouseEvent::RIGHT_BUTTON);
+    break;
+  case vtkMRMLPlotViewNode::InteractionModeSelectPoints:
+    q->chart()->SetActionToButton(vtkChart::SELECT, vtkContextMouseEvent::LEFT_BUTTON);
+    q->chart()->SetActionToButton(vtkChart::PAN, vtkContextMouseEvent::MIDDLE_BUTTON);
+    q->chart()->SetActionToButton(vtkChart::ZOOM_AXIS, vtkContextMouseEvent::RIGHT_BUTTON);
+    break;
+  case vtkMRMLPlotViewNode::InteractionModeFreehandSelectPoints:
+    q->chart()->SetActionToButton(vtkChart::SELECT_POLYGON, vtkContextMouseEvent::LEFT_BUTTON);
+    q->chart()->SetActionToButton(vtkChart::PAN, vtkContextMouseEvent::MIDDLE_BUTTON);
+    q->chart()->SetActionToButton(vtkChart::ZOOM_AXIS, vtkContextMouseEvent::RIGHT_BUTTON);
+    break;
+  case vtkMRMLPlotViewNode::InteractionModeMovePoints:
+    q->chart()->SetActionToButton(vtkChart::CLICK_AND_DRAG, vtkContextMouseEvent::LEFT_BUTTON);
+    q->chart()->SetActionToButton(vtkChart::PAN, vtkContextMouseEvent::MIDDLE_BUTTON);
+    q->chart()->SetActionToButton(vtkChart::ZOOM_AXIS, vtkContextMouseEvent::RIGHT_BUTTON);
+    break;
+  }
+
+  // Setting ClickAndDrag action draggable along X and Y axes
+  q->chart()->SetDragPointAlongX(this->MRMLPlotViewNode->GetEnablePointMoveAlongX());
+  q->chart()->SetDragPointAlongY(this->MRMLPlotViewNode->GetEnablePointMoveAlongY());
+
   // Get the PlotChartNode
   const char *plotChartNodeID = this->MRMLPlotViewNode->GetPlotChartNodeID();
   vtkMRMLPlotChartNode* plotChartNode = vtkMRMLPlotChartNode::SafeDownCast(this->MRMLScene->GetNodeByID(plotChartNodeID));
@@ -605,33 +641,6 @@ void qMRMLPlotViewPrivate::updateWidgetFromMRML()
       q->removePlot(q->chart()->GetPlot(0));
       }
     this->MapPlotToPlotSeriesNodeID.clear();
-    this->UpdatingWidgetFromMRML = false;
-    return;
-    }
-
-  std::string defaultPlotColorNodeID = "vtkMRMLProceduralColorNodeRandomIntegers";
-  if (this->ColorLogic)
-    {
-    defaultPlotColorNodeID = this->ColorLogic->GetDefaultPlotColorNodeID();
-    }
-  else
-    {
-    qWarning() << Q_FUNC_INFO << ": colorLogic is not defined for PlotView, using default color node "
-      << defaultPlotColorNodeID.c_str();
-    }
-
-  vtkMRMLColorNode *defaultColorNode = vtkMRMLColorNode::SafeDownCast
-    (this->MRMLScene->GetNodeByID(defaultPlotColorNodeID));
-  vtkMRMLColorNode *colorNode = vtkMRMLColorNode::SafeDownCast
-    (this->MRMLScene->GetNodeByID(plotChartNode->GetAttribute("LookupTable")));
-
-  if (!colorNode)
-    {
-    colorNode = defaultColorNode;
-    }
-
-  if (!colorNode)
-    {
     this->UpdatingWidgetFromMRML = false;
     return;
     }
@@ -738,10 +747,6 @@ void qMRMLPlotViewPrivate::updateWidgetFromMRML()
   q->chart()->SetShowLegend(plotChartNode->GetLegendVisibility());
   q->chart()->GetLegend()->GetLabelProperties()->SetFontFamily(fontTypeIndex);
 
-  // Setting ClickAndDrag action draggable along X and Y axes
-  q->chart()->SetDragPointAlongX(plotChartNode->GetClickAndDragAlongX());
-  q->chart()->SetDragPointAlongY(plotChartNode->GetClickAndDragAlongY());
-
   // Setting Axes
   const unsigned int numberOfAxisIDs = 4;
   int axisIDs[numberOfAxisIDs] = { vtkAxis::BOTTOM, vtkAxis::TOP, vtkAxis::LEFT, vtkAxis::RIGHT };
@@ -836,6 +841,10 @@ void qMRMLPlotView::setMRMLPlotViewNode(vtkMRMLPlotViewNode* newPlotViewNode)
   d->qvtkReconnect(d->MRMLPlotViewNode, newPlotViewNode,
     vtkMRMLPlotViewNode::PlotChartNodeChangedEvent, d, SLOT(updateWidgetFromMRML()));
 
+  // update when plot view interaction mode is changed
+  d->qvtkReconnect(d->MRMLPlotViewNode, newPlotViewNode,
+    vtkCommand::ModifiedEvent, d, SLOT(updateWidgetFromMRML()));
+
   // connect on PlotSeriesNodeChangedEvent (e.g. PlotView is looking at a
   // different PlotSeriesNode
   d->qvtkReconnect(d->MRMLPlotViewNode, newPlotViewNode,
@@ -860,20 +869,6 @@ vtkMRMLPlotViewNode* qMRMLPlotView::mrmlPlotViewNode()const
 }
 
 //---------------------------------------------------------------------------
-void qMRMLPlotView::setColorLogic(vtkMRMLColorLogic *colorLogic)
-{
-  Q_D(qMRMLPlotView);
-  d->ColorLogic = colorLogic;
-}
-
-//---------------------------------------------------------------------------
-vtkMRMLColorLogic *qMRMLPlotView::colorLogic() const
-{
-  Q_D(const qMRMLPlotView);
-  return d->ColorLogic;
-}
-
-//---------------------------------------------------------------------------
 vtkMRMLScene* qMRMLPlotView::mrmlScene()const
 {
   Q_D(const qMRMLPlotView);
@@ -895,7 +890,7 @@ void qMRMLPlotView::keyPressEvent(QKeyEvent *event)
 
   if (event->key() == Qt::Key_S)
     {
-    d->switchSelectionMode();
+    d->switchInteractionMode();
     }
   if (event->key() == Qt::Key_R)
     {
@@ -926,8 +921,4 @@ void qMRMLPlotView::fitToContent()
   d->RecalculateBounds();
   // Repaint the chart scene
   this->scene()->SetDirty(true);
-  if (this->scene()->GetRenderer())
-    {
-    this->scene()->GetRenderer()->Render();
-    }
 }

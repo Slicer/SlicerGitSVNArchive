@@ -45,14 +45,39 @@ public:
   static vtkMRMLPlotSeriesNode *New();
   vtkTypeMacro(vtkMRMLPlotSeriesNode,vtkMRMLNode);
 
-  // Description:
-  // Enum of the available plot types
-  enum {
-    SCATTER,
-    LINE,
-    BAR,
-    PLOT_TYPE_LAST // must be last
-  };
+  /// Enumerated values for SetPlot/GetPlot
+  enum
+    {
+    PlotTypeLine,
+    PlotTypeBar,
+    PlotTypeScatter,
+    PlotTypeScatterBar,
+    PlotType_Last // must be last
+    };
+
+  /// Enumerated values for SetMarkerStyle/GetMarkerStyle
+  enum
+    {
+    MarkerStyleNone,
+    MarkerStyleCross,
+    MarkerStylePlus,
+    MarkerStyleSquare,
+    MarkerStyleCircle,
+    MarkerStyleDiamond,
+    MarkerStyle_Last // must be last
+    };
+
+  /// Enumerated values for SetMarkerStyle/GetMarkerStyle
+  enum
+    {
+    LineStyleNone,
+    LineStyleSolid,
+    LineStyleDash,
+    LineStyleDot,
+    LineStyleDashDot,
+    LineStyleDashDotDot,
+    LineStyle_Last // must be last
+    };
 
   void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
@@ -110,17 +135,17 @@ public:
   /// Get and Set Macros
   //----------------------------------------------------------------
 
-  /// Get/Set the type of the plot (scatter, line, bar).
-  /// Scatter: X and Y columns define X and Y coordinates of points
-  /// Line: line points are equally spaced along X axis, Y column defines height of each point
-  /// Bar: vertical bars equally spaced along X axis, Y column defines height of each bar
-  /// \brief vtkGetMacro
-  vtkGetMacro(PlotType, int);
+  /// Get/Set the type of the plot (line, bar, scatter, scatter bar).
+  /// PlotTypeLine: line points are equally spaced along X axis, Y column defines height of each point
+  /// PlotTypeBar: vertical bars equally spaced along X axis, Y column defines height of each bar
+  /// PlotTypeScatter: X and Y columns define X and Y coordinates of points, connected by line
+  /// PlotTypeScatterBar: X and Y columns define bar position and height
   vtkSetMacro(PlotType, int);
+  vtkGetMacro(PlotType, int);
 
   ///
   /// Convenience method to set the type of
-  /// the plot (scatter, line, bar) from strings.
+  /// the plot from strings.
   virtual void SetPlotType(const char* type);
 
   /// Get the name of the Y column in the referenced table (for scatter plots).
@@ -139,32 +164,34 @@ public:
 
   ///
   /// Convert between plot type ID and name
-  virtual const char *GetPlotTypeAsString(int id);
-  virtual int GetPlotTypeFromString(const char *name);
+  static const char *GetPlotTypeAsString(int id);
+  static int GetPlotTypeFromString(const char *name);
 
   ///
   /// Utility methods to set/get the marker style
-  /// available for Line and Points Plots.
-  vtkGetMacro(MarkerStyle, int);
+  /// available for line plots.
+  /// Valid values: MarkerStyleNone, MarkerStyleCross, MarkerStylePlus,
+  /// MarkerStyleSquare, MarkerStyleCircle, MarkerStyleDiamond
   vtkSetMacro(MarkerStyle, int);
+  vtkGetMacro(MarkerStyle, int);
 
   ///
   /// Convert between plot markers style ID and name
-  const char *GetMarkerStyleAsString(int id);
-  int GetMarkerStyleFromString(const char *name);
+  static const char *GetMarkerStyleAsString(int id);
+  static int GetMarkerStyleFromString(const char *name);
 
   ///
   /// Utility methods to set/get the marker size
-  /// available for Line and Points Plots.
+  /// available for line plots.
   vtkGetMacro(MarkerSize, float);
   vtkSetMacro(MarkerSize, float);
 
   ///
   /// Set/get the line style.
-  /// Values defined in vtkPen (NO_PEN, SOLID_LINE, DASH_LINE,
-  /// DOT_LINE, DASH_DOT_LINE, DASH_DOT_DOT_LINE).
-  vtkGetMacro(LineStyle, int);
+  /// Valid values: LineStyleNone, LineStyleSolid, LineStyleDash,
+  /// LineStyleDot, LineStyleDashDot, LineStyleDashDotDot.
   vtkSetMacro(LineStyle, int);
+  vtkGetMacro(LineStyle, int);
 
   ///
   /// Convert between line style ID and name
@@ -183,9 +210,18 @@ public:
   vtkSetVectorMacro(Color, double, 3);
 
   ///
+  /// Utility function that generates a color that is not used by other plot series nodes.
+  /// If colorTableNodeID is not specified then vtkMRMLColorTableNodeRandom is used.
+  void SetUniqueColor(const char* colorTableNodeID = NULL);
+
+  ///
   /// Get set line opacity
   vtkGetMacro(Opacity, double);
   vtkSetMacro(Opacity, double);
+
+  ///
+  /// Returns true if X column is required (true for scatter plots)
+  bool IsXColumnRequired();
 
   //----------------------------------------------------------------
   /// Constructor and destructor
@@ -247,7 +283,7 @@ protected:
  protected:
 
   ///
-  /// Type of Plot (scatter, line, bar).
+  /// Type of Plot (scatter, line, bar, ...).
   int PlotType;
 
   std::string XColumnName;
