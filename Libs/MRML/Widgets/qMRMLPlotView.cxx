@@ -87,25 +87,6 @@ qMRMLPlotViewPrivate::~qMRMLPlotViewPrivate()
 {
 }
 
-namespace
-{
-//----------------------------------------------------------------------------
-template <typename T> T StringToNumber(const char* num)
-{
-  std::stringstream ss;
-  ss << num;
-  T result;
-  return ss >> result ? result : 0;
-}
-
-//----------------------------------------------------------------------------
-int StringToInt(const char* str)
-{
-  return StringToNumber<int>(str);
-}
-
-}// end namespace
-
 //---------------------------------------------------------------------------
 void qMRMLPlotViewPrivate::init()
 {
@@ -339,7 +320,6 @@ vtkSmartPointer<vtkPlot> qMRMLPlotViewPrivate::updatePlotFromPlotSeriesNode(vtkM
 
   // Type-specific properties
   vtkPlotLine* plotLine = vtkPlotLine::SafeDownCast(newPlot);
-  vtkPlotBar* plotBar = vtkPlotBar::SafeDownCast(newPlot);
   if (plotLine)
     {
     plotLine->SetMarkerSize(plotSeriesNode->GetMarkerSize());
@@ -471,56 +451,6 @@ void qMRMLPlotViewPrivate::switchInteractionMode()
   int interactionMode = this->MRMLPlotViewNode->GetInteractionMode();
   interactionMode = (interactionMode + 1) % vtkMRMLPlotViewNode::InteractionMode_Last;
   this->MRMLPlotViewNode->SetInteractionMode(interactionMode);
-}
-
-// --------------------------------------------------------------------------
-void qMRMLPlotViewPrivate::switchLeftAndMiddleClick()
-{
-  Q_Q(qMRMLPlotView);
-
-  if (!q->chart())
-    {
-    return;
-    }
-  /*
-  int buttonPan, buttonSelect, buttonSelectPoly, buttonSelectClickAndDrag;
-  buttonPan = q->chart()->GetActionToButton(vtkChart::PAN);
-  buttonSelect = q->chart()->GetActionToButton(vtkChart::SELECT);
-  buttonSelectPoly = q->chart()->GetActionToButton(vtkChart::SELECT_POLYGON);
-  buttonSelectClickAndDrag = q->chart()->GetActionToButton(vtkChart::CLICK_AND_DRAG);
-
-  if (buttonPan == 2)
-    {
-    q->chart()->SetActionToButton(vtkChart::PAN, vtkContextMouseEvent::LEFT_BUTTON);
-    if (buttonSelect == 1)
-      {
-      q->chart()->SetActionToButton(vtkChart::SELECT, vtkContextMouseEvent::MIDDLE_BUTTON);
-      }
-    else if (buttonSelectPoly == 1)
-      {
-      q->chart()->SetActionToButton(vtkChart::SELECT_POLYGON, vtkContextMouseEvent::MIDDLE_BUTTON);
-      }
-    else if (buttonSelectClickAndDrag == 1)
-      {
-      q->chart()->SetActionToButton(vtkChart::CLICK_AND_DRAG, vtkContextMouseEvent::MIDDLE_BUTTON);
-      }
-    }
-  else if (buttonPan == 1)
-    {
-    q->chart()->SetActionToButton(vtkChart::PAN, vtkContextMouseEvent::MIDDLE_BUTTON);
-    if (buttonSelect == 2)
-      {
-      q->chart()->SetActionToButton(vtkChart::SELECT, vtkContextMouseEvent::LEFT_BUTTON);
-      }
-    else if (buttonSelectPoly == 2)
-      {
-      q->chart()->SetActionToButton(vtkChart::SELECT_POLYGON, vtkContextMouseEvent::LEFT_BUTTON);
-      }
-    else if (buttonSelectClickAndDrag == 2)
-      {
-      q->chart()->SetActionToButton(vtkChart::CLICK_AND_DRAG, vtkContextMouseEvent::LEFT_BUTTON);
-      }
-    }*/
 }
 
 // --------------------------------------------------------------------------
@@ -750,8 +680,9 @@ void qMRMLPlotViewPrivate::updateWidgetFromMRML()
   // Setting Axes
   const unsigned int numberOfAxisIDs = 4;
   int axisIDs[numberOfAxisIDs] = { vtkAxis::BOTTOM, vtkAxis::TOP, vtkAxis::LEFT, vtkAxis::RIGHT };
-  for (int axisID = 0; axisID < numberOfAxisIDs; ++axisID)
+  for (int axisIndex = 0; axisIndex < numberOfAxisIDs; ++axisIndex)
     {
+    int axisID = axisIDs[axisIndex];
     vtkAxis *axis = q->chart()->GetAxis(axisID);
     if (!axis)
       {
@@ -896,10 +827,6 @@ void qMRMLPlotView::keyPressEvent(QKeyEvent *event)
     {
     d->RecalculateBounds();
     }
-  if (event->key() == Qt::Key_Shift)
-    {
-    d->switchLeftAndMiddleClick();
-    }
 }
 
 // --------------------------------------------------------------------------
@@ -907,11 +834,6 @@ void qMRMLPlotView::keyReleaseEvent(QKeyEvent *event)
 {
   Q_D(qMRMLPlotView);
   this->Superclass::keyPressEvent(event);
-
-  if (event->key() == Qt::Key_Shift)
-    {
-    d->switchLeftAndMiddleClick();
-    }
 }
 
 // --------------------------------------------------------------------------

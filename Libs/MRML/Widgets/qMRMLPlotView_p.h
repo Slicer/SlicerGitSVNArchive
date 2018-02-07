@@ -90,7 +90,6 @@ public slots:
 
   void RecalculateBounds();
   void switchInteractionMode();
-  void switchLeftAndMiddleClick();
 
   void emitSelection();
 

@@ -25,7 +25,7 @@
 #include <QMenu>
 #include <QMessageBox>
 #include <QHBoxLayout>
-#include <QToolButton.h>
+#include <QToolButton>
 
 // VTK includes
 #include <vtkCollection.h>

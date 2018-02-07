@@ -20,7 +20,7 @@
 #include "vtkMRMLPlotSeriesNode.h"
 
 // MRML includes
-#include "vtkMRMLColorTableNode.h "
+#include "vtkMRMLColorTableNode.h"
 #include "vtkMRMLScene.h"
 #include "vtkMRMLSelectionNode.h"
 #include "vtkMRMLTableNode.h"
