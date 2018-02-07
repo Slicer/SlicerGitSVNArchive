@@ -63,6 +63,7 @@ vtkMRMLPlotSeriesNode::vtkMRMLPlotSeriesNode()
   , MarkerStyle(MarkerStyleCircle)
   , LineStyle(LineStyleSolid)
   , Opacity(1.0)
+  , Color{0.0, 0.0, 0.0}
 {
   this->HideFromEditors = 0;
   this->Color[0] = 0.0;

@@ -58,6 +58,8 @@ vtkMRMLPlotChartNode::vtkMRMLPlotChartNode()
 , AxisTitleFontSize(16)
 , AxisLabelFontSize(12)
 , FontType(NULL)
+, EnablePointMoveAlongX(true)
+, EnablePointMoveAlongY(true)
 {
   this->HideFromEditors = 0;
 
@@ -131,6 +133,8 @@ void vtkMRMLPlotChartNode::WriteXML(ostream& of, int nIndent)
   vtkMRMLWriteXMLIntMacro(axisTitleFontSize, AxisTitleFontSize)
   vtkMRMLWriteXMLIntMacro(axisLabelFontSize, AxisLabelFontSize)
   vtkMRMLWriteXMLStringMacro(fontType, FontType)
+  vtkMRMLWriteXMLBooleanMacro(enablePointMoveAlongX, EnablePointMoveAlongX)
+  vtkMRMLWriteXMLBooleanMacro(enablePointMoveAlongY, EnablePointMoveAlongY)
   vtkMRMLWriteXMLEndMacro()
 }
 
@@ -154,6 +158,8 @@ void vtkMRMLPlotChartNode::ReadXMLAttributes(const char** atts)
   vtkMRMLReadXMLIntMacro(axisTitleFontSize, AxisTitleFontSize)
   vtkMRMLReadXMLIntMacro(axisLabelFontSize, AxisLabelFontSize)
   vtkMRMLReadXMLStringMacro(fontType, FontType)
+  vtkMRMLReadXMLBooleanMacro(enablePointMoveAlongX, EnablePointMoveAlongX)
+  vtkMRMLReadXMLBooleanMacro(enablePointMoveAlongY, EnablePointMoveAlongY)
   vtkMRMLReadXMLEndMacro()
 
   this->EndModify(disabledModify);
@@ -181,6 +187,8 @@ void vtkMRMLPlotChartNode::Copy(vtkMRMLNode *anode)
   vtkMRMLCopyIntMacro(AxisTitleFontSize)
   vtkMRMLCopyIntMacro(AxisLabelFontSize)
   vtkMRMLCopyStringMacro(FontType)
+  vtkMRMLCopyBooleanMacro(EnablePointMoveAlongX)
+  vtkMRMLCopyBooleanMacro(EnablePointMoveAlongY)
   vtkMRMLCopyEndMacro()
 
   this->EndModify(disabledModify);
@@ -204,6 +212,8 @@ void vtkMRMLPlotChartNode::PrintSelf(ostream& os, vtkIndent indent)
   vtkMRMLPrintIntMacro(AxisTitleFontSize)
   vtkMRMLPrintIntMacro(AxisLabelFontSize)
   vtkMRMLPrintStringMacro(FontType)
+  vtkMRMLPrintBooleanMacro(EnablePointMoveAlongX)
+  vtkMRMLPrintBooleanMacro(EnablePointMoveAlongY)
   vtkMRMLPrintEndMacro();
 }
 

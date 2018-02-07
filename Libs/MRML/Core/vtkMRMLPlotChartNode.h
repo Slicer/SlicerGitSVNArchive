@@ -221,6 +221,18 @@ class VTK_MRML_EXPORT vtkMRMLPlotChartNode : public vtkMRMLNode
   vtkSetStringMacro(FontType);
   vtkGetStringMacro(FontType);
 
+  /// Enable moving of data points along X axis by click-and-drag in plot views.
+  /// Points may only be moved in the view if moving is enabled in the plot view node as well.
+  vtkBooleanMacro(EnablePointMoveAlongX, bool);
+  vtkGetMacro(EnablePointMoveAlongX, bool);
+  vtkSetMacro(EnablePointMoveAlongX, bool);
+
+  /// Enable moving of data points along Y axis by click-and-drag in plot views.
+  /// Points may only be moved in the view if moving is enabled in the plot view node as well.
+  vtkBooleanMacro(EnablePointMoveAlongY, bool);
+  vtkGetMacro(EnablePointMoveAlongY, bool);
+  vtkSetMacro(EnablePointMoveAlongY, bool);
+
   /// Node reference role used for storing plot data node references
   virtual const char* GetPlotSeriesNodeReferenceRole();
 
@@ -267,6 +279,8 @@ class VTK_MRML_EXPORT vtkMRMLPlotChartNode : public vtkMRMLNode
   int AxisTitleFontSize;
   int AxisLabelFontSize;
   char* FontType;
+  bool EnablePointMoveAlongX;
+  bool EnablePointMoveAlongY;
 };
 
 #endif

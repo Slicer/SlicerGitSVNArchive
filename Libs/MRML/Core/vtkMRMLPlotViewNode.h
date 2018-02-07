@@ -94,11 +94,13 @@ public:
   vtkSetMacro(InteractionMode, int);
 
   /// Enable moving of data points along X axis by click-and-drag in plot views.
+  /// Points may only be moved in the view if moving is enabled in the plot chart node as well.
   vtkBooleanMacro(EnablePointMoveAlongX, bool);
   vtkGetMacro(EnablePointMoveAlongX, bool);
   vtkSetMacro(EnablePointMoveAlongX, bool);
 
   /// Enable moving of data points along Y axis by click-and-drag in plot views.
+  /// Points may only be moved in the view if moving is enabled in the plot chart node as well.
   vtkBooleanMacro(EnablePointMoveAlongY, bool);
   vtkGetMacro(EnablePointMoveAlongY, bool);
   vtkSetMacro(EnablePointMoveAlongY, bool);

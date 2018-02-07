@@ -547,9 +547,12 @@ void qMRMLPlotViewPrivate::updateWidgetFromMRML()
     break;
   }
 
-  // Setting ClickAndDrag action draggable along X and Y axes
-  q->chart()->SetDragPointAlongX(this->MRMLPlotViewNode->GetEnablePointMoveAlongX());
-  q->chart()->SetDragPointAlongY(this->MRMLPlotViewNode->GetEnablePointMoveAlongY());
+  // Enable moving of data points by drag-and-drop if point moving is enabled
+  // both in the plot chart and view nodes.
+  q->chart()->SetDragPointAlongX(this->MRMLPlotViewNode->GetEnablePointMoveAlongX()
+    && this->MRMLPlotChartNode->GetEnablePointMoveAlongX());
+  q->chart()->SetDragPointAlongY(this->MRMLPlotViewNode->GetEnablePointMoveAlongY()
+    && this->MRMLPlotChartNode->GetEnablePointMoveAlongY());
 
   // Get the PlotChartNode
   const char *plotChartNodeID = this->MRMLPlotViewNode->GetPlotChartNodeID();
