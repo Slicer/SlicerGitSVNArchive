@@ -1592,7 +1592,6 @@ void qSlicerCoreApplication::loadTranslations(const QString& dir)
 
   QString localeFilter =
       QString( QString("*") + app->settings()->value("language").toString());
-  localeFilter.resize(3);
   localeFilter += QString(".qm");
 
   QDir directory(dir);
