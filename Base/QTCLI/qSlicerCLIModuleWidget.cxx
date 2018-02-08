@@ -289,6 +289,7 @@ void qSlicerCLIModuleWidgetPrivate::addParameter(QFormLayout* _layout,
                                                const ModuleParameter& moduleParameter)
 {
   Q_ASSERT(_layout);
+  Q_Q(qSlicerCLIModuleWidget);
 
   if (moduleParameter.GetHidden() == "true")
     {
@@ -297,6 +298,9 @@ void qSlicerCLIModuleWidgetPrivate::addParameter(QFormLayout* _layout,
 
   QString _label = QString::fromStdString(moduleParameter.GetLabel());
   QString description = QString::fromStdString(moduleParameter.GetDescription());
+
+  _label = QCoreApplication::translate(q->moduleName().toLatin1(), _label.toLatin1());
+  description = QCoreApplication::translate(q->moduleName().toLatin1(), description.toLatin1());
 
   // TODO Parameters with flags can support the None node because they are optional
   //int noneEnabled = 0;
