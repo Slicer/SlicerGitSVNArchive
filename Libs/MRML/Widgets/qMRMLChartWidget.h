@@ -24,6 +24,7 @@ class QResizeEvent;
 
 // qMRMLWidget includes
 #include "qMRMLWidget.h"
+#include "qMRMLWidgetsConfigure.h" // For MRML_WIDGETS_HAVE_WEBKIT_SUPPORT
 class qMRMLChartViewControllerWidget;
 class qMRMLChartView;
 class qMRMLChartWidgetPrivate;
@@ -72,10 +73,14 @@ public:
   void setColorLogic(vtkMRMLColorLogic* colorLogic);
   vtkMRMLColorLogic* colorLogic()const;
 
-
 public slots:
   /// Set the current \a viewNode to observe
   void setMRMLChartViewNode(vtkMRMLChartViewNode* newChartViewNode);
+
+#ifndef MRML_WIDGETS_HAVE_WEBKIT_SUPPORT
+protected slots:
+  void onAppAboutToQuit();
+#endif
 
 protected:
   QScopedPointer<qMRMLChartWidgetPrivate> d_ptr;

@@ -29,6 +29,7 @@
 #include <QWebFrame>
 #include <QWebView>
 #else
+#include <QCoreApplication>
 #include <QWebEngineView>
 #include <QWebChannel>
 #include <QWebEngineScript>
@@ -93,6 +94,13 @@ void qSlicerWebWidgetPrivate::init()
   this->WebChannel = new QWebChannel(this->WebView->page());
   this->initializeWebChannel(this->WebChannel);
   this->WebView->page()->setWebChannel(this->WebChannel);
+
+  // XXX
+  // The QWebEngineView crashes when the application quits.
+  // Work-around for now seems to be to delete the view before the application
+  // quits.
+  QObject::connect(QCoreApplication::instance(), SIGNAL(aboutToQuit()),
+                   this, SLOT(onAppAboutToQuit()));
 #endif
   this->verticalLayout->insertWidget(0, this->WebView);
 
@@ -143,6 +151,16 @@ QWebFrame* qSlicerWebWidgetPrivate::mainFrame()
   return this->WebView->page()->mainFrame();
 }
 #endif
+
+// --------------------------------------------------------------------------
+void qSlicerWebWidgetPrivate::onAppAboutToQuit()
+{
+  if (this->WebView)
+    {
+    delete this->WebView;
+    this->WebView = 0;
+    }
+}
 
 // --------------------------------------------------------------------------
 void qSlicerWebWidgetPrivate::setDocumentWebkitHidden(bool value)

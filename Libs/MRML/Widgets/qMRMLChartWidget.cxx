@@ -16,6 +16,7 @@
 ==============================================================================*/
 
 // Qt includes
+#include <QCoreApplication>
 #include <QDebug>
 #include <QFileInfo>
 #include <QGridLayout>
@@ -89,6 +90,14 @@ void qMRMLChartWidgetPrivate::init()
                    this->ChartView, SLOT(setMRMLScene(vtkMRMLScene*)));
   QObject::connect(q, SIGNAL(mrmlSceneChanged(vtkMRMLScene*)),
                    this->ChartController, SLOT(setMRMLScene(vtkMRMLScene*)));
+
+#ifndef MRML_WIDGETS_HAVE_WEBKIT_SUPPORT
+  // The QWebEngineView crashes when the application quits.
+  // Work-around for now seems to be to delete the view before the application
+  // quits.
+  QObject::connect(QCoreApplication::instance(), SIGNAL(aboutToQuit()),
+                   q, SLOT(onAppAboutToQuit()));
+#endif
 }
 
 // --------------------------------------------------------------------------
@@ -107,10 +116,12 @@ qMRMLChartWidget::qMRMLChartWidget(QWidget* parentWidget)
 qMRMLChartWidget::~qMRMLChartWidget()
 {
   Q_D(qMRMLChartWidget);
-  d->ChartView->setMRMLScene(0);
+  if (d->ChartView)
+    {
+    d->ChartView->setMRMLScene(0);
+    }
   d->ChartController->setMRMLScene(0);
 }
-
 
 // --------------------------------------------------------------------------
 void qMRMLChartWidget::setMRMLChartViewNode(vtkMRMLChartViewNode* newChartViewNode)
@@ -161,3 +172,14 @@ vtkMRMLColorLogic* qMRMLChartWidget::colorLogic()const
   Q_D(const qMRMLChartWidget);
   return d->ChartView->colorLogic();
 }
+
+#ifndef MRML_WIDGETS_HAVE_WEBKIT_SUPPORT
+//---------------------------------------------------------------------------
+void qMRMLChartWidget::onAppAboutToQuit()
+{
+  Q_D(qMRMLChartWidget);
+  d->ChartView->setMRMLScene(0);
+  delete d->ChartView;
+  d->ChartView = 0;
+}
+#endif
