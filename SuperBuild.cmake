@@ -116,13 +116,17 @@ set(Slicer_DEPENDENCIES
   ${ITK_EXTERNAL_NAME}
   CTK
   LibArchive
-  RapidJSON
   )
 
 set(CURL_ENABLE_SSL ${Slicer_USE_PYTHONQT_WITH_OPENSSL})
 
 if(Slicer_USE_OpenIGTLink)
   list(APPEND Slicer_DEPENDENCIES OpenIGTLink)
+endif()
+
+if(Slicer_BUILD_SEGMENTATION_SUPPORT)
+  # RapidJSON used in "Terminologies" module itself used in "Segmentations" module
+  list(APPEND Slicer_DEPENDENCIES RapidJSON)
 endif()
 
 if(Slicer_USE_SimpleITK)

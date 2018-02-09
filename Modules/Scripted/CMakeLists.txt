@@ -4,14 +4,10 @@ include(SlicerMacroBuildScriptedModule)
 set(modules
   DataProbe
   DMRIInstall
-  Editor
-  EditorLib
   LabelStatistics
   PerformanceTests
   SampleData
   ScreenCapture
-  SegmentEditor
-  SegmentStatistics
   SelfTests
   SurfaceToolbox
   VectorToScalarVolume
@@ -32,6 +28,14 @@ if(Slicer_BUILD_DICOM_SUPPORT)
     DICOMLib
     DICOMPlugins
     DICOMPatcher
+    )
+endif()
+if(Slicer_BUILD_SEGMENTATION_SUPPORT)
+  list(APPEND modules
+    Editor
+    EditorLib
+    SegmentEditor
+    SegmentStatistics
     )
 endif()
 foreach(module ${modules})

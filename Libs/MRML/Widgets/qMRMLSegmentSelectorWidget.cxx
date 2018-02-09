@@ -25,19 +25,25 @@
 
 #include "ui_qMRMLSegmentSelectorWidget.h"
 
+#include <vtkMRMLConfigure.h> // For MRML_BUILD_SEGMENTATION_SUPPORT
+
+#ifdef MRML_BUILD_SEGMENTATION_SUPPORT
 #include "vtkMRMLSegmentationNode.h"
 #include "vtkMRMLSegmentationDisplayNode.h"
 #include "vtkSegmentation.h"
 #include "vtkSegment.h"
+#endif
 
-// VYK includes
+// VTK includes
 #include <vtkWeakPointer.h>
 
 // Qt includes
 #include <QDebug>
 
 //-----------------------------------------------------------------------------
+#ifdef MRML_BUILD_SEGMENTATION_SUPPORT
 static const char* NONE_DISPLAY = "None";
+#endif
 
 //-----------------------------------------------------------------------------
 class qMRMLSegmentSelectorWidgetPrivate: public Ui_qMRMLSegmentSelectorWidget
@@ -54,8 +60,10 @@ public:
   void setMessage(QString message);
 
 public:
+#ifdef MRML_BUILD_SEGMENTATION_SUPPORT
   /// Segmentation MRML node containing shown segments
   vtkWeakPointer<vtkMRMLSegmentationNode> SegmentationNode;
+#endif
 
   /// Current segment ID in case of single selection
   QString CurrentSegmentID;
@@ -71,7 +79,9 @@ public:
 //-----------------------------------------------------------------------------
 qMRMLSegmentSelectorWidgetPrivate::qMRMLSegmentSelectorWidgetPrivate(qMRMLSegmentSelectorWidget& object)
   : q_ptr(&object)
+#ifdef MRML_BUILD_SEGMENTATION_SUPPORT
   , SegmentationNode(NULL)
+#endif
   , MultiSelection(false)
 {
 }
@@ -133,6 +143,7 @@ qMRMLSegmentSelectorWidget::~qMRMLSegmentSelectorWidget()
 //-----------------------------------------------------------------------------
 void qMRMLSegmentSelectorWidget::onCurrentNodeChanged(vtkMRMLNode* node)
 {
+#ifdef MRML_BUILD_SEGMENTATION_SUPPORT
   Q_D(qMRMLSegmentSelectorWidget);
 
   vtkMRMLSegmentationNode* segmentationNode = vtkMRMLSegmentationNode::SafeDownCast(node);
@@ -149,6 +160,9 @@ void qMRMLSegmentSelectorWidget::onCurrentNodeChanged(vtkMRMLNode* node)
     d->SegmentationNode = segmentationNode;
     this->populateSegmentCombobox();
     }
+#else
+  Q_UNUSED(node);
+#endif
 }
 
 //------------------------------------------------------------------------------
@@ -182,6 +196,7 @@ QString qMRMLSegmentSelectorWidget::currentNodeID()
 //-----------------------------------------------------------------------------
 void qMRMLSegmentSelectorWidget::populateSegmentCombobox()
 {
+#ifdef MRML_BUILD_SEGMENTATION_SUPPORT
   Q_D(qMRMLSegmentSelectorWidget);
 
   d->comboBox_Segment->clear();
@@ -263,11 +278,13 @@ void qMRMLSegmentSelectorWidget::populateSegmentCombobox()
     // Make sure fist segment is selected (we checked before that there is at least one segment)
     d->comboBox_Segment->setCurrentIndex(this->noneEnabled() ? 1 : 0);
     }
+#endif
 }
 
 //-----------------------------------------------------------------------------
 void qMRMLSegmentSelectorWidget::onCurrentSegmentChanged(int index)
 {
+#ifdef MRML_BUILD_SEGMENTATION_SUPPORT
   Q_D(qMRMLSegmentSelectorWidget);
 
   d->setMessage(QString());
@@ -289,11 +306,15 @@ void qMRMLSegmentSelectorWidget::onCurrentSegmentChanged(int index)
     }
 
   emit currentSegmentChanged(d->CurrentSegmentID);
+#else
+  Q_UNUSED(index);
+#endif
 }
 
 //-----------------------------------------------------------------------------
 void qMRMLSegmentSelectorWidget::onSegmentMultiSelectionChanged()
 {
+#ifdef MRML_BUILD_SEGMENTATION_SUPPORT
   Q_D(qMRMLSegmentSelectorWidget);
 
   d->setMessage(QString());
@@ -310,6 +331,7 @@ void qMRMLSegmentSelectorWidget::onSegmentMultiSelectionChanged()
     }
 
   emit segmentSelectionChanged(d->SelectedSegmentIDs);
+#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -367,6 +389,7 @@ void qMRMLSegmentSelectorWidget::setCurrentSegmentID(QString segmentID)
 //-----------------------------------------------------------------------------
 void qMRMLSegmentSelectorWidget::setSelectedSegmentIDs(QStringList segmentIDList)
 {
+#ifdef MRML_BUILD_SEGMENTATION_SUPPORT
   Q_D(qMRMLSegmentSelectorWidget);
 
   if (!d->MultiSelection)
@@ -413,6 +436,9 @@ void qMRMLSegmentSelectorWidget::setSelectedSegmentIDs(QStringList segmentIDList
     }
   d->CheckableComboBox_Segment->blockSignals(wasBlocked);
   d->CheckableComboBox_Segment->repaint();
+#else
+  Q_UNUSED(segmentIDList);
+#endif
 }
 
 //--------------------------------------------------------------------------

@@ -12,6 +12,7 @@
 #define VTKMRML_STATIC
 #endif
 
+#cmakedefine MRML_BUILD_SEGMENTATION_SUPPORT
 #cmakedefine MRML_USE_TEEM
 #cmakedefine MRML_USE_vtkTeem
 

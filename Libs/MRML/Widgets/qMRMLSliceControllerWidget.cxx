@@ -45,10 +45,13 @@
 #include <vtkMRMLSliceLayerLogic.h>
 
 // MRML includes
+#include <vtkMRMLConfigure.h> // For MRML_BUILD_SEGMENTATION_SUPPORT
 #include <vtkMRMLLayoutNode.h>
 #include <vtkMRMLScalarVolumeDisplayNode.h>
+#ifdef MRML_BUILD_SEGMENTATION_SUPPORT
 #include <vtkMRMLSegmentationNode.h>
 #include <vtkMRMLSegmentationDisplayNode.h>
+#endif
 #include <vtkMRMLScene.h>
 #include <vtkMRMLSliceCompositeNode.h>
 
@@ -1115,6 +1118,7 @@ void qMRMLSliceControllerWidgetPrivate::onBackgroundLayerNodeSelected(vtkMRMLNod
 // --------------------------------------------------------------------------
 void qMRMLSliceControllerWidgetPrivate::onSegmentationNodeSelected(vtkMRMLNode* node)
 {
+#ifdef MRML_BUILD_SEGMENTATION_SUPPORT
   vtkMRMLSegmentationNode* segmentationNode = vtkMRMLSegmentationNode::SafeDownCast(node);
 
   // Update segmentation visibility and opacity controls
@@ -1136,11 +1140,15 @@ void qMRMLSliceControllerWidgetPrivate::onSegmentationNodeSelected(vtkMRMLNode* 
                       this, SLOT(onSegmentationNodeDisplayModifiedEvent(vtkObject*)));
   this->qvtkReconnect(0, segmentationNode, vtkSegmentation::SegmentRemoved,
                       this, SLOT(onSegmentationNodeDisplayModifiedEvent(vtkObject*)));
+#else
+  Q_UNUSED(node);
+#endif
 }
 
 // --------------------------------------------------------------------------
 void qMRMLSliceControllerWidgetPrivate::onSegmentationNodeDisplayModifiedEvent(vtkObject* nodeObject)
 {
+#ifdef MRML_BUILD_SEGMENTATION_SUPPORT
   vtkMRMLSegmentationNode* segmentationNode = vtkMRMLSegmentationNode::SafeDownCast(nodeObject);
   if (!segmentationNode || segmentationNode != this->SegmentSelectorWidget->currentNode())
     {
@@ -1182,11 +1190,15 @@ void qMRMLSliceControllerWidgetPrivate::onSegmentationNodeDisplayModifiedEvent(v
     visibleSegmentIDs << segmentIDIt->c_str();
     }
   this->SegmentSelectorWidget->setSelectedSegmentIDs(visibleSegmentIDs);
+#else
+  Q_UNUSED(nodeObject);
+#endif
 }
 
 // --------------------------------------------------------------------------
 void qMRMLSliceControllerWidgetPrivate::updateSegmentationOutlineFillButton()
 {
+#ifdef MRML_BUILD_SEGMENTATION_SUPPORT
   vtkMRMLSegmentationDisplayNode* displayNode = this->currentSegmentationDisplayNode();
   if (!displayNode)
     {
@@ -1215,6 +1227,7 @@ void qMRMLSliceControllerWidgetPrivate::updateSegmentationOutlineFillButton()
     {
     qWarning() << Q_FUNC_INFO << ": Invalid segmentation outline/fill state: neither are on";
     }
+#endif
 }
 
 // --------------------------------------------------------------------------
@@ -1437,6 +1450,7 @@ void qMRMLSliceControllerWidgetPrivate::applyCustomLightbox()
 //---------------------------------------------------------------------------
 vtkMRMLSegmentationDisplayNode* qMRMLSliceControllerWidgetPrivate::currentSegmentationDisplayNode()
 {
+#ifdef MRML_BUILD_SEGMENTATION_SUPPORT
   vtkMRMLSegmentationNode* segmentationNode = vtkMRMLSegmentationNode::SafeDownCast(
     this->SegmentSelectorWidget->currentNode() );
   if (!segmentationNode)
@@ -1444,6 +1458,9 @@ vtkMRMLSegmentationDisplayNode* qMRMLSliceControllerWidgetPrivate::currentSegmen
     return NULL;
     }
   return vtkMRMLSegmentationDisplayNode::SafeDownCast(segmentationNode->GetDisplayNode());
+#else
+  return NULL;
+#endif
 }
 
 // --------------------------------------------------------------------------
@@ -1526,6 +1543,7 @@ qMRMLOrientation qMRMLSliceControllerWidgetPrivate::mrmlOrientation(const QStrin
 // --------------------------------------------------------------------------
 void qMRMLSliceControllerWidgetPrivate::onSegmentVisibilitySelectionChanged(QStringList selectedSegmentIDs)
 {
+#ifdef MRML_BUILD_SEGMENTATION_SUPPORT
   vtkMRMLSegmentationNode* segmentationNode = vtkMRMLSegmentationNode::SafeDownCast(
     this->SegmentSelectorWidget->currentNode() );
   if (!segmentationNode)
@@ -1560,6 +1578,9 @@ void qMRMLSliceControllerWidgetPrivate::onSegmentVisibilitySelectionChanged(QStr
       return; // This event handler runs after each check/uncheck, so handling the first mismatch is enough
       }
     }
+#else
+  Q_UNUSED(selectedSegmentIDs);
+#endif
 }
 
 
@@ -2096,6 +2117,7 @@ void qMRMLSliceControllerWidget::rotateSliceToBackground()
 //---------------------------------------------------------------------------
 void qMRMLSliceControllerWidget::setSegmentationHidden(bool hide)
 {
+#ifdef MRML_BUILD_SEGMENTATION_SUPPORT
   Q_D(qMRMLSliceControllerWidget);
 
   vtkMRMLSegmentationDisplayNode* displayNode = d->currentSegmentationDisplayNode();
@@ -2105,6 +2127,9 @@ void qMRMLSliceControllerWidget::setSegmentationHidden(bool hide)
     }
 
   displayNode->SetVisibility(!hide);
+#else
+  Q_UNUSED(hide);
+#endif
 }
 
 //---------------------------------------------------------------------------
@@ -2139,6 +2164,7 @@ void qMRMLSliceControllerWidget::setBackgroundHidden(bool hide)
 //---------------------------------------------------------------------------
 void qMRMLSliceControllerWidget::setSegmentationOpacity(double opacity)
 {
+#ifdef MRML_BUILD_SEGMENTATION_SUPPORT
   Q_D(qMRMLSliceControllerWidget);
 
   vtkMRMLSegmentationDisplayNode* displayNode = d->currentSegmentationDisplayNode();
@@ -2148,6 +2174,9 @@ void qMRMLSliceControllerWidget::setSegmentationOpacity(double opacity)
     }
 
   displayNode->SetOpacity(opacity);
+#else
+  Q_UNUSED(opacity);
+#endif
 }
 
 //---------------------------------------------------------------------------
@@ -2203,6 +2232,7 @@ void qMRMLSliceControllerWidget::setBackgroundOpacity(double opacity)
 //---------------------------------------------------------------------------
 void qMRMLSliceControllerWidget::toggleSegmentationOutlineFill()
 {
+#ifdef MRML_BUILD_SEGMENTATION_SUPPORT
   Q_D(qMRMLSliceControllerWidget);
   vtkMRMLSegmentationDisplayNode* displayNode = d->currentSegmentationDisplayNode();
   if (!displayNode)
@@ -2237,6 +2267,7 @@ void qMRMLSliceControllerWidget::toggleSegmentationOutlineFill()
     displayNode->SetVisibility2DFill(true);
     displayNode->SetVisibility2DOutline(true);
     }
+#endif
 }
 
 //---------------------------------------------------------------------------
@@ -2759,6 +2790,7 @@ void qMRMLSliceControllerWidget::updateSegmentationControlsVisibility()
 
   Q_D(qMRMLSliceControllerWidget);
 
+#ifdef MRML_BUILD_SEGMENTATION_SUPPORT
   bool popupVisible = d->MoreButton->isChecked();
 
   // If there are any segmentation nodes in the scene and selection is None, then select the first one
@@ -2775,6 +2807,9 @@ void qMRMLSliceControllerWidget::updateSegmentationControlsVisibility()
   // Show segmentation controls only if the popup is visible and if there are
   // segmentation nodes in the scene
   bool visible = segmentationNodesPresent && popupVisible;
+#else
+  bool visible = false;
+#endif
   d->SegmentationIconLabel->setVisible(visible);
   d->SegmentationVisibilityButton->setVisible(visible);
   d->SegmentationOpacitySlider->setVisible(visible);
