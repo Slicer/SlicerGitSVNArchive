@@ -229,9 +229,6 @@ public:
   void gatherExtensionsHistoryInformationOnStartup();
 
 
-  qSlicerExtensionsManagerModel::ExtensionMetadataType retrieveExtensionMetadata(
-    const qMidasAPI::ParametersType& parameters);
-
   void initializeColumnIdToNameMap(int columnIdx, const char* columnName);
   QHash<int, QString> ColumnIdToName;
   QStringList ColumnNames;
@@ -961,38 +958,6 @@ void qSlicerExtensionsManagerModelPrivate::initializeColumnIdToNameMap(int colum
 }
 
 // --------------------------------------------------------------------------
-qSlicerExtensionsManagerModel::ExtensionMetadataType qSlicerExtensionsManagerModelPrivate
-::retrieveExtensionMetadata(const qMidasAPI::ParametersType& parameters)
-{
-  Q_Q(const qSlicerExtensionsManagerModel);
-
-  bool ok = false;
-  QList<QVariantMap> results = qMidasAPI::synchronousQuery(
-        ok, q->serverUrl().toString(),
-        "midas.slicerpackages.extension.list", parameters);
-  if (!ok || results.count() != 1)
-    {
-    this->critical(results[0]["queryError"].toString());
-    return ExtensionMetadataType();
-    }
-  ExtensionMetadataType result = results.at(0);
-
-  if (!qSlicerExtensionsManagerModelPrivate::validateExtensionMetadata(result))
-    {
-    return ExtensionMetadataType();
-    }
-
-  ExtensionMetadataType updatedExtensionMetadata;
-  foreach(const QString& key, result.keys())
-    {
-    updatedExtensionMetadata.insert(
-      q->serverToExtensionDescriptionKey().value(key, key), result.value(key));
-    }
-
-  return updatedExtensionMetadata;
-}
-
-// --------------------------------------------------------------------------
 // qSlicerExtensionsManagerModel methods
 
 // --------------------------------------------------------------------------
@@ -1265,30 +1230,55 @@ qSlicerExtensionsManagerModel::ExtensionMetadataType qSlicerExtensionsManagerMod
     return ExtensionMetadataType();
     }
 
-  qMidasAPI::ParametersType parameters;
+  QVariantMap parameters;
   parameters["extension_id"] = extensionId;
 
-  return d->retrieveExtensionMetadata(parameters);
+  return this->retrieveExtensionMetadata(parameters);
 }
 
 // --------------------------------------------------------------------------
 qSlicerExtensionsManagerModel::ExtensionMetadataType qSlicerExtensionsManagerModel
-::retrieveExtensionMetadataByName(const QString& extensionName)
+::retrieveExtensionMetadata(const QVariantMap& paramMap)
 {
-  Q_D(qSlicerExtensionsManagerModel);
+  Q_D(const qSlicerExtensionsManagerModel);
 
-  if (extensionName.isEmpty())
+  qMidasAPI::ParametersType parameters;
+  foreach(const QString& key, paramMap.keys())
+    {
+    QVariant val(paramMap[key]);
+    if (!val.canConvert(QVariant::String))
+      {
+      d->critical("retrieveExtensionMetadata map values must be convertible to QString!");
+      return ExtensionMetadataType();
+      }
+
+    parameters[key] = paramMap.value(key).toString();
+    }
+
+  bool ok = false;
+  QList<QVariantMap> results = qMidasAPI::synchronousQuery(
+        ok, this->serverUrl().toString(),
+        "midas.slicerpackages.extension.list", parameters);
+  if (!ok || results.count() != 1)
+    {
+    d->critical(results[0]["queryError"].toString());
+    return ExtensionMetadataType();
+    }
+  ExtensionMetadataType result = results.at(0);
+
+  if (!qSlicerExtensionsManagerModelPrivate::validateExtensionMetadata(result))
     {
     return ExtensionMetadataType();
     }
 
-  qMidasAPI::ParametersType parameters;
-  parameters["productname"] = extensionName;
-  parameters["slicer_revision"] = this->slicerRevision();
-  parameters["os"] = this->slicerOs();
-  parameters["arch"] = this->slicerArch();
+  ExtensionMetadataType updatedExtensionMetadata;
+  foreach(const QString& key, result.keys())
+    {
+    updatedExtensionMetadata.insert(
+      this->serverToExtensionDescriptionKey().value(key, key), result.value(key));
+    }
 
-  return d->retrieveExtensionMetadata(parameters);
+  return updatedExtensionMetadata;
 }
 
 // --------------------------------------------------------------------------
@@ -1535,14 +1525,14 @@ bool qSlicerExtensionsManagerModel::installExtension(
         continue;
         }
 
-      qMidasAPI::ParametersType parameters;
+      QVariantMap parameters;
       parameters["productname"] = dependencyName;
       parameters["slicer_revision"] = this->slicerRevision();
       parameters["os"] = this->slicerOs();
       parameters["arch"] = this->slicerArch();
 
       const ExtensionMetadataType& dependencyMetadata =
-        d->retrieveExtensionMetadata(parameters);
+        this->retrieveExtensionMetadata(parameters);
       if (dependencyMetadata.contains("extension_id"))
         {
         dependenciesMetadata.insert(dependencyName, dependencyMetadata);
