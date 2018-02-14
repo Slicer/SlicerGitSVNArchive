@@ -31,33 +31,41 @@ if(NOT DEFINED ${proj}_DIR AND NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
 
   ExternalProject_SetIfNotDefined(
     ${CMAKE_PROJECT_NAME}_${proj}_GIT_TAG
-    "fd2836262413a2a5d2876d141eeaa7a17fe63f5c"
+    "70e95f1cdee52cc49dfc3375e956a8f5958240c7"
     QUIET
     )
+
+  set(EP_SOURCE_DIR ${CMAKE_BINARY_DIR}/${proj})
+  set(EP_BINARY_DIR ${CMAKE_BINARY_DIR}/${proj}-build)
 
   ExternalProject_Add(${proj}
     ${${proj}_EP_ARGS}
     GIT_REPOSITORY "${${CMAKE_PROJECT_NAME}_${proj}_GIT_REPOSITORY}"
     GIT_TAG "${${CMAKE_PROJECT_NAME}_${proj}_GIT_TAG}"
-    SOURCE_DIR ${CMAKE_BINARY_DIR}/${proj}
-    BINARY_DIR ${proj}-build
+    SOURCE_DIR ${EP_SOURCE_DIR}
+    BINARY_DIR ${EP_BINARY_DIR}
     CMAKE_CACHE_ARGS
       -DCMAKE_CXX_COMPILER:FILEPATH=${CMAKE_CXX_COMPILER}
       -DCMAKE_CXX_FLAGS:STRING=${ep_common_cxx_flags}
       -DCMAKE_C_COMPILER:FILEPATH=${CMAKE_C_COMPILER}
       -DCMAKE_C_FLAGS:STRING=${ep_common_c_flags} # Unused
+      -DCMAKE_CXX_STANDARD:STRING=${CMAKE_CXX_STANDARD}
+      -DCMAKE_CXX_STANDARD_REQUIRED:BOOL=${CMAKE_CXX_STANDARD_REQUIRED}
+      -DCMAKE_CXX_EXTENSIONS:BOOL=${CMAKE_CXX_EXTENSIONS}
       -DBUILD_TESTING:BOOL=OFF
       #-DBUILD_SHARED:BOOL=ON
       -DJsonCpp_INCLUDE_DIR:PATH=${JsonCpp_INCLUDE_DIR}
       -DJsonCpp_LIBRARY:PATH=${JsonCpp_LIBRARY}
       -DITK_DIR:PATH=${ITK_DIR}
       ${EXTERNAL_PROJECT_OPTIONAL_ARGS}
+      # macOS
+      -DCMAKE_MACOSX_RPATH:BOOL=0
     INSTALL_COMMAND ""
     DEPENDS
       ${${proj}_DEPENDENCIES}
     )
-  set(${proj}_DIR ${CMAKE_BINARY_DIR}/${proj}-build)
-  set(${proj}_SOURCE_DIR ${CMAKE_BINARY_DIR}/${proj})
+  set(${proj}_DIR ${EP_BINARY_DIR})
+  set(${proj}_SOURCE_DIR ${EP_SOURCE_DIR})
 
   #-----------------------------------------------------------------------------
   # Launcher setting specific to build tree

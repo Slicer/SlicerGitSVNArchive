@@ -20,7 +20,6 @@
 
 // Qt includes
 #include <QDebug>
-#include <QtPlugin>
 #include <QSettings>
 
 // SlicerQt includes
@@ -31,11 +30,15 @@
 
 #include "vtkSlicerViewControllersLogic.h"
 
+#include <vtkMRMLPlotViewNode.h>
 #include <vtkMRMLSliceNode.h>
 #include <vtkMRMLViewNode.h>
 
 //-----------------------------------------------------------------------------
+#if (QT_VERSION < QT_VERSION_CHECK(5, 0, 0))
+#include <QtPlugin>
 Q_EXPORT_PLUGIN2(qSlicerViewControllersModule, qSlicerViewControllersModule);
+#endif
 
 //-----------------------------------------------------------------------------
 class qSlicerViewControllersModulePrivate
@@ -206,6 +209,32 @@ void qSlicerViewControllersModule::writeDefaultSliceViewSettings(vtkMRMLSliceNod
     }
   QSettings settings;
   settings.beginGroup("DefaultSliceView");
+  writeCommonViewSettings(defaultViewNode, settings);
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerViewControllersModule::readDefaultPlotViewSettings(vtkMRMLPlotViewNode* defaultViewNode)
+{
+  if (!defaultViewNode)
+    {
+    qCritical() << Q_FUNC_INFO << " failed: defaultViewNode is invalid";
+    return;
+    }
+  QSettings settings;
+  settings.beginGroup("DefaultPlotView");
+  readCommonViewSettings(defaultViewNode, settings);
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerViewControllersModule::writeDefaultPlotViewSettings(vtkMRMLPlotViewNode* defaultViewNode)
+{
+  if (!defaultViewNode)
+    {
+    qCritical() << Q_FUNC_INFO << " failed: defaultViewNode is invalid";
+    return;
+    }
+  QSettings settings;
+  settings.beginGroup("DefaultPlotView");
   writeCommonViewSettings(defaultViewNode, settings);
 }
 

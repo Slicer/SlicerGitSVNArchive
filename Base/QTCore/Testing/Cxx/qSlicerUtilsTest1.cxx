@@ -226,15 +226,15 @@ int qSlicerUtilsTest1(int, char * [] )
   // Test extractModuleNameFromLibraryName()
   //-----------------------------------------------------------------------------
   QStringList libraryNames;
-  libraryNames << "ThresholdLib.dll"
-               << "Threshold.dll"
-               << "libThreshold.so"
-               << "libThreshold.so.2.3"
-               << "libThreshold.dylib"
-               << "qSlicerThresholdModule.so"
-               << "qSlicerThreshold.dylib";
+  libraryNames << "VRLib.dll"
+               << "VR.dll"
+               << "libVR.so"
+               << "libVR.so.2.3"
+               << "libVR.dylib"
+               << "qSlicerVRModule.so"
+               << "qSlicerVR.dylib";
 
-  QString expectedModuleName = "Threshold";
+  QString expectedModuleName = "VR";
 
   foreach (const QString& libraryName, libraryNames)
     {
@@ -872,89 +872,6 @@ int qSlicerUtilsTest1(int, char * [] )
       std::cerr << __LINE__ << " - Problem with setPermissionsRecursively() - "
                 << "Should be possible to recursively delete "
                 << qPrintable(tmp.path()) << std::endl;
-      return EXIT_FAILURE;
-      }
-  }
-
-  //-----------------------------------------------------------------------------
-  // Test isRelease()
-  //-----------------------------------------------------------------------------
-  {
-
-    // <MAJOR_VERSION>.<MINOR_VERSION>.<PATCH_VERSION>
-    bool expected = true;
-    bool current = qSlicerUtils::isRelease("1.22.333");
-    if (current != expected)
-      {
-      std::cerr << __LINE__ << " - Error in  isRelease()" << std::endl
-                            << "current = " << current << std::endl
-                            << "expected = " << expected << std::endl;
-      return EXIT_FAILURE;
-      }
-
-    // <MAJOR_VERSION>.<MINOR_VERSION>.<PATCH_VERSION>-rc{1|2|3...}
-    expected = true;
-    current = qSlicerUtils::isRelease("1.22.3001-rc12");
-    if (current != expected)
-      {
-      std::cerr << __LINE__ << " - Error in  isRelease()" << std::endl
-                            << "current = " << current << std::endl
-                            << "expected = " << expected << std::endl;
-      return EXIT_FAILURE;
-      }
-
-    // <MAJOR_VERSION>.<MINOR_VERSION>.<PATCH_VERSION>-<TWEAK_VERSION>
-    expected = true;
-    current = qSlicerUtils::isRelease("1.22.3001-1");
-    if (current != expected)
-      {
-      std::cerr << __LINE__ << " - Error in  isRelease()" << std::endl
-                            << "current = " << current << std::endl
-                            << "expected = " << expected << std::endl;
-      return EXIT_FAILURE;
-      }
-
-    // <MAJOR_VERSION>.<MINOR_VERSION>.<PATCH_VERSION>-YYYY-MM-DD
-    expected = false;
-    current = qSlicerUtils::isRelease("1.2.3-2013-01-11");
-    if (current != expected)
-      {
-      std::cerr << __LINE__ << " - Error in  isRelease()" << std::endl
-                            << "current = " << current << std::endl
-                            << "expected = " << expected << std::endl;
-      return EXIT_FAILURE;
-      }
-
-    // <MAJOR_VERSION>.<MINOR_VERSION>.<PATCH_VERSION>-YYYY-MM-DD
-    expected = false;
-    current = qSlicerUtils::isRelease("1.2.3-2013-01-11");
-    if (current != expected)
-      {
-      std::cerr << __LINE__ << " - Error in  isRelease()" << std::endl
-                            << "current = " << current << std::endl
-                            << "expected = " << expected << std::endl;
-      return EXIT_FAILURE;
-      }
-
-    // <MAJOR_VERSION>.<MINOR_VERSION>.<PATCH_VERSION>-rc{1|2|3...}-YYYY-MM-DD
-    expected = false;
-    current = qSlicerUtils::isRelease("1.2.3-rc26-2013-01-11");
-    if (current != expected)
-      {
-      std::cerr << __LINE__ << " - Error in  isRelease()" << std::endl
-                            << "current = " << current << std::endl
-                            << "expected = " << expected << std::endl;
-      return EXIT_FAILURE;
-      }
-
-    // <MAJOR_VERSION>.<MINOR_VERSION>.<PATCH_VERSION>-<TWEAK_VERSION>-YYYY-MM-DD
-    expected = false;
-    current = qSlicerUtils::isRelease("1.2.3-231-2013-01-11");
-    if (current != expected)
-      {
-      std::cerr << __LINE__ << " - Error in  isRelease()" << std::endl
-                            << "current = " << current << std::endl
-                            << "expected = " << expected << std::endl;
       return EXIT_FAILURE;
       }
   }

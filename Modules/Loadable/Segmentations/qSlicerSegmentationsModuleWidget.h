@@ -38,6 +38,7 @@ class vtkMRMLSegmentationDisplayNode;
 class vtkMRMLSubjectHierarchyNode;
 class vtkMRMLNodeReference;
 class vtkMRMLNode;
+class vtkSlicerTerminologiesModuleLogic;
 class QItemSelection;
 class Ui_qSlicerSegmentationsModule;
 
@@ -58,6 +59,9 @@ public:
 
   /// Support of node editing. Selects node in user interface that the user wants to edit
   virtual bool setEditedNode(vtkMRMLNode* node, QString role=QString(), QString context=QString());
+
+  /// Set Terminologies module logic
+  void setTerminologiesLogic(vtkSlicerTerminologiesModuleLogic* logic);
 
 public slots:
   /// Update widget GUI from parameter node
@@ -94,14 +98,6 @@ protected:
 
   bool exportFromCurrentSegmentation();
   bool importToCurrentSegmentation();
-
-  /// Update master representation in segmentation to a given representation.
-  /// Used before adding a certain segment to a segmentation, making sure the user knows if data loss is possible.
-  /// 1. Segmentation is empty or master is unspecified -> Master is changed to the segment's representation type
-  /// 2. Segmentation is non-empty and master matches the representation -> No action
-  /// 3. Segmentation is non-empty and master differs -> Choice presented to user
-  /// \return False only if user chose not to change master representation on option 3, or if error occurred, otherwise true
-  bool updateMasterRepresentationInSegmentation(vtkSegmentation* segmentation, QString representation);
 
 protected slots:
   /// Handle change of selected segmentation node

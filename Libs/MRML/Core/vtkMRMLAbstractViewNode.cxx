@@ -30,30 +30,31 @@
 #include <sstream>
 
 const char* vtkMRMLAbstractViewNode::OrientationMarkerHumanModelReferenceRole = "OrientationMarkerHumanModel";
+const char* vtkMRMLAbstractViewNode::ParentLayoutNodeReferenceRole = "ParentLayoutNodeRef";
 const int vtkMRMLAbstractViewNode::AxisLabelsCount = 6;
 static const char* DEFAULT_AXIS_LABELS[vtkMRMLAbstractViewNode::AxisLabelsCount] = {"L", "R", "P", "A", "I", "S"};
 
 //----------------------------------------------------------------------------
 vtkMRMLAbstractViewNode::vtkMRMLAbstractViewNode()
+: ViewGroup(0)
+, LayoutLabel(NULL)
+, Visibility(1)
+, Active(0)
+, OrientationMarkerEnabled(false)
+, OrientationMarkerType(OrientationMarkerTypeNone)
+, OrientationMarkerSize(OrientationMarkerSizeMedium)
+, RulerEnabled(false)
+, RulerType(RulerTypeNone)
 {
-  this->LayoutLabel = NULL;
-  this->ViewGroup = 0;
-  this->Active = 0;
-  this->Visibility = 1;
-
-  double black[3] = {0.,0.,0.};
-  memcpy(this->BackgroundColor, black, 3 * sizeof(double));
-  memcpy(this->BackgroundColor2, black, 3 * sizeof(double));
+  this->BackgroundColor[0] = 0.0;
+  this->BackgroundColor[1] = 0.0;
+  this->BackgroundColor[2] = 0.0;
+  this->BackgroundColor2[0] = 0.0;
+  this->BackgroundColor2[1] = 0.0;
+  this->BackgroundColor2[2] = 0.0;
 
   this->SetLayoutLabel("1");
   this->SetHideFromEditors(0);
-
-  this->OrientationMarkerEnabled = false;
-  this->OrientationMarkerType = OrientationMarkerTypeNone;
-  this->OrientationMarkerSize = OrientationMarkerSizeMedium;
-
-  this->RulerEnabled = false;
-  this->RulerType = RulerTypeNone;
 
   this->AxisLabels = vtkSmartPointer<vtkStringArray>::New();
   for (int i=0; i<vtkMRMLAbstractViewNode::AxisLabelsCount; i++)
@@ -75,39 +76,27 @@ void vtkMRMLAbstractViewNode::WriteXML(ostream& of, int nIndent)
 
   this->Superclass::WriteXML(of, nIndent);
 
-  if (this->GetLayoutLabel())
-    {
-    of << " layoutLabel=\"" << this->GetLayoutLabel() << "\"";
-    }
-  if (this->GetLayoutName())
-    {
-    of << " layoutName=\"" << this->GetLayoutName() << "\"";
-    }
+  vtkMRMLWriteXMLBeginMacro(of);
+  vtkMRMLWriteXMLStringMacro(layoutLabel, LayoutLabel);
+  vtkMRMLWriteXMLStringMacro(layoutName, LayoutName);
   if (this->GetViewGroup() > 0)
     {
-    of << " viewGroup=\"" << this->GetViewGroup() << "\"";
+    vtkMRMLWriteXMLBooleanMacro(viewGroup, ViewGroup);
     }
-
-  of << " active=\"" << (this->Active ? "true" : "false") << "\"";
-  of << " visibility=\"" << (this->Visibility ? "true" : "false") << "\"";
-
-  // background color
-  of << " backgroundColor=\"" << this->BackgroundColor[0] << " "
-     << this->BackgroundColor[1] << " " << this->BackgroundColor[2] << "\"";
-
-  of << " backgroundColor2=\"" << this->BackgroundColor2[0] << " "
-     << this->BackgroundColor2[1] << " " << this->BackgroundColor2[2] << "\"";
-
+  vtkMRMLWriteXMLBooleanMacro(active, Active);
+  vtkMRMLWriteXMLBooleanMacro(visibility, Visibility);
+  vtkMRMLWriteXMLVectorMacro(backgroundColor, BackgroundColor, double, 3);
+  vtkMRMLWriteXMLVectorMacro(backgroundColor2, BackgroundColor2, double, 3);
   if (this->OrientationMarkerEnabled)
     {
-    of << " orientationMarkerType=\"" << this->GetOrientationMarkerTypeAsString(this->OrientationMarkerType) << "\"";
-    of << " orientationMarkerSize=\"" << this->GetOrientationMarkerSizeAsString(this->OrientationMarkerSize) << "\"";
+    vtkMRMLWriteXMLEnumMacro(orientationMarkerType, OrientationMarkerType);
+    vtkMRMLWriteXMLEnumMacro(orientationMarkerSize, OrientationMarkerSize);
     }
-
   if (this->RulerEnabled)
     {
-    of << " rulerType=\"" << this->GetRulerTypeAsString(this->RulerType) << "\"";
+    vtkMRMLWriteXMLEnumMacro(rulerType, RulerType);
     }
+  vtkMRMLWriteXMLEndMacro();
 
   of << " AxisLabels=\"";
   for (int i=0; i<vtkMRMLAbstractViewNode::AxisLabelsCount; i++)
@@ -120,10 +109,39 @@ void vtkMRMLAbstractViewNode::WriteXML(ostream& of, int nIndent)
 //----------------------------------------------------------------------------
 void vtkMRMLAbstractViewNode::ReadXMLAttributes(const char** atts)
 {
-  bool isBackgroundColor2Set = false;
   int disabledModify = this->StartModify();
 
   this->Superclass::ReadXMLAttributes(atts);
+
+  const int backGroundColorInvalid = -1;
+  this->BackgroundColor2[0] = backGroundColorInvalid;
+
+  vtkMRMLReadXMLBeginMacro(atts);
+  vtkMRMLReadXMLStringMacro(layoutLabel, LayoutLabel);
+  vtkMRMLReadXMLStringMacro(layoutName, LayoutName);
+  vtkMRMLReadXMLBooleanMacro(viewGroup, ViewGroup);
+  vtkMRMLReadXMLBooleanMacro(active, Active);
+
+  // XXX Do not read 'visibility' attribute and default to 1 because:
+  // (1) commit r21034 (STYLE: Add abstract class for all view nodes)
+  // changed the default value for 'visibility' attribute from 1 to 0. This
+  // means there are a lot of already saved scene where visibility attribute
+  // value is saved as 0.
+  // (2) support for visibility attribute by the layout manager has been
+  // added.
+  // XXX Support for 'visibility' attribute could be restored by updating
+  // the mrml version. Scene with a newer version number would consider the
+  // serialized attribute whereas older scene would not.
+  //
+  // vtkMRMLReadXMLBooleanMacro(visibility, Visibility)
+
+  vtkMRMLReadXMLVectorMacro(backgroundColor, BackgroundColor, double, 3);
+  vtkMRMLReadXMLVectorMacro(backgroundColor2, BackgroundColor2, double, 3);
+  vtkMRMLReadXMLEnumMacro(orientationMarkerType, OrientationMarkerType);
+  vtkMRMLReadXMLEnumMacro(orientationMarkerSize, OrientationMarkerSize);
+  vtkMRMLReadXMLEnumMacro(rulerType, RulerType);
+  vtkMRMLReadXMLEndMacro();
+
 
   const char* attName;
   const char* attValue;
@@ -131,99 +149,7 @@ void vtkMRMLAbstractViewNode::ReadXMLAttributes(const char** atts)
     {
     attName = *(atts++);
     attValue = *(atts++);
-    if (!strcmp(attName, "layoutLabel"))
-      {
-      this->SetLayoutLabel( attValue );
-      }
-    else if (!strcmp(attName, "layoutName"))
-      {
-      this->SetLayoutName( attValue );
-      }
-    else if (!strcmp(attName, "viewGroup"))
-      {
-      std::stringstream ss;
-      ss << attValue;
-      int val;
-      ss >> val;
-      this->SetViewGroup(val);
-      }
-    else if (!strcmp(attName, "backgroundColor"))
-      {
-      std::stringstream ss;
-      ss << attValue;
-      double val;
-      ss >> val;
-      this->BackgroundColor[0] = val;
-      ss << attValue;
-      ss >> val;
-      this->BackgroundColor[1] = val;
-      ss << attValue;
-      ss >> val;
-      this->BackgroundColor[2] = val;
-      }
-    else if (!strcmp(attName, "backgroundColor2"))
-      {
-      isBackgroundColor2Set = true;
-      std::stringstream ss;
-      ss << attValue;
-      double val;
-      ss >> val;
-      this->BackgroundColor2[0] = val;
-      ss << attValue;
-      ss >> val;
-      this->BackgroundColor2[1] = val;
-      ss << attValue;
-      ss >> val;
-      this->BackgroundColor2[2] = val;
-      }
-    else if (!strcmp(attName, "active"))
-      {
-      if (!strcmp(attValue,"true"))
-        {
-        this->Active = 1;
-        }
-      else
-        {
-        this->Active = 0;
-        }
-      }
-    else if (!strcmp(attName, "orientationMarkerType") && this->OrientationMarkerEnabled)
-      {
-      int id = this->GetOrientationMarkerTypeFromString(attValue);
-      if (id<0)
-        {
-        vtkWarningMacro("Invalid orientationMarkerType: "<<(attValue?attValue:"(none)"));
-        }
-      else
-        {
-        this->OrientationMarkerType = id;
-        }
-      }
-    else if (!strcmp(attName, "orientationMarkerSize") && this->OrientationMarkerEnabled)
-      {
-      int id = this->GetOrientationMarkerSizeFromString(attValue);
-      if (id<0)
-        {
-        vtkWarningMacro("Invalid orientationMarkerSize: "<<(attValue?attValue:"(none)"));
-        }
-      else
-        {
-        this->OrientationMarkerSize = id;
-        }
-      }
-    else if (!strcmp(attName, "rulerType") && this->RulerEnabled)
-      {
-      int id = this->GetRulerTypeFromString(attValue);
-      if (id<0)
-        {
-        vtkWarningMacro("Invalid rulerType: "<<(attValue?attValue:"(none)"));
-        }
-      else
-        {
-        this->RulerType = id;
-        }
-      }
-    else if (!strcmp(attName, "AxisLabels"))
+    if (!strcmp(attName, "AxisLabels"))
       {
       std::stringstream labels(attValue);
       std::string label;
@@ -240,32 +166,11 @@ void vtkMRMLAbstractViewNode::ReadXMLAttributes(const char** atts)
         this->SetAxisLabel(labelIndex, "");
         }
       }
-
-    // XXX Do not read 'visibility' attribute and default to 1 because:
-    // (1) commit r21034 (STYLE: Add abstract class for all view nodes)
-    // changed the default value for 'visibility' attribute from 1 to 0. This
-    // means there are a lot of already saved scene where visibility attribute
-    // value is saved as 0.
-    // (2) support for visibility attribute by the layout manager has been
-    // added.
-    // XXX Support for 'visibility' attribute could be restored by updating
-    // the mrml version. Scene with a newer version number would consider the
-    // serialized attribute whereas older scene would not.
-//    else if (!strcmp(attName, "visibility"))
-//      {
-//      if (!strcmp(attValue,"true"))
-//        {
-//        this->Visibility = 1;
-//        }
-//      else
-//        {
-//        this->Visibility = 0;
-//        }
-//      }
     }
 #if MRML_SUPPORT_VERSION < 0x040000
-  if (!isBackgroundColor2Set)
+  if (this->BackgroundColor2[0] == backGroundColorInvalid)
     {
+    // BackgroundColor2 has not been set
     this->BackgroundColor2[0] = this->BackgroundColor[0];
     this->BackgroundColor2[1] = this->BackgroundColor[1];
     this->BackgroundColor2[2] = this->BackgroundColor[2];
@@ -299,27 +204,26 @@ void vtkMRMLAbstractViewNode::Copy(vtkMRMLNode *anode)
   int disabledModify = this->StartModify();
 
   Superclass::Copy(anode);
-  vtkMRMLAbstractViewNode *node = (vtkMRMLAbstractViewNode *) anode;
 
-  this->SetLayoutLabel(node->GetLayoutLabel());
-  this->SetViewGroup(node->GetViewGroup());
-  this->SetBackgroundColor ( node->GetBackgroundColor ( ) );
-  this->SetBackgroundColor2 ( node->GetBackgroundColor2 ( ) );
-  // Important: do not use SetActive or RemoveActiveFlagInScene will be called
-  this->Active = node->GetActive();
-  this->Visibility = node->GetVisibility();
-
+  vtkMRMLCopyBeginMacro(anode);
+  vtkMRMLCopyStringMacro(LayoutLabel);
+  vtkMRMLCopyIntMacro(ViewGroup);
+  vtkMRMLCopyIntMacro(Active);
+  vtkMRMLCopyIntMacro(Visibility);
+  vtkMRMLCopyVectorMacro(BackgroundColor, double, 3);
+  vtkMRMLCopyVectorMacro(BackgroundColor2, double, 3);
   if (this->OrientationMarkerEnabled)
     {
-    this->OrientationMarkerType = node->OrientationMarkerType;
-    this->OrientationMarkerSize = node->OrientationMarkerSize;
+    vtkMRMLCopyEnumMacro(OrientationMarkerType);
+    vtkMRMLCopyEnumMacro(OrientationMarkerSize);
     }
-
   if (this->RulerEnabled)
     {
-    this->RulerType = node->RulerType;
+    vtkMRMLCopyEnumMacro(RulerType);
     }
+  vtkMRMLCopyEndMacro();
 
+  vtkMRMLAbstractViewNode *node = (vtkMRMLAbstractViewNode *) anode;
   for (int i=0; i<vtkMRMLAbstractViewNode::AxisLabelsCount; i++)
     {
     this->SetAxisLabel(i,node->GetAxisLabel(i));
@@ -354,27 +258,23 @@ void vtkMRMLAbstractViewNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   Superclass::PrintSelf(os,indent);
 
-  os << indent << "LayoutLabel: " << (this->LayoutLabel ? this->LayoutLabel : "(null)") << std::endl;
-  os << indent << "ViewGroup: " << this->ViewGroup << std::endl;
-  os << indent << "Active:        " << this->Active << "\n";
-  os << indent << "Visibility:        " << this->Visibility << "\n";
-  os << indent << "BackgroundColor:       " << this->BackgroundColor[0] << " "
-     << this->BackgroundColor[1] << " "
-     << this->BackgroundColor[2] <<"\n";
-  os << indent << "BackgroundColor2:       " << this->BackgroundColor2[0] << " "
-     << this->BackgroundColor2[1] << " "
-     << this->BackgroundColor2[2] <<"\n";
-
+  vtkMRMLPrintBeginMacro(os, indent);
+  vtkMRMLPrintStringMacro(LayoutLabel);
+  vtkMRMLPrintIntMacro(ViewGroup);
+  vtkMRMLPrintIntMacro(Active);
+  vtkMRMLPrintIntMacro(Visibility);
+  vtkMRMLPrintVectorMacro(BackgroundColor, double, 3);
+  vtkMRMLPrintVectorMacro(BackgroundColor2, double, 3);
   if (this->OrientationMarkerEnabled)
     {
-    os << indent << "Orientation marker type: " << this->GetOrientationMarkerTypeAsString(this->OrientationMarkerType) << "\n";
-    os << indent << "Orientation marker size: " << this->GetOrientationMarkerSizeAsString(this->OrientationMarkerSize) << "\n";
+    vtkMRMLPrintEnumMacro(OrientationMarkerType);
+    vtkMRMLPrintEnumMacro(OrientationMarkerSize);
     }
-
   if (this->RulerEnabled)
     {
-    os << indent << "Ruler type: " << this->GetRulerTypeAsString(this->RulerType) << "\n";
+    vtkMRMLPrintEnumMacro(RulerType);
     }
+  vtkMRMLPrintEndMacro();
 
   os << indent << " AxisLabels: ";
   for (int i=0; i<vtkMRMLAbstractViewNode::AxisLabelsCount; i++)
@@ -383,27 +283,6 @@ void vtkMRMLAbstractViewNode::PrintSelf(ostream& os, vtkIndent indent)
     }
   os << "\n";
 
-}
-
-//----------------------------------------------------------------------------
-void vtkMRMLAbstractViewNode::RemoveActiveFlagInScene()
-{
-  if (this->Scene == NULL)
-    {
-    return;
-    }
-
-  vtkMRMLAbstractViewNode *node = NULL;
-  int nnodes = this->Scene->GetNumberOfNodesByClass("vtkMRMLAbstractViewNode");
-  for (int n=0; n<nnodes; n++)
-    {
-    node = vtkMRMLAbstractViewNode::SafeDownCast (
-       this->Scene->GetNthNodeByClass(n, "vtkMRMLAbstractViewNode"));
-    if (node != this)
-      {
-      node->SetActive(0);
-      }
-    }
 }
 
 //------------------------------------------------------------------------------
@@ -573,7 +452,8 @@ const char* vtkMRMLAbstractViewNode::GetAxisLabel(int labelIndex)
 {
   if (labelIndex<0 || labelIndex>=vtkMRMLAbstractViewNode::AxisLabelsCount)
     {
-    vtkErrorMacro("vtkMRMLAbstractViewNode::GetAxisLabel labelIndex=" << labelIndex << " argument is invalid. Valid range: 0<=labelIndex<" << vtkMRMLAbstractViewNode::AxisLabelsCount);
+    vtkErrorMacro("vtkMRMLAbstractViewNode::GetAxisLabel labelIndex=" << labelIndex << " argument is invalid. Valid range: 0<=labelIndex<"
+      << vtkMRMLAbstractViewNode::AxisLabelsCount);
     return "";
     }
   return this->AxisLabels->GetValue(labelIndex);
@@ -584,7 +464,8 @@ void vtkMRMLAbstractViewNode::SetAxisLabel(int labelIndex, const char* label)
 {
   if (labelIndex<0 || labelIndex>=vtkMRMLAbstractViewNode::AxisLabelsCount)
     {
-    vtkErrorMacro("vtkMRMLAbstractViewNode::SetAxisLabel labelIndex="<<labelIndex<<" argument is invalid. Valid range: 0<=labelIndex<" <<vtkMRMLAbstractViewNode::AxisLabelsCount);
+    vtkErrorMacro("vtkMRMLAbstractViewNode::SetAxisLabel labelIndex=" << labelIndex << " argument is invalid. Valid range: 0<=labelIndex<"
+      << vtkMRMLAbstractViewNode::AxisLabelsCount);
     return;
     }
   if (label==NULL)
@@ -598,4 +479,34 @@ void vtkMRMLAbstractViewNode::SetAxisLabel(int labelIndex, const char* label)
     }
   this->AxisLabels->SetValue(labelIndex, label);
   this->Modified();
+}
+
+//----------------------------------------------------------------------------
+vtkMRMLNode* vtkMRMLAbstractViewNode::GetParentLayoutNode()
+{
+  return this->GetNodeReference(this->ParentLayoutNodeReferenceRole);
+}
+
+//----------------------------------------------------------------------------
+bool vtkMRMLAbstractViewNode::SetAndObserveParentLayoutNodeID(const char *layoutNodeId)
+{
+  if (!layoutNodeId)
+    {
+    return false;
+    }
+
+  this->SetAndObserveNodeReferenceID(this->ParentLayoutNodeReferenceRole, layoutNodeId);
+  return true;
+}
+
+//----------------------------------------------------------------------------
+bool vtkMRMLAbstractViewNode::SetAndObserveParentLayoutNode(vtkMRMLNode* node)
+{
+  if (node && this->Scene != node->GetScene())
+    {
+    vtkErrorMacro("Cannot set reference: the referenced and referencing node are not in the same scene");
+    return false;
+    }
+
+  return this->SetAndObserveParentLayoutNodeID(node ? node->GetID() : NULL);
 }

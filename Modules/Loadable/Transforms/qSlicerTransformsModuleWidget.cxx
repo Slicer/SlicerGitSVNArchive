@@ -160,6 +160,9 @@ void qSlicerTransformsModuleWidget::setup()
   // Set a static min/max range to let users freely enter values
   d->MatrixWidget->setRange(-1e10, 1e10);
 
+  d->RotationSliders->setSingleStep(0.1);
+  d->RotationSliders->setDecimals(1);
+
   // Transform nodes connection
   this->connect(d->TransformToolButton, SIGNAL(clicked()),
                 SLOT(transformSelectedNodes()));
@@ -212,6 +215,7 @@ void qSlicerTransformsModuleWidget::setup()
     SIGNAL(currentNodeChanged(vtkMRMLNode*)),
     SLOT(updateConvertButtonState()));
 
+  this->onTransformableSectionClicked(d->TransformedCollapsibleButton->isChecked());
   this->onNodeSelected(0);
   this->updateConvertButtonState();
 }
@@ -280,6 +284,11 @@ void qSlicerTransformsModuleWidget::onNodeSelected(vtkMRMLNode* node)
   this->qvtkReconnect(d->MRMLTransformNode, transformNode,
                       vtkMRMLTransformableNode::TransformModifiedEvent,
                       this, SLOT(onMRMLTransformNodeModified(vtkObject*)));
+
+  if (d->MRMLTransformNode == 0 && transformNode != 0)
+    {
+    d->TransformedCollapsibleButton->setCollapsed(false);
+    }
 
   d->MRMLTransformNode = transformNode;
 

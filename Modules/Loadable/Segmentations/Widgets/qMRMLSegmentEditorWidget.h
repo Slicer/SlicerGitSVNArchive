@@ -47,6 +47,7 @@ class QItemSelection;
 class QAbstractButton;
 class qMRMLSegmentEditorWidgetPrivate;
 class qSlicerSegmentEditorAbstractEffect;
+class qSlicerAbstractModuleWidget;
 
 /// \brief Qt widget for editing a segment from a segmentation using Editor effects.
 /// \ingroup SlicerRt_QtModules_Segmentations_Widgets
@@ -66,6 +67,8 @@ class Q_SLICER_MODULE_SEGMENTATIONS_WIDGETS_EXPORT qMRMLSegmentEditorWidget : pu
   QVTK_OBJECT
   Q_PROPERTY(bool segmentationNodeSelectorVisible READ segmentationNodeSelectorVisible WRITE setSegmentationNodeSelectorVisible)
   Q_PROPERTY(bool masterVolumeNodeSelectorVisible READ masterVolumeNodeSelectorVisible WRITE setMasterVolumeNodeSelectorVisible)
+  Q_PROPERTY(bool autoShowMasterVolumeNode READ autoShowMasterVolumeNode WRITE setAutoShowMasterVolumeNode)
+  Q_PROPERTY(bool switchToSegmentationsButtonVisible READ switchToSegmentationsButtonVisible WRITE setSwitchToSegmentationsButtonVisible)
   Q_PROPERTY(bool undoEnabled READ undoEnabled WRITE setUndoEnabled)
   Q_PROPERTY(int maximumNumberOfUndoStates READ maximumNumberOfUndoStates WRITE setMaximumNumberOfUndoStates)
   Q_PROPERTY(bool readOnly READ readOnly WRITE setReadOnly)
@@ -149,6 +152,12 @@ public:
   bool segmentationNodeSelectorVisible() const;
   /// Show/hide the master volume node selector widget.
   bool masterVolumeNodeSelectorVisible() const;
+  /// If autoShowMasterVolumeNode is enabled then master volume is automatically
+  /// displayed in slice views when a new master volume is selected or layout is changed.
+  /// Enabled by default.
+  bool autoShowMasterVolumeNode() const;
+  /// Show/hide the switch to Segmentations module button
+  bool switchToSegmentationsButtonVisible() const;
   /// Undo/redo enabled.
   bool undoEnabled() const;
   /// Get maximum number of saved undo/redo states.
@@ -216,12 +225,20 @@ public slots:
   void setSegmentationNodeSelectorVisible(bool);
   /// Show/hide the master volume node selector widget.
   void setMasterVolumeNodeSelectorVisible(bool);
+  /// If autoShowMasterVolumeNode is enabled then master volume is automatically
+  /// displayed in slice views when a new master volume is selected or layout is changed.
+  /// Enabled by default.
+  void setAutoShowMasterVolumeNode(bool);
+  /// Show/hide the switch to Segmentations module button
+  void setSwitchToSegmentationsButtonVisible(bool);
   /// Undo/redo enabled.
   void setUndoEnabled(bool);
   /// Set maximum number of saved undo/redo states.
   void setMaximumNumberOfUndoStates(int);
   /// Set whether the widget is read-only
   void setReadOnly(bool aReadOnly);
+  /// Enable/disable masking using master volume intensity
+  void toggleMasterVolumeIntensityMaskEnabled();
 
   /// Restores previous saved state of the segmentation
   void undo();
@@ -242,9 +259,21 @@ public slots:
   /// Returns true if there were lightbox views.
   bool turnOffLightboxes();
 
+  /// Unselect labelmap layer in all slice views in the active layout
+  void hideLabelLayer();
+
   /// Set appearance of effect buttons. Showing text may make it easier
   /// to find an effect but uses more space.
   void setEffectButtonStyle(Qt::ToolButtonStyle toolButtonStyle);
+
+  /// Perform updates to prevent layout collapse 
+  void updateEffectLayouts();
+
+  /// Show master volume in slice views by hiding foreground and label volumes.
+  /// \param forceShowInBackground If set to false then views will only change
+  ///   if master volume is not selected as either foreground or background volume.
+  /// \param fitSlice Reset field of view to include all volumes.
+  void showMasterVolumeInSliceViewers(bool forceShowInBackground = false, bool fitSlice = false);
 
 signals:
   /// Emitted if different segment is selected in the segment list.
@@ -266,10 +295,15 @@ protected slots:
   /// Handles segment selection changes
   void onSegmentSelectionChanged(const QItemSelection &selected, const QItemSelection &deselected);
 
+  /// Handles mouse mode changes (view / place markups)
+  void onInteractionNodeModified();
+
   /// Activate effect on clicking its button
   void onEffectButtonClicked(QAbstractButton* button);
 
-  /// Effect selection shortcut is activated
+  /// Effect selection shortcut is activated.
+  /// 0 means deselect active effect.
+  /// -1 toggles between no effect/last active effect.
   void onSelectEffectShortcut();
 
   /// Segment selection shortcut is activated
@@ -279,6 +313,8 @@ protected slots:
   void onAddSegment();
   /// Remove selected segment
   void onRemoveSegment();
+  /// Edit segmentation properties in Segmentations module
+  void onSwitchToSegmentations();
   /// Create/remove closed surface model for the segmentation that is automatically updated when editing
   void onCreateSurfaceToggled(bool on);
   /// Called if a segment or representation is added or removed
@@ -287,6 +323,8 @@ protected slots:
   void onMasterVolumeImageDataModified();
   /// Handle layout changes
   void onLayoutChanged(int layoutIndex);
+  /// Handle display node view ID changes
+  void onSegmentationDisplayModified();
 
   /// Changed selected editable segment area
   void onMaskModeChanged(int);
@@ -302,11 +340,22 @@ protected slots:
   /// Clean up when scene is closed
   void onMRMLSceneEndCloseEvent();
 
-  /// Sets default parameters in parameter set node (after setting or closing scene)
+  /// Set default parameters in parameter set node (after setting or closing scene)
   void initializeParameterSetNode();
 
-  /// Updates GUI if segmentation history is changed (e.g., undo/redo button states)
+  /// Update GUI if segmentation history is changed (e.g., undo/redo button states)
   void onSegmentationHistoryChanged();
+
+  /// Update layout after expanding/collapsing the help text browser
+  void anchorClicked(const QUrl &url);
+
+  /// Show surface smoothing option
+  void onSetSurfaceSmoothingClicked();
+  /// Switch to Segmentations module and jump to Import/Export section
+  void onImportExportActionClicked();
+
+  /// Update masking section on the UI
+  void updateMaskingSection();
 
 protected:
   /// Callback function invoked when interaction happens
@@ -319,6 +368,9 @@ protected:
   /// Switches the master representation to binary labelmap. If the master representation
   /// cannot be set to binary labelmap (e.g., the user does not allow it) then false is returned.
   bool setMasterRepresentationToBinaryLabelmap();
+
+  /// Switches to Segmentations module and returns the module widget
+  qSlicerAbstractModuleWidget* switchToSegmentationsModule();
 
 protected:
   QScopedPointer<qMRMLSegmentEditorWidgetPrivate> d_ptr;

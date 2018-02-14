@@ -25,9 +25,6 @@
 #include "qMRMLColorModel_p.h"
 #include "qMRMLUtils.h"
 
-// MRMLLogic includes
-#include <vtkMRMLColorLogic.h>
-
 // MRML includes
 #include <vtkMRMLColorTableNode.h>
 
@@ -43,6 +40,7 @@ qMRMLColorModelPrivate::qMRMLColorModelPrivate(qMRMLColorModel& object)
   this->LabelColumn = 1;
   this->OpacityColumn = 2;
   this->CheckableColumn = -1;
+  this->IsUpdatingWidgetFromMRML = false;
 }
 
 //------------------------------------------------------------------------------
@@ -149,20 +147,6 @@ vtkMRMLColorNode* qMRMLColorModel::mrmlColorNode()const
 {
   Q_D(const qMRMLColorModel);
   return d->MRMLColorNode;
-}
-
-//------------------------------------------------------------------------------
-void qMRMLColorModel::setMRMLColorLogic(vtkMRMLColorLogic* colorLogic)
-{
-  Q_D(qMRMLColorModel);
-  d->ColorLogic = colorLogic;
-}
-
-//------------------------------------------------------------------------------
-vtkMRMLColorLogic* qMRMLColorModel::mrmlColorLogic()const
-{
-  Q_D(const qMRMLColorModel);
-  return d->ColorLogic.GetPointer();
 }
 
 //------------------------------------------------------------------------------
@@ -340,9 +324,17 @@ void qMRMLColorModel::updateNode()
 {
   Q_D(qMRMLColorModel);
 
+  if (d->IsUpdatingWidgetFromMRML)
+    {
+    // Updating widget from MRML is already in progress
+    return;
+    }
+  d->IsUpdatingWidgetFromMRML = true;
+
   if (d->MRMLColorNode == 0)
     {
     this->setRowCount(this->noneEnabled() ? 1 : 0);
+    d->IsUpdatingWidgetFromMRML = false;
     return;
     }
 
@@ -370,6 +362,8 @@ void qMRMLColorModel::updateNode()
   QObject::connect(this, SIGNAL(itemChanged(QStandardItem*)),
                    this, SLOT(onItemChanged(QStandardItem*)),
                    Qt::UniqueConnection);
+
+  d->IsUpdatingWidgetFromMRML = false;
 }
 
 //------------------------------------------------------------------------------
@@ -381,13 +375,13 @@ void qMRMLColorModel::updateItemFromColor(QStandardItem* item, int color, int co
     return;
     }
   item->setData(color, qMRMLColorModel::ColorEntryRole);
-  double rgba[4] = {0.,0.,0.,1.};
 
   QString colorName = d->MRMLColorNode->GetNamesInitialised() ?
     d->MRMLColorNode->GetColorName(color) : "";
   if (column == d->ColorColumn)
     {
     QPixmap pixmap;
+    double rgba[4] = { 0., 0., 0., 1. };
     const bool validColor = d->MRMLColorNode->GetColor(color, rgba);
     if (validColor)
       {
@@ -412,52 +406,12 @@ void qMRMLColorModel::updateItemFromColor(QStandardItem* item, int color, int co
   if (column == d->LabelColumn)
     {
     item->setText(colorName);
-    // check for terminology
-    if (this->mrmlColorLogic() &&
-        this->mrmlColorLogic()->TerminologyExists(d->MRMLColorNode->GetName()))
-      {
-      const char *lutName = d->MRMLColorNode->GetName();
-      std::string category = this->mrmlColorLogic()->GetSegmentedPropertyCategoryCodeMeaning(color, lutName);
-      std::string type = this->mrmlColorLogic()->GetSegmentedPropertyTypeCodeMeaning(color, lutName);
-      std::string typeMod = this->mrmlColorLogic()->GetSegmentedPropertyTypeModifierCodeMeaning(color, lutName);
-      std::string region = this->mrmlColorLogic()->GetAnatomicRegionCodeMeaning(color, lutName);
-      std::string regionMod = this->mrmlColorLogic()->GetAnatomicRegionModifierCodeMeaning(color, lutName);
-      QString terminology = QString("Terminology:");
-      // only show the not empty terminology terms
-      if (!category.empty())
-        {
-        terminology = terminology + QString("\nSegmentedPropertyCategory: %1").arg(category.c_str());
-        }
-      if (!type.empty())
-        {
-        terminology = terminology + QString("\nSegmentedPropertyType: %1").arg(type.c_str());
-        }
-      if (!typeMod.empty())
-        {
-        terminology = terminology + QString("\nSegmentedPropertyTypeModifier: %1").arg(typeMod.c_str());
-        }
-      if (!region.empty())
-        {
-        terminology = terminology + QString("\nAnatomicRegion: %1").arg(region.c_str());
-        }
-      if (!regionMod.empty())
-        {
-        terminology = terminology + QString("\nAnatomicRegionModifier: %1").arg(regionMod.c_str());
-        }
-      // check if no terminology was found and use an empty tool tip
-      if (!terminology.compare("Terminology:"))
-        {
-        terminology = QString("");
-        }
-      item->setToolTip(terminology);
-      }
-    else
-      {
-      item->setToolTip("");
-      }
+    item->setToolTip("");
     }
   if (column == d->OpacityColumn)
     {
+    double rgba[4] = { 0., 0., 0., 1. };
+    d->MRMLColorNode->GetColor(color, rgba);
     item->setData(QString::number(rgba[3],'f',2), Qt::DisplayRole);
     }
   if (column == d->CheckableColumn)

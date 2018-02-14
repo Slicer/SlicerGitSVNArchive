@@ -243,8 +243,7 @@ class RSNAVisTutorialTest(unittest.TestCase):
       type = slicer.qMRMLScreenShotDialog.FullLayout
 
     # grab and convert to vtk image data
-    qpixMap = qt.QPixmap().grabWidget(widget)
-    qimage = qpixMap.toImage()
+    qimage = ctk.ctkWidgetsUtils.grabWidget(widget)
     imageData = vtk.vtkImageData()
     slicer.qMRMLUtils().qImageToVtkImageData(qimage,imageData)
 
@@ -313,6 +312,7 @@ class RSNAVisTutorialTest(unittest.TestCase):
       indexer.addDirectory(slicer.dicomDatabase, dicomFilesDirectory, None)
       indexer.waitForImportFinished()
 
+      dicomWidget = slicer.modules.DICOMWidget
       dicomWidget.detailsPopup.open()
 
       # load the data by series UID

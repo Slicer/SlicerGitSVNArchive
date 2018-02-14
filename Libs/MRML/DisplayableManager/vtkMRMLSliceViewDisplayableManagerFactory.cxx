@@ -27,10 +27,6 @@
 //----------------------------------------------------------------------------
 
 //----------------------------------------------------------------------------
-// Needed when we don't use the vtkStandardNewMacro.
-vtkInstantiatorNewMacro(vtkMRMLSliceViewDisplayableManagerFactory);
-
-//----------------------------------------------------------------------------
 // vtkMRMLSliceViewDisplayableManagerFactory methods
 
 //----------------------------------------------------------------------------
@@ -55,6 +51,9 @@ vtkMRMLSliceViewDisplayableManagerFactory* vtkMRMLSliceViewDisplayableManagerFac
     if(!Self::Instance)
       {
       Self::Instance = new vtkMRMLSliceViewDisplayableManagerFactory;
+#ifdef VTK_HAS_INITIALIZE_OBJECT_BASE
+      Self::Instance->InitializeObjectBase();
+#endif
       }
     }
   // return the instance

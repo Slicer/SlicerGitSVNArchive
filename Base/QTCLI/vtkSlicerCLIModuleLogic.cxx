@@ -30,7 +30,6 @@
 #include <vtkMRMLStorageNode.h>
 #include <vtkMRMLModelStorageNode.h>
 #include <vtkMRMLTransformNode.h>
-#include <vtkMRMLSubjectHierarchyNode.h>
 
 // VTK includes
 #include <vtkCallbackCommand.h>
@@ -192,142 +191,20 @@ public:
   ~vtkSlicerCLIOneShotCallbackCallback() {}
 };
 
-//---------------------------------------------------------------------------
-// A callback command to edit the transform hierarchy. This command is configured in the
-// processing thread and then passed to the main gui thread to be executed..
-//
-// Other hierarchies can be edited in this manner by creating callbacks specific to the desired edits
-class vtkSlicerCLIEditTransformHierarchyCallback : public vtkCallbackCommand
-{
-public:
-  static vtkSlicerCLIEditTransformHierarchyCallback *New()
-  {
-    return new vtkSlicerCLIEditTransformHierarchyCallback;
-  }
-  virtual void Execute(vtkObject* vtkNotUsed(caller),
-                       unsigned long vtkNotUsed(eid),
-                       void * vtkNotUsed(callData))
-  {
-    vtkMRMLNode *nd = this->CLIModuleLogic->GetMRMLScene()->GetNodeByID(this->NodeID.c_str());
-    vtkMRMLTransformableNode *tnd = vtkMRMLTransformableNode::SafeDownCast(nd);
-
-    if (tnd)
-    {
-      tnd->SetAndObserveTransformNodeID(this->TransformNodeID.c_str());
-    }
-  }
-
-  void SetCLIModuleLogic(vtkSlicerCLIModuleLogic* logic)
-  {
-    this->CLIModuleLogic = logic;
-  }
-  vtkSlicerCLIModuleLogic* GetCLIModuleLogic()
-  {
-    return this->CLIModuleLogic;
-  }
-
-  void SetTransformNodeID(const std::string& id)
-  {
-    this->TransformNodeID = id;
-  }
-
-  void SetNodeID(const std::string& id)
-  {
-    this->NodeID = id;
-  }
-
-protected:
-  vtkSlicerCLIEditTransformHierarchyCallback()
-  {
-    this->CLIModuleLogic = 0;
-  }
-  ~vtkSlicerCLIEditTransformHierarchyCallback()
-  {
-    this->SetCLIModuleLogic(0);
-  }
-
-  vtkSlicerCLIModuleLogic* CLIModuleLogic;
-  std::string TransformNodeID;
-  std::string NodeID;
-};
-
-//---------------------------------------------------------------------------
-// A callback command to edit the subject hierarchy.
-class vtkSlicerCLIEditSubjectHierarchyCallback : public vtkCallbackCommand
-{
-public:
-  static vtkSlicerCLIEditSubjectHierarchyCallback *New()
-  {
-    return new vtkSlicerCLIEditSubjectHierarchyCallback;
-  }
-  virtual void Execute(vtkObject* vtkNotUsed(caller),
-                       unsigned long vtkNotUsed(eid),
-                       void * vtkNotUsed(callData))
-  {
-    vtkMRMLNode *nd = this->CLIModuleLogic->GetMRMLScene()->GetNodeByID(this->ReferenceNodeID.c_str());
-    vtkMRMLNode *ond = this->CLIModuleLogic->GetMRMLScene()->GetNodeByID(this->OutputNodeID.c_str());
-    vtkMRMLSubjectHierarchyNode *shnd = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(this->CLIModuleLogic->GetMRMLScene());
-    vtkIdType shItemID = shnd->GetItemByDataNode(nd);
-    vtkIdType outShItemID = shnd->GetItemByDataNode(ond);
-
-    if (shItemID && outShItemID)
-    {
-      vtkIdType parentItemID = shnd->GetItemParent(shItemID);
-      shnd->SetItemParent(outShItemID, parentItemID);
-      shnd->SetItemLevel(outShItemID, shnd->GetItemLevel(shItemID));
-    }
-  }
-
-  void SetCLIModuleLogic(vtkSlicerCLIModuleLogic* logic)
-  {
-    this->CLIModuleLogic = logic;
-  }
-  vtkSlicerCLIModuleLogic* GetCLIModuleLogic()
-  {
-    return this->CLIModuleLogic;
-  }
-
-  void SetOutputNodeID(const std::string& id)
-  {
-    this->OutputNodeID = id;
-  }
-
-  void SetReferenceNodeID(const std::string& id)
-  {
-    this->ReferenceNodeID = id;
-  }
-
-protected:
-  vtkSlicerCLIEditSubjectHierarchyCallback()
-  {
-    this->CLIModuleLogic = 0;
-  }
-  ~vtkSlicerCLIEditSubjectHierarchyCallback()
-  {
-    this->SetCLIModuleLogic(0);
-  }
-
-  /// CLI logic
-  vtkSlicerCLIModuleLogic* CLIModuleLogic;
-  /// Node ID of output node to move in the hierarchy
-  std::string OutputNodeID;
-  /// Node ID of reference node specifying where to move output node
-  std::string ReferenceNodeID;
-};
-
 //----------------------------------------------------------------------------
 class vtkSlicerCLIModuleLogic::vtkInternal
 {
 public:
   ModuleDescription DefaultModuleDescription;
   int DeleteTemporaryFiles;
+  int AllowInMemoryTransfer;
 
   int RedirectModuleStreams;
 
   itk::MutexLock::Pointer ProcessesKillLock;
   std::vector<itksysProcess*> Processes;
 
-  typedef std::vector<std::pair<int, vtkMRMLCommandLineModuleNode*> > RequestType;
+  typedef std::vector<std::pair<vtkMTimeType, vtkMRMLCommandLineModuleNode*> > RequestType;
   struct FindRequest
   {
     FindRequest(vtkMRMLCommandLineModuleNode* node)
@@ -335,21 +212,21 @@ public:
       , LastRequestUID(0)
     {
     }
-    FindRequest(int requestUID)
+    FindRequest(vtkMTimeType requestUID)
       : Node(0)
       , LastRequestUID(requestUID)
     {
     }
-    bool operator()(const std::pair<int, vtkMRMLCommandLineModuleNode*>& p)
+    bool operator()(const std::pair<vtkMTimeType, vtkMRMLCommandLineModuleNode*>& p)
     {
       return (this->Node != 0 && p.second == this->Node) ||
         (this->LastRequestUID != 0 && p.first == this->LastRequestUID);
     }
     vtkMRMLCommandLineModuleNode* Node;
-    int LastRequestUID;
+    vtkMTimeType LastRequestUID;
   };
 
-  void SetLastRequest(vtkMRMLCommandLineModuleNode* node, int requestUID)
+  void SetLastRequest(vtkMRMLCommandLineModuleNode* node, vtkMTimeType requestUID)
   {
     RequestType::iterator it = std::find_if(
       this->LastRequests.begin(), this->LastRequests.end(), FindRequest(node));
@@ -363,7 +240,7 @@ public:
       it->first = requestUID;
       }
   }
-  int GetLastRequest(vtkMRMLCommandLineModuleNode* node)
+  vtkMTimeType GetLastRequest(vtkMRMLCommandLineModuleNode* node)
   {
     RequestType::iterator it = std::find_if(
       this->LastRequests.begin(), this->LastRequests.end(), FindRequest(node));
@@ -422,6 +299,7 @@ vtkSlicerCLIModuleLogic::vtkSlicerCLIModuleLogic()
 
   this->Internal->ProcessesKillLock = itk::MutexLock::New();
   this->Internal->DeleteTemporaryFiles = 1;
+  this->Internal->AllowInMemoryTransfer = 1;
   this->Internal->RedirectModuleStreams = 1;
   this->Internal->RescheduleCallback =
     vtkSmartPointer<vtkSlicerCLIRescheduleCallback>::New();
@@ -507,6 +385,22 @@ void vtkSlicerCLIModuleLogic::SetDeleteTemporaryFiles(int value)
 int vtkSlicerCLIModuleLogic::GetDeleteTemporaryFiles() const
 {
   return this->Internal->DeleteTemporaryFiles;
+}
+
+//----------------------------------------------------------------------------
+void vtkSlicerCLIModuleLogic::SetAllowInMemoryTransfer(int value)
+{
+  vtkDebugMacro(<< this->GetClassName() << " (" << this << "): setting AllowInMemoryTransfer to " << value);
+  if (this->Internal->AllowInMemoryTransfer != value)
+    {
+    this->Internal->AllowInMemoryTransfer = value;
+    }
+}
+
+//----------------------------------------------------------------------------
+int vtkSlicerCLIModuleLogic::GetAllowInMemoryTransfer() const
+{
+  return this->Internal->AllowInMemoryTransfer;
 }
 
 //----------------------------------------------------------------------------
@@ -658,7 +552,9 @@ vtkSlicerCLIModuleLogic
 
   if (tag == "image")
     {
-    if ( commandType == CommandLineModule || type == "dynamic-contrast-enhanced")
+    if ( commandType == CommandLineModule
+         || type == "dynamic-contrast-enhanced"
+         || this->GetAllowInMemoryTransfer() == 0)
       {
       // If running an executable
 
@@ -1045,7 +941,7 @@ void vtkSlicerCLIModuleLogic::ApplyTask(void *clientdata)
           || (*pit).GetTag() == "transform" || (*pit).GetTag() == "table"
           || (*pit).GetTag() == "measurement" || (*pit).GetTag() == "pointfile")
         {
-        std::string id = (*pit).GetDefault();
+        std::string id = (*pit).GetValue();
 
         // if the parameter is hidden, then deduce its value/id
         if ((*pit).GetHidden() == "true")
@@ -1053,7 +949,7 @@ void vtkSlicerCLIModuleLogic::ApplyTask(void *clientdata)
           id = this->FindHiddenNodeID(node0->GetModuleDescription(), *pit);
 
           // cache the id so we don't have to look for it later
-          (*pit).SetDefault( id );
+          (*pit).SetValue( id );
           }
 
         // only keep track of objects associated with real nodes
@@ -1155,7 +1051,8 @@ void vtkSlicerCLIModuleLogic::ApplyTask(void *clientdata)
       //std::cerr << nd->GetName() << " is " << nd->GetClassName() << std::endl;
 
       // Check if we can transfer the datatype using a direct memory transfer
-      if (std::find(MemoryTransferPossible.begin(), MemoryTransferPossible.end(),
+      if ((this->GetAllowInMemoryTransfer() == 0) ||
+          std::find(MemoryTransferPossible.begin(), MemoryTransferPossible.end(),
                     nd->GetClassName()) == MemoryTransferPossible.end())
         {
         // Cannot use a memory transfer, use a StorageNode
@@ -1436,7 +1333,7 @@ void vtkSlicerCLIModuleLogic::ApplyTask(void *clientdata)
           {
           // simple parameter, write flag and value
           commandLineAsString.push_back(prefix + flag);
-          commandLineAsString.push_back((*pit).GetDefault());
+          commandLineAsString.push_back((*pit).GetValue());
           continue;
           }
         if ((*pit).GetTag() == "boolean")
@@ -1444,7 +1341,7 @@ void vtkSlicerCLIModuleLogic::ApplyTask(void *clientdata)
           // booleans only have a flag (no value) in non-Python modules
           if ( commandType != PythonModule )
             {
-            if ((*pit).GetDefault() == "true")
+            if ((*pit).GetValue() == "true")
               {
               commandLineAsString.push_back(prefix + flag);
               }
@@ -1453,7 +1350,7 @@ void vtkSlicerCLIModuleLogic::ApplyTask(void *clientdata)
             {
             // For Python, if the flag is true or false, specify that
             commandLineAsString.push_back ( prefix + flag );
-            commandLineAsString.push_back ( (*pit).GetDefault() );
+            commandLineAsString.push_back ( (*pit).GetValue() );
             }
           continue;
           }
@@ -1465,10 +1362,10 @@ void vtkSlicerCLIModuleLogic::ApplyTask(void *clientdata)
             || (*pit).GetTag() == "string-vector")
           {
           // Only write out the flag if value is not empty
-          if ((*pit).GetDefault() != "")
+          if ((*pit).GetValue() != "")
             {
             commandLineAsString.push_back(prefix + flag);
-            commandLineAsString.push_back((*pit).GetDefault());
+            commandLineAsString.push_back((*pit).GetValue());
             }
           continue;
           }
@@ -1483,13 +1380,13 @@ void vtkSlicerCLIModuleLogic::ApplyTask(void *clientdata)
           // established earlier
           MRMLIDToFileNameMap::const_iterator id2fn;
 
-          id2fn  = nodesToWrite.find( (*pit).GetDefault() );
+          id2fn  = nodesToWrite.find( (*pit).GetValue() );
           if ((*pit).GetChannel() == "input" && id2fn != nodesToWrite.end())
             {
             fname = (*id2fn).second;
             }
 
-          id2fn  = nodesToReload.find( (*pit).GetDefault() );
+          id2fn  = nodesToReload.find( (*pit).GetValue() );
           if ((*pit).GetChannel() == "output" && id2fn != nodesToReload.end())
             {
             fname = (*id2fn).second;
@@ -1497,7 +1394,7 @@ void vtkSlicerCLIModuleLogic::ApplyTask(void *clientdata)
 
           // check to see if we need to remap to a scene file and node id
           MRMLIDMap::iterator mit
-            = sceneToMiniSceneMap.find((*pit).GetDefault());
+            = sceneToMiniSceneMap.find((*pit).GetValue());
           if (mit != sceneToMiniSceneMap.end())
             {
             // node is being sent inside of a scene, so use the scene
@@ -1532,7 +1429,7 @@ void vtkSlicerCLIModuleLogic::ApplyTask(void *clientdata)
 
           // get the fiducial list node
           vtkMRMLNode *node
-            = this->GetMRMLScene()->GetNodeByID((*pit).GetDefault().c_str());
+            = this->GetMRMLScene()->GetNodeByID((*pit).GetValue().c_str());
           vtkMRMLFiducialListNode *fiducials
             = vtkMRMLFiducialListNode::SafeDownCast(node);
           vtkMRMLDisplayableHierarchyNode *points = vtkMRMLDisplayableHierarchyNode::SafeDownCast(node);
@@ -1641,7 +1538,7 @@ void vtkSlicerCLIModuleLogic::ApplyTask(void *clientdata)
             }
           // get the fiducial list node
           vtkMRMLNode *node
-            = this->GetMRMLScene()->GetNodeByID((*pit).GetDefault().c_str());
+            = this->GetMRMLScene()->GetNodeByID((*pit).GetValue().c_str());
           vtkMRMLDisplayableNode *markups = vtkMRMLDisplayableNode::SafeDownCast(node);
           if (markups && markups->IsA("vtkMRMLMarkupsFiducialNode"))
             {
@@ -1680,7 +1577,7 @@ void vtkSlicerCLIModuleLogic::ApplyTask(void *clientdata)
 
           // get the region node
           vtkMRMLNode *node
-            = this->GetMRMLScene()->GetNodeByID((*pit).GetDefault().c_str());
+            = this->GetMRMLScene()->GetNodeByID((*pit).GetValue().c_str());
           vtkMRMLROIListNode *regions = vtkMRMLROIListNode::SafeDownCast(node);
 
           vtkMRMLDisplayableHierarchyNode *points = vtkMRMLDisplayableHierarchyNode::SafeDownCast(node);
@@ -1804,7 +1701,7 @@ void vtkSlicerCLIModuleLogic::ApplyTask(void *clientdata)
         && (*iit).second.GetTag() != "double-vector"
         && (*iit).second.GetTag() != "string-vector")
       {
-      commandLineAsString.push_back((*iit).second.GetDefault());
+      commandLineAsString.push_back((*iit).second.GetValue());
       }
     else if ((*iit).second.GetTag() == "file"
              || (*iit).second.GetTag() == "directory"
@@ -1814,9 +1711,9 @@ void vtkSlicerCLIModuleLogic::ApplyTask(void *clientdata)
              || (*iit).second.GetTag() == "double-vector"
              || (*iit).second.GetTag() == "string-vector")
       {
-      if ((*iit).second.GetDefault() != "")
+      if ((*iit).second.GetValue() != "")
         {
-        commandLineAsString.push_back((*iit).second.GetDefault());
+        commandLineAsString.push_back((*iit).second.GetValue());
         }
       else
         {
@@ -1852,7 +1749,7 @@ void vtkSlicerCLIModuleLogic::ApplyTask(void *clientdata)
       if ((*iit).second.GetChannel() == "input")
         {
         // Check to make sure the index parameter is set
-        id2fn  = nodesToWrite.find( (*iit).second.GetDefault() );
+        id2fn  = nodesToWrite.find( (*iit).second.GetValue() );
         if (id2fn != nodesToWrite.end())
           {
           fname = (*id2fn).second;
@@ -1861,7 +1758,7 @@ void vtkSlicerCLIModuleLogic::ApplyTask(void *clientdata)
       else if ((*iit).second.GetChannel() == "output")
         {
         // Check to make sure the index parameter is set
-        id2fn  = nodesToReload.find( (*iit).second.GetDefault() );
+        id2fn  = nodesToReload.find( (*iit).second.GetValue() );
         if (id2fn != nodesToReload.end())
           {
           fname = (*id2fn).second;
@@ -1870,7 +1767,7 @@ void vtkSlicerCLIModuleLogic::ApplyTask(void *clientdata)
 
       // check to see if we need to remap to a scene file and node id
       MRMLIDMap::iterator mit
-        = sceneToMiniSceneMap.find((*iit).second.GetDefault());
+        = sceneToMiniSceneMap.find((*iit).second.GetValue());
       if (mit != sceneToMiniSceneMap.end())
         {
         // node is being sent inside of a scene, so use the scene
@@ -2491,8 +2388,8 @@ void vtkSlicerCLIModuleLogic::ApplyTask(void *clientdata)
         }
 
         bool deleteFile = this->GetDeleteTemporaryFiles();
-        int requestUID = this->GetApplicationLogic()
-          ->RequestReadData((*id2fn0).first.c_str(), (*id2fn0).second.c_str(),
+        vtkMTimeType requestUID = this->GetApplicationLogic()
+          ->RequestReadFile((*id2fn0).first.c_str(), (*id2fn0).second.c_str(),
                             displayData, deleteFile);
         this->Internal->SetLastRequest(node0, requestUID);
 
@@ -2508,109 +2405,6 @@ void vtkSlicerCLIModuleLogic::ApplyTask(void *clientdata)
           }
         }
       }
-
-    // rewire the mrml scene as directed
-    //
-    // 1. if an output transform has a reference, then that reference is placed under the transform.
-    //        (subject, predicate, object) = (reference, setTransform, transform)
-    //
-    // 2. if an output volume/model has a reference, then that output volume/model is placed in the
-    // same spot of the subject hierarchy as the reference.
-    //        (subject, predicate, object) = (reference, setParent, volume/model)
-    //
-    for (pgit = pgbeginit; pgit != pgendit; ++pgit)
-      {
-      // iterate over each parameter in this group
-      std::vector<ModuleParameter>::const_iterator pbeginit
-        = (*pgit).GetParameters().begin();
-      std::vector<ModuleParameter>::const_iterator pendit
-        = (*pgit).GetParameters().end();
-      std::vector<ModuleParameter>::const_iterator pit;
-
-      for (pit = pbeginit; pit != pendit; ++pit)
-        {
-        // does parameter have a reference attribute?
-        if ((*pit).GetChannel() == "output"  && (*pit).GetReference().size() > 0)
-          {
-          // does the reference parameter exist?
-          if (node0->GetModuleDescription().HasParameter((*pit).GetReference()))
-            {
-            // get the id stored in the parameter referenced
-            std::string reference = node0->GetModuleDescription().GetParameterDefaultValue((*pit).GetReference());
-            if (reference.size() > 0)
-              {
-              // "reference" can mean different things based on the parameter type.
-              // If  the parameter is a transform and the reference is transformable, then the transform hierarchy
-              // of the reference is manipulated such that the reference is under the transform.
-              // If the parameter is an image or a model, then the parameter is placed in subject hierarchy at the same
-              // level as the reference.
-
-              vtkMRMLNode *refNode = this->GetMRMLScene()->GetNodeByID(reference.c_str());
-              if (refNode)
-                {
-                if ((*pit).GetTag() == "transform")
-                  {
-                  // is the reference a transformable node?
-                  vtkMRMLTransformableNode *trefNode = vtkMRMLTransformableNode::SafeDownCast(refNode);
-                  if (trefNode)
-                    {
-                    if ( (*pit).GetDefault() != "" )
-                      {
-                      // Invoke an event that will cause the scene to be rewired in the main thread.
-                      // Pass a callback that performs the specific edit request. Callback is allocated here and
-                      // deleted once it is used.
-                      vtkSlicerCLIEditTransformHierarchyCallback *callback = vtkSlicerCLIEditTransformHierarchyCallback::New();
-                      callback->SetCLIModuleLogic(this);
-                      callback->SetNodeID(reference);
-                      callback->SetTransformNodeID((*pit).GetDefault());
-
-                      this->GetApplicationLogic()->InvokeEventWithDelay(0, this,
-                                                                        vtkSlicerCLIModuleLogic::RequestHierarchyEditEvent,
-                                                                        callback);
-
-                      // callback will be get deleted by the vtkSlicerCLIOneShotCallbackCallback observing this event
-                      }
-                    }
-                  }
-                else if (((*pit).GetTag() == "image") || ((*pit).GetTag() == "geometry"))
-                  {
-                  // Placing an image or model in the same position in a hierarchy as the reference
-                  if ( (*pit).GetDefault() != "" )
-                    {
-                    // Invoke an event that will cause the scene to be rewired in the main thread.
-                    // Pass a callback that performs the specific edit request. Callback is allocated here and
-                    // deleted once it is used.
-                    vtkSlicerCLIEditSubjectHierarchyCallback *callback = vtkSlicerCLIEditSubjectHierarchyCallback::New();
-                    callback->SetCLIModuleLogic(this);
-                    callback->SetReferenceNodeID(reference);
-                    callback->SetOutputNodeID((*pit).GetDefault());
-
-                    this->GetApplicationLogic()->InvokeEventWithDelay(0, this,
-                                                                      vtkSlicerCLIModuleLogic::RequestHierarchyEditEvent,
-                                                                      callback);
-
-                    // callback will be get deleted by the vtkSlicerCLIOneShotCallbackCallback observing this event
-                    }
-                  }
-                else
-                  {
-                  // TODO: other reference types
-                  }
-                }
-              else
-                {
-                vtkWarningMacro( << "Cannot find referenced node " << (*pit).GetDefault());
-                }
-              }
-            }
-          else
-            {
-            vtkWarningMacro( << "Referenced parameter unknown: " << (*pit).GetReference() );
-            }
-          }
-        } // for pit
-      } // for pgit
-    } // if status == Completing
 
   // if there was a miniscene that needs loading, request it
   if (miniscene->GetNumberOfNodes() > 0)
@@ -2640,7 +2434,7 @@ void vtkSlicerCLIModuleLogic::ApplyTask(void *clientdata)
         }
 
       // Place a request to read the miniscene and map any ids as necessary
-      int requestUID = this->GetApplicationLogic()
+      vtkMTimeType requestUID = this->GetApplicationLogic()
         ->RequestReadScene( minisceneFilename, keys, values,
                             displayData, deleteFile );
       this->Internal->SetLastRequest(node0, requestUID);
@@ -2650,6 +2444,94 @@ void vtkSlicerCLIModuleLogic::ApplyTask(void *clientdata)
       filesToDelete.insert(minisceneFilename);
       }
     }
+
+
+    // rewire the mrml scene as directed
+    //
+    // 1. if an output transform has a reference, then that reference is placed under the transform.
+    //        (subject, predicate, object) = (reference, setTransform, transform)
+    //
+    // 2. if an output volume/model has a reference, then that output volume/model is placed in the
+    // same spot of the subject hierarchy as the reference.
+    //        (subject, predicate, object) = (reference, setParent, volume/model)
+    //
+    for (pgit = pgbeginit; pgit != pgendit; ++pgit)
+      {
+      // iterate over each parameter in this group
+      std::vector<ModuleParameter>::const_iterator pbeginit
+        = (*pgit).GetParameters().begin();
+      std::vector<ModuleParameter>::const_iterator pendit
+        = (*pgit).GetParameters().end();
+      std::vector<ModuleParameter>::const_iterator pit;
+
+      for (pit = pbeginit; pit != pendit; ++pit)
+        {
+        // does parameter have a reference attribute?
+        if ((*pit).GetChannel() == "output"  && (*pit).GetReference().size() > 0)
+          {
+          // does the reference parameter exist?
+          if (node0->GetModuleDescription().HasParameter((*pit).GetReference()))
+            {
+            // get the id stored in the parameter referenced
+            std::string reference = node0->GetModuleDescription().GetParameterValue((*pit).GetReference());
+            if (reference.size() > 0)
+              {
+              // "reference" can mean different things based on the parameter type.
+              // If  the parameter is a transform and the reference is transformable, then the transform hierarchy
+              // of the reference is manipulated such that the reference is under the transform.
+              // If the parameter is an image or a model, then the parameter is placed in subject hierarchy at the same
+              // level as the reference.
+
+              vtkMRMLNode *refNode = this->GetMRMLScene()->GetNodeByID(reference.c_str());
+              if (refNode)
+                {
+                if ((*pit).GetTag() == "transform")
+                  {
+                  std::string transformNodeID = (*pit).GetValue();
+                  // is the reference a transformable node?
+                  vtkMRMLTransformableNode *trefNode = vtkMRMLTransformableNode::SafeDownCast(refNode);
+                  // Multiple transform nodes can refer to the same transformable node (e.g., linear or bspline transform
+                  // can be computed, whichever is computed should transform the moving volume),
+                  // we only want to use the transform that is not None.
+                  if (trefNode != NULL && !transformNodeID.empty())
+                    {
+                    // Place a request to update parent transform based of the referenced node
+                    vtkMTimeType requestUID = this->GetApplicationLogic()
+                      ->RequestUpdateParentTransform(reference, transformNodeID);
+                    this->Internal->SetLastRequest(node0, requestUID);
+                    }
+                  }
+                else if (((*pit).GetTag() == "image") || ((*pit).GetTag() == "geometry"))
+                  {
+                  // Placing an image or model in the same position in a hierarchy as the reference
+                  std::string updatedNodeID = (*pit).GetValue();
+                  if (!updatedNodeID.empty())
+                    {
+                    // Place a request to update location in the subject hierarchy based of the referenced node
+                    vtkMTimeType requestUID = this->GetApplicationLogic()
+                      ->RequestUpdateSubjectHierarchyLocation(updatedNodeID, reference);
+                    this->Internal->SetLastRequest(node0, requestUID);
+                    }
+                  }
+                else
+                  {
+                  // TODO: other reference types
+                  }
+                }
+              else
+                {
+                vtkWarningMacro( << "Cannot find referenced node " << (*pit).GetValue());
+                }
+              }
+            }
+          else
+            {
+            vtkWarningMacro( << "Referenced parameter unknown: " << (*pit).GetReference() );
+            }
+          }
+        } // for pit
+      } // for pgit
+    } // if status == Completing
 
   // clean up
   //
@@ -2714,7 +2596,7 @@ vtkSlicerCLIModuleLogic::FindHiddenNodeID(const ModuleDescription& d,
       std::string reference;
       if (d.HasParameter(p.GetReference()))
         {
-        reference = d.GetParameterDefaultValue(p.GetReference());
+        reference = d.GetParameterValue(p.GetReference());
 
         if (p.GetTag() == "table")
           {
@@ -2789,7 +2671,7 @@ vtkSlicerCLIModuleLogic::FindHiddenNodeID(const ModuleDescription& d,
   else
     {
     // not a hidden node, just return the default
-    id = p.GetDefault();
+    id = p.GetValue();
     }
 
   return id;

@@ -58,10 +58,6 @@ vtkSegmentationConverterFactoryInitialize::~vtkSegmentationConverterFactoryIniti
 }
 
 //----------------------------------------------------------------------------
-// Needed when we don't use the vtkStandardNewMacro.
-vtkInstantiatorNewMacro(vtkSegmentationConverterFactory);
-
-//----------------------------------------------------------------------------
 
 //----------------------------------------------------------------------------
 // Up the reference count so it behaves like New
@@ -84,6 +80,9 @@ vtkSegmentationConverterFactory* vtkSegmentationConverterFactory::GetInstance()
     if(!vtkSegmentationConverterFactoryInstance)
       {
       vtkSegmentationConverterFactoryInstance = new vtkSegmentationConverterFactory;
+#ifdef VTK_HAS_INITIALIZE_OBJECT_BASE
+      vtkSegmentationConverterFactoryInstance->InitializeObjectBase();
+#endif
       }
     }
   // return the instance

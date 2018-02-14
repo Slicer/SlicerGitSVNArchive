@@ -20,9 +20,6 @@
 
 ==============================================================================*/
 
-// Qt includes
-#include <QtPlugin>
-
 // QtGUI includes
 #include <qSlicerApplication.h> 
 
@@ -34,12 +31,16 @@
 
 // SubjectHierarchy Plugins includes
 #include "qSlicerSubjectHierarchyPluginLogic.h"
+#include "qSlicerSubjectHierarchyPluginHandler.h"
 
 // MRML includes
 #include <vtkMRMLScene.h>
 
 //-----------------------------------------------------------------------------
+#if (QT_VERSION < QT_VERSION_CHECK(5, 0, 0))
+#include <QtPlugin>
 Q_EXPORT_PLUGIN2(qSlicerSubjectHierarchyModule, qSlicerSubjectHierarchyModule);
+#endif
 
 //-----------------------------------------------------------------------------
 /// \ingroup Slicer_QtModules_SubjectHierarchy
@@ -145,6 +146,8 @@ vtkMRMLAbstractLogic* qSlicerSubjectHierarchyModule::createLogic()
 
   // Create plugin logic
   d->PluginLogic = new qSlicerSubjectHierarchyPluginLogic();
+  // Set plugin logic to plugin handler
+  qSlicerSubjectHierarchyPluginHandler::instance()->setPluginLogic(d->PluginLogic);
 
   return logic;
 }

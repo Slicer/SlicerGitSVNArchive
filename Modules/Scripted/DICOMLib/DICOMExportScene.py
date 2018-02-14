@@ -100,8 +100,8 @@ class DICOMExportScene(object):
 
     # get the screen image
     self.progress('Saving Image...')
-    pixmap = qt.QPixmap.grabWidget(slicer.util.mainWindow())
-    pixmap.save(self.imageFile)
+    image = ctk.ctkWidgetsUtils.grabWidget(slicer.util.mainWindow())
+    image.save(self.imageFile)
     imageReader = vtk.vtkJPEGReader()
     imageReader.SetFileName(self.imageFile)
     imageReader.Update()
@@ -109,6 +109,7 @@ class DICOMExportScene(object):
     #add storage node for each storable node in the scene, add file name if file name doesn't exist
     # TODO: this could be moved to appLogic.SaveSceneToSlicerDataBundleDirectory
     lnodes = slicer.mrmlScene.GetNodesByClass("vtkMRMLLinearTransformNode")
+    lnodes.UnRegister(slicer.mrmlScene)
     lnum = lnodes.GetNumberOfItems()
     for itemNum in xrange(lnum):
       print(itemNum)

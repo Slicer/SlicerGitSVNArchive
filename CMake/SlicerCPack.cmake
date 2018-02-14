@@ -29,13 +29,41 @@ if(Slicer_USE_PYTHONQT_WITH_TCL AND NOT Slicer_USE_SYSTEM_tcl)
 endif()
 
 if(NOT Slicer_USE_SYSTEM_QT)
-  set(SlicerBlockInstallQtPlugins_subdirectories imageformats sqldrivers designer:qwebview)
+  set(SlicerBlockInstallQtPlugins_subdirectories
+    imageformats
+    sqldrivers
+    )
+  if(Slicer_REQUIRED_QT_VERSION VERSION_LESS "5")
+    list(APPEND SlicerBlockInstallQtPlugins_subdirectories
+      designer:qwebview
+      )
+  else()
+    list(APPEND SlicerBlockInstallQtPlugins_subdirectories
+      designer:webengineview
+      )
+    if(APPLE)
+      list(APPEND SlicerBlockInstallQtPlugins_subdirectories
+        platforms:cocoa
+        )
+    elseif(UNIX)
+      list(APPEND SlicerBlockInstallQtPlugins_subdirectories
+        platforms:xcb
+        xcbglintegrations:xcb-glx-integration
+        )
+    elseif(WIN32)
+      list(APPEND SlicerBlockInstallQtPlugins_subdirectories
+        platforms:windows
+        )
+    endif()
+  endif()
   include(${Slicer_CMAKE_DIR}/SlicerBlockInstallQtPlugins.cmake)
 endif()
 
 if(Slicer_BUILD_DICOM_SUPPORT AND NOT Slicer_USE_SYSTEM_DCMTK)
   include(${Slicer_CMAKE_DIR}/SlicerBlockInstallDCMTKApps.cmake)
 endif()
+
+include(${Slicer_CMAKE_DIR}/SlicerBlockInstallExtensionPackages.cmake)
 
 set(CPACK_INSTALL_CMAKE_PROJECTS)
 
@@ -69,28 +97,8 @@ if(NOT APPLE)
   if(NOT DEFINED CMAKE_INSTALL_OPENMP_LIBRARIES)
     set(CMAKE_INSTALL_OPENMP_LIBRARIES ON)
   endif()
-  if(MSVC AND CMAKE_VERSION VERSION_LESS "3.1" AND CMAKE_INSTALL_OPENMP_LIBRARIES)
-    message(WARNING "Skipping installation of OpenMP libraries. "
-                    "Upgrade from CMake ${CMAKE_VERSION} to CMake >= 3.1 to install them.")
-  endif()
+  set(CMAKE_INSTALL_SYSTEM_RUNTIME_COMPONENT "RuntimeLibraries")
   include(InstallRequiredSystemLibraries)
-
-  # XXX: Remove this once CMake minimum version has been updated.
-  #      See Slicer issue #3972 and CMake issue #15428
-  if(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS)
-    if(NOT CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP)
-      if(NOT CMAKE_INSTALL_SYSTEM_RUNTIME_DESTINATION)
-        if(WIN32)
-          set(CMAKE_INSTALL_SYSTEM_RUNTIME_DESTINATION bin)
-        else()
-          set(CMAKE_INSTALL_SYSTEM_RUNTIME_DESTINATION lib)
-        endif()
-      endif()
-      install(PROGRAMS ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS}
-        DESTINATION ${CMAKE_INSTALL_SYSTEM_RUNTIME_DESTINATION}
-        COMPONENT RuntimeLibraries)
-    endif()
-  endif()
 
   include(${Slicer_CMAKE_DIR}/SlicerBlockInstallCMakeProjects.cmake)
 
@@ -110,6 +118,14 @@ else()
     find_package(SlicerExecutionModel REQUIRED)
   endif()
   set(VTK_LIBRARY_DIRS "${VTK_DIR}/lib")
+
+  # Get Qt root directory
+  set(qt_root_dir "")
+  if(Slicer_REQUIRED_QT_VERSION VERSION_GREATER "5")
+    get_property(_filepath TARGET "Qt5::Core" PROPERTY LOCATION_RELEASE)
+    get_filename_component(_dir ${_filepath} PATH)
+    set(qt_root_dir "${_dir}/..")
+  endif()
 
   set(fixup_path @rpath)
   set(slicer_cpack_bundle_fixup_directory ${Slicer_BINARY_DIR}/CMake/SlicerCPackBundleFixup)
@@ -156,30 +172,15 @@ endif()
 set(CPACK_INSTALL_CMAKE_PROJECTS "${CPACK_INSTALL_CMAKE_PROJECTS};${Slicer_BINARY_DIR};Slicer;Runtime;/")
 
 # -------------------------------------------------------------------------
-# Common package properties
+# Define helper macros and functions
 # -------------------------------------------------------------------------
-set(CPACK_MONOLITHIC_INSTALL ON)
-
-set(Slicer_CPACK_PACKAGE_NAME ${SlicerApp_APPLICATION_NAME})
-set(Slicer_CPACK_PACKAGE_VENDOR ${Slicer_ORGANIZATION_NAME})
-set(Slicer_CPACK_RESOURCE_FILE_LICENSE "${Slicer_SOURCE_DIR}/License.txt")
-set(Slicer_CPACK_PACKAGE_VERSION_MAJOR "${Slicer_VERSION_MAJOR}")
-set(Slicer_CPACK_PACKAGE_VERSION_MINOR "${Slicer_VERSION_MINOR}")
-set(Slicer_CPACK_PACKAGE_VERSION_PATCH "${Slicer_VERSION_PATCH}")
-set(Slicer_CPACK_PACKAGE_VERSION "${Slicer_VERSION_FULL}")
-set(Slicer_CPACK_PACKAGE_INSTALL_DIRECTORY "${Slicer_CPACK_PACKAGE_NAME} ${Slicer_CPACK_PACKAGE_VERSION}")
-
-set(project ${${Slicer_MAIN_PROJECT}_APPLICATION_NAME})
-
-# Get main application properties
-get_property(${project}_CPACK_PACKAGE_DESCRIPTION_FILE GLOBAL PROPERTY ${project}_DESCRIPTION_FILE)
-get_property(${project}_CPACK_PACKAGE_DESCRIPTION_SUMMARY GLOBAL PROPERTY ${project}_DESCRIPTION_SUMMARY)
-get_property(${project}_CPACK_PACKAGE_ICON GLOBAL PROPERTY ${project}_APPLE_ICON_FILE)
-
 function(slicer_verbose_set varname)
   message(STATUS "Setting ${varname} to '${ARGN}'")
   set(${varname} "${ARGN}" PARENT_SCOPE)
 endfunction()
+
+# Convenience variable used below
+set(project ${${Slicer_MAIN_PROJECT}_APPLICATION_NAME})
 
 macro(slicer_cpack_set varname)
   if(DEFINED ${project}_${varname})
@@ -196,18 +197,44 @@ macro(slicer_cpack_set varname)
   endif()
 endmacro()
 
+# -------------------------------------------------------------------------
+# Common package properties
+# -------------------------------------------------------------------------
+set(CPACK_MONOLITHIC_INSTALL ON)
+
+get_property(${project}_CPACK_PACKAGE_NAME GLOBAL PROPERTY ${project}_APPLICATION_NAME)
 slicer_cpack_set("CPACK_PACKAGE_NAME")
+
+set(Slicer_CPACK_PACKAGE_VENDOR ${Slicer_ORGANIZATION_NAME})
 slicer_cpack_set("CPACK_PACKAGE_VENDOR")
-slicer_cpack_set("CPACK_PACKAGE_DESCRIPTION_SUMMARY")
-slicer_cpack_set("CPACK_PACKAGE_DESCRIPTION_FILE")
-slicer_cpack_set("CPACK_RESOURCE_FILE_LICENSE")
+
+set(Slicer_CPACK_PACKAGE_VERSION_MAJOR "${Slicer_VERSION_MAJOR}")
 slicer_cpack_set("CPACK_PACKAGE_VERSION_MAJOR")
+
+set(Slicer_CPACK_PACKAGE_VERSION_MINOR "${Slicer_VERSION_MINOR}")
 slicer_cpack_set("CPACK_PACKAGE_VERSION_MINOR")
+
+set(Slicer_CPACK_PACKAGE_VERSION_PATCH "${Slicer_VERSION_PATCH}")
 slicer_cpack_set("CPACK_PACKAGE_VERSION_PATCH")
+
+set(Slicer_CPACK_PACKAGE_VERSION "${Slicer_VERSION_FULL}")
 slicer_cpack_set("CPACK_PACKAGE_VERSION")
+
 set(CPACK_SYSTEM_NAME "${Slicer_OS}-${Slicer_ARCHITECTURE}")
+
+set(Slicer_CPACK_PACKAGE_INSTALL_DIRECTORY "${${project}_CPACK_PACKAGE_NAME} ${Slicer_CPACK_PACKAGE_VERSION}")
 slicer_cpack_set("CPACK_PACKAGE_INSTALL_DIRECTORY")
 
+get_property(${project}_CPACK_PACKAGE_DESCRIPTION_FILE GLOBAL PROPERTY ${project}_DESCRIPTION_FILE)
+slicer_cpack_set("CPACK_PACKAGE_DESCRIPTION_FILE")
+
+get_property(${project}_CPACK_RESOURCE_FILE_LICENSE GLOBAL PROPERTY ${project}_LICENSE_FILE)
+slicer_cpack_set("CPACK_RESOURCE_FILE_LICENSE")
+
+get_property(${project}_CPACK_PACKAGE_DESCRIPTION_SUMMARY GLOBAL PROPERTY ${project}_DESCRIPTION_SUMMARY)
+slicer_cpack_set("CPACK_PACKAGE_DESCRIPTION_SUMMARY")
+
+get_property(${project}_CPACK_PACKAGE_ICON GLOBAL PROPERTY ${project}_APPLE_ICON_FILE)
 if(APPLE)
   slicer_cpack_set("CPACK_PACKAGE_ICON")
 endif()
@@ -244,7 +271,9 @@ if(CPACK_GENERATOR STREQUAL "NSIS")
 
   set(APPLICATION_NAME "${Slicer_MAIN_PROJECT_APPLICATION_NAME}")
   set(EXECUTABLE_NAME "${Slicer_MAIN_PROJECT_APPLICATION_NAME}")
-  slicer_verbose_set(CPACK_PACKAGE_EXECUTABLES "..\\\\${EXECUTABLE_NAME}" "${APPLICATION_NAME}")
+  # Set application name used to create Start Menu shortcuts
+  set(PACKAGE_APPLICATION_NAME "${APPLICATION_NAME} ${Slicer_VERSION_FULL}")
+  slicer_verbose_set(CPACK_PACKAGE_EXECUTABLES "..\\\\${EXECUTABLE_NAME}" "${PACKAGE_APPLICATION_NAME}")
 
   # -------------------------------------------------------------------------
   # File extensions

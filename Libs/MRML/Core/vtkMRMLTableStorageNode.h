@@ -25,6 +25,8 @@
 
 #include "vtkMRMLStorageNode.h"
 
+class vtkMRMLTableNode;
+
 /// \brief MRML node for handling Table node storage
 ///
 /// vtkMRMLTableStorageNode allows reading/writing of table node from
@@ -43,15 +45,28 @@ class VTK_MRML_EXPORT vtkMRMLTableStorageNode : public vtkMRMLStorageNode
 public:
   static vtkMRMLTableStorageNode *New();
   vtkTypeMacro(vtkMRMLTableStorageNode,vtkMRMLStorageNode);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
-  virtual vtkMRMLNode* CreateNodeInstance();
+  virtual vtkMRMLNode* CreateNodeInstance() VTK_OVERRIDE;
 
   /// Get node XML tag name (like Storage, Model)
-  virtual const char* GetNodeTagName()  {return "TableStorage";};
+  virtual const char* GetNodeTagName() VTK_OVERRIDE {return "TableStorage";}
 
   /// Return true if the node can be read in
-  virtual bool CanReadInReferenceNode(vtkMRMLNode *refNode);
+  virtual bool CanReadInReferenceNode(vtkMRMLNode *refNode) VTK_OVERRIDE;
+
+  /// Get/Set schema file name, which contain description of data type of each column
+  virtual void SetSchemaFileName(const char* schemaFileName);
+  virtual std::string GetSchemaFileName();
+
+  /// Finds schema file corresponding to a table file.
+  std::string FindSchemaFileName(const char* fileName);
+
+  /// If enabled and schema filename is not specified then when the data is read,
+  /// an attempt will be made to find and load a schema file.
+  vtkSetMacro(AutoFindSchema, bool);
+  vtkGetMacro(AutoFindSchema, bool);
+  vtkBooleanMacro(AutoFindSchema, bool);
 
 protected:
   vtkMRMLTableStorageNode();
@@ -60,17 +75,28 @@ protected:
   void operator=(const vtkMRMLTableStorageNode&);
 
   /// Initialize all the supported write file types
-  virtual void InitializeSupportedReadFileTypes();
+  virtual void InitializeSupportedReadFileTypes() VTK_OVERRIDE;
 
   /// Initialize all the supported write file types
-  virtual void InitializeSupportedWriteFileTypes();
+  virtual void InitializeSupportedWriteFileTypes() VTK_OVERRIDE;
 
   /// Read data and set it in the referenced node. Returns 0 on failure.
-  virtual int ReadDataInternal(vtkMRMLNode *refNode);
+  virtual int ReadDataInternal(vtkMRMLNode *refNode) VTK_OVERRIDE;
 
   /// Write data from a  referenced node. Returns 0 on failure.
-  virtual int WriteDataInternal(vtkMRMLNode *refNode);
+  virtual int WriteDataInternal(vtkMRMLNode *refNode) VTK_OVERRIDE;
 
+  std::string GenerateSchemaFileName(const char* fileName);
+
+  virtual std::string GetFieldDelimiterCharacters(std::string filename);
+
+  bool ReadSchema(std::string filename, vtkMRMLTableNode* tableNode);
+  bool ReadTable(std::string filename, vtkMRMLTableNode* tableNode);
+
+  bool WriteTable(std::string filename, vtkMRMLTableNode* tableNode);
+  bool WriteSchema(std::string filename, vtkMRMLTableNode* tableNode);
+
+  bool AutoFindSchema;
 };
 
 #endif

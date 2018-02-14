@@ -38,7 +38,7 @@ class VTK_MRML_EXPORT vtkMRMLAbstractViewNode
 {
 public:
   vtkTypeMacro(vtkMRMLAbstractViewNode,vtkMRMLNode);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   //--------------------------------------------------------------------------
   /// MRMLNode methods
@@ -46,19 +46,19 @@ public:
 
   ///
   /// Read node attributes from XML file
-  virtual void ReadXMLAttributes( const char** atts);
+  virtual void ReadXMLAttributes( const char** atts) VTK_OVERRIDE;
 
   ///
   /// Write this node's information to a MRML file in XML format.
-  virtual void WriteXML(ostream& of, int indent);
+  virtual void WriteXML(ostream& of, int indent) VTK_OVERRIDE;
 
   ///
   /// Copy the node's attributes to this object
-  virtual void Copy(vtkMRMLNode *node);
+  virtual void Copy(vtkMRMLNode *node) VTK_OVERRIDE;
 
   /// \brief Reimplemented to preserve layout label when reset.
   /// \sa GetLayoutLabel()
-  virtual void Reset(vtkMRMLNode* defaultNode);
+  virtual void Reset(vtkMRMLNode* defaultNode) VTK_OVERRIDE;
 
   ///
   /// Name of the layout. Must be unique between all the view nodes of the
@@ -112,6 +112,17 @@ public:
   /// \sa vtkMRMLLayoutNode::SetViewArrangement()
   virtual int IsMappedInLayout();
   virtual void SetMappedInLayout(int value);
+
+  /// Get parent layout node.
+  /// Default is no reference, meaning that the view is managed by the main layout.
+  /// Non-empty reference means standalone view or view managed by another layout.
+  vtkMRMLNode* GetParentLayoutNode();
+  /// Set parent layout node reference
+  /// \sa GetParentLayoutNode
+  bool SetAndObserveParentLayoutNodeID(const char *layoutNodeId);
+  /// Set parent layout node reference
+  /// \sa GetParentLayoutNode
+  bool SetAndObserveParentLayoutNode(vtkMRMLNode* node);
 
   /// \brief Indicates whether or not the view is visible in the current layout.
   ///
@@ -248,12 +259,8 @@ protected:
 
   ///
   /// Indicates whether or not the View is active.
-  /// Inactive (1) by default.
+  /// Inactive by default.
   int Active;
-
-  ///
-  /// When a view is set Active, make other views inactive.
-  virtual void RemoveActiveFlagInScene();
 
   ///
   /// Background colors
@@ -268,7 +275,6 @@ protected:
   int OrientationMarkerSize;
 
   static const char* OrientationMarkerHumanModelReferenceRole;
-  static const char* OrientationMarkerHumanModelMRMLAttributeName;
 
   ///
   /// For views that supports ruler display (where RulerEnabled=true)
@@ -279,6 +285,8 @@ protected:
   ///
   /// Labels of coordinate system axes
   vtkSmartPointer<vtkStringArray> AxisLabels;
+
+  static const char* ParentLayoutNodeReferenceRole;
 };
 
 //------------------------------------------------------------------------------

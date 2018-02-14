@@ -48,24 +48,6 @@ set(CTEST_CUSTOM_WARNING_EXCEPTION
   "Microsoft SDKs."
   "VC.include."
 
-  # Numpy warnings
-  "_configtest.*warning"
-  # C4244: 'conversion' conversion from 'type1' to 'type2', possible loss of data
-  # C4028: formal parameter 'number' different from declaration
-  # C4996: 'function': was declared deprecated
-  # C4133: '=' : incompatible types - from 'PyArray_Descr *' to 'PyObject *'
-  # C4146: unary minus operator applied to unsigned type, result still unsigned
-  # C4716: function '...' : must return a value
-  # C4723: Potential divide by zero
-  "numpy.(core|numarray|linalg|random).*warning (C4244|C4028|C4996|C4133|C4146|C4716|C4723)"
-  # warning: assignment from incompatible pointer type
-  # warning: ‘...’ defined but not used
-  # warning: ‘...’ may be used uninitialized in this function
-  "numpy.(core).*warning.*(assignment|defined but not used|uninitialized)"
-  "NUMPY.*Warning"
-  # Mac
-  "numpy.core.src.multiarray.descriptor.*was declared here"
-
   # Tcl
   "tcl.tcl.unix.*warning: cast"
   #  warning: '...' is deprecated (declared at ...)
@@ -86,23 +68,31 @@ set(CTEST_CUSTOM_WARNING_EXCEPTION
   # the following warnings when built with the MS compilers. Qt guys should
   # fix their code. Until they do, keep the Qt chatter off the Slicer dashboard
   # results:
-  "include.[Qq]t([Cc]ore|[Gg]ui).*warning C4127: conditional expression is constant"
+  "[Qq]t([Cc]ore|[Gg]ui).*(warning|note)"
   "[Qq]t.*h.*warning.*declaration of .* shadows a member of .this"
   "[Qq]t.*h.*warning.*(copy constructor|assignment operator) could not be generated"
-  # Tiger / 4.6.2 warning
-  "include.[Qq]t[Cc]ore.qtextcodec.h.*warning.*is already a friend of"
-  "include.QtGui.(qtextformat|qtablewidget).*warning"
-  # Snowleopard / 4.6.2 warning
-  "QtGui.framework.Headers.(qtextformat|qtablewidget).*warning"
-
+  "warning C4244: 'initializing' : conversion from 'qint64' to 'int', possible loss of data"
+  # gcc -Wstric-aliasing
+  "[Qq]t.*q.*h.*warning: dereferencing pointer .* does break strict-aliasing rules"
+  "[Qq]t.*q.*h.*note: initialized from here"
+  "[Qq]t.*q.*h.*note: while compiling"
+  "[Qq]t.*q.*h.*note: see reference"
+  "[Qq]t.*ui_"
+  "[Qq]t.*note: see reference"
+  "[Qq]t.*warning C4714"
   # Suppress warning caused when QT 'foreach' loops are combined
   ".*warning: declaration of '_container_' shadows a previous local"
 
-  # STL - Tiger
-  "include.c.*bits.stl_algo.h.*warning: comparison between signed and unsigned integer expressions"
-
   # Make
   "warning: jobserver unavailable"
+  "warning: -jN forced in submake: disabling jobserver mode."
+
+  # Ignore method call with return value unused
+  "declared with attribute warn_unused_result"
+
+  # Windows: Ignore warning on Windows for static builds complaining that the archive has
+  # no public symbols and hence will be inaccessible.
+  "warning LNK4221"
 
   # Suppressing warnings about duplicate libraries in Darwin
   # At some point this may be addressed by CMake feature request:
@@ -123,6 +113,7 @@ set(CTEST_CUSTOM_WARNING_EXCEPTION
 
   # VTK suppressions
   "vtkfreetype"
+  "vtkkwiml.*old-style-cast"
   "Utilities.vtktiff"
   "VTK.*IO.vtkMySQLQuery.cxx"
   "VTK.*Utilities.vtkexodus2"
@@ -137,6 +128,14 @@ set(CTEST_CUSTOM_WARNING_EXCEPTION
   "VTK.Rendering.vtkCarbonRenderWindow.*warning.*(NewRgn|DiffRgn|EqualRgn|DisposeRgn).*is deprecated"
   # exception specific to Mac/X11
   "VTK.Rendering.vtkOpenGL.*warning: this is the location of the previous definition"
+  # Windows: warning C4910: 'vtkImageIterator' : '__declspec(dllexport)' and 'extern' are incompatible on an explicit instantiation
+  "Common.DataModel.vtkImageIterator.h.*warning C4910"
+
+  # bzip2
+  "bzip2.blocksort.c.*Winline"
+
+  # CTK
+  "moc_ctkTransferFunctionBarsItem.cxx.*old-style-cast"
 
   # CTK - dcmtk
   "dcmdata/dcovlay.h:93: warning: use of old-style cast"
@@ -144,28 +143,46 @@ set(CTEST_CUSTOM_WARNING_EXCEPTION
   "ld.*has different visibility.*(libdcmdata|libdcmnet|libdcmimgle|liboflog|libofstd).a"
   "DCMTK.(ofstd|dcmdata|dcmjpls|dcmnet|dcmimage|dcmimgle|dcmpstat|dcmqrdb).(lib|include|apps).*conversion from '(size_t|SOCKET)' to '.*', possible loss of data"
 
+  # EMSegment
+  "warning: the use of .mktemp. is dangerous, better use .mkstemp."
+
+  # JsonCpp
+  "json.(reader|value).h.*warning C4275.*non dll-interface class"
+
   # Libs/OpenIGTLink
   "(OpenIGTLink|openigtlink).[Ss]ource.igtl"
 
   # Libs/tclap
   "tclap.include.tclap.*Arg.h.*warning C4512"
 
+  # Lua - SimpleITK-build/Lua-prefix/src/Lua/src/lauxlib.c:577:61: warning: while loop has empty body [-Wempty-body]
+  "src.Lua.src.lauxlib"
+
+  # Swig
+  "Swig.Source"
+
   # Teem
+  # Windows - warning C4244: 'function' : conversion from 'size_t' to 'double'
+  "teem.src.*C4244"
   # Mac - teem/src/nrrd/superset.c:433: warning: format '%d' expects type 'int', but argument 6 has type 'ptrdiff_t'
   "teem.src.nrrd.superset.c.*warning"
 
+  # Python
+  "UserWarning:"
+
+  # Python (posixmodule)
+  "warning: the use of .tmpnam. is dangerous, better use .mkstemp."
+  "warning: the use of .tmpnam_r. is dangerous, better use .mkstemp."
+
   # Python - Windows
-  "Modules.zlib.gzio"
-  "Modules._ctypes.libffi_msvc.ffi.*warning C4018"
-  "Modules.audioop.c.*warning C4018"
-  "Modules._multiprocessing.*warning"
-  "(Python|Objects|Modules|modules|PC).*conversion from '(Py_uintptr_t|Py_ssize_t|INT_PTR|size_t|__int64)' to '.*', possible loss of data"
+  "(P|p)ython-2.7.13.(M|m)odules"
+  "(P|p)ython-2.7.13.PC"
+  "Include\\um\\winsock2.h.*warning C4005: 'INVALID_SOCKET': macro redefinition"
   # Python - Linux
-  "dist.py.*UserWarning.*licence.*distribution option is deprecated"
   "Objects.unicodeobject.c.*warning:.*differ in signedness"
   "[Ii]nclude.(string|unicodeobject).h.*note: expected ‘const char *’ but argument is of type ‘unsigned char *’"
-  "Modules.(getpath|signalmodule).c.*warning: ignoring return value of.*declared with attribute warn_unused_result"
   "Modules.expat.xmlparse.*warning.*discards qualifiers from pointer target type"
+  "Objects.stringobject.c.*uninitialized"
   # Python - Mac
   "ranlib: file:.*libpython2.7.a.*has no symbols"
   "python.Modules._cursesmodule.c.*warning.*may be used uninitialized in this function"
@@ -179,6 +196,11 @@ set(CTEST_CUSTOM_WARNING_EXCEPTION
   # About redefinition of symbols
   "pyconfig.h.*warning:.*redefined"
   "features.h.*"
+
+  # python packages
+  "warning: no previously-included files.*matching.*distribution"
+  "warning: no files found matching"
+  "warnings.warn.msg"
 
   # curl suppressions
   "cmcurl.*warning.*conditional expression is constant"
@@ -201,7 +223,13 @@ set(CTEST_CUSTOM_WARNING_EXCEPTION
   "ranlib: file:.*bin.libslicerlibcurl.a.*has no symbols"
 
   #PythonQt
-  "PythonQt.src.*conversion from 'size_t' to '.*', possible loss of data"
+  "PythonQt.src"
+  "PythonQt.PythonQtConversion.h.*deprecated-writable-strings"
+  "PythonQt.src.PythonQtConversion.(cpp|h).*write-strings"
+  "PythonQt.src.PythonQtConversion.cpp.*tautological-compare"
+  "PythonQt.src.PythonQtSlot.cpp.*unused-value"
+  "PythonQt.src.PythonQtSignalReceiver.cpp.*logical-op-parentheses"
+  "PythonQt.PythonQtInstanceWrapper.h.*old-style-cast"
 
   #Libarchive
   "LibArchive.libArchive.*signed/unsigned mismatch"
@@ -215,14 +243,16 @@ set(CTEST_CUSTOM_WARNING_EXCEPTION
 
   # Git
   "HEAD is now"
+
+  # SimpleITK: Warning from SWIG with self member type
+  "sitkCommand.* [wW]arning 314.*self.*is a python keyword"
   )
 
 set(CTEST_CUSTOM_ERROR_EXCEPTION
   ${CTEST_CUSTOM_ERROR_EXCEPTION}
   # Python - Windows
   # These warnings are interpreted as errors on Windows
-  "dist.py.*UserWarning.*Unknown distribution option.*"
-  "dist.py.*UserWarning.*Normalizing.*"
+  "UserWarning:"
   # Numpy errors
   "NUMPY.*Warning"
   "NUMPY._configtest.*undefined reference"

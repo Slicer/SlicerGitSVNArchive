@@ -45,9 +45,12 @@ public:
 
   static vtkSlicerTablesLogic *New();
   vtkTypeMacro(vtkSlicerTablesLogic, vtkSlicerModuleLogic);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
-  vtkMRMLTableNode* AddTable(const char* fileName, const char* name = 0);
+  /// Loads a table from filename.
+  /// If findSchema is true then the method looks for a schema file (for example, basefilename.schema.csv)
+  /// and if a schema file is found then it is used.
+  vtkMRMLTableNode* AddTable(const char* fileName, const char* name = 0, bool findSchema = true, const char* password = 0);
 
   /// Returns ID of the layout that is similar to current layout but also contains a table view
   static int GetLayoutWithTable(int currentLayout);

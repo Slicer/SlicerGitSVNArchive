@@ -25,6 +25,7 @@
 #include "qSlicerSegmentationsEditorEffectsExport.h"
 
 // Qt includes
+#include <QCursor>
 #include <QIcon>
 #include <QPoint>
 #include <QList>
@@ -33,6 +34,7 @@
 class qSlicerSegmentEditorAbstractEffectPrivate;
 
 class vtkActor2D;
+class vtkMRMLInteractionNode;
 class vtkMRMLScene;
 class vtkMRMLSegmentEditorNode;
 class vtkMRMLAbstractViewNode;
@@ -158,6 +160,9 @@ public:
   virtual void masterVolumeNodeChanged() { };
   /// Simple mechanism to let the effects know that the layout has changed
   virtual void layoutChanged() { };
+  /// Let the effect know that the interaction node is modified.
+  /// Default behavior is to deactivate the effect if not in view mode.
+  virtual void interactionNodeModified(vtkMRMLInteractionNode* interactionNode);
 
 public slots:
   /// Update user interface from parameter set node
@@ -366,6 +371,8 @@ public:
   Q_INVOKABLE static void scheduleRender(qMRMLWidget* viewWidget);
 
   Q_INVOKABLE static double sliceSpacing(qMRMLSliceWidget* sliceWidget);
+
+  Q_INVOKABLE bool segmentationDisplayableInView(vtkMRMLAbstractViewNode* viewNode);
 
 protected:
   /// Name of the effect

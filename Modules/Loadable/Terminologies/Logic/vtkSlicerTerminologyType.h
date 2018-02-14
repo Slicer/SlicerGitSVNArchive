@@ -23,32 +23,39 @@
 #ifndef __vtkSlicerTerminologyType_h
 #define __vtkSlicerTerminologyType_h
 
-// VTK includes
-#include <vtkObject.h>
+// MRML includes
+#include "vtkCodedEntry.h"
 
 #include "vtkSlicerTerminologiesModuleLogicExport.h"
 
-/// VTK implementation of \sa qSlicerDICOMLoadable
-class VTK_SLICER_TERMINOLOGIES_LOGIC_EXPORT vtkSlicerTerminologyType : public vtkObject
+/// \brief Terminology property type object
+///
+/// Encapsulates the mandatory and optional fields for a terminology type.
+/// The following fields inherited from \sa vtkCodedEntry:
+///   CodingSchemeDesignator: 'codingScheme' member of the type object. Value example "SRT"
+///   CodeValue: 'codeValue' member of the type object. Value example "T-41066"
+///   CodeMeaning: 'codeMeaning' member of the type object. Value example "Artery"
+///
+
+class VTK_SLICER_TERMINOLOGIES_LOGIC_EXPORT vtkSlicerTerminologyType : public vtkCodedEntry
 {
 public:
+  static int INVALID_COLOR[3];
+
+public:
   static vtkSlicerTerminologyType *New();
-  vtkTypeMacro(vtkSlicerTerminologyType, vtkObject);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  vtkTypeMacro(vtkSlicerTerminologyType, vtkCodedEntry);
+  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   /// Reset state of object
-  virtual void Initialize();
+  virtual void Initialize() VTK_OVERRIDE;
 
   /// Copy one type into another
-  virtual void Copy(vtkSlicerTerminologyType* aType);
+  virtual void Copy(vtkCodedEntry* aType) VTK_OVERRIDE;
 
 public:
   vtkGetVector3Macro(RecommendedDisplayRGBValue, unsigned char);
   vtkSetVector3Macro(RecommendedDisplayRGBValue, unsigned char);
-  vtkGetStringMacro(CodeMeaning);
-  vtkSetStringMacro(CodeMeaning);
-  vtkGetStringMacro(CodingScheme);
-  vtkSetStringMacro(CodingScheme);
   vtkGetStringMacro(SlicerLabel);
   vtkSetStringMacro(SlicerLabel);
   vtkGetStringMacro(SNOMEDCTConceptID);
@@ -57,8 +64,6 @@ public:
   vtkSetStringMacro(UMLSConceptUID);
   vtkGetStringMacro(Cid);
   vtkSetStringMacro(Cid);
-  vtkGetStringMacro(CodeValue);
-  vtkSetStringMacro(CodeValue);
   vtkGetStringMacro(ContextGroupName);
   vtkSetStringMacro(ContextGroupName);
 
@@ -73,23 +78,17 @@ protected:
   void operator=(const vtkSlicerTerminologyType&);
 
 protected:
-  /// 'recommendedDisplayRGBValue' member of the category object
+  /// 'recommendedDisplayRGBValue' member of the type object
   unsigned char RecommendedDisplayRGBValue[3];
-  /// 'codeMeaning' member of the category object. Value example "Artery"
-  char* CodeMeaning;
-  /// 'codingScheme' member of the category object. Value example "SRT"
-  char* CodingScheme;
-  /// 'slicerLabel' member of the category object. Value example "artery"
+  /// '3dSlicerLabel' member of the type object. Value example "artery"
   char* SlicerLabel;
-  /// 'SNOMEDCTConceptID' member of the category object. Value example "275989006"
+  /// 'SNOMEDCTConceptID' member of the type object. Value example "275989006"
   char* SNOMEDCTConceptID;
-  /// 'UMLSConceptUID' member of the category object. Value example "C0555806"
+  /// 'UMLSConceptUID' member of the type object. Value example "C0555806"
   char* UMLSConceptUID;
-  /// 'cid' member of the category object. Value example "7166"
+  /// 'cid' member of the type object. Value example "7166"
   char* Cid;
-  /// 'codeValue' member of the category object. Value example "T-41066"
-  char* CodeValue;
-  /// 'contextGroupName' member of the category object. Value example "Common Tissue Segmentation Types"
+  /// 'contextGroupName' member of the type object. Value example "Common Tissue Segmentation Types"
   char* ContextGroupName;
 
   /// Flag indicating whether the type object has a 'Modifier' member array. False by default.

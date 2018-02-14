@@ -65,7 +65,7 @@ public:
 
   static vtkSlicerVolumesLogic *New();
   vtkTypeMacro(vtkSlicerVolumesLogic,vtkSlicerModuleLogic);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   typedef vtkSlicerVolumesLogic Self;
 
@@ -179,14 +179,23 @@ public:
                                                        vtkMRMLLabelMapVolumeNode *labelNode,
                                                        vtkMRMLVolumeNode *templateNode);
 
-  /// Fill in a label map volume to match the given input volume node, under
+  /// Set a label map volume to match the given input volume node, under
   /// the assumption that the given label map node is already added to the scene.
   /// A display node will be added to it if the label node doesn't already have
   /// one, and the image data associated with the label node will be allocated
   /// according to the template volumeNode.
   vtkMRMLLabelMapVolumeNode *CreateLabelVolumeFromVolume(vtkMRMLScene *scene,
-                                                       vtkMRMLLabelMapVolumeNode *labelNode,
+                                                       vtkMRMLLabelMapVolumeNode *outputVolume,
                                                        vtkMRMLVolumeNode *inputVolume);
+
+  /// Set a scalar volume to match the given input volume node, under
+  /// the assumption that the given label map node is already added to the scene.
+  /// A display node will be added to it if the label node doesn't already have
+  /// one, and the image data associated with the label node will be allocated
+  /// according to the template volumeNode.
+  vtkMRMLScalarVolumeNode *CreateScalarVolumeFromVolume(vtkMRMLScene *scene,
+    vtkMRMLScalarVolumeNode *outputVolume,
+    vtkMRMLVolumeNode *inputVolume);
 
   /// Clear the image data of a volume node to contain all zeros
   static void ClearVolumeImageData(vtkMRMLVolumeNode *volumeNode);
@@ -285,7 +294,7 @@ protected:
 
   virtual void ProcessMRMLNodesEvents(vtkObject * caller,
                                   unsigned long event,
-                                  void * callData);
+                                  void * callData) VTK_OVERRIDE;
 
 
   void InitializeStorageNode(vtkMRMLStorageNode * storageNode,

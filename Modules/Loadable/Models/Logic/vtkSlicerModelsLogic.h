@@ -36,7 +36,7 @@ class VTK_SLICER_MODELS_MODULE_LOGIC_EXPORT vtkSlicerModelsLogic
   /// The Usual vtk class functions
   static vtkSlicerModelsLogic *New();
   vtkTypeMacro(vtkSlicerModelsLogic, vtkSlicerModuleLogic);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   ///
   /// The color logic is used to retrieve the default color node ID for
@@ -78,7 +78,8 @@ class VTK_SLICER_MODELS_MODULE_LOGIC_EXPORT vtkSlicerModelsLogic
 
   ///
   /// Read in a scalar overlay and add it to the model node
-  vtkMRMLStorageNode* AddScalar(const char* filename, vtkMRMLModelNode *modelNode);
+  /// \return True on success
+  bool AddScalar(const char* filename, vtkMRMLModelNode *modelNode);
 
   /// Transform models's polydata
   static void TransformModel(vtkMRMLTransformNode *tnode,
@@ -98,11 +99,11 @@ protected:
   void operator=(const vtkSlicerModelsLogic&);
 
   /// Reimplemented to observe the NodeRemovedEvent scene event.
-  virtual void SetMRMLSceneInternal(vtkMRMLScene* newScene);
+  virtual void SetMRMLSceneInternal(vtkMRMLScene* newScene) VTK_OVERRIDE;
 
   /// Reimplemented to make sure the singleton vtkMRMLClipModelsNode is
   /// instantiated.
-  virtual void ObserveMRMLScene();
+  virtual void ObserveMRMLScene() VTK_OVERRIDE;
 
   //
   vtkMRMLModelNode *ActiveModelNode;

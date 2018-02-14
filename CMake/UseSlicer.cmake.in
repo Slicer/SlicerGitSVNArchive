@@ -107,9 +107,6 @@ endif()
 if(NOT DEFINED ${EXTENSION_NAME}_SOURCE_DIR
   AND NOT DEFINED ${EXTENSION_NAME}_BINARY_DIR
   AND NOT Slicer_DONT_USE_EXTENSION)
-  if(POLICY CMP0048)
-    cmake_policy(SET CMP0048 NEW)
-  endif()
   project(${EXTENSION_NAME})
 endif()
 
@@ -224,7 +221,7 @@ if(NOT DEFINED BUILD_SHARED_LIBS)
 endif()
 
 #-----------------------------------------------------------------------------
-# Include directories - See SlicerMacroBuildQtModule
+# Include directories - See SlicerMacroBuildLoadableModule
 #------------------------------------------------------------------------------
 
 #-----------------------------------------------------------------------------
@@ -234,6 +231,8 @@ include(CMakeParseArguments)
 include(ctkMacroCompilePythonScript)
 include(ctkMacroWrapPythonQt)
 include(ExternalProjectDependency)
+include(ExternalProjectDependencyForPython)
+include(ExternalProjectGenerateProjectDescription)
 include(SlicerMacroParseArguments)
 include(SlicerMacroCheckExternalProjectDependency)
 include(SlicerMacroEmptyExternalProject)
@@ -243,10 +242,11 @@ endif()
 include(SlicerMacroBuildModuleQtLibrary)
 include(SlicerMacroBuildModuleVTKLibrary)
 include(SlicerMacroPythonWrapModuleVTKLibrary)
+include(SlicerConfigureDisplayableManagerObjectFactory)
 include(SlicerMacroBuildModuleLogic)
 include(SlicerMacroBuildModuleMRML)
 include(SlicerMacroBuildModuleWidgets)
-include(SlicerMacroBuildQtModule)
+include(SlicerMacroBuildLoadableModule)
 include(SlicerMacroBuildScriptedModule)
 include(SlicerFunctionAddPythonQtResources)
 include(SlicerMacroExtractRepositoryInfo)
@@ -418,6 +418,12 @@ if(NOT Slicer_DONT_USE_EXTENSION)
   endif()
   if(NOT ${Slicer_SKIP_SlicerEnableExtensionTesting}
      AND NOT "${EXTENSION_NAME}" STREQUAL "")
-    include(SlicerEnableExtensionTesting)
+     include(CTest)
+     include(ExternalData)
+
+     find_package(Git)
+     mark_as_superbuild(GIT_EXECUTABLE)
+     find_package(Subversion)
+     mark_as_superbuild(Subversion_SVN_EXECUTABLE)
   endif()
 endif()

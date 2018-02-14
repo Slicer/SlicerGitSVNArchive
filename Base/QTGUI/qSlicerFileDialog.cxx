@@ -206,7 +206,7 @@ ctkFileDialog* qSlicerStandardFileDialog::createFileDialog(
     {
     fileDialog->setSidebarUrls(ioManager->favorites());
     }
-#ifdef Q_WS_MAC
+#ifdef Q_OS_MAC
   // Workaround for Mac to show mounted volumes.
   // See issue #2240
   QList<QUrl> sidebarUrls = fileDialog->sidebarUrls();
@@ -254,6 +254,14 @@ qSlicerIOOptions* qSlicerStandardFileDialog
       ioManager->fileWriterDescriptions(this->fileType());
     options = fileDescriptions.count() ?
       ioManager->fileWriterOptions(nodeToSave, fileDescriptions[0]) : 0;
+    }
+  // Update options widget based on properties.
+  // This allows customizing default settings in the widget. For example,
+  // in scene open dialog, Clear scene option can be set to enabled or disabled by default.
+  qSlicerIOOptionsWidget* optionsWidget = dynamic_cast<qSlicerIOOptionsWidget*>(options);
+  if (optionsWidget)
+    {
+    optionsWidget->updateGUI(ioProperties);
     }
   return options;
 }
@@ -305,6 +313,7 @@ bool qSlicerStandardFileDialog::exec(const qSlicerIO::IOProperties& ioProperties
   bool res = fileDialog->exec();
   if (res)
     {
+    QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
     properties = ioProperties;
     if (options)
       {
@@ -336,6 +345,7 @@ bool qSlicerStandardFileDialog::exec(const qSlicerIO::IOProperties& ioProperties
       Q_ASSERT(d->Action == qSlicerFileDialog::Read ||
                d->Action == qSlicerFileDialog::Write);
       }
+    QApplication::restoreOverrideCursor();
     }
 
   ioManager->setFavorites(fileDialog->sidebarUrls());

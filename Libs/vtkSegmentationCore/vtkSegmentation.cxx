@@ -104,7 +104,7 @@ vtkSegmentation::~vtkSegmentation()
 }
 
 //----------------------------------------------------------------------------
-void vtkSegmentation::WriteXML(ostream& of, int nIndent)
+void vtkSegmentation::WriteXML(ostream& of, int vtkNotUsed(nIndent))
 {
   of << " MasterRepresentationName=\"" << this->MasterRepresentationName << "\"";
 
@@ -754,6 +754,25 @@ std::string vtkSegmentation::GetSegmentIdBySegment(vtkSegment* segment)
     }
 
   return segmentIt->first;
+}
+
+//---------------------------------------------------------------------------
+std::string vtkSegmentation::GetSegmentIdBySegmentName(std::string name)
+{
+  // Make given name lowercase for case-insensitive comparison
+  std::transform(name.begin(), name.end(), name.begin(), ::tolower);
+
+  for (SegmentMap::iterator segmentIt = this->Segments.begin(); segmentIt != this->Segments.end(); ++segmentIt)
+    {
+    std::string currentSegmentName(segmentIt->second->GetName() ? segmentIt->second->GetName() : "");
+    std::transform(currentSegmentName.begin(), currentSegmentName.end(), currentSegmentName.begin(), ::tolower);
+    if (!currentSegmentName.compare(name))
+      {
+      return segmentIt->first;
+      }
+    }
+
+  return "";
 }
 
 //---------------------------------------------------------------------------

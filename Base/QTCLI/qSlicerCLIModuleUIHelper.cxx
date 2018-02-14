@@ -17,6 +17,7 @@
 #include <QRadioButton>
 #include <QSpinBox>
 #include <QToolButton>
+#include <QSizePolicy>
 
 // CTK includes
 #include <ctkDirectoryButton.h>
@@ -137,8 +138,13 @@ QButtonGroup* ButtonGroupWidgetWrapper::buttonGroup()const
 QString ButtonGroupWidgetWrapper::checkedValue()
 {
   QAbstractButton* button = this->ButtonGroup->checkedButton();
-  Q_ASSERT(button);
-  return button->text();
+  if (button) {
+    return button->property("EnumeratedValue").toString();
+  }
+  else {
+    // Handle case where <string-enumeration> has no <default> element
+    return QString("");
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -146,7 +152,7 @@ void ButtonGroupWidgetWrapper::setCheckedValue(const QString& value)
 {
   foreach(QAbstractButton* button, this->ButtonGroup->buttons())
     {
-    if (button->text() == value)
+    if (button->property("EnumeratedValue").toString() == value)
       {
       button->setChecked(true);
       break;
@@ -293,7 +299,7 @@ QWidget* qSlicerCLIModuleUIHelperPrivate::createIntegerTagWidget(const ModulePar
     return createStringTagWidget(moduleParameter);
   }
 
-  int value = QString::fromStdString(moduleParameter.GetDefault()).toInt();
+  int value = QString::fromStdString(moduleParameter.GetValue()).toInt();
   int step = 1;
   // Since, ctkDoubleSlider checks that MIN_INT < doubleValue / this->SingleStep < MAX_INT
   // Assuming the singlestep won't be smaller than 0.01, the min/max range set from the helper
@@ -346,7 +352,7 @@ QWidget* qSlicerCLIModuleUIHelperPrivate::createBooleanTagWidget(const ModulePar
     return createStringTagWidget(moduleParameter);
   }
 
-  QString valueAsStr = QString::fromStdString(moduleParameter.GetDefault());
+  QString valueAsStr = QString::fromStdString(moduleParameter.GetValue());
   QCheckBox * widget = new QCheckBox;
   QString _label = QString::fromStdString(moduleParameter.GetLabel());
   QString _name = QString::fromStdString(moduleParameter.GetName());
@@ -363,7 +369,7 @@ QWidget* qSlicerCLIModuleUIHelperPrivate::createFloatTagWidget(const ModuleParam
     return createStringTagWidget(moduleParameter);
   }
 
-  QString valueAsStr = QString::fromStdString(moduleParameter.GetDefault());
+  QString valueAsStr = QString::fromStdString(moduleParameter.GetValue());
   float value = valueAsStr.toFloat();
   float step = 0.1;
   // Since, ctkDoubleSlider checks that MIN_INT < doubleValue / this->SingleStep < MAX_INT
@@ -443,7 +449,7 @@ QWidget* qSlicerCLIModuleUIHelperPrivate::createDoubleTagWidget(const ModulePara
     return createStringTagWidget(moduleParameter);
   }
 
-  QString valueAsStr = QString::fromStdString(moduleParameter.GetDefault());
+  QString valueAsStr = QString::fromStdString(moduleParameter.GetValue());
   double value = valueAsStr.toDouble();
   double step = 0.1;
   // Since, ctkDoubleSlider checks that MIN_INT < doubleValue / this->SingleStep < MAX_INT
@@ -517,7 +523,7 @@ QWidget* qSlicerCLIModuleUIHelperPrivate::createDoubleTagWidget(const ModulePara
 //-----------------------------------------------------------------------------
 QWidget* qSlicerCLIModuleUIHelperPrivate::createStringTagWidget(const ModuleParameter& moduleParameter)
 {
-  QString valueAsStr = QString::fromStdString(moduleParameter.GetDefault());
+  QString valueAsStr = QString::fromStdString(moduleParameter.GetValue());
   QLineEdit * widget = new QLineEdit;
   QString _label = QString::fromStdString(moduleParameter.GetLabel());
   QString _name = QString::fromStdString(moduleParameter.GetName());
@@ -863,6 +869,7 @@ QWidget* qSlicerCLIModuleUIHelperPrivate::createDirectoryTagWidget(const ModuleP
 
   INSTANCIATE_WIDGET_VALUE_WRAPPER(Directory, _name, _label, widget);
 
+  widget->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
   return widget;
 }
 
@@ -905,6 +912,7 @@ QWidget* qSlicerCLIModuleUIHelperPrivate::createFileTagWidget(const ModuleParame
   QHBoxLayout* hBoxLayout = new QHBoxLayout;
   hBoxLayout->setContentsMargins(0,0,0,0);
   hBoxLayout->addWidget(pathLineEdit);
+  widget->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
   widget->setLayout(hBoxLayout);
   return widget;
 }
@@ -935,6 +943,10 @@ QWidget* qSlicerCLIModuleUIHelperPrivate::createEnumerationTagWidget(const Modul
     QRadioButton * radio = new QRadioButton(value, widget);
     _layout->addWidget(radio);
     radio->setChecked(defaultValue == value);
+    // enumValue may differ from displayed text when the application is
+    // translated or text is modified from outside the application
+    // (such as KDE does, to inject keyboard shortcuts)
+    radio->setProperty("EnumeratedValue", value);
     // Add radio button to button group
     widget->buttonGroup()->addButton(radio);
     }
@@ -1068,6 +1080,8 @@ QWidget* qSlicerCLIModuleUIHelper::createTagWidget(const ModuleParameter& module
     {
     QString description = QString::fromStdString(moduleParameter.GetDescription());
     widget->setToolTip(description);
+    QString widgetName = QString::fromStdString(moduleParameter.GetName());
+    widget->setObjectName(widgetName);
     }
 
   return widget;

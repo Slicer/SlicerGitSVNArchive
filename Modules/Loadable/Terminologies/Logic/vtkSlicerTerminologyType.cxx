@@ -27,19 +27,21 @@
 #include <vtkObjectFactory.h>
 
 //------------------------------------------------------------------------------
+int vtkSlicerTerminologyType::INVALID_COLOR[3] = {127, 127, 127};
+
+//------------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerTerminologyType);
 
 //----------------------------------------------------------------------------
 vtkSlicerTerminologyType::vtkSlicerTerminologyType()
 {
-  this->RecommendedDisplayRGBValue[0] = this->RecommendedDisplayRGBValue[1] = this->RecommendedDisplayRGBValue[2] = 127;
-  this->CodeMeaning = NULL;
-  this->CodingScheme = NULL;
+  this->RecommendedDisplayRGBValue[0] = INVALID_COLOR[0];
+  this->RecommendedDisplayRGBValue[1] = INVALID_COLOR[1];
+  this->RecommendedDisplayRGBValue[2] = INVALID_COLOR[2];
   this->SlicerLabel = NULL;
   this->SNOMEDCTConceptID = NULL;
   this->UMLSConceptUID = NULL;
   this->Cid = NULL;
-  this->CodeValue = NULL;
   this->ContextGroupName = NULL;
   this->HasModifiers = false;
 }
@@ -47,20 +49,22 @@ vtkSlicerTerminologyType::vtkSlicerTerminologyType()
 //----------------------------------------------------------------------------
 vtkSlicerTerminologyType::~vtkSlicerTerminologyType()
 {
+  this->Initialize();
 }
 
 //----------------------------------------------------------------------------
 void vtkSlicerTerminologyType::Initialize()
 {
-  this->RecommendedDisplayRGBValue[0] = this->RecommendedDisplayRGBValue[1] = this->RecommendedDisplayRGBValue[2] = 127;
-  this->CodeMeaning = NULL;
-  this->CodingScheme = NULL;
-  this->SlicerLabel = NULL;
-  this->SNOMEDCTConceptID = NULL;
-  this->UMLSConceptUID = NULL;
-  this->Cid = NULL;
-  this->CodeValue = NULL;
-  this->ContextGroupName = NULL;
+  Superclass::Initialize();
+
+  this->SetSlicerLabel(NULL);
+  this->SetSNOMEDCTConceptID(NULL);
+  this->SetUMLSConceptUID(NULL);
+  this->SetCid(NULL);
+  this->SetContextGroupName(NULL);
+  this->RecommendedDisplayRGBValue[0] = INVALID_COLOR[0];
+  this->RecommendedDisplayRGBValue[1] = INVALID_COLOR[1];
+  this->RecommendedDisplayRGBValue[2] = INVALID_COLOR[2];
   this->HasModifiers = false;
 }
 
@@ -73,33 +77,32 @@ void vtkSlicerTerminologyType::PrintSelf(ostream& os, vtkIndent indent)
     << this->RecommendedDisplayRGBValue[0] << ","
     << this->RecommendedDisplayRGBValue[1] << ","
     << this->RecommendedDisplayRGBValue[2] << ")\n";
-  os << indent << "CodeMeaning:   " << (this->CodeMeaning?this->CodeMeaning:"NULL") << "\n";
-  os << indent << "CodingScheme:   " << (this->CodingScheme?this->CodingScheme:"NULL") << "\n";
   os << indent << "SlicerLabel:   " << (this->SlicerLabel?this->SlicerLabel:"NULL") << "\n";
   os << indent << "SNOMEDCTConceptID:   " << (this->SNOMEDCTConceptID?this->SNOMEDCTConceptID:"NULL") << "\n";
   os << indent << "UMLSConceptUID:   " << (this->UMLSConceptUID?this->UMLSConceptUID:"NULL") << "\n";
   os << indent << "Cid:   " << (this->Cid?this->Cid:"NULL") << "\n";
-  os << indent << "CodeValue:   " << (this->CodeValue?this->CodeValue:"NULL") << "\n";
   os << indent << "ContextGroupName:   " << (this->ContextGroupName?this->ContextGroupName:"NULL") << "\n";
   os << indent << "HasModifiers:   " << (this->HasModifiers?"true":"false") << "\n";
 }
 
 //----------------------------------------------------------------------------
-void vtkSlicerTerminologyType::Copy(vtkSlicerTerminologyType* aType)
+void vtkSlicerTerminologyType::Copy(vtkCodedEntry* aType)
 {
   if (!aType)
     {
     return;
     }
 
-  this->SetRecommendedDisplayRGBValue(aType->GetRecommendedDisplayRGBValue());
-  this->SetCodeMeaning(aType->GetCodeMeaning());
-  this->SetCodingScheme(aType->GetCodingScheme());
-  this->SetSlicerLabel(aType->GetSlicerLabel());
-  this->SetSNOMEDCTConceptID(aType->GetSNOMEDCTConceptID());
-  this->SetUMLSConceptUID(aType->GetUMLSConceptUID());
-  this->SetCid(aType->GetCid());
-  this->SetCodeValue(aType->GetCodeValue());
-  this->SetContextGroupName(aType->GetContextGroupName());
-  this->SetHasModifiers(aType->GetHasModifiers());
+  this->Superclass::Copy(aType);
+
+  vtkSlicerTerminologyType *aTerminologyType =
+      vtkSlicerTerminologyType::SafeDownCast(aType);
+
+  this->SetRecommendedDisplayRGBValue(aTerminologyType->GetRecommendedDisplayRGBValue());
+  this->SetSlicerLabel(aTerminologyType->GetSlicerLabel());
+  this->SetSNOMEDCTConceptID(aTerminologyType->GetSNOMEDCTConceptID());
+  this->SetUMLSConceptUID(aTerminologyType->GetUMLSConceptUID());
+  this->SetCid(aTerminologyType->GetCid());
+  this->SetContextGroupName(aTerminologyType->GetContextGroupName());
+  this->SetHasModifiers(aTerminologyType->GetHasModifiers());
 }

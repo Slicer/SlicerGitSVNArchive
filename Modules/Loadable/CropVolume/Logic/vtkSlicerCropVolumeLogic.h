@@ -69,7 +69,7 @@ public:
 
   static vtkSlicerCropVolumeLogic *New();
   vtkTypeMacro(vtkSlicerCropVolumeLogic,vtkSlicerModuleLogic);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   void SetVolumesLogic(vtkSlicerVolumesLogic* logic);
   vtkSlicerVolumesLogic* GetVolumesLogic();
@@ -88,7 +88,7 @@ public:
 
   /// Perform interpolated cropping.
   int CropInterpolated(vtkMRMLAnnotationROINode* roi, vtkMRMLVolumeNode* inputVolume, vtkMRMLVolumeNode* outputNode,
-    bool isotropicResampling, double spacingScale, int interpolationMode);
+    bool isotropicResampling, double spacingScale, int interpolationMode, double fillValue);
 
   /// Computes output volume geometry for interpolated cropping (without actually cropping the image).
   static bool GetInterpolatedCropOutputGeometry(vtkMRMLAnnotationROINode* roi, vtkMRMLVolumeNode* inputVolume,
@@ -102,7 +102,7 @@ public:
 
   static bool IsROIAlignedWithInputVolume(vtkMRMLCropVolumeParametersNode* parametersNode);
 
-  virtual void RegisterNodes();
+  virtual void RegisterNodes() VTK_OVERRIDE;
 
 protected:
   vtkSlicerCropVolumeLogic();

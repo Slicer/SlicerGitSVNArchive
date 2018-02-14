@@ -4,20 +4,25 @@ set(proj NUMPY)
 # Set dependency list
 set(${proj}_DEPENDENCIES python python-setuptools python-nose)
 
+if(NOT DEFINED ${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
+  set(${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj} ${${CMAKE_PROJECT_NAME}_USE_SYSTEM_python})
+endif()
+
 # Include dependent projects if any
 ExternalProject_Include_Dependencies(${proj} PROJECT_VAR proj DEPENDS_VAR ${proj}_DEPENDENCIES)
 
 if(${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
-  # XXX - Add a test checking if numpy is available
-endif()
-
-if(NOT DEFINED ${CMAKE_PROJECT_NAME}_USE_SYSTEM_NUMPY)
-  set(${CMAKE_PROJECT_NAME}_USE_SYSTEM_NUMPY ${${CMAKE_PROJECT_NAME}_USE_SYSTEM_python})
+  ExternalProject_FindPythonPackage(
+    MODULE_NAME "numpy"
+    REQUIRED
+    )
 endif()
 
 if(NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM_NUMPY)
 
   ExternalProject_Message(${proj} "${proj} - Building without Fortran compiler - Non-optimized code will be built !")
+
+  set(EP_SOURCE_DIR ${CMAKE_BINARY_DIR}/${proj})
 
   include(ExternalProjectForNonCMakeProject)
 
@@ -45,8 +50,8 @@ set(ENV{MKL} \"None\")
   set(_configure_script ${CMAKE_BINARY_DIR}/${proj}_configure_step.cmake)
   file(WRITE ${_configure_script}
 "include(\"${_env_script}\")
-set(${proj}_WORKING_DIR \"${CMAKE_BINARY_DIR}/${proj}\")
-file(WRITE \"${CMAKE_BINARY_DIR}/${proj}/site.cfg\" \"\")
+set(${proj}_WORKING_DIR \"${EP_SOURCE_DIR}\")
+file(WRITE \"${EP_SOURCE_DIR}/site.cfg\" \"\")
 ExternalProject_Execute(${proj} \"configure\" \"${PYTHON_EXECUTABLE}\" setup.py config)
 ")
 
@@ -54,7 +59,7 @@ ExternalProject_Execute(${proj} \"configure\" \"${PYTHON_EXECUTABLE}\" setup.py 
   set(_build_script ${CMAKE_BINARY_DIR}/${proj}_build_step.cmake)
   file(WRITE ${_build_script}
 "include(\"${_env_script}\")
-set(${proj}_WORKING_DIR \"${CMAKE_BINARY_DIR}/${proj}\")
+set(${proj}_WORKING_DIR \"${EP_SOURCE_DIR}\")
 ExternalProject_Execute(${proj} \"build\" \"${PYTHON_EXECUTABLE}\" setup.py build --fcompiler=none)
 ")
 
@@ -62,21 +67,51 @@ ExternalProject_Execute(${proj} \"build\" \"${PYTHON_EXECUTABLE}\" setup.py buil
   set(_install_script ${CMAKE_BINARY_DIR}/${proj}_install_step.cmake)
   file(WRITE ${_install_script}
 "include(\"${_env_script}\")
-set(${proj}_WORKING_DIR \"${CMAKE_BINARY_DIR}/${proj}\")
+set(${proj}_WORKING_DIR \"${EP_SOURCE_DIR}\")
 ExternalProject_Execute(${proj} \"install\" \"${PYTHON_EXECUTABLE}\" setup.py install)
 ")
 
-  set(_version "1.9.2")
+  set(_version "1.13.1")
+
+  if(CMAKE_CONFIGURATION_TYPES)
+    set(_download_stamp "${Slicer_BINARY_DIR}/${proj}-prefix/src/${proj}-stamp/${CMAKE_CFG_INTDIR}/${proj}-download")
+  else()
+    set(_download_stamp "${Slicer_BINARY_DIR}/${proj}-prefix/src/${proj}-stamp/${proj}-download")
+  endif()
+  set(_common_patch_args
+    -DPatch_EXECUTABLE:PATH=${Patch_EXECUTABLE}
+    -DSOURCE_DIR:PATH=<SOURCE_DIR>
+    -DBINARY_DIR:PATH=${CMAKE_BINARY_DIR}
+    -DDOWNLOAD_STAMP:FILEPATH=${_download_stamp}
+    )
 
   #------------------------------------------------------------------------------
   ExternalProject_Add(${proj}
     ${${proj}_EP_ARGS}
-    URL "http://slicer.kitware.com/midas3/download/item/210950/numpy-${_version}.tar.gz"
-    URL_MD5 "a1ed53432dbcd256398898d35bc8e645"
-    SOURCE_DIR ${proj}
+    URL "https://pypi.python.org/packages/c0/3a/40967d9f5675fbb097ffec170f59c2ba19fc96373e73ad47c2cae9a30aed/numpy-${_version}.zip"
+    URL_MD5 "2c3c0f4edf720c3a7b525dacc825b9ae"
+    DOWNLOAD_DIR ${CMAKE_BINARY_DIR}
+    SOURCE_DIR ${EP_SOURCE_DIR}
     BUILD_IN_SOURCE 1
-    PATCH_COMMAND ${CMAKE_COMMAND} -DNUMPY_SRC_DIR=${CMAKE_BINARY_DIR}/${proj}
-      -P ${CMAKE_CURRENT_LIST_DIR}/${proj}_patch.cmake
+    PATCH_COMMAND
+      #
+      # Fix NUMPY config so it works with clang (originally added in r21445
+      # Problem is bogus inclusion of '-faltivec' on OS X Intel problem was bad platform test.
+      ${CMAKE_COMMAND} ${_common_patch_args}
+        -DPATCH:FILEPATH=${CMAKE_CURRENT_LIST_DIR}/numpy-01-system_info-fix-clang.patch
+        -P ${Slicer_SOURCE_DIR}/CMake/SlicerPatch.cmake
+      #
+      # To allow building without a Fortran compiler, effectively back out this change:
+      # https://github.com/numpy/numpy/commit/4a3fd1f40ef59b872341088a2e97712c671ea4ca
+      COMMAND ${CMAKE_COMMAND} ${_common_patch_args}
+        -DPATCH:FILEPATH=${CMAKE_CURRENT_LIST_DIR}/numpy-02-fcompiler-optional-revert-4a3fd1f.patch
+        -P ${Slicer_SOURCE_DIR}/CMake/SlicerPatch.cmake
+      #
+      # Ignore "RuntimeWarning: invalid value encountered in power"
+      # See https://discourse.slicer.org/t/runtime-warning-on-startup-in-numpy/757/10
+      COMMAND ${CMAKE_COMMAND} ${_common_patch_args}
+         -DPATCH:FILEPATH=${CMAKE_CURRENT_LIST_DIR}/numpy-03-core-getlimits-ignore-warnings.patch
+        -P ${Slicer_SOURCE_DIR}/CMake/SlicerPatch.cmake
     CONFIGURE_COMMAND ${CMAKE_COMMAND} -P ${_configure_script}
     BUILD_COMMAND ${CMAKE_COMMAND} -P ${_build_script}
     INSTALL_COMMAND ${CMAKE_COMMAND} -P ${_install_script}

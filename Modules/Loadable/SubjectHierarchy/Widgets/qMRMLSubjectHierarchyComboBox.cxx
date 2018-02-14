@@ -27,6 +27,7 @@
 #include <QApplication>
 #include <QDesktopWidget>
 #include <QMouseEvent>
+#include <QLabel>
 
 // SubjectHierarchy includes
 #include "qMRMLSubjectHierarchyComboBox.h"
@@ -56,15 +57,19 @@ public:
 
 public:
   int MaximumNumberOfShownItems;
+  bool AlignPopupVertically;
 
   qMRMLSubjectHierarchyTreeView* TreeView;
+  QLabel* NoItemLabel;
 };
 
 //------------------------------------------------------------------------------
 qMRMLSubjectHierarchyComboBoxPrivate::qMRMLSubjectHierarchyComboBoxPrivate(qMRMLSubjectHierarchyComboBox& object)
   : q_ptr(&object)
   , MaximumNumberOfShownItems(20)
+  , AlignPopupVertically(true)
   , TreeView(NULL)
+  , NoItemLabel(NULL)
 {
 }
 
@@ -77,6 +82,7 @@ void qMRMLSubjectHierarchyComboBoxPrivate::init()
 
   q->setDefaultText("Select subject hierarchy item");
   q->setDefaultIcon(QIcon());
+  q->setSizePolicy(QSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed));
 
   // Setup tree view
   this->TreeView = new qMRMLSubjectHierarchyTreeView(q);
@@ -87,15 +93,24 @@ void qMRMLSubjectHierarchyComboBoxPrivate::init()
   this->TreeView->setHeaderHidden(true);
   this->TreeView->setContextMenuEnabled(false);
 
+  // No item label
+  this->NoItemLabel = new QLabel("No items");
+  this->NoItemLabel->setMargin(4);
+
   // Add tree view to container
   QFrame* container = qobject_cast<QFrame*>(q->view()->parentWidget());
+  container->layout()->addWidget(this->NoItemLabel);
   container->layout()->addWidget(this->TreeView);
 
   // Make connections
   QObject::connect(this->TreeView, SIGNAL(currentItemChanged(vtkIdType)),
                    q, SLOT(updateComboBoxTitleAndIcon(vtkIdType)));
+  QObject::connect(this->TreeView, SIGNAL(currentItemModified(vtkIdType)),
+                   q, SLOT(updateComboBoxTitleAndIcon(vtkIdType)));
   QObject::connect(this->TreeView, SIGNAL(currentItemChanged(vtkIdType)),
-                   container, SLOT(hide()));
+                   q, SIGNAL(currentItemChanged(vtkIdType)));
+  QObject::connect(this->TreeView, SIGNAL(currentItemModified(vtkIdType)),
+                   q, SIGNAL(currentItemModified(vtkIdType)));
 }
 
 // --------------------------------------------------------------------------
@@ -133,6 +148,12 @@ vtkMRMLScene* qMRMLSubjectHierarchyComboBox::mrmlScene()const
 void qMRMLSubjectHierarchyComboBox::setMRMLScene(vtkMRMLScene* scene)
 {
   Q_D(const qMRMLSubjectHierarchyComboBox);
+
+  if (this->mrmlScene() == scene)
+    {
+    return;
+    }
+
   d->TreeView->setMRMLScene(scene);
 
   vtkMRMLSubjectHierarchyNode* shNode = d->TreeView->subjectHierarchyNode();
@@ -144,6 +165,13 @@ void qMRMLSubjectHierarchyComboBox::setMRMLScene(vtkMRMLScene* scene)
 
   // Set tree root item to be the new scene, and disable showing it
   d->TreeView->setRootItem(shNode->GetSceneItemID());
+}
+
+//------------------------------------------------------------------------------
+void qMRMLSubjectHierarchyComboBox::clearSelection()
+{
+  Q_D(const qMRMLSubjectHierarchyComboBox);
+  d->TreeView->clearSelection();
 }
 
 //------------------------------------------------------------------------------
@@ -251,6 +279,20 @@ void qMRMLSubjectHierarchyComboBox::setMaximumNumberOfShownItems(int maxNumberOf
   d->MaximumNumberOfShownItems = maxNumberOfShownItems;
 }
 
+//--------------------------------------------------------------------------
+bool qMRMLSubjectHierarchyComboBox::alignPopupVertically()const
+{
+  Q_D(const qMRMLSubjectHierarchyComboBox);
+  return d->AlignPopupVertically;
+}
+
+//--------------------------------------------------------------------------
+void qMRMLSubjectHierarchyComboBox::setAlignPopupVertically(bool align)
+{
+  Q_D(qMRMLSubjectHierarchyComboBox);
+  d->AlignPopupVertically = align;
+}
+
 //-----------------------------------------------------------------------------
 void qMRMLSubjectHierarchyComboBox::showPopup()
 {
@@ -266,44 +308,96 @@ void qMRMLSubjectHierarchyComboBox::showPopup()
   QPoint below = mapToGlobal(listRect.bottomLeft());
   QPoint above = mapToGlobal(listRect.topLeft());
 
-  // Custom size
+  // Custom Height
+  int popupHeight = 0;
   int displayedItemCount = d->TreeView->displayedItemCount();
-  const int numberOfRows = qMin(displayedItemCount, d->MaximumNumberOfShownItems);
-  QSize itemSize = QSize(
-    d->TreeView->sizeHintForColumn(d->TreeView->model()->nameColumn()), d->TreeView->sizeHintForRow(0) );
-  listRect.setHeight( numberOfRows * itemSize.height() );
+  if (displayedItemCount == 0)
+    {
+    // If there is no items, find what message to show instead
+    vtkMRMLSubjectHierarchyNode* shNode = d->TreeView->subjectHierarchyNode();
+    vtkIdType rootItem = d->TreeView->rootItem();
+    std::vector<vtkIdType> childItemIDs;
+    shNode->GetItemChildren(rootItem, childItemIDs, false);
+    if (childItemIDs.empty())
+      {
+      if (rootItem!= shNode->GetSceneItemID())
+        {
+        std::string rootName = shNode->GetItemName(rootItem);
+        QString label = QString("No items in branch: ") + QString::fromStdString(rootName);
+        d->NoItemLabel->setText(label);
+        }
+      else
+        {
+        d->NoItemLabel->setText("No items in scene");
+        }
+      }
+    else
+      {
+      d->NoItemLabel->setText("No items accepted by current filters");
+      }
 
+      // Show no item label instead of tree view
+      d->NoItemLabel->show();
+      d->TreeView->hide();
+      popupHeight = d->NoItemLabel->sizeHint().height();
+    }
+  else
+    {
+    // Height based on the number of items
+    const int numberOfRows = qMin(displayedItemCount, d->MaximumNumberOfShownItems);
+    popupHeight = numberOfRows * d->TreeView->sizeHintForRow(0);
+
+    // Add tree view margins for the height
+    // NB: not needed for the width as the item labels will be cropped
+    // without displaying an horizontal scroll bar
+    int tvMarginLeft, tvMarginTop, tvMarginRight, tvMarginBottom;
+    d->TreeView->getContentsMargins(&tvMarginLeft, &tvMarginTop, &tvMarginRight, &tvMarginBottom);
+    popupHeight += tvMarginTop + tvMarginBottom;
+
+    d->NoItemLabel->hide();
+    d->TreeView->show();
+    }
+
+  // Add container margins for the height
   int marginLeft, marginTop, marginRight, marginBottom;
   container->getContentsMargins(&marginLeft, &marginTop, &marginRight, &marginBottom);
-  int tvMarginLeft, tvMarginTop, tvMarginRight, tvMarginBottom;
-  d->TreeView->getContentsMargins(&tvMarginLeft, &tvMarginTop, &tvMarginRight, &tvMarginBottom);
-  listRect.setWidth( listRect.width() + marginLeft + marginRight + tvMarginLeft + tvMarginRight);
-  listRect.setWidth( listRect.width() + container->frameWidth());
-  listRect.setHeight( listRect.height() + marginTop + marginBottom + tvMarginTop + tvMarginBottom);
+  popupHeight += marginTop + marginBottom;
 
-  // Position horizontally
-  listRect.moveLeft(above.x());
+  // Position of the container
+  if(d->AlignPopupVertically)
+    {
+    // Position horizontally
+    listRect.moveLeft(above.x());
 
-  // Position vertically so the currently selected item lines up with the combo box
-  const QRect currentItemRect = d->TreeView->visualRect(d->TreeView->currentIndex());
-  const int offset = listRect.top() - currentItemRect.top();
-  listRect.moveTop(above.y() + offset - listRect.top());
+    // Position vertically so the currently selected item lines up with the combo box
+    const QRect currentItemRect = d->TreeView->visualRect(d->TreeView->currentIndex());
+    const int offset = listRect.top() - currentItemRect.top();
+    listRect.moveTop(above.y() + offset - listRect.top());
 
-  if (listRect.width() > screen.width() )
-    {
-    listRect.setWidth(screen.width());
+    if (listRect.width() > screen.width() )
+      {
+      listRect.setWidth(screen.width());
+      }
+    if (mapToGlobal(listRect.bottomRight()).x() > screen.right())
+      {
+      below.setX(screen.x() + screen.width() - listRect.width());
+      above.setX(screen.x() + screen.width() - listRect.width());
+      }
+    if (mapToGlobal(listRect.topLeft()).x() < screen.x() )
+      {
+      below.setX(screen.x());
+      above.setX(screen.x());
+      }
     }
-  if (mapToGlobal(listRect.bottomRight()).x() > screen.right())
+  else
     {
-    below.setX(screen.x() + screen.width() - listRect.width());
-    above.setX(screen.x() + screen.width() - listRect.width());
+    // Position below the combobox
+    listRect.moveTo(below);
     }
-  if (mapToGlobal(listRect.topLeft()).x() < screen.x() )
-    {
-    below.setX(screen.x());
-    above.setX(screen.x());
-    }
-  container->setGeometry(listRect);
+
+  container->move(listRect.topLeft());
+  container->setFixedHeight(popupHeight);
+  container->setFixedWidth(this->width());
   container->raise();
   container->show();
 
@@ -340,6 +434,16 @@ void qMRMLSubjectHierarchyComboBox::updateComboBoxTitleAndIcon(vtkIdType selecte
     this->setDefaultIcon(QIcon());
     return;
     }
+  if (!selectedShItemID)
+    {
+    this->setDefaultText("Select subject hierarchy item");
+    this->setDefaultIcon(QIcon());
+    return;
+    }
+
+  // Hide popup
+  QFrame* container = qobject_cast<QFrame*>(this->view()->parentWidget());
+  container->hide();
 
   // Assemble title for selected item
   QString titleText(shNode->GetItemName(selectedShItemID).c_str());

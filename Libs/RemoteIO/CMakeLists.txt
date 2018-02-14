@@ -1,7 +1,7 @@
 project(RemoteIO)
 
 #-----------------------------------------------------------------------------
-cmake_minimum_required(VERSION 2.8.4)
+cmake_minimum_required(VERSION 3.5)
 #-----------------------------------------------------------------------------
 
 # --------------------------------------------------------------------------
@@ -15,8 +15,8 @@ if(WIN32)
   mark_as_advanced(FORCE DISABLE_MSVC8_DEPRECATED_WARNINGS)
   if(DISABLE_MSVC8_DEPRECATED_WARNINGS)
     add_definitions(-D_CRT_SECURE_NO_DEPRECATE)
-  endif(DISABLE_MSVC8_DEPRECATED_WARNINGS)
-endif(WIN32)
+  endif()
+endif()
 
 if(NOT DEFINED BUILD_SHARED_LIBS)
   option(BUILD_SHARED_LIBS "Build with shared libraries." ON)

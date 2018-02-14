@@ -82,9 +82,7 @@ protected slots:
   virtual void initJavascript();
   virtual void onLoadFinished(bool ok);
   virtual void onLinkClicked(const QUrl& url);
-
-protected:
-  QScopedPointer<qSlicerExtensionsInstallWidgetPrivate> d_ptr;
+  virtual void onLoadStarted();
 
 private:
   Q_DECLARE_PRIVATE(qSlicerExtensionsInstallWidget);

@@ -492,6 +492,12 @@ void vtkMRMLSegmentationDisplayNode::SetSegmentOverrideColor(std::string segment
 }
 
 //---------------------------------------------------------------------------
+void vtkMRMLSegmentationDisplayNode::UnsetSegmentOverrideColor(std::string segmentID)
+{
+  this->SetSegmentOverrideColor(segmentID, SEGMENT_COLOR_NO_OVERRIDE, SEGMENT_COLOR_NO_OVERRIDE, SEGMENT_COLOR_NO_OVERRIDE);
+}
+
+//---------------------------------------------------------------------------
 bool vtkMRMLSegmentationDisplayNode::GetSegmentVisibility(std::string segmentID)
 {
   this->UpdateSegmentList();
@@ -774,7 +780,7 @@ void vtkMRMLSegmentationDisplayNode::SetSegmentDisplayPropertiesToDefault(const 
                          && color[2] == vtkSegment::SEGMENT_COLOR_INVALID[2] );
   if (generateNewColor)
     {
-    this->GenerateSegmentColor(color);
+    this->GenerateSegmentColor(color, ++this->NumberOfGeneratedColors);
 
     // Set color to segment (no override is specified by default, so segment color is used)
     segment->SetColor(color);
@@ -906,7 +912,7 @@ bool vtkMRMLSegmentationDisplayNode::CalculateAutoOpacitiesForSegments()
 }
 
 //---------------------------------------------------------------------------
-void vtkMRMLSegmentationDisplayNode::GenerateSegmentColor(double color[3])
+void vtkMRMLSegmentationDisplayNode::GenerateSegmentColor(double color[3], int colorNumber/*=0*/)
 {
   if (!this->Scene)
     {
@@ -917,7 +923,7 @@ void vtkMRMLSegmentationDisplayNode::GenerateSegmentColor(double color[3])
   // Get default generic anatomy color table
   vtkMRMLColorTableNode* genericAnatomyColorNode = vtkMRMLColorTableNode::SafeDownCast(
     this->Scene->GetNodeByID("vtkMRMLColorTableNodeFileGenericAnatomyColors.txt") );
-  if (!genericAnatomyColorNode)
+  if (!genericAnatomyColorNode || colorNumber == -1)
     {
     // Generate random color if default color table is not available (such as in logic tests)
     color[0] = rand() * 1.0 / RAND_MAX;
@@ -926,11 +932,17 @@ void vtkMRMLSegmentationDisplayNode::GenerateSegmentColor(double color[3])
     return;
     }
 
+  // Default is to use NumberOfGeneratedColors
+  if (colorNumber == 0)
+    {
+    colorNumber = this->NumberOfGeneratedColors;
+    }
+
   // Get color corresponding to the number of added segments (which is incremented in
   // vtkMRMLSegmentationNode::AddSegmentDisplayProperties every time a new segment display
   // properties entry is added
   double currentColor[4] = {0.0, 0.0, 0.0, 0.0};
-  genericAnatomyColorNode->GetColor(++this->NumberOfGeneratedColors, currentColor);
+  genericAnatomyColorNode->GetColor(colorNumber, currentColor);
   color[0] = currentColor[0];
   color[1] = currentColor[1];
   color[2] = currentColor[2];
@@ -1120,7 +1132,7 @@ void vtkMRMLSegmentationDisplayNode::GetVisibleSegmentIDs(vtkStringArray* segmen
 }
 
 //---------------------------------------------------------------------------
-void vtkMRMLSegmentationDisplayNode::UpdateSegmentList()
+void vtkMRMLSegmentationDisplayNode::UpdateSegmentList(bool removeUnusedDisplayProperties /*=true*/)
 {
   vtkMRMLSegmentationNode* segmentationNode = vtkMRMLSegmentationNode::SafeDownCast(this->GetDisplayableNode());
   vtkSegmentation* segmentation = segmentationNode ? segmentationNode->GetSegmentation() : NULL;
@@ -1138,7 +1150,7 @@ void vtkMRMLSegmentationDisplayNode::UpdateSegmentList()
     }
   if (this->SegmentListUpdateSource == segmentation && this->SegmentListUpdateTime >= segmentation->GetMTime())
     {
-    // already up-to-date
+    // Already up-to-date
     return;
     }
   this->SegmentListUpdateTime = segmentation->GetMTime();
@@ -1148,25 +1160,34 @@ void vtkMRMLSegmentationDisplayNode::UpdateSegmentList()
   bool wasDisableModified = this->GetDisableModifiedEvent();
   this->SetDisableModifiedEvent(true);
 
-  // Remove unused segment display properties and colors
-  // Get list of segment IDs that we have display properties for but does not exist in
-  // the segmentation anymore.
-  std::vector<std::string> orphanSegmentIds;
-  for (SegmentDisplayPropertiesMap::iterator it = this->SegmentationDisplayProperties.begin();
-    it != this->SegmentationDisplayProperties.end(); ++it)
+  // Reset number of generated colors if last segment was removed
+  if (segmentation->GetNumberOfSegments() == 0)
     {
-    if (segmentation->GetSegment(it->first) == NULL)
-      {
-      // the segment does not exist in segmentation
-      orphanSegmentIds.push_back(it->first);
-      }
+    this->NumberOfGeneratedColors = 0;
     }
-  // Delete unused properties and color table entries
-  for (std::vector<std::string>::iterator orphanSegmentIdIt = orphanSegmentIds.begin();
-    orphanSegmentIdIt != orphanSegmentIds.end(); ++orphanSegmentIdIt)
+
+  // Remove unused segment display properties and colors
+  if (removeUnusedDisplayProperties)
     {
-    // Remove segment display properties
-    this->RemoveSegmentDisplayProperties(*orphanSegmentIdIt);
+    // Get list of segment IDs that we have display properties for but does not exist in
+    // the segmentation anymore.
+    std::vector<std::string> orphanSegmentIds;
+    for (SegmentDisplayPropertiesMap::iterator it = this->SegmentationDisplayProperties.begin();
+      it != this->SegmentationDisplayProperties.end(); ++it)
+      {
+      if (segmentation->GetSegment(it->first) == NULL)
+        {
+        // The segment does not exist in segmentation
+        orphanSegmentIds.push_back(it->first);
+        }
+      }
+    // Delete unused properties and color table entries
+    for (std::vector<std::string>::iterator orphanSegmentIdIt = orphanSegmentIds.begin();
+      orphanSegmentIdIt != orphanSegmentIds.end(); ++orphanSegmentIdIt)
+      {
+      // Remove segment display properties
+      this->RemoveSegmentDisplayProperties(*orphanSegmentIdIt);
+      }
     }
 
   // Add missing segment display properties
@@ -1178,7 +1199,7 @@ void vtkMRMLSegmentationDisplayNode::UpdateSegmentList()
     {
     if (this->SegmentationDisplayProperties.find(*segmentIdIt) == this->SegmentationDisplayProperties.end())
       {
-      // the segment does not exist in segmentation
+      // The segment does not exist in segmentation
       missingSegmentIDs.push_back(*segmentIdIt);
       }
     }
@@ -1189,5 +1210,5 @@ void vtkMRMLSegmentationDisplayNode::UpdateSegmentList()
     this->SetSegmentDisplayPropertiesToDefault(*missingSegmentIdIt);
     }
 
-   this->SetDisableModifiedEvent(wasDisableModified);
+  this->SetDisableModifiedEvent(wasDisableModified);
 }

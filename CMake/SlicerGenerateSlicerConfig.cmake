@@ -25,6 +25,9 @@ set(Slicer_CMAKE_CXX_COMPILER_CONFIG ${CMAKE_CXX_COMPILER})
 set(Slicer_CMAKE_CXX_FLAGS_CONFIG    ${ep_common_cxx_flags})
 set(Slicer_CMAKE_C_COMPILER_CONFIG   ${CMAKE_C_COMPILER})
 set(Slicer_CMAKE_C_FLAGS_CONFIG      ${ep_common_c_flags})
+set(Slicer_CMAKE_CXX_STANDARD_CONFIG          ${CMAKE_CXX_STANDARD})
+set(Slicer_CMAKE_CXX_STANDARD_REQUIRED_CONFIG ${CMAKE_CXX_STANDARD_REQUIRED})
+set(Slicer_CMAKE_CXX_EXTENSIONS_CONFIG        ${CMAKE_CXX_EXTENSIONS})
 
 # Launcher command
 set(Slicer_LAUNCHER_EXECUTABLE_CONFIG ${Slicer_LAUNCHER_EXECUTABLE})
@@ -92,6 +95,17 @@ set(${target}_INCLUDE_DIRS
   endforeach()
 endif()
 
+get_property(_wrap_hierarchy_targets GLOBAL PROPERTY SLICER_WRAP_HIERARCHY_TARGETS)
+if(_wrap_hierarchy_targets)
+  foreach(target ${_wrap_hierarchy_targets})
+    set(Slicer_WRAP_HIERARCHY_FILES_CONFIG
+"${Slicer_WRAP_HIERARCHY_FILES_CONFIG}
+set(${target}_WRAP_HIERARCHY_FILE
+  \"${${target}_WRAP_HIERARCHY_FILE}\")"
+)
+  endforeach()
+endif()
+
 set(Slicer_Libs_INCLUDE_DIRS_CONFIG ${Slicer_Libs_INCLUDE_DIRS})
 set(Slicer_Base_INCLUDE_DIRS_CONFIG ${Slicer_Base_INCLUDE_DIRS})
 
@@ -105,13 +119,14 @@ set(RemoteIO_INCLUDE_DIRS_CONFIG ${RemoteIO_INCLUDE_DIRS})
 set(vtkTeem_INCLUDE_DIRS_CONFIG ${vtkTeem_INCLUDE_DIRS})
 set(vtkAddon_INCLUDE_DIRS_CONFIG ${vtkAddon_INCLUDE_DIRS})
 set(vtkITK_INCLUDE_DIRS_CONFIG ${vtkITK_INCLUDE_DIRS})
+set(vtkSegmentationCore_INCLUDE_DIRS_CONFIG ${vtkSegmentationCore_INCLUDE_DIRS})
 
 # Note: For sake of simplification, the macro 'slicer_config_set_ep' is not invoked conditionally, if
 # the configured 'value' parameter is an empty string, the macro 'slicer_config_set_ep' is a no-op.
 
 # Slicer external projects variables
 set(Slicer_SUPERBUILD_EP_VARS_CONFIG)
-foreach(varname ${Slicer_EP_LABEL_FIND_PACKAGE} QtTesting_DIR)
+foreach(varname ${Slicer_EP_LABEL_FIND_PACKAGE} QtTesting_DIR BRAINSCommonLib_DIR)
   set(Slicer_SUPERBUILD_EP_VARS_CONFIG
    "${Slicer_SUPERBUILD_EP_VARS_CONFIG}
 slicer_config_set_ep(
@@ -126,8 +141,12 @@ set(Slicer_EP_COMPONENT_VARS_CONFIG
   "set(Slicer_VTK_COMPONENTS \"${Slicer_VTK_COMPONENTS}\")")
 
 # List all required external project
-set(Slicer_EXTERNAL_PROJECTS_CONFIG CTK ITK CURL Teem VTK RapidJSON)
-set(Slicer_EXTERNAL_PROJECTS_NO_USEFILE_CONFIG CURL RapidJSON)
+set(Slicer_EXTERNAL_PROJECTS_CONFIG CTK CTKAppLauncherLib ITK CURL Teem VTK RapidJSON)
+set(Slicer_EXTERNAL_PROJECTS_NO_USEFILE_CONFIG CURL CTKAppLauncherLib RapidJSON)
+if(Slicer_USE_CTKAPPLAUNCHER)
+  list(APPEND Slicer_EXTERNAL_PROJECTS_CONFIG CTKAppLauncher)
+  list(APPEND Slicer_EXTERNAL_PROJECTS_NO_USEFILE_CONFIG CTKAppLauncher)
+endif()
 if(Slicer_USE_QtTesting)
   list(APPEND Slicer_EXTERNAL_PROJECTS_CONFIG QtTesting)
   list(APPEND Slicer_EXTERNAL_PROJECTS_NO_USEFILE_CONFIG QtTesting)

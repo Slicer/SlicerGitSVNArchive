@@ -52,6 +52,8 @@
 #  ConfigurePrerequisites    | Slicer_USE_CONFIGUREPREREQUISITES
 # --------------------------------------------------------------------------
 
+cmake_minimum_required(VERSION 3.5)
+
 foreach(component NoExtensionSupport ConfigurePrerequisites)
   string(TOUPPER ${component} _COMPONENT)
   set(Slicer_USE_${_COMPONENT} 0)
@@ -116,6 +118,7 @@ set(Slicer_USE_PYTHONQT "@Slicer_USE_PYTHONQT@")
 set(Slicer_USE_PYTHONQT_WITH_TCL "@Slicer_USE_PYTHONQT_WITH_TCL@")
 set(Slicer_USE_QtTesting "@Slicer_USE_QtTesting@")
 set(Slicer_USE_SimpleITK "@Slicer_USE_SimpleITK@")
+set(Slicer_BUILD_BRAINSTOOLS "@Slicer_BUILD_BRAINSTOOLS@")
 set(Slicer_BUILD_CLI_SUPPORT "@Slicer_BUILD_CLI_SUPPORT@")
 set(Slicer_BUILD_DICOM_SUPPORT "@Slicer_BUILD_DICOM_SUPPORT@")
 set(Slicer_BUILD_DIFFUSION_SUPPORT "@Slicer_BUILD_DIFFUSION_SUPPORT@")
@@ -132,8 +135,8 @@ set(Slicer_LAUNCH_COMMAND "@Slicer_LAUNCH_COMMAND_CONFIG@")
 set(SEM_LAUNCH_COMMAND "@Slicer_LAUNCH_COMMAND_CONFIG@")
 
 # VCS commands
-set(Subversion_SVN_EXECUTABLE "@Subversion_SVN_EXECUTABLE@")
-set(GIT_EXECUTABLE "@GIT_EXECUTABLE@")
+set(Subversion_SVN_EXECUTABLE "@Subversion_SVN_EXECUTABLE@" CACHE FILEPATH "subversion command line client")
+set(GIT_EXECUTABLE "@GIT_EXECUTABLE@"  CACHE FILEPATH "Git command line client")
 
 # Slicer working copy Revision, URL and Root
 set(Slicer_WC_REVISION "@Slicer_WC_REVISION@")
@@ -190,6 +193,9 @@ set(Slicer_LOGOS_RESOURCE "@Slicer_LOGOS_RESOURCE@")
 # Slicer home (top of the tree)
 set(Slicer_HOME "@Slicer_HOME@")
 
+# Slicer binary directory
+set(Slicer_BINARY_DIR "@Slicer_BINARY_DIR@")
+
 # Slicer Core library
 set(Slicer_CORE_LIBRARY @Slicer_CORE_LIBRARY_CONFIG@)
 
@@ -202,6 +208,9 @@ set(MRML_LIBRARIES @MRML_LIBRARIES@)
 # Slicer Libs VTK wrapped libraries
 set(Slicer_Libs_VTK_WRAPPED_LIBRARIES "@Slicer_Libs_VTK_WRAPPED_LIBRARIES@")
 
+# Slicer VTK version
+set(Slicer_VTK_VERSION_MAJOR "@Slicer_VTK_VERSION_MAJOR@")
+
 # Slicer include directories for module
 @Slicer_INCLUDE_MODULE_DIRS_CONFIG@
 
@@ -213,6 +222,9 @@ set(Slicer_Libs_VTK_WRAPPED_LIBRARIES "@Slicer_Libs_VTK_WRAPPED_LIBRARIES@")
 
 # Slicer include directories for module Widget
 @Slicer_INCLUDE_MODULE_WIDGET_DIRS_CONFIG@
+
+# Slicer VTK wrap hierarchy files
+@Slicer_WRAP_HIERARCHY_FILES_CONFIG@
 
 # Slicer Libs include file directories.
 set(Slicer_Libs_INCLUDE_DIRS "@Slicer_Libs_INCLUDE_DIRS_CONFIG@")
@@ -258,6 +270,9 @@ set(vtkAddon_INCLUDE_DIRS "@vtkAddon_INCLUDE_DIRS_CONFIG@"
   
 set(vtkITK_INCLUDE_DIRS "@vtkITK_INCLUDE_DIRS_CONFIG@"
   CACHE INTERNAL "vtkITK includes" FORCE)
+
+set(vtkSegmentationCore_INCLUDE_DIRS "@vtkSegmentationCore_INCLUDE_DIRS_CONFIG@"
+  CACHE INTERNAL "vtkSegmentationCore includes" FORCE)
 
 set(vtkTeem_INCLUDE_DIRS "@vtkTeem_INCLUDE_DIRS_CONFIG@"
   CACHE INTERNAL "vtkTeem includes" FORCE)
@@ -337,6 +352,12 @@ set(Slicer_INSTALL_THIRDPARTY_SHARE_DIR "${Slicer_INSTALL_ROOT}${Slicer_BUNDLE_E
 
 # The Slicer install prefix (*not* defined in the install tree)
 set(Slicer_INSTALL_PREFIX  "@CMAKE_INSTALL_PREFIX@")
+
+
+# --------------------------------------------------------------------------
+# Testing
+# --------------------------------------------------------------------------
+include(CTestUseLaunchers)
 
 # --------------------------------------------------------------------------
 # External data
@@ -431,6 +452,12 @@ slicer_config_set_compiler_ep( CMAKE_C_COMPILER   "@Slicer_CMAKE_C_COMPILER_CONF
    CACHE PATH "Path to C compiler used in Slicer build" FORCE )
 slicer_config_set_compiler_ep( CMAKE_CXX_COMPILER "@Slicer_CMAKE_CXX_COMPILER_CONFIG@"
    CACHE PATH "Path to CXX compiler used in Slicer build" FORCE )
+slicer_config_set_compiler_ep( CMAKE_CXX_STANDARD "@Slicer_CMAKE_CXX_STANDARD_CONFIG@"
+   CACHE PATH "C++ standard used in Slicer build" FORCE )
+slicer_config_set_compiler_ep( CMAKE_CXX_STANDARD_REQUIRED "@Slicer_CMAKE_CXX_STANDARD_REQUIRED_CONFIG@"
+   CACHE PATH "Whether the specified C++ standard is a requirement in Slicer build" FORCE )
+slicer_config_set_compiler_ep( CMAKE_CXX_EXTENSIONS "@Slicer_CMAKE_CXX_EXTENSIONS_CONFIG@"
+   CACHE PATH "Whether compiler specific extensions are requested in Slicer build" FORCE )
 
 set(CMAKE_CXX_FLAGS    "@Slicer_CMAKE_CXX_FLAGS_CONFIG@")
 set(CMAKE_C_FLAGS      "@Slicer_CMAKE_C_FLAGS_CONFIG@")

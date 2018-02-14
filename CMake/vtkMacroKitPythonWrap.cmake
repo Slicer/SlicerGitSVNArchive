@@ -20,6 +20,35 @@
 
 # Based on VTK/CMake/KitCommonWrapBlock.cmake
 
+# Add <dep> as a dependency of <module_name> and recurse on <dep>'s dependencies.
+# Appends dependencies and their include directories to lists:
+#   - _<module_name>_wrap_depends
+#   - _<module_name>_wrap_include_dirs
+# Ignores VTK dependencies.
+macro(_get_dependencies_recurse module_name dep)
+  string(REGEX REPLACE "(.+)PythonD\$" "\\1" _dep_base ${dep})
+  if(${_dep_base}_WRAP_HIERARCHY_FILE)
+    list(APPEND _${module_name}_wrap_depends ${_dep_base})
+  endif()
+
+  set(_wrap_include_dirs ${${_dep_base}_INCLUDE_DIRS})
+  if(_wrap_include_dirs)
+    list(APPEND _${module_name}_wrap_include_dirs ${_wrap_include_dirs})
+  endif()
+
+  list(FIND ${_dep_base}_WRAP_DEPENDS "${_dep_base}" _index)
+  if(NOT _index EQUAL -1)
+    message(FATAL_ERROR "${_dep_base} can NOT depends on itself [${_dep_base}_WRAP_DEPENDS: ${${_dep_base}_WRAP_DEPENDS}]")
+  endif()
+
+  foreach(_dep ${${_dep_base}_WRAP_DEPENDS})
+    list(FIND VTK_LIBRARIES "${_dep}" _index)
+    if(_index EQUAL -1)
+      _get_dependencies_recurse(${module_name} "${_dep}")
+    endif()
+  endforeach()
+endmacro()
+
 macro(vtkMacroKitPythonWrap)
   set(options)
   set(oneValueArgs KIT_NAME KIT_INSTALL_BIN_DIR KIT_INSTALL_LIB_DIR)
@@ -49,6 +78,68 @@ macro(vtkMacroKitPythonWrap)
     include(${VTK_CMAKE_DIR}/vtkWrapPython.cmake)
 
     set(TMP_WRAP_FILES ${MY_KIT_SRCS} ${MY_KIT_WRAP_HEADERS})
+    set(_wrap_hierarchy_stamp_file)
+
+    # Create list of wrapping dependencies for generating the hierarchy file.
+    set(_kit_wrap_depends)
+    set(_kit_wrap_include_dirs ${VTK_INCLUDE_DIRS})
+
+    # Add kit include dirs
+    list(APPEND _kit_wrap_include_dirs ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
+    list(APPEND _kit_wrap_include_dirs ${Slicer_Base_INCLUDE_DIRS})
+    set(_kit_include_dirs ${${MY_KIT_NAME}_INCLUDE_DIRS})
+    if(_kit_include_dirs)
+      list(APPEND _kit_wrap_include_dirs ${_kit_include_dirs})
+    endif()
+
+    # Add VTK dependencies
+    foreach(_dep ${VTK_LIBRARIES})
+      list(APPEND _kit_wrap_depends ${_dep})
+    endforeach()
+
+    # Recursively add dependencies and get their include directories
+    foreach(_dep ${MY_KIT_PYTHON_LIBRARIES})
+      set(_${MY_KIT_NAME}_wrap_depends)
+      set(_${MY_KIT_NAME}_wrap_include_dirs)
+      _get_dependencies_recurse("${MY_KIT_NAME}" "${_dep}")
+      list(APPEND _kit_wrap_depends ${_${MY_KIT_NAME}_wrap_depends})
+      list(APPEND _kit_wrap_include_dirs ${_${MY_KIT_NAME}_wrap_include_dirs})
+    endforeach()
+
+    if(_kit_wrap_depends)
+      list(REMOVE_DUPLICATES _kit_wrap_depends)
+    endif()
+    if(_kit_wrap_include_dirs)
+      list(REMOVE_DUPLICATES _kit_wrap_include_dirs)
+    endif()
+
+    # Update list of include directories for wrapper tool command lines
+    list(APPEND VTK_WRAP_INCLUDE_DIRS ${_kit_wrap_include_dirs})
+
+    # Generate hierarchy files for VTK8 and later
+    if(NOT ${Slicer_VTK_VERSION_MAJOR} VERSION_LESS 8)
+      include(${VTK_CMAKE_DIR}/vtkWrapHierarchy.cmake)
+
+      # Set variables for this and future runs of vtk_wrap_hierarchy:
+      #  - <module_name>_WRAP_DEPENDS
+      #  - <module_name>_WRAP_HIERARCHY_FILE
+      set(${MY_KIT_NAME}_WRAP_DEPENDS "${_kit_wrap_depends}" CACHE INTERNAL "${MY_KIT_NAME} wrapping dependencies" FORCE)
+      set(_wrap_hierarchy_file "${Slicer_BINARY_DIR}/${MY_KIT_NAME}Hierarchy.txt")
+      if(${Slicer_VTK_VERSION_MAJOR} VERSION_LESS 9)
+        set(_wrap_hierarchy_stamp_file ${CMAKE_CURRENT_BINARY_DIR}/${MY_KIT_NAME}Hierarchy.stamp.txt)
+      endif()
+      set(${MY_KIT_NAME}_WRAP_HIERARCHY_FILE "${_wrap_hierarchy_file}" CACHE INTERNAL "${MY_KIT_NAME} wrap hierarchy file" FORCE)
+
+      set_property(GLOBAL APPEND PROPERTY SLICER_WRAP_HIERARCHY_TARGETS ${MY_KIT_NAME})
+
+      # Set variables for vtk_wrap_python3:
+      #   - KIT_HIERARCHY_FILE
+      set(KIT_HIERARCHY_FILE "${_wrap_hierarchy_file}")
+
+      # Generate hierarchy files
+      vtk_wrap_hierarchy(${MY_KIT_NAME} ${Slicer_BINARY_DIR} "${TMP_WRAP_FILES}")
+    endif()
+
     VTK_WRAP_PYTHON3(${MY_KIT_NAME}Python KitPython_SRCS "${TMP_WRAP_FILES}")
 
     include_directories("${PYTHON_INCLUDE_PATH}")
@@ -56,6 +147,17 @@ macro(vtkMacroKitPythonWrap)
     # Create a python module that can be loaded dynamically.  It links to
     # the shared library containing the wrappers for this kit.
     add_library(${MY_KIT_NAME}PythonD ${KitPython_SRCS} ${MY_KIT_PYTHON_EXTRA_SRCS})
+
+    # Include the hierarchy stamp file in the main kit library to ensure
+    # hierarchy file is created.
+    # XXX Use target_sources if cmake_minimum_required >= 3.1
+    get_target_property(_kit_srcs ${MY_KIT_NAME} SOURCES)
+    if(${Slicer_VTK_VERSION_MAJOR} VERSION_LESS 9)
+      list(APPEND _kit_srcs ${_wrap_hierarchy_stamp_file})
+    else()
+      list(APPEND _kit_srcs ${_wrap_hierarchy_file})
+    endif()
+    set_target_properties(${MY_KIT_NAME} PROPERTIES SOURCES "${_kit_srcs}")
 
     set(VTK_KIT_PYTHON_LIBRARIES)
     # XXX Hard-coded list of VTK kits available when building
@@ -128,4 +230,3 @@ macro(vtkMacroKitPythonWrap)
   endif()
 
 endmacro()
-

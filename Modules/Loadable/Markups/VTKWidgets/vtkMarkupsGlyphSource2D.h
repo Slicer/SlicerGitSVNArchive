@@ -50,7 +50,7 @@ class VTK_SLICER_MARKUPS_MODULE_VTKWIDGETS_EXPORT vtkMarkupsGlyphSource2D : publ
 {
 public:
   vtkTypeMacro(vtkMarkupsGlyphSource2D,vtkPolyDataAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   /// Construct a vertex glyph centered at the origin, scale 1.0, white in
   /// color, filled, with line segment passing through the point.
@@ -124,7 +124,7 @@ protected:
   vtkMarkupsGlyphSource2D();
   ~vtkMarkupsGlyphSource2D() {};
 
-  int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
+  int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *) VTK_OVERRIDE;
 
   double Center[3];
   double Scale;
@@ -143,9 +143,9 @@ protected:
   void CreateVertex(vtkPoints *pts, vtkCellArray *verts,
                     vtkUnsignedCharArray *colors);
   void CreateDash(vtkPoints *pts, vtkCellArray *lines,
-                  vtkCellArray *polys, vtkUnsignedCharArray *colors, double scale);
+                  vtkCellArray *polys, vtkUnsignedCharArray *colors, double scale = 1.0);
   void CreateCross(vtkPoints *pts, vtkCellArray *lines,
-                   vtkCellArray *polys, vtkUnsignedCharArray *colors, double scale);
+                   vtkCellArray *polys, vtkUnsignedCharArray *colors, double scale = 1.0);
   void CreateThickCross(vtkPoints *pts, vtkCellArray *lines,
                         vtkCellArray *polys, vtkUnsignedCharArray *colors);
   void CreateTriangle(vtkPoints *pts, vtkCellArray *lines,
@@ -163,7 +163,7 @@ protected:
   void CreateHookedArrow(vtkPoints *pts, vtkCellArray *lines,
                          vtkCellArray *polys, vtkUnsignedCharArray *colors);
   void CreateStarBurst(vtkPoints *pts, vtkCellArray *lines,
-                       vtkCellArray *polys, vtkUnsignedCharArray *colors, double scale);
+                       vtkCellArray *polys, vtkUnsignedCharArray *colors);
 
 private:
   vtkMarkupsGlyphSource2D(const vtkMarkupsGlyphSource2D&);  /// Not implemented.

@@ -17,8 +17,6 @@
 
 // Qt includes
 #include <QDebug>
-#include <QtPlugin>
-//#include <QSettings>
 
 // Markups Logic includes
 #include <vtkSlicerMarkupsLogic.h>
@@ -38,15 +36,21 @@
 #include "qSlicerSubjectHierarchyMarkupsPlugin.h"
 
 // Markups includes
-#include "MarkupsInstantiator.h"
 #include "qSlicerMarkupsModule.h"
 #include "qSlicerMarkupsModuleWidget.h"
 #include "qSlicerMarkupsReader.h"
 //#include "qSlicerMarkupsSettingsPanel.h"
 //#include "vtkSlicerMarkupsLogic.h"
 
+// DisplayableManager initialization
+#include <vtkAutoInit.h>
+VTK_MODULE_INIT(vtkSlicerMarkupsModuleMRMLDisplayableManager)
+
 //-----------------------------------------------------------------------------
+#if (QT_VERSION < QT_VERSION_CHECK(5, 0, 0))
+#include <QtPlugin>
 Q_EXPORT_PLUGIN2(qSlicerMarkupsModule, qSlicerMarkupsModule);
+#endif
 
 //-----------------------------------------------------------------------------
 /// \ingroup Slicer_QtModules_Markups

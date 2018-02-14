@@ -29,6 +29,8 @@
 # We mean it.
 #
 
+include(ExternalProject)
+include(${CMAKE_CURRENT_LIST_DIR}/ExternalProjectGenerateProjectDescription.cmake)
 
 #!
 #! ExternalProject_Add_Source(<projectname>
@@ -42,12 +44,18 @@
 #!     [PROJECTS <projectname> [<projectname> [...]]]
 #!     [LABELS <label1> [<label2> [...]]]
 #!     [VARS <name1>:<type1>=<value1> [<name2>:<type2>=<value2> [...]]]
+#!     #
+#!     # See ExternalProject_GenerateProjectDescription_Step
+#!     #
+#!     [VERSION <version>]
+#!     [LICENSE_FILES <file> [...]]
 #!   )
 #!
 function(ExternalProject_Add_Source projectname)
   set(options)
   set(_ep_one_args DOWNLOAD_DIR URL URL_MD5 GIT_REPOSITORY GIT_TAG SVN_REPOSITORY SVN_USERNAME SVN_PASSWORD SVN_TRUST_CERT)
-  set(oneValueArgs ${_ep_one_args} SOURCE_DIR_VAR)
+  set(_epgpd_one_args VERSION LICENSE_FILES)
+  set(oneValueArgs ${_ep_one_args} ${_epgpd_one_args} SOURCE_DIR_VAR)
   set(_ep_multi_args SVN_REVISION)
   set(multiValueArgs ${_ep_multi_args} LABELS PROJECTS VARS)
   cmake_parse_arguments(_ep "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
@@ -81,6 +89,17 @@ function(ExternalProject_Add_Source projectname)
       CONFIGURE_COMMAND ""
       BUILD_COMMAND ""
       INSTALL_COMMAND ""
+      )
+
+    set(_epgpd_args_to_pass)
+    foreach(arg ${_epgpd_one_args})
+      if(_ep_${arg})
+        list(APPEND _epgpd_args_to_pass ${arg} ${_ep_${arg}})
+      endif()
+    endforeach()
+
+    ExternalProject_GenerateProjectDescription_Step(${projectname}
+      ${_epgpd_args_to_pass}
       )
 
     set(${_ep_SOURCE_DIR_VAR} ${CMAKE_BINARY_DIR}/${projectname} PARENT_SCOPE)
@@ -137,6 +156,11 @@ endfunction()
 #!     ]
 #!     [LABELS REMOTE_MODULE]
 #!     [VARS <name1>:<type1>=<value1> [<name2>:<type2>=<value2> [...]]]
+#!     #
+#!     # See ExternalProject_GenerateProjectDescription_Step
+#!     #
+#!     [VERSION <version>]
+#!     [LICENSE_FILES <file> [...]]
 #!   )
 #!
 #! If no <option_name> is specified or if the option is enabled, the variable "Foo_SOURCE_DIR" set
@@ -154,7 +178,9 @@ endfunction()
 macro(Slicer_Remote_Add projectname)
   set(options)
   set(_add_source_args
-    DOWNLOAD_DIR URL URL_MD5 GIT_REPOSITORY GIT_TAG SVN_REPOSITORY SVN_USERNAME SVN_PASSWORD SVN_TRUST_CERT)
+    DOWNLOAD_DIR URL URL_MD5 GIT_REPOSITORY GIT_TAG SVN_REPOSITORY SVN_USERNAME SVN_PASSWORD SVN_TRUST_CERT
+    VERSION LICENSE_FILES
+    )
   set(oneValueArgs OPTION_NAME OPTION_DEFAULT OPTION_FORCE SOURCE_DIR_VAR ${_add_source_args})
   set(_add_source_multi_args SVN_REVISION LABELS PROJECTS VARS)
   set(multiValueArgs OPTION_DEPENDS ${_add_source_multi_args})
@@ -166,23 +192,38 @@ macro(Slicer_Remote_Add projectname)
 
   if(_ep_OPTION_NAME AND NOT ${_ep_OPTION_DEFAULT} MATCHES ".+")
     set(_ep_OPTION_DEFAULT ON)
-    #message("[${projectname}] Setting default value for OPTION_DEFAULT:${_ep_OPTION_DEFAULT}")
+    #message("[${projectname}] Setting default value for ${_ep_OPTION_NAME} OPTION_DEFAULT to ${_ep_OPTION_DEFAULT}")
   endif()
 
   if(_ep_OPTION_NAME AND NOT ${_ep_OPTION_FORCE} MATCHES ".+")
     set(_ep_OPTION_FORCE OFF)
-    #message("[${projectname}] Setting default value for OPTION_FORCE:${_ep_OPTION_FORCE}")
+    #message("[${projectname}] Setting default value for ${_ep_OPTION_NAME} OPTION_FORCE to ${_ep_OPTION_FORCE}")
   endif()
 
   set(_add_source 1)
   if(_ep_OPTION_NAME)
     #message("[${projectname}] Adding option ${_ep_OPTION_NAME}")
+
+    # If it applies, also account for dependent options.
+    foreach(_option IN LISTS _ep_OPTION_DEPENDS)
+      set(_prop_name "SLICER_REMOTE_${_option}_OPTION_DEPENDS")
+      get_property(_option_depends GLOBAL PROPERTY ${_prop_name})
+      if(NOT "${_option_depends}" STREQUAL "")
+        list(APPEND _ep_OPTION_DEPENDS ${_option_depends})
+      endif()
+    endforeach()
+
     cmake_dependent_option(
       ${_ep_OPTION_NAME} "Download and integrate ${projectname} sources." ${_ep_OPTION_DEFAULT}
       "${_ep_OPTION_DEPENDS}" ${_ep_OPTION_FORCE})
     mark_as_advanced(${_ep_OPTION_NAME})
     mark_as_superbuild(${_ep_OPTION_NAME})
     set(_add_source ${${_ep_OPTION_NAME}})
+
+    # Keep track of dependent options so that options depending on *this* option
+    # can expand their own list of dependent options.
+    set_property(GLOBAL PROPERTY "SLICER_REMOTE_${_ep_OPTION_NAME}_OPTION_DEPENDS" ${_ep_OPTION_DEPENDS})
+
   else()
     foreach(_arg_name OPTION_DEFAULT OPTION_FORCE OPTION_DEPENDS)
       if(_ep_${_arg_name})
@@ -205,6 +246,13 @@ macro(Slicer_Remote_Add projectname)
     ExternalProject_Add_Source(${projectname}
       ${_ep_args_to_pass}
       SOURCE_DIR_VAR ${_ep_SOURCE_DIR_VAR}
+      )
+  elseif(_ep_LABELS)
+    if(NOT _ep_PROJECTS)
+      set(_ep_PROJECTS "")
+    endif()
+    ExternalProject_DeclareLabels(
+      LABELS ${_ep_LABELS} PROJECTS ${_ep_PROJECTS}
       )
   endif()
 

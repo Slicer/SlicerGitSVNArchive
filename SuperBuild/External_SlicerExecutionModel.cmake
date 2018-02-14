@@ -81,21 +81,27 @@ if(NOT DEFINED SlicerExecutionModel_DIR AND NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM
 
   ExternalProject_SetIfNotDefined(
     ${CMAKE_PROJECT_NAME}_${proj}_GIT_TAG
-    "61bb14d57ff45c8de0f506e23b6ec982fcdf0da2"
+    "795e6717600d5241a6fe0e2e48dee741c3fd0918"
     QUIET
     )
+
+  set(EP_SOURCE_DIR ${CMAKE_BINARY_DIR}/${proj})
+  set(EP_BINARY_DIR ${CMAKE_BINARY_DIR}/${proj}-build)
 
   ExternalProject_Add(${proj}
     ${${proj}_EP_ARGS}
     GIT_REPOSITORY "${${CMAKE_PROJECT_NAME}_${proj}_GIT_REPOSITORY}"
     GIT_TAG "${${CMAKE_PROJECT_NAME}_${proj}_GIT_TAG}"
-    SOURCE_DIR ${CMAKE_BINARY_DIR}/${proj}
-    BINARY_DIR ${proj}-build
+    SOURCE_DIR ${EP_SOURCE_DIR}
+    BINARY_DIR ${EP_BINARY_DIR}
     CMAKE_CACHE_ARGS
       -DCMAKE_CXX_COMPILER:FILEPATH=${CMAKE_CXX_COMPILER}
       -DCMAKE_CXX_FLAGS:STRING=${ep_common_cxx_flags}
       -DCMAKE_C_COMPILER:FILEPATH=${CMAKE_C_COMPILER}
       -DCMAKE_C_FLAGS:STRING=${ep_common_c_flags} # Unused
+      -DCMAKE_CXX_STANDARD:STRING=${CMAKE_CXX_STANDARD}
+      -DCMAKE_CXX_STANDARD_REQUIRED:BOOL=${CMAKE_CXX_STANDARD_REQUIRED}
+      -DCMAKE_CXX_EXTENSIONS:BOOL=${CMAKE_CXX_EXTENSIONS}
       -DBUILD_TESTING:BOOL=OFF
       -DITK_DIR:PATH=${ITK_DIR}
       -DSlicerExecutionModel_USE_SERIALIZER:BOOL=${Slicer_BUILD_PARAMETERSERIALIZER_SUPPORT}
@@ -108,6 +114,8 @@ if(NOT DEFINED SlicerExecutionModel_DIR AND NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM
       -DSlicerExecutionModel_DEFAULT_CLI_TARGETS_FOLDER_PREFIX:STRING=Module-
       ${EXTERNAL_PROJECT_OPTIONAL_CMAKE_CACHE_ARGS}
       ${EXTERNAL_PROJECT_OPTIONAL_CMAKE_ARGS}
+      # macOS
+      -DCMAKE_MACOSX_RPATH:BOOL=0
     INSTALL_COMMAND ""
     DEPENDS
       ${${proj}_DEPENDENCIES}
@@ -115,7 +123,7 @@ if(NOT DEFINED SlicerExecutionModel_DIR AND NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM
 
   ExternalProject_GenerateProjectDescription_Step(${proj})
 
-  set(SlicerExecutionModel_DIR ${CMAKE_BINARY_DIR}/${proj}-build)
+  set(SlicerExecutionModel_DIR ${EP_BINARY_DIR})
 
   #-----------------------------------------------------------------------------
   # Launcher setting specific to build tree

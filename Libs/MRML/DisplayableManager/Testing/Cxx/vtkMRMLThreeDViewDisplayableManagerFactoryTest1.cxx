@@ -35,7 +35,10 @@
 #include <vtkRenderer.h>
 #include <vtkSmartPointer.h>
 
-// STD includes
+// Initialize object factory
+#define MRMLDisplayableManagerCxxTests_AUTOINIT 1(MRMLDisplayableManagerCxxTests)
+#include <vtkAutoInit.h>
+VTK_AUTOINIT(MRMLDisplayableManagerCxxTests)
 
 //----------------------------------------------------------------------------
 int vtkMRMLThreeDViewDisplayableManagerFactoryTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)[])
@@ -297,7 +300,7 @@ int vtkMRMLThreeDViewDisplayableManagerFactoryTest1(int vtkNotUsed(argc), char* 
         << " - Problem with group->GetDisplayableManagerByClassName() method" << std::endl;
     std::cerr << "\tdm2 should NOT be NULL" << std::endl;
     }
-  if (!dm2->IsA("vtkMRMLCameraDisplayableManager"))
+  else if (!dm2->IsA("vtkMRMLCameraDisplayableManager"))
     {
     std::cerr << "Line " << __LINE__
         << " - Problem with group->GetDisplayableManagerByClassName() method" << std::endl;

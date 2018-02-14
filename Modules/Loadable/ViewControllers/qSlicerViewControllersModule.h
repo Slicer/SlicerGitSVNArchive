@@ -30,6 +30,7 @@ class QSettings;
 
 class qSlicerViewControllersModulePrivate;
 class vtkMRMLAbstractViewNode;
+class vtkMRMLPlotViewNode;
 class vtkMRMLSliceNode;
 class vtkMRMLViewNode;
 
@@ -37,6 +38,9 @@ class Q_SLICER_QTMODULES_VIEWCONTROLLERS_EXPORT qSlicerViewControllersModule
   : public qSlicerLoadableModule
 {
   Q_OBJECT
+#ifdef Slicer_HAVE_QT5
+  Q_PLUGIN_METADATA(IID "org.slicer.modules.loadable.qSlicerLoadableModule/1.0");
+#endif
   Q_INTERFACES(qSlicerLoadableModule);
 
 public:
@@ -68,6 +72,14 @@ public:
   /// Write default 3D  view settings to application settings (.ini file)
   /// from defaultViewNode.
   static void writeDefaultThreeDViewSettings(vtkMRMLViewNode* defaultViewNode);
+
+  /// Read default plot view settings from application settings (.ini file)
+  /// into defaultViewNode.
+  void readDefaultPlotViewSettings(vtkMRMLPlotViewNode *defaultViewNode);
+
+  /// Write default plot view settings to application settings (.ini file)
+  /// from defaultViewNode.
+  void writeDefaultPlotViewSettings(vtkMRMLPlotViewNode *defaultViewNode);
 
   /// Set MRML scene for the module. Updates the default view settings based on
   /// the application settings.

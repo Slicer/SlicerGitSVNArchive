@@ -53,7 +53,7 @@ void MergeImageGeneric2(
     vtkImageData *modifierImage,
     int operation,
     const int extent[6],
-    int maskThreshold,
+    double maskThreshold,
     double fillValue)
 {
   // Compute update extent as intersection of base and modifier image extents (extent can be further reduced by specifying a smaller extent)
@@ -167,14 +167,44 @@ void MergeImageGeneric2(
     }
   else if (operation == vtkOrientedImageDataResample::OPERATION_MASKING)
     {
-    BaseImageScalarType fillValueBaseImageType = static_cast<BaseImageScalarType>(fillValue);
+
+    // Make sure the fill value is valid for the base image scalar range
+    BaseImageScalarType fillValueBaseImageType = 0;
+    if (fillValue < baseImage->GetScalarTypeMin())
+      {
+      fillValueBaseImageType = static_cast<BaseImageScalarType>(baseImage->GetScalarTypeMin());
+      }
+    else if (fillValue > baseImage->GetScalarTypeMax())
+      {
+      fillValueBaseImageType = static_cast<BaseImageScalarType>(baseImage->GetScalarTypeMax());
+      }
+    else
+      {
+      fillValueBaseImageType = static_cast<BaseImageScalarType>(fillValue);
+      }
+
+    // Make sure the threshold is valid for the modifier scalar range
+    ModifierImageScalarType maskThresholdModifierType = 0;
+    if (maskThreshold < modifierImage->GetScalarTypeMin())
+      {
+      maskThresholdModifierType = static_cast<ModifierImageScalarType>(modifierImage->GetScalarTypeMin());
+      }
+    else if (maskThreshold > modifierImage->GetScalarTypeMax())
+      {
+      maskThresholdModifierType = static_cast<ModifierImageScalarType>(modifierImage->GetScalarTypeMax());
+      }
+    else
+      {
+      maskThresholdModifierType = static_cast<ModifierImageScalarType>(maskThreshold);
+      }
+
     for (vtkIdType idxZ = 0; idxZ <= maxZ; idxZ++)
       {
       for (vtkIdType idxY = 0; idxY <= maxY; idxY++)
         {
         for (vtkIdType idxX = 0; idxX <= maxX; idxX++)
           {
-          if (static_cast<int>(*modifierImagePtr) > maskThreshold)
+          if ((*modifierImagePtr) > maskThresholdModifierType)
             {
             *baseImagePtr = fillValueBaseImageType;
             baseImageModified = true;
@@ -202,7 +232,7 @@ void MergeImageGeneric(
     vtkImageData *modifierImage,
     int operation,
     const int extent[6],
-    int maskThreshold,
+    double maskThreshold,
     double fillValue)
 {
   switch (modifierImage->GetScalarType())
@@ -441,9 +471,9 @@ bool vtkOrientedImageDataResample::ResampleOrientedImageToReferenceGeometry(vtkO
   vtkOrientedImageDataResample::TransformExtent(effectiveInputExtent, referenceImageToInputImageTransform.GetPointer(), outputExtent);
 
   // Return with failure if effective output extent is empty
-  if ( outputExtent[0] == outputExtent[1]
-    || outputExtent[2] == outputExtent[3]
-    || outputExtent[4] == outputExtent[5] )
+  if ( outputExtent[0] > outputExtent[1]
+    || outputExtent[2] > outputExtent[3]
+    || outputExtent[4] > outputExtent[5] )
     {
     return false;
     }
@@ -577,7 +607,7 @@ template <typename T> void CalculateEffectiveExtentGeneric(vtkOrientedImageData*
 }
 
 //----------------------------------------------------------------------------
-bool vtkOrientedImageDataResample::CalculateEffectiveExtent(vtkOrientedImageData* image, int effectiveExtent[6])
+bool vtkOrientedImageDataResample::CalculateEffectiveExtent(vtkOrientedImageData* image, int effectiveExtent[6], double threshold /*=0.0*/)
 {
   if (!image)
     {
@@ -586,7 +616,7 @@ bool vtkOrientedImageDataResample::CalculateEffectiveExtent(vtkOrientedImageData
 
   switch (image->GetScalarType())
     {
-    vtkTemplateMacro(CalculateEffectiveExtentGeneric<VTK_TT>(image, effectiveExtent, 0));
+    vtkTemplateMacro(CalculateEffectiveExtentGeneric<VTK_TT>(image, effectiveExtent, threshold));
   default:
     vtkGenericWarningMacro("vtkOrientedImageDataResample::CalculateEffectiveExtent: Unknown ScalarType");
     return false;
@@ -991,7 +1021,7 @@ bool vtkOrientedImageDataResample::MergeImage(
     vtkOrientedImageData* outputImage,
     int operation,
     const int extent[6]/*=0*/,
-    int maskThreshold /*=0*/,
+    double maskThreshold /*=0*/,
     double fillValue /*=1*/,
     bool *outputModified /*=NULL*/)
 {
@@ -1042,7 +1072,7 @@ bool vtkOrientedImageDataResample::ModifyImage(
     vtkOrientedImageData* modifierImage,
     int operation,
     const int extent[6]/*=0*/,
-    int maskThreshold /*=0*/,
+    double maskThreshold /*=0*/,
     double fillValue /*=1*/)
 {
   if (!inputImage || !modifierImage)

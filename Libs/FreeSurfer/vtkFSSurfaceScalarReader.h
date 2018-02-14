@@ -5,18 +5,13 @@
   See COPYRIGHT.txt
   or http://www.slicer.org/copyright/copyright.txt for details.
 
-  Program:   3D Slicer
-  Module:    $RCSfile: vtkFSSurfaceScalarReader.h,v $
-  Date:      $Date: 2006/05/26 19:40:15 $
-  Version:   $Revision: 1.9 $
-
 =========================================================================auto=*/
 
 #ifndef __vtkFSSurfaceScalarReader_h
 #define __vtkFSSurfaceScalarReader_h
 
 #include "FreeSurferConfigure.h"
-#include "vtkFreeSurferWin32Header.h"
+#include "vtkFreeSurferExport.h"
 
 // VTK includes
 #include <vtkDataReader.h>
@@ -35,7 +30,7 @@ class VTK_FreeSurfer_EXPORT vtkFSSurfaceScalarReader : public vtkDataReader
 public:
   static vtkFSSurfaceScalarReader *New();
   vtkTypeMacro(vtkFSSurfaceScalarReader,vtkDataReader);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   vtkFloatArray *GetOutput();
   void SetOutput(vtkFloatArray *output);

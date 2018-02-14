@@ -5,11 +5,6 @@
   See COPYRIGHT.txt
   or http://www.slicer.org/copyright/copyright.txt for details.
 
-  Program:   3D Slicer
-  Module:    $RCSfile: vtkMRMLAbstractLogic.h,v $
-  Date:      $Date: 2010-06-19 12:48:04 -0400 (Sat, 19 Jun 2010) $
-  Version:   $Revision: 13859 $
-
 =========================================================================auto=*/
 
 #ifndef __vtkMRMLAbstractLogic_h
@@ -29,7 +24,7 @@ class vtkMRMLScene;
 class vtkIntArray;
 class vtkFloatArray;
 
-#include "vtkMRMLLogicWin32Header.h"
+#include "vtkMRMLLogicExport.h"
 
 
 //----------------------------------------------------------------------------
@@ -143,7 +138,7 @@ public:
   typedef void (vtkMRMLAbstractLogic::*TaskFunctionPointer)(void *clientdata);
 
   static vtkMRMLAbstractLogic *New();
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
   vtkTypeMacro(vtkMRMLAbstractLogic, vtkObject);
 
   /// Get access to overall application state
@@ -432,7 +427,7 @@ protected:
   /// would be to disable modified events, call a series of Set* operations, and then re-enable
   /// modified events and call InvokePendingModifiedEvent to invoke the event (if any of the Set*
   /// calls actually changed the values of the instance variables).
-  virtual void Modified();
+  virtual void Modified() VTK_OVERRIDE;
 
   /// Invokes any modified events that are 'pending', meaning they were generated
   /// while the DisableModifiedEvent flag was nonzero.

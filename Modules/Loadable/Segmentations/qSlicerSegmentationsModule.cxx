@@ -18,43 +18,59 @@
 
 ==============================================================================*/
 
-// Qt includes
-#include <QtPlugin>
-#include <QDebug>
-
-// Slicer includes
-#include "qSlicerIOManager.h"
-#include "qSlicerNodeWriter.h"
-#include "vtkMRMLThreeDViewDisplayableManagerFactory.h"
-#include "vtkMRMLSliceViewDisplayableManagerFactory.h"
-
 // Segmentations includes
 #include "qSlicerSegmentationsModule.h"
 #include "qSlicerSegmentationsModuleWidget.h"
 #include "qSlicerSegmentationsReader.h"
+#include "qSlicerSegmentationsSettingsPanel.h"  
 #include "qSlicerSubjectHierarchySegmentationsPlugin.h"
 #include "qSlicerSubjectHierarchySegmentsPlugin.h"
 #include "vtkSlicerSegmentationsModuleLogic.h"
 #include "vtkMRMLSegmentationsDisplayableManager3D.h"
 #include "vtkMRMLSegmentationsDisplayableManager2D.h"
+
 // Segment editor effects includes
 #include "qSlicerSegmentEditorEffectFactory.h"
 #include "qSlicerSegmentEditorPaintEffect.h"
 #include "qSlicerSegmentEditorScissorsEffect.h"
 #include "qSlicerSegmentEditorEraseEffect.h"
 
+// Slicer includes
+#include <qSlicerIOManager.h>
+#include <qSlicerNodeWriter.h>
+#include <vtkMRMLThreeDViewDisplayableManagerFactory.h>
+#include <vtkMRMLSliceViewDisplayableManagerFactory.h>
+#include <qSlicerCoreApplication.h>
+#include <qSlicerModuleManager.h>
+#include <vtkSlicerConfigure.h> // For Slicer_USE_PYTHONQT
+
 // Subject Hierarchy includes
 #include "qSlicerSubjectHierarchyPluginHandler.h"
+
+// Terminologies includes
+#include "vtkSlicerTerminologiesModuleLogic.h"
 
 // MRML includes
 #include <vtkMRMLScene.h>
 #include <vtkMRMLSubjectHierarchyNode.h>
 
 // PythonQt includes
+#ifdef Slicer_USE_PYTHONQT
 #include "PythonQt.h"
+#endif
+
+// Qt includes
+#include <QDebug>
+
+// DisplayableManager initialization
+#include <vtkAutoInit.h>
+VTK_MODULE_INIT(vtkSlicerSegmentationsModuleMRMLDisplayableManager)
 
 //-----------------------------------------------------------------------------
+#if (QT_VERSION < QT_VERSION_CHECK(5, 0, 0))
+#include <QtPlugin>
 Q_EXPORT_PLUGIN2(qSlicerSegmentationsModule, qSlicerSegmentationsModule);
+#endif
 
 //-----------------------------------------------------------------------------
 /// \ingroup SlicerRt_QtModules_Segmentations
@@ -119,6 +135,12 @@ QStringList qSlicerSegmentationsModule::contributors() const
 }
 
 //-----------------------------------------------------------------------------
+QStringList qSlicerSegmentationsModule::dependencies()const
+{
+  return QStringList() << "Terminologies";
+}
+ 
+//-----------------------------------------------------------------------------
 QIcon qSlicerSegmentationsModule::icon()const
 {
   return QIcon(":/Icons/Segmentations.png");
@@ -156,6 +178,13 @@ void qSlicerSegmentationsModule::setup()
   ioManager->registerIO(new qSlicerNodeWriter("Segmentation", QString("SegmentationFile"), QStringList() << "vtkMRMLSegmentationNode", true, this));
   ioManager->registerIO(new qSlicerSegmentationsReader(segmentationsLogic, this));
 
+  // Register settings panel
+  if (qSlicerApplication::application())
+    {
+    qSlicerSegmentationsSettingsPanel* panel = new qSlicerSegmentationsSettingsPanel();
+    qSlicerApplication::application()->settingsDialog()->addPanel("Segmentations", panel);
+    }
+
   // Use the displayable manager class to make sure the the containing library is loaded
   vtkSmartPointer<vtkMRMLSegmentationsDisplayableManager3D> dm3d = vtkSmartPointer<vtkMRMLSegmentationsDisplayableManager3D>::New();
   vtkSmartPointer<vtkMRMLSegmentationsDisplayableManager2D> dm2d = vtkSmartPointer<vtkMRMLSegmentationsDisplayableManager2D>::New();
@@ -170,21 +199,50 @@ void qSlicerSegmentationsModule::setup()
   qSlicerSegmentEditorEffectFactory::instance()->registerEffect(new qSlicerSegmentEditorScissorsEffect());
   // Python effects
   // (otherwise it would be the responsibility of the module that embeds the segment editor widget)
+#ifdef Slicer_USE_PYTHONQT
   PythonQt::init();
   PythonQtObjectPtr context = PythonQt::self()->getMainModule();
   context.evalScript(QString("import SegmentEditorEffects; SegmentEditorEffects.registerEffects()"));
+#endif
 }
 
 //-----------------------------------------------------------------------------
-qSlicerAbstractModuleRepresentation * qSlicerSegmentationsModule::createWidgetRepresentation()
+qSlicerAbstractModuleRepresentation* qSlicerSegmentationsModule::createWidgetRepresentation()
 {
-  return new qSlicerSegmentationsModuleWidget;
+  qSlicerSegmentationsModuleWidget* moduleWidget = new qSlicerSegmentationsModuleWidget();
+
+  qSlicerAbstractCoreModule* terminologiesModule = qSlicerCoreApplication::application()->moduleManager()->module("Terminologies");
+  if (terminologiesModule)
+    {
+    vtkSlicerTerminologiesModuleLogic* terminologiesLogic = vtkSlicerTerminologiesModuleLogic::SafeDownCast(terminologiesModule->logic());
+    moduleWidget->setTerminologiesLogic(terminologiesLogic);
+    }
+  else
+    {
+    qCritical() << Q_FUNC_INFO << ": Terminologies module is not found";
+    } 
+
+  return moduleWidget;
 }
 
 //-----------------------------------------------------------------------------
 vtkMRMLAbstractLogic* qSlicerSegmentationsModule::createLogic()
 {
-  return vtkSlicerSegmentationsModuleLogic::New();
+  vtkSlicerSegmentationsModuleLogic* moduleLogic = vtkSlicerSegmentationsModuleLogic::New();
+
+  qSlicerAbstractCoreModule* terminologiesModule = qSlicerCoreApplication::application()->moduleManager()->module("Terminologies");
+  if (terminologiesModule)
+    {
+    vtkSlicerTerminologiesModuleLogic* terminologiesLogic = vtkSlicerTerminologiesModuleLogic::SafeDownCast(terminologiesModule->logic());
+    moduleLogic->SetTerminologiesLogic(terminologiesLogic);
+    }
+  else
+    {
+    qCritical() << Q_FUNC_INFO << ": Terminologies module is not found";
+    } 
+
+  return moduleLogic;
+
 }
 
 //-----------------------------------------------------------------------------

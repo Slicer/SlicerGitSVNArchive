@@ -147,6 +147,22 @@ if(WIN32)
   set(CPACK_GENERATOR "ZIP")
 endif()
 
+set(msg "Checking if extension type is SuperBuild")
+message(STATUS "${msg}")
+if(DEFINED ${EXTENSION_NAME}_SUPERBUILD)
+  message(STATUS "${msg} - true")
+  set(_is_superbuild_extension 1)
+else()
+  message(STATUS "${msg} - false")
+  set(_is_superbuild_extension 0)
+endif()
+
+if(_is_superbuild_extension)
+  if("${CPACK_INSTALL_CMAKE_PROJECTS}" STREQUAL "")
+    message(FATAL_ERROR "${EXTENSION_NAME}: Variable CPACK_INSTALL_CMAKE_PROJECTS is expected to be set.")
+  endif()
+endif()
+
 if(APPLE)
   set(fixup_path @rpath)
   set(slicer_extension_cpack_bundle_fixup_directory ${CMAKE_BINARY_DIR}/SlicerExtensionBundle)
@@ -158,16 +174,6 @@ if(APPLE)
     ${Slicer_EXTENSION_CPACK_BUNDLE_FIXUP}
     "${slicer_extension_cpack_bundle_fixup_directory}/SlicerExtensionCPackBundleFixup.cmake"
     @ONLY)
-
-  set(msg "Checking if extension type is SuperBuild")
-  message(STATUS "${msg}")
-  if(${EXTENSION_NAME}_SUPERBUILD)
-    message(STATUS "${msg} - true")
-    set(_is_superbuild_extension 1)
-  else()
-    message(STATUS "${msg} - false")
-    set(_is_superbuild_extension 0)
-  endif()
 
   if(NOT _is_superbuild_extension)
 
@@ -187,7 +193,7 @@ if(APPLE)
     # for SuperBuild extensions.
 
     file(WRITE ${slicer_extension_cpack_bundle_fixup_directory}/CMakeLists.txt
-    "cmake_minimum_required(VERSION 3.0)
+    "cmake_minimum_required(VERSION 3.5)
 install(SCRIPT \"${slicer_extension_cpack_bundle_fixup_directory}/SlicerExtensionCPackBundleFixup.cmake\")")
     set(source_dir "${slicer_extension_cpack_bundle_fixup_directory}")
     set(build_dir "${slicer_extension_cpack_bundle_fixup_directory}-binary")

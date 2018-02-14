@@ -44,6 +44,13 @@ qSlicerCorePythonManager::qSlicerCorePythonManager(QObject* _parent)
   : Superclass(_parent)
 {
   this->Factory = 0;
+
+  // If it applies, disable import of user site packages
+  QString noUserSite = qgetenv("PYTHONNOUSERSITE");
+  Py_NoUserSiteDirectory = noUserSite.toInt();
+
+  // Import site module to ensure the 'site-packages' directory
+  // is added to the python path. (see site.addsitepackages function).
   int flags = this->initializationFlags();
   flags &= ~(PythonQt::IgnoreSiteModule); // Clear bit
   this->setInitializationFlags(flags);
@@ -62,82 +69,7 @@ qSlicerCorePythonManager::~qSlicerCorePythonManager()
 //-----------------------------------------------------------------------------
 QStringList qSlicerCorePythonManager::pythonPaths()
 {
-  qSlicerCoreApplication * app = qSlicerCoreApplication::application();
-  if (!app)
-    {
-    return Superclass::pythonPaths();
-    }
-
-  QStringList paths;
-  paths << Superclass::pythonPaths();
-  paths << app->slicerHome() + "/" Slicer_BIN_DIR "/" + app->intDir();
-  paths << app->slicerHome() + "/" Slicer_BIN_DIR "/Python";
-
-  paths << QSettings().value("Python/AdditionalPythonPaths").toStringList();
-  paths << app->slicerHome() + "/" Slicer_LIB_DIR;
-
-#ifdef Slicer_BUILD_QTLOADABLEMODULES
-  bool appendQtLoadableModulePythonPaths = true;
-#else
-  bool appendQtLoadableModulePythonPaths = app->isInstalled();
-#endif
-  if (appendQtLoadableModulePythonPaths)
-    {
-    paths << app->slicerHome() + "/" Slicer_QTLOADABLEMODULES_LIB_DIR;
-    paths << app->slicerHome() + "/" Slicer_QTLOADABLEMODULES_PYTHON_LIB_DIR;
-    }
-
-#ifdef Slicer_BUILD_QTSCRIPTEDMODULES
-  bool appendQtScriptedModulePythonPaths = true;
-#else
-  bool appendQtScriptedModulePythonPaths = app->isInstalled();
-#endif
-  if(appendQtScriptedModulePythonPaths)
-    {
-    paths << app->slicerHome() + "/" Slicer_QTSCRIPTEDMODULES_LIB_DIR;
-    }
-
-  QString executableExtension = qSlicerUtils::executableExtension();
-  if (!app->isInstalled())
-    {
-    // Add here python path specific to the BUILD tree
-#if defined(Q_WS_WIN)
-      QString vtkLibSubDir("bin");
-#else
-      QString vtkLibSubDir("lib");
-#endif
-#ifdef CMAKE_INTDIR
-    paths << VTK_DIR "/" + vtkLibSubDir + "/" CMAKE_INTDIR "/";
-#else
-    paths << VTK_DIR "/" + vtkLibSubDir + "/";
-#endif
-    paths << QString("%1/Wrapping/Python").arg(VTK_DIR);
-#ifdef CMAKE_INTDIR
-    paths << CTK_DIR "/CTK-build/bin/" CMAKE_INTDIR "/";
-#else
-    paths << CTK_DIR "/CTK-build/bin/";
-#endif
-    paths << QString("%1/CTK-build/bin/Python").arg(CTK_DIR);
-    }
-  else
-    {
-    // Add here python path specific to the INSTALLED tree
-#if defined(Q_WS_WIN)
-    QString pythonLibSubDirectory("/Lib");
-    paths << app->slicerHome() + "/lib/Python" + pythonLibSubDirectory;
-    paths << app->slicerHome() + "/lib/Python" + pythonLibSubDirectory + "/lib-dynload";
-    paths << app->slicerHome() + "/lib/Python" + pythonLibSubDirectory + "/lib-tk";
-#elif defined(Q_WS_X11) || defined(Q_WS_MAC)
-    // On unix-like system, setting PYTHONHOME is enough to have the following path automatically
-    // appended to PYTHONPATH: ../lib/pythonX.Y.zip, ../lib/pythonX.Y/,
-    // and ../lib/pythonX.Y/{lib-tk, lib-old, lib-dynload}
-    // See http://docs.python.org/c-api/intro.html#embedding-python
-    QString pythonLibSubDirectory("/lib/python" Slicer_PYTHON_VERSION_DOT);
-#endif
-    paths << app->slicerHome() + "/lib/Python" + pythonLibSubDirectory + "/site-packages";
-    }
-
-  return paths;
+  return Superclass::pythonPaths();
 }
 
 //-----------------------------------------------------------------------------

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>519</width>
-    <height>560</height>
+    <height>1181</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -28,6 +28,14 @@
       <string>3D View Controllers</string>
      </property>
      <layout class="QVBoxLayout" name="ThreeDViewControllersLayout"/>
+    </widget>
+   </item>
+   <item>
+    <widget class="ctkCollapsibleButton" name="PlotViewControllersCollapsibleButton">
+     <property name="text">
+      <string>Plot View Controllers</string>
+     </property>
+     <layout class="QVBoxLayout" name="PlotViewControllersLayout"/>
     </widget>
    </item>
    <item>
@@ -53,12 +61,13 @@
            <bool>true</bool>
           </property>
           <property name="toolTip">
-           <string>Select a slice from the current scene</string>
+           <string>Select a view from the current scene. Each element corresponds to a specific widget. View nodes are connected with 3D rendering widgets. PlotView with Plotting widgets. Slices (Red, Green, Yellow) with 2D rendering widgets.</string>
           </property>
           <property name="nodeTypes">
            <stringlist>
             <string>vtkMRMLSliceNode</string>
             <string>vtkMRMLViewNode</string>
+            <string>vtkMRMLPlotViewNode</string>
            </stringlist>
           </property>
           <property name="showHidden">
@@ -110,6 +119,7 @@
    <class>qMRMLNodeComboBox</class>
    <extends>QWidget</extends>
    <header>qMRMLNodeComboBox.h</header>
+   <container>1</container>
   </customwidget>
   <customwidget>
    <class>qMRMLSliceInformationWidget</class>

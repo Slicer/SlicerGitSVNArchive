@@ -126,7 +126,7 @@ public:
 public:
   static vtkSegmentation* New();
   vtkTypeMacro(vtkSegmentation, vtkObject);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   /// Set attributes from name/value pairs
   virtual void ReadXMLAttributes(const char** atts);
@@ -255,6 +255,11 @@ public:
   /// Find segment ID by segment instance
   /// Returns empty string if segment is not found.
   std::string GetSegmentIdBySegment(vtkSegment* segment);
+
+  /// Find segment ID by segment name. Search is case-insensitive.
+  /// If multiple segments have the same name, the first match is returned.
+  /// Returns empty string if segment is not found.
+  std::string GetSegmentIdBySegmentName(std::string name);
 
   /// Get segments that contain a certain tag
   /// \param tag Tag name to look for in segments

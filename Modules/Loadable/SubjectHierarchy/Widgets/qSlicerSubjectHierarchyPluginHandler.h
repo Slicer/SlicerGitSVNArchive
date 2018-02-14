@@ -41,6 +41,7 @@
 
 class vtkMRMLScene;
 class vtkCallbackCommand;
+class qSlicerSubjectHierarchyPluginLogic;
 class qSlicerSubjectHierarchyAbstractPlugin;
 class qSlicerSubjectHierarchyDefaultPlugin;
 class qSlicerSubjectHierarchyPluginHandlerCleanup;
@@ -59,6 +60,22 @@ class Q_SLICER_MODULE_SUBJECTHIERARCHY_WIDGETS_EXPORT qSlicerSubjectHierarchyPlu
   /// By default, a pop-up question asking the user to confirm the deletion of
   /// children nodes will be shown.
   Q_PROPERTY (bool autoDeleteSubjectHierarchyChildren READ autoDeleteSubjectHierarchyChildren WRITE setAutoDeleteSubjectHierarchyChildren)
+  /// Flag determining whether the patient ID tag is included in the name of the patient
+  /// subject hierarchy item name after loading from DICOM.
+  /// True by default
+  Q_PROPERTY (bool displayPatientIDInSubjectHierarchyItemName READ displayPatientIDInSubjectHierarchyItemName WRITE setDisplayPatientIDInSubjectHierarchyItemName)
+  /// Flag determining whether the patient birth date tag is included in the name of the patient
+  /// subject hierarchy item name after loading from DICOM.
+  /// False by default
+  Q_PROPERTY (bool displayPatientBirthDateInSubjectHierarchyItemName READ displayPatientBirthDateInSubjectHierarchyItemName WRITE setDisplayPatientBirthDateInSubjectHierarchyItemName)
+  /// Flag determining whether the study ID tag is included in the name of the study
+  /// subject hierarchy item name after loading from DICOM.
+  /// False by default
+  Q_PROPERTY (bool displayStudyIDInSubjectHierarchyItemName READ displayStudyIDInSubjectHierarchyItemName WRITE setDisplayStudyIDInSubjectHierarchyItemName)
+  /// Flag determining whether the study date tag is included in the name of the study
+  /// subject hierarchy item name after loading from DICOM.
+  /// True by default
+  Q_PROPERTY (bool displayStudyDateInSubjectHierarchyItemName READ displayStudyDateInSubjectHierarchyItemName WRITE setDisplayStudyDateInSubjectHierarchyItemName)
 
 public:
   /// Instance getter for the singleton class
@@ -77,23 +94,44 @@ public:
   /// Get MRML scene
   Q_INVOKABLE vtkMRMLScene* mrmlScene()const;
 
+  /// Get plugin logic
+  Q_INVOKABLE qSlicerSubjectHierarchyPluginLogic* pluginLogic();
+  /// Set plugin logic
+  Q_INVOKABLE void setPluginLogic(qSlicerSubjectHierarchyPluginLogic* pluginLogic);
+
   /// Set current subject hierarchy item (single selection only)
+  /// IMPORTANT NOTE: This function will not change the selection in individual widgets (tree views, comboboxes). This is
+  ///                 solely used for plugin-provided context menus.
   Q_INVOKABLE void setCurrentItem(vtkIdType itemID);
 
   /// Get current subject hierarchy item (single selection only).
   /// This function is called from the plugins when exposing and performing the supported actions. As the plugin actions are not
-  /// aggregated on multi-selection, this function is never called from plugins in that case (and thus NULL is returned).
+  /// aggregated on multi-selection, this function is never called from plugins in that case (and thus invalid ID is returned).
+  /// IMPORTANT NOTE: This function is solely used for plugin-provided context menus. This is NOT to be used for getting the
+  ///                 selected item of individual widgets (tree views, comboboxes).
   /// \return Current item if only one is selected, otherwise INVALID_ITEM_ID
   Q_INVOKABLE vtkIdType currentItem();
 
   /// Set current subject hierarchy items in case of multi-selection
+  /// IMPORTANT NOTE: This function will not change the selection in individual widgets (tree views, comboboxes). This is
+  ///                 solely used for plugin-provided context menus.
   Q_INVOKABLE void setCurrentItems(QList<vtkIdType> items);
 
   /// Get current subject hierarchy items in case of multi-selection
+  /// IMPORTANT NOTE: This function is solely used for plugin-provided context menus. This is NOT to be used for getting the
+  ///                 selected items of individual widgets (tree views, comboboxes).
   Q_INVOKABLE QList<vtkIdType> currentItems();
 
   Q_INVOKABLE bool autoDeleteSubjectHierarchyChildren()const;
   Q_INVOKABLE void setAutoDeleteSubjectHierarchyChildren(bool flag);
+  Q_INVOKABLE bool displayPatientIDInSubjectHierarchyItemName()const;
+  Q_INVOKABLE void setDisplayPatientIDInSubjectHierarchyItemName(bool on);
+  Q_INVOKABLE bool displayPatientBirthDateInSubjectHierarchyItemName()const;
+  Q_INVOKABLE void setDisplayPatientBirthDateInSubjectHierarchyItemName(bool on);
+  Q_INVOKABLE bool displayStudyIDInSubjectHierarchyItemName()const;
+  Q_INVOKABLE void setDisplayStudyIDInSubjectHierarchyItemName(bool on);
+  Q_INVOKABLE bool displayStudyDateInSubjectHierarchyItemName()const;
+  Q_INVOKABLE void setDisplayStudyDateInSubjectHierarchyItemName(bool on);
 
 public:
   /// Register a plugin
@@ -175,12 +213,11 @@ protected:
   /// MRML scene (to get new subject hierarchy node if the stored one is deleted)
   vtkWeakPointer<vtkMRMLScene> m_MRMLScene;
 
+  /// Plugin logic
+  qSlicerSubjectHierarchyPluginLogic* m_PluginLogic;
+
   /// Callback handling deletion of the subject hierarchy node
   vtkSmartPointer<vtkCallbackCommand> m_CallBack;
-
-  /// Flag determining whether subject hierarchy children nodes are automatically
-  /// deleted upon deleting a parent subject hierarchy node.
-  bool m_AutoDeleteSubjectHierarchyChildren;
 
 public:
   /// Private constructor made public to enable python wrapping

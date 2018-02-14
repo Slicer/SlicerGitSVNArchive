@@ -33,6 +33,9 @@ class AbstractScriptedSegmentEditorEffect():
         class qSlicerSegmentEditorScriptedEffect) using the adaptor accessor:
         > self.scriptedEffect.updateGUIFromMRML()
 
+      3. To prevent deactivation of an effect by clicking place fiducial toolbar button,
+         override interactionNodeModified(self, interactionNode)
+
       An example for a generic effect is the ThresholdEffect
 
   """

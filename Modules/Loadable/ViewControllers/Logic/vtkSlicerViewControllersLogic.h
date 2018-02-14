@@ -32,6 +32,7 @@
 
 #include "vtkSlicerViewControllersModuleLogicExport.h"
 
+class vtkMRMLPlotViewNode;
 class vtkMRMLSliceNode;
 class vtkMRMLViewNode;
 
@@ -42,7 +43,7 @@ class VTK_SLICER_VIEWCONTROLLERS_MODULE_LOGIC_EXPORT vtkSlicerViewControllersLog
 public:
   static vtkSlicerViewControllersLogic *New();
   vtkTypeMacro(vtkSlicerViewControllersLogic, vtkSlicerModuleLogic);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
 public:
 
@@ -58,6 +59,12 @@ public:
   /// update all existing view nodes to the new default settings immediately.
   vtkMRMLViewNode* GetDefaultThreeDViewNode();
 
+  /// Retrieves the default plot view node from the scene.
+  /// The returned node can be changed to customize the contents of
+  /// new view nodes. ResetAllViewNodesToDefault() can be called to
+  /// update all existing view nodes to the new default settings immediately.
+  vtkMRMLPlotViewNode* GetDefaultPlotViewNode();
+
   /// Reset all existing slice and 3D view nodes to default settings.
   void ResetAllViewNodesToDefault();
 
@@ -66,7 +73,7 @@ protected:
   virtual ~vtkSlicerViewControllersLogic();
 
   /// Register MRML Node classes to Scene. Gets called automatically when the MRMLScene is attached to this logic class.
-  virtual void RegisterNodes();
+  virtual void RegisterNodes() VTK_OVERRIDE;
 
 private:
   vtkSlicerViewControllersLogic(const vtkSlicerViewControllersLogic&); // Not implemented

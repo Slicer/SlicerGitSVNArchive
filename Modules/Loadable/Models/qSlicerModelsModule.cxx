@@ -18,9 +18,6 @@
 
 ==============================================================================*/
 
-// Qt includes
-#include <QtPlugin>
-
 // Models includes
 #include "qSlicerModelsModule.h"
 #include "qSlicerModelsModuleWidget.h"
@@ -46,7 +43,10 @@
 #include "qSlicerSubjectHierarchyModelsPlugin.h"
 
 //-----------------------------------------------------------------------------
+#if (QT_VERSION < QT_VERSION_CHECK(5, 0, 0))
+#include <QtPlugin>
 Q_EXPORT_PLUGIN2(qSlicerModelsModule, qSlicerModelsModule);
+#endif
 
 //-----------------------------------------------------------------------------
 /// \ingroup Slicer_QtModules_Models
@@ -83,7 +83,7 @@ qSlicerModelsModule::~qSlicerModelsModule()
 QString qSlicerModelsModule::helpText()const
 {
   QString help =
-    "The Models Module loads and adjusts display parameters of models.<br>"
+    "The Models Module loads and adjusts display parameters of models such as Color, Transparency, and Clipping.<br>"
     "For more information see <a href=\"%1/Documentation/%2.%3/Modules/Models\">%1/Documentation/%2.%3/Modules/Models</a><br>"
     "Save models via the File menu, Save button.<br>"
     "The Add 3D model or a model directory button will allow you to load any "

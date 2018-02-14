@@ -12,7 +12,7 @@ if(Slicer_USE_PYTHONQT)
 
   set(PYTHON_DIR "${Slicer_SUPERBUILD_DIR}/python-install")
   if(NOT EXISTS "${PYTHON_DIR}/${PYTHON_STDLIB_SUBDIR}")
-    message(STATUS "Skipping generation of python install rules - Unexistant directory PYTHON_DIR:${PYTHON_DIR}/${PYTHON_STDLIB_SUBDIR}")
+    message(FATAL_ERROR "Skipping generation of python install rules - Unexistant directory PYTHON_DIR:${PYTHON_DIR}/${PYTHON_STDLIB_SUBDIR}")
     return()
   endif()
 
@@ -76,7 +76,7 @@ if(Slicer_USE_PYTHONQT)
     set(_launcher CTKAppLauncherW)
   endif()
   install(
-    PROGRAMS ${CTKAPPLAUNCHER_DIR}/bin/${_launcher}${CMAKE_EXECUTABLE_SUFFIX}
+    PROGRAMS ${CTKAppLauncher_DIR}/bin/${_launcher}${CMAKE_EXECUTABLE_SUFFIX}
     DESTINATION ${Slicer_INSTALL_BIN_DIR}
     RENAME SlicerPython${CMAKE_EXECUTABLE_SUFFIX}
     COMPONENT Runtime

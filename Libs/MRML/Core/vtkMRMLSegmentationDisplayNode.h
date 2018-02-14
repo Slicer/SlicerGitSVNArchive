@@ -83,21 +83,21 @@ public:
 public:
   static vtkMRMLSegmentationDisplayNode *New();
   vtkTypeMacro(vtkMRMLSegmentationDisplayNode,vtkMRMLDisplayNode);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
-  virtual vtkMRMLNode* CreateNodeInstance();
+  virtual vtkMRMLNode* CreateNodeInstance() VTK_OVERRIDE;
 
   /// Set node attributes from name/value pairs
-  virtual void ReadXMLAttributes( const char** atts);
+  virtual void ReadXMLAttributes( const char** atts) VTK_OVERRIDE;
 
   /// Write this node's information to a MRML file in XML format.
-  virtual void WriteXML(ostream& of, int indent);
+  virtual void WriteXML(ostream& of, int indent) VTK_OVERRIDE;
 
   /// Copy the node's attributes to this object
-  virtual void Copy(vtkMRMLNode *node);
+  virtual void Copy(vtkMRMLNode *node) VTK_OVERRIDE;
 
   /// Get node XML tag name (like Volume, Model)
-  virtual const char* GetNodeTagName() { return "SegmentationDisplay"; };
+  virtual const char* GetNodeTagName() VTK_OVERRIDE { return "SegmentationDisplay"; }
 
 public:
   /// Get name of representation that is displayed in the 2D view if exists
@@ -160,10 +160,14 @@ public:
 
   /// Generate new color for an added segment. Uses \sa NumberOfGeneratedColors to get the color
   /// for the new segment from default label color table
-  void GenerateSegmentColor(double color[3]);
-  /// Python compatibility function for \sa GenerateSegmentColor
+  /// \param color Output argument for the generated color
+  /// \param colorNumber Index of the color in generic anatomy color table that is returned.
+  ///                    Default value is 0, meaning that \sa NumberOfGeneratedColors is used.
+  ///                    A value of -1 means that a random color is generated.
+  void GenerateSegmentColor(double color[3], int colorNumber=0);
+  /// Python compatibility function for \sa GenerateSegmentColor.
+  /// The color with index \sa NumberOfGeneratedColors from generic anatomy color table is returned.
   void GenerateSegmentColor(double &r, double &g, double &b);
-
 
   /// Collect representation names that are stored as poly data
   void GetPolyDataRepresentationNames(std::set<std::string> &representationNames);
@@ -197,6 +201,8 @@ public:
   void SetSegmentOverrideColor(std::string segmentID, double r, double g, double b);
   /// Set segment override color by segment ID
   void SetSegmentOverrideColor(std::string segmentID, vtkVector3d overrideColor);
+  /// Unset segment override color (default segment color will be used for display instead).
+  void UnsetSegmentOverrideColor(std::string segmentID);
 
   /// Get overall segment visibility by segment ID. Convenience function for python compatibility.
   /// \return Segment visibility if segment found, otherwise false
@@ -262,14 +268,17 @@ protected:
   void GetSegmentIDs(std::vector<std::string>& segmentIDs, bool visibleSegmentsOnly);
 
   /// Update list of segment display properties.
-  /// Remove entries for missing segments and add missing entries for existing segments
-  void UpdateSegmentList();
+  /// Remove entries for missing segments (if removeUnusedDisplayProperties is enabled)
+  /// and add missing entries for existing segments.
+  void UpdateSegmentList(bool removeUnusedDisplayProperties = true);
 
 protected:
   vtkMRMLSegmentationDisplayNode();
   virtual ~vtkMRMLSegmentationDisplayNode();
   vtkMRMLSegmentationDisplayNode(const vtkMRMLSegmentationDisplayNode&);
   void operator=(const vtkMRMLSegmentationDisplayNode&);
+
+  friend class vtkMRMLSegmentationNode; // Access to UpdateSegmentList();
 
 protected:
   /// Name of representation that is displayed in 2D views as outline or filled area

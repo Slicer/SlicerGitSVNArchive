@@ -7,6 +7,9 @@
 #include <QTimer>
 #include <QTreeView>
 
+// Slicer includes
+#include "vtkSlicerConfigure.h"
+
 // CTK includes
 #include <ctkModelTester.h>
 
@@ -15,8 +18,12 @@
 #include "qMRMLSceneDisplayableModel.h"
 #include "qMRMLUtils.h"
 
+// VTK includes
 #include "vtkMRMLCoreTestingMacros.h"
 #include <vtkEventBroker.h>
+#ifdef Slicer_VTK_USE_QVTKOPENGLWIDGET
+#include <QVTKOpenGLWidget.h>
+#endif
 
 #include "GUI/qMRMLAnnotationTreeView.h"
 #include "Logic/vtkSlicerAnnotationModuleLogic.h"
@@ -32,6 +39,13 @@
 
 int qMRMLSceneAnnotationModelAndAnnotationTreeViewTest1(int argc, char * argv [])
 {
+#ifdef Slicer_VTK_USE_QVTKOPENGLWIDGET
+  // Set default surface format for QVTKOpenGLWidget
+  QSurfaceFormat format = QVTKOpenGLWidget::defaultFormat();
+  format.setSamples(0);
+  QSurfaceFormat::setDefaultFormat(format);
+#endif
+
   QApplication app(argc, argv);
 
   qMRMLSceneFactoryWidget sceneFactory(0);
@@ -85,7 +99,7 @@ int qMRMLSceneAnnotationModelAndAnnotationTreeViewTest1(int argc, char * argv []
 
   std::cout << "Measurement in rulerNode: " << rulerNode->GetDistanceMeasurement() << std::endl;
 /*
-  QModelIndex index = view->d_func()->SceneModel->indexFromNode(sceneFactory.mrmlScene()->GetNthNodeByClass(0,"vtkMRMLAnnotationRulerNode"));
+  QModelIndex index = view->d_func()->SceneModel->indexFromNode(sceneFactory.mrmlScene()->GetFirstNodeByClass("vtkMRMLAnnotationRulerNode"));
 
   qMRMLAbstractItemHelper* helper = view->d_func()->SceneModel->itemFromIndex(index);
   std::cout << helper->data(Qt::DisplayRole) << std::endl;

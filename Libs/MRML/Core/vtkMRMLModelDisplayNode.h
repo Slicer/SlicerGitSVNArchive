@@ -37,11 +37,32 @@ class VTK_MRML_EXPORT vtkMRMLModelDisplayNode : public vtkMRMLDisplayNode
 public:
   static vtkMRMLModelDisplayNode *New();
   vtkTypeMacro(vtkMRMLModelDisplayNode,vtkMRMLDisplayNode);
+  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
-  virtual vtkMRMLNode* CreateNodeInstance();
+  enum SliceDisplayModeType
+    {
+    SliceDisplayIntersection, ///< Show model in slice view as intersection with slice
+    SliceDisplayProjection, ///< Show full model projected on the slice (similar to MIP view of images)
+    SliceDisplayDistanceEncodedProjection, ///< Show full model projected on the slice, colored by distance from slice plane
+    SliceDisplayMode_Last // placeholder after the last valid value, this must be the last in the list of modes
+    };
+
+  ///
+  /// Read node attributes from XML file
+  virtual void ReadXMLAttributes(const char** atts) VTK_OVERRIDE;
+
+  ///
+  /// Write this node's information to a MRML file in XML format.
+  virtual void WriteXML(ostream& of, int indent) VTK_OVERRIDE;
+
+  ///
+  /// Copy the node's attributes to this object
+  virtual void Copy(vtkMRMLNode *node) VTK_OVERRIDE;
+
+  virtual vtkMRMLNode* CreateNodeInstance() VTK_OVERRIDE;
 
   /// Get node XML tag name (like Volume, Model)
-  virtual const char* GetNodeTagName() {return "ModelDisplay";};
+  virtual const char* GetNodeTagName() VTK_OVERRIDE {return "ModelDisplay";}
 
   /// Set and observe mesh for this model. It should be the output
   /// mesh connection of the model node.
@@ -84,15 +105,15 @@ public:
   /// are removed, therefore if a GUI or other component observes the mesh, then it will detect that
   /// the scalar is deleted and so it may deactivate the selected scalar.
   /// \sa SetActiveAttributeLocation()
-  virtual void SetActiveScalarName(const char *scalarName);
+  virtual void SetActiveScalarName(const char *scalarName) VTK_OVERRIDE;
 
   /// Reimplemented to update pipeline with new value
   /// \sa SetActiveScalarName()
-  virtual void SetActiveAttributeLocation(int location);
+  virtual void SetActiveAttributeLocation(int location) VTK_OVERRIDE;
 
   /// Reimplemented to update scalar range accordingly
   /// \sa SetActiveScalarName()
-  virtual void SetScalarRangeFlag(int flag);
+  virtual void SetScalarRangeFlag(int flag) VTK_OVERRIDE;
 
   /// Set whether to threshold the model display node.
   /// \sa ThresholdEnabled, GetThresholdEnabled()
@@ -115,6 +136,29 @@ public:
   double GetThresholdMin();
   double GetThresholdMax();
 
+  /// Specifies how to represent the 3D model in a 2D slice.
+  /// By default intersection is showed.
+  /// \sa SetAndObserveDistanceEncodedProjectionColorNodeID
+  vtkGetMacro(SliceDisplayMode, int);
+  vtkSetMacro(SliceDisplayMode, int);
+  void SetSliceDisplayModeToIntersection();
+  void SetSliceDisplayModeToProjection();
+  void SetSliceDisplayModeToDistanceEncodedProjection();
+
+  /// Convert between slice display mode ID and name
+  static const char* GetSliceDisplayModeAsString(int id);
+  static int GetSliceDisplayModeFromString(const char* name);
+
+  /// Set and observe color node for distance encoded slice projection.
+  /// Model that is projected to the slice will be colored based on the
+  /// projected point distance from the slice.
+  /// \sa GetDistanceEncodedProjectionColorNodeID(), GetDistanceEncodedProjectionColorNode()
+  virtual void SetAndObserveDistanceEncodedProjectionColorNodeID(const char *colorNodeID);
+  /// Get color node for distance encoded slice projection.
+  /// \sa SetDistanceEncodedProjectionColorNodeID(), SetDistanceEncodedProjectionColorNode()
+  virtual const char* GetDistanceEncodedProjectionColorNodeID();
+  virtual vtkMRMLColorNode* GetDistanceEncodedProjectionColorNode();
+
 protected:
   vtkMRMLModelDisplayNode();
   ~vtkMRMLModelDisplayNode();
@@ -123,7 +167,7 @@ protected:
 
   virtual void ProcessMRMLEvents(vtkObject *caller,
                                  unsigned long event,
-                                 void *callData);
+                                 void *callData) VTK_OVERRIDE;
 
   /// To be reimplemented in subclasses if the input of the pipeline changes
   virtual void SetInputToMeshPipeline(vtkAlgorithmOutput* meshConnection);
@@ -131,6 +175,9 @@ protected:
   /// Update the AssignAttribute filter based on
   /// its ActiveScalarName and its ActiveAttributeLocation
   virtual void UpdateAssignedAttribute();
+
+  /// Returns the current active scalar array (based on active scalar name and location)
+  virtual vtkDataArray* GetActiveScalarArray();
 
   /// Update the ScalarRange based on the ScalarRangeFlag
   virtual void UpdateScalarRange();
@@ -157,6 +204,8 @@ protected:
   /// scalar values.
   /// \sa ThresholdFilter
   bool ThresholdEnabled;
+
+  int SliceDisplayMode;
 };
 
 #endif

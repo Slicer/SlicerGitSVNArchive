@@ -39,6 +39,9 @@ Version:   $Revision: 1.18 $
 #include "vtkMRMLLinearTransformNode.h"
 #include "vtkMRMLModelNode.h"
 #include "vtkMRMLModelHierarchyNode.h"
+#include "vtkMRMLPlotSeriesNode.h"
+#include "vtkMRMLPlotChartNode.h"
+#include "vtkMRMLPlotViewNode.h"
 #include "vtkMRMLProceduralColorNode.h"
 #include "vtkMRMLProceduralColorStorageNode.h"
 #include "vtkMRMLROINode.h"
@@ -215,6 +218,9 @@ vtkMRMLScene::vtkMRMLScene()
   this->RegisterNodeClass( vtkSmartPointer< vtkMRMLTableNode >::New() );
   this->RegisterNodeClass( vtkSmartPointer< vtkMRMLTableStorageNode >::New() );
   this->RegisterNodeClass( vtkSmartPointer< vtkMRMLTableViewNode >::New() );
+  this->RegisterNodeClass( vtkSmartPointer< vtkMRMLPlotSeriesNode >::New() );
+  this->RegisterNodeClass( vtkSmartPointer< vtkMRMLPlotChartNode >::New() );
+  this->RegisterNodeClass( vtkSmartPointer< vtkMRMLPlotViewNode >::New() );
   this->RegisterNodeClass(vtkSmartPointer<vtkMRMLSubjectHierarchyNode>::New()); // Increments next subject hierarchy item ID
 }
 
@@ -334,18 +340,19 @@ void vtkMRMLScene::Clear(int removeSingletons)
 //------------------------------------------------------------------------------
 void vtkMRMLScene::RemoveAllNodes(bool removeSingletons)
 {
-  this->InitTraversal();
+
   // Store the node ids because a module may decide to delete some helper nodes
   // when a node is deleted
   std::deque< std::string > removeNodeIds;
-  vtkMRMLNode *node = this->GetNextNode();
-  while(node)
+  vtkMRMLNode *node = NULL;
+  vtkCollectionSimpleIterator it;
+  for (this->Nodes->InitTraversal(it);
+    (node = (vtkMRMLNode*)this->Nodes->GetNextItemAsObject(it));)
     {
     if (removeSingletons || node->GetSingletonTag() == NULL)
       {
       removeNodeIds.push_back(node->GetID());
       }
-    node = this->GetNextNode();
     }
   for(std::deque< std::string >::iterator nodeIt=removeNodeIds.begin(); nodeIt!=removeNodeIds.end(); ++nodeIt)
     {
@@ -361,14 +368,13 @@ void vtkMRMLScene::RemoveAllNodes(bool removeSingletons)
 //------------------------------------------------------------------------------
 void vtkMRMLScene::ResetNodes()
 {
-  vtkMRMLNode *node;
   std::vector <vtkMRMLNode *> nodes;
-  this->InitTraversal();
-  node = this->GetNextNode();
-  while(node)
+  vtkMRMLNode *node = NULL;
+  vtkCollectionSimpleIterator it;
+  for (this->Nodes->InitTraversal(it);
+    (node = (vtkMRMLNode*)this->Nodes->GetNextItemAsObject(it));)
     {
     nodes.push_back(node);
-    node = this->GetNextNode();
     }
   for(unsigned int i=0; i<nodes.size(); i++)
     {
@@ -463,8 +469,10 @@ vtkMRMLNode* vtkMRMLScene::CreateNodeByClass(const char* className)
       }
     else
       {
+#ifndef VTK_HAS_INITIALIZE_OBJECT_BASE
 #ifdef VTK_DEBUG_LEAKS
       vtkDebugLeaks::DestructClass(className);
+#endif
 #endif
       }
     }
@@ -981,14 +989,18 @@ int vtkMRMLScene::Commit(const char* url)
 
   int indent=0;
 
-    // this event is being detected by GUI to provide feedback during load
-    // of data. But,
-    // commented out for now because CLI modules are using MRML to write
-    // data in another thread, causing GUI to crash.
-//  this->InvokeEvent (vtkMRMLScene::SaveProgressFeedbackEvent );
+  // this event is being detected by GUI to provide feedback during load
+  // of data. But, commented out for now because CLI modules are using MRML
+  // to write data in another thread, causing GUI to crash.
+  //this->InvokeEvent (vtkMRMLScene::SaveProgressFeedbackEvent );
 
   //file << "<?xml version=\"1.0\" standalone='no'?>\n";
   //file << "<!DOCTYPE MRML SYSTEM \"mrml20.dtd\">\n";
+
+  // Add XML encoding specification. Since Slicer uses the Latin1 (ISO-8859-1) character set,
+  // but the MRML file did not specify it, the extra characters made XML loading fail with
+  // characters in the file that are valid for Slicer.
+  *os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n";
 
   //--- BEGIN test of user tags
   //file << "<MRML>\n";
@@ -1041,7 +1053,7 @@ int vtkMRMLScene::Commit(const char* url)
       }
 
     vtkIndent vindent(indent);
-    *os << vindent << "<" << node->GetNodeTagName() << "\n";
+    *os << vindent << "<" << node->GetNodeTagName() << "\n ";
 
     if(indent<=0)
       indent = 1;
@@ -1260,6 +1272,11 @@ vtkMRMLNode* vtkMRMLScene::AddNewNodeByClass(
     }
   vtkSmartPointer<vtkMRMLNode> nodeToAdd =
       vtkSmartPointer<vtkMRMLNode>::Take(this->CreateNodeByClass(className.c_str()));
+  if (nodeToAdd == NULL)
+    {
+    vtkErrorMacro("AddNewNodeByClass: failed to create node by class " << className);
+    return NULL;
+    }
   if (!nodeBaseName.empty())
     {
     nodeToAdd->SetName(nodeBaseName.c_str());
@@ -1484,12 +1501,14 @@ int vtkMRMLScene::IsNodePresent(vtkMRMLNode *n)
 //------------------------------------------------------------------------------
 void vtkMRMLScene::InitTraversal()
 {
+  vtkWarningMacro("Usage of vtkMRMLScene::InitTraversal() is unsafe.")
   this->Nodes->InitTraversal();
 }
 
 //------------------------------------------------------------------------------
 vtkMRMLNode* vtkMRMLScene::GetNextNode()
 {
+  vtkWarningMacro("Usage of vtkMRMLScene::GetNextNode() is unsafe.")
   return vtkMRMLNode::SafeDownCast(this->Nodes->GetNextItemAsObject());
 }
 
@@ -1524,6 +1543,7 @@ int vtkMRMLScene::GetNumberOfNodesByClass(const char *className)
 //------------------------------------------------------------------------------
 int vtkMRMLScene::GetNodesByClass(const char *className, std::vector<vtkMRMLNode *> &nodes)
 {
+  nodes.clear();
   if (className == NULL)
     {
     vtkErrorMacro("GetNodesByClass: class name is null.");
@@ -1584,6 +1604,7 @@ std::list< std::string > vtkMRMLScene::GetNodeClassesList()
 //------------------------------------------------------------------------------
 vtkMRMLNode *vtkMRMLScene::GetNextNodeByClass(const char *className)
 {
+  vtkWarningMacro("Usage of vtkMRMLScene::GetNextNodeByClass(const char *) is unsafe.")
   if (!className)
     {
     vtkErrorMacro("GetNextNodeByClass: class name is null.");
@@ -1711,6 +1732,12 @@ vtkMRMLNode* vtkMRMLScene::GetNthNodeByClass(int n, const char *className)
       }
     }
   return NULL;
+}
+
+//------------------------------------------------------------------------------
+vtkMRMLNode* vtkMRMLScene::GetFirstNodeByClass(const char *className)
+{
+  return this->GetNthNodeByClass(0, className);
 }
 
 //------------------------------------------------------------------------------
@@ -2113,6 +2140,24 @@ vtkMRMLNode *vtkMRMLScene::GetNthRegisteredNodeClass(int n)
     vtkErrorMacro("GetNthRegisteredNodeClass: index " << n << " out of bounds 0 - " << this->GetNumberOfRegisteredNodeClasses());
     return NULL;
     }
+}
+
+//------------------------------------------------------------------------------
+bool vtkMRMLScene::IsNodeClassRegistered(const std::string& className)
+{
+  for (int index=0; index < this->GetNumberOfRegisteredNodeClasses(); ++index)
+    {
+    vtkMRMLNode* registeredNodeClass = this->GetNthRegisteredNodeClass(index);
+    if (!registeredNodeClass)
+      {
+      continue;
+      }
+    if (className == registeredNodeClass->GetClassName())
+      {
+      return true;
+      }
+    }
+  return false;
 }
 
 //------------------------------------------------------------------------------
@@ -3228,10 +3273,10 @@ void vtkMRMLScene
   //
   // copy over nodes from the current scene to the new scene
   //
-  nodes->InitTraversal();
-  vtkObject* currentObject = NULL;
-  while ((currentObject = nodes->GetNextItemAsObject()) &&
-         (currentObject != NULL))
+  vtkMRMLNode *currentObject = NULL;
+  vtkCollectionSimpleIterator it;
+  for (nodes->InitTraversal(it);
+    (currentObject = (vtkMRMLNode*)nodes->GetNextItemAsObject(it));)
     {
     vtkMRMLNode* n = vtkMRMLNode::SafeDownCast(currentObject);
     if (n == NULL)
@@ -3297,11 +3342,34 @@ const char * vtkMRMLScene::GetErrorMessagePointer()
 bool vtkMRMLScene::GetModifiedSinceRead()
 {
   int hideFromEditors = 0;
+
+  // There is no need to save the scene if it does not have any displayable node.
   bool hasAtLeast1DisplayableNode =
     (this->GetFirstNode(0, "vtkMRMLDisplayableNode", &hideFromEditors) != 0);
-  return this->GetMTime() > this->StoredTime &&
-    // There is no need to save the scene if it just has view nodes
-    hasAtLeast1DisplayableNode;
+  if (!hasAtLeast1DisplayableNode)
+    {
+    return false;
+    }
+
+  vtkMTimeType latestNodeMTime = this->GetMTime();
+  vtkMRMLNode *node;
+  vtkCollectionSimpleIterator it;
+  for (this->Nodes->InitTraversal(it);
+    (node = (vtkMRMLNode*)this->Nodes->GetNextItemAsObject(it));)
+    {
+    if (node->IsA("vtkMRMLAbstractViewNode"))
+      {
+      // We do not consider view node changes as scene change,
+      // because view nodes may change because application window is resized, etc.
+      continue;
+      }
+    if (node->GetMTime() > latestNodeMTime)
+      {
+      latestNodeMTime = node->GetMTime();
+      }
+    }
+
+  return  latestNodeMTime > this->StoredTime;
 }
 
 //-----------------------------------------------------------------------------

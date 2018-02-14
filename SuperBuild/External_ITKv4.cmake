@@ -2,7 +2,7 @@
 set(proj ITKv4)
 
 # Set dependency list
-set(${proj}_DEPENDENCIES "zlib" "VTKv7")
+set(${proj}_DEPENDENCIES "zlib" "VTKv9")
 if(Slicer_BUILD_DICOM_SUPPORT)
   list(APPEND ${proj}_DEPENDENCIES DCMTK)
 endif()
@@ -35,11 +35,9 @@ if(NOT DEFINED ITK_DIR AND NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
     QUIET
     )
 
-  # ITK release v4.12.0rc1 from 2017.05.09 with
-  # * Slicer patches for CMP0042
   ExternalProject_SetIfNotDefined(
     ${CMAKE_PROJECT_NAME}_${proj}_GIT_TAG
-    "9c91cb64e76634fe2c58e0b40f316af953fb4e61" # slicer-v4.12.0-2017-05-09-2d63918
+    "7d9c57a732081b42046eda7b45f0623fa69f6b20" # slicer-v4.13.0-2017-12-20-d92873e-2
     QUIET
     )
 
@@ -82,17 +80,23 @@ if(NOT DEFINED ITK_DIR AND NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
       )
   endif()
 
+  set(EP_SOURCE_DIR ${CMAKE_BINARY_DIR}/${proj})
+  set(EP_BINARY_DIR ${CMAKE_BINARY_DIR}/${proj}-build)
+
   ExternalProject_Add(${proj}
     ${${proj}_EP_ARGS}
     GIT_REPOSITORY "${${CMAKE_PROJECT_NAME}_${proj}_GIT_REPOSITORY}"
     GIT_TAG "${${CMAKE_PROJECT_NAME}_${proj}_GIT_TAG}"
-    SOURCE_DIR ${proj}
-    BINARY_DIR ${proj}-build
+    SOURCE_DIR ${EP_SOURCE_DIR}
+    BINARY_DIR ${EP_BINARY_DIR}
     CMAKE_CACHE_ARGS
       -DCMAKE_CXX_COMPILER:FILEPATH=${CMAKE_CXX_COMPILER}
       -DCMAKE_CXX_FLAGS:STRING=${ep_common_cxx_flags}
       -DCMAKE_C_COMPILER:FILEPATH=${CMAKE_C_COMPILER}
       -DCMAKE_C_FLAGS:STRING=${ep_common_c_flags}
+      -DCMAKE_CXX_STANDARD:STRING=${CMAKE_CXX_STANDARD}
+      -DCMAKE_CXX_STANDARD_REQUIRED:BOOL=${CMAKE_CXX_STANDARD_REQUIRED}
+      -DCMAKE_CXX_EXTENSIONS:BOOL=${CMAKE_CXX_EXTENSIONS}
       -DITK_INSTALL_ARCHIVE_DIR:PATH=${Slicer_INSTALL_LIB_DIR}
       -DITK_INSTALL_LIBRARY_DIR:PATH=${Slicer_INSTALL_LIB_DIR}
       -DBUILD_TESTING:BOOL=OFF
@@ -109,6 +113,8 @@ if(NOT DEFINED ITK_DIR AND NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
       -DITK_WRAPPING:BOOL=OFF #${BUILD_SHARED_LIBS} ## HACK:  QUICK CHANGE
       -DITK_WRAP_PYTHON:BOOL=${Slicer_BUILD_ITKPython}
       -DExternalData_OBJECT_STORES:PATH=${ExternalData_OBJECT_STORES}
+      # macOS
+      -DCMAKE_MACOSX_RPATH:BOOL=0
       # VTK
       -DModule_ITKVtkGlue:BOOL=ON
       -DVTK_DIR:PATH=${VTK_DIR}

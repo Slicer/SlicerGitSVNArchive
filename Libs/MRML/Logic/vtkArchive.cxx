@@ -11,6 +11,7 @@
 ============================================================================*/
 
 #include "vtkArchive.h"
+#include "vtkLoggingMacros.h"
 #include "vtksys/Glob.hxx"
 #include "vtksys/SystemTools.hxx"
 
@@ -31,11 +32,11 @@ class vtkArchiveTools
 public:
   static void Message(const char* title, const char* message)
     {
-    std::cerr << title << " " << message << std::endl << std::flush;
+    vtkInfoWithoutObjectMacro(<< title << " " << message);
     }
   static void Message(const char* m)
     {
-    std::cerr << m << std::endl << std::flush;
+    vtkInfoWithoutObjectMacro(<< m);
     }
   static void Stdout(const char* s)
   {
@@ -226,7 +227,7 @@ bool list_archive(const char* archiveFileName, std::vector<std::string>& files)
 
   if (archive_read_open_filename(a, archiveFileName, 10240) != ARCHIVE_OK)
     {
-    vtkArchiveTools::Error("Problem with archive_read_open_file(): ",
+    vtkArchiveTools::Error("Problem with archive_read_open_filename(): ",
                            archive_error_string(a));
     return false;
     }
@@ -256,18 +257,19 @@ bool extract_tar(const char* tarFileName, bool verbose, bool extract, std::vecto
 {
   struct archive* a = archive_read_new();
   struct archive *ext = archive_write_disk_new();
-  archive_read_support_compression_all(a);
+  archive_read_support_filter_all(a);
   archive_read_support_format_all(a);
   struct archive_entry *entry;
-  int r = archive_read_open_file(a, tarFileName, 10240);
+  int r = archive_read_open_filename(a, tarFileName, 10240);
   if(r)
     {
-    vtkArchiveTools::Error("Problem with archive_read_open_file(): ",
+    vtkArchiveTools::Error("Problem with archive_read_open_filename(): ",
                          archive_error_string(a));
     return false;
     }
   for (;;)
     {
+    std::string message;
     r = archive_read_next_header(a, &entry);
     if (r == ARCHIVE_EOF)
       {
@@ -284,8 +286,8 @@ bool extract_tar(const char* tarFileName, bool verbose, bool extract, std::vecto
       }
     if (verbose && extract)
       {
-      vtkArchiveTools::Stdout("x ");
-      vtkArchiveTools::Stdout(archive_entry_pathname(entry));
+      message += "x ";
+      message += +archive_entry_pathname(entry);
       }
     if(verbose && !extract)
       {
@@ -293,7 +295,7 @@ bool extract_tar(const char* tarFileName, bool verbose, bool extract, std::vecto
       }
     else if(!extract)
       {
-      vtkArchiveTools::Stdout(archive_entry_pathname(entry));
+      message += archive_entry_pathname(entry);
       }
     if(extract)
       {
@@ -331,13 +333,13 @@ bool extract_tar(const char* tarFileName, bool verbose, bool extract, std::vecto
           }
         }
       }
-    if (verbose || !extract)
+    if (verbose && !message.empty())
       {
-      vtkArchiveTools::Stdout("\n");
+      vtkArchiveTools::Message(message.c_str());
       }
     }
   archive_read_close(a);
-  archive_read_finish(a);
+  archive_read_free(a);
   return true;
 }
 
