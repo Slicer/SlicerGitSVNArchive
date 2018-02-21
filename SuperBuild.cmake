@@ -375,6 +375,8 @@ if(Slicer_ADDITIONAL_PROJECTS)
   foreach(additional_project ${Slicer_ADDITIONAL_PROJECTS})
     # needed to do find_package within Slicer
     mark_as_superbuild(${additional_project}_DIR:PATH)
+    # needed to create the Slicer version
+    mark_as_superbuild(${additional_project}_SOURCE_DIR:PATH)
   endforeach()
   mark_as_superbuild(Slicer_ADDITIONAL_PROJECTS:STRING)
 endif()
