@@ -26,6 +26,7 @@
 #include <QMessageBox>
 #include <QRegExp>
 #include <QRegExpValidator>
+#include <QPushButton>
 
 /// CTK includes
 #include <ctkCheckableHeaderView.h>
@@ -192,6 +193,10 @@ qSlicerSaveDataDialogPrivate::qSlicerSaveDataDialogPrivate(QWidget* parentWidget
   connect(this->ShowMoreCheckBox, SIGNAL(toggled(bool)),
           this, SLOT(showMoreColumns(bool)));
   this->showMoreColumns(this->ShowMoreCheckBox->isChecked());
+
+  // do the ButtonBox internationalization
+  this->ButtonBox->button(QDialogButtonBox::Save)->setText(tr("Save"));
+  this->ButtonBox->button(QDialogButtonBox::Cancel)->setText(tr("Cancel"));
 }
 
 //-----------------------------------------------------------------------------
