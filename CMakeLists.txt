@@ -405,6 +405,8 @@ include(SlicerFunctionAddPythonQtResources)
 if(Slicer_BUILD_I18N_SUPPORT)
   set(Slicer_LANGUAGES
     "fr"
+    "zh_tw"
+    "zh_cn"
     )
   set_property(GLOBAL PROPERTY Slicer_LANGUAGES ${Slicer_LANGUAGES})
 endif()
