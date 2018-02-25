@@ -1003,6 +1003,13 @@ qMRMLThreeDWidget* qMRMLLayoutManager::threeDWidget(const QString& name)const
 }
 
 //------------------------------------------------------------------------------
+qMRMLThreeDWidget* qMRMLLayoutManager::threeDWidget(const QString& name)const
+{
+  return qobject_cast<qMRMLThreeDWidget*>(
+    this->mrmlViewFactory("vtkMRMLViewNode")->viewWidget(name));
+}
+
+//------------------------------------------------------------------------------
 qMRMLChartWidget* qMRMLLayoutManager::chartWidget(int id)const
 {
   qMRMLLayoutViewFactory* viewFactory = this->mrmlViewFactory("vtkMRMLChartViewNode");
