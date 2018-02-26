@@ -32,10 +32,8 @@ namespace
 //----------------------------------------------------------------------------
 int SlicerAppMain(int argc, char* argv[])
 {
-  typedef qSlicerAppMainWindow SlicerMainWindowType;
-  typedef qSlicerStyle SlicerAppStyle;
-
-  qSlicerApplicationHelper::preInitializeApplication<SlicerAppStyle>(argv[0]);
+  qSlicerApplicationHelper::preInitializeApplication(
+        argv[0], new qSlicerStyle);
 
   qSlicerApplication app(argc, argv);
   if (app.returnCode() != -1)
@@ -44,6 +42,8 @@ int SlicerAppMain(int argc, char* argv[])
     }
 
   QScopedPointer<QSplashScreen> splashScreen;
+
+  typedef qSlicerAppMainWindow SlicerMainWindowType;
   QScopedPointer<SlicerMainWindowType> window;
 
   qSlicerApplicationHelper::postInitializeApplication<SlicerMainWindowType>(
