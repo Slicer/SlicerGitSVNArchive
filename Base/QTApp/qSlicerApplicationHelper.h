@@ -22,10 +22,16 @@
 #define __qSlicerApplicationHelper_h
 
 // Qt includes
+#include <QScopedPointer>
 #include <QObject>
+#include <QSplashScreen>
+
+// Slicer includes
+#include <qSlicerApplication.h>
 
 #include "qSlicerBaseQTAppExport.h"
 
+class ctkProxyStyle;
 class qSlicerModuleFactoryManager;
 
 class Q_SLICER_BASE_QTAPP_EXPORT qSlicerApplicationHelper : public QObject
@@ -38,6 +44,14 @@ public:
   qSlicerApplicationHelper(QObject * parent = 0);
   virtual ~qSlicerApplicationHelper();
 
+  static void preInitializeApplication(const char* argv0, ctkProxyStyle* style);
+
+  template<typename SlicerMainWindowType>
+  static void postInitializeApplication(
+      qSlicerApplication& app,
+      QScopedPointer<QSplashScreen>& splashScreen,
+      QScopedPointer<SlicerMainWindowType>& window);
+
   static void setupModuleFactoryManager(qSlicerModuleFactoryManager * moduleFactoryManager);
 
   static void showMRMLEventLoggerWidget();
@@ -45,5 +59,7 @@ public:
 private:
   Q_DISABLE_COPY(qSlicerApplicationHelper);
 };
+
+#include "qSlicerApplicationHelper.txx"
 
 #endif
