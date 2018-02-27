@@ -75,6 +75,10 @@ check_extension_metadata(
   "ENABLED"
   "1"
   )
+check_extension_metadata(
+  "TAGS"
+  "NA"
+  )
 foreach(metadata_name IN ITEMS SCM SCMREVISION SCMURL)
   if(${TEST_EXT_${metadata_name}} STREQUAL "")
     message(FATAL_ERROR "${errmsg}

@@ -52,6 +52,7 @@ function(slicerFunctionGenerateExtensionDescription)
     )
   set(multiValueArgs
     EXTENSION_DEPENDS
+    EXTENSION_TAGS
     )
   cmake_parse_arguments(MY "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
@@ -64,8 +65,8 @@ function(slicerFunctionGenerateExtensionDescription)
     EXTENSION_WC_URL
     SLICER_WC_REVISION
     SLICER_WC_ROOT
-
     )
+
   foreach(var ${expected_nonempty_vars})
     if("${MY_${var}}" STREQUAL "")
       message(FATAL_ERROR "CMake variable ${var} is empty !")
@@ -172,6 +173,7 @@ function(slicer_generate_extension_description_test)
     EXTENSION_DEPENDS "Foo Bar"
     EXTENSION_ENABLED 0
     EXTENSION_STATUS ""
+    EXTENSION_TAGS ""
     )
   execute_process(
     COMMAND ${CMAKE_COMMAND} -E compare_files
@@ -192,6 +194,7 @@ function(slicer_generate_extension_description_test)
     EXTENSION_DEPENDS Foo Bar
     EXTENSION_ENABLED 0
     EXTENSION_STATUS ""
+    EXTENSION_TAGS ""
     )
   execute_process(
     COMMAND ${CMAKE_COMMAND} -E compare_files

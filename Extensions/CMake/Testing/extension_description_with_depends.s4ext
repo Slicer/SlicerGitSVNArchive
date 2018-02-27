@@ -42,3 +42,6 @@ screenshoturls http://www.slicer.org/slicerWiki/images/9/9e/SlicerToKiwiExporter
 
 # 0 or 1: Define if the extension should be enabled after its installation.
 enabled 0
+
+# Space separated list of tags
+tags        NA

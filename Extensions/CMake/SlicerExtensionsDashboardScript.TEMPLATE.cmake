@@ -57,6 +57,13 @@ set(SCRIPT_MODE "experimental") # "experimental", "continuous", "nightly"
 # Note that '-C <CTEST_BUILD_CONFIGURATION>' is mandatory on windows
 
 #-----------------------------------------------------------------------------
+# List of tags describing special features of your build system
+# Some examples include:
+#    cuda
+#-----------------------------------------------------------------------------
+set(CTEST_BUILDSYSTEM_TAGS "")
+
+#-----------------------------------------------------------------------------
 # Additional CMakeCache options
 #-----------------------------------------------------------------------------
 set(ADDITIONAL_CMAKECACHE_OPTION "
