@@ -37,6 +37,7 @@
 #include <vtkProperty2D.h>
 #include <vtkPropPicker.h>
 #include <vtkRenderer.h>
+#include <vtkRenderWindow.h>
 #include <vtkRenderWindowInteractor.h>
 #include <vtkSmartPointer.h>
 #include <vtkSphereSource.h>
@@ -630,7 +631,8 @@ int vtkAnnotationROIRepresentation2D::ComputeInteractionState(int X, int Y, int 
 {
   // Okay, we can process this. Try to pick handles first;
   // if no handles picked, then pick the bounding box.
-  if (!this->Renderer || !this->Renderer->IsInViewport(X, Y))
+  if (!this->Renderer || !this->Renderer->IsInViewport(X, Y)
+    || !this->Renderer->GetRenderWindow() || this->Renderer->GetRenderWindow()->GetNeverRendered())
     {
     this->InteractionState = vtkAnnotationROIRepresentation::Outside;
     return this->InteractionState;
