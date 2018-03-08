@@ -359,11 +359,14 @@ double vtkMRMLVolumeRenderingDisplayableManager
 ::GetSampleDistance(vtkMRMLVolumeRenderingDisplayNode* vspNode)
 {
   vtkMRMLVolumeNode* volumeNode = vspNode ? vspNode->GetVolumeNode() : 0;
-  const double minSpacing = volumeNode->GetMinSpacing() > 0 ?
-    volumeNode->GetMinSpacing() : 1.;
+  if (!volumeNode)
+    {
+    vtkErrorMacro("GetSampleDistance: Failed to access volume node:");
+    return vspNode->GetEstimatedSampleDistance();
+    }
+  const double minSpacing = volumeNode->GetMinSpacing() > 0 ? volumeNode->GetMinSpacing() : 1.;
   double sampleDistance = minSpacing / vspNode->GetEstimatedSampleDistance();
-  if (vspNode->GetPerformanceControl() ==
-      vtkMRMLVolumeRenderingDisplayNode::MaximumQuality)
+  if (vspNode->GetPerformanceControl() == vtkMRMLVolumeRenderingDisplayNode::MaximumQuality)
     {
     sampleDistance = minSpacing / 10.; // =10x smaller than pixel is high quality
     }
@@ -386,12 +389,12 @@ void vtkMRMLVolumeRenderingDisplayableManager
   vtkMRMLCPURayCastVolumeRenderingDisplayNode* vspNode)
 {
   this->UpdateMapper(mapper, vspNode);
-  const bool highDef = vspNode->GetPerformanceControl() ==
+  const bool maximumQuality = vspNode->GetPerformanceControl() ==
     vtkMRMLVolumeRenderingDisplayNode::MaximumQuality;
-  mapper->SetAutoAdjustSampleDistances( highDef ? 0 : 1);
+  mapper->SetAutoAdjustSampleDistances(maximumQuality ? 0 : 1);
   mapper->SetSampleDistance(this->GetSampleDistance(vspNode));
   mapper->SetInteractiveSampleDistance(this->GetSampleDistance(vspNode));
-  mapper->SetImageSampleDistance(highDef ? 0.5 : 1.);
+  mapper->SetImageSampleDistance(maximumQuality ? 0.5 : 1.);
 
   switch(vspNode->GetRaycastTechnique())
     {
@@ -414,12 +417,17 @@ void vtkMRMLVolumeRenderingDisplayableManager
   vtkMRMLGPURayCastVolumeRenderingDisplayNode* vspNode)
 {
   this->UpdateMapper(mapper, vspNode);
-  const bool highDef = vspNode->GetPerformanceControl() ==
+  const bool maximumQuality = vspNode->GetPerformanceControl() ==
     vtkMRMLVolumeRenderingDisplayNode::MaximumQuality;
-  mapper->SetAutoAdjustSampleDistances( highDef ? 0 : 1);
+  const bool lockSampleDistance = vspNode->GetLockSampleDistanceToInputSpacing() == 1;
+  // AutoAdjustSampleDistances disables LockSampleDistanceToInputSpacing, so if
+  // LockSampleDistanceToInputSpacing is on then disable AutoAdjustSampleDistances
+  mapper->SetAutoAdjustSampleDistances(maximumQuality || lockSampleDistance ? 0 : 1);
+  mapper->SetLockSampleDistanceToInputSpacing(lockSampleDistance);
   mapper->SetSampleDistance(this->GetSampleDistance(vspNode));
-  mapper->SetImageSampleDistance(highDef ? 1. : 1.);
+  mapper->SetImageSampleDistance(maximumQuality ? 1. : 1.);
   mapper->SetMaxMemoryInBytes(this->GetMaxMemoryInBytes(mapper, vspNode));
+  mapper->SetUseJittering(vspNode->GetUseJittering());
 
   switch(vspNode->GetRaycastTechnique())
     {

@@ -281,9 +281,9 @@ void qSlicerVolumeRenderingPresetComboBox::updatePresetSliderRange()
   double transferFunctionWidth = effectiveRange[1] - effectiveRange[0];
 
   bool wasBlocking = d->PresetOffsetSlider->blockSignals(true);
+  d->PresetOffsetSlider->setRange(-transferFunctionWidth, transferFunctionWidth);
   d->PresetOffsetSlider->setSingleStep(ctk::closestPowerOfTen(transferFunctionWidth)/500.0);
   d->PresetOffsetSlider->setPageStep(d->PresetOffsetSlider->singleStep());
-  d->PresetOffsetSlider->setRange(-transferFunctionWidth, transferFunctionWidth);
   d->PresetOffsetSlider->blockSignals(wasBlocking);
 }
 
