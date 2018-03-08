@@ -483,6 +483,23 @@ qSlicerLayoutManager* qSlicerApplication::layoutManager()const
 }
 
 //-----------------------------------------------------------------------------
+void qSlicerApplication::setOperatorName(const QString &name)
+{
+  QSettings* appSettings = this->userSettings();
+  Q_ASSERT(appSettings);
+  appSettings->setValue("OperatorName", name);
+}
+
+//-----------------------------------------------------------------------------
+QString qSlicerApplication::operatorName()const
+{
+  Q_D(const qSlicerApplication);
+  QSettings* appSettings = this->userSettings();
+  Q_ASSERT(appSettings);
+  return appSettings->value("OperatorName", "").toString();
+}
+
+//-----------------------------------------------------------------------------
 QMainWindow* qSlicerApplication::mainWindow()const
 {
   foreach(QWidget * widget, this->topLevelWidgets())

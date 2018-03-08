@@ -101,6 +101,10 @@ public:
   Q_INVOKABLE qSlicerLayoutManager* layoutManager()const;
   Q_INVOKABLE void setLayoutManager(qSlicerLayoutManager* layoutManager);
 
+  /// Set/Get operator name
+  Q_INVOKABLE QString operatorName()const;
+  Q_INVOKABLE void setOperatorName(const QString &name);
+
   /// Return a pointer on the main window of the application if any.
   QMainWindow* mainWindow()const;
 
