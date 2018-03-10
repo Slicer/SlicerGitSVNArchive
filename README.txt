@@ -1,3 +1,5 @@
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FSlicer%2FSlicer.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2FSlicer%2FSlicer?ref=badge_shield)
+
 Slicer, or 3D Slicer, is a free, open source software package for visualization and 
 image analysis. 
 
@@ -17,3 +19,7 @@ For documentation, tutorials, and more information, please see:
                       http://www.slicer.org
 
 See License.txt for information on using and contributing.
+
+
+## License
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FSlicer%2FSlicer.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2FSlicer%2FSlicer?ref=badge_large)
