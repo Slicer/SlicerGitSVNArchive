@@ -17,58 +17,39 @@
 //----------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLBitStreamVolumeNode);
 
-//---------------------------------------------------------------------------
-class vtkMRMLBitStreamVolumeNode::vtkInternal:public vtkObject
-{
-public:
-  //---------------------------------------------------------------------------
-  vtkInternal(vtkMRMLBitStreamVolumeNode* external);
-  ~vtkInternal();
-  
-  void SetVideoMessageDevice(vtkMRMLCompressionDeviceNode* inDevice)
-  {
-    this->compressionDevice = inDevice;
-  };
-
-  vtkMRMLCompressionDeviceNode* GetCompressionDevice()
-  {
-    return this->compressionDevice;
-  }
-
-  int ObserveOutsideCompressionDevice(vtkMRMLCompressionDeviceNode* device);
-
-  vtkMRMLBitStreamVolumeNode* External;
-
-  std::string MessageBuffer;
-  std::string KeyFrameBuffer;
-  vtkMRMLCompressionDeviceNode* compressionDevice;
-};
-
 //----------------------------------------------------------------------------
-// vtkInternal methods
+// vtkMRMLBitStreamVolumeNode methods
 
-//---------------------------------------------------------------------------
-vtkMRMLBitStreamVolumeNode::vtkInternal::vtkInternal(vtkMRMLBitStreamVolumeNode* external)
-  : External(external)
+//-----------------------------------------------------------------------------
+vtkMRMLBitStreamVolumeNode::vtkMRMLBitStreamVolumeNode()
 {
-  compressionDevice = NULL;
+  this->compressionDevice = NULL;
+  IsCopied = false;
+  KeyFrameReceived = false;
+  KeyFrameDecoded = false;
+  KeyFrameUpdated = false;
+  MessageBufferValid = false;
+  KeyFrameBuffer = "";
+  MessageBuffer = "";
+}
+
+//-----------------------------------------------------------------------------
+vtkMRMLBitStreamVolumeNode::~vtkMRMLBitStreamVolumeNode()
+{
+  if (compressionDevice != NULL)
+     compressionDevice->Delete();
 }
 
 //---------------------------------------------------------------------------
-vtkMRMLBitStreamVolumeNode::vtkInternal::~vtkInternal()
-{
-}
-
-//---------------------------------------------------------------------------
-int vtkMRMLBitStreamVolumeNode::vtkInternal::ObserveOutsideCompressionDevice(vtkMRMLCompressionDeviceNode* device)
+int vtkMRMLBitStreamVolumeNode::ObserveOutsideCompressionDevice(vtkMRMLCompressionDeviceNode* device)
 {
   if (device)
   {
-    device->AddObserver(device->GetDeviceContentModifiedEvent(), this->External, &vtkMRMLBitStreamVolumeNode::ProcessDeviceModifiedEvents);
+    device->AddObserver(device->GetDeviceContentModifiedEvent(), this, &vtkMRMLBitStreamVolumeNode::ProcessDeviceModifiedEvents);
     //------
     std::string bitStream = std::string(device->GetContent()->frameMessage);
-    this->External->SetMessageStream(bitStream);
-    this->External->SetAndObserveImageData(device->GetContent()->image);
+    this->SetMessageStream(bitStream);
+    this->SetAndObserveImageData(device->GetContent()->image);
     this->compressionDevice = device; // should the interal video device point to the external video device?
     //-------
     return 1;
@@ -78,66 +59,93 @@ int vtkMRMLBitStreamVolumeNode::vtkInternal::ObserveOutsideCompressionDevice(vtk
 
 void vtkMRMLBitStreamVolumeNode::SetMessageStream(std::string buffer)
 {
-  this->Internal->MessageBuffer.resize(buffer.length());
+  this->MessageBuffer.resize(buffer.length());
   char * array = new char[buffer.length()];
   memcpy(array, buffer.c_str(), buffer.length());
-  this->Internal->MessageBuffer.assign(array, buffer.length());
+  this->MessageBuffer.assign(array, buffer.length());
   this->MessageBufferValid = true;
 };
 
-std::string* vtkMRMLBitStreamVolumeNode::GetMessageStreamBuffer()
+std::string vtkMRMLBitStreamVolumeNode::GetMessageStream()
 {
-  std::string* returnMSG = new std::string(this->Internal->MessageBuffer);
+  std::string returnMSG(this->MessageBuffer);
   return returnMSG;
 };
 
 void vtkMRMLBitStreamVolumeNode::SetKeyFrameStream(std::string buffer)
 {
-  this->Internal->KeyFrameBuffer.resize(buffer.length());
+  this->KeyFrameBuffer.resize(buffer.length());
   char * array = new char[buffer.length()];
   memcpy(array, buffer.c_str(), buffer.length());
-  this->Internal->KeyFrameBuffer.assign(array, buffer.length());
+  this->KeyFrameBuffer.assign(array, buffer.length());
 };
 
-std::string* vtkMRMLBitStreamVolumeNode::GetKeyFrameStream()
+std::string vtkMRMLBitStreamVolumeNode::GetKeyFrameStream()
 {
-  std::string* returnMSG = new std::string(this->Internal->KeyFrameBuffer);
+  std::string returnMSG(this->KeyFrameBuffer);
   return returnMSG;
 };
 
 //---------------------------------------------------------------------------
 void vtkMRMLBitStreamVolumeNode::DecodeMessageStream(vtkMRMLCompressionDeviceNode::ContentData* deviceContent)
 {
-  if (this->Internal->compressionDevice == NULL)
+  if (this->compressionDevice == NULL)
   {
     vtkWarningMacro("No compression device available, use the ObserveOutsideCompressionDevice() to set up the compression device.")
     return;
   }
-  if (this->GetImageData() != this->Internal->compressionDevice->GetContent()->image)
+  if (this->GetImageData() != this->compressionDevice->GetContent()->image)
   {
-    this->SetAndObserveImageData(this->Internal->compressionDevice->GetContent()->image);
+    this->SetAndObserveImageData(this->compressionDevice->GetContent()->image);
   }
   if(!this->GetKeyFrameDecoded())
     {
     this->SetKeyFrameDecoded(true);
     this->SetKeyFrameStream(deviceContent->keyFrameMessage);
-    this->Internal->compressionDevice->UncompressedDataFromBitStream(deviceContent->keyFrameMessage, true);
+    this->compressionDevice->UncompressedDataFromBitStream(deviceContent->keyFrameMessage, true);
     }
   std::string bitStreamData = std::string(deviceContent->frameMessage);
-  if (this->Internal->compressionDevice->UncompressedDataFromBitStream(bitStreamData, true))
+  if (this->compressionDevice->UncompressedDataFromBitStream(bitStreamData, true))
     {
     this->Modified();
     }
 }
 
+//---------------------------------------------------------------------------
+int vtkMRMLBitStreamVolumeNode::EncodeImageData()
+{
+  if (this->compressionDevice == NULL)
+    {
+    vtkWarningMacro("No compression device available, use the ObserveOutsideCompressionDevice() to set up the compression device.")
+    return 0;
+    }
+  if (this->GetImageData() != this->compressionDevice->GetContent()->image)
+    {
+    this->compressionDevice->SetContentImage(this->GetImageData());
+    }
+  std::string compressedStream = this->compressionDevice->GetCompressedBitStreamFromData();
+  if (compressedStream.size()>0)
+    {
+    this->SetMessageStream(compressedStream);
+    if(!this->GetKeyFrameReceived())
+      {
+      this->SetKeyFrameReceived(true);
+      this->SetKeyFrameStream(compressedStream);
+      }
+      return 1;
+    }
+  return 0;
+}
 
 std::string vtkMRMLBitStreamVolumeNode::GetCodecName()
 {
   vtkMRMLCompressionDeviceNode*  device = this->GetCompressionDevice();
-  if (device && device->GetContent())
-  {
-  return device->GetContent()->codecName;
-  }
+  if (device)
+    {
+    if (device->GetContent())
+      return device->GetContent()->codecName;
+    return "";
+    }
   return "";
 }
 
@@ -151,26 +159,6 @@ int vtkMRMLBitStreamVolumeNode::SetCodecName(std::string name)
     return 1;
   }
   return 0;
-}
-
-//----------------------------------------------------------------------------
-// vtkMRMLBitStreamVolumeNode methods
-
-//-----------------------------------------------------------------------------
-vtkMRMLBitStreamVolumeNode::vtkMRMLBitStreamVolumeNode()
-{
-  this->Internal = new vtkInternal(this);
-  IsCopied = false;
-  KeyFrameReceived = false;
-  KeyFrameDecoded = false;
-  KeyFrameUpdated = false;
-  MessageBufferValid = false;
-}
-
-//-----------------------------------------------------------------------------
-vtkMRMLBitStreamVolumeNode::~vtkMRMLBitStreamVolumeNode()
-{
-  delete this->Internal;
 }
 
 void vtkMRMLBitStreamVolumeNode::ProcessMRMLEvents(vtkObject *caller, unsigned long event, void *callData )
@@ -209,6 +197,11 @@ void vtkMRMLBitStreamVolumeNode::ProcessDeviceModifiedEvents( vtkObject *caller,
   this->Modified();
 }
 
+//----------------------------------------------------------------------------
+vtkMRMLCompressionDeviceNode* vtkMRMLBitStreamVolumeNode::GetCompressionDevice()
+{
+  return this->compressionDevice;
+}
 
 //----------------------------------------------------------------------------
 void vtkMRMLBitStreamVolumeNode::WriteXML(ostream& of, int nIndent)
@@ -239,23 +232,4 @@ void vtkMRMLBitStreamVolumeNode::Copy(vtkMRMLNode *anode)
 void vtkMRMLBitStreamVolumeNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   Superclass::PrintSelf(os,indent);
-}
-
-//----------------------------------------------------------------------------
-vtkMRMLStorageNode* vtkMRMLBitStreamVolumeNode::CreateDefaultStorageNode()
-{
-  return vtkMRMLNRRDStorageNode::New();
-}
-
-//----------------------------------------------------------------------------
-vtkMRMLCompressionDeviceNode* vtkMRMLBitStreamVolumeNode::GetCompressionDevice()
-{
-  return this->Internal->GetCompressionDevice();
-}
-
-//----------------------------------------------------------------------------
-int vtkMRMLBitStreamVolumeNode::ObserveOutsideCompressionDevice(vtkMRMLCompressionDeviceNode* devicePtr)
-{
-  // add a default compression device here.
-  return this->Internal->ObserveOutsideCompressionDevice(devicePtr);
 }

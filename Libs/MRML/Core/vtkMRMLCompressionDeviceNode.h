@@ -12,9 +12,6 @@
 #include <vtkObject.h>
 #include <vtkSmartPointer.h>
 
-/// A Device supporting the compression codec
-typedef void* DecoderDevicePointer;
-
 class VTK_MRML_EXPORT vtkMRMLCompressionDeviceNode : public vtkMRMLNode
 {
 public:
@@ -56,27 +53,35 @@ public:
   {return "CompressionDevice";};
 
   virtual unsigned int GetDeviceContentModifiedEvent() const;
-  virtual std::string GetDeviceType() const;
-  virtual int UncompressedDataFromBitStream(std::string bitStreamData, bool checkCRC);
-  virtual std::string* GetCompressedBitStreamFromData() ;
-  
-  std::string GetCurrentCodecType()
-  {
-    return this->Content->codecName;
-  };
-  
-  virtual int SetCurrentCodecType(std::string codecType)
-  {
-    this->Content->codecName = std::string(codecType);
-    return 0;
-  };
 
-  virtual ContentData* GetContent()
-  {
-    return Content;
-  };
+  virtual std::string GetDeviceType() const;
+
+  ///
+  /// Decode bit stream
+  virtual int UncompressedDataFromBitStream(std::string bitStreamData, bool checkCRC);
+
+  ///
+  ///
+  virtual std::string GetCompressedBitStreamFromData();
+  
+  virtual std::string GetCurrentCodecType();
+
+  virtual ContentData* GetContent();
+
+  virtual vtkImageData* GetContentImage();
+
+  virtual std::string GetContentDeviceName();
+
+  virtual int SetCurrentCodecType(std::string codecType);
 
   virtual void SetContent(ContentData* content);
+
+  virtual void SetContentImage(vtkImageData* image);
+
+  virtual void SetContentDeviceName(std::string name);
+
+
+
 
 public:
   static vtkMRMLCompressionDeviceNode *New();
@@ -90,9 +95,6 @@ protected:
 protected:
   
   ContentData* Content;
-
-  std::map<std::string, DecoderDevicePointer> DecodersMap;
-  
 };
 
 #endif

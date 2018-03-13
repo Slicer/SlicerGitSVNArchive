@@ -14,9 +14,6 @@
 #include <vtkStdString.h>
 #include <vtkImageData.h>
 #include <vtkObject.h>
-#include <vtkSmartPointer.h>
-
-typedef vtkSmartPointer<class vtkMRMLCompressionDeviceNode> vtkMRMLCompressionDevicePointer;
 
 class  VTK_MRML_EXPORT vtkMRMLBitStreamVolumeNode : public vtkMRMLVectorVolumeNode
 {
@@ -34,9 +31,6 @@ public:
   ///
   /// Set node attributes
   virtual void ReadXMLAttributes( const char** atts) VTK_OVERRIDE;
-  
-  /// Create default storage node or NULL if does not have one
-  virtual vtkMRMLStorageNode* CreateDefaultStorageNode() VTK_OVERRIDE;
   
   ///
   /// Write this node's information to a MRML file in XML format.
@@ -79,14 +73,16 @@ public:
 
   void SetMessageStream(std::string buffer);
 
-  std::string* GetMessageStreamBuffer();
+  std::string GetMessageStream();
 
   void SetKeyFrameStream(std::string buffer);
 
-  std::string* GetKeyFrameStream();
+  std::string GetKeyFrameStream();
 
-  void DecodeMessageStream(vtkMRMLCompressionDeviceNode::ContentData* deviceContent);
+  int EncodeImageData();
   
+  void DecodeMessageStream(vtkMRMLCompressionDeviceNode::ContentData* deviceContent);
+
 protected:
   vtkMRMLBitStreamVolumeNode();
   ~vtkMRMLBitStreamVolumeNode();
@@ -103,9 +99,12 @@ protected:
 
   bool MessageBufferValid;
 
-private:
-  class vtkInternal;
-  vtkInternal * Internal;
+  std::string MessageBuffer;
+
+  std::string KeyFrameBuffer;
+
+  vtkMRMLCompressionDeviceNode* compressionDevice;
+
 };
 
 #endif

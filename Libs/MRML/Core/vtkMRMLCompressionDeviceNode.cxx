@@ -22,13 +22,11 @@ vtkMRMLCompressionDeviceNode::vtkMRMLCompressionDeviceNode()
   Content->keyFrameUpdated = false;
   Content->codecName = "";
   Content->deviceName = "";
-  DecodersMap.clear();
 }
 
 //---------------------------------------------------------------------------
 vtkMRMLCompressionDeviceNode::~vtkMRMLCompressionDeviceNode()
 {
-  DecodersMap.clear();
   delete Content;
 }
 
@@ -45,13 +43,32 @@ std::string vtkMRMLCompressionDeviceNode::GetDeviceType() const
   return "";
 }
 
-//---------------------------------------------------------------------------
-int vtkMRMLCompressionDeviceNode::UncompressedDataFromBitStream(std::string bitStreamData, bool checkCRC)
+std::string vtkMRMLCompressionDeviceNode::GetCurrentCodecType()
 {
-  //To do : use the buffer to update Content->image
-  //Return 1 on successful, 0 for unsuccessful
+  return this->Content->codecName;
+};
+
+vtkMRMLCompressionDeviceNode::ContentData* vtkMRMLCompressionDeviceNode::GetContent()
+{
+  return Content;
+}
+
+vtkImageData* vtkMRMLCompressionDeviceNode::GetContentImage()
+{
+  return this->Content->image;
+}
+
+std::string vtkMRMLCompressionDeviceNode::GetContentDeviceName()
+{
+  return this->Content->deviceName;
+}
+
+int vtkMRMLCompressionDeviceNode::SetCurrentCodecType(std::string codecType)
+{
+  this->Content->codecName = std::string(codecType);
   return 0;
 }
+
 void vtkMRMLCompressionDeviceNode::SetContent(ContentData* content)
 {
   Content = content;
@@ -59,10 +76,30 @@ void vtkMRMLCompressionDeviceNode::SetContent(ContentData* content)
   this->InvokeEvent(DeviceModifiedEvent, this);
 }
 
-//---------------------------------------------------------------------------
-std::string* vtkMRMLCompressionDeviceNode::GetCompressedBitStreamFromData()
+
+void vtkMRMLCompressionDeviceNode::SetContentImage(vtkImageData* image)
 {
-  return NULL;
+  this->Content->image = image;
+}
+
+void vtkMRMLCompressionDeviceNode::SetContentDeviceName(std::string name)
+{
+  this->Content->deviceName = std::string(name);
+}
+
+
+//---------------------------------------------------------------------------
+int vtkMRMLCompressionDeviceNode::UncompressedDataFromBitStream(std::string bitStreamData, bool checkCRC)
+{
+  //To do : use the buffer to update Content->image
+  //Return 1 on successful, 0 for unsuccessful
+  return 0;
+}
+
+//---------------------------------------------------------------------------
+std::string vtkMRMLCompressionDeviceNode::GetCompressedBitStreamFromData()
+{
+  return "";
 }
 
 //---------------------------------------------------------------------------
