@@ -2,7 +2,6 @@
 
 // MRML includes
 #include "vtkMRMLScene.h"
-#include "vtkMRMLNRRDStorageNode.h"
 
 // VTK includes
 #include <vtkCollection.h>
@@ -16,18 +15,22 @@ vtkMRMLNodeNewMacro(vtkMRMLCompressionDeviceNode);
 //---------------------------------------------------------------------------
 vtkMRMLCompressionDeviceNode::vtkMRMLCompressionDeviceNode()
 {
-  Content = new ContentData();
-  Content->image = NULL;
-  Content->frameType = -1; // -1 is an invalid value
-  Content->keyFrameUpdated = false;
-  Content->codecName = "";
-  Content->deviceName = "";
+  this->Content = new ContentData();
+  this->Content->image = NULL;
+  this->Content->frameType = UndefinedFrameType;
+  this->Content->keyFrameUpdated = false;
+  this->Content->codecType = "";
+  this->Content->deviceName = "";
 }
 
 //---------------------------------------------------------------------------
 vtkMRMLCompressionDeviceNode::~vtkMRMLCompressionDeviceNode()
 {
-  delete Content;
+  if (this->Content != NULL)
+    {
+    delete this->Content;
+    }
+  
 }
 
 //---------------------------------------------------------------------------
@@ -35,7 +38,6 @@ unsigned int vtkMRMLCompressionDeviceNode::GetDeviceContentModifiedEvent() const
 {
   return DeviceModifiedEvent;
 }
-
 
 //---------------------------------------------------------------------------
 std::string vtkMRMLCompressionDeviceNode::GetDeviceType() const
@@ -45,12 +47,12 @@ std::string vtkMRMLCompressionDeviceNode::GetDeviceType() const
 
 std::string vtkMRMLCompressionDeviceNode::GetCurrentCodecType()
 {
-  return this->Content->codecName;
+  return this->Content->codecType;
 };
 
 vtkMRMLCompressionDeviceNode::ContentData* vtkMRMLCompressionDeviceNode::GetContent()
 {
-  return Content;
+  return this->Content;
 }
 
 vtkImageData* vtkMRMLCompressionDeviceNode::GetContentImage()
@@ -65,7 +67,7 @@ std::string vtkMRMLCompressionDeviceNode::GetContentDeviceName()
 
 int vtkMRMLCompressionDeviceNode::SetCurrentCodecType(std::string codecType)
 {
-  this->Content->codecName = std::string(codecType);
+  this->Content->codecType = std::string(codecType);
   return 0;
 }
 
@@ -91,7 +93,7 @@ void vtkMRMLCompressionDeviceNode::SetContentDeviceName(std::string name)
 //---------------------------------------------------------------------------
 int vtkMRMLCompressionDeviceNode::UncompressedDataFromBitStream(std::string bitStreamData, bool checkCRC)
 {
-  //To do : use the buffer to update Content->image
+  //To do : decode the bitStreamData to update Content->image
   //Return 1 on successful, 0 for unsuccessful
   return 0;
 }
@@ -135,11 +137,4 @@ void vtkMRMLCompressionDeviceNode::Copy(vtkMRMLNode *anode)
   Superclass::Copy(anode);
   this->EndModify(disabledModify);
 }
-
-//----------------------------------------------------------------------------
-vtkMRMLStorageNode* vtkMRMLCompressionDeviceNode::CreateDefaultStorageNode()
-{
-  return vtkMRMLNRRDStorageNode::New();
-}
-
 
