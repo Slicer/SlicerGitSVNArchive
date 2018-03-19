@@ -1,33 +1,30 @@
-#ifndef __vtkMRMLCompressionDeviceNode_h
-#define __vtkMRMLCompressionDeviceNode_h
+#ifndef __vtkStreamingVolumeCodec_h
+#define __vtkStreamingVolumeCodec_h
 
 // MRML includes
-#include <vtkMRML.h>
-#include <vtkMRMLNode.h>
-#include <vtkMRMLStorageNode.h>
+#include "vtkMRML.h"
 
 // VTK includes
+#include <vtkObject.h>
 #include <vtkStdString.h>
 #include <vtkImageData.h>
 #include <vtkObject.h>
 #include <vtkSmartPointer.h>
 
-
-/// \brief MRML node for representing video codec.
+/// \brief vtk object for representing volume compression codec (normally a video compression codec).
 ///
-/// Any nodes that encapsulates video codec should derive from the vtkMRMLCompressionDeviceNode.
-/// This compression device node is observed by the vtkMRMLBitStreamVolumeNode. This device node
-/// generates keyframeMessage and frameMessage from the image data in the vtkMRMLBitStreamVolumeNode
+/// Any nodes that encapsulates video codec should derive from the vtkStreamingVolumeCodec.
+/// This compression device node is observed by the vtkMRMLStreamingVolumeNode. This device node
+/// generates keyframeMessage and frameMessage from the image data in the vtkMRMLStreamingVolumeNode
 /// See this derived node for more detail:
-/// https://github.com/openigtlink/SlicerOpenIGTLink/blob/BitStreamNodeRemoval/OpenIGTLinkIF/MRML/vtkMRMLIGTLIOCompressionDeviceNode.h
+/// https://github.com/openigtlink/SlicerOpenIGTLink/blob/BitStreamNodeRemoval/OpenIGTLinkIF/MRML/vtkIGTLIOCompressionCodec.h
 /// Two functions in this class needs to be derived from child class:
-/// 1. virtual int UncompressedDataFromBitStream(std::string bitStreamData, bool checkCRC);
-/// 2. virtual std::string GetCompressedBitStreamFromData();
-class VTK_MRML_EXPORT vtkMRMLCompressionDeviceNode : public vtkMRMLNode
+/// 1. virtual int UncompressedDataFromStream(std::string bitStreamData, bool checkCRC);
+/// 2. virtual std::string GetCompressedStreamFromData();
+class VTK_MRML_EXPORT vtkStreamingVolumeCodec : public vtkObject
 {
 public:
-  static vtkMRMLCompressionDeviceNode *New();
-  vtkTypeMacro(vtkMRMLCompressionDeviceNode, vtkMRMLNode);
+  vtkTypeMacro(vtkStreamingVolumeCodec, vtkObject);
   void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   struct ContentData
@@ -37,28 +34,10 @@ public:
     bool keyFrameUpdated;
     std::string deviceName;
     std::string codecType;
-    std::string frameMessage; // for saving the compressed data.
-    std::string keyFrameMessage; // for saving the compressed data.
+    std::string frame; // for saving the compressed data.
+    std::string keyFrame; // for saving the compressed data.
   };
   
-  virtual vtkMRMLNode* CreateNodeInstance() VTK_OVERRIDE;
-  
-  /// Set node attributes
-  virtual void ReadXMLAttributes( const char** atts) VTK_OVERRIDE;
-  
-  ///
-  /// Write this node's information to a MRML file in XML format.
-  virtual void WriteXML(ostream& of, int indent) VTK_OVERRIDE;
-  
-  ///
-  /// Copy the node's attributes to this object
-  virtual void Copy(vtkMRMLNode *node) VTK_OVERRIDE;
-  
-  ///
-  /// Get node XML tag name (like Volume, Model)
-  virtual const char* GetNodeTagName() VTK_OVERRIDE
-  {return "CompressionDevice";}
-
   ///
   /// The device modified event. This event could be invoke when bit stream is generated or decoded.
   virtual unsigned int GetDeviceContentModifiedEvent() const;
@@ -70,12 +49,12 @@ public:
 
   ///
   /// Decode bit stream and update the image pointer in content.
-  /// The image pointer normally from the vtkMRMLBitStreamVolumeNode
-  virtual int UncompressedDataFromBitStream(std::string bitStreamData, bool checkCRC);
+  /// The image pointer normally from the vtkMRMLStreamingVolumeNode
+  virtual int UncompressedDataFromStream(std::string bitStreamData, bool checkCRC) = 0;
 
   ///
   /// Return the compressed bit stream from the image.
-  virtual std::string GetCompressedBitStreamFromData();
+  virtual std::string GetCompressedStreamFromData() = 0;
 
   ///
   /// Get the compression codec type, a compression device could contain serveral codec.
@@ -111,8 +90,10 @@ public:
   virtual void SetContentDeviceName(std::string name);
 
 protected:
-  vtkMRMLCompressionDeviceNode();
-  ~vtkMRMLCompressionDeviceNode();
+  vtkStreamingVolumeCodec();
+  ~vtkStreamingVolumeCodec();
+  vtkStreamingVolumeCodec(const vtkStreamingVolumeCodec&);
+  void operator=(const vtkStreamingVolumeCodec&);
 
   enum {
     DeviceModifiedEvent         = 118961, //Todo, should have a different id, as it is conflict with openigtlinkIO VideoDeviceModified event

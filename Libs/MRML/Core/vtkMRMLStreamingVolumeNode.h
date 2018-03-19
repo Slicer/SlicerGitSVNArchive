@@ -1,11 +1,11 @@
-#ifndef __vtkMRMLBitStreamVolumeNode_h
-#define __vtkMRMLBitStreamVolumeNode_h
+#ifndef __vtkMRMLStreamingVolumeNode_h
+#define __vtkMRMLStreamingVolumeNode_h
 
 // MRML includes
 #include <vtkMRML.h>
 #include <vtkMRMLNode.h>
 #include <vtkMRMLStorageNode.h>
-#include "vtkMRMLCompressionDeviceNode.h"
+#include "vtkStreamingVolumeCodec.h"
 #include "vtkMRMLVectorVolumeDisplayNode.h"
 #include "vtkMRMLVectorVolumeNode.h"
 #include "vtkMRMLVolumeArchetypeStorageNode.h"
@@ -14,6 +14,7 @@
 #include <vtkStdString.h>
 #include <vtkImageData.h>
 #include <vtkObject.h>
+#include <vtkUnsignedCharArray.h>
 
 /// \brief MRML node for representing video frame and the compressed bit stream data.
 ///
@@ -23,13 +24,13 @@
 /// 1. FrameMessage that contain the bit stream generated from current video frame.
 /// 2. Key Frame Message that contain the bit stream of the key frame related to current video frame.
 /// 3. The related compression device for encoding and decoding. This device is by default NULL.
-///    User needs to register the compression device to the vtkMRMLBitStreamVolumeNode
-class  VTK_MRML_EXPORT vtkMRMLBitStreamVolumeNode : public vtkMRMLVectorVolumeNode
+///    User needs to register the compression device to the vtkMRMLStreamingVolumeNode
+class  VTK_MRML_EXPORT vtkMRMLStreamingVolumeNode : public vtkMRMLVectorVolumeNode
 {
 public:
   
-  static vtkMRMLBitStreamVolumeNode *New();
-  vtkTypeMacro(vtkMRMLBitStreamVolumeNode,vtkMRMLVectorVolumeNode);
+  static vtkMRMLStreamingVolumeNode *New();
+  vtkTypeMacro(vtkMRMLStreamingVolumeNode,vtkMRMLVectorVolumeNode);
   void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
   
   virtual vtkMRMLNode* CreateNodeInstance() VTK_OVERRIDE;
@@ -52,7 +53,7 @@ public:
   ///
   /// Get node XML tag name (like Volume, Model)
   virtual const char* GetNodeTagName() VTK_OVERRIDE
-  {return "BitStreamVolume";}
+  {return "StreamingVolume";}
 
   ///
   /// Flag indicates whether key frame message was received or not.
@@ -75,11 +76,6 @@ public:
   vtkGetMacro(FrameUpdated, bool);
 
   ///
-  /// Flag indicates whether the current frame message was valid or not.
-  void SetFrameMessageValid(bool value){this->FrameMessageValid = value;};
-  vtkGetMacro(FrameMessageValid, bool);
-
-  ///
   /// Get the compression codec type, a compression device could contain serveral codec.
   /// This function returns the codec that is used for encoding and decoding.
   std::string GetCodecType();
@@ -90,27 +86,29 @@ public:
 
   ///
   /// Return the compression device that is currently observed.
-  vtkMRMLCompressionDeviceNode* GetCompressionDevice();
+  vtkStreamingVolumeCodec* GetCompressionCodec();
 
   ///
   /// Observe an outside compression device.
-  int ObserveOutsideCompressionDevice(vtkMRMLCompressionDeviceNode* devicePtr);
+  int ObserveOutsideCompressionCodec(vtkStreamingVolumeCodec* devicePtr);
 
   ///
-  /// Set the frame message
-  void SetFrameMessage(std::string& buffer);
+  ///  Update the frame message from data stream
+  void UpdateFrameFromDataStream(std::string& buffer);
 
   ///
   /// Return the frame message
-  std::string GetFrameMessage();
+  vtkSetObjectMacro(Frame, vtkUnsignedCharArray);
+  vtkGetObjectMacro(Frame, vtkUnsignedCharArray);
 
   ///
-  /// Set the key frame message
-  void SetKeyFrameMessage(std::string& buffer);
+  /// Update the key frame message from data stream
+  void UpdateKeyFrameFromDataStream(std::string& buffer);
 
   ///
-  /// Return the key frame message
-  std::string GetKeyFrameMessage();
+  /// Set/Get the key frame
+  vtkSetObjectMacro(KeyFrame, vtkUnsignedCharArray);
+  vtkGetObjectMacro(KeyFrame, vtkUnsignedCharArray);
 
   ///
   /// Encode the image data using the observed compression device
@@ -118,19 +116,35 @@ public:
 
   ///
   /// Decode the bit stream data and store the frame in the vtk image pointer specified in the deviceContent
-  /// If the image pointer is not the same as the image pointer in the vtkMRMLBitStreamVolumeNode,
-  /// then force the vtkMRMLBitStreamVolumeNode to observe the image pointer in the deviceContent.
-  int DecodeFrameMessage(vtkMRMLCompressionDeviceNode::ContentData* deviceContent);
+  /// If the image pointer is not the same as the image pointer in the vtkMRMLStreamingVolumeNode,
+  /// then force the vtkMRMLStreamingVolumeNode to observe the image pointer in the deviceContent.
+  int DecodeFrame(vtkStreamingVolumeCodec::ContentData* deviceContent);
 
   ///
   /// Helper function to copy source string to destination string
-  void CopySrcStringToDestString(const std::string& srcString, std::string& destString);
+  void CopySrcStringToDestArray(const std::string& srcString, vtkUnsignedCharArray* destString);
+
+  ///
+  /// Get the name of the CompressionCodec
+  std::string GetCodecName();
+
+  ///
+  /// Set the name of the CompressionCodec
+  int SetCodecName(std::string name);
+
+  ///
+  /// Get the class name of the CompressionCodec
+  std::string GetCompressionCodecClassName();
+
+  ///
+  /// Set the class name of the CompressionCodec
+  int SetCompressionCodecClassName(std::string name);
 
 protected:
-  vtkMRMLBitStreamVolumeNode();
-  ~vtkMRMLBitStreamVolumeNode();
-  vtkMRMLBitStreamVolumeNode(const vtkMRMLBitStreamVolumeNode&);
-  void operator=(const vtkMRMLBitStreamVolumeNode&);
+  vtkMRMLStreamingVolumeNode();
+  ~vtkMRMLStreamingVolumeNode();
+  vtkMRMLStreamingVolumeNode(const vtkMRMLStreamingVolumeNode&);
+  void operator=(const vtkMRMLStreamingVolumeNode&);
     
   bool KeyFrameReceived;
   
@@ -140,14 +154,15 @@ protected:
   
   bool FrameUpdated;
 
-  bool FrameMessageValid;
+  vtkUnsignedCharArray* Frame;
 
-  std::string FrameMessage;
+  vtkUnsignedCharArray* KeyFrame;
 
-  std::string KeyFrameMessage;
+  vtkStreamingVolumeCodec* CompressionCodec;
 
-  vtkMRMLCompressionDeviceNode* CompressionDevice;
+  std::string CompressionCodecClassName;
 
+  std::string CodecName;
 };
 
 #endif

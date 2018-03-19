@@ -77,8 +77,8 @@ Version:   $Revision: 1.18 $
 #include "vtkMRMLDiffusionTensorVolumeNode.h"
 #include "vtkMRMLDiffusionTensorVolumeSliceDisplayNode.h"
 #include "vtkMRMLVectorVolumeNode.h"
-#include "vtkMRMLBitStreamVolumeNode.h"
-#include "vtkMRMLCompressionDeviceNode.h"
+#include "vtkMRMLStreamingVolumeNode.h"
+#include "vtkStreamingVolumeCodec.h"
 #endif
 
 // VTK includes
@@ -190,8 +190,7 @@ vtkMRMLScene::vtkMRMLScene()
   this->RegisterNodeClass( vtkSmartPointer< vtkMRMLDiffusionTensorVolumeSliceDisplayNode >::New() );
   this->RegisterNodeClass( vtkSmartPointer< vtkMRMLNRRDStorageNode >::New() );
   this->RegisterNodeClass( vtkSmartPointer< vtkMRMLVectorVolumeNode >::New() );
-  this->RegisterNodeClass( vtkSmartPointer< vtkMRMLBitStreamVolumeNode >::New() );
-  this->RegisterNodeClass( vtkSmartPointer< vtkMRMLCompressionDeviceNode >::New() );
+  this->RegisterNodeClass( vtkSmartPointer< vtkMRMLStreamingVolumeNode >::New() );
 #endif
   this->RegisterNodeClass( vtkSmartPointer< vtkMRMLVectorVolumeDisplayNode >::New() );
   this->RegisterNodeClass( vtkSmartPointer< vtkMRMLDiffusionWeightedVolumeDisplayNode >::New() );
