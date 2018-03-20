@@ -23,6 +23,7 @@
 
 // Slicer includes
 #include "vtkSlicerModuleLogic.h"
+#include "vtkStreamingVolumeCodecFactory.h"
 
 // MRML includes
 #include "vtkMRML.h"
@@ -38,6 +39,7 @@
 class vtkMRMLLabelMapVolumeNode;
 class vtkMRMLScalarVolumeNode;
 class vtkMRMLScalarVolumeDisplayNode;
+class vtkMRMLStreamingVolumeNode;
 class vtkMRMLVolumeHeaderlessStorageNode;
 class vtkStringArray;
 
@@ -136,6 +138,10 @@ public:
   /// Load a scalar volume function directly, bypassing checks of all factories done in AddArchetypeVolume.
   /// \sa AddArchetypeVolume(const NodeSetFactoryRegistry& volumeRegistry, const char* filename, const char* volname, int loadingOptions, vtkStringArray *fileList)
   vtkMRMLScalarVolumeNode* AddArchetypeScalarVolume(const char* filename, const char* volname, int loadingOptions, vtkStringArray *fileList);
+  
+  /// Load a Streaming volume function directly, bypassing checks of all factories done in AddArchetypeVolume.
+  /// \sa AddArchetypeVolume(const NodeSetFactoryRegistry& volumeRegistry, const char* filename, const char* volname, int loadingOptions, vtkStringArray *fileList)
+  vtkMRMLStreamingVolumeNode* AddArchetypeStreamingVolume(const char* filename, const char* volname, const char* codecDeviceType, int loadingOptions, vtkStringArray *fileList);
 
   /// Write volume's image data to a specified file
   int SaveArchetypeVolume (const char* filename, vtkMRMLVolumeNode *volumeNode);
@@ -285,6 +291,8 @@ public:
   /// value is set when setting the compare volume geometry epsilon.
   /// \sa SetCompareVolumeGeometryEpsilon
   vtkGetMacro(CompareVolumeGeometryPrecision, int);
+  
+  vtkGetObjectMacro(CodecFactory, vtkStreamingVolumeCodecFactory);
 
 protected:
   vtkSlicerVolumesLogic();
@@ -320,6 +328,8 @@ protected:
   vtkSmartPointer<vtkMRMLColorLogic> ColorLogic;
 
   NodeSetFactoryRegistry VolumeRegistry;
+  
+  vtkStreamingVolumeCodecFactory* CodecFactory;
 
   /// Allowable difference in comparing volume geometry double values.
   /// Defaults to 1 to the power of 10 to the minus 6

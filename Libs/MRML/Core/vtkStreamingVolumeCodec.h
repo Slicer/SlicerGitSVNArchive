@@ -1,3 +1,17 @@
+/*=auto=========================================================================
+
+  Portions (c) Copyright 2005 Brigham and Women's Hospital (BWH) All Rights Reserved.
+
+  See COPYRIGHT.txt
+  or http://www.slicer.org/copyright/copyright.txt for details.
+
+  Program:   3D Slicer
+  Module:    $RCSfile: vtkStreamingVolumeCodec.h,v $
+  Date:      $Date: 2006/03/19 17:12:29 $
+  Version:   $Revision: 1.13 $
+
+=========================================================================auto=*/
+
 #ifndef __vtkStreamingVolumeCodec_h
 #define __vtkStreamingVolumeCodec_h
 
@@ -10,6 +24,8 @@
 #include <vtkImageData.h>
 #include <vtkObject.h>
 #include <vtkSmartPointer.h>
+#include <vtkUnsignedCharArray.h>
+
 
 /// \brief vtk object for representing volume compression codec (normally a video compression codec).
 ///
@@ -17,7 +33,7 @@
 /// This compression device node is observed by the vtkMRMLStreamingVolumeNode. This device node
 /// generates keyframeMessage and frameMessage from the image data in the vtkMRMLStreamingVolumeNode
 /// See this derived node for more detail:
-/// https://github.com/openigtlink/SlicerOpenIGTLink/blob/BitStreamNodeRemoval/OpenIGTLinkIF/MRML/vtkIGTLIOCompressionCodec.h
+/// https://github.com/openigtlink/SlicerOpenIGTLink/blob/BitStreamNodeRemoval/OpenIGTLinkIF/MRML/vtkIGTLStreamingVolumeCodec.h
 /// Two functions in this class needs to be derived from child class:
 /// 1. virtual int UncompressedDataFromStream(std::string bitStreamData, bool checkCRC);
 /// 2. virtual std::string GetCompressedStreamFromData();
@@ -26,7 +42,7 @@ class VTK_MRML_EXPORT vtkStreamingVolumeCodec : public vtkObject
 public:
   vtkTypeMacro(vtkStreamingVolumeCodec, vtkObject);
   void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
-
+  
   struct ContentData
   {
     vtkSmartPointer<vtkImageData> image;
@@ -34,8 +50,8 @@ public:
     bool keyFrameUpdated;
     std::string deviceName;
     std::string codecType;
-    std::string frame; // for saving the compressed data.
-    std::string keyFrame; // for saving the compressed data.
+    vtkUnsignedCharArray* frame; // for saving the compressed data.
+    vtkUnsignedCharArray* keyFrame; // for saving the compressed data.
   };
   
   ///
@@ -50,11 +66,11 @@ public:
   ///
   /// Decode bit stream and update the image pointer in content.
   /// The image pointer normally from the vtkMRMLStreamingVolumeNode
-  virtual int UncompressedDataFromStream(std::string bitStreamData, bool checkCRC) = 0;
+  virtual int UncompressedDataFromStream(vtkUnsignedCharArray* bitStreamData, bool checkCRC) = 0;
 
   ///
   /// Return the compressed bit stream from the image.
-  virtual std::string GetCompressedStreamFromData() = 0;
+  virtual vtkUnsignedCharArray* GetCompressedStreamFromData() = 0;
 
   ///
   /// Get the compression codec type, a compression device could contain serveral codec.

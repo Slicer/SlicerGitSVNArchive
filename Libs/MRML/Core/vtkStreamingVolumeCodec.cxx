@@ -1,3 +1,17 @@
+/*=auto=========================================================================
+
+  Portions (c) Copyright 2005 Brigham and Women's Hospital (BWH) All Rights Reserved.
+
+  See COPYRIGHT.txt
+  or http://www.slicer.org/copyright/copyright.txt for details.
+
+  Program:   3D Slicer
+  Module:    $RCSfile: vtkStreamingVolumeCodec.cxx,v $
+  Date:      $Date: 2006/01/06 17:56:48 $
+  Version:   $Revision: 1.58 $
+
+=========================================================================auto=*/
+
 #include "vtkStreamingVolumeCodec.h"
 
 // VTK includes
@@ -23,9 +37,20 @@ vtkStreamingVolumeCodec::~vtkStreamingVolumeCodec()
 {
   if (this->Content != NULL)
     {
+    if(this->Content->image)
+      {
+      this->Content->image->Delete();
+      }
+    if(this->Content->keyFrame)
+      {
+      this->Content->keyFrame->Delete();
+      }
+    if(this->Content->frame)
+      {
+      this->Content->frame->Delete();
+      }
     delete this->Content;
     }
-  
 }
 
 //---------------------------------------------------------------------------
@@ -86,7 +111,7 @@ void vtkStreamingVolumeCodec::SetContentDeviceName(std::string name)
 
 
 //---------------------------------------------------------------------------
-int vtkStreamingVolumeCodec::UncompressedDataFromStream(std::string bitStreamData, bool checkCRC)
+int vtkStreamingVolumeCodec::UncompressedDataFromStream(vtkUnsignedCharArray* bitStreamData, bool checkCRC)
 {
   //To do : decode the bitStreamData to update Content->image
   //Return 1 on successful, 0 for unsuccessful
@@ -94,9 +119,9 @@ int vtkStreamingVolumeCodec::UncompressedDataFromStream(std::string bitStreamDat
 }
 
 //---------------------------------------------------------------------------
-std::string vtkStreamingVolumeCodec::GetCompressedStreamFromData()
+vtkUnsignedCharArray* vtkStreamingVolumeCodec::GetCompressedStreamFromData()
 {
-  return "";
+  return NULL;
 }
 
 //---------------------------------------------------------------------------

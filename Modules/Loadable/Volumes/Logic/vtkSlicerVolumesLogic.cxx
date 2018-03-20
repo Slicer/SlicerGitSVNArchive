@@ -39,6 +39,7 @@
 #include "vtkMRMLVectorVolumeNode.h"
 #include "vtkMRMLVolumeArchetypeStorageNode.h"
 #include "vtkMRMLTransformNode.h"
+#include "vtkMRMLStreamingVolumeNode.h" 
 
 // VTK includes
 #include <vtkCallbackCommand.h>
@@ -364,6 +365,68 @@ ArchetypeVolumeNodeSet NRRDVectorVolumeNodeSetFactory(std::string& volumeName, v
   return nodeSet;
 }
 
+  
+//----------------------------------------------------------------------------
+ArchetypeVolumeNodeSet ArchetypeStreamingVolumeNodeSetFactory(std::string& volumeName, vtkMRMLScene* scene, int options)
+{
+  ArchetypeVolumeNodeSet nodeSet(scene);
+
+  // set up the vector node's support nodes
+  vtkMRMLVectorVolumeDisplayNode* vdisplayNode =
+  vtkMRMLVectorVolumeDisplayNode::SafeDownCast(
+                                               nodeSet.Scene->AddNewNodeByClass("vtkMRMLVectorVolumeDisplayNode"));
+
+  vtkMRMLStreamingVolumeNode* streamingVolumeNode =
+  vtkMRMLStreamingVolumeNode::SafeDownCast(
+                                        nodeSet.Scene->AddNewNodeByClass("vtkMRMLStreamingVolumeNode", volumeName));
+  streamingVolumeNode->SetAndObserveDisplayNodeID(vdisplayNode->GetID());
+
+  vtkMRMLVolumeArchetypeStorageNode* storageNode =
+  vtkMRMLVolumeArchetypeStorageNode::SafeDownCast(
+                                                  nodeSet.Scene->AddNewNodeByClass("vtkMRMLVolumeArchetypeStorageNode"));
+  int wasModifying = storageNode->StartModify();
+  storageNode->SetCenterImage(options & vtkSlicerVolumesLogic::CenterImage);
+  storageNode->SetUseOrientationFromFile(!((options & vtkSlicerVolumesLogic::DiscardOrientation) != 0));
+  storageNode->SetSingleFile(options & vtkSlicerVolumesLogic::SingleFile);
+  storageNode->EndModify(wasModifying);
+  streamingVolumeNode->SetAndObserveStorageNodeID(storageNode->GetID());
+
+  nodeSet.StorageNode = storageNode;
+  nodeSet.DisplayNode = vdisplayNode;
+  nodeSet.Node = streamingVolumeNode;
+
+  return nodeSet;
+}
+
+//----------------------------------------------------------------------------
+ArchetypeVolumeNodeSet NRRDStreamingVolumeNodeSetFactory(std::string& volumeName, vtkMRMLScene* scene, int options)
+{
+  ArchetypeVolumeNodeSet nodeSet(scene);
+
+  // set up the vector node's support nodes
+  vtkMRMLVectorVolumeDisplayNode* vdisplayNode =
+  vtkMRMLVectorVolumeDisplayNode::SafeDownCast(
+                                               nodeSet.Scene->AddNewNodeByClass("vtkMRMLVectorVolumeDisplayNode"));
+
+  vtkMRMLStreamingVolumeNode* streamingVolumeNode =
+  vtkMRMLStreamingVolumeNode::SafeDownCast(
+                                        nodeSet.Scene->AddNewNodeByClass("vtkMRMLStreamingVolumeNode", volumeName));
+  streamingVolumeNode->SetAndObserveDisplayNodeID(vdisplayNode->GetID());
+
+  vtkMRMLNRRDStorageNode* storageNode =
+  vtkMRMLNRRDStorageNode::SafeDownCast(
+                                       nodeSet.Scene->AddNewNodeByClass("vtkMRMLNRRDStorageNode"));
+  storageNode->SetCenterImage(options & vtkSlicerVolumesLogic::CenterImage);
+  streamingVolumeNode->SetAndObserveStorageNodeID(storageNode->GetID());
+
+  nodeSet.StorageNode = storageNode;
+  nodeSet.DisplayNode = vdisplayNode;
+  nodeSet.Node = streamingVolumeNode;
+
+  return nodeSet;
+}
+
+
 //----------------------------------------------------------------------------
 ArchetypeVolumeNodeSet ArchetypeVectorVolumeNodeSetFactory(std::string& volumeName, vtkMRMLScene* scene, int options)
 {
@@ -474,6 +537,9 @@ vtkSlicerVolumesLogic::vtkSlicerVolumesLogic()
   this->RegisterArchetypeVolumeNodeSetFactory( ArchetypeVectorVolumeNodeSetFactory );
   this->RegisterArchetypeVolumeNodeSetFactory( LabelMapVolumeNodeSetFactory );
   this->RegisterArchetypeVolumeNodeSetFactory( ScalarVolumeNodeSetFactory );
+  this->RegisterArchetypeVolumeNodeSetFactory( ArchetypeStreamingVolumeNodeSetFactory );
+  this->RegisterArchetypeVolumeNodeSetFactory( NRRDStreamingVolumeNodeSetFactory );
+  this->CodecFactory = vtkStreamingVolumeCodecFactory::New();
 
   this->CompareVolumeGeometryEpsilon = 0.000001;
   this->CompareVolumeGeometryPrecision = 6;
@@ -482,6 +548,10 @@ vtkSlicerVolumesLogic::vtkSlicerVolumesLogic()
 //----------------------------------------------------------------------------
 vtkSlicerVolumesLogic::~vtkSlicerVolumesLogic()
 {
+  if (this->CodecFactory)
+    {
+    this->CodecFactory->Delete();
+    }
 }
 
 //----------------------------------------------------------------------------
@@ -621,6 +691,19 @@ vtkMRMLScalarVolumeNode* vtkSlicerVolumesLogic::AddArchetypeScalarVolume(
   NodeSetFactoryRegistry nodeSetFactoryRegistry;
   nodeSetFactoryRegistry.push_back(&ScalarVolumeNodeSetFactory);
   return vtkMRMLScalarVolumeNode::SafeDownCast(this->AddArchetypeVolume(nodeSetFactoryRegistry, filename, volname, loadingOptions, fileList));
+}
+
+vtkMRMLStreamingVolumeNode* vtkSlicerVolumesLogic::AddArchetypeStreamingVolume(const char* filename, const char* volname, const char* codecDeviceType, int loadingOptions, vtkStringArray *fileList)
+{
+  NodeSetFactoryRegistry nodeSetFactoryRegistry;
+  nodeSetFactoryRegistry.push_back(&ArchetypeStreamingVolumeNodeSetFactory); // Streaming Volume uses the same Node Set Factory as Vector Volume
+  vtkMRMLStreamingVolumeNode* streamingVolumeNode = vtkMRMLStreamingVolumeNode::SafeDownCast(this->AddArchetypeVolume(nodeSetFactoryRegistry, filename, volname, loadingOptions, fileList));
+  if (streamingVolumeNode)
+    {
+    vtkSmartPointer<vtkStreamingVolumeCodec> codec = CodecFactory->GetVolumeCodecNewPointerByType(codecDeviceType)();
+    streamingVolumeNode->ObserveOutsideCompressionCodec(codec);
+    }
+  return streamingVolumeNode;
 }
 
 //----------------------------------------------------------------------------

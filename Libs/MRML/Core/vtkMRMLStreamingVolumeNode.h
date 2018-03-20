@@ -93,8 +93,8 @@ public:
   int ObserveOutsideCompressionCodec(vtkStreamingVolumeCodec* devicePtr);
 
   ///
-  ///  Update the frame message from data stream
-  void UpdateFrameFromDataStream(std::string& buffer);
+  ///  Update the frame message from codec device frame
+  int UpdateFrameByDeepCopy(vtkUnsignedCharArray* buffer);
 
   ///
   /// Return the frame message
@@ -103,7 +103,7 @@ public:
 
   ///
   /// Update the key frame message from data stream
-  void UpdateKeyFrameFromDataStream(std::string& buffer);
+  int UpdateKeyFrameByDeepCopy(vtkUnsignedCharArray* buffer);
 
   ///
   /// Set/Get the key frame
@@ -122,7 +122,7 @@ public:
 
   ///
   /// Helper function to copy source string to destination string
-  void CopySrcStringToDestArray(const std::string& srcString, vtkUnsignedCharArray* destString);
+  void CopySrcArrayToDestArray(vtkUnsignedCharArray* srcString, vtkUnsignedCharArray* destString);
 
   ///
   /// Get the name of the CompressionCodec
@@ -134,11 +134,11 @@ public:
 
   ///
   /// Get the class name of the CompressionCodec
-  std::string GetCompressionCodecClassName();
+  std::string GetCodecDeviceType();
 
   ///
   /// Set the class name of the CompressionCodec
-  int SetCompressionCodecClassName(std::string name);
+  int SetCodecDeviceType(std::string name);
 
 protected:
   vtkMRMLStreamingVolumeNode();
@@ -160,7 +160,7 @@ protected:
 
   vtkStreamingVolumeCodec* CompressionCodec;
 
-  std::string CompressionCodecClassName;
+  std::string CodecDeviceType;
 
   std::string CodecName;
 };
