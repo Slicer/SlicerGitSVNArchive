@@ -24,7 +24,7 @@
 // MRMLLogic includes
 #include "vtkMRMLAbstractLogic.h"
 
-#include "vtkMRMLLogicWin32Header.h"
+#include "vtkMRMLLogicExport.h"
 
 class vtkMRMLColorLogic;
 class vtkMRMLModelDisplayNode;
@@ -49,7 +49,7 @@ class VTK_MRML_LOGIC_EXPORT vtkMRMLApplicationLogic
 public:
 
   static vtkMRMLApplicationLogic *New();
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
   vtkTypeMacro(vtkMRMLApplicationLogic, vtkMRMLAbstractLogic);
 
   /// Get current Selection node
@@ -128,6 +128,9 @@ public:
   /// Propagate selected table in the SelectionNode to table view nodes.
   void PropagateTableSelection();
 
+  /// Propagate selected PlotChart in the SelectionNode to Plot view nodes.
+  void PropagatePlotChartSelection();
+
   /// zip the directory into a zip file
   /// Returns success or failure.
   bool Zip(const char *zipFileName, const char *directoryToZip);
@@ -205,7 +208,7 @@ protected:
   vtkMRMLApplicationLogic();
   virtual ~vtkMRMLApplicationLogic();
 
-  virtual void SetMRMLSceneInternal(vtkMRMLScene *newScene);
+  virtual void SetMRMLSceneInternal(vtkMRMLScene *newScene) VTK_OVERRIDE;
 
   void SetSelectionNode(vtkMRMLSelectionNode* );
   void SetInteractionNode(vtkMRMLInteractionNode* );

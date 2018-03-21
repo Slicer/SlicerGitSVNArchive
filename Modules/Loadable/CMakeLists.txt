@@ -1,5 +1,5 @@
 
-include(${Slicer_CMAKE_DIR}/SlicerMacroBuildQtModule.cmake)
+include(${Slicer_CMAKE_DIR}/SlicerMacroBuildLoadableModule.cmake)
 
 set(qtmodules
   AtlasCreator
@@ -15,6 +15,7 @@ set(qtmodules
   DoubleArrays
   #Measurements
   Models
+  Plots
   SceneViews
   Segmentations
   SlicerWelcome
@@ -31,10 +32,24 @@ if(Slicer_BUILD_CLI_SUPPORT)
 endif()
 
 foreach(module ${qtmodules})
-  list(FIND Slicer_QTLOADABLEMODULES_DISABLED ${module} _module_disabled)
-  if(${_module_disabled} STREQUAL "-1")
+  set(_build_module 1)
+  # Is module expicitly disabled ?
+  if(Slicer_QTLOADABLEMODULES_DISABLED)
+    list(FIND Slicer_QTLOADABLEMODULES_DISABLED ${module} _module_disabled)
+    if(${_module_disabled} GREATER -1)
+      set(_build_module 0)
+    endif()
+  endif()
+  # Is module explicitly enabled ?
+  if(Slicer_QTLOADABLEMODULES_ENABLED)
+    list(FIND Slicer_QTLOADABLEMODULES_ENABLED ${module} _module_enabled)
+    if(NOT ${_module_enabled} GREATER -1)
+      set(_build_module 0)
+    endif()
+  endif()
+  if(_build_module)
     add_subdirectory(${module})
   endif()
-endforeach(module)
+endforeach()
 
 # External modules have been moved to Modules/Remote/CMakeLists.txt

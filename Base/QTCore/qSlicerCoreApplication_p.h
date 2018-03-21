@@ -80,9 +80,6 @@ public:
   /// Given the program name, should return Slicer Home Directory
   QString discoverSlicerHomeDirectory();
 
-  /// Set environment variable
-  void setEnvironmentVariable(const QString& key, const QString& value);
-
 #ifdef Slicer_USE_PYTHONQT
   void setPythonOsEnviron(const QString& key, const QString& value);
 #endif
@@ -100,18 +97,21 @@ public:
   /// \sa QCoreApplication::applicationDirPath
   QString discoverSlicerBinDirectory();
 
-  /// Set 'ITKFactoriesDir' variable using 'ITK_AUTOLOAD_PATH' environment variable
-  QString discoverITKFactoriesDirectory();
-
-  /// Set PYTHONHOME and PYTHONPATH environment variables is not already set.
-  void setPythonEnvironmentVariables();
-
-  /// Set TCL_LIBRARY, TK_LIBRARY and TCLLIBPATH environment variable is not already set.
-  void setTclEnvironmentVariables();
-
 #ifdef Slicer_BUILD_EXTENSIONMANAGER_SUPPORT
   QString defaultExtensionsInstallPathForMacOSX()const;
 #endif
+
+  /// \brief Return true if application was started using CTKAppLauncher
+  ///
+  /// Value is currently hardcoded:
+  ///
+  ///         | Build tree | Install tree
+  /// --------| -----------|---------------
+  /// Linux   |  true      |  true
+  /// MacOSX  |  true      |  false
+  /// Windows |  true      |  true
+  ///
+  bool isUsingLauncher()const;
 
   /// Convenient function used to create a \a path.
   /// If it fails, print an error message using given \a description
@@ -130,7 +130,6 @@ public:
   vtkSmartPointer<vtkDataIOManagerLogic>      DataIOManagerLogic;
 
   QString                                     SlicerHome;
-  QString                                     ITKFactoriesDir;
   /// On windows platform, after the method 'discoverSlicerBinDirectory' has been called,
   /// IntDir should be set to either Debug,
   /// Release, RelWithDebInfo, MinSizeRel or any other custom build type.
@@ -163,10 +162,6 @@ public:
 #endif
 
   QProcessEnvironment                         Environment;
-
-#if defined(Slicer_USE_PYTHONQT) && defined(Q_WS_WIN)
-  QHash<QString, QString>                     EnvironmentVariablesCache;
-#endif
 
 #ifdef Slicer_BUILD_DICOM_SUPPORT
   /// Application-wide database instance

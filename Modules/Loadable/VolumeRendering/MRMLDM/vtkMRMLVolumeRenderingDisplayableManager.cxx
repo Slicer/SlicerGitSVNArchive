@@ -63,10 +63,6 @@
 #include "vtkVolumeProperty.h"
 #include <vtkVersion.h>
 
-// ITKSys includes
-//#include <itksys/SystemTools.hxx>
-//#include <itksys/Directory.hxx>
-
 // STD includes
 #include <cassert>
 #include <cmath>
@@ -751,6 +747,14 @@ void vtkMRMLVolumeRenderingDisplayableManager::OnVolumeRenderingDisplayNodeModif
       }
     return;
     }
+
+  if (dnode != this->DisplayedNode && !dnode->GetVisibility())
+    {
+    // one of the hidden (not active) volumes are modified
+    // we do not need to do anything
+    return;
+    }
+
   bool wasVolumeVisible = this->IsVolumeInView();
 
   this->UpdatePipelineFromDisplayNode(dnode);
@@ -1061,21 +1065,47 @@ bool vtkMRMLVolumeRenderingDisplayableManager::AddVolumeToView()
 //  vtkMRMLVolumeRenderingDisplayNode* vspNode = this->GetDisplayNode();
 
   // Only support 1 volume per view, remove any existing volume
+  bool needToAddVolume = true;
+  vtkNew<vtkVolumeCollection> volumesToRemoveFromRenderer;
+
+  vtkVolume *v = NULL;
+  vtkCollectionSimpleIterator it;
+
+  // Get list of volumes to remove from the renderer
+  // (make a copy of the collection as the renderer's collection
+  // will be modified and that could invalidate the iterator)
   vtkVolumeCollection *vols = this->GetRenderer()->GetVolumes();
-  vols->InitTraversal();
-  vtkVolume* firstVolume = vols ? vols->GetNextVolume() : 0;
-  if (firstVolume && firstVolume != this->GetVolumeActor())
+  if (vols)
     {
-    this->RemoveVolumeFromView(firstVolume);
+    for (vols->InitTraversal(it);
+      (v = vols->GetNextVolume(it));)
+      {
+      if (v == this->GetVolumeActor())
+        {
+        needToAddVolume = false;
+        }
+      else
+        {
+        volumesToRemoveFromRenderer->AddItem(v);
+        }
+      }
+    }
+
+  // remove other volume actors
+  for (volumesToRemoveFromRenderer->InitTraversal(it);
+    (v = volumesToRemoveFromRenderer->GetNextVolume(it));)
+    {
+    this->RemoveVolumeFromView(v);
     modified = true;
     }
 
-  if (vols != NULL && this->GetVolumeActor() &&
-     !vols->IsItemPresent(this->GetVolumeActor()) )
+  // add the current volume actor
+  if (needToAddVolume)
     {
-    this->GetRenderer()->AddVolume(this->GetVolumeActor() );
+    this->GetRenderer()->AddVolume(this->GetVolumeActor());
     modified = true;
     }
+
   return modified;
 }
 

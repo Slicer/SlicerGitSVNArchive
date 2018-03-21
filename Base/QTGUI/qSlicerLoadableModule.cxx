@@ -69,8 +69,15 @@ bool qSlicerLoadableModule::importModulePythonExtensions(
     {
     return false;
     }
+
+  QString pythonModuleDir = QFileInfo(modulePath).absoluteFilePath();
+  if (!QFileInfo(pythonModuleDir).isDir())
+    {
+    pythonModuleDir = QFileInfo(pythonModuleDir).absolutePath();
+    }
+
   // Update current application directory, so that *PythonD modules can be loaded
-  ctkScopedCurrentDir scopedCurrentDir(QFileInfo(modulePath).absolutePath());
+  ctkScopedCurrentDir scopedCurrentDir(pythonModuleDir);
 
   if (!isEmbedded)
     {
@@ -150,7 +157,7 @@ void qSlicerLoadableModule::setup()
 {
 #ifndef QT_NO_DEBUG
   Q_D(qSlicerLoadableModule);
-  Q_ASSERT(d != 0);
+  // Q_ASSERT(d != 0);
 #endif
 
 #ifdef Slicer_USE_PYTHONQT

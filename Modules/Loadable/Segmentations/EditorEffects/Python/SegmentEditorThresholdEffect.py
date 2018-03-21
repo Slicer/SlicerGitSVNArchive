@@ -109,7 +109,7 @@ class SegmentEditorThresholdEffect(AbstractScriptedSegmentEditorEffect):
     masterImageData = self.scriptedEffect.masterVolumeImageData()
     if masterImageData:
       lo, hi = masterImageData.GetScalarRange()
-      self.thresholdSlider.minimum, self.thresholdSlider.maximum = lo, hi
+      self.thresholdSlider.setRange(lo, hi)
       self.thresholdSlider.singleStep = (hi - lo) / 1000.
       if (self.scriptedEffect.doubleParameter("MinimumThreshold") == self.scriptedEffect.doubleParameter("MaximumThreshold")):
         # has not been initialized yet
@@ -202,6 +202,8 @@ class SegmentEditorThresholdEffect(AbstractScriptedSegmentEditorEffect):
     # Add a pipeline for each 2D slice view
     for sliceViewName in layoutManager.sliceViewNames():
       sliceWidget = layoutManager.sliceWidget(sliceViewName)
+      if not self.scriptedEffect.segmentationDisplayableInView(sliceWidget.mrmlSliceNode()):
+        continue
       renderer = self.scriptedEffect.renderer(sliceWidget)
       if renderer is None:
         logging.error("setupPreviewDisplay: Failed to get renderer!")

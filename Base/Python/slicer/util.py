@@ -49,6 +49,24 @@ def sourceDir():
   """
   return _readCMakeCache('Slicer_SOURCE_DIR')
 
+def startupEnvironment():
+  """Returns the environment without the Slicer specific values.
+
+  Path environment variables like `PATH`, `LD_LIBRARY_PATH` or `PYTHONPATH`
+  will not contain values found in the launcher settings.
+
+  Similarly `key=value` environment variables also found in the launcher
+  settings are excluded. Note that if a value was associated with a key prior
+  starting Slicer, it will not be set in the environment returned by this
+  function.
+
+  The function excludes both the Slicer launcher settings and the revision
+  specific launcher settings.
+  """
+  import slicer
+  startupEnv = slicer.app.startupEnvironment()
+  return {varname: startupEnv.value(varname) for varname in startupEnv.keys()}
+
 #
 # Custom Import
 #
@@ -144,15 +162,18 @@ def mainWindow(verbose = True):
   return lookupTopLevelWidget('qSlicerAppMainWindow', verbose)
 
 def pythonShell(verbose = True):
-  console = slicer.app.pythonConsole()
+  from slicer import app
+  console = app.pythonConsole()
   if not console and verbose:
     print("Failed to obtain reference to python shell", file=sys.stderr)
   return console
 
 def showStatusMessage(message, duration = 0):
   mw = mainWindow(verbose=False)
-  if mw:
-    mw.statusBar().showMessage(message, duration)
+  if not mw or not mw.statusBar:
+    return False
+  mw.statusBar().showMessage(message, duration)
+  return True
 
 def findChildren(widget=None, name="", text="", title="", className=""):
   """ Return a list of child widgets that meet all the given criteria.
@@ -257,13 +278,13 @@ def setSliceViewerLayers(background='keep-current', foreground='keep-current', l
   num = slicer.mrmlScene.GetNumberOfNodesByClass('vtkMRMLSliceCompositeNode')
   for i in range(num):
       sliceViewer = slicer.mrmlScene.GetNthNodeByClass(i, 'vtkMRMLSliceCompositeNode')
-      if background is not 'keep-current':
+      if background != 'keep-current':
           sliceViewer.SetBackgroundVolumeID(_nodeID(background))
-      if foreground is not 'keep-current':
+      if foreground != 'keep-current':
           sliceViewer.SetForegroundVolumeID(_nodeID(foreground))
       if foregroundOpacity is not None:
           sliceViewer.SetForegroundOpacity(foregroundOpacity)
-      if label is not 'keep-current':
+      if label != 'keep-current':
           sliceViewer.SetLabelVolumeID(_nodeID(label))
       if labelOpacity is not None:
           sliceViewer.SetLabelOpacity(labelOpacity)
@@ -342,6 +363,16 @@ def loadLabelVolume(filename, properties={}, returnNode=False):
   return loadNodeFromFile(filename, filetype, properties, returnNode)
 
 def loadVolume(filename, properties={}, returnNode=False):
+  """Properties:
+  - name: this name will be used as node name for the loaded volume
+  - labelmap: interpret volume as labelmap
+  - singleFile: ignore all other files in the directory
+  - center: ignore image position
+  - discardOrientation: ignore image axis directions
+  - autoWindowLevel: compute window/level automatically
+  - show: display volume in slice viewers after loading is completed
+  - fileNames: list of filenames to load the volume from
+  """
   filetype = 'VolumeFile'
   return loadNodeFromFile(filename, filetype, properties, returnNode)
 
@@ -529,8 +560,7 @@ def reloadScriptedModule(moduleName):
   # delete the old widget instance
   if hasattr(slicer.modules, widgetName):
     w = getattr(slicer.modules, widgetName)
-    if hasattr(w, 'cleanup'):
-      w.cleanup()
+    w.cleanup()
 
   # create new widget inside existing parent
   widget = eval('reloaded_module.%s(parent)' % widgetName)
@@ -558,6 +588,11 @@ def resetSliceViews():
 #
 # MRML
 #
+
+class MRMLNodeNotFoundException(Exception):
+  """Exception raised when a requested MRML node was not found.
+  """
+  pass
 
 def getNodes(pattern="*", scene=None, useLists=False):
   """Return a dictionary of nodes where the name or id matches the ``pattern``.
@@ -588,12 +623,13 @@ def getNode(pattern="*", index=0, scene=None):
   """Return the indexth node where name or id matches ``pattern``.
   By default, ``pattern`` is a wildcard and it returns the first node
   associated with ``slicer.mrmlScene``.
+  Throws MRMLNodeNotFoundException exception if no node is found
+  that matches the specified pattern.
   """
   nodes = getNodes(pattern, scene)
-  try:
-    return nodes.values()[index]
-  except IndexError:
-    return None
+  if not nodes:
+    raise MRMLNodeNotFoundException("could not find nodes in the scene by name or id '%s'" % (pattern if (type(pattern) == str) else ""))
+  return nodes.values()[index]
 
 def getNodesByClass(className, scene=None):
   """Return all nodes in the scene of the specified class.
@@ -612,25 +648,20 @@ def getNodesByClass(className, scene=None):
   return nodeList
 
 def getFirstNodeByClassByName(className, name, scene=None):
-  """Return the frist node in the scene that matches the specified node name and node class.
+  """Return the first node in the scene that matches the specified node name and node class.
   """
   import slicer
   if scene is None:
     scene = slicer.mrmlScene
-  nodes = scene.GetNodesByClassByName(className, name)
-  nodes.UnRegister(nodes)
-  if nodes.GetNumberOfItems() > 0:
-    return nodes.GetItemAsObject(0)
-  return None
+  return scene.GetFirstNode(name, className)
 
 def getFirstNodeByName(name, className=None):
-  """get the first MRML node that has the given name
-  - use a regular expression to match names post-pended with addition characters
-  - optionally specify a classname that must match
+  """Get the first MRML node that name starts with the specified name.
+  Optionally specify a classname that must also match.
   """
   import slicer
   scene = slicer.mrmlScene
-  return scene.GetFirstNode(name, className, None, False)
+  return scene.GetFirstNode(name, className, False, False)
 
 class NodeModify:
   """Context manager to conveniently compress mrml node modified event.
@@ -651,41 +682,176 @@ def array(pattern = "", index = 0):
   """Return the array you are "most likely to want" from the indexth
   MRML node that matches the pattern.  Meant to be used in the python
   console for quick debugging/testing.  More specific API should be
-  used in scripts to be sure you get exactly what you want.
+  used in scripts to be sure you get exactly what you want, such as
+  arrayFromVolume, arrayFromModelPoints, and arrayFromGridTransform.
   """
-  scalarTypes = ('vtkMRMLScalarVolumeNode', 'vtkMRMLLabelMapVolumeNode')
-  vectorTypes = ('vtkMRMLVectorVolumeNode', 'vtkMRMLMultiVolumeNode')
-  tensorTypes = ('vtkMRMLDiffusionTensorVolumeNode',)
-  pointTypes = ('vtkMRMLModelNode',)
-  import vtk.util.numpy_support
-  n = getNode(pattern=pattern, index=index)
-  if n.GetClassName() in scalarTypes:
-    i = n.GetImageData()
-    shape = list(n.GetImageData().GetDimensions())
-    shape.reverse()
-    a = vtk.util.numpy_support.vtk_to_numpy(i.GetPointData().GetScalars()).reshape(shape)
-    return a
-  elif n.GetClassName() in vectorTypes:
-    i = n.GetImageData()
-    shape = list(n.GetImageData().GetDimensions())
-    shape.reverse()
-    components = i.GetNumberOfScalarComponents()
-    if components > 1:
-      shape.append(components)
-    a = vtk.util.numpy_support.vtk_to_numpy(i.GetPointData().GetScalars()).reshape(shape)
-    return a
-  elif n.GetClassName() in tensorTypes:
-    i = n.GetImageData()
-    shape = list(n.GetImageData().GetDimensions())
-    shape.reverse()
-    a = vtk.util.numpy_support.vtk_to_numpy(i.GetPointData().GetTensors()).reshape(shape+[3,3])
-    return a
-  elif n.GetClassName() in pointTypes:
-    p = n.GetPolyData().GetPoints().GetData()
-    a = vtk.util.numpy_support.vtk_to_numpy(p)
-    return a
-  # TODO: accessors for other node types: polydata (verts, polys...), colors
+  node = getNode(pattern=pattern, index=index)
+  import slicer
+  if isinstance(node, slicer.vtkMRMLVolumeNode):
+    return arrayFromVolume(node)
+  elif isinstance(node, slicer.vtkMRMLModelNode):
+    return arrayFromModelPoints(node)
+  elif isinstance(node, slicer.vtkMRMLGridTransformNode):
+    return arrayFromGridTransform(node)
 
+  # TODO: accessors for other node types: polydata (verts, polys...), colors
+  return None
+
+def arrayFromVolume(volumeNode):
+  """Return voxel array from volume node as numpy array.
+  Voxels values are not copied. Voxel values in the volume node can be modified
+  by changing values in the numpy array.
+  After all modifications has been completed, call volumeNode.Modified().
+
+  .. warning:: Memory area of the returned array is managed by VTK, therefore
+    values in the array may be changed, but the array must not be reallocated
+    (change array size, shallow-copy content from other array most likely causes
+    application crash). To allow arbitrary numpy operations on a volume array:
+
+      1. Make a deep-copy of the returned VTK-managed array using :func:`numpy.copy`.
+      2. Perform any computations using the copied array.
+      3. Write results back to the image data using :py:meth:`updateVolumeFromArray`.
+  """
+  scalarTypes = ['vtkMRMLScalarVolumeNode', 'vtkMRMLLabelMapVolumeNode']
+  vectorTypes = ['vtkMRMLVectorVolumeNode', 'vtkMRMLMultiVolumeNode']
+  tensorTypes = ['vtkMRMLDiffusionTensorVolumeNode']
+  vimage = volumeNode.GetImageData()
+  nshape = tuple(reversed(volumeNode.GetImageData().GetDimensions()))
+  import vtk.util.numpy_support
+  narray = None
+  if volumeNode.GetClassName() in scalarTypes:
+    narray = vtk.util.numpy_support.vtk_to_numpy(vimage.GetPointData().GetScalars()).reshape(nshape)
+  elif volumeNode.GetClassName() in vectorTypes:
+    components = vimage.GetNumberOfScalarComponents()
+    if components > 1:
+      nshape = nshape + (components,)
+    narray = vtk.util.numpy_support.vtk_to_numpy(vimage.GetPointData().GetScalars()).reshape(nshape)
+  elif volumeNode.GetClassName() in tensorTypes:
+    narray = vtk.util.numpy_support.vtk_to_numpy(vimage.GetPointData().GetTensors()).reshape(nshape+(3,3))
+  else:
+    raise RuntimeError("Unsupported volume type: "+volumeNode.GetClassName())
+  return narray
+
+def arrayFromModelPoints(modelNode):
+  """Return point positions of a model node as numpy array.
+  Voxels values in the volume node can be modified by modfying the numpy array.
+  After all modifications has been completed, call modelNode.Modified().
+
+  .. warning:: Important: memory area of the returned array is managed by VTK,
+    therefore values in the array may be changed, but the array must not be reallocated.
+    See :py:meth:`arrayFromVolume` for details.
+  """
+  import vtk.util.numpy_support
+  pointData = modelNode.GetPolyData().GetPoints().GetData()
+  narray = vtk.util.numpy_support.vtk_to_numpy(pointData)
+  return narray
+
+def arrayFromGridTransform(gridTransformNode):
+  """Return voxel array from transform node as numpy array.
+  Vector values are not copied. Values in the transform node can be modified
+  by changing values in the numpy array.
+  After all modifications has been completed, call gridTransformNode.Modified().
+
+  .. warning:: Important: memory area of the returned array is managed by VTK,
+    therefore values in the array may be changed, but the array must not be reallocated.
+    See :py:meth:`arrayFromVolume` for details.
+  """
+  transformGrid = gridTransformNode.GetTransformFromParent()
+  displacementGrid = transformGrid.GetDisplacementGrid()
+  nshape = tuple(reversed(displacementGrid.GetDimensions()))
+  import vtk.util.numpy_support
+  nshape = nshape + (3,)
+  narray = vtk.util.numpy_support.vtk_to_numpy(displacementGrid.GetPointData().GetScalars()).reshape(nshape)
+  return narray
+
+def arrayFromSegment(segmentationNode, segmentId):
+  """Return voxel array of a segment's binary labelmap representation as numpy array.
+  Voxels values are not copied.
+  If binary labelmap is the master representation then voxel values in the volume node can be modified
+  by changing values in the numpy array. After all modifications has been completed, call:
+  segmentationNode.GetSegmentation().GetSegment(segmentID).Modified()
+
+  .. warning:: Important: memory area of the returned array is managed by VTK,
+    therefore values in the array may be changed, but the array must not be reallocated.
+    See :py:meth:`arrayFromVolume` for details.
+  """
+  vimage = segmentationNode.GetBinaryLabelmapRepresentation(segmentId)
+  nshape = tuple(reversed(vimage.GetDimensions()))
+  import vtk.util.numpy_support
+  narray = vtk.util.numpy_support.vtk_to_numpy(vimage.GetPointData().GetScalars()).reshape(nshape)
+  return narray
+
+def updateVolumeFromArray(volumeNode, narray):
+  """Sets voxels of a volume node from a numpy array.
+  Voxels values are deep-copied, therefore if the numpy array
+  is modified after calling this method, voxel values in the volume node will not change.
+  Dimensions and data size of the source numpy array does not have to match the current
+  content of the volume node.
+  """
+
+  vshape = tuple(reversed(narray.shape))
+  if len(vshape) == 3:
+    # Scalar volume
+    vcomponents = 1
+  elif len(vshape) == 4:
+    # Vector volume
+    vcomponents = vshape[0]
+    vshape = vshape[1:4]
+  else:
+    # TODO: add support for tensor volumes
+    raise RuntimeError("Unsupported numpy array shape: "+str(narray.shape))
+
+  vimage = volumeNode.GetImageData()
+  if not vimage:
+    import vtk
+    vimage = vtk.vtkImageData()
+    volumeNode.SetAndObserveImageData(vimage)
+  import vtk.util.numpy_support
+  vtype = vtk.util.numpy_support.get_vtk_array_type(narray.dtype)
+  vimage.SetDimensions(vshape)
+  vimage.AllocateScalars(vtype, vcomponents)
+
+  narrayTarget = arrayFromVolume(volumeNode)
+  narrayTarget[:] = narray
+
+  # Notify the application that image data is changed
+  # (same notifications as in vtkMRMLVolumeNode.SetImageDataConnection)
+  import slicer
+  volumeNode.StorableModified()
+  volumeNode.Modified()
+  volumeNode.InvokeEvent(slicer.vtkMRMLVolumeNode.ImageDataModifiedEvent, volumeNode)
+
+def updateTableFromArray(tableNode, narrays):
+  """Sets values in a table node from a numpy array.
+  Values are copied, therefore if the numpy array
+  is modified after calling this method, values in the table node will not change.
+
+  Example:
+
+      import numpy as np
+      histogram = np.histogram(arrayFromVolume(getNode('MRHead')))
+      tableNode = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLTableNode")
+      updateTableFromArray(tableNode, histogram)
+
+  """
+  import numpy as np
+  import vtk.util.numpy_support
+
+  if tableNode is None:
+    tableNode = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLTableNode")
+  if type(narrays) == np.ndarray and len(narrays.shape) == 1:
+    ncolumns = [narrays]
+  elif type(narrays) == np.ndarray and len(narrays.shape) == 2:
+    ncolumns = narrays.T
+  elif type(narrays) == tuple or type(narrays) == list:
+    ncolumns = narrays
+  else:
+    raise ValueError('Expected narrays is a numpy ndarray, or tuple or list of numpy ndarrays, got %s instead.' % (str(type(narrays))))
+  tableNode.RemoveAllColumns()
+  for ncolumn in ncolumns:
+    vcolumn = vtk.util.numpy_support.numpy_to_vtk(num_array=ncolumn.ravel(),deep=True,array_type=vtk.VTK_FLOAT)
+    tableNode.AddColumn(vcolumn)
+  return tableNode
 
 #
 # VTK
@@ -791,66 +957,83 @@ def delayDisplay(message,autoCloseMsec=1000):
     okButton.connect('clicked()', messagePopup.close)
   messagePopup.exec_()
 
-def infoDisplay(text, windowTitle="Slicer information", parent=None, standardButtons=None, **kwargs):
+def infoDisplay(text, windowTitle=None, parent=None, standardButtons=None, **kwargs):
   """Display popup with a info message.
   """
-  import qt
+  import qt, slicer
   import logging
+  if not windowTitle:
+    windowTitle = slicer.app.applicationName + " information"
   logging.info(text)
   if mainWindow(verbose=False):
     standardButtons = standardButtons if standardButtons else qt.QMessageBox.Ok
     messageBox(text, parent, windowTitle=windowTitle, icon=qt.QMessageBox.Information, standardButtons=standardButtons,
                **kwargs)
 
-def warningDisplay(text, windowTitle="Slicer warning", parent=None, standardButtons=None, **kwargs):
+def warningDisplay(text, windowTitle=None, parent=None, standardButtons=None, **kwargs):
   """Display popup with a warning message.
   """
-  import qt
+  import qt, slicer
   import logging
+  if not windowTitle:
+    windowTitle = slicer.app.applicationName + " warning"
   logging.warning(text)
   if mainWindow(verbose=False):
     standardButtons = standardButtons if standardButtons else qt.QMessageBox.Ok
     messageBox(text, parent, windowTitle=windowTitle, icon=qt.QMessageBox.Warning, standardButtons=standardButtons,
                **kwargs)
 
-def errorDisplay(text, windowTitle="Slicer error", parent=None, standardButtons=None, **kwargs):
+def errorDisplay(text, windowTitle=None, parent=None, standardButtons=None, **kwargs):
   """Display an error popup.
   """
-  import qt
+  import qt, slicer
   import logging
+  if not windowTitle:
+    windowTitle = slicer.app.applicationName + " error"
   logging.error(text)
   if mainWindow(verbose=False):
     standardButtons = standardButtons if standardButtons else qt.QMessageBox.Ok
     messageBox(text, parent, windowTitle=windowTitle, icon=qt.QMessageBox.Critical, standardButtons=standardButtons,
                **kwargs)
 
-def confirmOkCancelDisplay(text, windowTitle="Slicer confirmation", parent=None, **kwargs):
+def confirmOkCancelDisplay(text, windowTitle=None, parent=None, **kwargs):
   """Display an confirmation popup. Return if confirmed with OK.
   """
-  import qt
+  import qt, slicer
+  if not windowTitle:
+    windowTitle = slicer.app.applicationName + " confirmation"
   result = messageBox(text, parent=parent, windowTitle=windowTitle, icon=qt.QMessageBox.Question,
                        standardButtons=qt.QMessageBox.Ok | qt.QMessageBox.Cancel, **kwargs)
   return result == qt.QMessageBox.Ok
 
-def confirmYesNoDisplay(text, windowTitle="Slicer confirmation", parent=None, **kwargs):
+def confirmYesNoDisplay(text, windowTitle=None, parent=None, **kwargs):
   """Display an confirmation popup. Return if confirmed with Yes.
   """
-  import qt
+  import qt, slicer
+  if not windowTitle:
+    windowTitle = slicer.app.applicationName + " confirmation"
   result = messageBox(text, parent=parent, windowTitle=windowTitle, icon=qt.QMessageBox.Question,
                        standardButtons=qt.QMessageBox.Yes | qt.QMessageBox.No, **kwargs)
   return result == qt.QMessageBox.Yes
 
-def confirmRetryCloseDisplay(text, windowTitle="Slicer error", parent=None, **kwargs):
+def confirmRetryCloseDisplay(text, windowTitle=None, parent=None, **kwargs):
   """Display an confirmation popup. Return if confirmed with Retry.
   """
-  import qt
+  import qt, slicer
+  if not windowTitle:
+    windowTitle = slicer.app.applicationName + " error"
   result = messageBox(text, parent=parent, windowTitle=windowTitle, icon=qt.QMessageBox.Critical,
                        standardButtons=qt.QMessageBox.Retry | qt.QMessageBox.Close, **kwargs)
   return result == qt.QMessageBox.Retry
 
 def messageBox(text, parent=None, **kwargs):
+  """Displays a messagebox.
+  ctkMessageBox is used instead of a default qMessageBox to provide "Don't show again" checkbox.
+  For example: slicer.util.messageBox("Some message", dontShowAgainSettingsKey = "MainWindow/DontShowSomeMessage")
+  """
   import qt
-  mbox = qt.QMessageBox(parent if parent else mainWindow())
+  import ctk
+  mbox = ctk.ctkMessageBox(parent if parent else mainWindow())
   mbox.text = text
   for key, value in kwargs.iteritems():
     if hasattr(mbox, key):
@@ -963,3 +1146,106 @@ interactor.AddObserver(vtk.vtkCommand.LeftButtonPressEvent, onClick)
   up()
   interactor.SetShiftKey(0)
   interactor.SetControlKey(0)
+
+def downloadFile(url, targetFilePath):
+  """ Download ``url`` to local storage as ``targetFilePath``
+
+  Target file path needs to indicate the file name and extension as well
+  """
+  import os
+  import logging
+  if not os.path.exists(targetFilePath) or os.stat(targetFilePath).st_size == 0:
+    logging.info('Downloading from\n  %s\nas file\n  %s\nIt may take a few minutes...' % (url,targetFilePath))
+    try:
+      import urllib
+      urllib.urlretrieve(url, targetFilePath)
+    except Exception, e:
+      import traceback
+      traceback.print_exc()
+      logging.error('Failed to download file from ' + url)
+      return False
+  else:
+    logging.info('Requested file has been found: ' + targetFilePath)
+  return True
+
+def extractArchive(archiveFilePath, outputDir, expectedNumberOfExtractedFiles=None):
+  """ Extract file ``archiveFilePath`` into folder ``outputDir``.
+
+  Number of expected files unzipped may be specified in ``expectedNumberOfExtractedFiles``.
+  If folder contains the same number of files as expected (if specified), then it will be
+  assumed that unzipping has been successfully done earlier.
+  """
+  import os
+  import logging
+  from slicer import app
+  if not os.path.exists(archiveFilePath):
+    logging.error('Specified file %s does not exist' % (archiveFilePath))
+    return False
+  fileName, fileExtension = os.path.splitext(archiveFilePath)
+  if fileExtension.lower() != '.zip':
+    #TODO: Support other archive types
+    logging.error('Only zip archives are supported now, got ' + fileExtension)
+    return False
+
+  numOfFilesInOutputDir = len(getFilesInDirectory(outputDir, False))
+  if expectedNumberOfExtractedFiles is not None \
+      and numOfFilesInOutputDir == expectedNumberOfExtractedFiles:
+    logging.info('File %s already unzipped into %s' % (archiveFilePath, outputDir))
+    return True
+
+  extractSuccessful = app.applicationLogic().Unzip(archiveFilePath, outputDir)
+  numOfFilesInOutputDirTest = len(getFilesInDirectory(outputDir, False))
+  if extractSuccessful is False or (expectedNumberOfExtractedFiles is not None \
+      and numOfFilesInOutputDirTest != expectedNumberOfExtractedFiles):
+    logging.error('Unzipping %s into %s failed' % (archiveFilePath, outputDir))
+    return False
+  logging.info('Unzipping %s into %s successful' % (archiveFilePath, outputDir))
+  return True
+
+def downloadAndExtractArchive(url, archiveFilePath, outputDir, \
+                              expectedNumberOfExtractedFiles=None, numberOfTrials=3):
+  """ Downloads an archive from ``url`` as ``archiveFilePath``, and extracts it to ``outputDir``.
+
+  This combined function tests the success of the download by the extraction step,
+  and re-downloads if extraction failed.
+  """
+  import os
+  import shutil
+  import logging
+
+  maxNumberOfTrials = numberOfTrials
+
+  def _cleanup():
+    # If there was a failure, delete downloaded file and empty output folder
+    logging.warning('Download and extract failed, removing archive and destination folder and retrying. Attempt #%d...' % (maxNumberOfTrials - numberOfTrials))
+    os.remove(archiveFilePath)
+    shutil.rmtree(outputDir)
+    os.mkdir(outputDir)
+
+  while numberOfTrials:
+    if not downloadFile(url, archiveFilePath):
+      numberOfTrials -= 1
+      _cleanup()
+      continue
+    if not extractArchive(archiveFilePath, outputDir, expectedNumberOfExtractedFiles):
+      numberOfTrials -= 1
+      _cleanup()
+      continue
+    return True
+
+  _cleanup()
+  return False
+
+def getFilesInDirectory(directory, absolutePath=True):
+  """ Collect all files in a directory and its subdirectories in a list
+  """
+  import os
+  allFiles=[]
+  for root, subdirs, files in os.walk(directory):
+    for fileName in files:
+      if absolutePath:
+        fileAbsolutePath = os.path.abspath(os.path.join(root, fileName)).replace('\\','/')
+        allFiles.append(fileAbsolutePath)
+      else:
+        allFiles.append(fileName)
+  return allFiles

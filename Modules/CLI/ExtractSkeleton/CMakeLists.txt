@@ -24,7 +24,7 @@ include(${ITK_USE_FILE})
 # Disable MSVC 8 warnings
 if(WIN32)
   add_definitions(-D_CRT_SECURE_NO_DEPRECATE)
-endif(WIN32)
+endif()
 
 #-----------------------------------------------------------------------------
 SEMMacroBuildCLI(
@@ -39,6 +39,11 @@ SEMMacroBuildCLI(
     misc.h
     misc.cxx
   TARGET_LIBRARIES ${ITK_LIBRARIES}
+    MRMLCore
+    vtkSlicerMarkupsModuleMRML
+  INCLUDE_DIRECTORIES
+    ${MRMLCore_INCLUDE_DIRS}
+    ${vtkSlicerMarkupsModuleMRML_INCLUDE_DIRS}
   )
 
 #-----------------------------------------------------------------------------

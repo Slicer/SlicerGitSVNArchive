@@ -17,6 +17,7 @@
 
 // VTK includes
 #include <vtkDataArray.h>
+#include <vtkErrorCode.h>
 #include <vtkImageData.h>
 #include <vtkMath.h>
 #include <vtkMatrix4x4.h>
@@ -37,13 +38,17 @@
 #include <itkTimeProbe.h>
 
 // STD includes
+#include <algorithm>
 #include <vector>
 
 #include "itkArchetypeSeriesFileNames.h"
 #include "itkOrientImageFilter.h"
 #include "itkImageSeriesReader.h"
+#ifdef VTKITK_BUILD_DICOM_SUPPORT
+#include "itkDCMTKImageIO.h"
 #include "itkGDCMSeriesFileNames.h"
 #include "itkGDCMImageIO.h"
+#endif
 
 vtkStandardNewMacro(vtkITKArchetypeImageSeriesReader);
 
@@ -63,6 +68,11 @@ vtkITKArchetypeImageSeriesReader::vtkITKArchetypeImageSeriesReader()
   this->FileNameSliceSpacing = 1;
   this->FileNameSliceCount = 0;
   this->UseNativeOrigin = true;
+
+#ifdef VTKITK_BUILD_DICOM_SUPPORT
+  this->SetDICOMImageIOApproachToGDCM();
+#endif
+
   this->OutputScalarType = VTK_FLOAT;
   this->NumberOfComponents = 0;
   this->UseNativeScalarType = 0;
@@ -84,6 +94,7 @@ vtkITKArchetypeImageSeriesReader::vtkITKArchetypeImageSeriesReader()
 
   this->GroupingByTags = false;
   this->IsOnlyFile = false;
+  this->ArchetypeIsDICOM = false;
 
   this->SelectedUID = -1;
   this->SelectedContentTime = -1;
@@ -163,7 +174,11 @@ void vtkITKArchetypeImageSeriesReader::PrintSelf(ostream& os, vtkIndent indent)
     os << ", " << this->DefaultDataOrigin[idx];
     }
   os << ")\n";
-
+#ifdef VTKITK_BUILD_DICOM_SUPPORT
+  os << indent << "DICOMImageIOApproach: " << this->GetDICOMImageIOApproach();
+#else
+  os << indent << "DICOMImageIOApproach: " << "NA";
+#endif
 }
 
 //----------------------------------------------------------------------------
@@ -224,149 +239,184 @@ int vtkITKArchetypeImageSeriesReader::RequestInformation(
     if (!itksys::SystemTools::FileExists (fileNameCollapsed.c_str()))
       {
       vtkErrorMacro( "vtkITKArchetypeImageSeriesReader::ExecuteInformation: Archetype file " << fileNameCollapsed.c_str() << " does not exist.");
+      this->SetErrorCode(vtkErrorCode::FileNotFoundError);
       return 0;
       }
     }
 
   this->AllFileNames.resize( 0 );
 
-  // Some file types require special processing
-  itk::GDCMImageIO::Pointer dicomIO = itk::GDCMImageIO::New();
+#ifdef VTKITK_BUILD_DICOM_SUPPORT
+    itk::ImageIOBase::Pointer dicomIO;
+#endif
 
-  // Test whether the input file is a DICOM file
-  bool isDicomFile = dicomIO->CanReadFile(this->Archetype);
+  // the code in this try/catch block uses ITK dicom code to evaluate
+  // the files to see if they will be readable.  Some forms of dicom will
+  // trigger exceptions which ultimately mean that the file isn't
+  // going to be readable
+  try
+    {
 
-  // if user already set up FileNames, we do not try to find candidate files
-  if ( this->GetNumberOfFileNames() > 0 )
-  {
-    unsigned int nFiles = this->GetNumberOfFileNames();
-    this->AllFileNames.resize( 0 );
-    for (unsigned int k = 0; k < nFiles; k++)
-    {
-      this->AllFileNames.push_back( this->FileNames[k] );
-    }
-    this->FileNames.resize( 0 );
-
-    // if this is the only file set by user
-    if (nFiles == 1)
-    {
-      this->IsOnlyFile = true;
-    }
-
-    // if we need to analyze the header
-    if ( AnalyzeHeader )
-    {
-      this->AnalyzeDicomHeaders();
-    }
-  }
-  else
-  {
-    if ( isDicomFile && !this->GetSingleFile() )
-    {
-      typedef itk::GDCMSeriesFileNames DICOMNameGeneratorType;
-      DICOMNameGeneratorType::Pointer inputImageFileGenerator = DICOMNameGeneratorType::New();
-      std::string fileNamePath = itksys::SystemTools::GetFilenamePath( this->Archetype );
-      if (fileNamePath == "")
+    // Some file types require special processing
+#ifdef VTKITK_BUILD_DICOM_SUPPORT
+    if (this->GetDICOMImageIOApproach() == vtkITKArchetypeImageSeriesReader::DCMTK)
       {
-        fileNamePath = ".";
+      dicomIO = itk::DCMTKImageIO::New();
       }
-      inputImageFileGenerator->SetDirectory( fileNamePath );
-
-      // determine if the file is diffusion weighted MR file
-
-      // Find the series that contains the archetype
-      candidateSeries = inputImageFileGenerator->GetSeriesUIDs();
-
-      // Find all dicom files in the directory
-      for (unsigned int s = 0; s < candidateSeries.size(); s++)
+    else
       {
-        std::vector<std::string> seriesFileNames;
-        seriesFileNames = inputImageFileGenerator->GetFileNames( candidateSeries[s] );
-        for (unsigned int f = 0; f < seriesFileNames.size(); f++)
-        {
-          this->AllFileNames.push_back( seriesFileNames[f] );
-        }
+      dicomIO = itk::GDCMImageIO::New();
       }
-      //int nFiles = this->AllFileNames.size(); UNUSED
 
-      // analysis dicom files and fill the Dicom Tag arrays
+    // Test whether the input file is a DICOM file
+    this->ArchetypeIsDICOM = dicomIO->CanReadFile(this->Archetype);
+#endif
+
+    // if user already set up FileNames, we do not try to find candidate files
+    if ( this->GetNumberOfFileNames() > 0 )
+    {
+      unsigned int nFiles = this->GetNumberOfFileNames();
+      this->AllFileNames.resize( 0 );
+      for (unsigned int k = 0; k < nFiles; k++)
+      {
+        this->AllFileNames.push_back( this->FileNames[k] );
+      }
+      this->FileNames.resize( 0 );
+
+      // if this is the only file set by user
+      if (nFiles == 1)
+      {
+        this->IsOnlyFile = true;
+      }
+
+      // if we need to analyze the header
       if ( AnalyzeHeader )
       {
         this->AnalyzeDicomHeaders();
       }
-
-      // the following for loop set up candidate files with same series number
-      // that include the given Archetype;
-      int found = 0;
-      for (unsigned int s = 0; s < candidateSeries.size() && found == 0; s++)
+    }
+    else
+    {
+#ifdef VTKITK_BUILD_DICOM_SUPPORT
+      if ( this->ArchetypeIsDICOM && !this->GetSingleFile() )
       {
-        candidateFiles = inputImageFileGenerator->GetFileNames(candidateSeries[s]);
-        for (unsigned int f = 0; f < candidateFiles.size(); f++)
+        typedef itk::GDCMSeriesFileNames DICOMNameGeneratorType;
+        DICOMNameGeneratorType::Pointer inputImageFileGenerator = DICOMNameGeneratorType::New();
+        std::string fileNamePath = itksys::SystemTools::GetFilenamePath( this->Archetype );
+        if (fileNamePath == "")
         {
-          if (itksys::SystemTools::CollapseFullPath(candidateFiles[f].c_str()) ==
-            fileNameCollapsed)
+          fileNamePath = ".";
+        }
+        inputImageFileGenerator->SetDirectory( fileNamePath );
+
+        // determine if the file is diffusion weighted MR file
+
+        // Find the series that contains the archetype
+        candidateSeries = inputImageFileGenerator->GetSeriesUIDs();
+
+        // Find all dicom files in the directory
+        for (unsigned int s = 0; s < candidateSeries.size(); s++)
+        {
+          std::vector<std::string> seriesFileNames;
+          seriesFileNames = inputImageFileGenerator->GetFileNames( candidateSeries[s] );
+          for (unsigned int f = 0; f < seriesFileNames.size(); f++)
           {
-            found = 1;
-            break;
+            this->AllFileNames.push_back( seriesFileNames[f] );
           }
         }
-      }
+        //int nFiles = this->AllFileNames.size(); UNUSED
 
-      // do we have just one candidate file
-      if ( candidateFiles.size() == 1 )
-      {
-        this->IsOnlyFile = true;
-      }
-    }
-    else if( !this->GetSingleFile() )
-    { // not dicom
-      // check the dimensions of the archetype - if there
-      // is more then one slice, use only the archetype
-      // but if it is a single slice, try to generate a
-      // series of filenames
-      itk::ImageFileReader<ImageType>::Pointer imageReader =
-        itk::ImageFileReader<ImageType>::New();
-      imageReader->SetFileName(this->Archetype);
-      imageReader->UpdateOutputInformation();
-      region = imageReader->GetOutput()->GetLargestPossibleRegion();
-      if ( region.GetSize()[2] > 1 )
-      {
-        candidateFiles.push_back( this->Archetype );
-        this->AllFileNames.push_back( this->Archetype );
-        this->IsOnlyFile = true;
-      }
-      else
-      {
-        // Generate filenames from the Archetype
-        itk::ArchetypeSeriesFileNames::Pointer fit = itk::ArchetypeSeriesFileNames::New();
-        fit->SetArchetype (this->Archetype);
-        candidateFiles = fit->GetFileNames();
-        this->AllFileNames.resize( candidateFiles.size() );
-        for (int f = 0; f < (int)(candidateFiles.size()); f ++)
+        // analysis dicom files and fill the Dicom Tag arrays
+        if ( AnalyzeHeader )
         {
-          this->AllFileNames[f] = candidateFiles[f];
+          this->AnalyzeDicomHeaders();
         }
+
+        // the following for loop set up candidate files with same series number
+        // that include the given Archetype;
+        int found = 0;
+        for (unsigned int s = 0; s < candidateSeries.size() && found == 0; s++)
+        {
+          candidateFiles = inputImageFileGenerator->GetFileNames(candidateSeries[s]);
+          for (unsigned int f = 0; f < candidateFiles.size(); f++)
+          {
+            if (itksys::SystemTools::CollapseFullPath(candidateFiles[f].c_str()) ==
+              fileNameCollapsed)
+            {
+              found = 1;
+              break;
+            }
+          }
+        }
+
+        // do we have just one candidate file
         if ( candidateFiles.size() == 1 )
         {
           this->IsOnlyFile = true;
         }
-        else if ( AnalyzeHeader )
+      }
+      else
+#endif
+      if( !this->GetSingleFile() )
+      { // not dicom
+        // check the dimensions of the archetype - if there
+        // is more then one slice, use only the archetype
+        // but if it is a single slice, try to generate a
+        // series of filenames
+        itk::ImageFileReader<ImageType>::Pointer imageReader =
+          itk::ImageFileReader<ImageType>::New();
+        imageReader->SetFileName(this->Archetype);
+        imageReader->UpdateOutputInformation();
+        region = imageReader->GetOutput()->GetLargestPossibleRegion();
+        if ( region.GetSize()[2] > 1 )
         {
-          this->AnalyzeDicomHeaders();
+          candidateFiles.push_back( this->Archetype );
+          this->AllFileNames.push_back( this->Archetype );
+          this->IsOnlyFile = true;
+        }
+        else
+        {
+          // Generate filenames from the Archetype
+          itk::ArchetypeSeriesFileNames::Pointer fit = itk::ArchetypeSeriesFileNames::New();
+          fit->SetArchetype (this->Archetype);
+          candidateFiles = fit->GetFileNames();
+          this->AllFileNames.resize( candidateFiles.size() );
+          for (int f = 0; f < (int)(candidateFiles.size()); f ++)
+          {
+            this->AllFileNames[f] = candidateFiles[f];
+          }
+          if ( candidateFiles.size() == 1 )
+          {
+            this->IsOnlyFile = true;
+          }
+          else if ( AnalyzeHeader )
+          {
+            this->AnalyzeDicomHeaders();
+          }
         }
       }
-    }
-    else
-    {
-      this->AllFileNames.push_back( this->Archetype );
-      this->IsOnlyFile = true;
+      else
+      {
+        this->AllFileNames.push_back( this->Archetype );
+        this->IsOnlyFile = true;
+      }
     }
   }
+  catch (itk::ExceptionObject& e)
+    {
+    vtkErrorMacro( "vtkITKArchetypeImageSeriesReader::ExecuteInformation: Cannot open " << fileNameCollapsed.c_str() << ". "
+      << "ITK exception info: error in " << e.GetLocation() << ": "<< e.GetDescription());
+    this->SetErrorCode(vtkErrorCode::FileFormatError);
+    return 0;
+    }
 
   // figure out the index of Archetype in AllFileNames
+  // Collapsing of path is necessary to normalize filenames (path separator, capitalization of drive
+  // letter and path) for comparison.
+  std::string archetypeCollapsed = itksys::SystemTools::CollapseFullPath(this->Archetype);
   for (unsigned int k = 0; k < this->AllFileNames.size(); k++)
   {
-    if (this->AllFileNames[k] == this->Archetype)
+    if (itksys::SystemTools::CollapseFullPath(this->AllFileNames[k]) == archetypeCollapsed)
     {
       this->IndexArchetype = k;
       break;
@@ -416,18 +466,25 @@ int vtkITKArchetypeImageSeriesReader::RequestInformation(
 
   try
     {
-    // If there is only one file in the series, just use an image file reader
-    if (this->FileNames.size() == 1)
+    if (this->FileNames.size() == 0)
+      {
+      vtkErrorMacro( "vtkITKArchetypeImageSeriesReader::ExecuteInformation: Failed to read file series");
+      this->SetErrorCode(vtkErrorCode::FileNotFoundError);
+      return 0;
+      }
+    else if (this->FileNames.size() == 1) // If there is only one file in the series, just use an image file reader
       {
       itk::OrientImageFilter<ImageType,ImageType>::Pointer orient =
         itk::OrientImageFilter<ImageType,ImageType>::New();
       itk::ImageFileReader<ImageType>::Pointer imageReader =
         itk::ImageFileReader<ImageType>::New();
       imageReader->SetFileName(this->FileNames[0].c_str());
-      if (isDicomFile)
+#ifdef VTKITK_BUILD_DICOM_SUPPORT
+      if (this->ArchetypeIsDICOM)
         {
         imageReader->SetImageIO(dicomIO);
         }
+#endif
 
       if (this->UseNativeCoordinateOrientation)
         {
@@ -494,21 +551,27 @@ int vtkITKArchetypeImageSeriesReader::RequestInformation(
       if (imageIO.GetPointer() == NULL)
         {
           vtkErrorMacro( "vtkITKArchetypeImageSeriesReader::ExecuteInformation: ImageIO for file " << fileNameCollapsed.c_str() << " does not exist.");
+          this->SetErrorCode(vtkErrorCode::UnrecognizedFileTypeError);
           return 0;
         }
       }
     else
       {
+      //
+      // more than one file, use series reader
+      //
       itk::OrientImageFilter<ImageType,ImageType>::Pointer orient =
         itk::OrientImageFilter<ImageType,ImageType>::New();
       itk::ImageSeriesReader<ImageType>::Pointer seriesReader =
         itk::ImageSeriesReader<ImageType>::New();
       seriesReader->SetFileNames(this->FileNames);
-      if (isDicomFile)
+#ifdef VTKITK_BUILD_DICOM_SUPPORT
+      if (this->ArchetypeIsDICOM)
         {
           seriesReader->SetImageIO(dicomIO);
         }
       else
+#endif
         {
         itk::ImageFileReader<ImageType>::Pointer imageReader =
           itk::ImageFileReader<ImageType>::New();
@@ -557,6 +620,7 @@ int vtkITKArchetypeImageSeriesReader::RequestInformation(
     IjkToLpsMatrix->Delete();
     vtkErrorMacro( "vtkITKArchetypeImageSeriesReader::ExecuteInformation: Cannot open " << fileNameCollapsed.c_str() << ". "
       << "ITK exception info: error in " << e.GetLocation() << ": "<< e.GetDescription());
+    this->SetErrorCode(vtkErrorCode::FileFormatError);
     return 0;
     }
   // Transform from LPS to RAS
@@ -899,7 +963,7 @@ void vtkITKArchetypeImageSeriesReader::SetMetaDataScalarRangeToPointDataInfo( vt
       }
 
     // If metadata scalar range not consistent
-    int nbrOfComponents = data->GetNumberOfScalarComponents();
+    unsigned int nbrOfComponents = data->GetNumberOfScalarComponents();
     if (nbrOfComponents != this->MetaDataScalarRangeMinima.size() ||
         nbrOfComponents != this->MetaDataScalarRangeMaxima.size())
       {
@@ -1046,9 +1110,18 @@ void vtkITKArchetypeImageSeriesReader::GroupFiles ( int idxSeriesInstanceUID,
   return;
 }
 
+std::string vtkITKArchetypeImageSeriesReader::GetMetaDataWithoutSpaces(const itk::MetaDataDictionary &dict, const std::string& tag)
+{
+  std::string tagValue;
+  itk::ExposeMetaData<std::string>(dict, tag, tagValue);
+  tagValue.erase(std::remove_if(tagValue.begin(), tagValue.end(), isspace), tagValue.end());
+  return tagValue;
+}
+
 //----------------------------------------------------------------------------
 void vtkITKArchetypeImageSeriesReader::AnalyzeDicomHeaders()
 {
+#ifdef VTKITK_BUILD_DICOM_SUPPORT
   itk::TimeProbe AnalyzeTime;
   AnalyzeTime.Start();
 
@@ -1160,9 +1233,13 @@ void vtkITKArchetypeImageSeriesReader::AnalyzeDicomHeaders()
     itk::MetaDataDictionary &dict = gdcmIO->GetMetaDataDictionary();
     std::string tagValue;
 
+    // Use vtkITKArchetypeImageSeriesReader::GetMetaDataWithoutSpaces to remove extra spaces
+    // from the DICOM tag, because extra spaces were found in some DICOM file before/after the
+    // multi-value separator backslashes.
+
     // series instance UID
-    tagValue.clear(); itk::ExposeMetaData<std::string>( dict, "0020|000e", tagValue );
-    if ( tagValue.length() > 0 )
+    tagValue = vtkITKArchetypeImageSeriesReader::GetMetaDataWithoutSpaces(dict, "0020|000e");
+    if (!tagValue.empty())
     {
       int idx = InsertSeriesInstanceUIDs( tagValue.c_str() );
       this->IndexSeriesInstanceUIDs[f] = idx;
@@ -1173,8 +1250,8 @@ void vtkITKArchetypeImageSeriesReader::AnalyzeDicomHeaders()
     }
 
     // content time
-    tagValue.clear(); itk::ExposeMetaData<std::string>( dict, "0008|0033", tagValue );
-    if ( tagValue.length() > 0 )
+    tagValue = vtkITKArchetypeImageSeriesReader::GetMetaDataWithoutSpaces(dict, "0008|0033");
+    if (!tagValue.empty())
     {
       int idx = InsertContentTime( tagValue.c_str() );
       this->IndexContentTime[f] = idx;
@@ -1185,8 +1262,8 @@ void vtkITKArchetypeImageSeriesReader::AnalyzeDicomHeaders()
     }
 
     // trigger time
-    tagValue.clear(); itk::ExposeMetaData<std::string>( dict, "0018|1060", tagValue );
-    if ( tagValue.length() > 0 )
+    tagValue = vtkITKArchetypeImageSeriesReader::GetMetaDataWithoutSpaces(dict, "0018|1060");
+    if (!tagValue.empty())
     {
       int idx = InsertTriggerTime( tagValue.c_str() );
       this->IndexTriggerTime[f] = idx;
@@ -1197,8 +1274,8 @@ void vtkITKArchetypeImageSeriesReader::AnalyzeDicomHeaders()
     }
 
     // echo numbers
-    tagValue.clear(); itk::ExposeMetaData<std::string>( dict, "0018|0086", tagValue );
-    if ( tagValue.length() > 0 )
+    tagValue = vtkITKArchetypeImageSeriesReader::GetMetaDataWithoutSpaces(dict, "0018|0086");
+    if (!tagValue.empty())
     {
       int idx = InsertEchoNumbers( tagValue.c_str() );
       this->IndexEchoNumbers[f] = idx;
@@ -1209,10 +1286,10 @@ void vtkITKArchetypeImageSeriesReader::AnalyzeDicomHeaders()
     }
 
     // diffision gradient orientation
-    tagValue.clear(); itk::ExposeMetaData<std::string>( dict, "0010|9089", tagValue );
-    if ( tagValue.length() > 0 )
+    tagValue = vtkITKArchetypeImageSeriesReader::GetMetaDataWithoutSpaces(dict, "0010|9089");
+    if (!tagValue.empty())
     {
-      float a[3];
+      float a[3] = { -1 };
       sscanf( tagValue.c_str(), "%f\\%f\\%f", a, a+1, a+2 );
       int idx = InsertDiffusionGradientOrientation( a );
       this->IndexDiffusionGradientOrientation[f] = idx;
@@ -1223,10 +1300,10 @@ void vtkITKArchetypeImageSeriesReader::AnalyzeDicomHeaders()
     }
 
     // slice location
-    tagValue.clear(); itk::ExposeMetaData<std::string>( dict, "0020|1041", tagValue );
-    if ( tagValue.length() > 0 )
+    tagValue = vtkITKArchetypeImageSeriesReader::GetMetaDataWithoutSpaces(dict, "0020|1041");
+    if (!tagValue.empty())
     {
-      float a;
+      float a = -1;
       sscanf( tagValue.c_str(), "%f", &a );
       int idx = InsertSliceLocation( a );
       this->IndexSliceLocation[f] = idx;
@@ -1237,10 +1314,10 @@ void vtkITKArchetypeImageSeriesReader::AnalyzeDicomHeaders()
     }
 
     // image orientation patient
-    tagValue.clear(); itk::ExposeMetaData<std::string>( dict, "0020|0037", tagValue );
-    if ( tagValue.length() > 0 )
+    tagValue = vtkITKArchetypeImageSeriesReader::GetMetaDataWithoutSpaces(dict, "0020|0037");
+    if (!tagValue.empty())
     {
-      float a[6];
+      float a[6] = { -1 };
       sscanf( tagValue.c_str(), "%f\\%f\\%f\\%f\\%f\\%f", a, a+1, a+2, a+3, a+4, a+5 );
       int idx = InsertImageOrientationPatient( a );
       this->IndexImageOrientationPatient[f] = idx;
@@ -1250,13 +1327,13 @@ void vtkITKArchetypeImageSeriesReader::AnalyzeDicomHeaders()
       this->IndexImageOrientationPatient[f] = -1;
     }
     // image position patient
-    tagValue.clear(); itk::ExposeMetaData<std::string>( dict, "0020|0032", tagValue );
-    if( tagValue.length() > 0 )
+    tagValue = vtkITKArchetypeImageSeriesReader::GetMetaDataWithoutSpaces(dict, "0020|0032");
+    if (!tagValue.empty())
     {
-        float a[3];
-        sscanf( tagValue.c_str(), "%f\\%f\\%f", a, a+1, a+2 );
-        int idx = InsertImagePositionPatient( a );
-        this->IndexImagePositionPatient[f] = idx;
+      float a[3] = { -1 };
+      sscanf( tagValue.c_str(), "%f\\%f\\%f", a, a+1, a+2 );
+      int idx = InsertImagePositionPatient( a );
+      this->IndexImagePositionPatient[f] = idx;
     }
     else
     {
@@ -1268,7 +1345,7 @@ void vtkITKArchetypeImageSeriesReader::AnalyzeDicomHeaders()
 
   // double timeelapsed = AnalyzeTime.GetMean(); UNUSED
   AnalyzeHeader = false;
-  return;
+#endif
 }
 
 //----------------------------------------------------------------------------
@@ -1398,6 +1475,7 @@ int vtkITKArchetypeImageSeriesReader::AssembleVolumeContainingArchetype( )
     {
       vtkErrorMacro("AssembleVolumeContainingArchetype: index archetype "
         << this->IndexArchetype << " is out of bounds 0-" << this->IndexSeriesInstanceUIDs.size());
+      this->SetErrorCode(vtkErrorCode::FileFormatError);
       return 0;
     }
 

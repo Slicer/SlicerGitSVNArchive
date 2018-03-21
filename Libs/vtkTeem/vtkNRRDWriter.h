@@ -25,7 +25,7 @@ class VTK_Teem_EXPORT vtkNRRDWriter : public vtkWriter
 public:
 
   vtkTypeMacro(vtkNRRDWriter,vtkWriter);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   static vtkNRRDWriter *New();
 
@@ -74,15 +74,18 @@ public:
   /// Method to set unit for each axis
   void SetAxisUnit(unsigned int axis, const char* unit);
 
+  /// Utility function to return image as a Nrrd*
+  void* MakeNRRD();
+
 protected:
   vtkNRRDWriter();
   ~vtkNRRDWriter();
 
-  virtual int FillInputPortInformation(int port, vtkInformation *info);
+  virtual int FillInputPortInformation(int port, vtkInformation *info) VTK_OVERRIDE;
 
   ///
   /// Write method. It is called by vtkWriter::Write();
-  void WriteData();
+  void WriteData() VTK_OVERRIDE;
 
   ///
   /// Flag to set to on when a write error occured

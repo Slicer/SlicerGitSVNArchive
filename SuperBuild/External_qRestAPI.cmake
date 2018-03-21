@@ -22,6 +22,20 @@ if(NOT DEFINED qRestAPI_DIR)
     set(git_protocol "git")
   endif()
 
+
+  set(ep_cache_args)
+  if(Slicer_REQUIRED_QT_VERSION VERSION_LESS "5")
+    list(APPEND ep_cache_args
+      -DQT_QMAKE_EXECUTABLE:FILEPATH=${QT_QMAKE_EXECUTABLE}
+      -DqRestAPI_QT_VERSION:STRING=4
+      )
+  else()
+    list(APPEND ep_cache_args
+      -DQt5_DIR:FILEPATH=${Qt5_DIR}
+      -DqRestAPI_QT_VERSION:STRING=5
+      )
+  endif()
+
   ExternalProject_SetIfNotDefined(
     ${CMAKE_PROJECT_NAME}_${proj}_GIT_REPOSITORY
     "${git_protocol}://github.com/commontk/qRestAPI.git"
@@ -30,24 +44,32 @@ if(NOT DEFINED qRestAPI_DIR)
 
   ExternalProject_SetIfNotDefined(
     ${CMAKE_PROJECT_NAME}_${proj}_GIT_TAG
-    "d1b07cc3e9dfd0a8a58e41546469a8f7ef5d0998"
+    "ddc0cfcc220d0ccd02b4afdd699d1e780dac3fa3"
     QUIET
     )
+
+  set(EP_SOURCE_DIR ${CMAKE_BINARY_DIR}/${proj})
+  set(EP_BINARY_DIR ${CMAKE_BINARY_DIR}/${proj}-build)
 
   ExternalProject_Add(${proj}
     ${${proj}_EP_ARGS}
     GIT_REPOSITORY "${${CMAKE_PROJECT_NAME}_${proj}_GIT_REPOSITORY}"
     GIT_TAG "${${CMAKE_PROJECT_NAME}_${proj}_GIT_TAG}"
-    SOURCE_DIR ${CMAKE_BINARY_DIR}/${proj}
-    BINARY_DIR ${proj}-build
+    SOURCE_DIR ${EP_SOURCE_DIR}
+    BINARY_DIR ${EP_BINARY_DIR}
     CMAKE_CACHE_ARGS
       -DCMAKE_CXX_COMPILER:FILEPATH=${CMAKE_CXX_COMPILER}
       -DCMAKE_CXX_FLAGS:STRING=${ep_common_cxx_flags}
       -DCMAKE_C_COMPILER:FILEPATH=${CMAKE_C_COMPILER}
       #-DCMAKE_C_FLAGS:STRING=${ep_common_c_flags} # Unused
+      -DCMAKE_CXX_STANDARD:STRING=${CMAKE_CXX_STANDARD}
+      -DCMAKE_CXX_STANDARD_REQUIRED:BOOL=${CMAKE_CXX_STANDARD_REQUIRED}
+      -DCMAKE_CXX_EXTENSIONS:BOOL=${CMAKE_CXX_EXTENSIONS}
       -DBUILD_TESTING:BOOL=OFF
       -DBUILD_SHARED_LIBS:BOOL=OFF
-      -DQT_QMAKE_EXECUTABLE:FILEPATH=${QT_QMAKE_EXECUTABLE}
+      ${ep_cache_args}
+      # macOS
+      -DCMAKE_MACOSX_RPATH:BOOL=0
     INSTALL_COMMAND ""
     DEPENDS
       ${${proj}_DEPENDENCIES}
@@ -55,7 +77,7 @@ if(NOT DEFINED qRestAPI_DIR)
 
   ExternalProject_GenerateProjectDescription_Step(${proj})
 
-  set(qRestAPI_DIR ${CMAKE_BINARY_DIR}/${proj}-build)
+  set(qRestAPI_DIR ${EP_BINARY_DIR})
 
 else()
   ExternalProject_Add_Empty(${proj} DEPENDS ${${proj}_DEPENDENCIES})

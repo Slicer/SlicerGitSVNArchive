@@ -39,11 +39,13 @@ class vtkPolyData;
 class vtkDataObject;
 class vtkGeneralTransform;
 
-class vtkMRMLScalarVolumeNode;
 class vtkMRMLSegmentationStorageNode;
+class vtkMRMLScalarVolumeNode;
 class vtkMRMLLabelMapVolumeNode;
-class vtkMRMLModelNode;
 class vtkMRMLVolumeNode;
+class vtkMRMLModelNode;
+class vtkMRMLModelHierarchyNode;
+class vtkSlicerTerminologiesModuleLogic;
 
 /// \ingroup SlicerRt_QtModules_Segmentations
 class VTK_SLICER_SEGMENTATIONS_LOGIC_EXPORT vtkSlicerSegmentationsModuleLogic :
@@ -52,7 +54,7 @@ class VTK_SLICER_SEGMENTATIONS_LOGIC_EXPORT vtkSlicerSegmentationsModuleLogic :
 public:
   static vtkSlicerSegmentationsModuleLogic *New();
   vtkTypeMacro(vtkSlicerSegmentationsModuleLogic,vtkSlicerModuleLogic);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   /// Get segmentation node containing a segmentation object. As segmentation objects are out-of-MRML
   /// VTK objects, there is no direct link from it to its parent node, so must be found from the MRML scene.
@@ -70,7 +72,10 @@ public:
   static vtkMRMLSegmentationNode* GetSegmentationNodeForSegment(vtkMRMLScene* scene, vtkSegment* segment, std::string& segmentId);
 
   /// Load segmentation from file
-  vtkMRMLSegmentationNode* LoadSegmentationFromFile(const char* filename);
+  /// \param filename Path and name of file containing segmentation (nrrd, vtm, etc.)
+  /// \param autoOpacities Optional flag determining whether segment opacities are calculated automatically based on containment. True by default
+  /// \return Loaded segmentation node
+  vtkMRMLSegmentationNode* LoadSegmentationFromFile(const char* filename, bool autoOpacities=true);
 
   /// Create labelmap volume MRML node from oriented image data.
   /// Creates a display node if a display node does not exist. Shifts image extent to start from zero.
@@ -137,6 +142,30 @@ public:
   /// Otherwise return with failure.
   static bool ExportSegmentToRepresentationNode(vtkSegment* segment, vtkMRMLNode* representationNode);
 
+  /// Export multiple segments into a model hierarchy, a model node from each segment
+  /// \param segmentationNode Segmentation node from which the the segments are exported
+  /// \param segmentIds List of segment IDs to export
+  /// \param modelHierarchyNode Model hierarchy to export the segments to
+  static bool ExportSegmentsToModelHierarchy(vtkMRMLSegmentationNode* segmentationNode,
+    std::vector<std::string>& segmentIDs, vtkMRMLModelHierarchyNode* modelHierarchyNode);
+
+  /// Export multiple segments into a model hierarchy, a model node from each segment
+  /// \param segmentationNode Segmentation node from which the the segments are exported
+  /// \param segmentIds List of segment IDs to export
+  /// \param modelHierarchyNode Model hierarchy to export the segments to
+  static bool ExportSegmentsToModelHierarchy(vtkMRMLSegmentationNode* segmentationNode,
+    vtkStringArray* segmentIds, vtkMRMLModelHierarchyNode* modelHierarchyNode);
+
+  /// Export visible segments into a model hierarchy, a model node from each segment
+  /// \param segmentationNode Segmentation node from which the the segments are exported
+  /// \param modelHierarchyNode Model hierarchy to export the visible segments to
+  static bool ExportVisibleSegmentsToModelHierarchy(vtkMRMLSegmentationNode* segmentationNode, vtkMRMLModelHierarchyNode* modelHierarchyNode);
+
+  /// Export all segments into a model hierarchy, a model node from each segment
+  /// \param segmentationNode Segmentation node from which the the segments are exported
+  /// \param modelHierarchyNode Model hierarchy to export the segments to
+  static bool ExportAllSegmentsToModelHierarchy(vtkMRMLSegmentationNode* segmentationNode, vtkMRMLModelHierarchyNode* modelHierarchyNode);
+
   /// Export multiple segments into a multi-label labelmap volume node
   /// \param segmentationNode Segmentation node from which the the segments are exported
   /// \param segmentIds List of segment IDs to export
@@ -153,6 +182,13 @@ public:
   static bool ExportSegmentsToLabelmapNode(vtkMRMLSegmentationNode* segmentationNode, vtkStringArray* segmentIDs,
     vtkMRMLLabelMapVolumeNode* labelmapNode, vtkMRMLVolumeNode* referenceVolumeNode = NULL);
 
+  /// Export visible segments into a multi-label labelmap volume node
+  /// \param segmentationNode Segmentation node from which the the visible segments are exported
+  /// \param labelmapNode Labelmap node to export the segments to
+  /// \param referenceVolumeNode If specified, then the merged labelmap node will match the geometry of referenceVolumeNode
+  static bool ExportVisibleSegmentsToLabelmapNode(vtkMRMLSegmentationNode* segmentationNode,
+    vtkMRMLLabelMapVolumeNode* labelmapNode, vtkMRMLVolumeNode* referenceVolumeNode = NULL);
+
   /// Export all segments into a multi-label labelmap volume node
   /// \param segmentationNode Segmentation node from which the the segments are exported
   /// \param labelmapNode Labelmap node to export the segments to
@@ -161,16 +197,17 @@ public:
   /// Import all labels from a labelmap node to a segmentation node, each label to a separate segment.
   /// The colors of the new segments are set from the color table corresponding to the labelmap volume.
   /// \param insertBeforeSegmentId New segments will be inserted before this segment.
-  static bool ImportLabelmapToSegmentationNode( vtkMRMLLabelMapVolumeNode* labelmapNode,
-    vtkMRMLSegmentationNode* segmentationNode, std::string insertBeforeSegmentId = "");
+  static bool ImportLabelmapToSegmentationNode(vtkMRMLLabelMapVolumeNode* labelmapNode,
+    vtkMRMLSegmentationNode* segmentationNode, std::string insertBeforeSegmentId="");
 
   /// Import all labels from a labelmap image to a segmentation node, each label to a separate segment
-  /// The colors of the new segments are randomly generated.
+  /// The colors of the new segments are randomly generated, unless terminology context is specified, in which case the terminology
+  ///   entries are attempted to be mapped to the imported labels
   /// LabelmapImage is defined in the segmentation node's coordinate system
   /// (parent transform of the segmentation node is not used during import).
   /// \param baseSegmentName Prefix for the names of the new segments. Empty by default, in which case the prefix will be "Label"
-  static bool ImportLabelmapToSegmentationNode(vtkOrientedImageData* labelmapImage, vtkMRMLSegmentationNode* segmentationNode,
-    std::string baseSegmentName = "", std::string insertBeforeSegmentId = "");
+  static bool ImportLabelmapToSegmentationNode(vtkOrientedImageData* labelmapImage,
+    vtkMRMLSegmentationNode* segmentationNode, std::string baseSegmentName="", std::string insertBeforeSegmentId="") ;
 
   /// Update segmentation from segments in a labelmap node.
   /// \param updatedSegmentIDs Defines how label values 1..N are mapped to segment IDs (0..N-1).
@@ -180,10 +217,22 @@ public:
   /// Update segmentation from segments in a labelmap node.
   /// \param updatedSegmentIDs Defines how label values 1..N are mapped to segment IDs (0..N-1).
   static bool ImportLabelmapToSegmentationNode(vtkOrientedImageData* labelmapImage,
-    vtkMRMLSegmentationNode* segmentationNode, vtkStringArray* updatedSegmentIDs, vtkGeneralTransform* labelmapToSegmentationTransform = NULL);
+    vtkMRMLSegmentationNode* segmentationNode, vtkStringArray* updatedSegmentIDs,
+    vtkGeneralTransform* labelmapToSegmentationTransform=NULL );
+
+  /// Import all labels from a labelmap node to a segmentation node, each label to a separate segment.
+  /// Terminology and color is set to the segments based on the color table corresponding to the labelmap volume node.
+  /// \param terminologyContextName Terminology context the entries of which are mapped to the labels imported from the labelmap node
+  /// \param insertBeforeSegmentId New segments will be inserted before this segment.
+  bool ImportLabelmapToSegmentationNodeWithTerminology(vtkMRMLLabelMapVolumeNode* labelmapNode,
+    vtkMRMLSegmentationNode* segmentationNode, std::string terminologyContextName, std::string insertBeforeSegmentId="");
 
   /// Import model into the segmentation as a segment.
   static bool ImportModelToSegmentationNode(vtkMRMLModelNode* modelNode, vtkMRMLSegmentationNode* segmentationNode, std::string insertBeforeSegmentId = "");
+
+  /// Import model hierarchy into the segmentation as segments.
+  static bool ImportModelHierarchyToSegmentationNode(
+    vtkMRMLModelHierarchyNode* modelHierarchyNode, vtkMRMLSegmentationNode* segmentationNode, std::string insertBeforeSegmentId = "" );
 
   /// Create representation of only one segment in a segmentation.
   /// Useful if only one segment is processed, and we do not want to convert all segments to a certain
@@ -195,7 +244,8 @@ public:
   /// Apply the parent transform of a node to an oriented image data.
   /// Useful if we want to get a labelmap representation of a segmentation in the proper geometry for processing.
   /// \return Success flag
-  static bool ApplyParentTransformToOrientedImageData(vtkMRMLTransformableNode* transformableNode, vtkOrientedImageData* orientedImageData, bool linearInterpolation=false, double backgroundColor[4]=NULL);
+  static bool ApplyParentTransformToOrientedImageData(
+    vtkMRMLTransformableNode* transformableNode, vtkOrientedImageData* orientedImageData, bool linearInterpolation=false, double backgroundColor[4]=NULL );
 
   /// Apply the parent transform of a node to a poly data.
   /// Useful if we want to get a surface or contours representation of a segmentation in the proper geometry for processing.
@@ -211,7 +261,8 @@ public:
   ///   representation node's parent transform concatenated with the inverse of the segmentation's parent transform.
   /// \param representationToSegmentationTransform General transform between the representation node and the segmentation node.
   /// \return Success flag
-  static bool GetTransformBetweenRepresentationAndSegmentation(vtkMRMLTransformableNode* representationNode, vtkMRMLSegmentationNode* segmentationNode, vtkGeneralTransform* representationToSegmentationTransform);
+  static bool GetTransformBetweenRepresentationAndSegmentation(
+    vtkMRMLTransformableNode* representationNode, vtkMRMLSegmentationNode* segmentationNode, vtkGeneralTransform* representationToSegmentationTransform );
 
   /// Convenience function to get a specified representation of a segment in a segmentation.
   /// A duplicate of the representation data object is copied into the argument output object, with the segmentation's parent transform
@@ -262,11 +313,21 @@ public:
     };
   static bool SetBinaryLabelmapToSegment(vtkOrientedImageData* labelmap, vtkMRMLSegmentationNode* segmentationNode, std::string segmentID, int mergeMode=MODE_REPLACE, const int extent[6]=0);
 
+  /// Assign terminology to segments in a segmentation node based on the labels of a labelmap node. Match is made based on the
+  /// 3dSlicerLabel terminology type attribute. If the terminology context does not contain that attribute, match cannot be made.
+  /// \param terminologyContextName Terminology context the entries of which are mapped to the labels imported from the labelmap node
+  bool SetTerminologyToSegmentationFromLabelmapNode(vtkMRMLSegmentationNode* segmentationNode,
+    vtkMRMLLabelMapVolumeNode* labelmapNode, std::string terminologyContextName);
+
+public:
+  /// Set Terminologies module logic
+  void SetTerminologiesLogic(vtkSlicerTerminologiesModuleLogic* terminologiesLogic);
+
 protected:
-  virtual void SetMRMLSceneInternal(vtkMRMLScene * newScene);
+  virtual void SetMRMLSceneInternal(vtkMRMLScene * newScene) VTK_OVERRIDE;
 
   /// Register MRML Node classes to Scene. Gets called automatically when the MRMLScene is attached to this logic class.
-  virtual void RegisterNodes();
+  virtual void RegisterNodes() VTK_OVERRIDE;
 
   /// Callback function observing UID added events for subject hierarchy nodes.
   /// In case the newly added UID is a volume node referenced from a segmentation,
@@ -276,7 +337,7 @@ protected:
   static void OnSubjectHierarchyUIDAdded(vtkObject* caller, unsigned long eid, void* clientData, void* callData);
 
   /// Handle MRML node added events
-  virtual void OnMRMLSceneNodeAdded(vtkMRMLNode* node);
+  virtual void OnMRMLSceneNodeAdded(vtkMRMLNode* node) VTK_OVERRIDE;
 
 protected:
   vtkSlicerSegmentationsModuleLogic();
@@ -284,6 +345,9 @@ protected:
 
   /// Command handling subject hierarchy UID added events
   vtkCallbackCommand* SubjectHierarchyUIDCallbackCommand;
+
+  /// Terminologies module logic
+  vtkSlicerTerminologiesModuleLogic* TerminologiesLogic;
 
 private:
   vtkSlicerSegmentationsModuleLogic(const vtkSlicerSegmentationsModuleLogic&); // Not implemented

@@ -34,6 +34,7 @@
 #include "vtkOrientedImageData.h"
 #include "vtkOrientedImageDataResample.h"
 #include "vtkSlicerSegmentationsModuleLogic.h"
+#include "vtkBinaryLabelmapToClosedSurfaceConversionRule.h"
 
 // Segment editor effects includes
 #include "qSlicerSegmentEditorAbstractEffect.h"
@@ -58,14 +59,8 @@
 #include <vtkWeakPointer.h>
 
 // Slicer includes
-#include "qSlicerApplication.h"
-#include "vtkSlicerApplicationLogic.h"
-#include "qSlicerLayoutManager.h"
-#include "vtkMRMLSliceLogic.h"
-#include "qMRMLSliceWidget.h"
-#include "qMRMLSliceView.h"
-#include "qMRMLThreeDWidget.h"
-#include "qMRMLThreeDView.h"
+#include <vtkMRMLSliceLogic.h>
+#include <vtkSlicerApplicationLogic.h>
 
 // MRML includes
 #include <vtkMRMLLabelMapVolumeNode.h>
@@ -74,6 +69,21 @@
 #include <vtkMRMLSliceNode.h>
 #include <vtkMRMLTransformNode.h>
 #include <vtkMRMLViewNode.h>
+#include <vtkMRMLModelHierarchyNode.h>
+#include <vtkMRMLInteractionNode.h>
+#include <vtkMRMLSliceCompositeNode.h>
+
+// SlicerQt includes
+#include <qSlicerApplication.h>
+#include <qSlicerLayoutManager.h>
+#include "qSlicerModuleManager.h"
+#include <qSlicerAbstractModule.h>
+#include <qSlicerAbstractModuleWidget.h>
+#include <qSlicerSubjectHierarchyAbstractPlugin.h>
+#include <qMRMLSliceWidget.h>
+#include <qMRMLSliceView.h>
+#include <qMRMLThreeDWidget.h>
+#include <qMRMLThreeDView.h>
 
 // Qt includes
 #include <QDebug>
@@ -81,11 +91,17 @@
 #include <QButtonGroup>
 #include <QMainWindow>
 #include <QMessageBox>
+#include <QPointer>
 #include <QShortcut>
 #include <QVBoxLayout>
+#include <QMenu>
+#include <QAction>
+#include <QInputDialog>
+#include <QScrollArea>
 
 // CTK includes
 #include <ctkFlowLayout.h>
+#include <ctkCollapsibleButton.h>
 
 static const int BINARY_LABELMAP_SCALAR_TYPE = VTK_UNSIGNED_CHAR;
 // static const unsigned char BINARY_LABELMAP_VOXEL_FULL = 1; // unused
@@ -101,10 +117,17 @@ public:
     {
     return new vtkSegmentEditorEventCallbackCommand;
     }
+#if (QT_VERSION < QT_VERSION_CHECK(5, 0, 0))
   /// Segment editor widget observing the event
   QWeakPointer<qMRMLSegmentEditorWidget> EditorWidget;
   /// Slice widget or 3D widget
   QWeakPointer<qMRMLWidget> ViewWidget;
+#else
+  /// Segment editor widget observing the event
+  QPointer<qMRMLSegmentEditorWidget> EditorWidget;
+  /// Slice widget or 3D widget
+  QPointer<qMRMLWidget> ViewWidget;
+#endif
 };
 
 //-----------------------------------------------------------------------------
@@ -169,6 +192,8 @@ public:
   static std::string getReferenceImageGeometryFromSegmentation(vtkSegmentation* segmentation);
   std::string referenceImageGeometry();
 
+  bool segmentationDisplayableInView(vtkMRMLAbstractViewNode* viewNode);
+
 public:
   /// Segment editor parameter set node containing all selections and working images
   vtkWeakPointer<vtkMRMLSegmentEditorNode> ParameterSetNode;
@@ -177,6 +202,9 @@ public:
   vtkSmartPointer<vtkSegmentationHistory> SegmentationHistory;
 
   vtkWeakPointer<vtkMRMLScalarVolumeNode> MasterVolumeNode;
+
+  // Observe InteractionNode to detect when mouse mode is changed
+  vtkWeakPointer<vtkMRMLInteractionNode> InteractionNode;
 
   /// Lock widget to make segmentation read-only.
   // In the future locked state may be read from the Segmentation node.
@@ -191,9 +219,22 @@ public:
 
   /// Active effect
   qSlicerSegmentEditorAbstractEffect* ActiveEffect;
+  /// Last active effect
+  /// Stored to allow quick toggling between no effect/last active effect.
+  qSlicerSegmentEditorAbstractEffect* LastActiveEffect;
 
   /// Structure containing necessary objects for each slice and 3D view handling interactions
   QVector<SegmentEditorEventObservation> EventObservations;
+
+  /// Indicates if views and layouts are observed
+  /// (essentially, the widget is active).
+  bool ViewsObserved;
+
+  /// List of view node IDs in display nodes, which were specified when views observation was set up.
+  /// If node IDs change (segmentation node is shown/hidden in a specific view) then view observations has to be refreshed.
+  QMap<QString, std::vector<std::string> > ObservedViewNodeIDs; // <SegmentationDisplayNodeID, ViewNodeIDs>
+
+  bool AutoShowMasterVolumeNode;
 
   /// Button group for the effects
   QButtonGroup EffectButtonGroup;
@@ -231,6 +272,9 @@ qMRMLSegmentEditorWidgetPrivate::qMRMLSegmentEditorWidgetPrivate(qMRMLSegmentEdi
   : q_ptr(&object)
   , Locked(false)
   , ActiveEffect(NULL)
+  , LastActiveEffect(NULL)
+  , ViewsObserved(false)
+  , AutoShowMasterVolumeNode(true)
   , AlignedMasterVolume(NULL)
   , ModifierLabelmap(NULL)
   , SelectedSegmentLabelmap(NULL)
@@ -316,6 +360,20 @@ void qMRMLSegmentEditorWidgetPrivate::init()
   this->OverwriteModeComboBox->addItem(QObject::tr("Visible segments"), vtkMRMLSegmentEditorNode::OverwriteVisibleSegments);
   this->OverwriteModeComboBox->addItem(QObject::tr("None"), vtkMRMLSegmentEditorNode::OverwriteNone);
 
+  this->SwitchToSegmentationsButton->setIcon(q->style()->standardIcon(QStyle::SP_ArrowRight));
+
+  QMenu* segmentationsButtonMenu = new QMenu(q->tr("Segmentations"), this->SwitchToSegmentationsButton);
+  QAction* importExportAction = new QAction("Import/export...", segmentationsButtonMenu);
+  segmentationsButtonMenu->addAction(importExportAction);
+  QObject::connect(importExportAction, SIGNAL(triggered()), q, SLOT(onImportExportActionClicked()));
+  this->SwitchToSegmentationsButton->setMenu(segmentationsButtonMenu);
+
+  QMenu* show3DButtonMenu = new QMenu(q->tr("Show 3D"), this->Show3DButton);
+  QAction* setSurfaceSmoothingAction = new QAction("Set surface smoothing...", show3DButtonMenu);
+  show3DButtonMenu->addAction(setSurfaceSmoothingAction);
+  QObject::connect(setSurfaceSmoothingAction, SIGNAL(triggered()), q, SLOT(onSetSurfaceSmoothingClicked()));
+  this->Show3DButton->setMenu(show3DButtonMenu);
+
   // Make connections
   QObject::connect( this->SegmentationNodeComboBox, SIGNAL(currentNodeChanged(vtkMRMLNode*)),
     q, SLOT(onSegmentationNodeChanged(vtkMRMLNode*)) );
@@ -327,15 +385,18 @@ void qMRMLSegmentEditorWidgetPrivate::init()
     q, SLOT(saveStateForUndo()) );
   QObject::connect( this->AddSegmentButton, SIGNAL(clicked()), q, SLOT(onAddSegment()) );
   QObject::connect( this->RemoveSegmentButton, SIGNAL(clicked()), q, SLOT(onRemoveSegment()) );
-  QObject::connect( this->CreateSurfaceButton, SIGNAL(toggled(bool)), q, SLOT(onCreateSurfaceToggled(bool)) );
+  QObject::connect( this->SwitchToSegmentationsButton, SIGNAL(clicked()), q, SLOT(onSwitchToSegmentations()) );
+  QObject::connect( this->Show3DButton, SIGNAL(toggled(bool)), q, SLOT(onCreateSurfaceToggled(bool)) );
 
   QObject::connect( this->MaskModeComboBox, SIGNAL(currentIndexChanged(int)), q, SLOT(onMaskModeChanged(int)));
   QObject::connect( this->MasterVolumeIntensityMaskCheckBox, SIGNAL(toggled(bool)), q, SLOT(onMasterVolumeIntensityMaskChecked(bool)));
   QObject::connect( this->MasterVolumeIntensityMaskRangeWidget, SIGNAL(valuesChanged(double,double)), q, SLOT(onMasterVolumeIntensityMaskRangeChanged(double,double)));
   QObject::connect( this->OverwriteModeComboBox, SIGNAL(currentIndexChanged(int)), q, SLOT(onOverwriteModeChanged(int)));
 
-  QObject::connect( this->UndoButton, SIGNAL(clicked()), q, SLOT(undo()));
-  QObject::connect( this->RedoButton, SIGNAL(clicked()), q, SLOT(redo()));
+  QObject::connect( this->UndoButton, SIGNAL(clicked()), q, SLOT(undo()) );
+  QObject::connect( this->RedoButton, SIGNAL(clicked()), q, SLOT(redo()) );
+
+  QObject::connect( this->EffectHelpBrowser, SIGNAL(anchorClicked(QUrl)), q, SLOT(anchorClicked(QUrl)), Qt::QueuedConnection );
 
   q->qvtkConnect(this->SegmentationHistory, vtkCommand::ModifiedEvent,
     q, SLOT(onSegmentationHistoryChanged()));
@@ -348,7 +409,8 @@ void qMRMLSegmentEditorWidgetPrivate::init()
   this->SegmentsTableView->setOpacityColumnVisible(false);
   this->AddSegmentButton->setEnabled(false);
   this->RemoveSegmentButton->setEnabled(false);
-  this->CreateSurfaceButton->setEnabled(false);
+  this->Show3DButton->setEnabled(false);
+  this->SwitchToSegmentationsButton->setEnabled(false);
   this->EffectsGroupBox->setEnabled(false);
   this->OptionsGroupBox->setEnabled(false);
 
@@ -667,7 +729,7 @@ bool qMRMLSegmentEditorWidgetPrivate::updateMaskLabelmap()
   vtkMRMLSegmentationNode* segmentationNode = this->ParameterSetNode->GetSegmentationNode();
   if (!this->ModifierLabelmap || !segmentationNode)
     {
-    qCritical() << Q_FUNC_INFO << ": Invalid segment selection!";
+    qCritical() << Q_FUNC_INFO << ": Invalid segment selection";
     return false;
     }
   if (!this->ParameterSetNode->GetSelectedSegmentID())
@@ -822,6 +884,10 @@ void qMRMLSegmentEditorWidgetPrivate::setEffectCursor(qSlicerSegmentEditorAbstra
   foreach(QString sliceViewName, layoutManager->sliceViewNames())
     {
     qMRMLSliceWidget* sliceWidget = layoutManager->sliceWidget(sliceViewName);
+    if (!this->segmentationDisplayableInView(sliceWidget->mrmlSliceNode()))
+      {
+      continue;
+      }
     if (effect && effect->showEffectCursorInSliceView())
       {
       sliceWidget->sliceView()->setCursor(effect->createCursor(sliceWidget));
@@ -834,6 +900,10 @@ void qMRMLSegmentEditorWidgetPrivate::setEffectCursor(qSlicerSegmentEditorAbstra
   for (int threeDViewId = 0; threeDViewId < layoutManager->threeDViewCount(); ++threeDViewId)
     {
     qMRMLThreeDWidget* threeDWidget = layoutManager->threeDWidget(threeDViewId);
+    if (!this->segmentationDisplayableInView(threeDWidget->mrmlViewNode()))
+      {
+      continue;
+      }
     if (effect && effect->showEffectCursorInThreeDView())
       {
       threeDWidget->threeDView()->setCursor(effect->createCursor(threeDWidget));
@@ -843,6 +913,122 @@ void qMRMLSegmentEditorWidgetPrivate::setEffectCursor(qSlicerSegmentEditorAbstra
       threeDWidget->threeDView()->unsetCursor();
       }
     }
+}
+
+//-----------------------------------------------------------------------------
+std::string qMRMLSegmentEditorWidgetPrivate::getReferenceImageGeometryFromSegmentation(vtkSegmentation* segmentation)
+{
+  if (!segmentation)
+    {
+    return "";
+    }
+
+  // If "reference image geometry" conversion parameter is set then use that
+  std::string referenceImageGeometry = segmentation->GetConversionParameter(vtkSegmentationConverter::GetReferenceImageGeometryParameterName());
+  if (!referenceImageGeometry.empty())
+    {
+    // Extend reference image geometry to contain all segments (needed for example for properly handling imported segments
+    // that do not fit into the reference image geometry)
+    vtkSmartPointer<vtkOrientedImageData> commonGeometryImage = vtkSmartPointer<vtkOrientedImageData>::New();
+    vtkSegmentationConverter::DeserializeImageGeometry(referenceImageGeometry, commonGeometryImage, false);
+    // Determine extent that contains all segments
+    int commonSegmentExtent[6] = { 0, -1, 0, -1, 0, -1 };
+    segmentation->DetermineCommonLabelmapExtent(commonSegmentExtent, commonGeometryImage);
+    if (commonSegmentExtent[0] <= commonSegmentExtent[1]
+      && commonSegmentExtent[2] <= commonSegmentExtent[3]
+      && commonSegmentExtent[4] <= commonSegmentExtent[5])
+      {
+      // Expand commonGeometryExtent as needed to contain commonSegmentExtent
+      int commonGeometryExtent[6] = { 0, -1, 0, -1, 0, -1 };
+      commonGeometryImage->GetExtent(commonGeometryExtent);
+      for (int i = 0; i < 3; i++)
+        {
+        commonGeometryExtent[i * 2] = std::min(commonSegmentExtent[i * 2], commonGeometryExtent[i * 2]);
+        commonGeometryExtent[i * 2 + 1] = std::max(commonSegmentExtent[i * 2 + 1], commonGeometryExtent[i * 2 + 1]);
+        }
+      commonGeometryImage->SetExtent(commonGeometryExtent);
+      referenceImageGeometry = vtkSegmentationConverter::SerializeImageGeometry(commonGeometryImage);
+      }
+
+    // TODO: Use oversampling (if it's 'A' then ignore and changed to 1)
+    return referenceImageGeometry;
+    }
+  if (segmentation->ContainsRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()))
+    {
+    // If no reference image geometry is specified but there are labels already then determine geometry from that
+    referenceImageGeometry = segmentation->DetermineCommonLabelmapGeometry();
+    return referenceImageGeometry;
+    }
+  return "";
+}
+
+//-----------------------------------------------------------------------------
+std::string qMRMLSegmentEditorWidgetPrivate::referenceImageGeometry()
+{
+  if (!this->ParameterSetNode)
+    {
+    qCritical() << Q_FUNC_INFO << ": Invalid segment editor parameter set node";
+    notifyEffectsOfReferenceGeometryChange("");
+    return "";
+    }
+
+  vtkMRMLSegmentationNode* segmentationNode = this->ParameterSetNode->GetSegmentationNode();
+  vtkSegmentation* segmentation = segmentationNode ? segmentationNode->GetSegmentation() : NULL;
+  if (!segmentationNode || !segmentation)
+    {
+    qCritical() << Q_FUNC_INFO << ": Invalid segmentation";
+    notifyEffectsOfReferenceGeometryChange("");
+    return "";
+    }
+
+  std::string referenceImageGeometry;
+  referenceImageGeometry = this->getReferenceImageGeometryFromSegmentation(segmentation);
+  if (referenceImageGeometry.empty())
+    {
+    // If no reference image geometry could be determined then use the master volume's geometry
+    vtkMRMLScalarVolumeNode* masterVolumeNode = this->ParameterSetNode->GetMasterVolumeNode();
+    if (!masterVolumeNode)
+      {
+      // cannot determine reference geometry
+      return "";
+      }
+    // Update the referenceImageGeometry parameter for next time
+    segmentationNode->SetReferenceImageGeometryParameterFromVolumeNode(masterVolumeNode);
+    // Update extents to include all existing segments
+    referenceImageGeometry = this->getReferenceImageGeometryFromSegmentation(segmentation);
+    }
+  notifyEffectsOfReferenceGeometryChange(referenceImageGeometry);
+  return referenceImageGeometry;
+}
+
+//-----------------------------------------------------------------------------
+bool qMRMLSegmentEditorWidgetPrivate::segmentationDisplayableInView(vtkMRMLAbstractViewNode* viewNode)
+{
+  if (!viewNode)
+    {
+    qWarning() << Q_FUNC_INFO << ": failed. Invalid viewNode.";
+    return false;
+    }
+  if (!this->ParameterSetNode)
+    {
+    return false;
+    }
+  vtkMRMLSegmentationNode* segmentationNode = this->ParameterSetNode->GetSegmentationNode();
+  if (!segmentationNode)
+    {
+    return false;
+    }
+  const char* viewNodeID = viewNode->GetID();
+  int numberOfDisplayNodes = segmentationNode->GetNumberOfDisplayNodes();
+  for (int displayNodeIndex = 0; displayNodeIndex < numberOfDisplayNodes; displayNodeIndex++)
+    {
+    vtkMRMLDisplayNode* segmentationDisplayNode = segmentationNode->GetNthDisplayNode(displayNodeIndex);
+    if (segmentationDisplayNode->IsDisplayableInView(viewNodeID))
+      {
+      return true;
+      }
+    }
+  return false;
 }
 
 //-----------------------------------------------------------------------------
@@ -879,8 +1065,8 @@ void qMRMLSegmentEditorWidget::updateWidgetFromMRML()
 
   int wasModified = d->ParameterSetNode->StartModify();
 
-  updateWidgetFromSegmentationNode();
-  updateWidgetFromMasterVolumeNode();
+  this->updateWidgetFromSegmentationNode();
+  this->updateWidgetFromMasterVolumeNode();
 
   d->EffectsGroupBox->setEnabled(d->SegmentationNode != NULL);
   d->MaskingGroupBox->setEnabled(d->SegmentationNode != NULL);
@@ -902,7 +1088,8 @@ void qMRMLSegmentEditorWidget::updateWidgetFromMRML()
   // Only enable remove button if a segment is selected
   d->RemoveSegmentButton->setEnabled(!selectedSegmentID.isEmpty() && (!d->Locked));
 
-  d->CreateSurfaceButton->setEnabled(!d->Locked);
+  d->Show3DButton->setEnabled(!d->Locked);
+  d->SwitchToSegmentationsButton->setEnabled(true);
 
   // Segments list section
   if (!selectedSegmentID.isEmpty())
@@ -921,7 +1108,7 @@ void qMRMLSegmentEditorWidget::updateWidgetFromMRML()
   d->SegmentsTableView->setReadOnly(d->Locked);
 
   // Effects section (list and options)
-  updateEffectsSectionFromMRML();
+  this->updateEffectsSectionFromMRML();
 
   // Undo/redo section
 
@@ -929,6 +1116,28 @@ void qMRMLSegmentEditorWidget::updateWidgetFromMRML()
   d->RedoButton->setEnabled(!d->Locked);
 
   // Masking section
+  this->updateMaskingSection();
+
+  // Segmentation object might have been replaced, update selected segment
+  this->onSegmentAddedRemoved();
+
+  d->ParameterSetNode->EndModify(wasModified);
+}
+
+//-----------------------------------------------------------------------------
+void qMRMLSegmentEditorWidget::updateMaskingSection()
+{
+  Q_D(qMRMLSegmentEditorWidget);
+  if (!this->mrmlScene() || this->mrmlScene()->IsClosing())
+    {
+    return;
+    }
+
+  if (!d->ParameterSetNode)
+    {
+    qCritical() << Q_FUNC_INFO << ": Invalid segment editor parameter set node";
+    return;
+    }
 
   bool wasBlocked = d->MaskModeComboBox->blockSignals(true);
   int maskModeIndex = -1;
@@ -948,6 +1157,24 @@ void qMRMLSegmentEditorWidget::updateWidgetFromMRML()
   wasBlocked = d->MasterVolumeIntensityMaskCheckBox->blockSignals(true);
   d->MasterVolumeIntensityMaskCheckBox->setChecked(d->ParameterSetNode->GetMasterVolumeIntensityMask());
   d->MasterVolumeIntensityMaskCheckBox->blockSignals(wasBlocked);
+
+  // Update segment names
+  vtkMRMLSegmentationNode* segmentationNode = d->ParameterSetNode->GetSegmentationNode();
+  if (segmentationNode)
+    {
+    vtkSegmentation* segmentation = segmentationNode->GetSegmentation();
+    std::vector< std::string > segmentIDs;
+    segmentation->GetSegmentIDs(segmentIDs);
+    for (std::vector< std::string >::const_iterator segmentIdIt = segmentIDs.begin(); segmentIdIt != segmentIDs.end(); ++segmentIdIt)
+      {
+      int currentSegmentItemIndex = d->MaskModeComboBox->findData(QString::fromLocal8Bit(segmentIdIt->c_str()));
+      if (currentSegmentItemIndex >= d->MaskModeComboBoxFixedItemsCount)
+        {
+        QString segmentName = segmentation->GetSegment(*segmentIdIt)->GetName();
+        d->MaskModeComboBox->setItemText(currentSegmentItemIndex, segmentName);
+        }
+      }
+    }
 
   // Initialize mask range if it has never set and intensity masking es enabled
   if (d->ParameterSetNode->GetMasterVolumeIntensityMask()
@@ -969,11 +1196,6 @@ void qMRMLSegmentEditorWidget::updateWidgetFromMRML()
   int overwriteModeIndex = d->OverwriteModeComboBox->findData(d->ParameterSetNode->GetOverwriteMode());
   d->OverwriteModeComboBox->setCurrentIndex(overwriteModeIndex);
   d->OverwriteModeComboBox->blockSignals(wasBlocked);
-
-  // Segmentation object might have been replaced, update selected segment
-  onSegmentAddedRemoved();
-
-  d->ParameterSetNode->EndModify(wasModified);
 }
 
 //-----------------------------------------------------------------------------
@@ -1081,6 +1303,8 @@ void qMRMLSegmentEditorWidget::updateWidgetFromSegmentationNode()
     qvtkReconnect(d->SegmentationNode, segmentationNode, vtkSegmentation::ContainedRepresentationNamesModified, this, SLOT(onSegmentAddedRemoved()));
     qvtkReconnect(d->SegmentationNode, segmentationNode, vtkSegmentation::SegmentAdded, this, SLOT(onSegmentAddedRemoved()));
     qvtkReconnect(d->SegmentationNode, segmentationNode, vtkSegmentation::SegmentRemoved, this, SLOT(onSegmentAddedRemoved()));
+    qvtkReconnect(d->SegmentationNode, segmentationNode, vtkSegmentation::SegmentModified, this, SLOT(updateMaskingSection()));
+    qvtkReconnect(d->SegmentationNode, segmentationNode, vtkMRMLDisplayableNode::DisplayModifiedEvent, this, SLOT(onSegmentationDisplayModified()));
     d->SegmentationNode = segmentationNode;
 
     bool wasBlocked = d->SegmentationNodeComboBox->blockSignals(true);
@@ -1129,16 +1353,7 @@ void qMRMLSegmentEditorWidget::updateWidgetFromSegmentationNode()
         }
 
       // Set label layer to empty, because edit actor will be shown in the slice views during editing
-      vtkMRMLSelectionNode* selectionNode = qSlicerCoreApplication::application()->applicationLogic()->GetSelectionNode();
-      if (selectionNode)
-        {
-        selectionNode->SetActiveLabelVolumeID(NULL);
-        qSlicerCoreApplication::application()->applicationLogic()->PropagateVolumeSelection();
-        }
-      else
-        {
-        qCritical() << Q_FUNC_INFO << ": Unable to get selection node to show segmentation node " << segmentationNode->GetName();
-        }
+      this->hideLabelLayer();
       }
 
     emit segmentationNodeChanged(d->SegmentationNode);
@@ -1148,93 +1363,6 @@ void qMRMLSegmentEditorWidget::updateWidgetFromSegmentationNode()
 
   // Update closed surface button with new segmentation
   this->onSegmentAddedRemoved();
-
-}
-
-//-----------------------------------------------------------------------------
-std::string qMRMLSegmentEditorWidgetPrivate::getReferenceImageGeometryFromSegmentation(vtkSegmentation* segmentation)
-{
-  if (!segmentation)
-    {
-    return "";
-    }
-
-  // If "reference image geometry" conversion parameter is set then use that
-  std::string referenceImageGeometry = segmentation->GetConversionParameter(vtkSegmentationConverter::GetReferenceImageGeometryParameterName());
-  if (!referenceImageGeometry.empty())
-    {
-    // Extend reference image geometry to contain all segments (needed for example for properly handling imported segments
-    // that do not fit into the reference image geometry)
-    vtkSmartPointer<vtkOrientedImageData> commonGeometryImage = vtkSmartPointer<vtkOrientedImageData>::New();
-    vtkSegmentationConverter::DeserializeImageGeometry(referenceImageGeometry, commonGeometryImage, false);
-    // Determine extent that contains all segments
-    int commonSegmentExtent[6] = { 0, -1, 0, -1, 0, -1 };
-    segmentation->DetermineCommonLabelmapExtent(commonSegmentExtent, commonGeometryImage);
-    if (commonSegmentExtent[0] <= commonSegmentExtent[1]
-      && commonSegmentExtent[2] <= commonSegmentExtent[3]
-      && commonSegmentExtent[4] <= commonSegmentExtent[5])
-      {
-      // Expand commonGeometryExtent as needed to contain commonSegmentExtent
-      int commonGeometryExtent[6] = { 0, -1, 0, -1, 0, -1 };
-      commonGeometryImage->GetExtent(commonGeometryExtent);
-      for (int i = 0; i < 3; i++)
-        {
-        commonGeometryExtent[i * 2] = std::min(commonSegmentExtent[i * 2], commonGeometryExtent[i * 2]);
-        commonGeometryExtent[i * 2 + 1] = std::max(commonSegmentExtent[i * 2 + 1], commonGeometryExtent[i * 2 + 1]);
-        }
-      commonGeometryImage->SetExtent(commonGeometryExtent);
-      referenceImageGeometry = vtkSegmentationConverter::SerializeImageGeometry(commonGeometryImage);
-      }
-
-    // TODO: Use oversampling (if it's 'A' then ignore and changed to 1)
-    return referenceImageGeometry;
-    }
-  if (segmentation->ContainsRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()))
-    {
-    // If no reference image geometry is specified but there are labels already then determine geometry from that
-    referenceImageGeometry = segmentation->DetermineCommonLabelmapGeometry();
-    return referenceImageGeometry;
-    }
-  return "";
-}
-
-//-----------------------------------------------------------------------------
-std::string qMRMLSegmentEditorWidgetPrivate::referenceImageGeometry()
-{
-  if (!this->ParameterSetNode)
-    {
-    qCritical() << Q_FUNC_INFO << ": Invalid segment editor parameter set node";
-    notifyEffectsOfReferenceGeometryChange("");
-    return "";
-    }
-
-  vtkMRMLSegmentationNode* segmentationNode = this->ParameterSetNode->GetSegmentationNode();
-  vtkSegmentation* segmentation = segmentationNode ? segmentationNode->GetSegmentation() : NULL;
-  if (!segmentationNode || !segmentation)
-    {
-    qCritical() << Q_FUNC_INFO << ": Invalid segmentation";
-    notifyEffectsOfReferenceGeometryChange("");
-    return "";
-    }
-
-  std::string referenceImageGeometry;
-  referenceImageGeometry = this->getReferenceImageGeometryFromSegmentation(segmentation);
-  if (referenceImageGeometry.empty())
-    {
-    // If no reference image geometry could be determined then use the master volume's geometry
-    vtkMRMLScalarVolumeNode* masterVolumeNode = this->ParameterSetNode->GetMasterVolumeNode();
-    if (!masterVolumeNode)
-      {
-      // cannot determine reference geometry
-      return "";
-      }
-    // Update the referenceImageGeometry parameter for next time
-    segmentationNode->SetReferenceImageGeometryParameterFromVolumeNode(masterVolumeNode);
-    // Update extents to include all existing segments
-    referenceImageGeometry = this->getReferenceImageGeometryFromSegmentation(segmentation);
-    }
-  notifyEffectsOfReferenceGeometryChange(referenceImageGeometry);
-  return referenceImageGeometry;
 }
 
 //-----------------------------------------------------------------------------
@@ -1287,8 +1415,7 @@ void qMRMLSegmentEditorWidget::onMasterVolumeImageDataModified()
     {
     double range[2] = { 0.0, 0.0 };
     d->MasterVolumeNode->GetImageData()->GetScalarRange(range);
-    d->MasterVolumeIntensityMaskRangeWidget->setMinimum(range[0]);
-    d->MasterVolumeIntensityMaskRangeWidget->setMaximum(range[1]);
+    d->MasterVolumeIntensityMaskRangeWidget->setRange(range[0], range[1]);
     d->MasterVolumeIntensityMaskRangeWidget->setEnabled(true);
     }
   else
@@ -1390,14 +1517,28 @@ void qMRMLSegmentEditorWidget::updateEffectsSectionFromMRML()
     // The captured events are propagated to the active effect if any.
     this->setupViewObservations();
 
+    // Deactivate markup/ruler/ROI placement
+    if (d->InteractionNode && d->InteractionNode->GetCurrentInteractionMode() != vtkMRMLInteractionNode::ViewTransform)
+      {
+      d->InteractionNode->SetCurrentInteractionMode(vtkMRMLInteractionNode::ViewTransform);
+      }
+
     // Activate newly selected effect
     activeEffect->activate();
-    activeEffect->updateGUIFromMRML();
     d->OptionsGroupBox->show();
     d->OptionsGroupBox->setTitle(activeEffect->name());
-    this->updateGeometry();
     d->EffectHelpBrowser->setCollapsibleText(activeEffect->helpText());
     d->MaskingGroupBox->show();
+
+    // Perform updates to prevent layout collapse
+    d->EffectHelpBrowser->setMinimumHeight(d->EffectHelpBrowser->sizeHint().height());
+    if (d->EffectHelpBrowser->layout())
+      {
+      d->EffectHelpBrowser->layout()->update();
+      }
+    activeEffect->optionsFrame()->setMinimumHeight(activeEffect->optionsFrame()->sizeHint().height());
+    activeEffect->optionsLayout()->activate();
+    this->setMinimumHeight(this->sizeHint().height());
     }
   else
     {
@@ -1432,12 +1573,14 @@ void qMRMLSegmentEditorWidget::updateEffectsSectionFromMRML()
   d->setEffectCursor(activeEffect);
 
   // Set active effect
+  d->LastActiveEffect = d->ActiveEffect;
   d->ActiveEffect = activeEffect;
 }
 
 //-----------------------------------------------------------------------------
 void qMRMLSegmentEditorWidget::setMRMLScene(vtkMRMLScene* newScene)
 {
+  Q_D(qMRMLSegmentEditorWidget);
   if (newScene == this->mrmlScene())
     {
     return;
@@ -1447,6 +1590,14 @@ void qMRMLSegmentEditorWidget::setMRMLScene(vtkMRMLScene* newScene)
 
   // Make connections that depend on the Slicer application
   QObject::connect( qSlicerApplication::application()->layoutManager(), SIGNAL(layoutChanged(int)), this, SLOT(onLayoutChanged(int)) );
+
+  vtkMRMLInteractionNode *interactionNode = NULL;
+  if (newScene)
+    {
+    interactionNode = vtkMRMLInteractionNode::SafeDownCast(newScene->GetNodeByID("vtkMRMLInteractionNodeSingleton"));
+    }
+  this->qvtkReconnect(d->InteractionNode, interactionNode, vtkCommand::ModifiedEvent, this, SLOT(onInteractionNodeModified()));
+  d->InteractionNode = interactionNode;
 
   // Update UI
   this->updateWidgetFromMRML();
@@ -1461,6 +1612,20 @@ void qMRMLSegmentEditorWidget::onMRMLSceneEndCloseEvent()
   this->initializeParameterSetNode();
   this->updateWidgetFromMRML();
 }
+
+//-----------------------------------------------------------------------------
+void qMRMLSegmentEditorWidget::onInteractionNodeModified()
+{
+  Q_D(const qMRMLSegmentEditorWidget);
+  if (!d->InteractionNode || !d->ActiveEffect)
+    {
+    return;
+    }
+  // Only notify the active effect about interaction node changes
+  // (inactive effects should not interact with the user)
+  d->ActiveEffect->interactionNodeModified(d->InteractionNode);
+}
+
 //------------------------------------------------------------------------------
 vtkMRMLSegmentEditorNode* qMRMLSegmentEditorWidget::mrmlSegmentEditorNode()const
 {
@@ -1562,7 +1727,7 @@ void qMRMLSegmentEditorWidget::setMasterVolumeNode(vtkMRMLNode* node)
   Q_D(qMRMLSegmentEditorWidget);
   if (node && !d->MasterVolumeNodeComboBox->isEnabled())
     {
-    qCritical() << Q_FUNC_INFO << ": Cannot set master volume until segmentation is selected!";
+    qCritical() << Q_FUNC_INFO << ": Cannot set master volume until segmentation is selected";
     return;
     }
   d->MasterVolumeNodeComboBox->setCurrentNode(node);
@@ -1581,7 +1746,7 @@ void qMRMLSegmentEditorWidget::setMasterVolumeNodeID(const QString& nodeID)
   Q_D(qMRMLSegmentEditorWidget);
   if (!d->MasterVolumeNodeComboBox->isEnabled())
     {
-    qCritical() << Q_FUNC_INFO << ": Cannot set master volume until segmentation is selected!";
+    qCritical() << Q_FUNC_INFO << ": Cannot set master volume until segmentation is selected";
     return;
     }
   d->MasterVolumeNodeComboBox->setCurrentNodeID(nodeID);
@@ -1609,7 +1774,7 @@ void qMRMLSegmentEditorWidget::onSegmentationNodeChanged(vtkMRMLNode* node)
     return;
     }
 
-  setActiveEffect(NULL); // deactivate current effect when we switch to a different segmentation
+  this->setActiveEffect(NULL); // deactivate current effect when we switch to a different segmentation
   d->ParameterSetNode->SetAndObserveSegmentationNode(vtkMRMLSegmentationNode::SafeDownCast(node));
 }
 
@@ -1699,18 +1864,9 @@ void qMRMLSegmentEditorWidget::onMasterVolumeNodeChanged(vtkMRMLNode* node)
     d->ParameterSetNode->SetAndObserveMasterVolumeNode(volumeNode);
     d->ParameterSetNode->EndModify(wasModified);
 
-    if (volumeNode)
+    if (volumeNode && d->AutoShowMasterVolumeNode)
       {
-      // Show reference volume in background layer of slice viewers
-      vtkMRMLSelectionNode* selectionNode = qSlicerCoreApplication::application()->applicationLogic()->GetSelectionNode();
-      if (!selectionNode)
-        {
-        qCritical() << Q_FUNC_INFO << ": Unable to get selection node to show volume node " << volumeNode->GetName();
-        return;
-        }
-      selectionNode->SetActiveVolumeID(volumeNode->GetID());
-      selectionNode->SetSecondaryVolumeID(NULL); // Hide foreground volume
-      qSlicerCoreApplication::application()->applicationLogic()->PropagateVolumeSelection();
+      this->showMasterVolumeInSliceViewers();
       }
 
     // Notify effects about change
@@ -1756,6 +1912,17 @@ void qMRMLSegmentEditorWidget::onAddSegment()
     QStringList segmentIDList;
     segmentIDList << QString(addedSegmentID.c_str());
     d->SegmentsTableView->setSelectedSegmentIDs(segmentIDList);
+    }
+
+  // Assign the new segment the terminology of the (now second) last segment
+  if (segmentationNode->GetSegmentation()->GetNumberOfSegments() > 1)
+    {
+    vtkSegment* secondLastSegment = segmentationNode->GetSegmentation()->GetNthSegment(
+      segmentationNode->GetSegmentation()->GetNumberOfSegments() - 2 );
+    std::string repeatedTerminologyEntry("");
+    secondLastSegment->GetTag(secondLastSegment->GetTerminologyEntryTagName(), repeatedTerminologyEntry);
+    segmentationNode->GetSegmentation()->GetSegment(addedSegmentID)->SetTag(
+      secondLastSegment->GetTerminologyEntryTagName(), repeatedTerminologyEntry );
     }
 }
 
@@ -1814,6 +1981,68 @@ void qMRMLSegmentEditorWidget::onRemoveSegment()
 
   // Remove segment
   segmentationNode->GetSegmentation()->RemoveSegment(selectedSegmentID);
+}
+
+//-----------------------------------------------------------------------------
+qSlicerAbstractModuleWidget* qMRMLSegmentEditorWidget::switchToSegmentationsModule()
+{
+  // Switch to Segmentations module
+  qSlicerAbstractCoreModule* module = qSlicerApplication::application()->moduleManager()->module("Segmentations");
+  qSlicerAbstractModule* moduleWithAction = qobject_cast<qSlicerAbstractModule*>(module);
+  if (!moduleWithAction)
+    {
+    qCritical() << Q_FUNC_INFO << ": Segmentations module not found";
+    return NULL;
+    }
+  moduleWithAction->widgetRepresentation(); // Make sure it's created before showing
+  moduleWithAction->action()->trigger();
+
+  // Get module widget
+  qSlicerAbstractModuleWidget* moduleWidget = dynamic_cast<qSlicerAbstractModuleWidget*>(moduleWithAction->widgetRepresentation());;
+  if (!moduleWidget)
+    {
+    qCritical() << Q_FUNC_INFO << ": Segmentations module is not available";
+    return NULL;
+    }
+
+  return moduleWidget;
+}
+
+//-----------------------------------------------------------------------------
+void qMRMLSegmentEditorWidget::onSwitchToSegmentations()
+{
+  Q_D(qMRMLSegmentEditorWidget);
+
+  vtkMRMLSegmentationNode* segmentationNode = d->ParameterSetNode->GetSegmentationNode();
+  if (!segmentationNode)
+    {
+    return;
+    }
+
+  qSlicerAbstractModuleWidget* moduleWidget = this->switchToSegmentationsModule();
+  if (!moduleWidget)
+    {
+    qCritical() << Q_FUNC_INFO << ": Segmentations module is not found";
+    return;
+    }
+
+  // Get segmentation selector combobox and set segmentation
+  qMRMLNodeComboBox* nodeSelector = moduleWidget->findChild<qMRMLNodeComboBox*>("MRMLNodeComboBox_Segmentation");
+  if (!nodeSelector)
+    {
+    qCritical() << Q_FUNC_INFO << ": MRMLNodeComboBox_Segmentation is not found in Segmentations module";
+    return;
+    }
+  nodeSelector->setCurrentNode(segmentationNode);
+
+  // Get segments table and select segment
+  qMRMLSegmentsTableView* segmentsTable = moduleWidget->findChild<qMRMLSegmentsTableView*>("SegmentsTableView");
+  if (!segmentsTable)
+    {
+    qCritical() << Q_FUNC_INFO << ": SegmentsTableView is not found in Segmentations module";
+    return;
+    }
+  segmentsTable->setSelectedSegmentIDs(d->SegmentsTableView->selectedSegmentIDs());
 }
 
 //-----------------------------------------------------------------------------
@@ -1883,25 +2112,27 @@ void qMRMLSegmentEditorWidget::onSegmentAddedRemoved()
     qCritical() << Q_FUNC_INFO << ": Invalid segment editor parameter set node";
     }
 
-  // Update state of CreateSurfaceButton
+  // Update state of Show3DButton
   if (segmentationNode)
     {
     // Enable button if there is at least one segment in the segmentation
-    d->CreateSurfaceButton->setEnabled(!d->Locked
-      && segmentationNode->GetSegmentation()->GetNumberOfSegments()>0
+    d->Show3DButton->setEnabled( !d->Locked
+      && segmentationNode->GetSegmentation()->GetNumberOfSegments() > 0
       && segmentationNode->GetSegmentation()->GetMasterRepresentationName() !=
-      vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName());
+        vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName() );
+    d->SwitchToSegmentationsButton->setEnabled(true);
 
     // Change button state based on whether it contains closed surface representation
     bool closedSurfacePresent = segmentationNode->GetSegmentation()->ContainsRepresentation(
       vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName() );
-    d->CreateSurfaceButton->blockSignals(true);
-    d->CreateSurfaceButton->setChecked(closedSurfacePresent);
-    d->CreateSurfaceButton->blockSignals(false);
+    d->Show3DButton->blockSignals(true);
+    d->Show3DButton->setChecked(closedSurfacePresent);
+    d->Show3DButton->blockSignals(false);
     }
   else
     {
-    d->CreateSurfaceButton->setEnabled(false);
+    d->Show3DButton->setEnabled(false);
+    d->SwitchToSegmentationsButton->setEnabled(false);
     }
 
   // Update mask mode combo box with current segment names
@@ -1923,9 +2154,6 @@ void qMRMLSegmentEditorWidget::onSegmentAddedRemoved()
 
   if (segmentationNode)
     {
-    //bool labelmapPresent = segmentationNode->GetSegmentation()->ContainsRepresentation(
-    //  vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName() );
-
     vtkSegmentation* segmentation = segmentationNode->GetSegmentation();
     std::vector< std::string > segmentIDs;
     segmentation->GetSegmentIDs(segmentIDs);
@@ -1950,8 +2178,63 @@ void qMRMLSegmentEditorWidget::onSegmentAddedRemoved()
     // switch to the first masking option (no mask).
     d->MaskModeComboBox->setCurrentIndex(0);
     }
-
 }
+
+//---------------------------------------------------------------------------
+void qMRMLSegmentEditorWidget::showMasterVolumeInSliceViewers(bool forceShowInBackground /*=false*/, bool fitSlice /*=false*/)
+{
+  Q_D(qMRMLSegmentEditorWidget);
+  if (!d->ParameterSetNode->GetMasterVolumeNode())
+    {
+    return;
+    }
+    qSlicerLayoutManager* layoutManager = qSlicerApplication::application()->layoutManager();
+  if (!layoutManager)
+    {
+    // application is closing
+    return;
+    }
+  vtkCollection* sliceLogics = layoutManager->mrmlSliceLogics();
+  if (!sliceLogics)
+    {
+    return;
+    }
+  vtkObject* object = NULL;
+  vtkCollectionSimpleIterator it;
+  for (sliceLogics->InitTraversal(it); (object = sliceLogics->GetNextItemAsObject(it));)
+    {
+    vtkMRMLSliceLogic* sliceLogic = vtkMRMLSliceLogic::SafeDownCast(object);
+    if (!sliceLogic)
+      {
+      continue;
+      }
+    vtkMRMLSliceNode* sliceNode = sliceLogic->GetSliceNode();
+    if (!d->segmentationDisplayableInView(sliceNode))
+      {
+      continue;
+      }
+    vtkMRMLSliceCompositeNode* sliceCompositeNode = sliceLogic->GetSliceCompositeNode();
+    if (!sliceCompositeNode)
+      {
+      continue;
+      }
+    std::string backgroundVolumeID = (sliceCompositeNode->GetBackgroundVolumeID() ? sliceCompositeNode->GetBackgroundVolumeID() : "");
+    std::string foregroundVolumeID = (sliceCompositeNode->GetForegroundVolumeID() ? sliceCompositeNode->GetForegroundVolumeID() : "");
+    std::string masterVolumeID = (d->ParameterSetNode->GetMasterVolumeNode()->GetID() ? d->ParameterSetNode->GetMasterVolumeNode()->GetID() : "");
+    bool masterVolumeAlreadyShown = (backgroundVolumeID == masterVolumeID || foregroundVolumeID == masterVolumeID);
+    if (!masterVolumeAlreadyShown || forceShowInBackground)
+      {
+      sliceCompositeNode->SetBackgroundVolumeID(d->ParameterSetNode->GetMasterVolumeNode()->GetID());
+      sliceCompositeNode->SetForegroundVolumeID(NULL);
+      sliceCompositeNode->SetLabelVolumeID(NULL);
+      }
+    if (fitSlice)
+      {
+      sliceLogic->FitSliceToAll(true);
+      }
+    }
+}
+
 
 //---------------------------------------------------------------------------
 void qMRMLSegmentEditorWidget::onLayoutChanged(int layoutIndex)
@@ -1959,21 +2242,21 @@ void qMRMLSegmentEditorWidget::onLayoutChanged(int layoutIndex)
   Q_D(qMRMLSegmentEditorWidget);
   Q_UNUSED(layoutIndex);
 
-  // Refresh view observations with the new layout
-  this->setupViewObservations();
-
-  // Set volume selection to all slice viewers in new layout
-  vtkMRMLSelectionNode* selectionNode = qSlicerCoreApplication::application()->applicationLogic()->GetSelectionNode();
-  if (selectionNode && d->ParameterSetNode)
+  if (d->ViewsObserved)
     {
-    selectionNode->SetActiveVolumeID(d->ParameterSetNode->GetMasterVolumeNode() ? d->ParameterSetNode->GetMasterVolumeNode()->GetID() : NULL);
-    selectionNode->SetSecondaryVolumeID(NULL);
-    selectionNode->SetActiveLabelVolumeID(NULL);
-    qSlicerCoreApplication::application()->applicationLogic()->PropagateVolumeSelection();
+    // Refresh view observations with the new layout
+    this->setupViewObservations();
+
+    if (d->AutoShowMasterVolumeNode)
+      {
+      // Set volume selection to all slice viewers in new layout
+      this->showMasterVolumeInSliceViewers();
+      }
+
+    // Let effects know about the updated layout
+    d->notifyEffectsOfLayoutChange();
     }
 
-  // Let effects know about the updated layout
-  d->notifyEffectsOfLayoutChange();
 }
 
 //---------------------------------------------------------------------------
@@ -2081,14 +2364,25 @@ void qMRMLSegmentEditorWidget::setupViewObservations()
   // Make sure previous observations are cleared before setting up the new ones
   this->removeViewObservations();
 
+  d->ObservedViewNodeIDs.clear();
+
   // Set up interactor observations
   qSlicerLayoutManager* layoutManager = qSlicerApplication::application()->layoutManager();
+  if (!layoutManager)
+    {
+    // application is closing
+    return;
+    }
 
   // Slice views
   foreach (QString sliceViewName, layoutManager->sliceViewNames())
     {
     // Create command for slice view
     qMRMLSliceWidget* sliceWidget = layoutManager->sliceWidget(sliceViewName);
+    if (!d->segmentationDisplayableInView(sliceWidget->mrmlSliceNode()))
+      {
+      continue;
+      }
     qMRMLSliceView* sliceView = sliceWidget->sliceView();
     vtkNew<vtkSegmentEditorEventCallbackCommand> interactionCallbackCommand;
     interactionCallbackCommand->EditorWidget = this;
@@ -2130,6 +2424,10 @@ void qMRMLSegmentEditorWidget::setupViewObservations()
     {
     // Create command for 3D view
     qMRMLThreeDWidget* threeDWidget = layoutManager->threeDWidget(threeDViewId);
+    if (!d->segmentationDisplayableInView(threeDWidget->mrmlViewNode()))
+      {
+      continue;
+      }
     qMRMLThreeDView* threeDView = threeDWidget->threeDView();
     vtkNew<vtkSegmentEditorEventCallbackCommand> interactionCallbackCommand;
     interactionCallbackCommand->EditorWidget = this;
@@ -2165,6 +2463,20 @@ void qMRMLSegmentEditorWidget::setupViewObservations()
     viewNodeObservation.ObservationTags << viewNode->AddObserver(vtkCommand::ModifiedEvent, viewNodeObservation.CallbackCommand, 1.0);
     d->EventObservations << viewNodeObservation;
     }
+
+  if (d->SegmentationNode)
+    {
+    int numberOfDisplayNodes = d->SegmentationNode->GetNumberOfDisplayNodes();
+    for (int displayNodeIndex = 0; displayNodeIndex < numberOfDisplayNodes; displayNodeIndex++)
+      {
+      vtkMRMLDisplayNode* segmentationDisplayNode = d->SegmentationNode->GetNthDisplayNode(displayNodeIndex);
+      d->ObservedViewNodeIDs[segmentationDisplayNode->GetID()] = segmentationDisplayNode->GetViewNodeIDs();
+      }
+    }
+
+  d->ObservedViewNodeIDs.clear();
+
+  d->ViewsObserved = true;
 }
 
 //-----------------------------------------------------------------------------
@@ -2182,6 +2494,7 @@ void qMRMLSegmentEditorWidget::removeViewObservations()
       }
     }
   d->EventObservations.clear();
+  d->ViewsObserved = false;
 }
 
 //---------------------------------------------------------------------------
@@ -2245,7 +2558,7 @@ void qMRMLSegmentEditorWidget::processEvents(vtkObject* caller,
   qMRMLWidget* viewWidget = callbackCommand->ViewWidget.data();
   if (!self || !viewWidget)
     {
-    qCritical() << Q_FUNC_INFO << ": Invalid event data!";
+    qCritical() << Q_FUNC_INFO << ": Invalid event data";
     return;
     }
   // Do nothing if scene is closing
@@ -2280,7 +2593,7 @@ void qMRMLSegmentEditorWidget::processEvents(vtkObject* caller,
     }
   else
     {
-    qCritical() << Q_FUNC_INFO << ": Unsupported caller object!";
+    qCritical() << Q_FUNC_INFO << ": Unsupported caller object";
     }
 }
 
@@ -2380,6 +2693,20 @@ void qMRMLSegmentEditorWidget::setMasterVolumeNodeSelectorVisible(bool visible)
 }
 
 //-----------------------------------------------------------------------------
+bool qMRMLSegmentEditorWidget::switchToSegmentationsButtonVisible() const
+{
+  Q_D(const qMRMLSegmentEditorWidget);
+  return d->SwitchToSegmentationsButton->isVisible();
+}
+
+//-----------------------------------------------------------------------------
+void qMRMLSegmentEditorWidget::setSwitchToSegmentationsButtonVisible(bool visible)
+{
+  Q_D(qMRMLSegmentEditorWidget);
+  d->SwitchToSegmentationsButton->setVisible(visible);
+}
+
+//-----------------------------------------------------------------------------
 bool qMRMLSegmentEditorWidget::undoEnabled() const
 {
   Q_D(const qMRMLSegmentEditorWidget);
@@ -2431,6 +2758,19 @@ void qMRMLSegmentEditorWidget::setReadOnly(bool aReadOnly)
   this->updateWidgetFromMRML();
 }
 
+//------------------------------------------------------------------------------
+void qMRMLSegmentEditorWidget::toggleMasterVolumeIntensityMaskEnabled()
+{
+  Q_D(qMRMLSegmentEditorWidget);
+  if (!d->ParameterSetNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid segment editor parameter set node";
+    return;
+  }
+  d->ParameterSetNode->SetMasterVolumeIntensityMask(
+    !d->ParameterSetNode->GetMasterVolumeIntensityMask());
+}
+
 //-----------------------------------------------------------------------------
 void qMRMLSegmentEditorWidget::undo()
 {
@@ -2477,19 +2817,41 @@ void qMRMLSegmentEditorWidget::installKeyboardShortcuts(QWidget* parent /*=NULL*
     QObject::connect(s, SIGNAL(activated()), this, SLOT(onSelectEffectShortcut()));
     }
 
+  // Keys Shift + 1, 2, ..., 9, 0 => toggle activation of effect 11..20
+  for (int effectIndex = 1; effectIndex <= 10; effectIndex++)
+    {
+    QShortcut* s = new QShortcut(QKeySequence("Shift+"+QString::number(effectIndex % 10)), parent);
+    d->KeyboardShortcuts.push_back(s);
+    s->setProperty("effectIndex", effectIndex+10);
+    QObject::connect(s, SIGNAL(activated()), this, SLOT(onSelectEffectShortcut()));
+    }
+
   // Escape => deactivate active effect
   QShortcut* deactivateEffectShortcut = new QShortcut(QKeySequence(Qt::Key_Escape), parent);
   d->KeyboardShortcuts.push_back(deactivateEffectShortcut);
   deactivateEffectShortcut->setProperty("effectIndex", 0);
   QObject::connect(deactivateEffectShortcut, SIGNAL(activated()), this, SLOT(onSelectEffectShortcut()));
 
+  // Space => activate/deactivate last effect
+  QShortcut* toggleActiveEffectShortcut = new QShortcut(QKeySequence(Qt::Key_Space), parent);
+  d->KeyboardShortcuts.push_back(toggleActiveEffectShortcut);
+  toggleActiveEffectShortcut->setProperty("effectIndex", -1);
+  QObject::connect(toggleActiveEffectShortcut, SIGNAL(activated()), this, SLOT(onSelectEffectShortcut()));
+
   // z, y => undo, redo
   QShortcut* undoShortcut = new QShortcut(QKeySequence(Qt::Key_Z), parent);
   d->KeyboardShortcuts.push_back(undoShortcut);
   QObject::connect(undoShortcut, SIGNAL(activated()), this, SLOT(undo()));
+  QShortcut* undoShortcut2 = new QShortcut(QKeySequence::Undo, parent);
+  d->KeyboardShortcuts.push_back(undoShortcut2);
+  QObject::connect(undoShortcut2, SIGNAL(activated()), this, SLOT(undo()));
+
   QShortcut* redoShortcut = new QShortcut(QKeySequence(Qt::Key_Y), parent);
   d->KeyboardShortcuts.push_back(redoShortcut);
   QObject::connect(redoShortcut, SIGNAL(activated()), this, SLOT(redo()));
+  QShortcut* redoShortcut2 = new QShortcut(QKeySequence::Redo, parent);
+  d->KeyboardShortcuts.push_back(redoShortcut2);
+  QObject::connect(redoShortcut2, SIGNAL(activated()), this, SLOT(redo()));
 
   // Keys qw/*,.<> => select previous, next segment
   Qt::Key prevNexSegmentKeys[] =
@@ -2512,6 +2874,10 @@ void qMRMLSegmentEditorWidget::installKeyboardShortcuts(QWidget* parent /*=NULL*
     nextShortcut->setProperty("segmentIndexOffset", +1);
     QObject::connect(nextShortcut, SIGNAL(activated()), this, SLOT(onSelectSegmentShortcut()));
     }
+
+  QShortcut* toggleMasterVolumeIntensityMaskShortcut = new QShortcut(QKeySequence(Qt::Key_I), parent);
+  d->KeyboardShortcuts.push_back(toggleMasterVolumeIntensityMaskShortcut);
+  QObject::connect(toggleMasterVolumeIntensityMaskShortcut, SIGNAL(activated()), this, SLOT(toggleMasterVolumeIntensityMaskEnabled()));
 }
 
 //-----------------------------------------------------------------------------
@@ -2536,15 +2902,22 @@ void qMRMLSegmentEditorWidget::onSelectEffectShortcut()
     {
     return;
     }
-  int selectedEffectIndex = shortcut->property("effectIndex").toInt();
-  qSlicerSegmentEditorAbstractEffect* selectedEffect = this->effectByIndex(selectedEffectIndex);
   qSlicerSegmentEditorAbstractEffect* activeEffect = this->activeEffect();
-  if (selectedEffect == activeEffect)
+  int selectedEffectIndex = shortcut->property("effectIndex").toInt();
+  if (selectedEffectIndex >= 0)
     {
-    // effect is already active => deactivate it
-    selectedEffect = NULL;
+    qSlicerSegmentEditorAbstractEffect* selectedEffect = this->effectByIndex(selectedEffectIndex);
+    if (selectedEffect == activeEffect)
+      {
+      // effect is already active => deactivate it
+      selectedEffect = NULL;
+      }
+    this->setActiveEffect(selectedEffect);
     }
-  this->setActiveEffect(selectedEffect);
+  else
+    {
+    this->setActiveEffect(d->LastActiveEffect);
+    }
 }
 
 //-----------------------------------------------------------------------------
@@ -2584,8 +2957,46 @@ void qMRMLSegmentEditorWidget::onSelectSegmentShortcut()
 }
 
 //---------------------------------------------------------------------------
+void qMRMLSegmentEditorWidget::hideLabelLayer()
+{
+  Q_D(qMRMLSegmentEditorWidget);
+  qSlicerLayoutManager* layoutManager = qSlicerApplication::application()->layoutManager();
+  if (!layoutManager)
+    {
+    // application is closing
+    return;
+    }
+  vtkCollection* sliceLogics = layoutManager->mrmlSliceLogics();
+  if (!sliceLogics)
+    {
+    return;
+    }
+  vtkObject* object = NULL;
+  vtkCollectionSimpleIterator it;
+  for (sliceLogics->InitTraversal(it); (object = sliceLogics->GetNextItemAsObject(it));)
+    {
+    vtkMRMLSliceLogic* sliceLogic = vtkMRMLSliceLogic::SafeDownCast(object);
+    if (!sliceLogic)
+      {
+      continue;
+      }
+    if (!d->segmentationDisplayableInView(sliceLogic->GetSliceNode()))
+      {
+      continue;
+      }
+    vtkMRMLSliceCompositeNode* sliceCompositeNode = sliceLogic->GetSliceCompositeNode();
+    if (!sliceCompositeNode)
+      {
+      continue;
+      }
+    sliceCompositeNode->SetLabelVolumeID(NULL);
+    }
+}
+
+//---------------------------------------------------------------------------
 bool qMRMLSegmentEditorWidget::turnOffLightboxes()
 {
+  Q_D(qMRMLSegmentEditorWidget);
   qSlicerLayoutManager* layoutManager = qSlicerApplication::application()->layoutManager();
   if (!layoutManager)
     {
@@ -2610,6 +3021,10 @@ bool qMRMLSegmentEditorWidget::turnOffLightboxes()
       }
     vtkMRMLSliceNode* sliceNode = sliceLogic->GetSliceNode();
     if (!sliceNode)
+      {
+      continue;
+      }
+    if (!d->segmentationDisplayableInView(sliceNode))
       {
       continue;
       }
@@ -2677,4 +3092,187 @@ void qMRMLSegmentEditorWidget::masterVolumeNodeSelectorRemoveAttribute(const QSt
 {
   Q_D(qMRMLSegmentEditorWidget);
   d->MasterVolumeNodeComboBox->removeAttribute(nodeType, attributeName);
+}
+
+//-----------------------------------------------------------------------------
+void qMRMLSegmentEditorWidget::anchorClicked(const QUrl &url)
+{
+  if (url.path().isEmpty())
+    {
+    this->updateEffectLayouts();
+    }
+}
+
+//-----------------------------------------------------------------------------
+void qMRMLSegmentEditorWidget::updateEffectLayouts()
+{
+  Q_D(qMRMLSegmentEditorWidget);
+
+  if (d->ActiveEffect)
+    {
+    d->EffectHelpBrowser->setMinimumHeight(d->EffectHelpBrowser->sizeHint().height());
+    if (d->EffectHelpBrowser->layout())
+      {
+      d->EffectHelpBrowser->layout()->update();
+      }
+    d->ActiveEffect->optionsFrame()->setMinimumHeight(d->ActiveEffect->optionsFrame()->sizeHint().height());
+    d->ActiveEffect->optionsLayout()->activate();
+    }
+  else
+    {
+    d->OptionsGroupBox->setMinimumHeight(d->OptionsGroupBox->sizeHint().height());
+    d->OptionsGroupBox->layout()->activate();
+    }
+
+  this->setMinimumHeight(this->sizeHint().height());
+}
+
+//-----------------------------------------------------------------------------
+void qMRMLSegmentEditorWidget::onSetSurfaceSmoothingClicked()
+{
+  Q_D(qMRMLSegmentEditorWidget);
+
+  // Get segmentation node
+  vtkMRMLSegmentationNode* segmentationNode = NULL;
+  if (d->ParameterSetNode)
+    {
+    segmentationNode = d->ParameterSetNode->GetSegmentationNode();
+    }
+  else
+    {
+    qCritical() << Q_FUNC_INFO << ": Invalid segment editor parameter set node";
+    }
+  if (!segmentationNode)
+    {
+    qCritical() << Q_FUNC_INFO << ": No segmentation selected";
+    }
+
+  // Get smoothing factor
+  double originalSmoothingFactor = QString( segmentationNode->GetSegmentation()->GetConversionParameter(
+    vtkBinaryLabelmapToClosedSurfaceConversionRule::GetSmoothingFactorParameterName() ).c_str() ).toDouble();
+
+  // Pop up dialog to choose smoothing factor
+  bool ok = false;
+  double newSmoothingFactor = QInputDialog::getDouble(NULL, tr("Set surface smoothing"),
+    tr("Enter value between 0 (no smoothing)\n and 1 (maximum smoothing)"), originalSmoothingFactor, 0.0, 1.0, 2, &ok);
+  if (!ok)
+    {
+    qWarning() << Q_FUNC_INFO << ": Failed to get valid dose unit value from dialog. Check study node attributes.";
+    }
+
+  // Set smoothing factor
+  if (newSmoothingFactor != originalSmoothingFactor)
+    {
+    segmentationNode->GetSegmentation()->SetConversionParameter(
+      vtkBinaryLabelmapToClosedSurfaceConversionRule::GetSmoothingFactorParameterName(),
+      QVariant(newSmoothingFactor).toString().toLatin1().constData() );
+    segmentationNode->GetSegmentation()->CreateRepresentation(
+      vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName(), true );
+    segmentationNode->Modified();
+    }
+}
+
+//-----------------------------------------------------------------------------
+void qMRMLSegmentEditorWidget::onImportExportActionClicked()
+{
+  Q_D(qMRMLSegmentEditorWidget);
+
+  vtkMRMLSegmentationNode* segmentationNode = d->ParameterSetNode->GetSegmentationNode();
+  if (!segmentationNode)
+    {
+    return;
+    }
+
+  qSlicerAbstractModuleWidget* moduleWidget = this->switchToSegmentationsModule();
+  if (!moduleWidget)
+    {
+    qCritical() << Q_FUNC_INFO << ": Segmentations module is not found";
+    return;
+    }
+
+  // Get import/export collapsible button and uncollapse it
+  ctkCollapsibleButton* collapsibleButton = moduleWidget->findChild<ctkCollapsibleButton*>("CollapsibleButton_ImportExportSegment");
+  if (!collapsibleButton)
+    {
+    qCritical() << Q_FUNC_INFO << ": CollapsibleButton_ImportExportSegment is not found in Segmentations module";
+    return;
+    }
+  collapsibleButton->setCollapsed(false);
+
+  // Make sure import/export is visible
+  if (moduleWidget->parent() && moduleWidget->parent()->parent() && moduleWidget->parent()->parent()->parent())
+    {
+    QScrollArea* segmentationsScrollArea = qobject_cast<QScrollArea*>(moduleWidget->parent()->parent()->parent());
+    if (segmentationsScrollArea)
+      {
+      segmentationsScrollArea->ensureWidgetVisible(collapsibleButton);
+      }
+    }
+}
+
+//-----------------------------------------------------------------------------
+void qMRMLSegmentEditorWidget::onSegmentationDisplayModified()
+{
+  Q_D(qMRMLSegmentEditorWidget);
+  // Update observed views
+
+  if (!d->ViewsObserved)
+    {
+    // no views are observed, nothing to do
+    return;
+    }
+
+  if (!d->SegmentationNode)
+    {
+    return;
+    }
+
+  bool observedNodeIDsChanged = false;
+  if (d->ObservedViewNodeIDs.size() == d->SegmentationNode->GetNumberOfDisplayNodes())
+    {
+    int numberOfDisplayNodes = d->SegmentationNode->GetNumberOfDisplayNodes();
+    for (int displayNodeIndex = 0; displayNodeIndex < numberOfDisplayNodes; displayNodeIndex++)
+      {
+      vtkMRMLDisplayNode* segmentationDisplayNode = d->SegmentationNode->GetNthDisplayNode(displayNodeIndex);
+      if (!d->ObservedViewNodeIDs.contains(segmentationDisplayNode->GetID()))
+        {
+        observedNodeIDsChanged = true;
+        break;
+        }
+      if (d->ObservedViewNodeIDs[segmentationDisplayNode->GetID()] != segmentationDisplayNode->GetViewNodeIDs())
+        {
+        observedNodeIDsChanged = true;
+        break;
+        }
+      }
+    }
+  else
+    {
+    observedNodeIDsChanged = true;
+    }
+  if (!observedNodeIDsChanged)
+    {
+    return;
+    }
+
+  // Refresh view observations
+  this->onLayoutChanged(-1);
+}
+
+//---------------------------------------------------------------------------
+bool qMRMLSegmentEditorWidget::autoShowMasterVolumeNode() const
+{
+  Q_D(const qMRMLSegmentEditorWidget);
+  return d->AutoShowMasterVolumeNode;
+}
+
+//---------------------------------------------------------------------------
+void qMRMLSegmentEditorWidget::setAutoShowMasterVolumeNode(bool autoShow)
+{
+  Q_D(qMRMLSegmentEditorWidget);
+  if (d->AutoShowMasterVolumeNode == autoShow)
+    {
+    return;
+    }
+  d->AutoShowMasterVolumeNode = autoShow;
 }

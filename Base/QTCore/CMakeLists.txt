@@ -40,6 +40,11 @@ if(Slicer_BUILD_EXTENSIONMANAGER_SUPPORT)
 endif()
 
 #
+# CTKAppLauncherLib
+#
+find_package(CTKAppLauncherLib REQUIRED)
+
+#
 # See CMake/SlicerMacroBuildBaseQtLibrary.cmake for details
 #
 
@@ -159,10 +164,12 @@ if(Slicer_USE_PYTHONQT)
     )
 endif()
 
-# Additional Target libraries (QT libs already included)
+# Additional Target libraries
 set(KIT_target_libraries
+  ${QT_LIBRARIES}
   SlicerBaseLogic
   MRMLDisplayableManager
+  ${CTKAppLauncherLib_LIBRARIES}
   CTKCore
   CTKImageProcessingITKCore
   CTKVisualizationVTKCore
@@ -226,7 +233,7 @@ if(Slicer_USE_PYTHONQT)
     list(APPEND KIT_target_libraries
       ${PYTHONQT_LIBRARY}
       )
-  endif(WIN32)
+  endif()
 
   # Sources
   list(APPEND KIT_SRCS
@@ -239,7 +246,7 @@ if(Slicer_USE_PYTHONQT)
     qSlicerCorePythonManager.h
     )
 
-endif(Slicer_USE_PYTHONQT)
+endif()
 
 SlicerMacroBuildBaseQtLibrary(
   NAME ${PROJECT_NAME}

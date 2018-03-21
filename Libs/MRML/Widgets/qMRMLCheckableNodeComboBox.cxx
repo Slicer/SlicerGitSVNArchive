@@ -20,7 +20,9 @@
 
 // Qt includes
 #include <QDebug>
+#if (QT_VERSION < QT_VERSION_CHECK(5, 0, 0))
 #include <QPlastiqueStyle>
+#endif
 #include <QStandardItem>
 
 // CTK includes
@@ -45,8 +47,6 @@ public:
   qMRMLCheckableNodeComboBoxPrivate(qMRMLCheckableNodeComboBox& object);
   virtual ~qMRMLCheckableNodeComboBoxPrivate();
   virtual void init(QAbstractItemModel* model);
-
-  QStyle* ComboBoxStyle;
 };
 
 // -----------------------------------------------------------------------------
@@ -55,16 +55,11 @@ qMRMLCheckableNodeComboBoxPrivate
   : qMRMLNodeComboBoxPrivate(object)
   , q_ptr(&object)
 {
-  this->ComboBoxStyle = 0;
 }
 
 // -----------------------------------------------------------------------------
 qMRMLCheckableNodeComboBoxPrivate::~qMRMLCheckableNodeComboBoxPrivate()
 {
-  if (this->ComboBoxStyle)
-    {
-    delete this->ComboBoxStyle;
-    }
 }
 
 // -----------------------------------------------------------------------------
@@ -72,10 +67,7 @@ void qMRMLCheckableNodeComboBoxPrivate::init(QAbstractItemModel* model)
 {
   Q_Q(qMRMLCheckableNodeComboBox);
 
-  this->ComboBoxStyle = new QPlastiqueStyle();
   this->ComboBox = new ctkCheckableComboBox;
-  this->ComboBox->setStyle(this->ComboBoxStyle);
-
   this->qMRMLNodeComboBoxPrivate::init(model);
 
   q->setAddEnabled(false);

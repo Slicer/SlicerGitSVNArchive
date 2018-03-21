@@ -24,7 +24,7 @@
 // VTK includes
 #include <vtkObject.h>
 
-#include "vtkMRMLDisplayableManagerWin32Header.h"
+#include "vtkMRMLDisplayableManagerExport.h"
 
 class vtkRenderer;
 class vtkMRMLApplicationLogic;
@@ -39,7 +39,7 @@ class VTK_MRML_DISPLAYABLEMANAGER_EXPORT vtkMRMLDisplayableManagerFactory : publ
 public:
   static vtkMRMLDisplayableManagerFactory* New();
   vtkTypeMacro(vtkMRMLDisplayableManagerFactory,vtkObject);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   enum
   {

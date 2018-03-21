@@ -33,29 +33,55 @@ if(NOT DEFINED DCMTK_DIR AND NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
       )
   endif()
 
+  set(ep_cxx_standard_args)
+  # XXX: On MSVC disable building DCMTK with C++11. DCMTK checks C++11.
+  # compiler compatibility by inspecting __cplusplus, but MSVC doesn't set __cplusplus.
+  # See https://blogs.msdn.microsoft.com/vcblog/2016/06/07/standards-version-switches-in-the-compiler/.
+  # Microsoft: "We won’t update __cplusplus until the compiler fully conforms to
+  # the standard. Until then, you can check the value of _MSVC_LANG."
+  if(CMAKE_CXX_STANDARD AND UNIX)
+    list(APPEND ep_cxx_standard_args
+      -DCMAKE_CXX_STANDARD:STRING=${CMAKE_CXX_STANDARD}
+      -DCMAKE_CXX_STANDARD_REQUIRED:BOOL=${CMAKE_CXX_STANDARD_REQUIRED}
+      -DCMAKE_CXX_EXTENSIONS:BOOL=${CMAKE_CXX_EXTENSIONS}
+      )
+    if(NOT CMAKE_CXX_STANDARD EQUAL 98)
+      list(APPEND ep_cxx_standard_args
+      -DDCMTK_ENABLE_CXX11:BOOL=ON
+      )
+    endif()
+  endif()
+
   ExternalProject_SetIfNotDefined(
     ${CMAKE_PROJECT_NAME}_${proj}_GIT_REPOSITORY
-    "${git_protocol}://git.dcmtk.org/dcmtk"
+    "${git_protocol}://github.com/commontk/dcmtk"
     QUIET
     )
 
   ExternalProject_SetIfNotDefined(
     ${CMAKE_PROJECT_NAME}_${proj}_GIT_TAG
-    "d8ed091cda2b815226eafe41f5b4fe3bd22f8d5d"
+    # Include patches for:
+    # * DCMTK_ENABLE_CXX11 support on Linux
+    # * Set CMP0067 to ensure try_compile work as expected
+    "88225bc0a3bcaf2d4e4f212522659a06d80ac3bb" # v3.6.3_20180205
     QUIET
     )
+
+  set(EP_SOURCE_DIR ${CMAKE_BINARY_DIR}/${proj})
+  set(EP_BINARY_DIR ${CMAKE_BINARY_DIR}/${proj}-build)
 
   ExternalProject_Add(${proj}
     ${${proj}_EP_ARGS}
     GIT_REPOSITORY "${${CMAKE_PROJECT_NAME}_${proj}_GIT_REPOSITORY}"
     GIT_TAG "${${CMAKE_PROJECT_NAME}_${proj}_GIT_TAG}"
-    SOURCE_DIR ${proj}
-    BINARY_DIR ${proj}-build
+    SOURCE_DIR ${EP_SOURCE_DIR}
+    BINARY_DIR ${EP_BINARY_DIR}
     CMAKE_CACHE_ARGS
       -DCMAKE_CXX_COMPILER:FILEPATH=${CMAKE_CXX_COMPILER}
       -DCMAKE_CXX_FLAGS:STRING=${ep_common_cxx_flags}
       -DCMAKE_C_COMPILER:FILEPATH=${CMAKE_C_COMPILER}
       -DCMAKE_C_FLAGS:STRING=${ep_common_c_flags}
+      ${ep_cxx_standard_args}
       ${CMAKE_PROJECT_INCLUDE_EXTERNAL_PROJECT_ARG}
       -DBUILD_SHARED_LIBS:BOOL=ON
       -DDCMTK_WITH_DOXYGEN:BOOL=OFF
@@ -69,6 +95,8 @@ if(NOT DEFINED DCMTK_DIR AND NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
       -DDCMTK_ENABLE_BUILTIN_DICTIONARY:BOOL=ON
       -DDCMTK_ENABLE_PRIVATE_TAGS:BOOL=ON
       ${EXTERNAL_PROJECT_OPTIONAL_ARGS}
+      # macOS
+      -DCMAKE_MACOSX_RPATH:BOOL=0
     INSTALL_COMMAND ""
     DEPENDS
       ${${proj}_DEPENDENCIES}
@@ -76,7 +104,7 @@ if(NOT DEFINED DCMTK_DIR AND NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
 
   ExternalProject_GenerateProjectDescription_Step(${proj})
 
-  set(DCMTK_DIR ${CMAKE_BINARY_DIR}/${proj}-build)
+  set(DCMTK_DIR ${EP_BINARY_DIR})
 
   #-----------------------------------------------------------------------------
   # Launcher setting specific to build tree

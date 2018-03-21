@@ -34,8 +34,6 @@ set(${KIT}_SRCS
   qSlicerSubjectHierarchyPluginHandler.h
   qSlicerSubjectHierarchyDefaultPlugin.cxx
   qSlicerSubjectHierarchyDefaultPlugin.h
-  qSlicerSubjectHierarchyScriptedPlugin.cxx
-  qSlicerSubjectHierarchyScriptedPlugin.h
   qSlicerSubjectHierarchyCloneNodePlugin.cxx
   qSlicerSubjectHierarchyCloneNodePlugin.h
   qSlicerSubjectHierarchyChartsPlugin.cxx
@@ -47,13 +45,18 @@ set(${KIT}_SRCS
   qSlicerSubjectHierarchyFolderPlugin.cxx
   qSlicerSubjectHierarchyFolderPlugin.h
   )
+if(Slicer_USE_PYTHONQT)
+  list(APPEND ${KIT}_SRCS
+    qSlicerSubjectHierarchyScriptedPlugin.cxx
+    qSlicerSubjectHierarchyScriptedPlugin.h
+    )
+endif()
 
 set(${KIT}_MOC_SRCS
   qSlicerSubjectHierarchyPluginLogic.h
   qSlicerSubjectHierarchyAbstractPlugin.h
   qSlicerSubjectHierarchyPluginHandler.h
   qSlicerSubjectHierarchyDefaultPlugin.h
-  qSlicerSubjectHierarchyScriptedPlugin.h
   qSlicerSubjectHierarchyCloneNodePlugin.h
   qSlicerSubjectHierarchyChartsPlugin.h
   qSlicerSubjectHierarchyParseLocalDataPlugin.h
@@ -65,6 +68,11 @@ set(${KIT}_MOC_SRCS
   qMRMLSubjectHierarchyModel.h
   qMRMLSortFilterSubjectHierarchyProxyModel.h
   )
+if(Slicer_USE_PYTHONQT)
+  list(APPEND ${KIT}_MOC_SRCS
+    qSlicerSubjectHierarchyScriptedPlugin.h
+    )
+endif()
 
 set(${KIT}_UI_SRCS
   )
@@ -105,4 +113,6 @@ if(Slicer_USE_PYTHONQT)
 endif()
 
 #-----------------------------------------------------------------------------
-add_subdirectory(DesignerPlugins)
+if(Slicer_BUILD_QT_DESIGNER_PLUGINS)
+  add_subdirectory(DesignerPlugins)
+endif()

@@ -1,10 +1,16 @@
 
+include(ListToString)
+
 set(proj python)
 
 # Set dependency list
-set(${proj}_DEPENDENCIES zlib)
+set(${proj}_DEPENDENCIES "")
 if(NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM_python)
-  list(APPEND ${proj}_DEPENDENCIES CTKAPPLAUNCHER)
+  list(APPEND ${proj}_DEPENDENCIES
+    bzip2
+    CTKAPPLAUNCHER
+    zlib
+    )
 endif()
 if(Slicer_USE_PYTHONQT_WITH_TCL)
   if(WIN32)
@@ -36,8 +42,8 @@ if(${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
   unset(PYTHON_INCLUDE_DIR CACHE)
   unset(PYTHON_LIBRARY CACHE)
   unset(PYTHON_EXECUTABLE CACHE)
-  find_package(PythonLibs REQUIRED)
-  find_package(PythonInterp REQUIRED)
+  find_package(PythonLibs 2.7 REQUIRED)
+  find_package(PythonInterp 2.7 REQUIRED)
   set(PYTHON_INCLUDE_DIR ${PYTHON_INCLUDE_DIRS})
   set(PYTHON_LIBRARY ${PYTHON_LIBRARIES})
   set(PYTHON_EXECUTABLE ${PYTHON_EXECUTABLE})
@@ -52,7 +58,7 @@ if((NOT DEFINED PYTHON_INCLUDE_DIR
   ExternalProject_Add(python-source
     URL "https://www.python.org/ftp/python/2.7.13/Python-2.7.13.tgz"
     URL_MD5 "17add4bf0ad0ec2f08e0cae6d205c700"
-    DOWNLOAD_DIR ${CMAKE_CURRENT_BINARY_DIR}
+    DOWNLOAD_DIR ${CMAKE_BINARY_DIR}
     SOURCE_DIR ${python_SOURCE_DIR}
     CONFIGURE_COMMAND ""
     BUILD_COMMAND ""
@@ -68,9 +74,9 @@ if((NOT DEFINED PYTHON_INCLUDE_DIR
   if(Slicer_USE_PYTHONQT_WITH_TCL)
     list(APPEND EXTERNAL_PROJECT_OPTIONAL_CMAKE_ARGS
       -DTCL_LIBRARY:FILEPATH=${TCL_LIBRARY}
-      -DTCL_INCLUDE_PATH:PATH=${CMAKE_CURRENT_BINARY_DIR}/tcl-build/include
+      -DTCL_INCLUDE_PATH:PATH=${Slicer_TCL_DIR}/include
       -DTK_LIBRARY:FILEPATH=${TK_LIBRARY}
-      -DTK_INCLUDE_PATH:PATH=${CMAKE_CURRENT_BINARY_DIR}/tcl-build/include
+      -DTK_INCLUDE_PATH:PATH=${Slicer_TCL_DIR}/include
       )
   endif()
 
@@ -88,12 +94,15 @@ if((NOT DEFINED PYTHON_INCLUDE_DIR
       )
   endif()
 
-  # Force modules that statically link to zlib to not be built-in.  Otherwise,
-  # when building in Debug configuration, the Python library--which we force to
-  # build in Release configuration--would mix Debug and Release C runtime
-  # libraries.
+  # Force modules that statically link to zlib or libbz2 to not be built-in.
+  # Otherwise, when building in Debug configuration, the Python library--which
+  # we force to build in Release configuration--would mix Debug and Release C
+  # runtime libraries.
   if(WIN32)
     list(APPEND EXTERNAL_PROJECT_OPTIONAL_CMAKE_ARGS
+        # Depends on libbz2
+        -DBUILTIN_BZ2:BOOL=OFF
+        # Depends on zlib
         -DBUILTIN_BINASCII:BOOL=OFF
         -DBUILTIN_ZLIB:BOOL=OFF
       )
@@ -101,13 +110,19 @@ if((NOT DEFINED PYTHON_INCLUDE_DIR
 
   set(EXTERNAL_PROJECT_OPTIONAL_CMAKE_CACHE_ARGS)
 
-  # Force Python build to "Release".
+  # Force python build to "Release"
   if(CMAKE_CONFIGURATION_TYPES)
-    set(SAVED_CMAKE_CFG_INTDIR ${CMAKE_CFG_INTDIR})
-    set(CMAKE_CFG_INTDIR "Release")
-  else()
     list(APPEND EXTERNAL_PROJECT_OPTIONAL_CMAKE_CACHE_ARGS
-      -DCMAKE_BUILD_TYPE:STRING=Release)
+      -DCMAKE_CONFIGURATION_TYPES:STRING=Release
+      )
+    set(_build_command BUILD_COMMAND ${CMAKE_COMMAND} --build . --config Release)
+    set(_install_command INSTALL_COMMAND ${CMAKE_COMMAND} --build . --config Release --target install)
+  else()
+    set(_build_command)
+    set(_install_command)
+    list(APPEND EXTERNAL_PROJECT_OPTIONAL_CMAKE_CACHE_ARGS
+      -DCMAKE_BUILD_TYPE:STRING=Release
+      )
   endif()
 
   ExternalProject_SetIfNotDefined(
@@ -118,34 +133,45 @@ if((NOT DEFINED PYTHON_INCLUDE_DIR
 
   ExternalProject_SetIfNotDefined(
     ${CMAKE_PROJECT_NAME}_${proj}_GIT_TAG
-    "d0f47193837db6ad9e08bc99617276d4a24687c3"
+    "f55f8db60a81e9b7bd7138e5c87d59fcd779e287"
     QUIET
     )
+
+  set(EP_SOURCE_DIR ${CMAKE_BINARY_DIR}/${proj})
+  set(EP_BINARY_DIR ${CMAKE_BINARY_DIR}/${proj}-build)
+  set(EP_INSTALL_DIR ${CMAKE_BINARY_DIR}/${proj}-install)
 
   ExternalProject_Add(${proj}
     ${${proj}_EP_ARGS}
     GIT_REPOSITORY "${${CMAKE_PROJECT_NAME}_${proj}_GIT_REPOSITORY}"
     GIT_TAG "${${CMAKE_PROJECT_NAME}_${proj}_GIT_TAG}"
-    SOURCE_DIR ${CMAKE_BINARY_DIR}/${proj}
-    BINARY_DIR ${proj}-build
+    SOURCE_DIR ${EP_SOURCE_DIR}
+    BINARY_DIR ${EP_BINARY_DIR}
     CMAKE_CACHE_ARGS
       -DCMAKE_CXX_COMPILER:FILEPATH=${CMAKE_CXX_COMPILER}
       #-DCMAKE_CXX_FLAGS:STRING=${ep_common_cxx_flags} # Not used
       -DCMAKE_C_COMPILER:FILEPATH=${CMAKE_C_COMPILER}
       -DCMAKE_C_FLAGS:STRING=${ep_common_c_flags}
-      -DCMAKE_INSTALL_PREFIX:PATH=${CMAKE_BINARY_DIR}/${proj}-install
+      -DCMAKE_INSTALL_PREFIX:PATH=${EP_INSTALL_DIR}
       #-DBUILD_TESTING:BOOL=OFF
       -DBUILD_LIBPYTHON_SHARED:BOOL=ON
       -DUSE_SYSTEM_LIBRARIES:BOOL=OFF
       -DSRC_DIR:PATH=${python_SOURCE_DIR}
       -DDOWNLOAD_SOURCES:BOOL=OFF
       -DINSTALL_WINDOWS_TRADITIONAL:BOOL=OFF
+      -DBZIP2_INCLUDE_DIR:PATH=${BZIP2_INCLUDE_DIR}
+      -DBZIP2_LIBRARIES:FILEPATH=${BZIP2_LIBRARIES}
       -DZLIB_INCLUDE_DIR:PATH=${ZLIB_INCLUDE_DIR}
       -DZLIB_LIBRARY:FILEPATH=${ZLIB_LIBRARY}
       -DENABLE_TKINTER:BOOL=${Slicer_USE_PYTHONQT_WITH_TCL}
       -DENABLE_SSL:BOOL=${PYTHON_ENABLE_SSL}
+      -DPatch_EXECUTABLE:FILEPATH=${Patch_EXECUTABLE}
       ${EXTERNAL_PROJECT_OPTIONAL_CMAKE_CACHE_ARGS}
+      # macOS
+      -DCMAKE_MACOSX_RPATH:BOOL=0
     ${EXTERNAL_PROJECT_OPTIONAL_CMAKE_ARGS}
+    ${_build_command}
+    ${_install_command}
     DEPENDS
       python-source ${${proj}_DEPENDENCIES}
     )
@@ -173,31 +199,47 @@ if((NOT DEFINED PYTHON_INCLUDE_DIR
 
   if(NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM_python)
 
-    # Configure python launcher
-    configure_file(
-      SuperBuild/python_customPython_configure.cmake.in
-      ${CMAKE_CURRENT_BINARY_DIR}/python_customPython_configure.cmake
-      @ONLY)
-    set(python_customPython_configure_args)
+    ExternalProject_Add_Step(${proj} configure_python_launcher
+      COMMAND ${CMAKE_COMMAND}
+        -DCMAKE_EXECUTABLE_SUFFIX:STRING=${CMAKE_EXECUTABLE_SUFFIX}
+        -DCTKAppLauncher_DIR:PATH=${CTKAppLauncher_DIR}
+        -DOPENSSL_EXPORT_LIBRARY_DIR:PATH=${OPENSSL_EXPORT_LIBRARY_DIR}
+        -Dpython_DIR:PATH=${python_DIR}
+        -DPYTHON_ENABLE_SSL:BOOL=${PYTHON_ENABLE_SSL}
+        -DPYTHON_REAL_EXECUTABLE:FILEPATH=${slicer_PYTHON_REAL_EXECUTABLE}
+        -DPYTHON_SHARED_LIBRARY_DIR:PATH=${slicer_PYTHON_SHARED_LIBRARY_DIR}
+        -DPYTHON_SITE_PACKAGES_SUBDIR:STRING=${PYTHON_SITE_PACKAGES_SUBDIR}
+        -DPYTHON_STDLIB_SUBDIR:STRING=${PYTHON_STDLIB_SUBDIR}
+        -DSlicer_BIN_DIR:PATH=${Slicer_BIN_DIR}
+        -DSlicer_BINARY_DIR:PATH=${Slicer_BINARY_DIR}
+        -DSlicer_LIB_DIR:PATH=${Slicer_LIB_DIR}
+        -DSlicer_SHARE_DIR:PATH=${Slicer_SHARE_DIR}
+        -DSlicer_SOURCE_DIR:PATH=${Slicer_SOURCE_DIR}
 
-    if(PYTHON_ENABLE_SSL)
-      set(python_customPython_configure_args -DOPENSSL_EXPORT_LIBRARY_DIR:PATH=${OPENSSL_EXPORT_LIBRARY_DIR})
-    endif()
-
-    ExternalProject_Add_Step(${proj} python_customPython_configure
-      COMMAND ${CMAKE_COMMAND} ${python_customPython_configure_args}
-        -P ${CMAKE_CURRENT_BINARY_DIR}/python_customPython_configure.cmake
+        -P ${Slicer_SOURCE_DIR}/SuperBuild/python_configure_python_launcher.cmake
       DEPENDEES install
       )
 
-  endif()
+    # Note: Install rules for SlicerPythonLauncherSettingsToInstall.ini and SlicerPython executable
+    #       are specified in SlicerBlockInstallPython.cmake
 
-  if(CMAKE_CONFIGURATION_TYPES)
-    set(CMAKE_CFG_INTDIR ${SAVED_CMAKE_CFG_INTDIR}) # Restore CMAKE_CFG_INTDIR
+    if(UNIX AND NOT APPLE)
+      find_program(LSB_RELEASE_EXECUTABLE NAMES lsb_release)
+      if(LSB_RELEASE_EXECUTABLE)
+        ExternalProject_Add_Step(${proj} configure_lsb_release_wrapper
+          COMMAND ${CMAKE_COMMAND}
+            -DCTKAppLauncher_DIR:PATH=${CTKAppLauncher_DIR}
+            -DLSB_RELEASE_EXECUTABLE:PATH=${LSB_RELEASE_EXECUTABLE}
+            -DPYTHON_REAL_EXECUTABLE:FILEPATH=${slicer_PYTHON_REAL_EXECUTABLE}
+            -P ${Slicer_SOURCE_DIR}/SuperBuild/python_configure_lsb_release_wrapper.cmake
+          DEPENDEES install
+          )
+      endif()
+    endif()
   endif()
 
   #-----------------------------------------------------------------------------
-  # Launcher setting specific to build tree
+  # Slicer Launcher setting specific to build tree
 
   set(_lib_subdir lib)
   if(WIN32)
@@ -239,7 +281,7 @@ if((NOT DEFINED PYTHON_INCLUDE_DIR
     )
 
   #-----------------------------------------------------------------------------
-  # Launcher setting specific to install tree
+  # Slicer Launcher setting specific to install tree
 
   # library paths
   if(UNIX)
@@ -320,7 +362,9 @@ function(ExternalProject_PythonModule_InstallTreeCleanup proj modname dirnames)
   ExternalProject_Get_Property(${proj} tmp_dir)
   set(_file "${tmp_dir}/${proj}_install_tree_cleanup.py")
   set(_content
-"import ${modname}
+"
+${${proj}_EP_PYTHONMODULE_INSTALL_TREE_CLEANUP_CODE_BEFORE_IMPORT}
+import ${modname}
 import os.path
 import shutil
 ")

@@ -5,11 +5,6 @@
   See COPYRIGHT.txt
   or http://www.slicer.org/copyright/copyright.txt for details.
 
-  Program:   3D Slicer
-  Module:    $RCSfile: vtkMRMLCommandLineModuleNode.h,v $
-  Date:      $Date: 2006/03/19 17:12:29 $
-  Version:   $Revision: 1.3 $
-
 =========================================================================auto=*/
 
 #ifndef __vtkMRMLCommandLineModuleNode_h
@@ -18,7 +13,7 @@
 /// MRML includes
 #include <vtkMRMLNode.h>
 
-#include "vtkMRMLCLIWin32Header.h"
+#include "vtkMRMLCLIExport.h"
 
 class ModuleDescription;
 
@@ -33,21 +28,21 @@ class VTK_MRML_CLI_EXPORT vtkMRMLCommandLineModuleNode : public vtkMRMLNode
 public:
   static vtkMRMLCommandLineModuleNode *New();
   vtkTypeMacro(vtkMRMLCommandLineModuleNode, vtkMRMLNode);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
-  virtual vtkMRMLNode* CreateNodeInstance();
+  virtual vtkMRMLNode* CreateNodeInstance() VTK_OVERRIDE;
 
   /// Set node attributes
-  virtual void ReadXMLAttributes(const char** atts);
+  virtual void ReadXMLAttributes(const char** atts) VTK_OVERRIDE;
 
   /// Write this node's information to a MRML file in XML format.
-  virtual void WriteXML(ostream& of, int indent);
+  virtual void WriteXML(ostream& of, int indent) VTK_OVERRIDE;
 
   /// Copy the node's attributes to this object
-  virtual void Copy(vtkMRMLNode *node);
+  virtual void Copy(vtkMRMLNode *node) VTK_OVERRIDE;
 
   /// Get node XML tag name (like Volume, Model)
-  virtual const char* GetNodeTagName()
+  virtual const char* GetNodeTagName() VTK_OVERRIDE
     {return "CommandLineModule";}
 
   /// List of events that can be fired on or by the node.
@@ -273,7 +268,9 @@ public:
   std::string GetParameterDescription(unsigned int group, unsigned int param) const;
   std::string GetParameterChannel(unsigned int group, unsigned int param) const;
   std::string GetParameterIndex(unsigned int group, unsigned int param) const;
+  /// \deprecated Consider using GetParameterValue()
   std::string GetParameterDefault(unsigned int group, unsigned int param) const;
+  std::string GetParameterValue(unsigned int group, unsigned int param) const;
   std::string GetParameterFlag(unsigned int group, unsigned int param) const;
   std::string GetParameterMultiple(unsigned int group, unsigned int param) const;
   std::string GetParameterFileExtensions(unsigned int group, unsigned int param) const;
@@ -292,11 +289,11 @@ public:
   static ModuleDescription GetRegisteredModuleDescription(const std::string& name);
 
   /// Reimplemented for internal reasons.
-  virtual void Modified();
+  virtual void Modified() VTK_OVERRIDE;
 protected:
   void AbortProcess();
   virtual void ProcessMRMLEvents(vtkObject *caller, unsigned long event,
-                                 void *callData);
+                                 void *callData) VTK_OVERRIDE;
 
 private:
   vtkMRMLCommandLineModuleNode();

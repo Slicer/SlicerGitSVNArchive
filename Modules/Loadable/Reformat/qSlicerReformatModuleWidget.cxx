@@ -473,6 +473,11 @@ void qSlicerReformatModuleWidget::onLockReformatWidgetToCamera(bool lock)
     {
     return;
     }
+  if (lock)
+    {
+    // "Lock to slice plane" only works if widget is visible, show it now
+    d->MRMLSliceNode->SetWidgetVisible(true);
+    }
 
   d->MRMLSliceNode->SetWidgetNormalLockedToCamera(lock);
 }
@@ -543,6 +548,8 @@ void qSlicerReformatModuleWidget::setSliceNormal(double x, double y, double z)
 //------------------------------------------------------------------------------
 void qSlicerReformatModuleWidget::setNormalToCamera()
 {
+  Q_D(qSlicerReformatModuleWidget);
+
   vtkSlicerReformatLogic* reformatLogic =
     vtkSlicerReformatLogic::SafeDownCast(this->logic());
 
@@ -554,11 +561,19 @@ void qSlicerReformatModuleWidget::setNormalToCamera()
   // NOTE: We use the first Camera because there is no notion of active scene
   // Code to be changed when methods avaible.
   vtkMRMLCameraNode* cameraNode = vtkMRMLCameraNode::SafeDownCast(
-    reformatLogic->GetMRMLScene()->GetNthNodeByClass(0, "vtkMRMLCameraNode"));
+    reformatLogic->GetMRMLScene()->GetFirstNodeByClass("vtkMRMLCameraNode"));
 
   if (!cameraNode)
     {
     return;
+    }
+
+  // When the user clicks the "Normal to camera button" and the checkbox was checked,
+  // then make sure the checkbox becomes unchecked, too, to make it clear to the user
+  // that the slice view does not follow the camera normal anymore
+  if (d->NormalToCameraCheckablePushButton->checkState() == Qt::Checked)
+    {
+    d->NormalToCameraCheckablePushButton->setCheckState(Qt::Unchecked);
     }
 
   double camNormal[3];

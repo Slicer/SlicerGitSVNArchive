@@ -65,6 +65,7 @@ public:
     ReferenceGeometryChangedMethod,
     MasterVolumeNodeChangedMethod,
     LayoutChangedMethod,
+    InteractionNodeModifiedMethod,
     UpdateGUIFromMRMLMethod,
     UpdateMRMLFromGUIMethod,
     };
@@ -93,6 +94,7 @@ qSlicerSegmentEditorScriptedEffectPrivate::qSlicerSegmentEditorScriptedEffectPri
   this->PythonCppAPI.declareMethod(Self::ReferenceGeometryChangedMethod, "referenceGeometryChanged");
   this->PythonCppAPI.declareMethod(Self::MasterVolumeNodeChangedMethod, "masterVolumeNodeChanged");
   this->PythonCppAPI.declareMethod(Self::LayoutChangedMethod, "layoutChanged");
+  this->PythonCppAPI.declareMethod(Self::InteractionNodeModifiedMethod, "interactionNodeModified");
   this->PythonCppAPI.declareMethod(Self::UpdateGUIFromMRMLMethod, "updateGUIFromMRML");
   this->PythonCppAPI.declareMethod(Self::UpdateMRMLFromGUIMethod, "updateMRMLFromGUI");
 }
@@ -425,6 +427,25 @@ void qSlicerSegmentEditorScriptedEffect::layoutChanged()
 
   Q_D(const qSlicerSegmentEditorScriptedEffect);
   d->PythonCppAPI.callMethod(d->LayoutChangedMethod);
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerSegmentEditorScriptedEffect::interactionNodeModified(vtkMRMLInteractionNode* interactionNode)
+{
+  // Do not call base class implementation by default.
+  // This way the effect may decide to not deactivate itself when markups place mode
+  // is activated.
+
+  Q_D(const qSlicerSegmentEditorScriptedEffect);
+  PyObject* arguments = PyTuple_New(1);
+  PyTuple_SET_ITEM(arguments, 0, vtkPythonUtil::GetObjectFromPointer((vtkObject*)interactionNode));
+  PyObject* result = d->PythonCppAPI.callMethod(d->InteractionNodeModifiedMethod, arguments);
+  Py_DECREF(arguments);
+  if (!result)
+    {
+    // Method call failed (probably an omitted function), call default implementation
+    this->Superclass::interactionNodeModified(interactionNode);
+    }
 }
 
 //-----------------------------------------------------------------------------

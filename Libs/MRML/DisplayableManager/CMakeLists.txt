@@ -1,7 +1,7 @@
 project(MRMLDisplayableManager)
 
 #-----------------------------------------------------------------------------
-cmake_minimum_required(VERSION 2.8.4)
+cmake_minimum_required(VERSION 3.5)
 #-----------------------------------------------------------------------------
 
 # --------------------------------------------------------------------------
@@ -37,6 +37,7 @@ set(include_dirs
   ${CMAKE_CURRENT_BINARY_DIR}
   ${MRMLCore_INCLUDE_DIRS}
   ${MRMLLogic_INCLUDE_DIRS}
+  ${FreeSurfer_INCLUDE_DIRS}
   )
 if(MRMLDisplayableManager_USE_PYTHON)
   list(APPEND include_dirs ${PYTHON_INCLUDE_DIR})
@@ -123,15 +124,20 @@ if(MRMLDisplayableManager_USE_PYTHON)
     )
 endif()
 
-# Create the instantiator for DisplayableManager classes.
-include(${VTK_CMAKE_DIR}/vtkMakeInstantiator.cmake)
-VTK_MAKE_INSTANTIATOR3("${PROJECT_NAME}Instantiator"
-  DisplayableManagerInstantiator_SRCS
-  "${DisplayableManager_SRCS}"
-  "VTK_MRML_DISPLAYABLEMANAGER_EXPORT"
-  ${PROJECT_BINARY_DIR}
-  "vtk${PROJECT_NAME}Win32Header.h")
+# --------------------------------------------------------------------------
+set(lib_name ${PROJECT_NAME})
 
+# --------------------------------------------------------------------------
+# Create the instantiator for DisplayableManager classes.
+# --------------------------------------------------------------------------
+include(SlicerConfigureDisplayableManagerObjectFactory)
+SlicerConfigureDisplayableManagerObjectFactory(
+  TARGET_NAME ${lib_name}
+  SRCS "${DisplayableManager_SRCS}"
+  EXPORT_MACRO "VTK_MRML_DISPLAYABLEMANAGER_EXPORT"
+  EXPORT_HEADER "vtk${PROJECT_NAME}Export.h"
+  OUTPUT_SRCS_VAR DisplayableManagerInstantiator_SRCS
+  )
 set(srcs
   ${KIT_SRCS}
   ${DisplayableManagerInstantiator_SRCS}
@@ -140,13 +146,13 @@ set(srcs
 # --------------------------------------------------------------------------
 # Build library
 # --------------------------------------------------------------------------
-set(lib_name ${PROJECT_NAME})
 add_library(${lib_name} ${srcs})
 
 set(libs
   ${VTK_LIBRARIES}
   MRMLCore
   MRMLLogic
+  FreeSurfer
   )
 
 if(MRMLDisplayableManager_USE_PYTHON)
@@ -160,6 +166,13 @@ if(MRMLDisplayableManager_USE_PYTHON)
 endif()
 
 target_link_libraries(${lib_name} ${libs})
+
+if(${lib_name}_AUTOINIT)
+  set_property(TARGET ${lib_name}
+    APPEND PROPERTY COMPILE_DEFINITIONS
+    "${lib_name}_AUTOINIT=1(${lib_name})"
+    )
+endif()
 
 # Apply user-defined properties to the library target.
 if(Slicer_LIBRARY_PROPERTIES)

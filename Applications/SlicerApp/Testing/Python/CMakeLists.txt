@@ -178,11 +178,17 @@ endif()
 # Check if scripted module import works as expected
 #
 
+set(testname ScriptedModuleDiscoveryTest)
 slicer_add_python_test(
-  SCRIPT ScriptedModuleDiscoveryTest.py
+  SCRIPT ${testname}.py
   SLICER_ARGS --no-main-window --disable-builtin-modules --additional-module-path ${CMAKE_CURRENT_SOURCE_DIR}/ScriptedModuleDiscoveryTest
   TESTNAME_PREFIX nomainwindow_
   )
+if(UNIX)
+set_tests_properties(py_nomainwindow_${testname} PROPERTIES
+  PASS_REGULAR_EXPRESSION "ModuleAWidget finalized"
+  )
+endif()
 
 #
 # Application tests
@@ -217,6 +223,14 @@ slicer_add_python_test(
   SCRIPT ${testname}.py
   TESTNAME_PREFIX mainwindow_
   )
+
+if(Slicer_USE_SimpleITK)
+  slicer_add_python_unittest(
+    SCRIPT ${Slicer_SOURCE_DIR}/Base/Python/tests/test_sitkUtils.py
+    SLICER_ARGS --no-main-window
+    TESTNAME_PREFIX nomainwindow_
+    )
+endif()
 
 slicer_add_python_unittest(
   SCRIPT ${Slicer_SOURCE_DIR}/Base/Python/tests/test_saferef.py
@@ -260,6 +274,12 @@ slicer_add_python_unittest(
   TESTNAME_PREFIX nomainwindow_
   )
 
+slicer_add_python_unittest(
+  SCRIPT ${Slicer_SOURCE_DIR}/Base/Python/slicer/tests/test_slicer_environment.py
+  SLICER_ARGS --no-main-window --disable-modules
+  TESTNAME_PREFIX nomainwindow_
+  )
+
 # DCMTKPrivateDictionary test
 slicer_add_python_test(
   SCRIPT DCMTKPrivateDictTest.py
@@ -281,6 +301,30 @@ if(Slicer_USE_PYTHONQT_WITH_OPENSSL)
     )
 endif()
 
+# Check that python standard library modules can be imported
+foreach(stdlib_module IN ITEMS
+    "bz2"
+    )
+  add_test(
+    NAME py_test_stdlib_import_${stdlib_module}_using_slicer
+    COMMAND ${Slicer_LAUNCHER_EXECUTABLE}
+    -c "import ${stdlib_module}" --no-splash --ignore-slicerrc --disable-settings
+    )
+  add_test(
+    NAME py_test_stdlib_import_${stdlib_module}_using_python
+    COMMAND ${PYTHON_EXECUTABLE}
+    -c "import ${stdlib_module}"
+    )
+endforeach()
+
+# Check that application signal "startupCompleted()" is emitted
+add_test(
+  NAME py_startupcompleted_signal_emitted
+  COMMAND ${PYTHON_EXECUTABLE}
+    ${CMAKE_CURRENT_SOURCE_DIR}/SlicerStartupCompletedTest.py
+    ${Slicer_LAUNCHER_EXECUTABLE}
+  )
+
 #
 # SelfTests
 # see http://wiki.slicer.org/slicerWiki/index.php/Documentation/Nightly/Developers/Tutorials/SelfTestModule
@@ -291,6 +335,7 @@ if(Slicer_USE_QtTesting AND Slicer_USE_PYTHONQT)
   # add as unit test for use at build/test time
   slicer_add_python_unittest(SCRIPT AtlasTests.py)
   slicer_add_python_unittest(SCRIPT AbdominalAtlasTest.py)
+  slicer_add_python_unittest(SCRIPT DICOMReaders.py)
   slicer_add_python_unittest(SCRIPT KneeAtlasTest.py)
   slicer_add_python_unittest(SCRIPT sceneImport2428.py)
   slicer_add_python_unittest(SCRIPT SlicerMRBMultipleSaveRestoreLoopTest.py)
@@ -339,8 +384,6 @@ if(Slicer_USE_QtTesting AND Slicer_USE_PYTHONQT)
     FiducialLayoutSwitchBug1914.py
     SubjectHierarchyGenericSelfTest.py
     SubjectHierarchyCorePluginsSelfTest.py
-    TwoCLIsInARowTest.py
-    TwoCLIsInParallelTest.py
     UtilTest.py
     )
 
@@ -348,12 +391,6 @@ if(Slicer_USE_QtTesting AND Slicer_USE_PYTHONQT)
     slicer_add_python_unittest(SCRIPT CLIEventTest.py SLICER_ARGS --no-main-window)
     slicer_add_python_unittest(SCRIPT TwoCLIsInARowTest.py)
     slicer_add_python_unittest(SCRIPT TwoCLIsInParallelTest.py)
-
-    list(APPEND KIT_PYTHON_SCRIPTS
-      CLIEventTest.py
-      TwoCLIsInARowTest.py
-      TwoCLIsInParallelTest.py
-      )
 
     if(Slicer_BUILD_BRAINSTOOLS)
       slicer_add_python_unittest(SCRIPT BRAINSFitRigidRegistrationCrashIssue4139.py)

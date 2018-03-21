@@ -39,6 +39,7 @@ vtkStandardNewMacro(vtkThreeDViewInteractorStyle);
 vtkThreeDViewInteractorStyle::vtkThreeDViewInteractorStyle()
 {
   this->MotionFactor = 10.0;
+  this->ShiftKeyUsedForPreviousAction = false;
   this->CameraNode = 0;
   this->NumberOfPlaces= 0;
   this->NumberOfTransientPlaces = 1;
@@ -187,6 +188,18 @@ void vtkThreeDViewInteractorStyle::OnKeyPress()
 }
 
 //----------------------------------------------------------------------------
+ void vtkThreeDViewInteractorStyle::OnKeyRelease()
+{
+  std::string key = this->Interactor->GetKeySym();
+
+  if (((key.find("Shift") != std::string::npos)) && this->ShiftKeyUsedForPreviousAction)
+    {
+    this->ShiftKeyUsedForPreviousAction = false;
+    }
+  this->Superclass::OnKeyRelease();
+}
+
+//----------------------------------------------------------------------------
 void vtkThreeDViewInteractorStyle::OnMouseMove()
 {
   int x = this->Interactor->GetEventPosition()[0];
@@ -224,7 +237,8 @@ void vtkThreeDViewInteractorStyle::OnMouseMove()
       this->InvokeEvent(vtkCommand::InteractionEvent, 0);
       break;
     default:
-      if (this->Interactor->GetShiftKey() && this->GetCameraNode() != 0 && this->GetCameraNode()->GetScene() != 0 )
+      if ( (!this->ShiftKeyUsedForPreviousAction) && this->Interactor->GetShiftKey() &&
+           (this->GetCameraNode() != 0) && (this->GetCameraNode()->GetScene() != 0) )
         {
         double pickedRAS[3]={0,0,0};
         bool picked = this->Pick(this->Interactor->GetEventPosition()[0], this->Interactor->GetEventPosition()[1], pickedRAS);
@@ -238,7 +252,7 @@ void vtkThreeDViewInteractorStyle::OnMouseMove()
             // Computing pick position in 3D is expensive,
             // therefore we only update the cursor position if shift key is pressed
             crosshairNode->SetCursorPositionRAS(pickedRAS);
-            if (crosshairNode->GetCrosshairBehavior() == vtkMRMLCrosshairNode::JumpSlice)
+            if (crosshairNode->GetCrosshairBehavior() != vtkMRMLCrosshairNode::NoAction)
               {
               // Try to get view group of the 3D view and jump only those slices.
               int viewGroup = -1; // jump all by default
@@ -250,7 +264,12 @@ void vtkThreeDViewInteractorStyle::OnMouseMove()
                   viewGroup = viewNode->GetViewGroup();
                   }
                 }
-              vtkMRMLSliceNode::JumpAllSlices(scene, pickedRAS[0], pickedRAS[1], pickedRAS[2], -1, viewGroup);
+              int viewJumpSliceMode = vtkMRMLSliceNode::OffsetJumpSlice;
+              if (crosshairNode->GetCrosshairBehavior() == vtkMRMLCrosshairNode::CenteredJumpSlice)
+                {
+                viewJumpSliceMode = vtkMRMLSliceNode::CenteredJumpSlice;
+                }
+              vtkMRMLSliceNode::JumpAllSlices(scene, pickedRAS[0], pickedRAS[1], pickedRAS[2], viewJumpSliceMode, viewGroup);
               }
             }
           }
@@ -326,6 +345,7 @@ void vtkThreeDViewInteractorStyle::OnLeftButtonDown()
 
   if (this->Interactor->GetShiftKey())
     {
+    this->ShiftKeyUsedForPreviousAction = true;
     if (this->Interactor->GetControlKey())
       {
       this->StartDolly();

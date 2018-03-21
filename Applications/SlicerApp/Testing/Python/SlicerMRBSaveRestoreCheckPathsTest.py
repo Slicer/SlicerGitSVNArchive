@@ -1,6 +1,7 @@
 
 import os
 import unittest
+import ctk
 import vtk
 import qt
 import slicer
@@ -150,8 +151,7 @@ execfile('/Users/pieper/slicer4/latest/Slicer/Applications/SlicerApp/Testing/Pyt
     # grab a testing screen shot
     layoutManager = slicer.app.layoutManager()
     widget = layoutManager.threeDWidget(0)
-    qpixMap = qt.QPixmap().grabWidget(widget)
-    screenShot = qpixMap.toImage()
+    screenShot = ctk.ctkWidgetsUtils.grabWidget(widget)
 
     #
     # the remote download leaves the volume in a temp directory and removes

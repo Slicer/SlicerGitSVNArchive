@@ -21,57 +21,70 @@
 // Qt includes
 #include <QDebug>
 #include <QDesktopServices>
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 0, 0))
+#include <QUrlQuery>
+#endif
+#if (QT_VERSION < QT_VERSION_CHECK(5, 6, 0))
 #include <QWebFrame>
 #include <QWebView>
+#else
+#include <QWebEngineView>
+#endif
 
 // CTK includes
 #include <ctkPimpl.h>
 
 // QtGUI includes
 #include "qSlicerExtensionsInstallWidget.h"
+#include "qSlicerExtensionsInstallWidget_p.h"
 #include "qSlicerExtensionsManagerModel.h"
 
-//-----------------------------------------------------------------------------
-class qSlicerExtensionsInstallWidgetPrivate
+// --------------------------------------------------------------------------
+void ExtensionInstallWidgetWebChannelProxy::refresh()
 {
-  Q_DECLARE_PUBLIC(qSlicerExtensionsInstallWidget);
-protected:
-  qSlicerExtensionsInstallWidget* const q_ptr;
-
-public:
-  qSlicerExtensionsInstallWidgetPrivate(qSlicerExtensionsInstallWidget& object);
-
-  /// Return the URL allowing to retrieve the extension list page
-  /// associated with the current architecture, operating system and slicer revision.
-  QUrl extensionsListUrl();
-
-  void setFailurePage(const QStringList &errors);
-
-  qSlicerExtensionsManagerModel * ExtensionsManagerModel;
-
-  QString SlicerRevision;
-  QString SlicerOs;
-  QString SlicerArch;
-
-  bool BrowsingEnabled;
-};
+  this->InstallWidget->refresh();
+}
 
 // --------------------------------------------------------------------------
 qSlicerExtensionsInstallWidgetPrivate::qSlicerExtensionsInstallWidgetPrivate(qSlicerExtensionsInstallWidget& object)
-  : q_ptr(&object), BrowsingEnabled(true)
+  : qSlicerWebWidgetPrivate(object),
+    q_ptr(&object),
+    BrowsingEnabled(true)
 {
+  Q_Q(qSlicerExtensionsInstallWidget);
   this->ExtensionsManagerModel = 0;
+  this->InstallWidgetForWebChannel = new ExtensionInstallWidgetWebChannelProxy;
+  this->InstallWidgetForWebChannel->InstallWidget = q;
+}
+
+// --------------------------------------------------------------------------
+qSlicerExtensionsInstallWidgetPrivate::~qSlicerExtensionsInstallWidgetPrivate()
+{
+  delete this->InstallWidgetForWebChannel;
 }
 
 // --------------------------------------------------------------------------
 QUrl qSlicerExtensionsInstallWidgetPrivate::extensionsListUrl()
 {
-  QUrl url(this->ExtensionsManagerModel->serverUrlWithExtensionsStorePath());
-  url.setQueryItems(QList<QPair<QString, QString> >()
-                    << QPair<QString, QString>("layout", "empty")
-                    << QPair<QString, QString>("os", this->SlicerOs)
-                    << QPair<QString, QString>("arch", this->SlicerArch)
-                    << QPair<QString, QString>("revision", this->SlicerRevision));
+     QUrl url(this->ExtensionsManagerModel->serverUrlWithExtensionsStorePath());
+     //HS Uncomment the following line for debugging and comment above
+     //QUrl url("http://10.171.2.133:8080/slicerappstore");
+#if (QT_VERSION < QT_VERSION_CHECK(5, 0, 0))
+  url.setQueryItems(
+#else
+  QUrlQuery urlQuery;
+  urlQuery.setQueryItems(
+#endif
+        QList<QPair<QString, QString> >()
+        << QPair<QString, QString>("layout", "empty")
+        << QPair<QString, QString>("os", this->SlicerOs)
+        << QPair<QString, QString>("arch", this->SlicerArch)
+        << QPair<QString, QString>("revision", this->SlicerRevision));
+        //HS Uncomment the following line for debugging and comment above
+        //<< QPair<QString, QString>("revision", "19291"));
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 0, 0))
+  url.setQuery(urlQuery);
+#endif
   return url;
 }
 
@@ -116,7 +129,7 @@ void qSlicerExtensionsInstallWidgetPrivate::setFailurePage(const QStringList& er
       "    <!-- It is originally covered by http://mozilla.org/MPL/2.0/ license -->"
       "    <!-- MPL 2.0 license is compatible with Slicer (BSD-like) license -->"
       "    <div class='error'>"
-      "      <div id='errorTitle'><h1>Ooop. Extensions can not be installed !</h1></div>"
+      "      <div id='errorTitle'><h1>Ooops. Extensions can not be installed !</h1></div>"
       "      <div id='errorDescription'>"
       "        <ul>"
       "%1"
@@ -138,11 +151,65 @@ void qSlicerExtensionsInstallWidgetPrivate::setFailurePage(const QStringList& er
 }
 
 // --------------------------------------------------------------------------
-qSlicerExtensionsInstallWidget::qSlicerExtensionsInstallWidget(QWidget* _parent)
-  : Superclass(_parent)
-  , d_ptr(new qSlicerExtensionsInstallWidgetPrivate(*this))
+void qSlicerExtensionsInstallWidgetPrivate::updateWebChannelScript(QByteArray& webChannelScript)
 {
+#if (QT_VERSION < QT_VERSION_CHECK(5, 6, 0))
+  Q_UNUSED(webChannelScript);
+#else
+  webChannelScript.append(
+      "\n"
+      "var extensions_manager_model;"
+      "var extensions_install_widget;"
+      "new QWebChannel(qt.webChannelTransport, function(channel) {"
+      " extensions_manager_model = channel.objects.extensions_manager_model;"
+      " extensions_install_widget = channel.objects.extensions_install_widget;"
+      "});"
+      );
+#endif
+}
+
+// --------------------------------------------------------------------------
+void qSlicerExtensionsInstallWidgetPrivate::initializeWebChannel(QWebChannel* webChannel)
+{
+#if (QT_VERSION < QT_VERSION_CHECK(5, 6, 0))
+  Q_UNUSED(webChannel);
+  // This is done in qSlicerExtensionsInstallWidget::initJavascript()
+#else
+  webChannel->registerObject(
+        "extensions_install_widget", this->InstallWidgetForWebChannel);
+#endif
+}
+
+// --------------------------------------------------------------------------
+void qSlicerExtensionsInstallWidgetPrivate::registerExtensionsManagerModel(
+    qSlicerExtensionsManagerModel* oldModel, qSlicerExtensionsManagerModel* newModel)
+{
+#if (QT_VERSION < QT_VERSION_CHECK(5, 6, 0))
+  Q_UNUSED(oldModel);
+  Q_UNUSED(newModel);
+#else
+  Q_Q(qSlicerExtensionsInstallWidget);
+  QWebChannel* webChannel = q->webView()->page()->webChannel();
+  if (oldModel)
+    {
+    webChannel->deregisterObject(oldModel);
+    }
+  if (newModel)
+    {
+    webChannel->registerObject("extensions_manager_model", newModel);
+    }
+#endif
+}
+
+// --------------------------------------------------------------------------
+qSlicerExtensionsInstallWidget::qSlicerExtensionsInstallWidget(QWidget* _parent)
+  : Superclass(new qSlicerExtensionsInstallWidgetPrivate(*this), _parent)
+{
+  Q_D(qSlicerExtensionsInstallWidget);
+  d->init();
+#if (QT_VERSION < QT_VERSION_CHECK(5, 6, 0))
   this->webView()->page()->setLinkDelegationPolicy(QWebPage::DelegateExternalLinks);
+#endif
 }
 
 // --------------------------------------------------------------------------
@@ -161,7 +228,6 @@ qSlicerExtensionsManagerModel* qSlicerExtensionsInstallWidget::extensionsManager
 void qSlicerExtensionsInstallWidget::setExtensionsManagerModel(qSlicerExtensionsManagerModel* model)
 {
   Q_D(qSlicerExtensionsInstallWidget);
-
   if (this->extensionsManagerModel() == model)
     {
     return;
@@ -174,6 +240,9 @@ void qSlicerExtensionsInstallWidget::setExtensionsManagerModel(qSlicerExtensions
   disconnect(this, SLOT(onMessageLogged(QString,ctkErrorLogLevel::LogLevels)));
   disconnect(this, SLOT(onDownloadStarted(QNetworkReply*)));
   disconnect(this, SLOT(onDownloadFinished(QNetworkReply*)));
+
+  d->registerExtensionsManagerModel(
+        /* oldModel= */ d->ExtensionsManagerModel, /* newModel= */ model);
 
   d->ExtensionsManagerModel = model;
 
@@ -241,13 +310,21 @@ void qSlicerExtensionsInstallWidget::refresh()
 // --------------------------------------------------------------------------
 void qSlicerExtensionsInstallWidget::onExtensionInstalled(const QString& extensionName)
 {
-  this->evalJS(QString("midas.slicerappstore.setExtensionButtonState('%1', 'ScheduleUninstall')").arg(extensionName));
+  Q_D(qSlicerExtensionsInstallWidget);
+  if(d->BrowsingEnabled)
+    {
+    this->evalJS(QString("midas.slicerappstore.setExtensionButtonState('%1', 'ScheduleUninstall')").arg(extensionName));
+    }
 }
 
 // --------------------------------------------------------------------------
 void qSlicerExtensionsInstallWidget::onExtensionScheduledForUninstall(const QString& extensionName)
 {
-  this->evalJS(QString("midas.slicerappstore.setExtensionButtonState('%1', 'CancelScheduledForUninstall')").arg(extensionName));
+  Q_D(qSlicerExtensionsInstallWidget);
+  if(d->BrowsingEnabled)
+    {
+    this->evalJS(QString("midas.slicerappstore.setExtensionButtonState('%1', 'CancelScheduledForUninstall')").arg(extensionName));
+    }
 }
 
 // -------------------------------------------------------------------------
@@ -260,7 +337,6 @@ void qSlicerExtensionsInstallWidget::onExtensionCancelledScheduleForUninstall(co
 void qSlicerExtensionsInstallWidget::onSlicerRequirementsChanged(const QString& revision,const QString& os,const QString& arch)
 {
   Q_D(qSlicerExtensionsInstallWidget);
-
   this->setSlicerRevision(revision);
   this->setSlicerOs(os);
   this->setSlicerArch(arch);
@@ -273,6 +349,11 @@ void qSlicerExtensionsInstallWidget::onSlicerRequirementsChanged(const QString& 
 // --------------------------------------------------------------------------
 void qSlicerExtensionsInstallWidget::onMessageLogged(const QString& text, ctkErrorLogLevel::LogLevels level)
 {
+  Q_D(qSlicerExtensionsInstallWidget);
+  if(!d->BrowsingEnabled)
+    {
+    return;
+    }
   QString delay = "2500";
   QString state;
   if (level == ctkErrorLogLevel::Warning)
@@ -285,8 +366,14 @@ void qSlicerExtensionsInstallWidget::onMessageLogged(const QString& text, ctkErr
     delay = "10000";
     state = "error";
     }
-
   this->evalJS(QString("midas.createNotice('%1', %2, '%3')").arg(text).arg(delay).arg(state));
+}
+
+// --------------------------------------------------------------------------
+void qSlicerExtensionsInstallWidget::onLoadStarted()
+{
+  this->Superclass::onLoadStarted();
+  this->initJavascript();
 }
 
 // --------------------------------------------------------------------------
@@ -294,11 +381,16 @@ void qSlicerExtensionsInstallWidget::initJavascript()
 {
   Q_D(qSlicerExtensionsInstallWidget);
   this->Superclass::initJavascript();
+#if (QT_VERSION < QT_VERSION_CHECK(5, 6, 0))
   this->webView()->page()->mainFrame()->addToJavaScriptWindowObject(
         "extensions_manager_model", d->ExtensionsManagerModel);
 
   this->webView()->page()->mainFrame()->addToJavaScriptWindowObject(
         "extensions_install_widget", this);
+#else
+  // This is done in qSlicerExtensionsInstallWidgetPrivate::initializeWebChannel()
+  // and qSlicerExtensionsInstallWidgetPrivate::registerExtensionsManagerModel()
+#endif
 }
 
 // --------------------------------------------------------------------------

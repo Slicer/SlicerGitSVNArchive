@@ -195,13 +195,6 @@ void qSlicerColorsModuleWidget::setMRMLScene(vtkMRMLScene *scene)
   Q_D(qSlicerColorsModuleWidget);
   this->qSlicerAbstractModuleWidget::setMRMLScene(scene);
   d->setDefaultColorNode();
-
-  // make sure the table view has the logic set so that it can access terminologies
-  if (d->ColorView &&
-      d->ColorView->colorModel())
-    {
-    d->ColorView->colorModel()->setMRMLColorLogic(d->colorLogic());
-    }
 }
 
 //-----------------------------------------------------------------------------
@@ -283,10 +276,18 @@ void qSlicerColorsModuleWidget::onMRMLColorNodeChanged(vtkMRMLNode* newColorNode
       range = fsColorNode->GetScalarsToColors()->GetRange();
       d->ScalarBarActor->SetLookupTable(fsColorNode->GetScalarsToColors());
       }
+    disconnect(d->LUTRangeWidget, SIGNAL(valuesChanged(double, double)),
+      this, SLOT(setLookupTableRange(double, double)));
     if (range)
       {
-      d->LUTRangeWidget->setRange(
-        qMin(range[0], -1024.),qMax(range[1], 3071.));
+      // Make the range a bit (10%) larger than the values to allow some room for
+      // adjustment. More adjustment can be done by manually setting the range on the GUI.
+      double rangeMargin = (range[1] - range[0])*0.1;
+      if (rangeMargin == 0)
+        {
+        rangeMargin = 10.0;
+        }
+      d->LUTRangeWidget->setRange(range[0] - rangeMargin, range[1] + rangeMargin);
       d->LUTRangeWidget->setValues(range[0], range[1]);
       }
     else
@@ -294,6 +295,8 @@ void qSlicerColorsModuleWidget::onMRMLColorNodeChanged(vtkMRMLNode* newColorNode
       d->LUTRangeWidget->setEnabled(false);
       d->LUTRangeWidget->setValues(0.,0.);
       }
+    connect(d->LUTRangeWidget, SIGNAL(valuesChanged(double, double)),
+      this, SLOT(setLookupTableRange(double, double)));
     // update the annotations from the superclass color node since this is a
     // color table or freesurfer color node
     int numberOfColors = colorNode->GetNumberOfColors();
@@ -365,8 +368,6 @@ void qSlicerColorsModuleWidget::updateNumberOfColors()
     {
     qWarning() << "updateNumberOfColors: please select a discrete color table node to adjust the number of colors";
     }
-  // update the slider which will trigger updating the table on the node
-  d->LUTRangeWidget->setRange(0, newNumber - 1);
 }
 
 //-----------------------------------------------------------------------------

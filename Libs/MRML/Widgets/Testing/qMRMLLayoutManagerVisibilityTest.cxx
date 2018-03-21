@@ -25,6 +25,7 @@
 
 // Slicer includes
 #include "qMRMLLayoutManager.h"
+#include "vtkSlicerConfigure.h"
 
 // MRML includes
 #include <vtkMRMLAbstractViewNode.h>
@@ -37,13 +38,16 @@
 
 // VTK includes
 #include <vtkNew.h>
+#ifdef Slicer_VTK_USE_QVTKOPENGLWIDGET
+#include <QVTKOpenGLWidget.h>
+#endif
 
 // --------------------------------------------------------------------------
 bool checkNodeVisibility(int line,
                          vtkMRMLAbstractViewNode* viewNode,
                          bool expectedNodeVisibility)
 {
-  int nodeVisibility = viewNode->GetVisibility();
+  bool nodeVisibility = (viewNode->GetVisibility() != 0);
   if (nodeVisibility != expectedNodeVisibility)
     {
     std::cerr << "Line " << line << " - Problem with GetVisibility()"
@@ -60,7 +64,7 @@ bool checkNodeMappedInLayout(int line,
                              vtkMRMLAbstractViewNode* viewNode,
                              bool expectedNodeMappedInLayout)
 {
-  int nodeMappedInLayout = viewNode->IsMappedInLayout();
+  bool nodeMappedInLayout = (viewNode->IsMappedInLayout() != 0);
   if (nodeMappedInLayout != expectedNodeMappedInLayout)
     {
     std::cerr << "Line " << line << " - Problem with GetVisibility()"
@@ -78,7 +82,7 @@ bool checkNodeVisibleInLayout(int line,
                              vtkMRMLAbstractViewNode* viewNode,
                              bool expectedNodeVisibleInLayout)
 {
-  int nodeVisibleInLayout = viewNode->IsViewVisibleInLayout();
+  bool nodeVisibleInLayout = (viewNode->IsViewVisibleInLayout() != 0);
   if (nodeVisibleInLayout != expectedNodeVisibleInLayout)
     {
     std::cerr << "Line " << line << " - Problem with GetVisibility()"
@@ -360,6 +364,13 @@ bool runTests(vtkMRMLScene* scene,
 // --------------------------------------------------------------------------
 int qMRMLLayoutManagerVisibilityTest(int argc, char * argv[] )
 {
+#ifdef Slicer_VTK_USE_QVTKOPENGLWIDGET
+  // Set default surface format for QVTKOpenGLWidget
+  QSurfaceFormat format = QVTKOpenGLWidget::defaultFormat();
+  format.setSamples(0);
+  QSurfaceFormat::setDefaultFormat(format);
+#endif
+
   QApplication app(argc, argv);
 
   QWidget w;

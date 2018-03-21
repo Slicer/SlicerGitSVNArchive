@@ -36,6 +36,8 @@
 #include <vtkMRMLSelectionNode.h>
 #include <vtkMRMLTransformNode.h>
 
+#include <vtkFSLookupTable.h>
+
 // VTK includes
 #include <vtkAlgorithm.h>
 #include <vtkAlgorithmOutput.h>
@@ -303,7 +305,7 @@ int vtkMRMLModelDisplayableManager::UpdateClipSlicesFromMRML()
     }
 
   // update ClipModels node
-  vtkMRMLClipModelsNode *clipNode = vtkMRMLClipModelsNode::SafeDownCast(this->GetMRMLScene()->GetNthNodeByClass(0, "vtkMRMLClipModelsNode"));
+  vtkMRMLClipModelsNode *clipNode = vtkMRMLClipModelsNode::SafeDownCast(this->GetMRMLScene()->GetFirstNodeByClass("vtkMRMLClipModelsNode"));
   if (clipNode != this->Internal->ClipModelsNode)
     {
     vtkSetAndObserveMRMLNodeMacro(this->Internal->ClipModelsNode, clipNode);
@@ -510,8 +512,9 @@ void vtkMRMLModelDisplayableManager::ProcessMRMLNodesEvents(vtkObject *caller,
           {
           requestRender = false;
           break;
-          }
+          } // else fall through
       case vtkCommand::ModifiedEvent:
+        VTK_FALLTHROUGH;
       case vtkMRMLModelNode::MeshModifiedEvent:
         requestRender = this->OnMRMLDisplayableModelNodeModifiedEvent(
           displayableNode);
@@ -816,7 +819,7 @@ void vtkMRMLModelDisplayableManager::UpdateModelsFromMRML()
 
   std::vector<vtkMRMLNode *> dnodes;
   int nnodes = scene ? scene->GetNodesByClass("vtkMRMLDisplayableNode", dnodes) : 0;
-  for (int n=0; n<nnodes; n++)
+  for (int n = 0; n<nnodes && !clearDisplayedModels; n++)
     {
     node = dnodes[n];
     vtkMRMLDisplayableNode *model = vtkMRMLDisplayableNode::SafeDownCast(node);
@@ -826,10 +829,16 @@ void vtkMRMLModelDisplayableManager::UpdateModelsFromMRML()
         !strcmp(model->GetName(), "Yellow Volume Slice"))
       {
       slices.push_back(model);
-      vtkMRMLDisplayNode *dnode = model->GetDisplayNode();
-      if (dnode && this->Internal->DisplayedActors.find(dnode->GetID()) == this->Internal->DisplayedActors.end() )
+
+      int ndnodes = model->GetNumberOfDisplayNodes();
+      for (int i = 0; i<ndnodes && !clearDisplayedModels; i++)
         {
-        clearDisplayedModels = true;
+        vtkMRMLDisplayNode *dnode = model->GetNthDisplayNode(i);
+        if (dnode && this->Internal->DisplayedActors.find(dnode->GetID()) == this->Internal->DisplayedActors.end())
+          {
+          clearDisplayedModels = true;
+          break;
+          }
         }
       }
     }
@@ -856,10 +865,15 @@ void vtkMRMLModelDisplayableManager::UpdateModelsFromMRML()
     {
     vtkMRMLDisplayableNode *model = slices[i];
     // add nodes that are not in the list yet
-    vtkMRMLDisplayNode *dnode = model->GetDisplayNode();
-    if (dnode && this->Internal->DisplayedActors.find(dnode->GetID()) == this->Internal->DisplayedActors.end() )
+    int ndnodes = model->GetNumberOfDisplayNodes();
+    for (int i = 0; i<ndnodes; i++)
       {
-      this->UpdateModel(model);
+      vtkMRMLDisplayNode *dnode = model->GetNthDisplayNode(i);
+      if (dnode && this->Internal->DisplayedActors.find(dnode->GetID()) == this->Internal->DisplayedActors.end())
+        {
+        this->UpdateModel(model);
+        break;
+        }
       }
     this->SetModelDisplayProperty(model);
     }
@@ -1568,9 +1582,9 @@ void vtkMRMLModelDisplayableManager::SetModelDisplayProperty(vtkMRMLDisplayableN
           // of the colorNode vtkLookupTable in order not to impact
           // that lookup table original range.
           vtkLookupTable* dNodeLUT = modelDisplayNode->GetColorNode() ?
-                                     modelDisplayNode->GetColorNode()->GetLookupTable() : NULL;
-          vtkNew<vtkLookupTable> lut;
-          lut->DeepCopy(dNodeLUT);
+            modelDisplayNode->GetColorNode()->GetLookupTable() : NULL;
+          vtkSmartPointer<vtkLookupTable> lut = vtkSmartPointer<vtkLookupTable>::Take(
+            vtkMRMLModelDisplayableManager::CreateLookupTableCopy(dNodeLUT));
           mapper->SetLookupTable(lut.GetPointer());
 
           // Set scalar range
@@ -2169,4 +2183,26 @@ vtkMRMLSelectionNode* vtkMRMLModelDisplayableManager::GetSelectionNode()
           this->GetMRMLScene()->GetNodeByID("vtkMRMLSelectionNodeSingleton"));
     }
   return this->Internal->SelectionNode;
+}
+
+//---------------------------------------------------------------------------
+vtkLookupTable* vtkMRMLModelDisplayableManager::CreateLookupTableCopy(vtkLookupTable* sourceLut)
+{
+  vtkLookupTable* copiedLut = NULL;
+  vtkFSLookupTable* sourceLutFS = vtkFSLookupTable::SafeDownCast(sourceLut);
+  if (sourceLutFS)
+    {
+    copiedLut = vtkFSLookupTable::New();
+    }
+  else
+    {
+    copiedLut = vtkLookupTable::New();
+    }
+  copiedLut->DeepCopy(sourceLut);
+
+  // Workaround for VTK bug in vtkLookupTable::DeepCopy
+  // (special colors are not copied)
+  copiedLut->BuildSpecialColors();
+
+  return copiedLut;
 }

@@ -20,7 +20,11 @@
 
 // Qt includes
 #include <QAbstractScrollArea>
+#if (QT_VERSION < QT_VERSION_CHECK(5, 0, 0))
 #include <QCleanlooksStyle>
+#else
+#include <QStyleFactory>
+#endif
 #include <QDebug>
 #include <QEvent>
 #include <QGroupBox>
@@ -35,7 +39,11 @@
 
 // --------------------------------------------------------------------------
 qSlicerStyle::qSlicerStyle()
+#if (QT_VERSION < QT_VERSION_CHECK(5, 0, 0))
   : Superclass(new QCleanlooksStyle)
+#else
+  : Superclass(QStyleFactory::create("fusion"))
+#endif
 {
   this->baseStyle()->setParent(this);
 }
@@ -138,6 +146,7 @@ QRect qSlicerStyle::subControlRect(ComplexControl control, const QStyleOptionCom
   /// the following code aims at overriding that value by setting it to 4.
   switch(control)
     {
+#if (QT_VERSION < QT_VERSION_CHECK(5, 0, 0))
     case CC_GroupBox:
       if (const QStyleOptionGroupBox *groupBox =
           qstyleoption_cast<const QStyleOptionGroupBox *>(option))
@@ -201,6 +210,7 @@ QRect qSlicerStyle::subControlRect(ComplexControl control, const QStyleOptionCom
           }
         }
       break;
+#endif
 #ifndef QT_NO_SLIDER
     // <HACK>
     // Reimplemented to work around bug: http://bugreports.qt.nokia.com/browse/QTBUG-13318
@@ -281,6 +291,13 @@ int qSlicerStyle::styleHint(StyleHint hint, const QStyleOption *opt, const QWidg
         res = widget->property("SH_ItemView_ActivateItemOnSingleClick").toBool();
         break;
         }
+    // Overload the SH_ComboBox_Popup option to prevent issue with checkable
+    // combobox. For more details see: https://bugreports.qt.io/browse/QTBUG-19683
+    case QStyle::SH_ComboBox_Popup:
+      {
+      res = 0;
+      break;
+      }
     default:
       res = this->Superclass::styleHint(hint, opt, widget, returnData);
     }
@@ -291,6 +308,10 @@ int qSlicerStyle::styleHint(StyleHint hint, const QStyleOption *opt, const QWidg
 bool qSlicerStyle::eventFilter(QObject* obj, QEvent* event)
 {
   QWidget* widget = qobject_cast<QWidget*>(obj);
+  if (!widget)
+    {
+    return this->Superclass::eventFilter(obj, event);
+    }
   switch (event->type())
     {
     case QEvent::Wheel:

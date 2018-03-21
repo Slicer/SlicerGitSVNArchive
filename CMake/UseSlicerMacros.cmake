@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.4)
+cmake_minimum_required(VERSION 3.5)
 
 # Given a variable name, this function will display messages indicating what the current
 # value of the variable.
@@ -74,7 +74,7 @@ function(slicer_setting_variable_message varname)
   set(options      OBFUSCATE SKIP_TRUNCATE)
   set(oneValueArgs PRETEXT)
   set(multiValueArgs )
-  CMAKE_PARSE_ARGUMENTS(LOCAL
+  cmake_parse_arguments(LOCAL
     "${options}"
     "${oneValueArgs}"
     "${multiValueArgs}"

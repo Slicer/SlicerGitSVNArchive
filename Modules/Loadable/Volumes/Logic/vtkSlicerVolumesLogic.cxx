@@ -190,17 +190,11 @@ public:
   static vtkSlicerErrorSink *New() {return new vtkSlicerErrorSink; }
   typedef vtkSlicerErrorSink Self;
 
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   /// Display errors using vtkOutputWindowDisplayErrorText
   /// \sa vtkOutputWindowDisplayErrorText
   void DisplayErrors();
-
-  /// Return True if errors have been recorded
-  bool HasErrors() const;
-
-  /// Clear list of errors
-  void Clear();
 
 protected:
   vtkSlicerErrorSink();
@@ -249,18 +243,6 @@ void vtkSlicerErrorSink::DisplayErrors()
     vtkOutputWindowDisplayErrorText((*it).c_str());
     ++it;
     }
-}
-
-//----------------------------------------------------------------------------
-bool vtkSlicerErrorSink::HasErrors() const
-{
-  return this->ErrorList.size() > 0;
-}
-
-//----------------------------------------------------------------------------
-void vtkSlicerErrorSink::Clear()
-{
-  this->ErrorList.clear();
 }
 
 //----------------------------------------------------------------------------
@@ -659,7 +641,6 @@ vtkMRMLVolumeNode* vtkSlicerVolumesLogic::AddArchetypeVolume (
     vtkErrorMacro("AddArchetypeVolume: Failed to add volume - MRMLScene is null");
     return 0;
     }
-  this->GetMRMLScene()->StartState(vtkMRMLScene::BatchProcessState);
 
   bool labelMap = false;
   if ( loadingOptions & 1 )    // labelMap is true
@@ -795,7 +776,6 @@ vtkMRMLVolumeNode* vtkSlicerVolumesLogic::AddArchetypeVolume (
     testScene->SetDataIOManager(0);
     }
 
-  this->GetMRMLScene()->EndState(vtkMRMLScene::BatchProcessState);
   if (modified)
     {
     this->Modified();
@@ -956,49 +936,78 @@ vtkSlicerVolumesLogic::FillLabelVolumeFromTemplate(vtkMRMLScene *scene,
 //----------------------------------------------------------------------------
 vtkMRMLLabelMapVolumeNode*
 vtkSlicerVolumesLogic::CreateLabelVolumeFromVolume(vtkMRMLScene *scene,
-                                                   vtkMRMLLabelMapVolumeNode *labelNode,
+                                                   vtkMRMLLabelMapVolumeNode *outputVolume,
                                                    vtkMRMLVolumeNode *inputVolume)
 {
-  if (scene == NULL || labelNode == NULL || inputVolume == NULL)
+  if (scene == NULL || outputVolume == NULL || inputVolume == NULL)
     {
     return NULL;
     }
 
-  // Create a display node if the label node does not have one
-  vtkSmartPointer<vtkMRMLLabelMapVolumeDisplayNode> labelDisplayNode =
-      vtkMRMLLabelMapVolumeDisplayNode::SafeDownCast(labelNode->GetDisplayNode());
-  if (labelDisplayNode.GetPointer() == NULL)
-    {
-    labelDisplayNode = vtkSmartPointer<vtkMRMLLabelMapVolumeDisplayNode>::New();
-    scene->AddNode(labelDisplayNode);
-    }
-
-  // We need to copy from the volume node to get required attributes, but
-  // the copy copies inputVolume's name as well.  So save the original name
-  // and re-set the name after the copy.
-  std::string origName(labelNode->GetName());
-  labelNode->Copy(inputVolume);
-  labelNode->SetAndObserveStorageNodeID(NULL);
-  labelNode->SetName(origName.c_str());
-  labelNode->SetAndObserveDisplayNodeID(labelDisplayNode->GetID());
-
   // Associate labelmap with the source volume
-  //TODO: Obsolete, replace mechanism with node references
   if (inputVolume->GetID())
     {
-    labelNode->SetAttribute("AssociatedNodeID", inputVolume->GetID());
+    outputVolume->SetNodeReferenceID("AssociatedNodeID", inputVolume->GetID());
     }
-
-  // Set the display node to have a label map lookup table
-  this->SetAndObserveColorToDisplayNode(labelDisplayNode,
-                                        /* labelMap = */ 1, /* filename= */ 0);
 
   // Copy and set image data of the input volume to the label volume
   vtkNew<vtkImageData> imageData;
   imageData->DeepCopy(inputVolume->GetImageData());
-  labelNode->SetAndObserveImageData(imageData.GetPointer());
+  outputVolume->SetAndObserveImageData(imageData.GetPointer());
 
-  return labelNode;
+  vtkNew<vtkMatrix4x4> ijkToRas;
+  inputVolume->GetIJKToRASMatrix(ijkToRas.GetPointer());
+  outputVolume->SetIJKToRASMatrix(ijkToRas.GetPointer());
+
+  outputVolume->SetAndObserveTransformNodeID(inputVolume->GetTransformNodeID());
+
+  // Create a display node if the label node does not have one
+  vtkMRMLLabelMapVolumeDisplayNode* displayNode =
+    vtkMRMLLabelMapVolumeDisplayNode::SafeDownCast(outputVolume->GetDisplayNode());
+  if (displayNode == NULL)
+    {
+    displayNode = vtkMRMLLabelMapVolumeDisplayNode::New();
+    scene->AddNode(displayNode);
+    displayNode->Delete();
+    // Set the display node to have a label map lookup table
+    this->SetAndObserveColorToDisplayNode(displayNode,
+      /* labelMap = */ 1, /* filename= */ 0);
+    outputVolume->SetAndObserveDisplayNodeID(displayNode->GetID());
+    }
+
+  return outputVolume;
+}
+
+//----------------------------------------------------------------------------
+vtkMRMLScalarVolumeNode* vtkSlicerVolumesLogic::CreateScalarVolumeFromVolume(
+  vtkMRMLScene *scene, vtkMRMLScalarVolumeNode *outputVolume, vtkMRMLVolumeNode *inputVolume)
+{
+  if (scene == NULL || outputVolume == NULL || inputVolume == NULL)
+    {
+    return NULL;
+    }
+
+  // Associate labelmap with the source volume
+  if (inputVolume->GetID())
+    {
+    outputVolume->SetNodeReferenceID("AssociatedNodeID", inputVolume->GetID());
+    }
+
+  // Copy and set image data of the input volume to the label volume
+  vtkNew<vtkImageData> imageData;
+  imageData->DeepCopy(inputVolume->GetImageData());
+  outputVolume->SetAndObserveImageData(imageData.GetPointer());
+
+  vtkNew<vtkMatrix4x4> ijkToRas;
+  inputVolume->GetIJKToRASMatrix(ijkToRas.GetPointer());
+  outputVolume->SetIJKToRASMatrix(ijkToRas.GetPointer());
+
+  outputVolume->SetAndObserveTransformNodeID(inputVolume->GetTransformNodeID());
+
+  // Create a display node if the output node does not have one
+  outputVolume->CreateDefaultDisplayNodes();
+
+  return outputVolume;
 }
 
 //----------------------------------------------------------------------------
@@ -1133,7 +1142,9 @@ vtkSlicerVolumesLogic::CompareVolumeGeometry(vtkMRMLScalarVolumeNode *volumeNode
       int row, column;
       double volumeValue1, volumeValue2;
       // set the floating point precision to match the precision of the espilon
-      // used for the fuzzy compare
+      // used for the fuzzy compare (need fixed so precision applies to right
+      // of the decimal point see https://www.na-mic.org/Bug/view.php?id=3776).
+      warnings << std::fixed;
       warnings << std::setprecision(this->GetCompareVolumeGeometryPrecision());
       // sanity check versus the volume spacings
       double spacing1[3], spacing2[3];

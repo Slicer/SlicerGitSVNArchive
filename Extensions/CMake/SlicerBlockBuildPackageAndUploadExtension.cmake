@@ -19,6 +19,7 @@ set(expected_defined_vars
   BUILD_TESTING
   CTEST_BUILD_CONFIGURATION
   CTEST_CMAKE_GENERATOR
+  CTEST_DROP_SITE
   EXTENSION_BUILD_OPTIONS_STRING
   EXTENSION_BUILD_SUBDIRECTORY
   EXTENSION_ENABLED
@@ -39,7 +40,6 @@ set(expected_defined_vars
   )
 if(RUN_CTEST_UPLOAD)
   list(APPEND expected_defined_vars
-    CTEST_DROP_SITE
     EXTENSION_ARCHITECTURE
     EXTENSION_BITNESS
     EXTENSION_OPERATING_SYSTEM
@@ -116,6 +116,12 @@ set(CTEST_DROP_SITE \"${CTEST_DROP_SITE}\")
 set(CTEST_DROP_LOCATION \"/submit.php?project=Slicer4\")
 set(CTEST_DROP_SITE_CDASH TRUE)")
   endif()
+  message(STATUS "CTestCustom.cmake has been written to: ${ctestconfig_dest_dir}")
+  configure_file(
+    ${Slicer_CMAKE_DIR}/CTestCustom.cmake.in
+    ${ctestconfig_dest_dir}/CTestCustom.cmake
+    COPYONLY
+    )
 endforeach()
 
 set(track_qualifier_cleaned "${Slicer_EXTENSIONS_TRACK_QUALIFIER}-")
@@ -135,6 +141,9 @@ CMAKE_GENERATOR:STRING=${CTEST_CMAKE_GENERATOR}
 CMAKE_MAKE_PROGRAM:FILEPATH=${CMAKE_MAKE_PROGRAM}
 CMAKE_C_COMPILER:FILEPATH=${CMAKE_C_COMPILER}
 CMAKE_CXX_COMPILER:FILEPATH=${CMAKE_CXX_COMPILER}
+CMAKE_CXX_STANDARD:STRING=${CMAKE_CXX_STANDARD}
+CMAKE_CXX_STANDARD_REQUIRED:BOOL=${CMAKE_CXX_STANDARD_REQUIRED}
+CMAKE_CXX_EXTENSIONS:BOOL=${CMAKE_CXX_EXTENSIONS}
 CTEST_MODEL:STRING=${CTEST_MODEL}
 GIT_EXECUTABLE:FILEPATH=${GIT_EXECUTABLE}
 Subversion_SVN_EXECUTABLE:FILEPATH=${Subversion_SVN_EXECUTABLE}
@@ -231,13 +240,19 @@ if(build_errors GREATER "0")
 else()
   message("Packaging and uploading extension ${EXTENSION_NAME} to midas ...")
   set(package_list)
+  set(package_target "package")
+  if(RUN_CTEST_UPLOAD)
+    set(package_target "packageupload")
+  endif()
   if(RUN_CTEST_PACKAGES)
     ctest_build(
-      TARGET packageupload
+      TARGET ${package_target}
       BUILD ${EXTENSION_SUPERBUILD_BINARY_DIR}/${EXTENSION_BUILD_SUBDIRECTORY}
       APPEND
       )
-    ctest_submit(PARTS Build)
+    if(RUN_CTEST_SUBMIT)
+      ctest_submit(PARTS Build)
+    endif()
   endif()
 
   if(RUN_CTEST_UPLOAD)

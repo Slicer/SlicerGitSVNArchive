@@ -47,7 +47,7 @@ class VTK_ITK_EXPORT vtkITKArchetypeImageSeriesReader : public vtkImageAlgorithm
 public:
   static vtkITKArchetypeImageSeriesReader *New();
   vtkTypeMacro(vtkITKArchetypeImageSeriesReader,vtkImageAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   typedef itk::SpatialOrientation::ValidCoordinateOrientationFlags CoordinateOrientationCode;
 
@@ -215,6 +215,18 @@ public:
     }
 
   ///
+  /// Reader to use when reading as a scalar image data
+  enum
+    {
+    GDCM = 0,
+    DCMTK
+    };
+  vtkSetClampMacro(DICOMImageIOApproach, int, vtkITKArchetypeImageSeriesReader::GDCM, vtkITKArchetypeImageSeriesReader::DCMTK);
+  vtkGetMacro(DICOMImageIOApproach, int);
+  void SetDICOMImageIOApproachToGDCM() {this->SetDICOMImageIOApproach(vtkITKArchetypeImageSeriesReader::GDCM);};
+  void SetDICOMImageIOApproachToDCMTK() {this->SetDICOMImageIOApproach(vtkITKArchetypeImageSeriesReader::DCMTK);};
+
+  ///
   /// Get the file format.  Pixels are this type in the file.
   vtkSetMacro(OutputScalarType, int);
   vtkGetMacro(OutputScalarType, int);
@@ -228,6 +240,11 @@ public:
   /// Whether load in a single file or a series
   vtkSetMacro(SingleFile, int);
   vtkGetMacro(SingleFile, int);
+
+  ///
+  /// Whether try analyzing the dicom headers
+  vtkSetMacro(AnalyzeHeader, bool);
+  vtkGetMacro(AnalyzeHeader, bool);
 
   ///
   /// Whether to use orientation from file
@@ -786,6 +803,9 @@ protected:
   vtkITKArchetypeImageSeriesReader();
   ~vtkITKArchetypeImageSeriesReader();
 
+  /// Get MetaData from dictionary, removing all whitespaces from the string.
+  static std::string GetMetaDataWithoutSpaces(const itk::MetaDataDictionary &dict, const std::string& tag);
+
   char *Archetype;
   int SingleFile;
   int UseOrientationFromFile;
@@ -816,6 +836,8 @@ protected:
   char UseNativeScalarType;
   bool UseNativeOrigin;
 
+  int DICOMImageIOApproach;
+
   bool GroupingByTags;
   int SelectedUID;
   int SelectedContentTime;
@@ -830,7 +852,7 @@ protected:
   std::vector<std::string> FileNames;
   std::vector<std::pair <double, int> > FileNameSliceKey;
   CoordinateOrientationCode DesiredCoordinateOrientation;
-  virtual int RequestInformation(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
+  virtual int RequestInformation(vtkInformation *, vtkInformationVector **, vtkInformationVector *) VTK_OVERRIDE;
 
   itk::MetaDataDictionary Dictionary;
 
@@ -851,6 +873,7 @@ protected:
   std::vector<std::string> AllFileNames;
   bool AnalyzeHeader;
   bool IsOnlyFile;
+  bool ArchetypeIsDICOM;
 
   std::vector<std::string> SeriesInstanceUIDs;
   std::vector<std::string> ContentTime;

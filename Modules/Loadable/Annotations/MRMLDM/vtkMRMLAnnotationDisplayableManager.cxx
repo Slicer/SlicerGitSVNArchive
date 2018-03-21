@@ -81,7 +81,7 @@ vtkMRMLAnnotationDisplayableManager::vtkMRMLAnnotationDisplayableManager()
   this->m_Focus = "vtkMRMLAnnotationNode";
 
   // by default, multiply the display node scale by this when setting scale on elements in 2d windows
-  this->ScaleFactor2D = 0.00333;
+  this->ScaleFactor2D = 0.01667;
 
   this->LastClickWorldCoordinates[0]=0;
   this->LastClickWorldCoordinates[1]=0;
@@ -292,16 +292,18 @@ void vtkMRMLAnnotationDisplayableManager::UpdateFromMRML()
     {
     return;
     }
-  // loop over the nodes for which this manager provides widgets
-  this->GetMRMLScene()->InitTraversal();
-  vtkMRMLNode *node = this->GetMRMLScene()->GetNextNodeByClass(this->m_Focus);
+
   // turn off update from mrml requested, as we're doing it now, and create
   // widget requests a render which checks this flag before calling update
   // from mrml again
   this->SetUpdateFromMRMLRequested(0);
-  while (node != NULL)
+
+  // loop over the nodes for which this manager provides widgets
+  std::vector<vtkMRMLNode*> nodes;
+  this->GetMRMLScene()->GetNodesByClass(this->m_Focus, nodes);
+  for (std::vector< vtkMRMLNode* >::iterator nodeIt = nodes.begin(); nodeIt != nodes.end(); ++nodeIt)
     {
-    vtkMRMLAnnotationNode *annotationNode = vtkMRMLAnnotationNode::SafeDownCast(node);
+    vtkMRMLAnnotationNode *annotationNode = vtkMRMLAnnotationNode::SafeDownCast(*nodeIt);
     if (annotationNode)
       {
       // do we  have a widget for it?
@@ -315,7 +317,6 @@ void vtkMRMLAnnotationDisplayableManager::UpdateFromMRML()
           }
         }
       }
-    node = this->GetMRMLScene()->GetNextNodeByClass(this->m_Focus);
     }
   // set up observers on all the nodes
 //  this->SetAndObserveNodes();

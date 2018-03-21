@@ -1,6 +1,6 @@
 
 #-----------------------------------------------------------------------------
-cmake_minimum_required(VERSION 2.8.4)
+cmake_minimum_required(VERSION 3.5)
 #-----------------------------------------------------------------------------
 
 if(Slicer_SOURCE_DIR)
@@ -14,17 +14,7 @@ if(APPLE)
   include(${CMAKE_CURRENT_SOURCE_DIR}/../../CMake/SlicerBlockSetCMakeOSXVariables.cmake)
 endif()
 
-if(POLICY CMP0048)
-  cmake_policy(SET CMP0048 NEW) # CMake 3.0.0
-endif()
 project(SlicerExtensions)
-
-#-----------------------------------------------------------------------------
-# See http://cmake.org/cmake/help/cmake-2-8-docs.html#section_Policies for details
-#-----------------------------------------------------------------------------
-if(POLICY CMP0017)
-  cmake_policy(SET CMP0017 OLD)
-endif()
 
 #-----------------------------------------------------------------------------
 set(_url $ENV{MIDAS_PACKAGE_URL})
@@ -59,26 +49,17 @@ set(default_local_extension_dir ${default_extension_description_dir})
 set(Slicer_EXTENSIONS_TRACK_QUALIFIER "master" CACHE STRING "CDash extensions track qualifier (master, 4.4, ...)")
 
 #-----------------------------------------------------------------------------
-# Set a default build type if none was specified
-#-----------------------------------------------------------------------------
-if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
-  message(STATUS "Setting build type to 'Debug' as none was specified.")
-  set(CMAKE_BUILD_TYPE Debug CACHE STRING "Choose the type of build." FORCE)
-  # Set the possible values of build type for cmake-gui
-  set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release"
-    "MinSizeRel" "RelWithDebInfo")
-endif()
-
-#-----------------------------------------------------------------------------
 # Prerequisites
 #-----------------------------------------------------------------------------
 include(ExternalProject)
 find_package(Slicer REQUIRED)
 find_package(Git REQUIRED)
 find_package(Subversion REQUIRED)
-# XXX Explicitly define a CACHE variable to workaround https://gitlab.kitware.com/cmake/cmake/issues/15448
-#     It fixes https://www.na-mic.org/Bug/view.php?id=4311
-set(Subversion_SVN_EXECUTABLE ${Subversion_SVN_EXECUTABLE} CACHE FILEPATH "SVN command line client")
+
+#-----------------------------------------------------------------------------
+# Set a default build type if none was specified
+#-----------------------------------------------------------------------------
+include(SlicerInitializeBuildType)
 
 #-----------------------------------------------------------------------------
 # Options

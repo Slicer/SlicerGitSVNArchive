@@ -66,11 +66,14 @@ This work is partially supported by PAR-07-249: R01CA131718 NA-MIC Virtual Colon
 
 class ScriptedLoadableModuleWidget:
   def __init__(self, parent = None):
+    """If parent widget is not specified: a top-level widget is created automatically;
+    the application has to delete this widget (by calling widget.parent.deleteLater() to avoid memory leaks.
+    """
     # Get module name by stripping 'Widget' from the class name
     self.moduleName = self.__class__.__name__
     if self.moduleName.endswith('Widget'):
       self.moduleName = self.moduleName[:-6]
-    self.developerMode = slicer.util.settingsValue('Developer/DeveloperMode', False, lambda v: v.lower()=='true')
+    self.developerMode = slicer.util.settingsValue('Developer/DeveloperMode', False, converter=slicer.util.toBool)
     if not parent:
       self.parent = slicer.qMRMLWidget()
       self.parent.setLayout(qt.QVBoxLayout())
@@ -81,6 +84,26 @@ class ScriptedLoadableModuleWidget:
     if not parent:
       self.setup()
       self.parent.show()
+    slicer.app.moduleManager().connect(
+      'moduleAboutToBeUnloaded(QString)', self._onModuleAboutToBeUnloaded)
+
+  def cleanup(self):
+    """Override this function to implement module widget specific cleanup.
+
+    It is invoked when the signal `qSlicerModuleManager::moduleAboutToBeUnloaded(QString)`
+    corresponding to the current module is emitted and just before a module is
+    effectively unloaded.
+    """
+    pass
+
+  def _onModuleAboutToBeUnloaded(self, moduleName):
+    """This slot calls `cleanup()` if the module about to be unloaded is the
+    current one.
+    """
+    if moduleName == self.moduleName:
+      self.cleanup()
+      slicer.app.moduleManager().disconnect(
+        'moduleAboutToBeUnloaded(QString)', self._onModuleAboutToBeUnloaded)
 
   def setupDeveloperSection(self):
     if not self.developerMode:
@@ -134,14 +157,21 @@ class ScriptedLoadableModuleWidget:
     # Instantiate and connect default widgets ...
     self.setupDeveloperSection()
 
-  def cleanup(self):
-    pass
-
   def onReload(self):
     """
     ModuleWizard will substitute correct default moduleName.
     Generic reload method for any scripted module.
     """
+
+    # Print a clearly visible separator to make it easier
+    # to distinguish new error messages (during/after reload)
+    # from old ones.
+    print('\n' * 2)
+    print('-' * 30)
+    print('Reloading module: '+self.moduleName)
+    print('-' * 30)
+    print('\n' * 2)
+
     slicer.util.reloadScriptedModule(self.moduleName)
 
   def onReloadAndTest(self):

@@ -50,6 +50,9 @@ create_test_sourcelist(Tests ${KIT}CxxTests.cxx
   vtkMRMLNodeTest1.cxx
   vtkMRMLNonlinearTransformNodeTest1.cxx
   vtkMRMLPETProceduralColorNodeTest1.cxx
+  vtkMRMLPlotChartNodeTest1.cxx
+  vtkMRMLPlotSeriesNodeTest1.cxx
+  vtkMRMLPlotViewNodeTest1.cxx
   vtkMRMLProceduralColorNodeTest1.cxx
   vtkMRMLProceduralColorStorageNodeTest1.cxx
   vtkMRMLROIListNodeTest1.cxx
@@ -100,6 +103,7 @@ create_test_sourcelist(Tests ${KIT}CxxTests.cxx
   vtkMRMLVolumeNodeEventsTest.cxx
   vtkMRMLVolumeNodeTest1.cxx
   vtkMRMLdGEMRICProceduralColorNodeTest1.cxx
+  vtkCodedEntryTest1.cxx
   vtkObserverManagerTest1.cxx
   vtkOrientedBSplineTransformTest1.cxx
   vtkOrientedGridTransformTest1.cxx
@@ -163,6 +167,9 @@ simple_test( vtkMRMLLinearTransformNodeEventsTest )
 simple_test( vtkMRMLNonlinearTransformNodeTest1 ${CMAKE_CURRENT_SOURCE_DIR}/NonLinearTransformScene.mrml)
 simple_test( vtkMRMLNRRDStorageNodeTest1 )
 simple_test( vtkMRMLPETProceduralColorNodeTest1 )
+simple_test( vtkMRMLPlotChartNodeTest1 )
+simple_test( vtkMRMLPlotSeriesNodeTest1 )
+simple_test( vtkMRMLPlotViewNodeTest1 )
 simple_test( vtkMRMLProceduralColorNodeTest1 )
 simple_test( vtkMRMLProceduralColorStorageNodeTest1 )
 simple_test( vtkMRMLROIListNodeTest1 )
@@ -191,7 +198,7 @@ simple_test( vtkMRMLSnapshotClipNodeTest1 )
 simple_test( vtkMRMLStorableNodeTest1 )
 simple_test( vtkMRMLStorageNodeTest1 )
 simple_test( vtkMRMLTableNodeTest1 )
-simple_test( vtkMRMLTableStorageNodeTest1 )
+simple_test( vtkMRMLTableStorageNodeTest1 ${TEMP})
 simple_test( vtkMRMLTableViewNodeTest1 )
 simple_test( vtkMRMLTensorVolumeNodeTest1 )
 simple_test( vtkMRMLTransformableNodeReferenceSaveImportTest )

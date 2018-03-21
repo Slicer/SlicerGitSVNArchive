@@ -34,6 +34,7 @@
 
 // MRMLDisplayableManager includes
 #include <vtkMRMLAbstractDisplayableManager.h>
+#include <vtkMRMLCrosshairDisplayableManager.h>
 #include <vtkMRMLDisplayableManagerGroup.h>
 #include <vtkMRMLThreeDViewDisplayableManagerFactory.h>
 #include <vtkThreeDViewInteractorStyle.h>
@@ -42,10 +43,12 @@
 #include <vtkMRMLViewNode.h>
 #include <vtkMRMLScene.h>
 #include <vtkMRMLCameraNode.h>
+#include <vtkMRMLCrosshairNode.h>
 
 // VTK includes
 #include <vtkCollection.h>
 #include <vtkNew.h>
+#include <vtkRenderer.h>
 #include <vtkSmartPointer.h>
 
 //--------------------------------------------------------------------------
@@ -261,20 +264,27 @@ void qMRMLThreeDView::rotateToViewAxis(unsigned int axisId)
     {
   case 0:
     cam->RotateTo(vtkMRMLCameraNode::Left);
+    break;
   case 1:
     cam->RotateTo(vtkMRMLCameraNode::Right);
+    break;
   case 2:
     cam->RotateTo(vtkMRMLCameraNode::Posterior);
+    break;
   case 3:
     cam->RotateTo(vtkMRMLCameraNode::Anterior);
+    break;
   case 4:
     cam->RotateTo(vtkMRMLCameraNode::Inferior);
+    break;
   case 5:
     cam->RotateTo(vtkMRMLCameraNode::Superior);
+    break;
   default:
     qWarning() << "qMRMLThreeDView::rotateToViewAxis: " << axisId
                << " is not a valid axis id (0 to 5 : "
                << "-X, +X, -Y, +Y, -Z, +Z).";
+    break;
     }
 }
 
@@ -396,6 +406,16 @@ void qMRMLThreeDView::resetFocalPoint()
     d->MRMLViewNode->SetAxisLabelsVisible(0);
     d->MRMLViewNode->EndModify(wasModifying);
     }
+
+  // Exclude crosshair from focal point computation
+  vtkMRMLCrosshairNode* crosshairNode = vtkMRMLCrosshairDisplayableManager::FindCrosshairNode(d->MRMLScene);
+  int crosshairMode = 0;
+  if (crosshairNode)
+    {
+    crosshairMode = crosshairNode->GetCrosshairMode();
+    crosshairNode->SetCrosshairMode(vtkMRMLCrosshairNode::NoCrosshair);
+    }
+
   // Superclass resets the camera.
   this->Superclass::resetFocalPoint();
 
@@ -409,6 +429,16 @@ void qMRMLThreeDView::resetFocalPoint()
     // Inform the displayable manager that the view is reset, so it can
     // update the box/labels bounds.
     d->MRMLViewNode->InvokeEvent(vtkMRMLViewNode::ResetFocalPointRequestedEvent);
+    }
+
+  if (crosshairNode)
+    {
+    crosshairNode->SetCrosshairMode(crosshairMode);
+    }
+
+  if (this->renderer())
+    {
+    this->renderer()->ResetCameraClippingRange();
     }
 }
 

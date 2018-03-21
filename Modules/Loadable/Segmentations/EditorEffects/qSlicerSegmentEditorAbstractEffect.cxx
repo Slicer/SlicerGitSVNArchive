@@ -25,8 +25,11 @@
 #include "vtkMRMLSegmentationNode.h"
 #include "vtkMRMLSegmentationDisplayNode.h"
 #include "vtkMRMLSegmentEditorNode.h"
-#include "vtkOrientedImageData.h"
+
 #include "vtkSlicerSegmentationsModuleLogic.h"
+
+// SegmentationCore includes
+#include "vtkOrientedImageData.h"
 
 // Qt includes
 #include <QDebug>
@@ -50,6 +53,9 @@
 #include "vtkMRMLScene.h"
 #include "vtkMRMLSliceNode.h"
 #include "vtkMRMLViewNode.h"
+#include "vtkMRMLInteractionNode.h"
+#include "vtkMRMLScalarVolumeNode.h"
+#include "vtkMRMLSubjectHierarchyNode.h"
 
 // VTK includes
 #include <vtkImageConstantPad.h>
@@ -74,7 +80,6 @@
 //-----------------------------------------------------------------------------
 qSlicerSegmentEditorAbstractEffectPrivate::qSlicerSegmentEditorAbstractEffectPrivate(qSlicerSegmentEditorAbstractEffect& object)
   : q_ptr(&object)
-  , Scene(NULL)
   , SavedCursor(QCursor(Qt::ArrowCursor))
   , OptionsFrame(NULL)
 {
@@ -156,12 +161,12 @@ void qSlicerSegmentEditorAbstractEffect::activate()
 {
   Q_D(qSlicerSegmentEditorAbstractEffect);
 
-  this->updateGUIFromMRML();
-
   // Show options frame
   d->OptionsFrame->setVisible(true);
 
   this->m_Active = true;
+
+  this->updateGUIFromMRML();
 }
 
 //-----------------------------------------------------------------------------
@@ -469,6 +474,26 @@ void qSlicerSegmentEditorAbstractEffect::modifySelectedSegmentByLabelmap(vtkOrie
           {
           qCritical() << Q_FUNC_INFO << ": Failed to remove modifier labelmap from segment " << this->parameterSetNode()->GetMaskSegmentID();
           }
+        }
+      }
+    }
+
+  // Make sure the segmentation node is under the same parent as the master volume
+  vtkMRMLScalarVolumeNode* masterVolumeNode = d->ParameterSetNode->GetMasterVolumeNode();
+  if (masterVolumeNode)
+    {
+    vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(d->ParameterSetNode->GetScene());
+    if (shNode)
+      {
+      vtkIdType segmentationId = shNode->GetItemByDataNode(segmentationNode);
+      vtkIdType masterVolumeShId = shNode->GetItemByDataNode(masterVolumeNode);
+      if (segmentationId && masterVolumeShId)
+        {
+        shNode->SetItemParent(segmentationId, shNode->GetItemParent(masterVolumeShId));
+        }
+      else
+        {
+        qCritical() << Q_FUNC_INFO << ": Subject hierarchy items not found for segmentation or master volume";
         }
       }
     }
@@ -978,7 +1003,7 @@ vtkOrientedImageData* qSlicerSegmentEditorAbstractEffect::referenceGeometryImage
 {
   Q_D(qSlicerSegmentEditorAbstractEffect);
   bool success = false;
-  emit d->updateVolumeSignal(d->ReferenceGeometryImage.GetPointer(), success); // this resets the labelmap and cleares it
+  emit d->updateVolumeSignal(d->ReferenceGeometryImage.GetPointer(), success); // this resets the labelmap and clears it
   if (!success)
     {
     return NULL;
@@ -1286,4 +1311,52 @@ bool qSlicerSegmentEditorAbstractEffect::showEffectCursorInThreeDView()
 void qSlicerSegmentEditorAbstractEffect::setShowEffectCursorInThreeDView(bool show)
 {
   this->m_ShowEffectCursorInThreeDView = show;
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerSegmentEditorAbstractEffect::interactionNodeModified(vtkMRMLInteractionNode* interactionNode)
+{
+  if (interactionNode == NULL)
+    {
+    return;
+    }
+  // Deactivate the effect if user switched to markup placement mode
+  // to avoid double effect (e.g., paint & place fiducial at the same time)
+  if (interactionNode->GetCurrentInteractionMode() != vtkMRMLInteractionNode::ViewTransform)
+    {
+    this->selectEffect("");
+    }
+}
+
+//-----------------------------------------------------------------------------
+bool qSlicerSegmentEditorAbstractEffect::segmentationDisplayableInView(vtkMRMLAbstractViewNode* viewNode)
+{
+  if (!viewNode)
+    {
+    qWarning() << Q_FUNC_INFO << ": failed. Invalid viewNode.";
+    return false;
+    }
+
+  vtkMRMLSegmentEditorNode* parameterSetNode = this->parameterSetNode();
+  if (!parameterSetNode)
+    {
+    return false;
+    }
+
+  vtkMRMLSegmentationNode* segmentationNode = parameterSetNode->GetSegmentationNode();
+  if (!segmentationNode)
+    {
+    return false;
+    }
+  const char* viewNodeID = viewNode->GetID();
+  int numberOfDisplayNodes = segmentationNode->GetNumberOfDisplayNodes();
+  for (int displayNodeIndex = 0; displayNodeIndex < numberOfDisplayNodes; displayNodeIndex++)
+    {
+    vtkMRMLDisplayNode* segmentationDisplayNode = segmentationNode->GetNthDisplayNode(displayNodeIndex);
+    if (segmentationDisplayNode->IsDisplayableInView(viewNodeID))
+      {
+      return true;
+      }
+    }
+  return false;
 }

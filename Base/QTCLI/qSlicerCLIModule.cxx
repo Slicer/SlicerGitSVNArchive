@@ -102,6 +102,11 @@ vtkMRMLAbstractLogic* qSlicerCLIModule::createLogic()
     logic->DeleteTemporaryFilesOff();
     }
 
+  if (d->Desc.GetParameterValue("AllowInMemoryTransfer") == "false")
+    {
+    logic->SetAllowInMemoryTransfer(0);
+    }
+
   return logic;
 }
 

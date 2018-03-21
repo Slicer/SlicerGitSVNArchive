@@ -675,13 +675,13 @@ QMimeData* qMRMLSceneModel::mimeData(const QModelIndexList& indexes)const
 bool qMRMLSceneModel::dropMimeData(const QMimeData *data, Qt::DropAction action,
                                    int row, int column, const QModelIndex &parent)
 {
-  Q_D(qMRMLSceneModel);
   Q_UNUSED(column);
   // We want to do drag&drop only into the first item of a line (and not on a
   // random column.
   bool res = this->Superclass::dropMimeData(
     data, action, row, 0, parent.sibling(parent.row(), 0));
-  d->DraggedNodes.clear();
+  // Do not clear d->DraggedNodes yet, as node modification events may come
+  // in before delayedItemChanged() is executed.
   return res;
 }
 
@@ -891,7 +891,11 @@ void qMRMLSceneModel::updateItemFromNode(QStandardItem* item, vtkMRMLNode* node,
   bool itemChanged = (d->PendingItemModified > 0);
   d->PendingItemModified = -1;
 
-  if (this->canBeAChild(node))
+  // Update parent, but only if the item is not being drag-and-dropped
+  // (drag-and-drop is performed using delayed update, therefore
+  // any node modifications, even those unrelated to changing the parent
+  // would override drag-and-drop result).
+  if (this->canBeAChild(node) && !d->DraggedNodes.contains(node))
     {
     QStandardItem* parentItem = item->parent();
     QStandardItem* newParentItem = this->itemFromNode(this->parentNode(node));
@@ -1405,13 +1409,6 @@ void qMRMLSceneModel::updateNodeItems(vtkMRMLNode* node, const QString& nodeUID)
   for (int i = 0; i < nodeIndexes.size(); ++i)
     {
     QModelIndex index = nodeIndexes[i];
-    // The node has been modified because it's part of a drag&drop action
-    // (reparenting). so it means QStandardItemModel has already reparented
-    // the row, no need to update the items again.
-    //if (d->DraggedNodes.contains(node))
-    //  {
-    //  continue;
-    //  }
     QStandardItem* item = this->itemFromIndex(index);
     int oldRow = item->row();
     QStandardItem* oldParent = item->parent();
@@ -1481,6 +1478,11 @@ void qMRMLSceneModel::onItemChanged(QStandardItem * item)
 void qMRMLSceneModel::delayedItemChanged()
 {
   Q_D(qMRMLSceneModel);
+  // Clear d->DraggedNodes before calling onItemChanged
+  // to make process item changes immediately (instead of
+  // triggering another delayed update)
+  d->DraggedNodes.clear();
+
   this->onItemChanged(d->DraggedItem);
   d->DraggedItem = 0;
 }

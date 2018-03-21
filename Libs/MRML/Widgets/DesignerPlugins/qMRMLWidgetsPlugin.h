@@ -21,8 +21,14 @@
 #ifndef __qMRMLWidgetsPlugin_h
 #define __qMRMLWidgetsPlugin_h
 
+#include "qMRMLWidgetsConfigure.h" // For MRML_WIDGETS_HAVE_QT5
+
 // Qt includes
+#ifdef MRML_WIDGETS_HAVE_QT5
+#include <QtUiPlugin/QDesignerCustomWidgetCollectionInterface>
+#else
 #include <QDesignerCustomWidgetCollectionInterface>
+#endif
 
 // MRMLWidgets includes
 #include "qMRMLCheckableNodeComboBoxPlugin.h"
@@ -46,6 +52,8 @@
 #include "qMRMLNodeAttributeTableViewPlugin.h"
 #include "qMRMLNodeAttributeTableWidgetPlugin.h"
 #include "qMRMLNodeComboBoxPlugin.h"
+#include "qMRMLPlotWidgetPlugin.h"
+#include "qMRMLPlotViewControllerWidgetPlugin.h"
 #include "qMRMLRangeWidgetPlugin.h"
 #include "qMRMLROIWidgetPlugin.h"
 #include "qMRMLScalarInvariantComboBoxPlugin.h"
@@ -71,6 +79,9 @@ class QMRML_WIDGETS_PLUGINS_EXPORT qMRMLWidgetsPlugin
   , public QDesignerCustomWidgetCollectionInterface
 {
   Q_OBJECT
+#ifdef MRML_WIDGETS_HAVE_QT5
+  Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QDesignerCustomWidgetCollectionInterface")
+#endif
   Q_INTERFACES(QDesignerCustomWidgetCollectionInterface);
 
 public:
@@ -99,6 +110,8 @@ public:
             << new qMRMLNodeAttributeTableViewPlugin
             << new qMRMLNodeAttributeTableWidgetPlugin
             << new qMRMLNodeComboBoxPlugin
+            << new qMRMLPlotWidgetPlugin
+            << new qMRMLPlotViewControllerWidgetPlugin
             << new qMRMLRangeWidgetPlugin
             << new qMRMLROIWidgetPlugin
             << new qMRMLScalarInvariantComboBoxPlugin

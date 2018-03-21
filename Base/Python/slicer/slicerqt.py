@@ -119,8 +119,8 @@ def loadSlicerRCFile():
   import os
   rcfile = getSlicerRCFileName()
   if os.path.isfile( rcfile ):
-    print 'Loading Slicer RC file [%s]' % ( rcfile )
-    execfile( rcfile )
+    print('Loading Slicer RC file [%s]' % ( rcfile ))
+    execfile( rcfile, globals() )
 
 #-----------------------------------------------------------------------------
 #
@@ -194,7 +194,8 @@ class _Internal():
       delattr(slicer.modules, moduleName + "Instance")
     if hasattr(slicer.modules, moduleName + "Widget"):
       delattr(slicer.modules, moduleName + "Widget")
-    delattr(slicer.moduleNames, moduleName)
+    if hasattr(slicer.moduleNames, moduleName):
+      delattr(slicer.moduleNames, moduleName)
     delattr(slicer.modules, moduleName.lower())
     try:
       slicer.selfTests

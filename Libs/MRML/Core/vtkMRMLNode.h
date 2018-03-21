@@ -33,6 +33,9 @@ class vtkCallbackCommand;
 // Slicer VTK add-on includes
 #include <vtkLoggingMacros.h>
 
+// Helper macros for simplifying reading, writing, copying, and printing node properties.
+#include "vtkMRMLNodePropertyMacros.h"
+
 // STD includes
 #include <map>
 #include <string>
@@ -141,7 +144,7 @@ class VTK_MRML_EXPORT vtkMRMLNode : public vtkObject
 
 public:
   vtkTypeMacro(vtkMRMLNode,vtkObject);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   /// \brief Create instance of the default node. Like New only virtual.
   ///
@@ -197,6 +200,7 @@ public:
   /// \note
   /// Subclasses should implement this method.
   /// Call this method in the subclass implementation.
+  /// Node name is only updated if a non-empty node name is specified in the source node.
   virtual void Copy(vtkMRMLNode *node);
 
   /// \brief Copy the references of the node into this.
@@ -427,7 +431,7 @@ public:
   /// of the instance variables).
   ///
   /// \sa GetDisableModifiedEvent()
-  virtual void Modified()
+  virtual void Modified() VTK_OVERRIDE
     {
     if (!this->GetDisableModifiedEvent())
       {
@@ -567,6 +571,16 @@ public:
   /// \note Currently only works on %, space, ', ", <, >
   /// \sa URLEncodeString()
   const char *URLDecodeString(const char *inString);
+
+  /// \brief Encode an XML attribute string (replaces special characters by .
+  ///
+  /// \sa XMLAttributeDecodeString()
+  std::string XMLAttributeEncodeString(const std::string& inString);
+
+  /// \brief Decode a URL string.
+  ///
+  /// \sa XMLAttributeEncodeString()
+  std::string XMLAttributeDecodeString(const std::string& inString);
 
   /// Get/Set for Selected
   vtkGetMacro(Selected, int);
@@ -725,7 +739,7 @@ protected:
   public:
     vtkTypeMacro(vtkMRMLNodeReference,vtkObject);
     static vtkMRMLNodeReference *New();
-    void PrintSelf(ostream& vtkNotUsed(os), vtkIndent vtkNotUsed(indent)){};
+    void PrintSelf(ostream& vtkNotUsed(os), vtkIndent vtkNotUsed(indent)) VTK_OVERRIDE {};
 
   public:
     vtkSetStringMacro(ReferenceRole);
@@ -868,19 +882,19 @@ protected:
   /// Holders for MRML callbacks
   vtkCallbackCommand *MRMLCallbackCommand;
 
-  ///
-  /// Flag to avoid event loops
-  int InMRMLCallbackFlag;
-
-  char *Description;
-  char *Name;
   char *ID;
+  char *Name;
+  char *Description;
   int HideFromEditors;
   int Selectable;
   int Selected;
   int AddToScene;
 
   int  SaveWithScene;
+
+  ///
+  /// Flag to avoid event loops
+  int InMRMLCallbackFlag;
 
   // We don't increase the reference count of Scene when store its pointer
   // therefore we must use a weak pointer to prevent pointer dangling when

@@ -30,6 +30,12 @@
 #     )
 #
 
+if(NOT DEFINED EXTENSION_SUPERBUILD_BINARY_DIR)
+  # This extension is built as part of the main application.
+  # Targets and paths are managed the same way as for core modules.
+  return()
+endif()
+
 get_property(_module_targets GLOBAL PROPERTY SLICER_MODULE_TARGETS)
 if(_module_targets)
   foreach(target ${_module_targets})
@@ -77,6 +83,17 @@ set(${target}_INCLUDE_DIRS
   endforeach()
 endif()
 
+get_property(_wrap_hierarchy_targets GLOBAL PROPERTY SLICER_WRAP_HIERARCHY_TARGETS)
+if(_wrap_hierarchy_targets)
+  foreach(target ${_wrap_hierarchy_targets})
+    set(EXTENSION_WRAP_HIERARCHY_FILES_CONFIG
+"${EXTENSION_WRAP_HIERARCHY_FILES_CONFIG}
+set(${target}_WRAP_HIERARCHY_FILE
+  \"${${target}_WRAP_HIERARCHY_FILE}\")"
+)
+  endforeach()
+endif()
+
 set(EXTENSION_SOURCE_DIR_CONFIG "set(${EXTENSION_NAME}_SOURCE_DIR \"${${EXTENSION_NAME}_SOURCE_DIR}\")")
 
 # Variables that will be used for populating AdditionalLauncherSettings.ini.
@@ -93,11 +110,11 @@ else()
 endif()
 
 # Export Targets file.
-set(EXTENSION_TARGETS_FILE "${EXTENSION_SUPERBUILD_BINARY_DIR}/${EXTENSION_NAME}Targets.cmake")
+set(EXTENSION_TARGETS_FILE "${EXTENSION_SUPERBUILD_BINARY_DIR}/${EXTENSION_BUILD_SUBDIRECTORY}/${EXTENSION_NAME}Targets.cmake")
 get_property(Slicer_TARGETS GLOBAL PROPERTY Slicer_TARGETS)
 export(TARGETS ${Slicer_TARGETS} FILE ${EXTENSION_TARGETS_FILE})
 
 # Configure <Extension>Config.cmake for the build tree.
 configure_file(
   ${Slicer_CMAKE_DIR}/SlicerExtensionConfig.cmake.in
-  ${EXTENSION_SUPERBUILD_BINARY_DIR}/${EXTENSION_NAME}Config.cmake @ONLY)
+  ${EXTENSION_SUPERBUILD_BINARY_DIR}/${EXTENSION_BUILD_SUBDIRECTORY}/${EXTENSION_NAME}Config.cmake @ONLY)

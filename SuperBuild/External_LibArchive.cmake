@@ -24,7 +24,7 @@ if((NOT DEFINED LibArchive_INCLUDE_DIR
    OR NOT DEFINED LibArchive_LIBRARY) AND NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
 
   #
-  # NOTE: - a stable, recent release (3.0.4) of LibArchive is now checked out from git
+  # NOTE: - a stable, recent release (3.3.2) of LibArchive is now checked out from git
   #         for all platforms.  For notes on cross-platform issues with earlier versions
   #         of LibArchive, see the repository for earlier revisions of this file.
 
@@ -42,23 +42,30 @@ if((NOT DEFINED LibArchive_INCLUDE_DIR
 
   ExternalProject_SetIfNotDefined(
     ${CMAKE_PROJECT_NAME}_${proj}_GIT_REPOSITORY
-    "${git_protocol}://github.com/Slicer/libarchive.git"
+    "${git_protocol}://github.com/Slicer/LibArchive.git"
     QUIET
     )
 
+  # master (v3.3.3) with patches:
+  # - disabling LHA (See #4407)
+  # - fixing GCC7 build errors
   ExternalProject_SetIfNotDefined(
     ${CMAKE_PROJECT_NAME}_${proj}_GIT_TAG
-    "453b390286a59503f1ed3e2d8382e244cddbc304" # slicer-v3.0.4
+    "ebec58f7698ed04712e885aa2c354547fc8c596d"
     QUIET
     )
+
+  set(EP_SOURCE_DIR ${CMAKE_BINARY_DIR}/${proj})
+  set(EP_BINARY_DIR ${CMAKE_BINARY_DIR}/${proj}-build)
+  set(EP_INSTALL_DIR ${CMAKE_BINARY_DIR}/${proj}-install)
 
   ExternalProject_Add(${proj}
     ${${proj}_EP_ARGS}
     GIT_REPOSITORY "${${CMAKE_PROJECT_NAME}_${proj}_GIT_REPOSITORY}"
     GIT_TAG "${${CMAKE_PROJECT_NAME}_${proj}_GIT_TAG}"
-    SOURCE_DIR ${CMAKE_BINARY_DIR}/${proj}
-    BINARY_DIR ${proj}-build
-    INSTALL_DIR LibArchive-install
+    SOURCE_DIR ${EP_SOURCE_DIR}
+    BINARY_DIR ${EP_BINARY_DIR}
+    INSTALL_DIR ${EP_INSTALL_DIR}
     CMAKE_CACHE_ARGS
     # Not used -DCMAKE_CXX_COMPILER:FILEPATH=${CMAKE_CXX_COMPILER}
     # Not used -DCMAKE_CXX_FLAGS:STRING=${ep_common_cxx_flags}
@@ -66,27 +73,29 @@ if((NOT DEFINED LibArchive_INCLUDE_DIR
       -DCMAKE_C_FLAGS:STRING=${ep_common_c_flags}
       -DBUILD_SHARED_LIBS:BOOL=ON
       -DENABLE_ACL:BOOL=OFF
+      -DENABLE_BZip2:BOOL=OFF
       -DENABLE_CPIO:BOOL=OFF
+      -DENABLE_EXPAT:BOOL=OFF
       -DENABLE_ICONV:BOOL=OFF
+      -DENABLE_LIBXML2:BOOL=OFF
+      -DENABLE_LZMA:BOOL=OFF
       -DENABLE_NETTLE:BOOL=OFF
       -DENABLE_TAR:BOOL=OFF
       -DENABLE_TEST:BOOL=OFF
       -DENABLE_XATTR:BOOL=OFF
-      -DCMAKE_DISABLE_FIND_PACKAGE_BZip2:BOOL=ON
-      -DCMAKE_DISABLE_FIND_PACKAGE_LibXml2:BOOL=ON
-      -DCMAKE_DISABLE_FIND_PACKAGE_EXPAT:BOOL=ON
-      -DCMAKE_DISABLE_FIND_PACKAGE_LZMA:BOOL=ON
       -DZLIB_ROOT:PATH=${ZLIB_ROOT}
       -DZLIB_INCLUDE_DIR:PATH=${ZLIB_INCLUDE_DIR}
       -DZLIB_LIBRARY:FILEPATH=${ZLIB_LIBRARY}
       -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
       ${EXTERNAL_PROJECT_OPTIONAL_ARGS}
+      # macOS
+      -DCMAKE_MACOSX_RPATH:BOOL=0
     DEPENDS
       ${${proj}_DEPENDENCIES}
     )
   if(APPLE)
     ExternalProject_Add_Step(${proj} fix_rpath
-      COMMAND install_name_tool -id ${CMAKE_BINARY_DIR}/${proj}-install/lib/libarchive.12.dylib ${CMAKE_BINARY_DIR}/${proj}-install/lib/libarchive.12.dylib
+      COMMAND install_name_tool -id ${EP_INSTALL_DIR}/lib/libarchive.16.dylib ${EP_INSTALL_DIR}/lib/libarchive.16.dylib
       DEPENDEES install
       )
   endif()

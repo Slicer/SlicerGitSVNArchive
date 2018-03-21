@@ -3,26 +3,30 @@ set(proj python-six)
 # Set dependency list
 set(${proj}_DEPENDENCIES python)
 
-# Include dependent projects if any
-ExternalProject_Include_Dependencies(${proj} PROJECT_VAR proj DEPENDS_VAR ${proj}_DEPENDENCIES)
-
-if(${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
-  # XXX - Add a test checking if <proj> is available
-endif()
-
 if(NOT DEFINED ${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
   set(${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj} ${${CMAKE_PROJECT_NAME}_USE_SYSTEM_python})
 endif()
 
+# Include dependent projects if any
+ExternalProject_Include_Dependencies(${proj} PROJECT_VAR proj DEPENDS_VAR ${proj}_DEPENDENCIES)
+
+if(${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
+  ExternalProject_FindPythonPackage(
+    MODULE_NAME "six"
+    REQUIRED
+    )
+endif()
+
 if(NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
 
-  set(_version "1.10.0")
+  set(_version "1.11.0")
 
   ExternalProject_Add(${proj}
     ${${proj}_EP_ARGS}
-    URL "https://pypi.python.org/packages/b3/b2/238e2590826bfdd113244a40d9d3eb26918bd798fc187e2360a8367068db/six-${_version}.tar.gz"
-    URL_MD5 "34eed507548117b2ab523ab14b2f8b55"
-    SOURCE_DIR ${proj}
+    URL "https://pypi.python.org/packages/16/d8/bc6316cf98419719bd59c91742194c111b6f2e85abac88e496adefaf7afe/six-${_version}.tar.gz"
+    URL_MD5 "d12789f9baf7e9fb2524c0c64f1773f8"
+    DOWNLOAD_DIR ${CMAKE_BINARY_DIR}
+    SOURCE_DIR ${CMAKE_BINARY_DIR}/${proj}
     BUILD_IN_SOURCE 1
     CONFIGURE_COMMAND ""
     BUILD_COMMAND ""

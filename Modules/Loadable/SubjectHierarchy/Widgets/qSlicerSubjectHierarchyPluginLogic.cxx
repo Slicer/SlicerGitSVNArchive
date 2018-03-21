@@ -35,13 +35,9 @@
 #include "qSlicerSubjectHierarchyRegisterPlugin.h"
 #include "qSlicerSubjectHierarchyFolderPlugin.h"
 
-// SlicerQt includes
-#include "qSlicerApplication.h"
-
 // Qt includes
 #include <QDebug>
 #include <QString>
-#include <QSettings>
 
 //-----------------------------------------------------------------------------
 /// \ingroup Slicer_QtModules_SubjectHierarchy
@@ -74,35 +70,13 @@ qSlicerSubjectHierarchyPluginLogicPrivate::~qSlicerSubjectHierarchyPluginLogicPr
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSubjectHierarchyPluginLogicPrivate::loadApplicationSettings()
-{
-  // Load settings
-  QSettings* settings = qSlicerApplication::application()->settingsDialog()->settings();
-  if (!settings)
-    {
-    qWarning() << Q_FUNC_INFO << ": Invalid application settings!";
-    }
-  else
-    {
-    if (settings->contains("SubjectHierarchy/AutoDeleteSubjectHierarchyChildren"))
-      {
-      qSlicerSubjectHierarchyPluginHandler::instance()->setAutoDeleteSubjectHierarchyChildren(
-        settings->value("SubjectHierarchy/AutoDeleteSubjectHierarchyChildren").toBool() == true );
-      }
-    }
-}
-
-//-----------------------------------------------------------------------------
 // qSlicerSubjectHierarchyPluginLogic methods
 
 //-----------------------------------------------------------------------------
-qSlicerSubjectHierarchyPluginLogic::qSlicerSubjectHierarchyPluginLogic(QWidget* _parent)
+qSlicerSubjectHierarchyPluginLogic::qSlicerSubjectHierarchyPluginLogic(QObject* _parent)
   : Superclass( _parent )
   , d_ptr( new qSlicerSubjectHierarchyPluginLogicPrivate(*this) )
 {
-  Q_D(qSlicerSubjectHierarchyPluginLogic);
-  d->loadApplicationSettings();
-
   // Register Subject Hierarchy core plugins
   this->registerCorePlugins();
 }
@@ -155,8 +129,10 @@ void qSlicerSubjectHierarchyPluginLogic::setMRMLScene(vtkMRMLScene* scene)
 
   // Connect scene node added event so that the new subject hierarchy items can be claimed by a plugin
   qvtkReconnect( scene, vtkMRMLScene::NodeAddedEvent, this, SLOT( onNodeAdded(vtkObject*,vtkObject*) ) );
-  // Connect scene node added event so that the associated subject hierarchy node can be deleted too
+  // Connect scene node about to be removed event so that the associated subject hierarchy node can be deleted too
   qvtkReconnect( scene, vtkMRMLScene::NodeAboutToBeRemovedEvent, this, SLOT( onNodeAboutToBeRemoved(vtkObject*,vtkObject*) ) );
+  // Connect scene node removed event so if the subject hierarchy node is removed, it is re-created and the hierarchy rebuilt
+  qvtkReconnect( scene, vtkMRMLScene::NodeRemovedEvent, this, SLOT( onNodeRemoved(vtkObject*,vtkObject*) ) );
   // Connect scene import ended event so that subject hierarchy items can be created for supported data nodes if missing (backwards compatibility)
   qvtkReconnect( scene, vtkMRMLScene::EndImportEvent, this, SLOT( onSceneImportEnded(vtkObject*) ) );
   // Connect scene close ended event so that subject hierarchy can be cleared
@@ -278,6 +254,28 @@ void qSlicerSubjectHierarchyPluginLogic::onNodeAboutToBeRemoved(vtkObject* scene
   if (itemID)
     {
     shNode->RemoveItem(itemID, false, false);
+    }
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerSubjectHierarchyPluginLogic::onNodeRemoved(vtkObject* sceneObject, vtkObject* nodeObject)
+{
+  vtkMRMLScene* scene = vtkMRMLScene::SafeDownCast(sceneObject);
+  if (!scene || scene->IsClosing())
+    {
+    // Do nothing if scene is closing
+    return;
+    }
+
+  vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(nodeObject);
+  if (shNode)
+    {
+    // Make sure a new quasi-singleton subject hierarchy node is created
+    vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(scene);
+
+    // Add data nodes that are supported (i.e. there is a plugin that can claim it) and were not
+    // in the imported subject hierarchy node to subject hierarchy
+    this->addSupportedDataNodesToSubjectHierarchy();
     }
 }
 

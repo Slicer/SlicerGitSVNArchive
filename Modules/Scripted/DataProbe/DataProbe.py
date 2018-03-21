@@ -32,7 +32,7 @@ See <a>http://www.slicer.org</a> for details.  Module implemented by Steve Piepe
 
     # Trigger the menu to be added when application has started up
     if not slicer.app.commandOptions().noMainWindow :
-      qt.QTimer.singleShot(0, self.addView);
+      slicer.app.connect("startupCompleted()", self.addView)
 
     # Add this test to the SelfTest module's list for discovery when the module
     # is created.  Since this module may be discovered before SelfTests itself,
@@ -54,7 +54,7 @@ See <a>http://www.slicer.org</a> for details.  Module implemented by Steve Piepe
   def addView(self):
     """
     Create the persistent widget shown in the bottom left of the user interface
-    Do this in a singleShot callback so the rest of the interface is already
+    Do this in a startupCompleted callback so the rest of the interface is already
     built.
     """
     # TODO - the parent name will likely change
@@ -98,7 +98,7 @@ class DataProbeInfoWidget(object):
     self.calculateTensorScalars = CalculateTensorScalars()
 
     # Observe the crosshair node to get the current cursor position
-    self.CrosshairNode = slicer.mrmlScene.GetNthNodeByClass(0, 'vtkMRMLCrosshairNode')
+    self.CrosshairNode = slicer.mrmlScene.GetFirstNodeByClass('vtkMRMLCrosshairNode')
     if self.CrosshairNode:
       self.CrosshairNodeObserverTag = self.CrosshairNode.AddObserver(slicer.vtkMRMLCrosshairNode.CursorPositionModifiedEvent, self.processEvent)
 

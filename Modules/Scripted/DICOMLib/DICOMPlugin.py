@@ -30,27 +30,36 @@ class DICOMLoadable(object):
   instead.
   """
 
-  def __init__(self):
-    # the file list of the data to be loaded
-    self.files = []
-    # name exposed to the user for the node
-    self.name = "Unknown"
-    # extra information the user sees on mouse over of the thing
-    self.tooltip = "No further information available"
-    # things the user should know before loading this data
-    self.warning = ""
-    # is the object checked for loading by default
-    self.selected = False
-    # confidence - from 0 to 1 where 0 means low chance
-    # that the user actually wants to load their data this
-    # way up to 1, which means that the plugin is very confident
-    # that this is the best way to load the data.
-    # When more than one plugin marks the same series as
-    # selected, the one with the highest confidence is
-    # actually selected by default.  In the case of a tie,
-    # both series are selected for loading.
-    self.confidence = 0.5
-
+  def __init__(self, qLoadable=None):
+    if qLoadable is None:
+      # the file list of the data to be loaded
+      self.files = []
+      # name exposed to the user for the node
+      self.name = "Unknown"
+      # extra information the user sees on mouse over of the thing
+      self.tooltip = "No further information available"
+      # things the user should know before loading this data
+      self.warning = ""
+      # is the object checked for loading by default
+      self.selected = False
+      # confidence - from 0 to 1 where 0 means low chance
+      # that the user actually wants to load their data this
+      # way up to 1, which means that the plugin is very confident
+      # that this is the best way to load the data.
+      # When more than one plugin marks the same series as
+      # selected, the one with the highest confidence is
+      # actually selected by default.  In the case of a tie,
+      # both series are selected for loading.
+      self.confidence = 0.5
+    else:
+      self.name = qLoadable.name
+      self.tooltip = qLoadable.tooltip
+      self.warning = qLoadable.warning
+      self.files = []
+      for file in qLoadable.files:
+        self.files.append(file)
+      self.selected = qLoadable.selected
+      self.confidence = qLoadable.confidence
 
 #
 # DICOMPlugin
@@ -196,6 +205,7 @@ class DICOMPlugin(object):
 
     # Get subject hierarchy node and basic IDs
     shn = slicer.vtkMRMLSubjectHierarchyNode.GetSubjectHierarchyNode(slicer.mrmlScene)
+    pluginHandlerSingleton = slicer.qSlicerSubjectHierarchyPluginHandler.instance()
     sceneItemID = shn.GetSceneItemID()
 
     # Set up subject hierarchy item
@@ -228,10 +238,10 @@ class DICOMPlugin(object):
                           referencedInstanceUIDs )
 
     # Add series item to hierarchy under the right study and patient items. If they are present then used, if not, then created
-    patientId = slicer.dicomDatabase.fileValue(firstFile,tags['patientID'])
+    patientId = slicer.dicomDatabase.fileValue(firstFile, tags['patientID'])
     patientItemID = shn.GetItemByUID(slicer.vtkMRMLSubjectHierarchyConstants.GetDICOMUIDName(), patientId)
-    studyInstanceUid = slicer.dicomDatabase.fileValue(firstFile,tags['studyInstanceUID'])
-    studyId = slicer.dicomDatabase.fileValue(firstFile,tags['studyID'])
+    studyInstanceUid = slicer.dicomDatabase.fileValue(firstFile, tags['studyInstanceUID'])
+    studyId = slicer.dicomDatabase.fileValue(firstFile, tags['studyID'])
     studyItemID = shn.GetItemByUID(slicer.vtkMRMLSubjectHierarchyConstants.GetDICOMUIDName(), studyInstanceUid)
     slicer.vtkSlicerSubjectHierarchyModuleLogic.InsertDicomSeriesInHierarchy(shn, patientId, studyInstanceUid, seriesInstanceUid)
 
@@ -246,15 +256,21 @@ class DICOMPlugin(object):
         shn.SetItemAttribute( patientItemID, slicer.vtkMRMLSubjectHierarchyConstants.GetDICOMPatientNameAttributeName(),
                               patientName )
         shn.SetItemAttribute( patientItemID, slicer.vtkMRMLSubjectHierarchyConstants.GetDICOMPatientIDAttributeName(),
-                              slicer.dicomDatabase.fileValue(firstFile, tags['patientID']) )
+                              patientId )
         shn.SetItemAttribute( patientItemID, slicer.vtkMRMLSubjectHierarchyConstants.GetDICOMPatientSexAttributeName(),
                               slicer.dicomDatabase.fileValue(firstFile, tags['patientSex']) )
+        patientBirthDate = slicer.dicomDatabase.fileValue(firstFile, tags['patientBirthDate'])
         shn.SetItemAttribute( patientItemID, slicer.vtkMRMLSubjectHierarchyConstants.GetDICOMPatientBirthDateAttributeName(),
-                              slicer.dicomDatabase.fileValue(firstFile, tags['patientBirthDate']) )
+                              patientBirthDate )
         shn.SetItemAttribute( patientItemID, slicer.vtkMRMLSubjectHierarchyConstants.GetDICOMPatientCommentsAttributeName(),
                               slicer.dicomDatabase.fileValue(firstFile, tags['patientComments']) )
         # Set item name
-        shn.SetItemName(patientItemID, patientName)
+        patientItemName = patientName
+        if pluginHandlerSingleton.displayPatientIDInSubjectHierarchyItemName:
+          patientItemName += ' (' + str(patientId) + ')'
+        if pluginHandlerSingleton.displayPatientBirthDateInSubjectHierarchyItemName and patientBirthDate != '':
+          patientItemName += ' (' + str(patientBirthDate) + ')'
+        shn.SetItemName(patientItemID, patientItemName)
 
     if not studyItemID:
       studyItemID = shn.GetItemByUID(slicer.vtkMRMLSubjectHierarchyConstants.GetDICOMUIDName(), studyInstanceUid)
@@ -276,4 +292,43 @@ class DICOMPlugin(object):
         shn.SetItemAttribute( studyItemID, slicer.vtkMRMLSubjectHierarchyConstants.GetDICOMStudyTimeAttributeName(),
                               slicer.dicomDatabase.fileValue(firstFile, tags['studyTime']) )
         # Set item name
-        shn.SetItemName(studyItemID, studyDescription + ' (' + studyDate + ')')
+        studyItemName = studyDescription
+        if pluginHandlerSingleton.displayStudyIDInSubjectHierarchyItemName:
+          studyItemName += ' (' + str(studyId) + ')'
+        if pluginHandlerSingleton.displayStudyDateInSubjectHierarchyItemName and studyDate != '':
+          studyItemName += ' (' + str(studyDate) + ')'
+        shn.SetItemName(studyItemID, studyItemName)
+
+  def mapSOPClassUIDToDICOMQuantityAndUnits(self, classUID):
+
+    MRname2UID = {
+        "MR Image Storage": "1.2.840.10008.5.1.4.1.1.4",
+        "Enhanced MR Image Storage": "1.2.840.10008.5.1.4.1.1.4.1",
+        "Legacy Converted Enhanced MR Image Storage": "1.2.840.10008.5.1.4.1.1.4.4"
+        }
+
+    CTname2UID = {
+        "CT Image Storage": "1.2.840.10008.5.1.4.1.1.2",
+        "Enhanced CT Image Storage": "1.2.840.10008.5.1.4.1.1.2.1",
+        "Legacy Converted Enhanced CT Image Storage": "1.2.840.10008.5.1.4.1.1.2.2"
+        }
+
+    quantity = None
+    units = None
+
+    # Note more specialized definitions can be specified for MR by more
+    # specialized plugins, see codes 110800 and on in
+    # http://dicom.nema.org/medical/dicom/current/output/chtml/part16/chapter_D.html
+    if classUID in MRname2UID.values():
+      quantity = slicer.vtkCodedEntry()
+      quantity.SetValueSchemeMeaning("110852", "DCM", "MR signal intensity")
+      units = slicer.vtkCodedEntry()
+      units.SetValueSchemeMeaning("1", "UCUM", "no units")
+
+    if classUID in CTname2UID.values():
+      quantity = slicer.vtkCodedEntry()
+      quantity.SetValueSchemeMeaning("112031", "DCM", "Attenuation Coefficient")
+      units = slicer.vtkCodedEntry()
+      units.SetValueSchemeMeaning("[hnsf'U]", "UCUM", "Hounsfield unit")
+
+    return (quantity, units)

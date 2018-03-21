@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.9)
+cmake_minimum_required(VERSION 3.5)
 
 project(LoadableExtensionTemplate)
 
@@ -23,4 +23,5 @@ add_subdirectory(LoadableModuleTemplate)
 ## NEXT_MODULE
 
 #-----------------------------------------------------------------------------
+include(${Slicer_EXTENSION_GENERATE_CONFIG})
 include(${Slicer_EXTENSION_CPACK})

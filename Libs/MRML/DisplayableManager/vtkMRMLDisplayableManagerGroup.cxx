@@ -33,7 +33,7 @@
 
 // VTK includes
 #include <vtkCallbackCommand.h>
-#include <vtkInstantiator.h>
+#include <vtkDebugLeaks.h>
 #include <vtkObjectFactory.h>
 #include <vtkRenderer.h>
 #include <vtkRenderWindow.h>
@@ -134,12 +134,15 @@ bool vtkMRMLDisplayableManagerGroup
 {
   // Check if displayableManagerName is a valid displayable manager
   vtkSmartPointer<vtkObject> objectSmartPointer;
-  objectSmartPointer.TakeReference(vtkInstantiator::CreateInstance(displayableManagerName));
+  objectSmartPointer.TakeReference(vtkObjectFactory::CreateInstance(displayableManagerName));
   if (objectSmartPointer.GetPointer() &&
       objectSmartPointer->IsA("vtkMRMLAbstractDisplayableManager"))
     {
     return true;
     }
+#ifdef VTK_DEBUG_LEAKS
+  vtkDebugLeaks::DestructClass(displayableManagerName);
+#endif
 #ifdef MRMLDisplayableManager_USE_PYTHON
   // Check if vtkClassOrScriptName is a python script
   if (std::string(displayableManagerName).find(".py") != std::string::npos)
@@ -171,7 +174,7 @@ vtkMRMLAbstractDisplayableManager* vtkMRMLDisplayableManagerGroup
 #endif
     // Object will be unregistered when the SmartPointer will go out-of-scope
     displayableManager = vtkMRMLAbstractDisplayableManager::SafeDownCast(
-      vtkInstantiator::CreateInstance(displayableManagerName));
+      vtkObjectFactory::CreateInstance(displayableManagerName));
 #ifdef MRMLDisplayableManager_USE_PYTHON
     }
 #endif

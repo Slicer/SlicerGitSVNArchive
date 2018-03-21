@@ -20,6 +20,7 @@
 
 // STD includes
 #include <vector>
+#include <deque>
 
 class vtkMRMLDisplayNode;
 class vtkMRMLLinearTransformNode;
@@ -39,6 +40,8 @@ class vtkImageReslice;
 class vtkPolyDataCollection;
 class vtkTransform;
 
+struct SliceLayerInfo;
+
 /// \brief Slicer logic class for slice manipulation.
 ///
 /// This class manages the logic associated with display of slice windows
@@ -57,7 +60,7 @@ public:
   /// The Usual VTK class functions
   static vtkMRMLSliceLogic *New();
   vtkTypeMacro(vtkMRMLSliceLogic,vtkMRMLAbstractLogic);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   /// Convenient methods allowing to initialize SliceLogic given \a newSliceNode
   /// \note This method should be used when the Logic is "shared" between two widgets
@@ -353,26 +356,26 @@ protected:
   vtkMRMLSliceLogic();
   virtual ~vtkMRMLSliceLogic();
 
-  virtual void SetMRMLSceneInternal(vtkMRMLScene * newScene);
+  virtual void SetMRMLSceneInternal(vtkMRMLScene * newScene) VTK_OVERRIDE;
 
   ///
   /// process logic events
   virtual void ProcessMRMLLogicsEvents(vtkObject * caller,
                                        unsigned long event,
-                                       void * callData);
+                                       void * callData) VTK_OVERRIDE;
   void ProcessMRMLLogicsEvents();
 
-  virtual void OnMRMLSceneNodeAdded(vtkMRMLNode* node);
-  virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node);
-  virtual void UpdateFromMRMLScene();
-  virtual void OnMRMLSceneStartClose();
-  virtual void OnMRMLSceneEndImport();
-  virtual void OnMRMLSceneEndRestore();
+  virtual void OnMRMLSceneNodeAdded(vtkMRMLNode* node) VTK_OVERRIDE;
+  virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node) VTK_OVERRIDE;
+  virtual void UpdateFromMRMLScene() VTK_OVERRIDE;
+  virtual void OnMRMLSceneStartClose() VTK_OVERRIDE;
+  virtual void OnMRMLSceneEndImport() VTK_OVERRIDE;
+  virtual void OnMRMLSceneEndRestore() VTK_OVERRIDE;
 
   void UpdateSliceNodes();
   void SetupCrosshairNode();
 
-  virtual void OnMRMLNodeModified(vtkMRMLNode* node);
+  virtual void OnMRMLNodeModified(vtkMRMLNode* node) VTK_OVERRIDE;
   static vtkMRMLSliceCompositeNode* GetSliceCompositeNode(vtkMRMLScene* scene,
                                                           const char* layoutName);
   static vtkMRMLSliceNode* GetSliceNode(vtkMRMLScene* scene,
@@ -381,6 +384,12 @@ protected:
   ///
   /// Helper to set Window/Level in any layer
   void SetWindowLevel(double window, double level, int layer);
+
+  /// Helper to update input of blend filter from a set of layers.
+  /// It minimizes changes to the imaging pipeline (does not remove and
+  /// re-add an input if it is not changed) because rebuilding of the pipeline
+  /// is a relatively expensive operation.
+  bool UpdateBlendLayers(vtkImageBlend* blend, const std::deque<SliceLayerInfo> &layers);
 
   bool                        AddingSliceModelNodes;
   bool                        Initialized;

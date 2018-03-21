@@ -26,10 +26,10 @@ public:
   static vtkMRMLCustomNode *New();
   vtkTypeMacro(vtkMRMLCustomNode, vtkMRMLNode);
 
-  virtual vtkMRMLNode* CreateNodeInstance();
-  virtual const char* GetNodeTagName() { return "Custom"; }
+  virtual vtkMRMLNode* CreateNodeInstance() VTK_OVERRIDE;
+  virtual const char* GetNodeTagName() VTK_OVERRIDE { return "Custom"; }
 
-  virtual void Reset(vtkMRMLNode* defaultNode)
+  virtual void Reset(vtkMRMLNode* defaultNode) VTK_OVERRIDE
     {
     ++this->ResetCount;
     this->vtkMRMLNode::Reset(defaultNode);
@@ -55,8 +55,8 @@ public:
   static vtkMRMLAnotherCustomNode *New();
   vtkTypeMacro(vtkMRMLAnotherCustomNode, vtkMRMLNode);
 
-  virtual vtkMRMLNode* CreateNodeInstance();
-  virtual const char* GetNodeTagName() { return "AnotherCustom"; }
+  virtual vtkMRMLNode* CreateNodeInstance() VTK_OVERRIDE;
+  virtual const char* GetNodeTagName() VTK_OVERRIDE { return "AnotherCustom"; }
 
 protected:
   vtkMRMLAnotherCustomNode(){}
@@ -81,6 +81,15 @@ int vtkMRMLSceneTest1(int , char * [] )
   TEST_SET_GET_STRING(scene1.GetPointer(), URL);
   TEST_SET_GET_STRING(scene1.GetPointer(), RootDirectory);
 
+  //---------------------------------------------------------------------------
+  // Test IsNodeClassRegistered
+  //---------------------------------------------------------------------------
+
+  {
+  CHECK_BOOL(scene1->IsNodeClassRegistered(""), false);
+  CHECK_BOOL(scene1->IsNodeClassRegistered("vtkMRMLScalarVolumeNode"), true);
+  CHECK_BOOL(scene1->IsNodeClassRegistered("vtkMRMLInvalidNode"), false);
+  }
 
   //---------------------------------------------------------------------------
   // Test ResetNodes

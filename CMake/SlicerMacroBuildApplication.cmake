@@ -39,7 +39,7 @@ macro(slicerMacroBuildAppLibrary)
     INCLUDE_DIRECTORIES
     TARGET_LIBRARIES
     )
-  CMAKE_PARSE_ARGUMENTS(SLICERAPPLIB
+  cmake_parse_arguments(SLICERAPPLIB
     "${options}"
     "${oneValueArgs}"
     "${multiValueArgs}"
@@ -75,7 +75,9 @@ macro(slicerMacroBuildAppLibrary)
     set(SLICERAPPLIB_APPLICATION_NAME ${SLICERAPPLIB_NAME})
   endif()
 
+  message(STATUS "--------------------------------------------------")
   message(STATUS "Configuring ${SLICERAPPLIB_APPLICATION_NAME} application library: ${SLICERAPPLIB_NAME}")
+  message(STATUS "--------------------------------------------------")
 
   macro(_set_applib_property varname)
     set_property(GLOBAL PROPERTY ${SLICERAPPLIB_APPLICATION_NAME}_${varname} ${SLICERAPPLIB_${varname}})
@@ -139,11 +141,27 @@ macro(slicerMacroBuildAppLibrary)
   #-----------------------------------------------------------------------------
   # Sources
   # --------------------------------------------------------------------------
-  QT4_WRAP_CPP(SLICERAPPLIB_MOC_OUTPUT ${SLICERAPPLIB_MOC_SRCS})
-  QT4_WRAP_UI(SLICERAPPLIB_UI_CXX ${SLICERAPPLIB_UI_SRCS})
-  if(DEFINED SLICERAPPLIB_RESOURCES)
-    QT4_ADD_RESOURCES(SLICERAPPLIB_QRC_SRCS ${SLICERAPPLIB_RESOURCES})
-  endif(DEFINED SLICERAPPLIB_RESOURCES)
+  if(CTK_QT_VERSION VERSION_LESS "5")
+    set(_moc_options)
+    if(Slicer_HAVE_WEBKIT_SUPPORT)
+      set(_moc_options OPTIONS -DSlicer_HAVE_WEBKIT_SUPPORT)
+    endif()
+    QT4_WRAP_CPP(SLICERAPPLIB_MOC_OUTPUT ${SLICERAPPLIB_MOC_SRCS} ${_moc_options})
+    QT4_WRAP_UI(SLICERAPPLIB_UI_CXX ${SLICERAPPLIB_UI_SRCS})
+    if(DEFINED SLICERAPPLIB_RESOURCES)
+      QT4_ADD_RESOURCES(SLICERAPPLIB_QRC_SRCS ${SLICERAPPLIB_RESOURCES})
+    endif()
+  else()
+    set(_moc_options OPTIONS -DSlicer_HAVE_QT5)
+    if(Slicer_HAVE_WEBKIT_SUPPORT)
+      set(_moc_options OPTIONS -DSlicer_HAVE_WEBKIT_SUPPORT)
+    endif()
+    QT5_WRAP_CPP(SLICERAPPLIB_MOC_OUTPUT ${SLICERAPPLIB_MOC_SRCS} ${_moc_options})
+    QT5_WRAP_UI(SLICERAPPLIB_UI_CXX ${SLICERAPPLIB_UI_SRCS})
+    if(DEFINED SLICERAPPLIB_RESOURCES)
+      QT5_ADD_RESOURCES(SLICERAPPLIB_QRC_SRCS ${SLICERAPPLIB_RESOURCES})
+    endif()
+  endif()
 
   set_source_files_properties(
     ${SLICERAPPLIB_UI_CXX}
@@ -277,6 +295,7 @@ macro(slicerMacroBuildApplication)
     LAUNCHER_SPLASHSCREEN_FILE
     APPLE_ICON_FILE
     WIN_ICON_FILE
+    LICENSE_FILE
 
     TARGET_NAME_VAR
     )
@@ -285,7 +304,7 @@ macro(slicerMacroBuildApplication)
     INCLUDE_DIRECTORIES
     TARGET_LIBRARIES
     )
-  CMAKE_PARSE_ARGUMENTS(SLICERAPP
+  cmake_parse_arguments(SLICERAPP
     "${options}"
     "${oneValueArgs}"
     "${multiValueArgs}"
@@ -299,28 +318,36 @@ macro(slicerMacroBuildApplication)
     message(FATAL_ERROR "Unknown keywords given to slicerMacroBuildApplication(): \"${SLICERAPP_UNPARSED_ARGUMENTS}\"")
   endif()
 
-  set(expected_defined_vars NAME)
+  set(expected_defined_vars
+    NAME
+    LAUNCHER_SPLASHSCREEN_FILE
+    APPLE_ICON_FILE
+    WIN_ICON_FILE
+    LICENSE_FILE
+    )
   foreach(var ${expected_defined_vars})
     if(NOT DEFINED SLICERAPP_${var})
       message(FATAL_ERROR "${var} is mandatory")
     endif()
   endforeach()
 
+  # Set defaults
   if(NOT DEFINED SLICERAPP_APPLICATION_NAME)
     string(REGEX REPLACE "(.+)App" "\\1" SLICERAPP_APPLICATION_NAME ${SLICERAPP_NAME})
   endif()
 
+  message(STATUS "--------------------------------------------------")
   message(STATUS "Configuring ${SLICERAPP_APPLICATION_NAME} application: ${SLICERAPP_NAME}")
+  message(STATUS "--------------------------------------------------")
 
   macro(_set_app_property varname)
     set_property(GLOBAL PROPERTY ${SLICERAPP_APPLICATION_NAME}_${varname} ${SLICERAPP_${varname}})
     message(STATUS "Setting ${SLICERAPP_APPLICATION_NAME} ${varname} to '${SLICERAPP_${varname}}'")
   endmacro()
 
-  macro(_set_path_var varname defaultvalue)
-    if(NOT DEFINED SLICERAPP_${varname})
-      set(SLICERAPP_${varname} ${defaultvalue})
-    endif()
+  _set_app_property("APPLICATION_NAME")
+
+  macro(_set_path_var varname)
     if(NOT IS_ABSOLUTE ${SLICERAPP_${varname}})
       set(SLICERAPP_${varname} ${CMAKE_CURRENT_SOURCE_DIR}/${SLICERAPP_${varname}})
     endif()
@@ -330,11 +357,12 @@ macro(slicerMacroBuildApplication)
     _set_app_property(${varname})
   endmacro()
 
-  _set_path_var(LAUNCHER_SPLASHSCREEN_FILE "Resources/Images/${SLICERAPP_APPLICATION_NAME}-SplashScreen.png")
-  _set_path_var(APPLE_ICON_FILE "Resources/${SLICERAPP_APPLICATION_NAME}.icns")
-  _set_path_var(WIN_ICON_FILE "Resources/${SLICERAPP_APPLICATION_NAME}.ico")
+  _set_path_var(LAUNCHER_SPLASHSCREEN_FILE)
+  _set_path_var(APPLE_ICON_FILE)
+  _set_path_var(WIN_ICON_FILE)
+  _set_path_var(LICENSE_FILE)
   if(DEFINED SLICERAPP_DEFAULT_SETTINGS_FILE)
-    _set_path_var(DEFAULT_SETTINGS_FILE "")
+    _set_path_var(DEFAULT_SETTINGS_FILE)
   endif()
 
   # --------------------------------------------------------------------------
@@ -358,11 +386,11 @@ macro(slicerMacroBuildApplication)
     get_filename_component(apple_icon_filename ${SLICERAPP_APPLE_ICON_FILE} NAME)
     set(MACOSX_BUNDLE_ICON_FILE ${apple_icon_filename})
     message(STATUS "Setting MACOSX_BUNDLE_ICON_FILE to '${MACOSX_BUNDLE_ICON_FILE}'")
-  endif(Q_WS_MAC)
+  endif()
 
   if(QT_MAC_USE_COCOA)
     get_filename_component(qt_menu_nib
-      "@QT_QTGUI_LIBRARY_RELEASE@/Resources/qt_menu.nib"
+      "${QT_QTGUI_LIBRARY_RELEASE}/Resources/qt_menu.nib"
       REALPATH)
 
     set(qt_menu_nib_sources
@@ -375,9 +403,9 @@ macro(slicerMacroBuildApplication)
       PROPERTIES
       MACOSX_PACKAGE_LOCATION Resources/qt_menu.nib
       )
-  else(QT_MAC_USE_COCOA)
+  else()
     set(qt_menu_nib_sources)
-  endif(QT_MAC_USE_COCOA)
+  endif()
 
   # --------------------------------------------------------------------------
   # Include dirs
@@ -440,7 +468,7 @@ macro(slicerMacroBuildApplication)
         MACOSX_BUNDLE_INFO_PLIST "${Slicer_CMAKE_DIR}/MacOSXBundleInfo.plist.in"
         LINK_FLAGS ${link_flags}
       )
-    if(NOT "${Slicer_VERSION_TWEAK}" STREQUAL "") # This is set only for release
+    if("${Slicer_RELEASE_TYPE}" STREQUAL "Stable")
       set_target_properties(${slicerapp_target} PROPERTIES
         MACOSX_BUNDLE_SHORT_VERSION_STRING "${Slicer_VERSION_MAJOR}.${Slicer_VERSION_MINOR}.${Slicer_VERSION_PATCH}"
         )
@@ -506,12 +534,20 @@ macro(slicerMacroBuildApplication)
   # --------------------------------------------------------------------------
   if(SLICERAPP_CONFIGURE_LAUNCHER)
     if(Slicer_USE_CTKAPPLAUNCHER)
-      include(${CTKAPPLAUNCHER_DIR}/CMake/ctkAppLauncher.cmake)
+
+      find_package(CTKAppLauncher REQUIRED)
 
       # Define list of extra 'application to launch' to associate with the launcher
       # within the build tree
       set(extraApplicationToLaunchListForBuildTree)
-      if(EXISTS "${QT_DESIGNER_EXECUTABLE}")
+
+      if(${Slicer_REQUIRED_QT_VERSION} VERSION_GREATER_EQUAL 5 AND NOT QT_DESIGNER_EXECUTABLE)
+        # Since Qt only provides a CMake module to find the designer library, we work
+        # around this limitation by finding the designer executable.
+        find_program(QT_DESIGNER_EXECUTABLE designer Designer "${QT_BINARY_DIR}")
+      endif()
+
+      if(EXISTS ${QT_DESIGNER_EXECUTABLE})
         ctkAppLauncherAppendExtraAppToLaunchToList(
           LONG_ARG designer
           HELP "Start Qt designer using Slicer plugins"
@@ -523,17 +559,24 @@ macro(slicerMacroBuildApplication)
       if(UNIX)
         list(APPEND executables gnome-terminal xterm ddd gdb)
       elseif(WIN32)
-        list(APPEND executables VisualStudio cmd)
+        list(APPEND executables VisualStudio VisualStudioProject cmd)
         set(VisualStudio_EXECUTABLE ${CMAKE_VS_DEVENV_COMMAND})
+        set(VisualStudio_HELP "Open Visual Studio with Slicer's DLL paths set up")
+        set(VisualStudioProject_EXECUTABLE ${CMAKE_VS_DEVENV_COMMAND})
+        set(VisualStudioProject_ARGUMENTS ${Slicer_BINARY_DIR}/Slicer.sln)
+        set(VisualStudioProject_HELP "Open Visual Studio Slicer project with Slicer's DLL paths set up")
         set(cmd_ARGUMENTS "/c start cmd")
       endif()
       foreach(executable ${executables})
         find_program(${executable}_EXECUTABLE ${executable})
         if(${executable}_EXECUTABLE)
-          message(STATUS "Enabling Slicer build tree launcher option: --${executable}")
+          message(STATUS "Enabling ${SLICERAPP_APPLICATION_NAME} build tree launcher option: --${executable}")
+          if(NOT DEFINED ${executable}_HELP)
+            set(${executable}_HELP "Start ${executable}")
+          endif()
           ctkAppLauncherAppendExtraAppToLaunchToList(
             LONG_ARG ${executable}
-            HELP "Start ${executable}"
+            HELP ${${executable}_HELP}
             PATH ${${executable}_EXECUTABLE}
             ARGUMENTS ${${executable}_ARGUMENTS}
             OUTPUTVAR extraApplicationToLaunchListForBuildTree
@@ -551,7 +594,7 @@ macro(slicerMacroBuildApplication)
       foreach(executable ${executables})
         find_program(${executable}_EXECUTABLE ${executable})
         if(${executable}_EXECUTABLE)
-          message(STATUS "Enabling Slicer install tree launcher option: --${executable}")
+          message(STATUS "Enabling ${SLICERAPP_APPLICATION_NAME} install tree launcher option: --${executable}")
           ctkAppLauncherAppendExtraAppToLaunchToList(
             LONG_ARG ${executable}
             HELP "Start ${executable}"
@@ -564,32 +607,49 @@ macro(slicerMacroBuildApplication)
 
       include(SlicerBlockCTKAppLauncherSettings)
 
-      ctkAppLauncherConfigure(
+      ctkAppLauncherConfigureForTarget(
+        # Executable target associated with the launcher
         TARGET ${slicerapp_target}
-        APPLICATION_INSTALL_SUBDIR ${Slicer_INSTALL_BIN_DIR}
+        # Location of the launcher settings in the install tree
+        APPLICATION_INSTALL_SUBDIR ${Slicer_BIN_DIR}
+        # Info allowing to retrieve the Slicer extension settings
         APPLICATION_NAME ${SLICERAPP_APPLICATION_NAME}
         APPLICATION_REVISION ${Slicer_WC_REVISION}
         ORGANIZATION_DOMAIN ${Slicer_ORGANIZATION_DOMAIN}
         ORGANIZATION_NAME ${Slicer_ORGANIZATION_NAME}
         USER_ADDITIONAL_SETTINGS_FILEBASENAME ${SLICER_REVISION_SPECIFIC_USER_SETTINGS_FILEBASENAME}
+        # Splash screen
         SPLASH_IMAGE_PATH ${SLICERAPP_LAUNCHER_SPLASHSCREEN_FILE}
-        SPLASH_IMAGE_INSTALL_SUBDIR ${Slicer_INSTALL_BIN_DIR}
+        SPLASH_IMAGE_INSTALL_SUBDIR ${Slicer_BIN_DIR}
         SPLASHSCREEN_HIDE_DELAY_MS 3000
+        # Slicer arguments triggering display of launcher help
         HELP_SHORT_ARG "-h"
         HELP_LONG_ARG "--help"
+        # Slicer arguments that should NOT be associated with the spash screeb
         NOSPLASH_ARGS "--no-splash,--help,--version,--home,--program-path,--no-main-window,--settings-path,--temporary-path"
+        # Extra application associated with the launcher
         EXTRA_APPLICATION_TO_LAUNCH_BUILD ${extraApplicationToLaunchListForBuildTree}
         EXTRA_APPLICATION_TO_LAUNCH_INSTALLED ${extraApplicationToLaunchListForInstallTree}
+        # Location of the launcher settings in the build tree
         DESTINATION_DIR ${Slicer_BINARY_DIR}
+        # Launcher settings specific to build tree
         LIBRARY_PATHS_BUILD "${SLICER_LIBRARY_PATHS_BUILD}"
         PATHS_BUILD "${SLICER_PATHS_BUILD}"
         ENVVARS_BUILD "${SLICER_ENVVARS_BUILD}"
+        # Launcher settings specific to install tree
         LIBRARY_PATHS_INSTALLED "${SLICER_LIBRARY_PATHS_INSTALLED}"
         PATHS_INSTALLED "${SLICER_PATHS_INSTALLED}"
         ENVVARS_INSTALLED "${SLICER_ENVVARS_INSTALLED}"
+        # The ADDITIONAL_PATH_ENVVARS_(BUILD_INSTALLED) variables contains names of
+        # environment variables expected to be associated with a list of paths.
+        # Examples of such variables are PYTHONPATH, QT_PLUGIN_PATH, ...
+        # For each "ADDITIONAL_PATH_ENVVARS", the "ctkAppLauncherConfigure" macro
+        # will look for variables named <ADDITIONAL_PATH_ENVVARS_PREFIX>_<ADDITIONAL_PATH_ENVVAR>_(BUILD|INSTALLED)
+        # listing paths.
+        # For example: SLICER_PYTHONPATH_BUILD, SLICER_PYTHONPATH_INSTALLED
+        ADDITIONAL_PATH_ENVVARS_PREFIX SLICER_
         ADDITIONAL_PATH_ENVVARS_BUILD "${SLICER_ADDITIONAL_PATH_ENVVARS_BUILD}"
         ADDITIONAL_PATH_ENVVARS_INSTALLED "${SLICER_ADDITIONAL_PATH_ENVVARS_INSTALLED}"
-        ADDITIONAL_PATH_ENVVARS_PREFIX SLICER_
         )
 
       # Folder
@@ -606,11 +666,11 @@ macro(slicerMacroBuildApplication)
           # Create command to update launcher icon
           add_custom_command(
             DEPENDS
-              ${CTKAPPLAUNCHER_DIR}/bin/CTKAppLauncherW${CMAKE_EXECUTABLE_SUFFIX}
+              ${CTKAppLauncher_DIR}/bin/CTKAppLauncherW${CMAKE_EXECUTABLE_SUFFIX}
             OUTPUT
               ${Slicer_BINARY_DIR}/CMakeFiles/${SLICERAPP_APPLICATION_NAME}W${CMAKE_EXECUTABLE_SUFFIX}
             COMMAND ${CMAKE_COMMAND} -E copy
-              ${CTKAPPLAUNCHER_DIR}/bin/CTKAppLauncherW${CMAKE_EXECUTABLE_SUFFIX}
+              ${CTKAppLauncher_DIR}/bin/CTKAppLauncherW${CMAKE_EXECUTABLE_SUFFIX}
               ${Slicer_BINARY_DIR}/CMakeFiles/${SLICERAPP_APPLICATION_NAME}W${CMAKE_EXECUTABLE_SUFFIX}
             COMMAND
               ${CTKResEdit_EXECUTABLE}
@@ -639,13 +699,21 @@ macro(slicerMacroBuildApplication)
           DESTINATION ${Slicer_INSTALL_BIN_DIR}
           COMPONENT Runtime
           )
-        install(
-          FILES "${Slicer_BINARY_DIR}/${SLICERAPP_APPLICATION_NAME}LauncherSettingsToInstall.ini"
-          DESTINATION ${Slicer_INSTALL_BIN_DIR}
-          RENAME ${SLICERAPP_APPLICATION_NAME}LauncherSettings.ini
-          COMPONENT Runtime
-          )
       endif()
+
+      #
+      # On MacOSX, the installed launcher settings are *only* read directly by the
+      # qSlicerCoreApplication using the LauncherLib.
+      #
+      # On Linux and Windows, the installed launcher settings are first read by the
+      # installed launcher, and then read using the LauncherLib.
+      #
+      install(
+        FILES "${Slicer_BINARY_DIR}/${SLICERAPP_APPLICATION_NAME}LauncherSettingsToInstall.ini"
+        DESTINATION ${Slicer_INSTALL_BIN_DIR}
+        RENAME ${SLICERAPP_APPLICATION_NAME}LauncherSettings.ini
+        COMPONENT Runtime
+        )
 
       if(WIN32)
         # Create target to update launcher icon

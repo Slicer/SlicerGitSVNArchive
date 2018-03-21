@@ -67,35 +67,38 @@ public:
     SubjectHierarchyItemAboutToBeRemovedEvent,
     SubjectHierarchyItemRemovedEvent,
     SubjectHierarchyItemModifiedEvent,
-    SubjectHierarchyItemResolvedEvent,
     /// Event invoked when UID is added to subject hierarchy item. Useful when using UIDs
     /// to find related nodes, and the nodes are loaded sequentially in unspecified order.
     SubjectHierarchyItemUIDAddedEvent,
     /// Event invoked when a subject hierarchy item or its data node changed in a way that
     /// will influence the best owner plugin. Typically invoked by \sa RequestOwnerPluginSearch
     /// after setting an attribute indicating a desired role for the item
-    SubjectHierarchyItemOwnerPluginSearchRequested
+    SubjectHierarchyItemOwnerPluginSearchRequested,
+    /// Event invoked when item resolving starts (e.g. after scene import)
+    SubjectHierarchyStartResolveEvent,
+    /// Event invoked when item resolving finished (e.g. after scene import)
+    SubjectHierarchyEndResolveEvent
   };
 
 public:
   static vtkMRMLSubjectHierarchyNode *New();
   vtkTypeMacro(vtkMRMLSubjectHierarchyNode,vtkMRMLNode);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
-  virtual vtkMRMLNode* CreateNodeInstance();
+  virtual vtkMRMLNode* CreateNodeInstance() VTK_OVERRIDE;
 
   /// Read item from XML
   virtual void ReadItemFromXML(const char** atts);
   /// Write this node's information to a MRML file in XML format.
-  virtual void WriteXML(ostream& of, int indent);
+  virtual void WriteXML(ostream& of, int indent) VTK_OVERRIDE;
   /// Write this node's body to a MRML file in XML format.
-  virtual void WriteNodeBodyXML(ostream& of, int indent);
+  virtual void WriteNodeBodyXML(ostream& of, int indent) VTK_OVERRIDE;
 
   /// Copy the node's attributes to this object
-  virtual void Copy(vtkMRMLNode *node);
+  virtual void Copy(vtkMRMLNode *node) VTK_OVERRIDE;
 
   /// Get node XML tag name (like Volume, Contour)
-  virtual const char* GetNodeTagName();
+  virtual const char* GetNodeTagName() VTK_OVERRIDE;
 
 // Get/Set methods
 public:
@@ -322,6 +325,18 @@ public:
   /// the attribute of this item containing the referenced SOP instance UIDs
   /// \sa vtkMRMLSubjectHierarchyConstants::GetDICOMReferencedInstanceUIDsAttributeName()
   std::vector<vtkIdType> GetItemsReferencedFromItemByDICOM(vtkIdType itemID);
+  /// Python compatibility method to get items that are referenced from a given item by DICOM.
+  /// \sa GetItemsReferencedFromItemByDICOM
+  void GetItemsReferencedFromItemByDICOM(vtkIdType itemID, vtkIdList* referencingIdList);
+
+  /// Get subject hierarchy items that reference a given item by DICOM.
+  /// Finds the series items that contain the SOP instance UID of the item among their
+  /// referenced SOP instance UIDs.
+  /// \sa vtkMRMLSubjectHierarchyConstants::GetDICOMReferencedInstanceUIDsAttributeName()
+  std::vector<vtkIdType> GetItemsReferencingItemByDICOM(vtkIdType itemID);
+  /// Python compatibility method to get items that are referenced from a given item by DICOM.
+  /// \sa GetItemsReferencingItemByDICOM
+  void GetItemsReferencingItemByDICOM(vtkIdType itemID, vtkIdList* referencingIdList);
 
   /// Generate unique item name
   std::string GenerateUniqueItemName(std::string name);

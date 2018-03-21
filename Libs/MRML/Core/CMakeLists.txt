@@ -1,7 +1,7 @@
 project(MRMLCore)
 
 #-----------------------------------------------------------------------------
-cmake_minimum_required(VERSION 2.8.4)
+cmake_minimum_required(VERSION 3.5)
 #-----------------------------------------------------------------------------
 
 # --------------------------------------------------------------------------
@@ -101,10 +101,12 @@ endif()
 # Sources
 # --------------------------------------------------------------------------
 set(MRMLCore_SRCS
+  vtkCodedEntry.cxx
   vtkEventBroker.cxx
   vtkImageBimodalAnalysis.cxx
   vtkDataFileFormatHelper.cxx
   vtkMRMLLogic.cxx
+  vtkMRMLAbstractLayoutNode.cxx
   vtkMRMLAbstractViewNode.cxx
   vtkMRMLCameraNode.cxx
   vtkMRMLChartNode.cxx
@@ -141,6 +143,9 @@ set(MRMLCore_SRCS
   vtkMRMLModelStorageNode.cxx
   vtkMRMLNode.cxx
   vtkMRMLParser.cxx
+  vtkMRMLPlotChartNode.cxx
+  vtkMRMLPlotSeriesNode.cxx
+  vtkMRMLPlotViewNode.cxx
   vtkMRMLProceduralColorNode.cxx
   vtkMRMLProceduralColorStorageNode.cxx
   vtkMRMLROIListNode.cxx

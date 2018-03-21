@@ -23,6 +23,9 @@
 #include <QTimer>
 #include <QVBoxLayout>
 
+// Slicer includes
+#include "vtkSlicerConfigure.h"
+
 // qMRML includes
 #include "qMRMLSliceWidget.h"
 #include "qMRMLVolumeThresholdWidget.h"
@@ -38,11 +41,21 @@
 
 // VTK includes
 #include <vtkNew.h>
+#ifdef Slicer_VTK_USE_QVTKOPENGLWIDGET
+#include <QVTKOpenGLWidget.h>
+#endif
 
 // STD includes
 
 int qMRMLVolumeThresholdWidgetTest2(int argc, char * argv [] )
 {
+#ifdef Slicer_VTK_USE_QVTKOPENGLWIDGET
+  // Set default surface format for QVTKOpenGLWidget
+  QSurfaceFormat format = QVTKOpenGLWidget::defaultFormat();
+  format.setSamples(0);
+  QSurfaceFormat::setDefaultFormat(format);
+#endif
+
   QApplication app(argc, argv);
 
   if( argc < 2 )
@@ -68,8 +81,7 @@ int qMRMLVolumeThresholdWidgetTest2(int argc, char * argv [] )
     std::cerr << "Can't load scene:" << argv[1] << " error: " <<scene->GetErrorMessage() << std::endl;
     return EXIT_FAILURE;
     }
-  scene->InitTraversal();
-  vtkMRMLNode* node = scene->GetNextNodeByClass("vtkMRMLScalarVolumeNode");
+  vtkMRMLNode* node = scene->GetFirstNodeByClass("vtkMRMLScalarVolumeNode");
   vtkMRMLVolumeNode* volumeNode = vtkMRMLVolumeNode::SafeDownCast(node);
   if (!volumeNode)
     {

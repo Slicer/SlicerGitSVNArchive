@@ -29,13 +29,13 @@ vtkCxxSetReferenceStringMacro(vtkMRMLSelectionNode, SecondaryVolumeID);
 vtkCxxSetReferenceStringMacro(vtkMRMLSelectionNode, ActiveLabelVolumeID);
 vtkCxxSetReferenceStringMacro(vtkMRMLSelectionNode, ActiveFiducialListID);
 vtkCxxSetReferenceStringMacro(vtkMRMLSelectionNode, ActivePlaceNodeID);
-vtkCxxSetReferenceStringMacro(vtkMRMLSelectionNode, ActivePlaceNodeClassName);
 vtkCxxSetReferenceStringMacro(vtkMRMLSelectionNode, ActiveROIListID);
 vtkCxxSetReferenceStringMacro(vtkMRMLSelectionNode, ActiveCameraID);
 vtkCxxSetReferenceStringMacro(vtkMRMLSelectionNode, ActiveTableID);
 vtkCxxSetReferenceStringMacro(vtkMRMLSelectionNode, ActiveViewID);
 vtkCxxSetReferenceStringMacro(vtkMRMLSelectionNode, ActiveLayoutID);
 vtkCxxSetReferenceStringMacro(vtkMRMLSelectionNode, ActiveVolumeID);
+vtkCxxSetReferenceStringMacro(vtkMRMLSelectionNode, ActivePlotChartID);
 
 const char* vtkMRMLSelectionNode::UnitNodeReferenceRole = "unit/";
 const char* vtkMRMLSelectionNode::UnitNodeReferenceMRMLAttributeName = "UnitNodeRef";
@@ -61,6 +61,7 @@ vtkMRMLSelectionNode::vtkMRMLSelectionNode()
   this->ActiveTableID = NULL;
   this->ActiveViewID = NULL;
   this->ActiveLayoutID = NULL;
+  this->ActivePlotChartID = NULL;
 
   this->AddNodeReferenceRole(this->GetUnitNodeReferenceRole(),
                              this->GetUnitNodeReferenceMRMLAttributeName());
@@ -94,11 +95,7 @@ vtkMRMLSelectionNode::~vtkMRMLSelectionNode()
     delete [] this->ActivePlaceNodeID;
     this->ActivePlaceNodeID = NULL;
     }
-  if (this->ActivePlaceNodeClassName)
-    {
-    delete [] this->ActivePlaceNodeClassName;
-    this->ActivePlaceNodeClassName = NULL;
-    }
+  this->SetActivePlaceNodeClassName(NULL);
   if (this->ActiveROIListID)
     {
     delete [] this->ActiveROIListID;
@@ -123,6 +120,11 @@ vtkMRMLSelectionNode::~vtkMRMLSelectionNode()
     {
     delete [] this->ActiveLayoutID;
     this->ActiveLayoutID = NULL;
+    }
+  if ( this->ActivePlotChartID)
+    {
+    delete [] this->ActivePlotChartID;
+    this->ActivePlotChartID = NULL;
     }
 }
 
@@ -154,6 +156,7 @@ void vtkMRMLSelectionNode::WriteXML(ostream& of, int nIndent)
   of << " activeTableID=\"" << (this->ActiveTableID ? this->ActiveTableID : "NULL") << "\"";
   of << " activeViewID=\"" << (this->ActiveViewID ? this->ActiveViewID : "NULL") << "\"";
   of << " activeLayoutID=\"" << (this->ActiveLayoutID ? this->ActiveLayoutID : "NULL") << "\"";
+  of << " activePlotChartID=\"" << (this->ActivePlotChartID ? this->ActivePlotChartID : "NULL") << "\"";
 
   if (this->ModelHierarchyDisplayNodeClassName.size() > 0)
     {
@@ -189,6 +192,7 @@ void vtkMRMLSelectionNode::SetSceneReferences()
   this->Scene->AddReferencedNodeID(this->ActiveTableID, this);
   this->Scene->AddReferencedNodeID(this->ActiveViewID, this);
   this->Scene->AddReferencedNodeID(this->ActiveLayoutID, this);
+  this->Scene->AddReferencedNodeID(this->ActivePlotChartID, this);
 }
 
 //----------------------------------------------------------------------------
@@ -215,10 +219,6 @@ void vtkMRMLSelectionNode::UpdateReferenceID(const char *oldID, const char *newI
     {
     this->SetActivePlaceNodeID(newID);
     }
-  if (this->ActivePlaceNodeClassName && !strcmp(oldID, this->ActivePlaceNodeClassName))
-    {
-    this->SetActivePlaceNodeClassName(newID);
-    }
   if ( this->ActiveCameraID && !strcmp (oldID, this->ActiveCameraID ))
     {
     this->SetActiveCameraID (newID);
@@ -234,6 +234,10 @@ if ( this->ActiveTableID && !strcmp (oldID, this->ActiveTableID ))
   if ( this->ActiveLayoutID && !strcmp ( oldID, this->ActiveLayoutID ))
     {
     this->SetActiveLayoutID (newID );
+    }
+  if ( this->ActivePlotChartID && !strcmp ( oldID, this->ActivePlotChartID ))
+    {
+    this->SetActivePlotChartID (newID );
     }
 }
 
@@ -262,10 +266,6 @@ void vtkMRMLSelectionNode::UpdateReferences()
     {
     this->SetActivePlaceNodeID(NULL);
     }
-  if (this->ActivePlaceNodeClassName != NULL && this->Scene->GetNodeByID(this->ActivePlaceNodeClassName) == NULL)
-    {
-    this->SetActivePlaceNodeClassName(NULL);
-    }
   if (this->ActiveViewID != NULL && this->Scene->GetNodeByID(this->ActiveViewID) == NULL)
     {
     this->SetActiveViewID(NULL);
@@ -281,6 +281,10 @@ void vtkMRMLSelectionNode::UpdateReferences()
   if (this->ActiveTableID != NULL && this->Scene->GetNodeByID(this->ActiveTableID) == NULL)
     {
     this->SetActiveTableID(NULL);
+    }
+  if (this->ActivePlotChartID != NULL && this->Scene->GetNodeByID(this->ActivePlotChartID) == NULL)
+    {
+    this->SetActivePlotChartID(NULL);
     }
 }
 //----------------------------------------------------------------------------
@@ -327,7 +331,6 @@ void vtkMRMLSelectionNode::ReadXMLAttributes(const char** atts)
     if (!strcmp(attName, "activePlaceNodeClassName"))
       {
       this->SetActivePlaceNodeClassName(attValue);
-      //this->Scene->AddReferencedNodeID(this->ActivePlaceNodeClassName, this);
       }
     if (!strcmp (attName, "activeCameraID"))
       {
@@ -348,6 +351,11 @@ void vtkMRMLSelectionNode::ReadXMLAttributes(const char** atts)
       {
       this->SetActiveLayoutID (attValue);
       //this->Scene->AddReferencedNodeID ( this->ActiveLayoutID, this);
+      }
+    if (!strcmp (attName, "activePlotChartID"))
+      {
+      this->SetActivePlotChartID (attValue);
+      //this->Scene->AddReferencedNodeID ( this->ActivePlotChartID, this);
       }
     if (!strcmp (attName, "modelHierarchyDisplayableNodeClassName"))
       {
@@ -415,6 +423,7 @@ void vtkMRMLSelectionNode::Copy(vtkMRMLNode *anode)
   this->SetActiveTableID (node->GetActiveTableID());
   this->SetActiveViewID (node->GetActiveViewID() );
   this->SetActiveLayoutID (node->GetActiveLayoutID() );
+  this->SetActivePlotChartID (node->GetActivePlotChartID());
   this->ModelHierarchyDisplayNodeClassName = node->ModelHierarchyDisplayNodeClassName;
   this->EndModify(disabledModify);
 }
@@ -458,6 +467,7 @@ void vtkMRMLSelectionNode::PrintSelf(ostream& os, vtkIndent indent)
   os << "ActiveTableID: " << ( (this->ActiveTableID) ? this->ActiveTableID : "None" ) << "\n";
   os << "ActiveViewID: " << ( (this->ActiveViewID) ? this->ActiveViewID : "None" ) << "\n";
   os << "ActiveLayoutID: " << ( (this->ActiveLayoutID) ? this->ActiveLayoutID : "None" ) << "\n";
+  os << "ActivePlotChartID: " << ( (this->ActivePlotChartID) ? this->ActivePlotChartID : "None" ) << "\n";
 
   if (this->ModelHierarchyDisplayNodeClassName.size() > 0)
     {

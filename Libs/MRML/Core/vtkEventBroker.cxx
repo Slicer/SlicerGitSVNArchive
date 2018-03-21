@@ -56,10 +56,6 @@ vtkEventBrokerInitialize::~vtkEventBrokerInitialize()
 }
 
 //----------------------------------------------------------------------------
-// Needed when we don't use the vtkStandardNewMacro.
-vtkInstantiatorNewMacro(vtkEventBroker);
-
-//----------------------------------------------------------------------------
 
 //----------------------------------------------------------------------------
 // Up the reference count so it behaves like New
@@ -82,6 +78,9 @@ vtkEventBroker* vtkEventBroker::GetInstance()
     if(!vtkEventBrokerInstance)
       {
       vtkEventBrokerInstance = new vtkEventBroker;
+#ifdef VTK_HAS_INITIALIZE_OBJECT_BASE
+      vtkEventBrokerInstance->InitializeObjectBase();
+#endif
       }
     }
   // return the instance

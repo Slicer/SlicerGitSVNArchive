@@ -2,16 +2,6 @@
 include(@CMAKE_SOURCE_DIR@/CMake/BundleUtilitiesWithRPath.cmake)
 #include(BundleUtilities)
 
-#
-# Avoid following symlinks encountered during FILE GLOB_RECURSE calls:
-#
-if(COMMAND CMAKE_POLICY)
-  cmake_policy(SET CMP0009 NEW)
-  if(POLICY CMP0011)
-    cmake_policy(SET CMP0011 NEW)
-  endif()
-endif()
-
 #-----------------------------------------------------------------------------
 set(PYTHON_STDLIB_SUBDIR "@PYTHON_STDLIB_SUBDIR@")
 set(PYTHON_SITE_PACKAGES_SUBDIR "@PYTHON_SITE_PACKAGES_SUBDIR@")
@@ -97,7 +87,7 @@ function(gp_item_default_embedded_path_override item default_embedded_path_var)
     set(path "@fixup_path@/@Slicer_ITKFACTORIES_DIR@")
   endif()
 
-  foreach(qt_plugin_dir designer iconengines styles imageformats sqldrivers)
+  foreach(qt_plugin_dir designer iconengines styles imageformats sqldrivers platforms)
     if(item MATCHES "@Slicer_QtPlugins_DIR@/${qt_plugin_dir}/[^/]+\\.(so|dylib)$")
       set(path "@fixup_path@/@Slicer_QtPlugins_DIR@/${qt_plugin_dir}")
     endif()
@@ -157,6 +147,7 @@ function(fixup_bundle_with_plugins app)
     "${app_dir}/Contents/@Slicer_QtPlugins_DIR@/styles/*Plugins.so"
     "${app_dir}/Contents/@Slicer_QtPlugins_DIR@/imageformats/*${suffix}"
     "${app_dir}/Contents/@Slicer_QtPlugins_DIR@/sqldrivers/*${suffix}"
+    "${app_dir}/Contents/@Slicer_QtPlugins_DIR@/platforms/*${suffix}"
     )
 
   set(Slicer_BUILD_CLI_SUPPORT "@Slicer_BUILD_CLI_SUPPORT@")
@@ -280,6 +271,7 @@ function(fixup_bundle_with_plugins app)
   _fixup_paths_append(libs_path "${Slicer_BUILD_DIR}/@Slicer_BIN_DIR@/styles")
   #_fixup_paths_append(libs_path "${Slicer_BUILD_DIR}/@Slicer_BIN_DIR@/imageformats")
   #_fixup_paths_append(libs_path "${Slicer_BUILD_DIR}/@Slicer_BIN_DIR@/sqldrivers")
+  #_fixup_paths_append(libs_path "${Slicer_BUILD_DIR}/@Slicer_BIN_DIR@/platforms")
   if (Slicer_ADDITIONAL_PROJECTS)
     foreach(additional_project ${Slicer_ADDITIONAL_PROJECTS})
       find_package(${additional_project})
@@ -330,7 +322,44 @@ function(fixup_bundle_with_plugins app)
     "${libs}"
     "${libs_path}"
     )
+
+  # Since BundleUtilities function do not copy the "Helpers" directory found
+  # in frameworks. The following will explicitly copy and fixup
+  # QtWebEngineCore.framework/Versions/5/Helpers/QtWebEngineProcess.app
+  set(Slicer_USE_SYSTEM_QT "@Slicer_USE_SYSTEM_QT@")
+  if(NOT Slicer_USE_SYSTEM_QT)
+    set(qt_root_dir "@qt_root_dir@")
+    set(qtwebenginecore_app_subdir "Helpers/QtWebEngineProcess.app")
+    set(qtwebenginecore_src_dir "${qt_root_dir}/QtWebEngineCore.framework/${qtwebenginecore_app_subdir}")
+    set(qtwebenginecore_dest_dir "${app_dir}/Contents/Frameworks/QtWebEngineCore.framework/${qtwebenginecore_app_subdir}")
+    if(EXISTS ${qtwebenginecore_src_dir})
+      file(COPY "${qtwebenginecore_src_dir}/Contents" DESTINATION "${qtwebenginecore_dest_dir}/" USE_SOURCE_PERMISSIONS)
+      set(qtwebengineprocess_executable "${qtwebenginecore_dest_dir}/Contents/MacOS/QtWebEngineProcess")
+      # Collect list of Qt framework dependencies
+      set(prereqs )
+      get_prerequisites(${qtwebengineprocess_executable} "prereqs" 1 0 "" "")
+      # Generate list of "-change" arguments
+      set(changes "")
+      foreach(item ${prereqs})
+        gp_item_default_embedded_path_override("${item}" path)
+        get_filename_component(item_name "${item}" NAME)
+        # Examples of values:
+        #  item          : /Volumes/Dashboards/Support/qt-everywhere-build-5.10.0/lib/QtNetwork.framework/Versions/5/QtNetwork
+        #  item_name     : QtNetwork
+        #  path          : @rpath/Frameworks
+        #  embedded_item : @rpath/Frameworks/QtNetwork.framework/Versions/5/QtNetwork
+        string(REGEX REPLACE "^.*(${item_name}.framework/.*/?${item_name}).*$" "${path}/\\1" embedded_item "${item}")
+        set(changes ${changes} "-change" "${item}" "${embedded_item}")
+      endforeach()
+      # Update executable
+      execute_process(COMMAND install_name_tool
+        -rpath "@executable_path/Frameworks" "@loader_path/../../../../../../"
+        ${changes} "${qtwebengineprocess_executable}"
+        )
+    endif()
+  endif()
+
 endfunction()
 
-fixup_bundle_with_plugins("@Slicer_MAIN_PROJECT_APPLICATION_NAME@.app")
-#verify_app("/Users/partyd/Kitware/Slicer4-trunk/build/Slicer-build/_CPack_Packages/Darwin/DragNDrop/Slicer-4.0.gamma-2011-05-10-Darwin/@Slicer_MAIN_PROJECT_APPLICATION_NAME@.app")
+set(app_name "@Slicer_MAIN_PROJECT_APPLICATION_NAME@.app")
+fixup_bundle_with_plugins(${app_name})

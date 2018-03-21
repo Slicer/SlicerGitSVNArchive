@@ -13,17 +13,22 @@
 
 // Qt includes
 #include <QApplication>
-#include <QTimer>
-#include <QPushButton>
-#include <QVBoxLayout>
 #include <QProcessEnvironment>
+#include <QPushButton>
+#include <QString>
+#include <QTimer>
+#include <QVBoxLayout>
+#if (QT_VERSION < QT_VERSION_CHECK(5, 6, 0))
 #include <QWebView>
+#else
+#include <QWebEngineView>
+#endif
+
+// Slicer includes
+#include "vtkSlicerConfigure.h"
 
 // SlicerQt includes
 #include "qSlicerWidget.h"
-
-// QVTK includes
-#include <QVTKWidget.h>
 
 // Slicer includes
 #include <vtkMRMLSliceLogic.h>
@@ -44,6 +49,11 @@
 #include <vtkProperty2D.h>
 #include <vtkActor2D.h>
 #include <vtkVersion.h>
+#ifdef Slicer_VTK_USE_QVTKOPENGLWIDGET
+#include <QVTKOpenGLWidget.h>
+#else
+#include <QVTKWidget.h>
+#endif
 
 // STD includes
 
@@ -56,6 +66,9 @@
 //
 vtkMRMLSliceLogic *setupSliceDisplay(vtkMRMLScene *scene, vtkRenderWindow *rw, const char *archetype)
 {
+  // Add default slice orientation presets
+  vtkMRMLSliceNode::AddDefaultSliceOrientationPresets(scene);
+
   //
   // allocate needed nodes, add them to the scene, and connect them together
   //
@@ -129,6 +142,23 @@ vtkMRMLSliceLogic *setupSliceDisplay(vtkMRMLScene *scene, vtkRenderWindow *rw, c
 
 int qSlicerWidgetTest2(int argc, char * argv[] )
 {
+  if (argc != 2 && argc != 3)
+    {
+    std::cerr << "Line " << __LINE__ << " - Missing parameters !" << std::endl
+      << "Usage:" << std::endl
+      << "  Default: " << argv[0] << " /path/to/temp" << std::endl
+      << "  For interactive testing: " << argv[0] << " /path/to/temp -I" << std::endl
+      << std::endl;
+    return EXIT_FAILURE;
+    }
+
+#ifdef Slicer_VTK_USE_QVTKOPENGLWIDGET
+  // Set default surface format for QVTKOpenGLWidget
+  QSurfaceFormat format = QVTKOpenGLWidget::defaultFormat();
+  format.setSamples(0);
+  QSurfaceFormat::setDefaultFormat(format);
+#endif
+
   //
   // Create a simple gui with a quit button and render window
   //
@@ -148,12 +178,22 @@ int qSlicerWidgetTest2(int argc, char * argv[] )
   widget->setParent(&parentWidget);
   vbox.addWidget(widget);
 
+#ifdef Slicer_VTK_USE_QVTKOPENGLWIDGET
+  QVTKOpenGLWidget * vtkWidget = new QVTKOpenGLWidget;
+  vtkWidget->setEnableHiDPI(true);
+#else
   QVTKWidget* vtkWidget = new QVTKWidget();
+#endif
+
   vtkWidget->setParent(&parentWidget);
   vbox.addWidget(vtkWidget);
   vtkWidget->GetRenderWindow()->Render();
 
+#if (QT_VERSION < QT_VERSION_CHECK(5, 6, 0))
   QWebView webView;
+#else
+  QWebEngineView webView;
+#endif
   webView.setParent(&parentWidget);
   webView.setUrl(QUrl("http://pyjs.org/examples"));
   vbox.addWidget(&webView);
@@ -163,21 +203,15 @@ int qSlicerWidgetTest2(int argc, char * argv[] )
   parentWidget.show();
   parentWidget.raise();
 
-  //
-  // Get the sample data from a known spot in the build tree
-  // (relies on SLICER_HOME being set correctly, which it
-  // will be when the launcher is used).
-  //
-  QProcessEnvironment env;
-  QString qarchetype = env.value("SLICER_HOME", "");
-  qarchetype.append("share/MRML/Testing/TestData/fixed.nrrd");
-  QByteArray archetype = qarchetype.toAscii();
-
   vtkMRMLSliceLogic *sliceLogic = setupSliceDisplay(
-          scene, vtkWidget->GetRenderWindow(), archetype.data() );
+          scene, vtkWidget->GetRenderWindow(), argv[1] );
 
-  // quit after 5 seconds if the Quit button hasn't been clicked
-  QTimer::singleShot(5000, &parentWidget, SLOT(close()));
+
+  if (argc < 3 || QString(argv[2]) != "-I")
+  {
+    // quit after 5 seconds if the Quit button hasn't been clicked
+    QTimer::singleShot(5000, &parentWidget, SLOT(close()));
+  }
 
   // run the app
   app.exec();

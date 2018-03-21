@@ -46,14 +46,17 @@ if(NOT DEFINED OPENSSL_LIBRARIES
   #------------------------------------------------------------------------------
   if(UNIX)
 
-    set(OPENSSL_DOWNLOAD_VERSION "1.0.1e" CACHE STRING "Version of OpenSSL source package to download")
-    set_property(CACHE OPENSSL_DOWNLOAD_VERSION PROPERTY STRINGS "1.0.1e" "1.0.1l")
+    set(OPENSSL_DOWNLOAD_VERSION "1.0.2n" CACHE STRING "Version of OpenSSL source package to download")
+    set_property(CACHE OPENSSL_DOWNLOAD_VERSION PROPERTY STRINGS "1.0.1e" "1.0.1l" "1.0.2n")
 
     set(OpenSSL_1.0.1e_URL http://packages.kitware.com/download/item/6172/openssl-1.0.1e.tar.gz)
     set(OpenSSL_1.0.1e_MD5 66bf6f10f060d561929de96f9dfe5b8c)
 
     set(OpenSSL_1.0.1l_URL http://packages.kitware.com/download/item/7669/openssl-1.0.1l.tar.gz)
     set(OpenSSL_1.0.1l_MD5 cdb22925fc9bc97ccbf1e007661f2aa6)
+
+    set(OpenSSL_1.0.2n_URL https://packages.kitware.com/download/item/10337/openssl-1.0.2n.tar.gz)
+    set(OpenSSL_1.0.2n_MD5 13bdc1b1d1ff39b6fd42a255e74676a4)
 
     if(NOT DEFINED OpenSSL_${OPENSSL_DOWNLOAD_VERSION}_URL)
       message(FATAL_ERROR "There is no source version of OpenSSL ${OPENSSL_DOWNLOAD_VERSION} available.
@@ -76,7 +79,7 @@ You could either:
     file(APPEND ${_env_script}
 "#------------------------------------------------------------------------------
 # Added by '${CMAKE_CURRENT_LIST_FILE}'
-include(\"${${CMAKE_PROJECT_NAME}_CMAKE_DIR}/ExternalProjectForNonCMakeProject.cmake\")
+include(\"${Slicer_CMAKE_DIR}/ExternalProjectForNonCMakeProject.cmake\")
 set(CMAKE_BINARY_DIR \"${CMAKE_BINARY_DIR}\")
 set(ENV{VS_UNICODE_OUTPUT} \"\")
 ")
@@ -109,7 +112,7 @@ ExternalProject_Execute(${proj} \"configure\" sh config --with-zlib-lib=${_zlib_
       ${${proj}_EP_ARGS}
       URL ${OpenSSL_${OPENSSL_DOWNLOAD_VERSION}_URL}
       URL_MD5 ${OpenSSL_${OPENSSL_DOWNLOAD_VERSION}_MD5}
-      DOWNLOAD_DIR ${CMAKE_CURRENT_BINARY_DIR}
+      DOWNLOAD_DIR ${CMAKE_BINARY_DIR}
       SOURCE_DIR ${EP_SOURCE_DIR}
       BUILD_IN_SOURCE 1
       PATCH_COMMAND ${CMAKE_COMMAND} -P ${_configure_script}
@@ -195,6 +198,9 @@ this version of visual studio [${MSVC_VERSION}]. You could either:
       # VS2013
       set(OpenSSL_1.0.1h_1800_URL http://packages.kitware.com/download/bitstream/8918/OpenSSL_1_0_1h-install-msvc1800-32.tar.gz)
       set(OpenSSL_1.0.1h_1800_MD5 f10ceb422ab37f2b0bd5e225c74fd1d4)
+      # VS2015
+      set(OpenSSL_1.0.1h_1900_URL https://packages.kitware.com/download/item/10334/OpenSSL_1_0_1h-install-msvc1900-32.tar.gz)
+      set(OpenSSL_1.0.1h_1900_MD5 e0e26ae6ac5693d266c804e738d7aa14)
 
       # OpenSSL 1.0.1l
       # VS2008
@@ -217,6 +223,9 @@ this version of visual studio [${MSVC_VERSION}]. You could either:
       # VS2013
       set(OpenSSL_1.0.1h_1800_URL http://packages.kitware.com/download/bitstream/8915/OpenSSL_1_0_1h-install-msvc1800-64.tar.gz)
       set(OpenSSL_1.0.1h_1800_MD5 7aefdd94babefbe603cca48ff86da768)
+      # VS2015
+      set(OpenSSL_1.0.1h_1900_URL https://packages.kitware.com/download/item/10331/OpenSSL_1_0_1h-install-msvc1900-64.tar.gz)
+      set(OpenSSL_1.0.1h_1900_MD5 f93d266def384926015550452573e824)
 
       # OpenSSL 1.0.1l
       # VS2008
@@ -239,7 +248,7 @@ this version of visual studio [${MSVC_VERSION}]. You could either:
       ${${proj}_EP_ARGS}
       URL ${OpenSSL_${OPENSSL_DOWNLOAD_VERSION}_${MSVC_VERSION}_URL}
       URL_MD5 ${OpenSSL_${OPENSSL_DOWNLOAD_VERSION}_${MSVC_VERSION}_MD5}
-      DOWNLOAD_DIR ${CMAKE_CURRENT_BINARY_DIR}
+      DOWNLOAD_DIR ${CMAKE_BINARY_DIR}
       SOURCE_DIR ${EP_SOURCE_DIR}
       CONFIGURE_COMMAND ""
       BUILD_COMMAND ""
@@ -286,6 +295,7 @@ this version of visual studio [${MSVC_VERSION}]. You could either:
 
   ExternalProject_GenerateProjectDescription_Step(${proj}
     VERSION ${OPENSSL_DOWNLOAD_VERSION}
+    LICENSE_FILES "https://www.openssl.org/source/license.txt"
     )
 
   #-----------------------------------------------------------------------------

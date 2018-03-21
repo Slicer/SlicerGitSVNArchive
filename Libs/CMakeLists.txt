@@ -54,6 +54,9 @@ if(Slicer_BUILD_CLI_SUPPORT)
   set(ModuleDescriptionParser_USE_PYTHON OFF)
 endif()
 
+# Qt designer plugins
+set(MRML_BUILD_QT_DESIGNER_PLUGINS ${Slicer_BUILD_QT_DESIGNER_PLUGINS})
+
 # ITKFactories directories
 set(MRMLIDImageIO_ITKFACTORIES_DIR ${Slicer_ITKFACTORIES_DIR})
 set(MRMLIDImageIO_INSTALL_ITKFACTORIES_DIR ${Slicer_INSTALL_ITKFACTORIES_DIR})
@@ -66,6 +69,8 @@ set(MRML_APPLICATION_SHARE_SUBDIR ${Slicer_SHARE_DIR})
 
 # vtkITK contains tests that uses MRML's test data.
 set(MRML_TEST_DATA_DIR ${CMAKE_CURRENT_SOURCE_DIR}/MRML/Core/Testing/TestData)
+
+set(VTKITK_BUILD_DICOM_SUPPORT ${Slicer_BUILD_DICOM_SUPPORT})
 
 #-----------------------------------------------------------------------------
 # Loop over list of directories
@@ -117,6 +122,7 @@ set(MRML_LIBRARIES ${_mrml_libraries} CACHE INTERNAL "MRML libraries" FORCE)
 #-----------------------------------------------------------------------------
 set(_vtk_wrapped_libraries
   vtkAddon
+  vtkSegmentationCore
   vtkTeem
   vtkITK
   FreeSurfer

@@ -1,4 +1,6 @@
-project(SlicerApp)
+
+set(APPLICATION_NAME "Slicer")
+project(${APPLICATION_NAME}App)
 
 include(SlicerMacroBuildApplication)
 
@@ -24,6 +26,40 @@ if(${PROJECT_NAME} STREQUAL ${Slicer_MAIN_PROJECT})
 endif()
 
 # --------------------------------------------------------------------------
+# Application metadata
+# --------------------------------------------------------------------------
+
+macro(_set_if_not_defined var defaultvalue)
+  if(NOT DEFINED ${var})
+    set(${var} "${defaultvalue}")
+  endif()
+endmacro()
+
+_set_if_not_defined(SlicerApp_DESCRIPTION_SUMMARY
+  "Medical Visualization and Processing Environment for Research"
+  )
+
+_set_if_not_defined(SlicerApp_DESCRIPTION_FILE
+  ${Slicer_SOURCE_DIR}/README.txt
+  )
+
+_set_if_not_defined(SlicerApp_LAUNCHER_SPLASHSCREEN_FILE
+  "Resources/Images/${SlicerApp_APPLICATION_NAME}-SplashScreen.png"
+  )
+
+_set_if_not_defined(SlicerApp_APPLE_ICON_FILE
+  "Resources/${SlicerApp_APPLICATION_NAME}.icns"
+  )
+
+_set_if_not_defined(SlicerApp_WIN_ICON_FILE
+  "Resources/${SlicerApp_APPLICATION_NAME}.ico"
+  )
+
+_set_if_not_defined(SlicerApp_LICENSE_FILE
+  "${Slicer_SOURCE_DIR}/License.txt"
+  )
+
+# --------------------------------------------------------------------------
 # Folder
 # --------------------------------------------------------------------------
 set(${PROJECT_NAME}_FOLDER "App-${SlicerApp_APPLICATION_NAME}")
@@ -33,10 +69,6 @@ set(${PROJECT_NAME}_FOLDER "App-${SlicerApp_APPLICATION_NAME}")
 # --------------------------------------------------------------------------
 
 set(APPLIB_NAME "q${PROJECT_NAME}")
-
-set(APPLIB_DESCRIPTION_SUMMARY
-  "Medical Visualization and Processing Environment for Research"
-  )
 
 set(APPLIB_SRCS
   qSlicerAppAboutDialog.cxx
@@ -68,8 +100,8 @@ set(APPLIB_RESOURCES
 slicerMacroBuildAppLibrary(
   NAME ${APPLIB_NAME}
   APPLICATION_NAME ${SlicerApp_APPLICATION_NAME}
-  DESCRIPTION_SUMMARY ${APPLIB_DESCRIPTION_SUMMARY}
-  DESCRIPTION_FILE ${Slicer_SOURCE_DIR}/README.txt
+  DESCRIPTION_SUMMARY ${SlicerApp_DESCRIPTION_SUMMARY}
+  DESCRIPTION_FILE ${SlicerApp_DESCRIPTION_FILE}
   EXPORT_DIRECTIVE "Q_SLICER_APP_EXPORT"
   FOLDER ${${PROJECT_NAME}_FOLDER}
   SRCS ${APPLIB_SRCS}
@@ -95,6 +127,10 @@ set(APP_SRCS
 slicerMacroBuildApplication(
   NAME ${PROJECT_NAME}
   APPLICATION_NAME ${${PROJECT_NAME}_APPLICATION_NAME}
+  LAUNCHER_SPLASHSCREEN_FILE ${SlicerApp_LAUNCHER_SPLASHSCREEN_FILE}
+  APPLE_ICON_FILE ${SlicerApp_APPLE_ICON_FILE}
+  WIN_ICON_FILE ${SlicerApp_WIN_ICON_FILE}
+  LICENSE_FILE ${SlicerApp_LICENSE_FILE}
   FOLDER ${${PROJECT_NAME}_FOLDER}
   SRCS ${APP_SRCS}
   TARGET_LIBRARIES ${APPLIB_NAME}

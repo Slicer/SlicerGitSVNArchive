@@ -133,7 +133,7 @@ QString qSlicerUtils::extractModuleNameFromLibraryName(const QString& libraryNam
 
   // Remove suffix 'Lib' if needed
   index = moduleName.lastIndexOf("Lib");
-  if (index == (moduleName.size() - 3))
+  if (index != -1 && index == (moduleName.size() - 3))
     {
     moduleName.remove(index, 3);
     }
@@ -270,12 +270,6 @@ bool qSlicerUtils::setPermissionsRecursively(const QString &path,
       }
     }
   return true;
-}
-
-//-----------------------------------------------------------------------------
-bool qSlicerUtils::isRelease(const QString& version)
-{
-  return QRegExp("\\d+\\.\\d+\\.\\d+(-rc\\d+)?(-\\d+)?").exactMatch(version);
 }
 
 //-----------------------------------------------------------------------------

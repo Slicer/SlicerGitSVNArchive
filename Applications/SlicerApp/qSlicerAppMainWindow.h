@@ -88,6 +88,8 @@ public slots:
   virtual void on_EditUndoAction_triggered();
   virtual void on_EditRedoAction_triggered();
 
+  virtual void on_ModuleHomeAction_triggered();
+
   virtual void onLayoutActionTriggered(QAction* action);
   virtual void onLayoutCompareActionTriggered(QAction* action);
   virtual void onLayoutCompareWidescreenActionTriggered(QAction* action);
@@ -116,6 +118,11 @@ public slots:
   virtual void on_CopyAction_triggered();
   virtual void on_PasteAction_triggered();
   virtual void on_ViewExtensionsManagerAction_triggered();
+
+signals:
+  /// Emitted when the window is first shown to the user.
+  /// \sa showEvent(QShowEvent *)
+  void initialWindowShown();
 
 protected slots:
   virtual void onModuleLoaded(const QString& moduleName);

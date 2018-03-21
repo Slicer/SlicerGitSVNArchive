@@ -30,8 +30,9 @@
 #include "vtkOrientedImageDataResample.h"
 #include "vtkSegmentationConverterFactory.h"
 
-// Subject Hierarchy includes
-#include <vtkMRMLSubjectHierarchyNode.h>
+// Terminologies includes
+#include "vtkSlicerTerminologiesModuleLogic.h"
+#include "vtkSlicerTerminologyEntry.h"
 
 // VTK includes
 #include <vtkCallbackCommand.h>
@@ -54,27 +55,31 @@
 #include <vtksys/SystemTools.hxx>
 
 // MRML includes
-#include <vtkEventBroker.h>
-#include <vtkMRMLColorTableNode.h>
-#include <vtkMRMLLabelMapVolumeNode.h>
-#include <vtkMRMLLabelMapVolumeDisplayNode.h>
-#include <vtkMRMLModelDisplayNode.h>
-#include <vtkMRMLModelNode.h>
 #include <vtkMRMLScene.h>
 #include "vtkMRMLSegmentationNode.h"
 #include "vtkMRMLSegmentationDisplayNode.h"
 #include "vtkMRMLSegmentationStorageNode.h"
 #include "vtkMRMLSegmentEditorNode.h"
+#include <vtkMRMLSubjectHierarchyNode.h>
 #include <vtkMRMLTransformNode.h>
+#include <vtkMRMLColorTableNode.h>
+#include <vtkMRMLLabelMapVolumeNode.h>
+#include <vtkMRMLLabelMapVolumeDisplayNode.h>
+#include <vtkMRMLModelDisplayNode.h>
+#include <vtkMRMLModelHierarchyNode.h>
+#include <vtkMRMLModelNode.h>
+#include <vtkEventBroker.h>
 
 // STD includes
 #include <sstream>
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerSegmentationsModuleLogic);
+vtkCxxSetObjectMacro(vtkSlicerSegmentationsModuleLogic, TerminologiesLogic, vtkSlicerTerminologiesModuleLogic);
 
 //----------------------------------------------------------------------------
 vtkSlicerSegmentationsModuleLogic::vtkSlicerSegmentationsModuleLogic()
+ : TerminologiesLogic(NULL)
 {
   this->SubjectHierarchyUIDCallbackCommand = vtkCallbackCommand::New();
   this->SubjectHierarchyUIDCallbackCommand->SetClientData( reinterpret_cast<void *>(this) );
@@ -90,6 +95,7 @@ vtkSlicerSegmentationsModuleLogic::~vtkSlicerSegmentationsModuleLogic()
     this->SubjectHierarchyUIDCallbackCommand->Delete();
     this->SubjectHierarchyUIDCallbackCommand = NULL;
     }
+  this->SetTerminologiesLogic(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -120,7 +126,7 @@ void vtkSlicerSegmentationsModuleLogic::RegisterNodes()
 {
   if (!this->GetMRMLScene())
     {
-    vtkErrorMacro("RegisterNodes: Invalid MRML scene!");
+    vtkErrorMacro("RegisterNodes: Invalid MRML scene");
     return;
     }
 
@@ -144,7 +150,7 @@ void vtkSlicerSegmentationsModuleLogic::OnMRMLSceneNodeAdded(vtkMRMLNode* node)
 {
   if (!node || !this->GetMRMLScene())
     {
-    vtkErrorMacro("OnMRMLSceneNodeAdded: Invalid MRML scene or input node!");
+    vtkErrorMacro("OnMRMLSceneNodeAdded: Invalid MRML scene or input node");
     return;
     }
 
@@ -229,7 +235,7 @@ vtkMRMLSegmentationNode* vtkSlicerSegmentationsModuleLogic::GetSegmentationNodeF
 }
 
 //-----------------------------------------------------------------------------
-vtkMRMLSegmentationNode* vtkSlicerSegmentationsModuleLogic::LoadSegmentationFromFile(const char* fileName)
+vtkMRMLSegmentationNode* vtkSlicerSegmentationsModuleLogic::LoadSegmentationFromFile(const char* fileName, bool autoOpacities/*=true*/)
 {
   if (this->GetMRMLScene() == NULL || fileName == NULL)
     {
@@ -287,7 +293,10 @@ vtkMRMLSegmentationNode* vtkSlicerSegmentationsModuleLogic::LoadSegmentationFrom
 
       // If not loading segmentation from a scene (where display information is available),
       // then calculate and set auto-opacity for the displayed poly data for better visualization
-      displayNode->CalculateAutoOpacitiesForSegments();
+      if (autoOpacities)
+        {
+        displayNode->CalculateAutoOpacitiesForSegments();
+        }
       }
     }
 
@@ -470,7 +479,7 @@ vtkSegment* vtkSlicerSegmentationsModuleLogic::CreateSegmentFromLabelmapVolumeNo
   int label = vtkSlicerSegmentationsModuleLogic::DoesLabelmapContainSingleLabel(labelmapVolumeNode);
   if (!label)
     {
-    vtkErrorWithObjectMacro(labelmapVolumeNode, "CreateSegmentFromLabelmapVolumeNode: Unable to create single segment from labelmap volume node, as labelmap contains more than one label!");
+    vtkErrorWithObjectMacro(labelmapVolumeNode, "CreateSegmentFromLabelmapVolumeNode: Unable to create single segment from labelmap volume node, as labelmap contains more than one label");
     return NULL;
     }
 
@@ -535,7 +544,7 @@ vtkSegment* vtkSlicerSegmentationsModuleLogic::CreateSegmentFromModelNode(vtkMRM
     }
   if (!modelNode->GetPolyData())
     {
-    vtkErrorWithObjectMacro(modelNode, "CreateSegmentFromModelNode: Model node does not contain poly data!");
+    vtkErrorWithObjectMacro(modelNode, "CreateSegmentFromModelNode: Model node does not contain poly data");
     return NULL;
     }
 
@@ -621,7 +630,7 @@ vtkMRMLSegmentationNode* vtkSlicerSegmentationsModuleLogic::GetSegmentationNodeF
   if (parentShItem == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
     {
     vtkErrorWithObjectMacro(scene, "vtkSlicerSegmentationsModuleLogic::GetSegmentationNodeForSegmentSubjectHierarchyItem:"
-      << " Segment subject hierarchy item has no segmentation parent!");
+      << " Segment subject hierarchy item has no segmentation parent");
     return NULL;
     }
   vtkMRMLSegmentationNode* segmentationNode = vtkMRMLSegmentationNode::SafeDownCast(
@@ -629,7 +638,7 @@ vtkMRMLSegmentationNode* vtkSlicerSegmentationsModuleLogic::GetSegmentationNodeF
   if (!segmentationNode)
     {
     vtkErrorWithObjectMacro(scene, "vtkSlicerSegmentationsModuleLogic::GetSegmentationNodeForSegmentSubjectHierarchyItem:"
-      << " Segment subject hierarchy item's parent has no associated segmentation node!");
+      << " Segment subject hierarchy item's parent has no associated segmentation node");
     return NULL;
     }
 
@@ -686,14 +695,14 @@ bool vtkSlicerSegmentationsModuleLogic::ExportSegmentToRepresentationNode(vtkSeg
     }
   if (!representationNode)
     {
-    vtkErrorWithObjectMacro(segment, "ExportSegmentToRepresentationNode: Invalid representation MRML node!");
+    vtkErrorWithObjectMacro(segment, "ExportSegmentToRepresentationNode: Invalid representation MRML node");
     return false;
     }
   vtkMRMLLabelMapVolumeNode* labelmapNode = vtkMRMLLabelMapVolumeNode::SafeDownCast(representationNode);
   vtkMRMLModelNode* modelNode = vtkMRMLModelNode::SafeDownCast(representationNode);
   if (!labelmapNode && !modelNode)
     {
-    vtkErrorWithObjectMacro(representationNode, "ExportSegmentToRepresentationNode: Representation MRML node should be either labelmap volume node or model node!");
+    vtkErrorWithObjectMacro(representationNode, "ExportSegmentToRepresentationNode: Representation MRML node should be either labelmap volume node or model node");
     return false;
     }
 
@@ -713,14 +722,14 @@ bool vtkSlicerSegmentationsModuleLogic::ExportSegmentToRepresentationNode(vtkSeg
     bool binaryLabelmapPresent = segment->GetRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName());
     if (!binaryLabelmapPresent && !segmentationNode)
       {
-      vtkErrorWithObjectMacro(representationNode, "ExportSegmentToRepresentationNode: Segment does not contain binary labelmap representation and cannot convert, because it is not in a segmentation!");
+      vtkErrorWithObjectMacro(representationNode, "ExportSegmentToRepresentationNode: Segment does not contain binary labelmap representation and cannot convert, because it is not in a segmentation");
       return false;
       }
     binaryLabelmapPresent = segmentationNode->GetSegmentation()->CreateRepresentation(
       vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName());
     if (!binaryLabelmapPresent)
       {
-      vtkErrorWithObjectMacro(representationNode, "ExportSegmentToRepresentationNode: Unable to convert segment to binary labelmap representation!");
+      vtkErrorWithObjectMacro(representationNode, "ExportSegmentToRepresentationNode: Unable to convert segment to binary labelmap representation");
       return false;
       }
 
@@ -748,7 +757,7 @@ bool vtkSlicerSegmentationsModuleLogic::ExportSegmentToRepresentationNode(vtkSeg
       vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName());
     if (!closedSurfacePresent)
       {
-      vtkErrorWithObjectMacro(representationNode, "ExportSegmentToRepresentationNode: Unable to convert segment to closed surface representation!");
+      vtkErrorWithObjectMacro(representationNode, "ExportSegmentToRepresentationNode: Unable to convert segment to closed surface representation");
       return false;
       }
 
@@ -781,12 +790,155 @@ bool vtkSlicerSegmentationsModuleLogic::ExportSegmentToRepresentationNode(vtkSeg
       {
       modelNode->SetAndObserveTransformNodeID(parentTransformNode->GetID());
       }
+      else
+      {
+      modelNode->SetAndObserveTransformNodeID(NULL);
+      }
 
     return true;
     }
 
   // Representation node is neither labelmap, nor model
   return false;
+}
+
+//-----------------------------------------------------------------------------
+bool vtkSlicerSegmentationsModuleLogic::ExportSegmentsToModelHierarchy(vtkMRMLSegmentationNode* segmentationNode,
+  std::vector<std::string>& segmentIDs, vtkMRMLModelHierarchyNode* modelHierarchyNode)
+{
+  if (!segmentationNode)
+    {
+    vtkGenericWarningMacro("vtkSlicerSegmentationsModuleLogic::ExportSegmentsToModelHierarchy: Invalid segmentation node");
+    return false;
+    }
+  if (!modelHierarchyNode)
+    {
+    vtkErrorWithObjectMacro(segmentationNode, "ExportSegmentsToModelHierarchy: Invalid model hierarchy node");
+    return false;
+    }
+
+  // Make sure closed surface representation exists in segment
+  bool closedSurfacePresent = segmentationNode->GetSegmentation()->CreateRepresentation(
+    vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName() );
+  if (!closedSurfacePresent)
+    {
+    vtkErrorWithObjectMacro(segmentationNode, "ExportSegmentsToModelHierarchy: Unable to convert segment to closed surface representation");
+    return false;
+    }
+
+  // Create a map that can be used for quickly looking up existing models in a hierarchy
+  vtkNew<vtkCollection> existingModels;
+  modelHierarchyNode->GetChildrenModelNodes(existingModels.GetPointer());
+  std::map< std::string, vtkMRMLModelNode* > existingModelNamesToModels;
+  vtkObject* object = NULL;
+  vtkCollectionSimpleIterator it;
+  for (existingModels->InitTraversal(it); (object = existingModels->GetNextItemAsObject(it));)
+    {
+    vtkMRMLModelNode* modelNode = vtkMRMLModelNode::SafeDownCast(object);
+    if (!modelNode)
+      {
+      continue;
+      }
+    existingModelNamesToModels[modelNode->GetName()] = modelNode;
+    }
+
+  std::vector<std::string> exportedSegmentIDs;
+  if (segmentIDs.empty())
+    {
+    segmentationNode->GetSegmentation()->GetSegmentIDs(exportedSegmentIDs);
+    }
+  else
+    {
+    exportedSegmentIDs = segmentIDs;
+    }
+
+  // Export each segment into a model
+  for (std::vector<std::string>::iterator segmentIdIt = exportedSegmentIDs.begin(); segmentIdIt != exportedSegmentIDs.end(); ++segmentIdIt)
+    {
+    // Export segment into model node
+    vtkSegment* segment = segmentationNode->GetSegmentation()->GetSegment(*segmentIdIt);
+    vtkMRMLModelNode* modelNode = NULL;
+    if (existingModelNamesToModels.find(segment->GetName()) != existingModelNamesToModels.end())
+      {
+      // Model by the same name exists in the selected hierarchy, overwrite that model
+      modelNode = existingModelNamesToModels[segment->GetName()];
+      }
+    else
+      {
+      // Create new model node
+      vtkNew<vtkMRMLModelNode> newModelNode;
+      modelHierarchyNode->GetScene()->AddNode(newModelNode.GetPointer());
+      newModelNode->CreateDefaultDisplayNodes();
+      modelNode = newModelNode.GetPointer();
+      // Add to model hierarchy
+      vtkNew<vtkMRMLModelHierarchyNode> newModelHierarchyNode;
+      newModelHierarchyNode->SetHideFromEditors(true);
+      modelHierarchyNode->GetScene()->AddNode(newModelHierarchyNode.GetPointer());
+      newModelHierarchyNode->SetAssociatedNodeID(modelNode->GetID());
+      newModelHierarchyNode->SetParentNodeID(modelHierarchyNode->GetID());
+      }
+
+    // Export segment into model node
+    if (!vtkSlicerSegmentationsModuleLogic::ExportSegmentToRepresentationNode(segment, modelNode))
+      {
+      vtkErrorWithObjectMacro(segmentationNode, "ExportSegmentsToModelHierarchy: Failed to export segmentation into model hierarchy");
+      return false;
+      }
+    }
+
+  // Move exported representation under same parent as segmentation
+  vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(segmentationNode->GetScene());
+  if (shNode)
+    {
+    shNode->SetItemParent(shNode->GetItemByDataNode(modelHierarchyNode),
+      shNode->GetItemParent(shNode->GetItemByDataNode(segmentationNode)) );
+    }
+  else
+    {
+    vtkWarningWithObjectMacro(segmentationNode, "ExportSegmentsToModelHierarchy: Failed to access subject hierarchy node");
+    }
+
+  return true;
+}
+
+//-----------------------------------------------------------------------------
+bool vtkSlicerSegmentationsModuleLogic::ExportSegmentsToModelHierarchy(vtkMRMLSegmentationNode* segmentationNode,
+  vtkStringArray* segmentIds, vtkMRMLModelHierarchyNode* modelHierarchyNode)
+{
+  std::vector<std::string> segmentIdsVector;
+  if (segmentIds == NULL)
+    {
+    vtkGenericWarningMacro("vtkSlicerSegmentationsModuleLogic::ExportSegmentsToModelHierarchy failed: invalid segmentIDs");
+    return false;
+    }
+  for (int segmentIndex = 0; segmentIndex < segmentIds->GetNumberOfValues(); ++segmentIndex)
+    {
+    segmentIdsVector.push_back(segmentIds->GetValue(segmentIndex));
+    }
+  return vtkSlicerSegmentationsModuleLogic::ExportSegmentsToModelHierarchy(segmentationNode, segmentIdsVector, modelHierarchyNode);
+}
+
+//-----------------------------------------------------------------------------
+bool vtkSlicerSegmentationsModuleLogic::ExportVisibleSegmentsToModelHierarchy(vtkMRMLSegmentationNode* segmentationNode, vtkMRMLModelHierarchyNode* modelHierarchyNode)
+{
+  if (!segmentationNode)
+    {
+    vtkGenericWarningMacro("vtkSlicerSegmentationsModuleLogic::ExportVisibleSegmentsToModelHierarchy: Invalid segmentation node");
+    return false;
+    }
+
+  std::vector<std::string> visibleSegmentIDs;
+  vtkMRMLSegmentationDisplayNode* displayNode = vtkMRMLSegmentationDisplayNode::SafeDownCast(segmentationNode->GetDisplayNode());
+  displayNode->GetVisibleSegmentIDs(visibleSegmentIDs);
+
+  return vtkSlicerSegmentationsModuleLogic::ExportSegmentsToModelHierarchy(segmentationNode, visibleSegmentIDs, modelHierarchyNode);
+}
+
+//-----------------------------------------------------------------------------
+bool vtkSlicerSegmentationsModuleLogic::ExportAllSegmentsToModelHierarchy(vtkMRMLSegmentationNode* segmentationNode, vtkMRMLModelHierarchyNode* modelHierarchyNode)
+{
+  std::vector<std::string> segmentIDs;
+  return vtkSlicerSegmentationsModuleLogic::ExportSegmentsToModelHierarchy(segmentationNode, segmentIDs, modelHierarchyNode);
 }
 
 //-----------------------------------------------------------------------------
@@ -800,7 +952,7 @@ bool vtkSlicerSegmentationsModuleLogic::ExportSegmentsToLabelmapNode(vtkMRMLSegm
     }
   if (!labelmapNode)
     {
-    vtkErrorWithObjectMacro(segmentationNode, "ExportSegmentsToLabelmapNode: Invalid labelmap volume node!");
+    vtkErrorWithObjectMacro(segmentationNode, "ExportSegmentsToLabelmapNode: Invalid labelmap volume node");
     return false;
     }
 
@@ -809,7 +961,7 @@ bool vtkSlicerSegmentationsModuleLogic::ExportSegmentsToLabelmapNode(vtkMRMLSegm
     vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName());
   if (!binaryLabelmapPresent)
     {
-    vtkErrorWithObjectMacro(segmentationNode, "ExportSegmentsToLabelmapNode: Unable to convert segment to binary labelmap representation!");
+    vtkErrorWithObjectMacro(segmentationNode, "ExportSegmentsToLabelmapNode: Unable to convert segment to binary labelmap representation");
     return false;
     }
 
@@ -856,7 +1008,7 @@ bool vtkSlicerSegmentationsModuleLogic::ExportSegmentsToLabelmapNode(vtkMRMLSegm
   if (!segmentationNode->GenerateMergedLabelmap(mergedImage_Segmentation, vtkSegmentation::EXTENT_UNION_OF_EFFECTIVE_SEGMENTS,
     referenceGeometry_Segmentation, segmentIDs))
     {
-    vtkErrorWithObjectMacro(segmentationNode, "ExportSegmentsToLabelmapNode: Failed to generate merged labelmap!");
+    vtkErrorWithObjectMacro(segmentationNode, "ExportSegmentsToLabelmapNode: Failed to generate merged labelmap");
     return false;
     }
 
@@ -879,7 +1031,7 @@ bool vtkSlicerSegmentationsModuleLogic::ExportSegmentsToLabelmapNode(vtkMRMLSegm
   // Export merged labelmap to the output node
   if (!vtkSlicerSegmentationsModuleLogic::CreateLabelmapVolumeFromOrientedImageData(mergedImage_Reference, labelmapNode))
     {
-    vtkErrorWithObjectMacro(segmentationNode, "ExportSegmentsToLabelmapNode: Failed to create labelmap from merged segments image!");
+    vtkErrorWithObjectMacro(segmentationNode, "ExportSegmentsToLabelmapNode: Failed to create labelmap from merged segments image");
     return false;
     }
 
@@ -930,6 +1082,18 @@ bool vtkSlicerSegmentationsModuleLogic::ExportSegmentsToLabelmapNode(vtkMRMLSegm
     colorTableNode->SetColor(colorIndex, segmentName, color.GetX(), color.GetY(), color.GetZ());
     }
 
+  // Move exported labelmap node under same parent as segmentation
+  vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(segmentationNode->GetScene());
+  if (shNode)
+    {
+    shNode->SetItemParent(shNode->GetItemByDataNode(labelmapNode),
+      shNode->GetItemParent(shNode->GetItemByDataNode(segmentationNode)) );
+    }
+  else
+    {
+    vtkWarningWithObjectMacro(segmentationNode, "ExportSegmentsToLabelmapNode: Failed to access subject hierarchy node");
+    }
+
   return true;
 }
 
@@ -948,6 +1112,23 @@ bool vtkSlicerSegmentationsModuleLogic::ExportSegmentsToLabelmapNode(vtkMRMLSegm
     segmentIdsVector.push_back(segmentIds->GetValue(segmentIndex));
     }
   return vtkSlicerSegmentationsModuleLogic::ExportSegmentsToLabelmapNode(segmentationNode, segmentIdsVector, labelmapNode, referenceVolumeNode);
+}
+
+//-----------------------------------------------------------------------------
+bool vtkSlicerSegmentationsModuleLogic::ExportVisibleSegmentsToLabelmapNode(vtkMRMLSegmentationNode* segmentationNode,
+  vtkMRMLLabelMapVolumeNode* labelmapNode, vtkMRMLVolumeNode* referenceVolumeNode /*=NULL*/)
+{
+  if (!segmentationNode)
+    {
+    vtkGenericWarningMacro("vtkSlicerSegmentationsModuleLogic::ExportVisibleSegmentsToLabelmapNode: Invalid segmentation node");
+    return false;
+    }
+
+  std::vector<std::string> visibleSegmentIDs;
+  vtkMRMLSegmentationDisplayNode* displayNode = vtkMRMLSegmentationDisplayNode::SafeDownCast(segmentationNode->GetDisplayNode());
+  displayNode->GetVisibleSegmentIDs(visibleSegmentIDs);
+
+  return vtkSlicerSegmentationsModuleLogic::ExportSegmentsToLabelmapNode(segmentationNode, visibleSegmentIDs, labelmapNode, referenceVolumeNode);
 }
 
 //-----------------------------------------------------------------------------
@@ -977,10 +1158,57 @@ bool vtkSlicerSegmentationsModuleLogic::ImportModelToSegmentationNode(vtkMRMLMod
     {
     return false;
     }
+
+  if (!segmentationNode->GetDisplayNode())
+    {
+    segmentationNode->CreateDefaultDisplayNodes();
+    }
+
   // Add segment to current segmentation
   segmentationNode->GetSegmentation()->AddSegment(segment, "", insertBeforeSegmentId);
-  segmentationNode->CreateDefaultDisplayNodes();
+
   return true;
+}
+
+//-----------------------------------------------------------------------------
+bool vtkSlicerSegmentationsModuleLogic::ImportModelHierarchyToSegmentationNode(vtkMRMLModelHierarchyNode* modelHierarchyNode,
+  vtkMRMLSegmentationNode* segmentationNode, std::string vtkNotUsed(insertBeforeSegmentId)/*=""*/)
+{
+  if (!segmentationNode)
+    {
+    vtkGenericWarningMacro("vtkSlicerSegmentationsModuleLogic::ImportModelHierarchyToSegmentationNode: Invalid segmentation node");
+    return false;
+    }
+  if (!modelHierarchyNode)
+    {
+    vtkErrorWithObjectMacro(segmentationNode, "ImportModelHierarchyToSegmentationNode: Invalid model hierarchy node");
+    return false;
+    }
+
+  // Get model nodes
+  bool returnValue = true;
+  vtkMRMLModelNode* modelNode = NULL;
+  vtkNew<vtkCollection> modelNodes;
+  modelHierarchyNode->GetChildrenModelNodes(modelNodes.GetPointer());
+  vtkObject* object = NULL;
+  vtkCollectionSimpleIterator it;
+  for (modelNodes->InitTraversal(it); (object = modelNodes->GetNextItemAsObject(it));)
+    {
+    modelNode = vtkMRMLModelNode::SafeDownCast(object);
+    if (!modelNode)
+      {
+      continue;
+      }
+    // TODO: look up segment with matching name and overwrite that
+    if (!vtkSlicerSegmentationsModuleLogic::ImportModelToSegmentationNode(modelNode, segmentationNode))
+      {
+      vtkErrorWithObjectMacro(segmentationNode, "ImportModelHierarchyToSegmentationNode: Failed to import model node "
+        << modelNode->GetName() << " to segmentation " << segmentationNode->GetName());
+      returnValue = false;
+      }
+    }
+
+  return returnValue;
 }
 
 //-----------------------------------------------------------------------------
@@ -989,21 +1217,12 @@ bool vtkSlicerSegmentationsModuleLogic::ImportLabelmapToSegmentationNode(vtkMRML
 {
   if (!segmentationNode)
     {
-    vtkGenericWarningMacro("vtkSlicerSegmentationsModuleLogic::ImportLabelmapToSegmentationNode: Invalid segmentation node!");
+    vtkGenericWarningMacro("vtkSlicerSegmentationsModuleLogic::ImportLabelmapToSegmentationNode: Invalid segmentation node");
     return false;
     }
   if (!labelmapNode || !labelmapNode->GetImageData())
     {
-    vtkErrorWithObjectMacro(segmentationNode, "ImportLabelmapToSegmentationNode: Invalid labelmap volume node!");
-    return false;
-    }
-
-  // If master representation is not binary labelmap, then cannot add
-  // (this should have been done by the UI classes, notifying the users about hazards of changing the master representation)
-  if ( segmentationNode->GetSegmentation()->GetMasterRepresentationName() != vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName())
-    {
-    vtkErrorWithObjectMacro(segmentationNode, "ImportLabelmapToSegmentationNode: Master representation of the target segmentation node "
-      << (segmentationNode->GetName()?segmentationNode->GetName():"NULL") << " is not binary labelmap!");
+    vtkErrorWithObjectMacro(segmentationNode, "ImportLabelmapToSegmentationNode: Invalid labelmap volume node");
     return false;
     }
 
@@ -1020,13 +1239,15 @@ bool vtkSlicerSegmentationsModuleLogic::ImportLabelmapToSegmentationNode(vtkMRML
     colorNode = vtkMRMLColorTableNode::SafeDownCast(labelmapNode->GetDisplayNode()->GetColorNode());
     }
 
+  if (!segmentationNode->GetDisplayNode())
+    {
+    segmentationNode->CreateDefaultDisplayNodes();
+    }
+
   // Split labelmap node into per-label image data
 
   vtkNew<vtkIntArray> labelValues;
   vtkSlicerSegmentationsModuleLogic::GetAllLabelValues(labelValues.GetPointer(), labelmapNode->GetImageData());
-
-  // Set master representation to binary labelmap
-  segmentationNode->GetSegmentation()->SetMasterRepresentationName(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName());
 
   vtkSmartPointer<vtkImageThreshold> threshold = vtkSmartPointer<vtkImageThreshold>::New();
   threshold->SetInputConnection(labelmapNode->GetImageDataConnection());
@@ -1105,8 +1326,8 @@ bool vtkSlicerSegmentationsModuleLogic::ImportLabelmapToSegmentationNode(vtkMRML
     segmentationNode->GetSegmentation()->AddSegment(segment, "", insertBeforeSegmentId);
     } // for each label
 
-  segmentationNode->CreateDefaultDisplayNodes();
   segmentationNode->EndModify(segmentationNodeWasModified);
+
   return true;
 }
 
@@ -1116,22 +1337,18 @@ bool vtkSlicerSegmentationsModuleLogic::ImportLabelmapToSegmentationNode(vtkOrie
 {
   if (!segmentationNode)
     {
-    vtkGenericWarningMacro("vtkSlicerSegmentationsModuleLogic::ImportLabelmapToSegmentationNode: Invalid segmentation node!");
+    vtkGenericWarningMacro("vtkSlicerSegmentationsModuleLogic::ImportLabelmapToSegmentationNode: Invalid segmentation node");
     return false;
     }
   if (!labelmapImage)
     {
-    vtkErrorWithObjectMacro(labelmapImage, "ImportLabelmapToSegmentationNode: Invalid labelmap image!");
+    vtkErrorWithObjectMacro(labelmapImage, "ImportLabelmapToSegmentationNode: Invalid labelmap image");
     return false;
     }
 
-  // If master representation is not binary labelmap, then cannot add
-  // (this should have been done by the UI classes, notifying the users about hazards of changing the master representation)
-  if (segmentationNode->GetSegmentation()->GetMasterRepresentationName() != vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName())
+  if (!segmentationNode->GetDisplayNode())
     {
-    vtkErrorWithObjectMacro(segmentationNode, "ImportLabelmapToSegmentationNode: Master representation of the target segmentation node "
-      << (segmentationNode->GetName()?segmentationNode->GetName():"NULL") << " is not binary labelmap!");
-    return false;
+    segmentationNode->CreateDefaultDisplayNodes();
     }
 
   // Note: Splitting code ported from EditorLib/HelperBox.py:split
@@ -1143,19 +1360,16 @@ bool vtkSlicerSegmentationsModuleLogic::ImportLabelmapToSegmentationNode(vtkOrie
 
   int segmentationNodeWasModified = segmentationNode->StartModify();
 
-  // Set master representation to binary labelmap
-  segmentationNode->GetSegmentation()->SetMasterRepresentationName(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName());
-
   vtkSmartPointer<vtkImageThreshold> threshold = vtkSmartPointer<vtkImageThreshold>::New();
   threshold->SetInputData(labelmapImage);
   threshold->SetInValue(1);
   threshold->SetOutValue(0);
   threshold->ReplaceInOn();
   threshold->ReplaceOutOn();
-  threshold->SetOutputScalarType(labelmapImage->GetScalarType());
+  threshold->SetOutputScalarType(VTK_UNSIGNED_CHAR);
 
   for (int labelIndex = 0; labelIndex < labelValues->GetNumberOfValues(); ++labelIndex)
-  {
+    {
     int label = labelValues->GetValue(labelIndex);
 
     threshold->ThresholdBetween(label, label);
@@ -1193,8 +1407,8 @@ bool vtkSlicerSegmentationsModuleLogic::ImportLabelmapToSegmentationNode(vtkOrie
     segmentationNode->GetSegmentation()->AddSegment(segment, "", insertBeforeSegmentId);
     } // for each label
 
-  segmentationNode->CreateDefaultDisplayNodes();
   segmentationNode->EndModify(segmentationNodeWasModified);
+
   return true;
 }
 
@@ -1209,7 +1423,7 @@ bool vtkSlicerSegmentationsModuleLogic::ImportLabelmapToSegmentationNode(
     }
   if (!labelmapNode || !labelmapNode->GetImageData())
     {
-    vtkErrorWithObjectMacro(segmentationNode, "vtkSlicerSegmentationsModuleLogic::ImportLabelmapToSegmentationNode: Invalid labelmap volume node!");
+    vtkErrorWithObjectMacro(segmentationNode, "vtkSlicerSegmentationsModuleLogic::ImportLabelmapToSegmentationNode: Invalid labelmap volume node");
     return false;
     }
 
@@ -1261,9 +1475,14 @@ bool vtkSlicerSegmentationsModuleLogic::ImportLabelmapToSegmentationNode(
   {
     vtkErrorWithObjectMacro(segmentationNode, "vtkSlicerSegmentationsModuleLogic::ImportLabelmapToSegmentationNode:"
       "Master representation of the target segmentation node "
-      << (segmentationNode->GetName() ? segmentationNode->GetName() : "NULL") << " is not binary labelmap!");
+      << (segmentationNode->GetName() ? segmentationNode->GetName() : "NULL") << " is not binary labelmap");
     return false;
   }
+
+  if (!segmentationNode->GetDisplayNode())
+    {
+    segmentationNode->CreateDefaultDisplayNodes();
+    }
 
   // Get labelmap geometry
   vtkSmartPointer<vtkMatrix4x4> labelmapIjkToRasMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
@@ -1312,15 +1531,33 @@ bool vtkSlicerSegmentationsModuleLogic::ImportLabelmapToSegmentationNode(
   } // for each label
 
   segmentationNode->EndModify(segmentationNodeWasModified);
+
   return true;
 }
 
 //-----------------------------------------------------------------------------
-vtkDataObject* vtkSlicerSegmentationsModuleLogic::CreateRepresentationForOneSegment(vtkSegmentation* segmentation, std::string segmentID, std::string representationName)
+bool vtkSlicerSegmentationsModuleLogic::ImportLabelmapToSegmentationNodeWithTerminology(vtkMRMLLabelMapVolumeNode* labelmapNode,
+  vtkMRMLSegmentationNode* segmentationNode, std::string terminologyContextName, std::string insertBeforeSegmentId/*=""*/)
+{
+  // Import labelmap to segmentation
+  if (! vtkSlicerSegmentationsModuleLogic::ImportLabelmapToSegmentationNode(
+        labelmapNode, segmentationNode, insertBeforeSegmentId ) )
+    {
+    vtkErrorMacro("ImportLabelmapToSegmentationNodeWithTerminology: Invalid labelmap volume");
+    return false;
+    }
+  
+  // Assign terminology to segments in the populated segmentation based on the labels of the imported labelmap
+  return this->SetTerminologyToSegmentationFromLabelmapNode(segmentationNode, labelmapNode, terminologyContextName);
+}
+
+//-----------------------------------------------------------------------------
+vtkDataObject* vtkSlicerSegmentationsModuleLogic::CreateRepresentationForOneSegment(
+  vtkSegmentation* segmentation, std::string segmentID, std::string representationName )
 {
   if (!segmentation)
     {
-    vtkGenericWarningMacro("vtkSlicerSegmentationsModuleLogic::CreateRepresentationForOneSegment: Invalid segmentation!");
+    vtkGenericWarningMacro("vtkSlicerSegmentationsModuleLogic::CreateRepresentationForOneSegment: Invalid segmentation");
     return NULL;
     }
 
@@ -1340,7 +1577,8 @@ vtkDataObject* vtkSlicerSegmentationsModuleLogic::CreateRepresentationForOneSegm
     segmentationCopy->GetSegment(segmentID)->GetRepresentation(representationName) );
   if (!segmentTempRepresentation)
     {
-    vtkErrorWithObjectMacro(segmentation, "CreateRepresentationForOneSegment: Failed to get representation " << representationName << " from segment " << segmentID);
+    vtkErrorWithObjectMacro(segmentation, "CreateRepresentationForOneSegment: Failed to get representation "
+      << representationName << " from segment " << segmentID);
     return NULL;
     }
 
@@ -1352,11 +1590,12 @@ vtkDataObject* vtkSlicerSegmentationsModuleLogic::CreateRepresentationForOneSegm
 }
 
 //-----------------------------------------------------------------------------
-bool vtkSlicerSegmentationsModuleLogic::ApplyParentTransformToOrientedImageData(vtkMRMLTransformableNode* transformableNode, vtkOrientedImageData* orientedImageData, bool linearInterpolation/*=false*/, double backgroundColor[4]/*=NULL*/)
+bool vtkSlicerSegmentationsModuleLogic::ApplyParentTransformToOrientedImageData(
+  vtkMRMLTransformableNode* transformableNode, vtkOrientedImageData* orientedImageData, bool linearInterpolation/*=false*/, double backgroundColor[4]/*=NULL*/ )
 {
   if (!transformableNode || !orientedImageData)
     {
-    vtkGenericWarningMacro("vtkSlicerSegmentationsModuleLogic::ApplyParentTransformToOrientedImageData: Invalid inputs!");
+    vtkGenericWarningMacro("vtkSlicerSegmentationsModuleLogic::ApplyParentTransformToOrientedImageData: Invalid inputs");
     return false;
     }
 
@@ -1381,7 +1620,7 @@ bool vtkSlicerSegmentationsModuleLogic::ApplyParentTransformToPolyData(vtkMRMLTr
 {
   if (!transformableNode || !polyData)
     {
-    vtkGenericWarningMacro("vtkSlicerSegmentationsModuleLogic::ApplyParentTransformToPolyData: Invalid inputs!");
+    vtkGenericWarningMacro("vtkSlicerSegmentationsModuleLogic::ApplyParentTransformToPolyData: Invalid inputs");
     return false;
     }
 
@@ -1407,25 +1646,29 @@ bool vtkSlicerSegmentationsModuleLogic::ApplyParentTransformToPolyData(vtkMRMLTr
 }
 
 //-----------------------------------------------------------------------------
-bool vtkSlicerSegmentationsModuleLogic::GetTransformBetweenRepresentationAndSegmentation(vtkMRMLTransformableNode* representationNode, vtkMRMLSegmentationNode* segmentationNode, vtkGeneralTransform* representationToSegmentationTransform)
+bool vtkSlicerSegmentationsModuleLogic::GetTransformBetweenRepresentationAndSegmentation(
+  vtkMRMLTransformableNode* representationNode, vtkMRMLSegmentationNode* segmentationNode, vtkGeneralTransform* representationToSegmentationTransform )
 {
   if (!representationNode || !segmentationNode || !representationToSegmentationTransform)
     {
     vtkGenericWarningMacro("vtkSlicerSegmentationsModuleLogic::GetTransformBetweenRepresentationAndSegmentation: Invalid inputs");
     return false;
     }
-  vtkMRMLTransformNode::GetTransformBetweenNodes(representationNode->GetParentTransformNode(), segmentationNode->GetParentTransformNode(), representationToSegmentationTransform);
+  vtkMRMLTransformNode::GetTransformBetweenNodes(
+    representationNode->GetParentTransformNode(), segmentationNode->GetParentTransformNode(), representationToSegmentationTransform);
 
   return true;
 }
 
 
 //-----------------------------------------------------------------------------
-bool vtkSlicerSegmentationsModuleLogic::GetSegmentRepresentation(vtkMRMLSegmentationNode* segmentationNode, std::string segmentID, std::string representationName, vtkDataObject* segmentRepresentation, bool applyParentTransform/*=true*/)
+bool vtkSlicerSegmentationsModuleLogic::GetSegmentRepresentation(
+  vtkMRMLSegmentationNode* segmentationNode, std::string segmentID, std::string representationName,
+  vtkDataObject* segmentRepresentation, bool applyParentTransform/*=true*/ )
 {
   if (!segmentationNode || segmentID.empty() || representationName.empty() || !segmentRepresentation)
     {
-    vtkGenericWarningMacro("vtkSlicerSegmentationsModuleLogic::GetSegmentRepresentation: Invalid inputs!");
+    vtkGenericWarningMacro("vtkSlicerSegmentationsModuleLogic::GetSegmentRepresentation: Invalid inputs");
     return false;
     }
 
@@ -1433,7 +1676,8 @@ bool vtkSlicerSegmentationsModuleLogic::GetSegmentRepresentation(vtkMRMLSegmenta
   vtkSegment* segment = segmentationNode->GetSegmentation()->GetSegment(segmentID);
   if (!segment)
     {
-    vtkErrorWithObjectMacro(segmentationNode, "vtkSlicerSegmentationsModuleLogic::GetSegmentRepresentation: Unable to find segment with ID " << segmentID << " in segmentation " << segmentationNode->GetName());
+    vtkErrorWithObjectMacro(segmentationNode, "vtkSlicerSegmentationsModuleLogic::GetSegmentRepresentation: Unable to find segment with ID "
+      << segmentID << " in segmentation " << segmentationNode->GetName());
     return false;
     }
 
@@ -1443,7 +1687,8 @@ bool vtkSlicerSegmentationsModuleLogic::GetSegmentRepresentation(vtkMRMLSegmenta
     vtkDataObject* representationObject = segment->GetRepresentation(representationName);
     if (!representationObject)
       {
-      vtkErrorWithObjectMacro(segmentationNode, "vtkSlicerSegmentationsModuleLogic::GetSegmentRepresentation: Unable to get '" << representationName << "' representation from segment with ID " << segmentID << " in segmentation " << segmentationNode->GetName());
+      vtkErrorWithObjectMacro(segmentationNode, "vtkSlicerSegmentationsModuleLogic::GetSegmentRepresentation: Unable to get '" << representationName
+        << "' representation from segment with ID " << segmentID << " in segmentation " << segmentationNode->GetName());
       return false;
       }
     segmentRepresentation->DeepCopy(representationObject);
@@ -1455,7 +1700,8 @@ bool vtkSlicerSegmentationsModuleLogic::GetSegmentRepresentation(vtkMRMLSegmenta
       vtkSlicerSegmentationsModuleLogic::CreateRepresentationForOneSegment(segmentationNode->GetSegmentation(), segmentID, representationName) );
     if (!representationObject.GetPointer())
       {
-      vtkErrorWithObjectMacro(segmentationNode, "vtkSlicerSegmentationsModuleLogic::GetSegmentRepresentation: Unable to convert segment with ID " << segmentID << " to '" << representationName << "' representation in segmentation " << segmentationNode->GetName());
+      vtkErrorWithObjectMacro(segmentationNode, "vtkSlicerSegmentationsModuleLogic::GetSegmentRepresentation: Unable to convert segment with ID "
+        << segmentID << " to '" << representationName << "' representation in segmentation " << segmentationNode->GetName());
       return false;
       }
     segmentRepresentation->DeepCopy(representationObject);
@@ -1470,7 +1716,8 @@ bool vtkSlicerSegmentationsModuleLogic::GetSegmentRepresentation(vtkMRMLSegmenta
       {
       if (!vtkSlicerSegmentationsModuleLogic::ApplyParentTransformToOrientedImageData(segmentationNode, segmentRepresentationOrientedImageData))
         {
-        vtkErrorWithObjectMacro(segmentationNode, "vtkSlicerSegmentationsModuleLogic::GetSegmentRepresentation: Failed to apply parent transform of segmentation " << segmentationNode->GetName() << " on representation oriented image data");
+        vtkErrorWithObjectMacro(segmentationNode, "vtkSlicerSegmentationsModuleLogic::GetSegmentRepresentation: Failed to apply parent transform of "
+          << "segmentation " << segmentationNode->GetName() << " on representation oriented image data");
         return false;
         }
       }
@@ -1478,13 +1725,15 @@ bool vtkSlicerSegmentationsModuleLogic::GetSegmentRepresentation(vtkMRMLSegmenta
       {
         if (!vtkSlicerSegmentationsModuleLogic::ApplyParentTransformToPolyData(segmentationNode, segmentRepresentationPolyData))
         {
-        vtkErrorWithObjectMacro(segmentationNode, "vtkSlicerSegmentationsModuleLogic::GetSegmentRepresentation: Failed to apply parent transform of segmentation " << segmentationNode->GetName() << " on representation poly data");
+        vtkErrorWithObjectMacro(segmentationNode, "vtkSlicerSegmentationsModuleLogic::GetSegmentRepresentation: Failed to apply parent transform of "
+          << "segmentation " << segmentationNode->GetName() << " on representation poly data");
         return false;
         }
       }
     else
       {
-      vtkErrorWithObjectMacro(segmentationNode, "vtkSlicerSegmentationsModuleLogic::GetSegmentRepresentation: Failed to apply parent transform of segmentation " << segmentationNode->GetName() << " due to unsupported representation with class name " << segmentRepresentation->GetClassName());
+      vtkErrorWithObjectMacro(segmentationNode, "vtkSlicerSegmentationsModuleLogic::GetSegmentRepresentation: Failed to apply parent transform of "
+        << "segmentation " << segmentationNode->GetName() << " due to unsupported representation with class name " << segmentRepresentation->GetClassName());
       return false;
       }
     }
@@ -1493,11 +1742,12 @@ bool vtkSlicerSegmentationsModuleLogic::GetSegmentRepresentation(vtkMRMLSegmenta
 }
 
 //-----------------------------------------------------------------------------
-bool vtkSlicerSegmentationsModuleLogic::GetSegmentBinaryLabelmapRepresentation(vtkMRMLSegmentationNode* segmentationNode, std::string segmentID, vtkOrientedImageData* imageData, bool applyParentTransform/*=true*/)
+bool vtkSlicerSegmentationsModuleLogic::GetSegmentBinaryLabelmapRepresentation(
+  vtkMRMLSegmentationNode* segmentationNode, std::string segmentID, vtkOrientedImageData* imageData, bool applyParentTransform/*=true*/ )
 {
   if (!segmentationNode || segmentID.empty() || !imageData)
     {
-    vtkGenericWarningMacro("vtkSlicerSegmentationsModuleLogic::GetSegmentBinaryLabelmapRepresentation: Invalid inputs!");
+    vtkGenericWarningMacro("vtkSlicerSegmentationsModuleLogic::GetSegmentBinaryLabelmapRepresentation: Invalid inputs");
     return false;
     }
 
@@ -1511,7 +1761,7 @@ bool vtkSlicerSegmentationsModuleLogic::GetSegmentClosedSurfaceRepresentation(vt
 {
   if (!segmentationNode || segmentID.empty() || !polyData)
     {
-    vtkGenericWarningMacro("vtkSlicerSegmentationsModuleLogic::GetSegmentBinaryLabelmapRepresentation: Invalid inputs!");
+    vtkGenericWarningMacro("vtkSlicerSegmentationsModuleLogic::GetSegmentBinaryLabelmapRepresentation: Invalid inputs");
     return false;
     }
 
@@ -1520,7 +1770,8 @@ bool vtkSlicerSegmentationsModuleLogic::GetSegmentClosedSurfaceRepresentation(vt
 }
 
 //-----------------------------------------------------------------------------
-bool vtkSlicerSegmentationsModuleLogic::SetBinaryLabelmapToSegment(vtkOrientedImageData* labelmap, vtkMRMLSegmentationNode* segmentationNode, std::string segmentID, int mergeMode/*=MODE_REPLACE*/, const int extent[6]/*=0*/)
+bool vtkSlicerSegmentationsModuleLogic::SetBinaryLabelmapToSegment(
+  vtkOrientedImageData* labelmap, vtkMRMLSegmentationNode* segmentationNode, std::string segmentID, int mergeMode/*=MODE_REPLACE*/, const int extent[6]/*=0*/ )
 {
   if (!segmentationNode || segmentID.empty() || !labelmap)
     {
@@ -1544,7 +1795,8 @@ bool vtkSlicerSegmentationsModuleLogic::SetBinaryLabelmapToSegment(vtkOrientedIm
     selectedSegment->GetRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()) );
   if (!segmentLabelmap)
     {
-    vtkErrorWithObjectMacro(segmentationNode, "vtkSlicerSegmentationsModuleLogic::SetBinaryLabelmapToSegment: Failed to get binary labelmap representation in segmentation " << segmentationNode->GetName());
+    vtkErrorWithObjectMacro(segmentationNode, "vtkSlicerSegmentationsModuleLogic::SetBinaryLabelmapToSegment: Failed to get binary labelmap representation in "
+      << "segmentation " << segmentationNode->GetName());
     return false;
     }
 
@@ -1620,7 +1872,8 @@ bool vtkSlicerSegmentationsModuleLogic::SetBinaryLabelmapToSegment(vtkOrientedIm
   vtkOrientedImageDataResample::CalculateEffectiveExtent(segmentLabelmap, effectiveExtent); // TODO: use the update extent? maybe crop when changing segment?
   if (effectiveExtent[0] > effectiveExtent[1] || effectiveExtent[2] > effectiveExtent[3] || effectiveExtent[4] > effectiveExtent[5])
     {
-    vtkDebugWithObjectMacro(segmentationNode, "vtkSlicerSegmentationsModuleLogic::SetBinaryLabelmapToSegment: effective extent of the labelmap to set is invalid (labelmap is empty)");
+    vtkDebugWithObjectMacro(segmentationNode,
+      "vtkSlicerSegmentationsModuleLogic::SetBinaryLabelmapToSegment: effective extent of the labelmap to set is invalid (labelmap is empty)");
     }
   else
     {
@@ -1650,6 +1903,110 @@ bool vtkSlicerSegmentationsModuleLogic::SetBinaryLabelmapToSegment(vtkOrientedIm
   const char* segmentIdChar = segmentID.c_str();
   segmentationNode->GetSegmentation()->InvokeEvent(vtkSegmentation::MasterRepresentationModified, (void*)segmentIdChar);
   segmentationNode->GetSegmentation()->InvokeEvent(vtkSegmentation::RepresentationModified, (void*)segmentIdChar);
+
+  return true;
+}
+
+//-----------------------------------------------------------------------------
+bool vtkSlicerSegmentationsModuleLogic::SetTerminologyToSegmentationFromLabelmapNode(vtkMRMLSegmentationNode* segmentationNode,
+  vtkMRMLLabelMapVolumeNode* labelmapNode, std::string terminologyContextName)
+{
+  if (terminologyContextName.empty())
+    {
+    return true;
+    }
+  if (!this->TerminologiesLogic)
+    {
+    vtkErrorMacro("SetTerminologyToSegmentationFromLabelmapNode: Terminology logic cannot be accessed");
+    return false;
+    }
+  if (!segmentationNode)
+    {
+    vtkErrorMacro("SetTerminologyToSegmentationFromLabelmapNode: Invalid segmentation node");
+    return false;
+    }
+  if (!labelmapNode || !labelmapNode->GetImageData())
+    {
+    vtkErrorMacro("SetTerminologyToSegmentationFromLabelmapNode: Invalid labelmap volume node");
+    return false;
+    }
+
+  // Get color node
+  if (!labelmapNode->GetDisplayNode())
+    {
+    vtkErrorMacro("SetTerminologyToSegmentationFromLabelmapNode: Segmentation node " << segmentationNode->GetName() << " has no display node");
+    return false;
+    }
+  vtkMRMLColorTableNode* colorNode = vtkMRMLColorTableNode::SafeDownCast(labelmapNode->GetDisplayNode()->GetColorNode());
+  if (!colorNode)
+    {
+    vtkErrorMacro("SetTerminologyToSegmentationFromLabelmapNode: Segmentation node " << segmentationNode->GetName() << " has no associated color table node");
+    return false;
+    }
+
+  // Get first terminology entry. This is set to segments that cannot be matched to labels, and when
+  // label names are not found in 3dSlicerLabel attributes in terminology types within the context.
+  std::vector<vtkSlicerTerminologiesModuleLogic::CodeIdentifier> categories;
+  this->TerminologiesLogic->GetCategoriesInTerminology(terminologyContextName, categories);
+  if (categories.empty())
+    {
+    vtkErrorMacro("SetTerminologyToSegmentationFromLabelmapNode: Terminology context " << terminologyContextName << " is empty");
+    return false;
+    }
+  std::vector<vtkSlicerTerminologiesModuleLogic::CodeIdentifier> typesInFirstCategory;
+  int firstNonEmptyCategoryIndex = -1;
+  do
+    {
+    this->TerminologiesLogic->GetTypesInTerminologyCategory(terminologyContextName, categories[++firstNonEmptyCategoryIndex], typesInFirstCategory);
+    }
+  while (typesInFirstCategory.empty() && firstNonEmptyCategoryIndex < static_cast<int>(categories.size()));
+  if (typesInFirstCategory.empty())
+    {
+    vtkErrorMacro("SetTerminologyToSegmentationFromLabelmapNode: All categories in terminology context " << terminologyContextName << " are empty");
+    return false;
+    }
+
+  vtkSmartPointer<vtkSlicerTerminologyEntry> firstTerminologyEntry = vtkSmartPointer<vtkSlicerTerminologyEntry>::New();
+  firstTerminologyEntry->SetTerminologyContextName(terminologyContextName.c_str());
+  vtkSmartPointer<vtkSlicerTerminologyCategory> firstCategory = vtkSmartPointer<vtkSlicerTerminologyCategory>::New();
+  this->TerminologiesLogic->GetCategoryInTerminology(
+    terminologyContextName, categories[firstNonEmptyCategoryIndex], firstCategory );
+  firstTerminologyEntry->GetCategoryObject()->Copy(firstCategory);
+  vtkSmartPointer<vtkSlicerTerminologyType> firstType = vtkSmartPointer<vtkSlicerTerminologyType>::New();
+  this->TerminologiesLogic->GetTypeInTerminologyCategory(
+    terminologyContextName, categories[firstNonEmptyCategoryIndex], typesInFirstCategory[0], firstType );
+  firstTerminologyEntry->GetTypeObject()->Copy(firstType);
+  std::string firstTerminologyString = this->TerminologiesLogic->SerializeTerminologyEntry(firstTerminologyEntry);
+  
+  // Assign terminology entry to each segment in the segmentation
+  std::vector<std::string> segmentIDs;
+  segmentationNode->GetSegmentation()->GetSegmentIDs(segmentIDs);
+  vtkSmartPointer<vtkSlicerTerminologyEntry> foundTerminologyEntry = vtkSmartPointer<vtkSlicerTerminologyEntry>::New();
+  for (std::vector<std::string>::iterator segmentIdIt = segmentIDs.begin(); segmentIdIt != segmentIDs.end(); ++segmentIdIt)
+    {
+    vtkSegment* segment = segmentationNode->GetSegmentation()->GetSegment(*segmentIdIt);
+
+    // Check if label for the current segment exists in labelmap. If there were segments in the segmentation when
+    // importing, then the label and so terminology will not be found. In this case terminology tag is left as is
+    // (which may be the default GeneralAnatomy/Tissue/Tissue, or the one the user manually specified)
+    int label = colorNode->GetColorIndexByName(segment->GetName());
+    if (label == -1)
+      {
+      continue;
+      }
+
+    // Search for the 3dSlicerLabel attribute in the specified terminology context
+    if (this->TerminologiesLogic->FindTypeInTerminologyBy3dSlicerLabel(terminologyContextName, segment->GetName(), foundTerminologyEntry))
+      {
+      std::string foundTerminologyString = this->TerminologiesLogic->SerializeTerminologyEntry(foundTerminologyEntry);
+      segment->SetTag(vtkSegment::GetTerminologyEntryTagName(), foundTerminologyString);
+      }
+    else
+      {
+      // Set first entry if 3dSlicerLabel is not found
+      segment->SetTag(vtkSegment::GetTerminologyEntryTagName(), firstTerminologyString);
+      }
+    }
 
   return true;
 }

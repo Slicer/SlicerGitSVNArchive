@@ -36,6 +36,9 @@ class Q_SLICER_QTMODULES_SEGMENTATIONS_EXPORT qSlicerSegmentationsModule :
   public qSlicerLoadableModule
 {
   Q_OBJECT
+#ifdef Slicer_HAVE_QT5
+  Q_PLUGIN_METADATA(IID "org.slicer.modules.loadable.qSlicerLoadableModule/1.0");
+#endif
   Q_INTERFACES(qSlicerLoadableModule);
   QVTK_OBJECT
 
@@ -54,6 +57,9 @@ public:
 
   /// Return the authors of the module
   virtual QStringList  contributors()const;
+
+  /// Return module dependencies
+  virtual QStringList dependencies()const;
 
   /// Return a custom icon for the module
   virtual QIcon icon()const;

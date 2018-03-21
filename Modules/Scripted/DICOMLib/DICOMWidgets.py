@@ -2,12 +2,16 @@ import os, copy
 import qt
 import vtk
 import logging
+
+from packaging import version
+
 from ctk import ctkDICOMObjectListWidget, ctkDICOMDatabase, ctkDICOMIndexer, ctkDICOMBrowser, ctkPopupWidget, ctkExpandButton
 import slicer
 from slicer.util import VTKObservationMixin
 
 from slicer.util import settingsValue, toBool
 import DICOMLib
+
 
 #########################################################
 #
@@ -74,15 +78,16 @@ class DICOMDetailsBase(VTKObservationMixin, SizePositionSettingsMixin):
   def __init__(self, dicomBrowser=None):
     VTKObservationMixin.__init__(self)
     self.settings = qt.QSettings()
-
-    # This creates a DICOM database in the current working directory if nothing else
-    # is specified in the settings, therefore promptForDatabaseDirectory must be called before this.
-    self.dicomBrowser = dicomBrowser if dicomBrowser is not None else ctkDICOMBrowser()
+    self.dicomBrowser = None
 
     # initialize the dicomDatabase
     #   - pick a default and let the user know
     if not slicer.dicomDatabase:
       self.promptForDatabaseDirectory()
+
+    # This creates a DICOM database in the current working directory if nothing else
+    # is specified in the settings, therefore promptForDatabaseDirectory must be called before this.
+    self.dicomBrowser = dicomBrowser if dicomBrowser is not None else ctkDICOMBrowser()
 
     self.browserPersistent = settingsValue('DICOM/BrowserPersistent', False, converter=toBool)
     self.tableDensity = settingsValue('DICOM/tableDensity', 'Compact')
@@ -505,18 +510,29 @@ class DICOMDetailsBase(VTKObservationMixin, SizePositionSettingsMixin):
       databaseDirectory = os.path.join(slicer.app.temporaryPath, 'tempDICOMDatabase')
     else:
       databaseDirectory = self.settings.value('DatabaseDirectory')
+      if not databaseDirectory:
+        databaseDirectory = ""
     if not os.path.exists(databaseDirectory):
       try:
         os.makedirs(databaseDirectory)
       except OSError:
-        documentsLocation = qt.QDesktopServices.DocumentsLocation
-        documents = qt.QDesktopServices.storageLocation(documentsLocation)
+        try:
+          # Qt4
+          documentsLocation = qt.QDesktopServices.DocumentsLocation
+          documents = qt.QDesktopServices.storageLocation(documentsLocation)
+        except AttributeError:
+          # Qt5
+          documentsLocation = qt.QStandardPaths.DocumentsLocation
+          documents = qt.QStandardPaths.writableLocation(documentsLocation)
         databaseDirectory = os.path.join(documents, "SlicerDICOMDatabase")
         if not os.path.exists(databaseDirectory):
           os.makedirs(databaseDirectory)
-        message = "DICOM Database will be stored in\n\n{}\n\nUse the Local Database button in " \
-                "the DICOM Browser to pick a different location.".format(databaseDirectory)
-        slicer.util.infoDisplay(message, parent=self, windowTitle='DICOM')
+        if not slicer.app.commandOptions().testingEnabled:
+          message = "DICOM Database will be stored in\n\n{}\n\nUse the Local Database button in " \
+                    "the DICOM Browser to pick a different location.".format(slicer.util.toVTKString(databaseDirectory))
+          slicer.util.infoDisplay(message, parent=self, windowTitle='DICOM')
+          self.settings.setValue('DatabaseDirectory', databaseDirectory)
+
     self.onDatabaseDirectoryChanged(databaseDirectory)
 
   def onTableDensityComboBox(self, state):
@@ -668,8 +684,11 @@ class DICOMDetailsBase(VTKObservationMixin, SizePositionSettingsMixin):
   def getLoadablesFromFileLists(self, fileLists):
     """Take list of file lists, return loadables by plugin dictionary
     """
-
     loadablesByPlugin = {}
+    loadEnabled = False
+    if not type(fileLists) is list or len(fileLists) == 0 or not type(fileLists[0]) in [tuple, list]:
+      logging.error('File lists must contain a non-empty list of tuples/lists')
+      return loadablesByPlugin, loadEnabled
 
     allFileCount = missingFileCount = 0
     for fileList in self.fileLists:
@@ -683,11 +702,10 @@ class DICOMDetailsBase(VTKObservationMixin, SizePositionSettingsMixin):
                                  % (missingFileCount, allFileCount), windowTitle="DICOM")
 
     if missingFileCount == allFileCount:
-      return
+      return loadablesByPlugin, loadEnabled
 
     plugins = self.pluginSelector.selectedPlugins()
 
-    loadEnabled = False
     progress = slicer.util.createProgressDialog(parent=self, value=0, maximum=len(plugins))
 
     for step, pluginClass in enumerate(plugins):
@@ -768,8 +786,11 @@ class DICOMDetailsBase(VTKObservationMixin, SizePositionSettingsMixin):
     if len(referencedFileLists):
       (self.referencedLoadables, loadEnabled) = self.getLoadablesFromFileLists(referencedFileLists)
 
-    if loadEnabled:
+    automaticallyLoadReferences = int(slicer.util.settingsValue('DICOM/automaticallyLoadReferences', qt.QMessageBox.InvalidRole))
+    if loadEnabled and automaticallyLoadReferences == qt.QMessageBox.InvalidRole:
       self.showReferenceDialogAndProceed()
+    elif loadEnabled and automaticallyLoadReferences == qt.QMessageBox.Yes:
+      self.addReferencesAndProceed()
     else:
       self.proceedWithReferencedLoadablesSelection()
 
@@ -777,7 +798,13 @@ class DICOMDetailsBase(VTKObservationMixin, SizePositionSettingsMixin):
 
   def showReferenceDialogAndProceed(self):
     referencesDialog = DICOMReferencesDialog(self, loadables=self.referencedLoadables)
-    if referencesDialog.exec_() == qt.QMessageBox.Ok:
+    answer = referencesDialog.exec_()
+    if referencesDialog.rememberChoiceAndStopAskingCheckbox.checked == True:
+      if answer == qt.QMessageBox.Yes:
+        qt.QSettings().setValue('DICOM/automaticallyLoadReferences', qt.QMessageBox.Yes)
+      if answer == qt.QMessageBox.No:
+        qt.QSettings().setValue('DICOM/automaticallyLoadReferences', qt.QMessageBox.No)
+    if answer == qt.QMessageBox.Yes:
       # each check box corresponds to a referenced loadable that was selected by examine;
       # if the user confirmed that reference should be loaded, add it to the self.loadablesByPlugin dictionary
       for plugin in self.referencedLoadables:
@@ -786,6 +813,15 @@ class DICOMDetailsBase(VTKObservationMixin, SizePositionSettingsMixin):
             self.loadablesByPlugin[plugin].append(loadable)
         self.loadablesByPlugin[plugin] = list(set(self.loadablesByPlugin[plugin]))
       self.proceedWithReferencedLoadablesSelection()
+    elif answer == qt.QMessageBox.No:
+      self.proceedWithReferencedLoadablesSelection()
+
+  def addReferencesAndProceed(self):
+    for plugin in self.referencedLoadables:
+      for loadable in [l for l in self.referencedLoadables[plugin] if l.selected]:
+        self.loadablesByPlugin[plugin].append(loadable)
+      self.loadablesByPlugin[plugin] = list(set(self.loadablesByPlugin[plugin]))
+    self.proceedWithReferencedLoadablesSelection()
 
   def proceedWithReferencedLoadablesSelection(self):
     if not self.warnUserIfLoadableWarningsAndProceed():
@@ -848,20 +884,16 @@ class DICOMDetailsBase(VTKObservationMixin, SizePositionSettingsMixin):
     self.onLoadingFinished()
 
   def warnUserIfLoadableWarningsAndProceed(self):
-    warningsInLoadableWithConfidence = 0.0
-    maximumConfidence = 0.0
+    warningsInSelectedLoadables = False
     for plugin in self.loadablesByPlugin:
       for loadable in self.loadablesByPlugin[plugin]:
-        if loadable.warning != "":
+        if loadable.selected and loadable.warning != "":
+          warningsInSelectedLoadables = True
           logging.warning('Warning in DICOM plugin ' + plugin.loadType + ' when examining loadable ' + loadable.name +
                           ': ' + loadable.warning)
-          if warningsInLoadableWithConfidence < loadable.confidence:
-            warningsInLoadableWithConfidence = loadable.confidence
-        if maximumConfidence < loadable.confidence:
-          maximumConfidence = loadable.confidence
-    if warningsInLoadableWithConfidence == maximumConfidence and not self.advancedView:
+    if warningsInSelectedLoadables:
       warning = "Warnings detected during load.  Examine data in Advanced mode for details.  Load anyway?"
-      if not slicer.util.confirmOkCancelDisplay(warning):
+      if not slicer.util.confirmOkCancelDisplay(warning, parent=self):
         return False
     return True
 
@@ -882,7 +914,8 @@ class DICOMReferencesDialog(qt.QMessageBox):
 
   WINDOW_TITLE = "Referenced datasets found"
   WINDOW_TEXT = "The loaded DICOM objects contain references to other datasets you did not select for loading. Please " \
-                "confirm if you would like to load the following referenced datasets."
+                "select Yes if you would like to load the following referenced datasets, No if you only want to load the " \
+                "originally selected series, or Cancel to abort loading."
 
   def __init__(self, parent, loadables):
     super(DICOMReferencesDialog, self).__init__(parent)
@@ -894,32 +927,42 @@ class DICOMReferencesDialog(qt.QMessageBox):
     self._setBasicProperties()
     self._addTextLabel()
     self._addLoadableCheckboxes()
-    self.okButton = self.addButton(self.Ok)
+    self.rememberChoiceAndStopAskingCheckbox = qt.QCheckBox('Remember choice and stop asking')
+    self.rememberChoiceAndStopAskingCheckbox.toolTip = 'Can be changed later in Application Settings / DICOM'
+    self.yesButton = self.addButton(self.Yes)
+    self.yesButton.setSizePolicy(qt.QSizePolicy(qt.QSizePolicy.Expanding, qt.QSizePolicy.Preferred))
+    self.noButton = self.addButton(self.No)
+    self.noButton.setSizePolicy(qt.QSizePolicy(qt.QSizePolicy.Expanding, qt.QSizePolicy.Preferred))
     self.cancelButton = self.addButton(self.Cancel)
-    self.layout().addWidget(self.okButton, 2, 0, 1, 1)
-    self.layout().addWidget(self.cancelButton, 2, 1, 1, 1)
+    self.cancelButton.setSizePolicy(qt.QSizePolicy(qt.QSizePolicy.Expanding, qt.QSizePolicy.Preferred))
+    self.layout().addWidget(self.yesButton, 3, 0, 1, 1)
+    self.layout().addWidget(self.noButton, 3, 1, 1, 1)
+    self.layout().addWidget(self.cancelButton, 3, 2, 1, 1)
+    self.layout().addWidget(self.rememberChoiceAndStopAskingCheckbox, 2, 0, 1, 3)
 
   def _setBasicProperties(self):
     self.layout().setSpacing(9)
     self.setWindowTitle(self.WINDOW_TITLE)
-    fm = qt.QFontMetrics(qt.QApplication.font(self))
-    self.setStyleSheet("QWidget{min-width: " + str(fm.width(self.WINDOW_TITLE)) + "px;}")
+    self.fontMetrics = qt.QFontMetrics(qt.QApplication.font(self))
+    self.setMinimumWidth(self.fontMetrics.width(self.WINDOW_TITLE))
 
   def _addTextLabel(self):
     label = qt.QLabel(self.WINDOW_TEXT)
     label.wordWrap = True
-    self.layout().addWidget(label, 0, 0, 1, 2)
+    self.layout().addWidget(label, 0, 0, 1, 3)
 
   def _addLoadableCheckboxes(self):
     self.checkBoxGroupBox = qt.QGroupBox("References")
     self.checkBoxGroupBox.setLayout(qt.QFormLayout())
     for plugin in self.loadables:
       for loadable in [l for l in self.loadables[plugin] if l.selected]:
-        cb = qt.QCheckBox(loadable.name, self)
+        checkBoxText = loadable.name + ' (' + plugin.loadType + ') '
+        cb = qt.QCheckBox(checkBoxText, self)
         cb.checked = True
+        cb.setSizePolicy(qt.QSizePolicy(qt.QSizePolicy.Expanding, qt.QSizePolicy.Preferred))
         self.checkboxes[loadable] = cb
         self.checkBoxGroupBox.layout().addWidget(cb)
-    self.layout().addWidget(self.checkBoxGroupBox, 1, 0, 1, 2)
+    self.layout().addWidget(self.checkBoxGroupBox, 1, 0, 1, 3)
 
 
 class DICOMDetailsDialog(DICOMDetailsBase, qt.QDialog):
@@ -930,7 +973,10 @@ class DICOMDetailsDialog(DICOMDetailsBase, qt.QDialog):
     DICOMDetailsBase.__init__(self, dicomBrowser)
     qt.QDialog.__init__(self, slicer.util.mainWindow() if parent == "mainWindow" else parent)
     self.modal = True
-    self.setWindowFlags(qt.Qt.WindowMaximizeButtonHint | qt.Qt.Window)
+    self.setWindowFlags(
+            qt.Qt.WindowMaximizeButtonHint |
+            qt.Qt.WindowCloseButtonHint |
+            qt.Qt.Window)
     self.setup()
 
   def open(self):
@@ -1014,7 +1060,7 @@ class DICOMPluginSelector(qt.QWidget):
   """
 
   def __init__(self, parent, width=50, height=100):
-    super(DICOMPluginSelector, self).__init__(parent, width=width, height=height)
+    super(DICOMPluginSelector, self).__init__(parent)
     self.setMinimumHeight(height)
     self.setMinimumWidth(width)
     self.setLayout(qt.QVBoxLayout())
@@ -1055,6 +1101,13 @@ class DICOMPluginSelector(qt.QWidget):
     return selectedPlugins
 
 
+def _setSectionResizeMode(header, *args, **kwargs):
+  if version.parse(qt.Qt.qVersion()) < version.parse("5.0.0"):
+    header.setResizeMode(*args, **kwargs)
+  else:
+    header.setSectionResizeMode(*args, **kwargs)
+
+
 class DICOMLoadableTable(qt.QTableWidget):
   """Implement the Qt code for a table of
   selectable slicer data to be made from
@@ -1077,10 +1130,10 @@ class DICOMLoadableTable(qt.QTableWidget):
     self.setColumnCount(3)
     self.setHorizontalHeaderLabels(['DICOM Data', 'Reader', 'Warnings'])
     self.setSelectionBehavior(qt.QTableView.SelectRows)
-    self.horizontalHeader().setResizeMode(qt.QHeaderView.Stretch)
-    self.horizontalHeader().setResizeMode(0, qt.QHeaderView.ResizeToContents)
-    self.horizontalHeader().setResizeMode(1, qt.QHeaderView.Stretch)
-    self.horizontalHeader().setResizeMode(2, qt.QHeaderView.Stretch)
+    _setSectionResizeMode(self.horizontalHeader(), qt.QHeaderView.Stretch)
+    _setSectionResizeMode(self.horizontalHeader(), 0, qt.QHeaderView.ResizeToContents)
+    _setSectionResizeMode(self.horizontalHeader(), 1, qt.QHeaderView.Stretch)
+    _setSectionResizeMode(self.horizontalHeader(), 2, qt.QHeaderView.Stretch)
 
   def addLoadableRow(self, loadable, row, reader):
     self.insertRow(row)
@@ -1173,9 +1226,9 @@ class DICOMHeaderWidget(qt.QTableWidget):
   def configure(self):
     self.setColumnCount(2)
     self.setHorizontalHeaderLabels(['Tag', 'Value'])
-    self.horizontalHeader().setResizeMode(qt.QHeaderView.Stretch)
-    self.horizontalHeader().setResizeMode(0, qt.QHeaderView.Stretch)
-    self.horizontalHeader().setResizeMode(1, qt.QHeaderView.Stretch)
+    _setSectionResizeMode(self.horizontalHeader(), qt.QHeaderView.Stretch)
+    _setSectionResizeMode(self.horizontalHeader(), 0, qt.QHeaderView.Stretch)
+    _setSectionResizeMode(self.horizontalHeader(), 1, qt.QHeaderView.Stretch)
 
   def setHeader(self, dcmFile=None):
     #TODO: this method never gets called. Should be called when clicking on items from the SeriesTable
@@ -1402,7 +1455,10 @@ class DICOMHeaderPopup(qt.QDialog, SizePositionSettingsMixin):
 
   def __init__(self, parent=None):
     qt.QDialog.__init__(self, parent)
-    self.setWindowFlags(qt.Qt.WindowMaximizeButtonHint | qt.Qt.Window)
+    self.setWindowFlags(
+            qt.Qt.WindowMaximizeButtonHint |
+            qt.Qt.WindowCloseButtonHint |
+            qt.Qt.Window)
     self.modal = True
     self.settings = qt.QSettings()
     self.objectName = 'HeaderPopup'
@@ -1416,7 +1472,7 @@ class DICOMHeaderPopup(qt.QDialog, SizePositionSettingsMixin):
     for fileList in fileLists:
       for filePath in fileList:
         filePaths.append(filePath)
-        self.listWidget.setFileList(filePaths)
+    self.listWidget.setFileList(filePaths)
 
   def show(self):
     if not self.isVisible():
