@@ -33,7 +33,6 @@ vtkMRMLNodeNewMacro(vtkMRMLGPURayCastVolumeRenderingDisplayNode);
 //----------------------------------------------------------------------------
 vtkMRMLGPURayCastVolumeRenderingDisplayNode::vtkMRMLGPURayCastVolumeRenderingDisplayNode()
 {
-  this->RaycastTechnique = vtkMRMLGPURayCastVolumeRenderingDisplayNode::Composite;
   this->UseJittering = 0;
   this->LockSampleDistanceToInputSpacing = 1;
 }
@@ -49,7 +48,6 @@ void vtkMRMLGPURayCastVolumeRenderingDisplayNode::ReadXMLAttributes(const char**
   this->Superclass::ReadXMLAttributes(atts);
 
   vtkMRMLReadXMLBeginMacro(atts);
-  vtkMRMLReadXMLIntMacro(raycastTechnique, RaycastTechnique);
   vtkMRMLReadXMLIntMacro(useJittering, UseJittering);
   vtkMRMLReadXMLIntMacro(lockSampleDistanceToInputSpacing, LockSampleDistanceToInputSpacing);
   vtkMRMLReadXMLEndMacro();
@@ -61,7 +59,6 @@ void vtkMRMLGPURayCastVolumeRenderingDisplayNode::WriteXML(ostream& of, int nInd
   this->Superclass::WriteXML(of, nIndent);
 
   vtkMRMLWriteXMLBeginMacro(of);
-  vtkMRMLWriteXMLIntMacro(raycastTechnique, RaycastTechnique);
   vtkMRMLWriteXMLIntMacro(useJittering, UseJittering);
   vtkMRMLWriteXMLIntMacro(lockSampleDistanceToInputSpacing, LockSampleDistanceToInputSpacing);
   vtkMRMLWriteXMLEndMacro();
@@ -74,7 +71,6 @@ void vtkMRMLGPURayCastVolumeRenderingDisplayNode::Copy(vtkMRMLNode *anode)
   this->Superclass::Copy(anode);
 
   vtkMRMLCopyBeginMacro(anode);
-  vtkMRMLCopyIntMacro(RaycastTechnique);
   vtkMRMLCopyIntMacro(UseJittering);
   vtkMRMLCopyIntMacro(LockSampleDistanceToInputSpacing);
   vtkMRMLCopyEndMacro();
@@ -88,7 +84,6 @@ void vtkMRMLGPURayCastVolumeRenderingDisplayNode::PrintSelf(ostream& os, vtkInde
   this->Superclass::PrintSelf(os,indent);
 
   vtkMRMLPrintBeginMacro(os, indent);
-  vtkMRMLPrintIntMacro(RaycastTechnique);
   vtkMRMLPrintIntMacro(UseJittering);
   vtkMRMLPrintIntMacro(LockSampleDistanceToInputSpacing);
   vtkMRMLPrintEndMacro();
