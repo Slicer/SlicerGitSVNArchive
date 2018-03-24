@@ -21,36 +21,20 @@
 #include <vtkObjectFactory.h>
 #include <vtkXMLUtilities.h>
 
+vtkStandardNewMacro(vtkStreamingVolumeCodec);
 //---------------------------------------------------------------------------
 vtkStreamingVolumeCodec::vtkStreamingVolumeCodec()
 {
-  this->Content = new ContentData();
-  this->Content->image = NULL;
-  this->Content->frameType = UndefinedFrameType;
-  this->Content->keyFrameUpdated = false;
-  this->Content->codecType = "";
-  this->Content->deviceName = "";
+  this->Content.image = vtkSmartPointer<vtkImageData>::New();
+  this->Content.frameType = UndefinedFrameType;
+  this->Content.keyFrameUpdated = false;
+  this->Content.codecType = "";
+  this->Content.deviceName = "";
 }
 
 //---------------------------------------------------------------------------
 vtkStreamingVolumeCodec::~vtkStreamingVolumeCodec()
 {
-  if (this->Content != NULL)
-    {
-    if(this->Content->image)
-      {
-      this->Content->image->Delete();
-      }
-    if(this->Content->keyFrame)
-      {
-      this->Content->keyFrame->Delete();
-      }
-    if(this->Content->frame)
-      {
-      this->Content->frame->Delete();
-      }
-    delete this->Content;
-    }
 }
 
 //---------------------------------------------------------------------------
@@ -67,59 +51,65 @@ std::string vtkStreamingVolumeCodec::GetDeviceType() const
 
 std::string vtkStreamingVolumeCodec::GetCurrentCodecType()
 {
-  return this->Content->codecType;
+  return this->Content.codecType;
 };
 
-vtkStreamingVolumeCodec::ContentData* vtkStreamingVolumeCodec::GetContent()
+vtkStreamingVolumeCodec::ContentData vtkStreamingVolumeCodec::GetContent()
 {
   return this->Content;
 }
 
-vtkImageData* vtkStreamingVolumeCodec::GetContentImage()
+vtkSmartPointer<vtkImageData> vtkStreamingVolumeCodec::GetContentImage()
 {
-  return this->Content->image;
+  return this->Content.image;
 }
 
 std::string vtkStreamingVolumeCodec::GetContentDeviceName()
 {
-  return this->Content->deviceName;
+  return this->Content.deviceName;
 }
 
 int vtkStreamingVolumeCodec::SetCurrentCodecType(std::string codecType)
 {
-  this->Content->codecType = std::string(codecType);
+  this->Content.codecType = std::string(codecType);
   return 0;
 }
 
-void vtkStreamingVolumeCodec::SetContent(ContentData* content)
+void vtkStreamingVolumeCodec::SetContent(ContentData content)
 {
-  Content = content;
+  Content.codecType = content.codecType;
+  Content.image = content.image;
+  this->Content.image = content.image;
+  this->Content.frameType = content.frameType;
+  this->Content.keyFrameUpdated = content.keyFrameUpdated;
+  this->Content.codecType = content.codecType;
+  this->Content.deviceName = content.deviceName;
   this->Modified();
   this->InvokeEvent(DeviceModifiedEvent, this);
 }
 
 
-void vtkStreamingVolumeCodec::SetContentImage(vtkImageData* image)
+void vtkStreamingVolumeCodec::SetContentImage(vtkSmartPointer<vtkImageData> image)
 {
-  this->Content->image = image;
+  this->Content.image = image;
 }
 
 void vtkStreamingVolumeCodec::SetContentDeviceName(std::string name)
 {
-  this->Content->deviceName = std::string(name);
+  this->Content.deviceName = std::string(name);
 }
 
 
 //---------------------------------------------------------------------------
-int vtkStreamingVolumeCodec::UncompressedDataFromStream(vtkUnsignedCharArray* bitStreamData, bool checkCRC)
+int vtkStreamingVolumeCodec::UncompressedDataFromStream(vtkSmartPointer<vtkUnsignedCharArray> bitStreamData, bool checkCRC)
 {
-  //To do : decode the bitStreamData to update Content->image
+  //To do : decode the bitStreamData to update Content.image
   //Return 1 on successful, 0 for unsuccessful
   return 0;
 }
 
 //---------------------------------------------------------------------------
-vtkUnsignedCharArray* vtkStreamingVolumeCodec::GetCompressedStreamFromData()
+vtkSmartPointer<vtkUnsignedCharArray> vtkStreamingVolumeCodec::GetCompressedStreamFromData()
 {
   return NULL;
 }
@@ -129,6 +119,6 @@ void vtkStreamingVolumeCodec::PrintSelf(ostream& os, vtkIndent indent)
 {
   Superclass::PrintSelf(os, indent);
   os << indent << "Video:\t" <<"\n";
-  Content->image->PrintSelf(os, indent.GetNextIndent());
+  Content.image->PrintSelf(os, indent.GetNextIndent());
 }
 

@@ -35,7 +35,7 @@ class VTK_SLICER_VOLUMES_MODULE_LOGIC_EXPORT vtkStreamingVolumeCodecFactory : pu
 {
 public:
   
-  typedef vtkStreamingVolumeCodec*  (*PointerToCodecBaseNew)();
+  typedef vtkSmartPointer<vtkStreamingVolumeCodec>  (*PointerToCodecBaseNew)();
   
   typedef std::map<std::string, PointerToCodecBaseNew> CodecListType;
 

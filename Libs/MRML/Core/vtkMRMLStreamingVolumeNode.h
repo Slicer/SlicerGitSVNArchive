@@ -86,29 +86,29 @@ public:
 
   ///
   /// Return the compression device that is currently observed.
-  vtkStreamingVolumeCodec* GetCompressionCodec();
+  vtkSmartPointer<vtkStreamingVolumeCodec> GetCompressionCodec();
 
   ///
   /// Observe an outside compression device.
-  int ObserveOutsideCompressionCodec(vtkStreamingVolumeCodec* devicePtr);
+  int ObserveOutsideCompressionCodec(vtkSmartPointer<vtkStreamingVolumeCodec> devicePtr);
 
   ///
   ///  Update the frame message from codec device frame
-  int UpdateFrameByDeepCopy(vtkUnsignedCharArray* buffer);
+  int UpdateFrameByDeepCopy(vtkSmartPointer<vtkUnsignedCharArray> buffer);
 
   ///
   /// Return the frame message
-  vtkSetObjectMacro(Frame, vtkUnsignedCharArray);
-  vtkGetObjectMacro(Frame, vtkUnsignedCharArray);
+  void SetFrame(vtkSmartPointer<vtkUnsignedCharArray> frame){this->Frame = frame;};
+  vtkSmartPointer<vtkUnsignedCharArray> GetFrame(){return this->Frame;};
 
   ///
   /// Update the key frame message from data stream
-  int UpdateKeyFrameByDeepCopy(vtkUnsignedCharArray* buffer);
+  int UpdateKeyFrameByDeepCopy(vtkSmartPointer<vtkUnsignedCharArray> buffer);
 
   ///
   /// Set/Get the key frame
-  vtkSetObjectMacro(KeyFrame, vtkUnsignedCharArray);
-  vtkGetObjectMacro(KeyFrame, vtkUnsignedCharArray);
+  void SetKeyFrame(vtkSmartPointer<vtkUnsignedCharArray> keyFrame){this->KeyFrame = keyFrame;};
+  vtkSmartPointer<vtkUnsignedCharArray> GetKeyFrame(){return this->KeyFrame;};
 
   ///
   /// Encode the image data using the observed compression device
@@ -118,11 +118,11 @@ public:
   /// Decode the bit stream data and store the frame in the vtk image pointer specified in the deviceContent
   /// If the image pointer is not the same as the image pointer in the vtkMRMLStreamingVolumeNode,
   /// then force the vtkMRMLStreamingVolumeNode to observe the image pointer in the deviceContent.
-  int DecodeFrame(vtkStreamingVolumeCodec::ContentData* deviceContent);
+  int DecodeFrame(vtkStreamingVolumeCodec::ContentData deviceContent);
 
   ///
   /// Helper function to copy source string to destination string
-  void CopySrcArrayToDestArray(vtkUnsignedCharArray* srcString, vtkUnsignedCharArray* destString);
+  void CopySrcArrayToDestArray(vtkSmartPointer<vtkUnsignedCharArray> srcString, vtkSmartPointer<vtkUnsignedCharArray> destString);
 
   ///
   /// Get the name of the CompressionCodec
@@ -154,11 +154,11 @@ protected:
   
   bool FrameUpdated;
 
-  vtkUnsignedCharArray* Frame;
+  vtkSmartPointer<vtkUnsignedCharArray> Frame;
 
-  vtkUnsignedCharArray* KeyFrame;
+  vtkSmartPointer<vtkUnsignedCharArray> KeyFrame;
 
-  vtkStreamingVolumeCodec* CompressionCodec;
+  vtkSmartPointer<vtkStreamingVolumeCodec> CompressionCodec;
 
   std::string CodecDeviceType;
 

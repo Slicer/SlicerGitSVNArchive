@@ -40,6 +40,7 @@
 class VTK_MRML_EXPORT vtkStreamingVolumeCodec : public vtkObject
 {
 public:
+  static vtkStreamingVolumeCodec *New();
   vtkTypeMacro(vtkStreamingVolumeCodec, vtkObject);
   void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
   
@@ -50,8 +51,8 @@ public:
     bool keyFrameUpdated;
     std::string deviceName;
     std::string codecType;
-    vtkUnsignedCharArray* frame; // for saving the compressed data.
-    vtkUnsignedCharArray* keyFrame; // for saving the compressed data.
+    vtkSmartPointer<vtkUnsignedCharArray> frame; // for saving the compressed data.
+    vtkSmartPointer<vtkUnsignedCharArray> keyFrame; // for saving the compressed data.
   };
   
   ///
@@ -66,11 +67,11 @@ public:
   ///
   /// Decode bit stream and update the image pointer in content.
   /// The image pointer normally from the vtkMRMLStreamingVolumeNode
-  virtual int UncompressedDataFromStream(vtkUnsignedCharArray* bitStreamData, bool checkCRC) = 0;
+  virtual int UncompressedDataFromStream(vtkSmartPointer<vtkUnsignedCharArray> bitStreamData, bool checkCRC);
 
   ///
   /// Return the compressed bit stream from the image.
-  virtual vtkUnsignedCharArray* GetCompressedStreamFromData() = 0;
+  virtual vtkSmartPointer<vtkUnsignedCharArray> GetCompressedStreamFromData();
 
   ///
   /// Get the compression codec type, a compression device could contain serveral codec.
@@ -79,11 +80,11 @@ public:
 
   ///
   /// Return the Content data
-  virtual ContentData* GetContent();
+  virtual ContentData GetContent();
 
   ///
   /// Return the image in the Content data
-  virtual vtkImageData* GetContentImage();
+  virtual vtkSmartPointer<vtkImageData> GetContentImage();
 
   ///
   /// Return the device name in the Content data
@@ -95,11 +96,11 @@ public:
 
   ///
   /// Set the Content data
-  virtual void SetContent(ContentData* content);
+  virtual void SetContent(ContentData content);
 
   ///
   /// Set the image pointer in the Content data
-  virtual void SetContentImage(vtkImageData* image);
+  virtual void SetContentImage(vtkSmartPointer<vtkImageData> image);
 
   ///
   /// Set the device name in the Content data
@@ -119,7 +120,7 @@ protected:
     UndefinedFrameType         = -1 // undefined frame type
   };
 
-  ContentData* Content;
+  ContentData Content;
 };
 
 #endif
