@@ -21,15 +21,16 @@
 #include <vtkObjectFactory.h>
 #include <vtkXMLUtilities.h>
 
-vtkStandardNewMacro(vtkStreamingVolumeCodec);
 //---------------------------------------------------------------------------
 vtkStreamingVolumeCodec::vtkStreamingVolumeCodec()
 {
-  this->Content.image = vtkSmartPointer<vtkImageData>::New();
+  this->Content.image = NULL;
+  this->Content.frame = NULL;
+  this->Content.keyFrame = NULL;
   this->Content.frameType = UndefinedFrameType;
   this->Content.keyFrameUpdated = false;
   this->Content.codecType = "";
-  this->Content.deviceName = "";
+  this->Content.codecName = "";
 }
 
 //---------------------------------------------------------------------------
@@ -38,18 +39,18 @@ vtkStreamingVolumeCodec::~vtkStreamingVolumeCodec()
 }
 
 //---------------------------------------------------------------------------
-unsigned int vtkStreamingVolumeCodec::GetDeviceContentModifiedEvent() const
+unsigned int vtkStreamingVolumeCodec::GetCodecContentModifiedEvent() const
 {
-  return DeviceModifiedEvent;
+  return CodecModifiedEvent;
 }
 
 //---------------------------------------------------------------------------
-std::string vtkStreamingVolumeCodec::GetDeviceType() const
+std::string vtkStreamingVolumeCodec::GetCodecType() const
 {
   return "";
 }
 
-std::string vtkStreamingVolumeCodec::GetCurrentCodecType()
+std::string vtkStreamingVolumeCodec::GetContentCodecType()
 {
   return this->Content.codecType;
 };
@@ -64,12 +65,12 @@ vtkSmartPointer<vtkImageData> vtkStreamingVolumeCodec::GetContentImage()
   return this->Content.image;
 }
 
-std::string vtkStreamingVolumeCodec::GetContentDeviceName()
+std::string vtkStreamingVolumeCodec::GetContentCodecName()
 {
-  return this->Content.deviceName;
+  return this->Content.codecName;
 }
 
-int vtkStreamingVolumeCodec::SetCurrentCodecType(std::string codecType)
+int vtkStreamingVolumeCodec::SetContentCodecType(std::string codecType)
 {
   this->Content.codecType = std::string(codecType);
   return 0;
@@ -83,9 +84,9 @@ void vtkStreamingVolumeCodec::SetContent(ContentData content)
   this->Content.frameType = content.frameType;
   this->Content.keyFrameUpdated = content.keyFrameUpdated;
   this->Content.codecType = content.codecType;
-  this->Content.deviceName = content.deviceName;
+  this->Content.codecName = content.codecName;
   this->Modified();
-  this->InvokeEvent(DeviceModifiedEvent, this);
+  this->InvokeEvent(CodecModifiedEvent, this);
 }
 
 
@@ -94,9 +95,9 @@ void vtkStreamingVolumeCodec::SetContentImage(vtkSmartPointer<vtkImageData> imag
   this->Content.image = image;
 }
 
-void vtkStreamingVolumeCodec::SetContentDeviceName(std::string name)
+void vtkStreamingVolumeCodec::SetContentCodecName(std::string name)
 {
-  this->Content.deviceName = std::string(name);
+  this->Content.codecName = std::string(name);
 }
 
 

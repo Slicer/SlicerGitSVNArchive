@@ -303,7 +303,9 @@ protected:
   virtual void ProcessMRMLNodesEvents(vtkObject * caller,
                                   unsigned long event,
                                   void * callData) VTK_OVERRIDE;
-
+  
+  virtual void SetMRMLSceneInternal(vtkMRMLScene* newScene) VTK_OVERRIDE;
+  virtual void ProcessMRMLSceneEvents(vtkObject *, unsigned long, void *) VTK_OVERRIDE;
 
   void InitializeStorageNode(vtkMRMLStorageNode * storageNode,
                              const char * filename,

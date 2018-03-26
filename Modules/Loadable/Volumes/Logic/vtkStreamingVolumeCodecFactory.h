@@ -19,6 +19,7 @@
 // VTK includes
 #include <vtkObject.h>
 #include <vtkSmartPointer.h>
+#include <vtkInstantiator.h>
 
 // STD MAP includes
 #include <map>
@@ -35,30 +36,26 @@ class VTK_SLICER_VOLUMES_MODULE_LOGIC_EXPORT vtkStreamingVolumeCodecFactory : pu
 {
 public:
   
-  typedef vtkSmartPointer<vtkStreamingVolumeCodec>  (*PointerToCodecBaseNew)();
-  
-  typedef std::map<std::string, PointerToCodecBaseNew> CodecListType;
-
   vtkTypeMacro(vtkStreamingVolumeCodecFactory, vtkObject);
   void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   /// Add a compression codec and pointer to new function
   /// Usage: RegisterConverterRule( vtkStreamingVolumeCodec::GetDeviceType(), (PointerToMessageBaseNew)&vtkStreamingVolumeCodec::New );
-  /// \param codecTypeName The name of the message type
+  /// \param codecClassName The name of the message type
   /// \param newCodecPointer Function pointer to the codec type new function (e.g. (PointerToCodecBaseNew)&vtkStreamingVolumeCodec::New )
-  int RegisterStreamingVolumeCodec(const std::string& codecTypeName, vtkStreamingVolumeCodecFactory::PointerToCodecBaseNew codecNewPointer);
+  int RegisterStreamingCodec(vtkSmartPointer<vtkStreamingVolumeCodec> codec);
 
   /// Remove a codec from the factory.
   /// This does not affect codecs that have already been created.
-  int UnregisterStreamingVolumeCodec(const std::string& codecTypeName);
+  int UnregisterStreamingCodecByClassName(const std::string& codecClassName);
   
   /// Get pointer to codec new function, or NULL if the codec type not registered
   /// Usage: vtkSmartPointer<vtkStreamingVolumeCodec> codec = GetVolumeCodecNewPointerByType("igtlioVideoDevice")();
   /// Returns NULL if codec type is not found
-  vtkStreamingVolumeCodecFactory::PointerToCodecBaseNew GetVolumeCodecNewPointerByType(const std::string& codecTypeName) const;
+  vtkStreamingVolumeCodec* CreateCodecByClassName(const std::string& codecClassName);
 
   /// Get all registered Codecs
-  const CodecListType& GetStreamingVolumeCodecs();
+  const std::vector<vtkSmartPointer<vtkStreamingVolumeCodec> >& GetStreamingCodecClassNames();
 
 public:
   /// Return the singleton instance with no reference counting.
@@ -86,7 +83,7 @@ protected:
 
   /// Registered converter rules
   /*! Map codec types and the New() static methods of vtkStreamingVolumeCodec classes */
-  CodecListType CodecList;
+  std::vector< vtkSmartPointer<vtkStreamingVolumeCodec> > RegisteredCodecs;
 };
 
 

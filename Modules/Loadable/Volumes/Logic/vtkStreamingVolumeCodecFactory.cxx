@@ -13,7 +13,7 @@
 =========================================================================auto=*/
 
 #include "vtkStreamingVolumeCodecFactory.h"
-
+#include <algorithm>
 // VTK includes
 #include <vtkObjectFactory.h>
 #include <vtkDataObject.h>
@@ -113,43 +113,50 @@ void vtkStreamingVolumeCodecFactory::classFinalize()
 }
 
 //----------------------------------------------------------------------------
-int vtkStreamingVolumeCodecFactory::RegisterStreamingVolumeCodec(const std::string&  codecTypeName, vtkStreamingVolumeCodecFactory::PointerToCodecBaseNew codecNewPointer)
+int vtkStreamingVolumeCodecFactory::RegisterStreamingCodec(vtkSmartPointer<vtkStreamingVolumeCodec> codec)
 {
-  if (!codecNewPointer)
-  {
-    vtkErrorMacro("RegisterStreamingVolumeCodec failed: invalid input codec");
-    return 0;
-  }
-  this->CodecList[codecTypeName] = codecNewPointer;
+  for (unsigned int i = 0; i < this->RegisteredCodecs.size(); ++i)
+    {
+    if (strcmp(this->RegisteredCodecs[i]->GetClassName(), codec->GetClassName())==0)
+      {
+      return 0;
+      }
+    }
+  this->RegisteredCodecs.push_back(codec);
   return 1;
 }
 
 //----------------------------------------------------------------------------
-int vtkStreamingVolumeCodecFactory::UnregisterStreamingVolumeCodec(const std::string&  codecTypeName)
+int vtkStreamingVolumeCodecFactory::UnregisterStreamingCodecByClassName(const std::string&  codecClassName)
 {
-  CodecListType::iterator itr = this->CodecList.find(codecTypeName);
-  if ( itr != this->CodecList.end() )
+  for (unsigned int i = 0; i < this->RegisteredCodecs.size(); ++i)
     {
-    this->CodecList.erase(itr);
-    return 1;
+    if (strcmp(this->RegisteredCodecs[i]->GetClassName(), codecClassName.c_str())==0)
+      {
+      this->RegisteredCodecs.erase(this->RegisteredCodecs.begin() + i);
+      return 1;
+      }
     }
   vtkWarningMacro("UnregisterStreamingVolumeCodec failed: codec not found");
   return 0;
 }
 
 //----------------------------------------------------------------------------
-vtkStreamingVolumeCodecFactory::PointerToCodecBaseNew vtkStreamingVolumeCodecFactory::GetVolumeCodecNewPointerByType(const std::string& codecTypeName) const
+ vtkStreamingVolumeCodec* vtkStreamingVolumeCodecFactory::CreateCodecByClassName(const std::string& codecClassName)
 {
-  if(this->CodecList.find(codecTypeName) != this->CodecList.end() )
+  for (unsigned int i = 0; i < this->RegisteredCodecs.size(); ++i)
     {
-    return this->CodecList.find(codecTypeName)->second;
+    if (strcmp(this->RegisteredCodecs[i]->GetClassName(), codecClassName.c_str())==0)
+      {
+      return vtkStreamingVolumeCodec::SafeDownCast(this->RegisteredCodecs[i]->CreateCodecInstance());
+      }
     }
-  return NULL; 
+  return NULL;
 }
 
 //----------------------------------------------------------------------------
-const vtkStreamingVolumeCodecFactory::CodecListType& vtkStreamingVolumeCodecFactory::GetStreamingVolumeCodecs()
+const std::vector<vtkSmartPointer<vtkStreamingVolumeCodec> >& vtkStreamingVolumeCodecFactory::GetStreamingCodecClassNames()
 {
-  return this->CodecList;
+  return this->RegisteredCodecs;
 }
 

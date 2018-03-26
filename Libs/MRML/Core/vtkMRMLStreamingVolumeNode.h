@@ -23,8 +23,8 @@
 /// The node is a container for the neccesary information to interpert compressed video data:
 /// 1. FrameMessage that contain the bit stream generated from current video frame.
 /// 2. Key Frame Message that contain the bit stream of the key frame related to current video frame.
-/// 3. The related compression device for encoding and decoding. This device is by default NULL.
-///    User needs to register the compression device to the vtkMRMLStreamingVolumeNode
+/// 3. The related compression codec for encoding and decoding. This codec is by default NULL.
+///    User needs to register the compression codec to the vtkMRMLStreamingVolumeNode
 class  VTK_MRML_EXPORT vtkMRMLStreamingVolumeNode : public vtkMRMLVectorVolumeNode
 {
 public:
@@ -37,7 +37,7 @@ public:
   
   virtual void ProcessMRMLEvents( vtkObject *caller, unsigned long event, void *callData ) VTK_OVERRIDE;
   
-  void ProcessDeviceModifiedEvents( vtkObject *caller, unsigned long event, void *callData );
+  void ProcessCodecModifiedEvents( vtkObject *caller, unsigned long event, void *callData );
   ///
   /// Set node attributes
   virtual void ReadXMLAttributes( const char** atts) VTK_OVERRIDE;
@@ -56,11 +56,6 @@ public:
   {return "StreamingVolume";}
 
   ///
-  /// Flag indicates whether key frame message was received or not.
-  void SetKeyFrameReceived(bool value){this->KeyFrameReceived = value;};
-  vtkGetMacro(KeyFrameReceived, bool);
-
-  ///
   /// Flag indicates whether the current key frame message was updated or not.
   void SetKeyFrameUpdated(bool value){this->KeyFrameUpdated = value;};
   vtkGetMacro(KeyFrameUpdated, bool);
@@ -76,30 +71,45 @@ public:
   vtkGetMacro(FrameUpdated, bool);
 
   ///
-  /// Get the compression codec type, a compression device could contain serveral codec.
+  /// Set/Get codec type from the volume node, mainly for information storage purpose
+  vtkSetStringMacro(CodecType);
+  vtkGetStringMacro(CodecType);
+
+  ///
+  /// Set/Get codec name from the volume node, mainly for information storage purpose
+  vtkSetStringMacro(CodecName);
+  vtkGetStringMacro(CodecName);
+
+  ///
+  /// Set/Get codec class name from the volume node, mainly for information storage purpose
+  vtkSetStringMacro(CodecClassName);
+  vtkGetStringMacro(CodecClassName);
+
+  ///
+  /// Get the compression codec type, a compression codec could contain serveral codec.
   /// This function returns the codec that is used for encoding and decoding.
-  std::string GetCodecType();
+  std::string GetCodecTypeFromCompressor();
 
   ///
   /// Set the codec to be used in the encoding and decoding process.
-  int SetCodecType(std::string type);
+  int SetCodecTypeToCompressor(std::string type);
 
   ///
-  /// Return the compression device that is currently observed.
-  vtkSmartPointer<vtkStreamingVolumeCodec> GetCompressionCodec();
+  /// Return the compression codec that is currently observed.
+  vtkStreamingVolumeCodec* GetCompressionCodec();
 
   ///
-  /// Observe an outside compression device.
-  int ObserveOutsideCompressionCodec(vtkSmartPointer<vtkStreamingVolumeCodec> devicePtr);
+  /// Observe an outside compression codec. Please use a smart pointer to avoid memory leak
+  int ObserveOutsideCompressionCodec(vtkStreamingVolumeCodec* codecPtr);
 
   ///
-  ///  Update the frame message from codec device frame
+  /// Update the frame message from codec codec frame
   int UpdateFrameByDeepCopy(vtkSmartPointer<vtkUnsignedCharArray> buffer);
 
   ///
-  /// Return the frame message
+  /// Set/Get the frame message.
   void SetFrame(vtkSmartPointer<vtkUnsignedCharArray> frame){this->Frame = frame;};
-  vtkSmartPointer<vtkUnsignedCharArray> GetFrame(){return this->Frame;};
+  vtkUnsignedCharArray* GetFrame(){return this->Frame.GetPointer();};
 
   ///
   /// Update the key frame message from data stream
@@ -108,17 +118,23 @@ public:
   ///
   /// Set/Get the key frame
   void SetKeyFrame(vtkSmartPointer<vtkUnsignedCharArray> keyFrame){this->KeyFrame = keyFrame;};
-  vtkSmartPointer<vtkUnsignedCharArray> GetKeyFrame(){return this->KeyFrame;};
+  vtkUnsignedCharArray* GetKeyFrame(){return this->KeyFrame.GetPointer();};
 
   ///
-  /// Encode the image data using the observed compression device
+  /// Encode the image data using the observed compression codec
   int EncodeImageData();
 
   ///
-  /// Decode the bit stream data and store the frame in the vtk image pointer specified in the deviceContent
+  /// Decode the frame and store the frame in the vtk image pointer specified in the codecContent
   /// If the image pointer is not the same as the image pointer in the vtkMRMLStreamingVolumeNode,
-  /// then force the vtkMRMLStreamingVolumeNode to observe the image pointer in the deviceContent.
-  int DecodeFrame(vtkStreamingVolumeCodec::ContentData deviceContent);
+  /// then force the vtkMRMLStreamingVolumeNode to observe the image pointer in the codecContent.
+  int DecodeFrame(vtkUnsignedCharArray*  frame);
+
+  ///
+  /// Decode the key frame and store the key frame in the vtk image pointer specified in the codecContent
+  /// If the image pointer is not the same as the image pointer in the vtkMRMLStreamingVolumeNode,
+  /// then force the vtkMRMLStreamingVolumeNode to observe the image pointer in the codecContent.
+  int DecodeKeyFrame(vtkUnsignedCharArray*  keyFrame);
 
   ///
   /// Helper function to copy source string to destination string
@@ -126,27 +142,17 @@ public:
 
   ///
   /// Get the name of the CompressionCodec
-  std::string GetCodecName();
+  std::string GetCodecNameFromCompressor();
 
   ///
   /// Set the name of the CompressionCodec
-  int SetCodecName(std::string name);
-
-  ///
-  /// Get the class name of the CompressionCodec
-  std::string GetCodecDeviceType();
-
-  ///
-  /// Set the class name of the CompressionCodec
-  int SetCodecDeviceType(std::string name);
+  int SetCodecNameToCompressor(std::string name);
 
 protected:
   vtkMRMLStreamingVolumeNode();
   ~vtkMRMLStreamingVolumeNode();
   vtkMRMLStreamingVolumeNode(const vtkMRMLStreamingVolumeNode&);
   void operator=(const vtkMRMLStreamingVolumeNode&);
-    
-  bool KeyFrameReceived;
   
   bool KeyFrameUpdated;
   
@@ -160,9 +166,12 @@ protected:
 
   vtkSmartPointer<vtkStreamingVolumeCodec> CompressionCodec;
 
-  std::string CodecDeviceType;
+  char* CodecName;
 
-  std::string CodecName;
+  char* CodecType;
+
+  char* CodecClassName;
+
 };
 
 #endif

@@ -21,15 +21,15 @@ vtkMRMLNodeNewMacro(vtkMRMLStreamingVolumeNode);
 //-----------------------------------------------------------------------------
 vtkMRMLStreamingVolumeNode::vtkMRMLStreamingVolumeNode()
 {
-  this->CompressionCodec = vtkSmartPointer<vtkStreamingVolumeCodec>::New();
+  this->CompressionCodec = NULL;
   this->FrameUpdated = false;
-  this->KeyFrameReceived = false;
   this->KeyFrameDecoded = false;
   this->KeyFrameUpdated = false;
   this->KeyFrame = vtkSmartPointer<vtkUnsignedCharArray>::New();
   this->Frame = vtkSmartPointer<vtkUnsignedCharArray>::New();
-  this->CodecDeviceType = "";
-  this->CodecName = "";
+  this->CodecName = NULL;
+  this->CodecType = NULL;
+  this->CodecClassName = NULL;
 }
 
 //-----------------------------------------------------------------------------
@@ -38,52 +38,71 @@ vtkMRMLStreamingVolumeNode::~vtkMRMLStreamingVolumeNode()
 }
 
 //-----------------------------------------------------------------------------
-std::string vtkMRMLStreamingVolumeNode::GetCodecName()
+int vtkMRMLStreamingVolumeNode::SetCodecNameToCompressor(std::string name)
 {
-  return this->CodecName;
+  if(this->CompressionCodec)
+    {
+    this->CompressionCodec->SetContentCodecName(name);
+    return 1;
+    }
+  return 0;
 }
 
 //-----------------------------------------------------------------------------
-int vtkMRMLStreamingVolumeNode::SetCodecName(std::string name)
+std::string vtkMRMLStreamingVolumeNode::GetCodecNameFromCompressor()
 {
-  this->CodecName = name;
-  return 1;
-}
-
-//-----------------------------------------------------------------------------
-std::string vtkMRMLStreamingVolumeNode::GetCodecDeviceType()
-{
-  return this->CodecDeviceType;
-}
-
-//-----------------------------------------------------------------------------
-int vtkMRMLStreamingVolumeNode::SetCodecDeviceType(std::string name)
-{
-  this->CodecDeviceType = name;
-  return 1;
+  if (this->CompressionCodec)
+    {
+    return this->CompressionCodec->GetContentCodecName();
+    }
+  return "";
 }
 
 //---------------------------------------------------------------------------
-int vtkMRMLStreamingVolumeNode::ObserveOutsideCompressionCodec(vtkSmartPointer<vtkStreamingVolumeCodec> device)
+std::string vtkMRMLStreamingVolumeNode::GetCodecTypeFromCompressor()
 {
-  if (device)
+  vtkSmartPointer<vtkStreamingVolumeCodec> codec = this->GetCompressionCodec();
+  if (codec)
     {
-    device->AddObserver(device->GetDeviceContentModifiedEvent(), this, &vtkMRMLStreamingVolumeNode::ProcessDeviceModifiedEvents);
+    return codec->GetContentCodecType();
+    }
+  return "";
+}
+
+//---------------------------------------------------------------------------
+int vtkMRMLStreamingVolumeNode::SetCodecTypeToCompressor(std::string name)
+{
+  vtkSmartPointer<vtkStreamingVolumeCodec> codec = this->GetCompressionCodec();
+  if(codec)
+  {
+    codec->SetContentCodecType(name);
+    return 1;
+  }
+  return 0;
+}
+
+//---------------------------------------------------------------------------
+int vtkMRMLStreamingVolumeNode::ObserveOutsideCompressionCodec( vtkStreamingVolumeCodec* codec)
+{
+  if (codec)
+    {
+    codec->AddObserver(codec->GetCodecContentModifiedEvent(), this, &vtkMRMLStreamingVolumeNode::ProcessCodecModifiedEvents);
     //------
-    if (device->GetContent().frame != NULL && device->GetContent().keyFrame != NULL)
+    if (codec->GetContent().frame != NULL && codec->GetContent().keyFrame != NULL)
       {
-      vtkSmartPointer<vtkUnsignedCharArray> bitStream = device->GetContent().frame;
+      vtkSmartPointer<vtkUnsignedCharArray> bitStream = codec->GetContent().frame;
       this->UpdateFrameByDeepCopy(bitStream);
-      vtkSmartPointer<vtkUnsignedCharArray> bitKeyStream = device->GetContent().keyFrame;
+      vtkSmartPointer<vtkUnsignedCharArray> bitKeyStream = codec->GetContent().keyFrame;
       this->UpdateKeyFrameByDeepCopy(bitKeyStream);
-      if (device->GetContent().image != NULL)
+      if (codec->GetContent().image != NULL)
         {
-        this->SetAndObserveImageData(device->GetContent().image);
+        this->SetAndObserveImageData(codec->GetContent().image);
         }
       }
-    this->SetCodecName(device->GetContentDeviceName());
-    this->SetCodecDeviceType(device->GetDeviceType());
-    this->CompressionCodec = device; // should the interal video device point to the external video device?
+    this->SetCodecClassName(codec->GetClassName());
+    this->SetCodecName(codec->GetContentCodecName().c_str());
+    this->SetCodecType(codec->GetContentCodecType().c_str());
+    this->CompressionCodec = codec; // should the interal video codec point to the external video codec?
     //-------
     return 1;
     }
@@ -133,26 +152,15 @@ int vtkMRMLStreamingVolumeNode::UpdateKeyFrameByDeepCopy(vtkSmartPointer<vtkUnsi
 
 
 //---------------------------------------------------------------------------
-int vtkMRMLStreamingVolumeNode::DecodeFrame(vtkStreamingVolumeCodec::ContentData deviceContent)
+int vtkMRMLStreamingVolumeNode::DecodeFrame(vtkUnsignedCharArray*  frame)
 {
   if (this->CompressionCodec == NULL)
   {
-    vtkWarningMacro("No compression device available, use the ObserveOutsideCompressionCodec() to set up the compression device.")
+    vtkWarningMacro("No compression codec available, use the ObserveOutsideCompressionCodec() to set up the compression codec.")
     return 0;
   }
-  if(!this->GetKeyFrameDecoded())
-    {
-    this->SetKeyFrameDecoded(true);
-    this->UpdateKeyFrameByDeepCopy(deviceContent.keyFrame);
-    int decodingStatus = this->CompressionCodec->UncompressedDataFromStream(deviceContent.keyFrame, true);
-    if (decodingStatus == 0)
-      {
-      vtkWarningMacro("key frame decoding failed.")
-      return 0;
-      }
-    }
-  vtkSmartPointer<vtkUnsignedCharArray> bitStreamData = deviceContent.frame;
-  if (this->CompressionCodec->UncompressedDataFromStream(bitStreamData, true))
+  this->UpdateFrameByDeepCopy(frame);
+  if (this->CompressionCodec->UncompressedDataFromStream(frame, true))
     {
     if (this->GetImageData() != this->CompressionCodec->GetContent().image)
       {
@@ -164,12 +172,35 @@ int vtkMRMLStreamingVolumeNode::DecodeFrame(vtkStreamingVolumeCodec::ContentData
   return 0;
 }
 
+
+//---------------------------------------------------------------------------
+int vtkMRMLStreamingVolumeNode::DecodeKeyFrame(vtkUnsignedCharArray*  keyFrame)
+{
+  if (this->CompressionCodec == NULL)
+  {
+    vtkWarningMacro("No compression codec available, use the ObserveOutsideCompressionCodec() to set up the compression codec.")
+    return 0;
+  }
+  this->UpdateKeyFrameByDeepCopy(keyFrame);
+  if (this->CompressionCodec->UncompressedDataFromStream(keyFrame, true))
+    {
+    if (this->GetImageData() != this->CompressionCodec->GetContent().image)
+      {
+      this->SetAndObserveImageData(this->CompressionCodec->GetContent().image);
+      }
+    this->SetKeyFrameDecoded(true);
+    this->Modified();
+    return 1;
+    }
+  return 0;
+}
+
 //---------------------------------------------------------------------------
 int vtkMRMLStreamingVolumeNode::EncodeImageData()
 {
   if (this->CompressionCodec == NULL)
     {
-    vtkWarningMacro("No compression device available, use the ObserveOutsideCompressionCodec() to set up the compression device.")
+    vtkWarningMacro("No compression codec available, use the ObserveOutsideCompressionCodec() to set up the compression codec.")
     return 0;
     }
   if (this->GetImageData() != this->CompressionCodec->GetContent().image)
@@ -182,36 +213,15 @@ int vtkMRMLStreamingVolumeNode::EncodeImageData()
     if (compressedStream->GetNumberOfValues()>0)
       {
       this->UpdateFrameByDeepCopy(compressedStream);
-      if(!this->GetKeyFrameReceived())
+      bool keyFrameStatus = this->CompressionCodec->GetContent().keyFrameUpdated;
+      this->SetKeyFrameUpdated(keyFrameStatus);
+      if(keyFrameStatus)
         {
-        this->SetKeyFrameReceived(true);
         this->UpdateKeyFrameByDeepCopy(compressedStream);
         }
         return 1;
       }
     }
-  return 0;
-}
-
-std::string vtkMRMLStreamingVolumeNode::GetCodecType()
-{
-  vtkSmartPointer<vtkStreamingVolumeCodec> device = this->GetCompressionCodec();
-  if (device)
-    {
-    return device->GetCurrentCodecType();
-    }
-  return "";
-}
-
-
-int vtkMRMLStreamingVolumeNode::SetCodecType(std::string name)
-{
-  vtkSmartPointer<vtkStreamingVolumeCodec> device = this->GetCompressionCodec();
-  if(device)
-  {
-    device->SetCurrentCodecType(name);
-    return 1;
-  }
   return 0;
 }
 
@@ -221,32 +231,35 @@ void vtkMRMLStreamingVolumeNode::ProcessMRMLEvents(vtkObject *caller, unsigned l
   this->InvokeEvent(ImageDataModifiedEvent);
 }
 
-void vtkMRMLStreamingVolumeNode::ProcessDeviceModifiedEvents( vtkObject *caller, unsigned long event, void *callData )
+void vtkMRMLStreamingVolumeNode::ProcessCodecModifiedEvents( vtkObject *caller, unsigned long event, void *callData )
 {
-  vtkSmartPointer<vtkStreamingVolumeCodec> modifiedDevice = reinterpret_cast<vtkStreamingVolumeCodec*>(caller);
-  if (modifiedDevice == NULL)
+  vtkSmartPointer<vtkStreamingVolumeCodec> modifiedCodec = reinterpret_cast<vtkStreamingVolumeCodec*>(caller);
+  if (modifiedCodec == NULL)
     {
     // we are only interested in proxy node modified events
     return;
     }
-  if (event != modifiedDevice->GetDeviceContentModifiedEvent())
+  if (event != modifiedCodec->GetCodecContentModifiedEvent())
     {
     return;
     }
   this->SetKeyFrameUpdated(false);
-  this->UpdateFrameByDeepCopy(modifiedDevice->GetContent().frame);
-  if(!this->GetKeyFrameReceived() || modifiedDevice->GetContent().keyFrameUpdated)
+  this->UpdateFrameByDeepCopy(modifiedCodec->GetContent().frame);
+  if(modifiedCodec->GetContent().keyFrameUpdated)
     {
-    this->UpdateKeyFrameByDeepCopy(modifiedDevice->GetContent().keyFrame);
-    this->SetKeyFrameReceived(true);
+    this->UpdateKeyFrameByDeepCopy(modifiedCodec->GetContent().keyFrame);
     }
   this->Modified();
 }
 
 //----------------------------------------------------------------------------
-vtkSmartPointer<vtkStreamingVolumeCodec> vtkMRMLStreamingVolumeNode::GetCompressionCodec()
+vtkStreamingVolumeCodec* vtkMRMLStreamingVolumeNode::GetCompressionCodec()
 {
-  return this->CompressionCodec;
+  if (this->CompressionCodec)
+    {
+    return this->CompressionCodec;
+    }
+  return NULL;
 }
 
 //----------------------------------------------------------------------------
@@ -254,8 +267,9 @@ void vtkMRMLStreamingVolumeNode::WriteXML(ostream& of, int nIndent)
 {
   Superclass::WriteXML(of, nIndent);
   vtkMRMLWriteXMLBeginMacro(of);
-  vtkMRMLWriteXMLStdStringMacro(codecName, CodecName);
-  vtkMRMLWriteXMLStdStringMacro(codecDeviceType, CodecDeviceType);
+  vtkMRMLWriteXMLStringMacro(CodecName, CodecName);
+  vtkMRMLWriteXMLStringMacro(CodecClassName, CodecClassName);
+  vtkMRMLWriteXMLStringMacro(CodecType, CodecType);
   vtkMRMLWriteXMLEndMacro();
 }
 
@@ -266,8 +280,9 @@ void vtkMRMLStreamingVolumeNode::ReadXMLAttributes(const char** atts)
   
   Superclass::ReadXMLAttributes(atts);
   vtkMRMLReadXMLBeginMacro(atts);
-  vtkMRMLReadXMLStdStringMacro(codecName, CodecName);
-  vtkMRMLReadXMLStdStringMacro(codecDeviceType, CodecDeviceType);
+  vtkMRMLReadXMLStringMacro(CodecName, CodecName);
+  vtkMRMLReadXMLStringMacro(CodecClassName, CodecClassName);
+  vtkMRMLReadXMLStringMacro(CodecType, CodecType);
   vtkMRMLReadXMLEndMacro();
   this->EndModify(disabledModify);
 }
