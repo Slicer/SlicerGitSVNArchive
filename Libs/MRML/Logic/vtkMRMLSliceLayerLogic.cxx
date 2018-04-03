@@ -145,6 +145,10 @@ vtkMRMLSliceLayerLogic::vtkMRMLSliceLayerLogic()
   this->ResliceUVW->SetOutputDimensionality( 3 );
   this->ResliceUVW->GenerateStencilOutputOn();
 
+  // Prevent slice rendering pipeline competing with GPU's threaded optimization
+  this->Reslice->SetNumberOfThreads(1);
+  this->ResliceUVW->SetNumberOfThreads(1);
+
   this->UpdatingTransforms = 0;
 }
 

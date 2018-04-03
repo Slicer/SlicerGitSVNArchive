@@ -230,6 +230,14 @@ public:
       imageFillMapper->SetColorLevel(127.5);
       this->ImageFillActor->SetMapper(imageFillMapper);
       this->ImageFillActor->SetVisibility(0);
+
+      // Prevent slice rendering pipeline competing with GPU's threaded optimization
+      this->Reslice->SetNumberOfThreads(1);
+      this->LabelOutline->SetNumberOfThreads(1);
+      this->ImageThreshold->SetNumberOfThreads(1);
+      outlineColorMapper->SetNumberOfThreads(1);
+      fillColorMapper->SetNumberOfThreads(1);
+
       }
 
     vtkSmartPointer<vtkTransform> WorldToSliceTransform;
