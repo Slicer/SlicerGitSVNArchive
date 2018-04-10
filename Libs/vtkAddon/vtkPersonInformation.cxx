@@ -116,11 +116,14 @@ std::string vtkPersonInformation::WriteToString()
   for (std::map<std::string, std::string>::iterator it = this->Data.begin();
     it != this->Data.end(); ++it)
     {
-    if (!output.empty())
+    if (!it->second.empty())
       {
-      output += ";";
+       if (!output.empty())
+        {
+        output += ";";
+        }
+      output += this->EncodeString(it->first) + ":" + this->EncodeString(it->second);
       }
-    output += this->EncodeString(it->first) + ":" + this->EncodeString(it->second);
     }
   return output;
 }
