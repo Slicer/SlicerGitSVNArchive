@@ -252,16 +252,6 @@
         </layout>
        </widget>
       </item>
-      <item row="3" column="1">
-       <widget class="QCheckBox" name="ClippingCheckBox">
-        <property name="toolTip">
-         <string>Hide part of the model according to Clipping Planes settings.</string>
-        </property>
-        <property name="text">
-         <string/>
-        </property>
-       </widget>
-      </item>
       <item row="3" column="0">
        <widget class="QLabel" name="ClippingLabel">
         <property name="text">
@@ -297,6 +287,30 @@
          <string>Visible Sides:</string>
         </property>
        </widget>
+      </item>
+      <item row="3" column="1">
+       <layout class="QHBoxLayout" name="horizontalLayout">
+        <item>
+         <widget class="QCheckBox" name="ClippingCheckBox">
+          <property name="toolTip">
+           <string>Hide part of the model according to Clipping Planes settings.</string>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="ConfigureClippingPushButton">
+          <property name="toolTip">
+           <string>Configure clipping planes</string>
+          </property>
+          <property name="text">
+           <string>Configure...</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </item>
      </layout>
     </widget>
