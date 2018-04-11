@@ -105,6 +105,16 @@ vtkMRMLScalarVolumeDisplayNode::vtkMRMLScalarVolumeDisplayNode()
   this->AppendComponents->AddInputConnection(0, this->ExtractRGB->GetOutputPort() );
   this->AppendComponents->AddInputConnection(0, this->AlphaLogic->GetOutputPort() );
 
+  // Prevent slice rendering pipeline competing with GPU's threaded optimization
+  this->AlphaLogic->SetNumberOfThreads(1);
+  this->MapToColors->SetNumberOfThreads(1);
+  this->Threshold->SetNumberOfThreads(1);
+  this->AppendComponents->SetNumberOfThreads(1);
+  this->ExtractRGB->SetNumberOfThreads(1);
+  this->ExtractAlpha->SetNumberOfThreads(1);
+  this->MultiplyAlpha->SetNumberOfThreads(1);
+  this->MapToWindowLevelColors->SetNumberOfThreads(1);
+
   this->Bimodal = NULL;
   this->Accumulate = NULL;
   this->IsInCalculateAutoLevels = false;
