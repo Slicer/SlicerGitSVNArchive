@@ -54,12 +54,7 @@ public:
   virtual const char* GetNodeTagName() VTK_OVERRIDE {return "GPURayCastVolumeRendering";}
 
   // Description:
-  // Ray cast technique
-  vtkGetMacro(RaycastTechnique, int);
-  vtkSetMacro(RaycastTechnique, int);
-
-  // Description:
-  // Jittering
+  // Jittering (ray randomization technique to reduce wood-grain artifacts)
   vtkGetMacro(UseJittering, int);
   vtkSetMacro(UseJittering, int);
 
@@ -73,13 +68,6 @@ protected:
   ~vtkMRMLGPURayCastVolumeRenderingDisplayNode();
   vtkMRMLGPURayCastVolumeRenderingDisplayNode(const vtkMRMLGPURayCastVolumeRenderingDisplayNode&);
   void operator=(const vtkMRMLGPURayCastVolumeRenderingDisplayNode&);
-
-  /* techniques in GPU ray cast
-   * 0: composite with directional lighting (default)
-   * 2: MIP
-   * 3: MINIP
-   * */
-  int RaycastTechnique;
 
   /// Use jittering to reduce the wood-grain effect if on. Off by default
   int UseJittering;

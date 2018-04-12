@@ -18,7 +18,6 @@
 // VolumeRendering includes
 #include "vtkSlicerVolumeRenderingModuleLogicExport.h"
 class vtkMRMLVolumeRenderingDisplayNode;
-class vtkMRMLVolumeRenderingScenarioNode;
 
 // Slicer includes
 #include "vtkSlicerModuleLogic.h"
@@ -121,8 +120,12 @@ public:
   /// \sa AddVolumeRenderingDisplayNode, AddAllVolumeRenderingDisplayNodes
   void RemoveAllVolumeRenderingDisplayNodes();
 
+  /// Re-create all volume rendering display nodes of the requested type.
+  /// Common properties of the display nodes are propagated.
+  void ChangeVolumeRenderingMethod(const char* displayNodeClassName = 0);
+
   /// Applies the properties (window level, threshold and color function) of
-  /// a volume display node to the volume rendering displaynode.
+  /// a volume display node to the volume rendering display node.
   /// If displayNode is 0, it uses the first display node.
   /// It's a utility method that internally calls
   /// CopyScalarDisplayToVolumeRenderingDisplayNode() or
@@ -219,10 +222,6 @@ public:
                                        vtkMRMLVolumePropertyNode *propNode = NULL,
                                        vtkMRMLAnnotationROINode *roiNode = NULL);
 
-  /// \deprecated
-  /// Create and add into the scene a vtkMRMLVolumeRenderingScenarioNode
-  vtkMRMLVolumeRenderingScenarioNode* CreateScenarioNode();
-
   /// Remove ViewNode from VolumeRenderingDisplayNode for a VolumeNode,
   void RemoveViewFromVolumeDisplayNodes(vtkMRMLVolumeNode *volumeNode,
                                         vtkMRMLViewNode *viewNode);
@@ -247,12 +246,6 @@ public:
   vtkMRMLVolumeRenderingDisplayNode* GetFirstVolumeRenderingDisplayNodeByROINode(vtkMRMLAnnotationROINode* roiNode);
 
   void UpdateTranferFunctionRangeFromImage(vtkMRMLVolumeRenderingDisplayNode* vspNode);
-
-  //void UpdateFgTranferFunctionRangeFromImage(vtkMRMLVolumeRenderingDisplayNode* vspNode);
-
-  //void UpdateVolumePropertyFromImageData(vtkMRMLVolumeRenderingDisplayNode* vspNode);
-
-  //void SetupFgVolumePropertyFromImageData(vtkMRMLVolumeRenderingDisplayNode* vspNode);
 
   /// Utility function that modifies the ROI node of the display node
   /// to fit the boundaries of the volume node
@@ -329,6 +322,7 @@ protected:
   /// \sa SetDefaultRenderingMethod(), GetDefaultRenderingMethod(),
   /// CreateVolumeRenderingDisplayNode()
   char* DefaultRenderingMethod;
+
   bool UseLinearRamp;
 
   typedef std::vector<vtkMRMLNode*> DisplayNodesType;
