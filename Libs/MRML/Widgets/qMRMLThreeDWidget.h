@@ -75,6 +75,14 @@ public:
   /// \sa qMRMLThreeDViewControllerWidget::setQuadBufferStereoSupportEnabled
   Q_INVOKABLE void setQuadBufferStereoSupportEnabled(bool value);
 
+  /// \sa qMRMLThreeDViewControllerWidget::viewColor()
+  /// \sa setViewColor()
+  Q_INVOKABLE QColor viewColor()const;
+
+  /// \sa qMRMLThreeDViewControllerWidget::viewColor()
+  /// \sa viewColor()
+  Q_INVOKABLE void setViewColor(const QColor& newViewColor);
+
 public slots:
   /// Set the current \a viewNode to observe
   void setMRMLViewNode(vtkMRMLViewNode* newViewNode);
