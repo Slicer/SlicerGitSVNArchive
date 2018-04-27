@@ -1544,7 +1544,6 @@ void qMRMLSegmentEditorWidget::updateEffectsSectionFromMRML()
       }
     activeEffect->optionsFrame()->setMinimumHeight(activeEffect->optionsFrame()->sizeHint().height());
     activeEffect->optionsLayout()->activate();
-    this->setMinimumHeight(this->sizeHint().height());
     }
   else
     {

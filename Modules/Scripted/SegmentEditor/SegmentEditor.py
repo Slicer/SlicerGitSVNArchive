@@ -66,6 +66,9 @@ class SegmentEditorWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.addObserver(slicer.mrmlScene, slicer.mrmlScene.EndCloseEvent, self.onSceneEndClose)
     self.addObserver(slicer.mrmlScene, slicer.mrmlScene.EndImportEvent, self.onSceneEndImport)
 
+    if hasattr(self.layout, "addStretch"):
+      self.layout.addStretch()
+
   def selectParameterNode(self):
     # Select parameter set node if one is found in the scene, and create one otherwise
     segmentEditorSingletonTag = "SegmentEditor"
