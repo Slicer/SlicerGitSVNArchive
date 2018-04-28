@@ -37,13 +37,11 @@ else()
   # WebEngine Dependencies
   if("Qt5::WebEngine" IN_LIST QT_LIBRARIES)
     find_package(Qt5 REQUIRED COMPONENTS
-      Positioning
       Qml
       Quick
       QuickWidgets
       )
     list(APPEND QT_LIBRARIES
-      "Qt5::Positioning"
       "Qt5::Qml"
       "Qt5::Quick"
       "Qt5::QuickWidgets"
