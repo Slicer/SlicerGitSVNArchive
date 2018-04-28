@@ -74,7 +74,7 @@ public:
 
   /// \sa qMRMLSliceControllerWidget::sliceOrientation()
   /// \sa setSliceOrientation()
-  QString sliceOrientation()const;
+  Q_INVOKABLE QString sliceOrientation()const;
 
   /// \sa qMRMLSliceControllerWidget::imageData()
   /// \sa setImageData();
@@ -85,27 +85,27 @@ public:
 
   /// \sa qMRMLSliceControllerWidget::sliceViewName()
   /// \sa setSliceViewName()
-  QString sliceViewName()const;
+  Q_INVOKABLE QString sliceViewName()const;
 
   /// \sa qMRMLSliceControllerWidget::sliceViewName()
   /// \sa sliceViewName()
-  void setSliceViewName(const QString& newSliceViewName);
+  Q_INVOKABLE void setSliceViewName(const QString& newSliceViewName);
 
   /// \sa qMRMLSliceControllerWidget::sliceViewLabel()
   /// \sa setSliceViewLabel()
-  QString sliceViewLabel()const;
+  Q_INVOKABLE QString sliceViewLabel()const;
 
   /// \sa qMRMLSliceControllerWidget::sliceViewLabel()
   /// \sa sliceViewLabel()
-  void setSliceViewLabel(const QString& newSliceViewLabel);
+  Q_INVOKABLE void setSliceViewLabel(const QString& newSliceViewLabel);
 
   /// \sa qMRMLSliceControllerWidget::sliceViewColor()
   /// \sa setSliceViewColor()
-  QColor sliceViewColor()const;
+  Q_INVOKABLE QColor sliceViewColor()const;
 
   /// \sa qMRMLSliceControllerWidget::sliceViewColor()
   /// \sa sliceViewColor()
-  void setSliceViewColor(const QColor& newSliceViewColor);
+  Q_INVOKABLE void setSliceViewColor(const QColor& newSliceViewColor);
 
   /// Returns the interactor style of the view
   /// A const vtkInteractorObserver pointer is returned as you shouldn't
@@ -124,9 +124,7 @@ public:
   /// \sa sliceController()
   Q_INVOKABLE qMRMLSliceView* sliceView()const;
 
-  //virtual bool eventFilter(QObject* object, QEvent* event);
 public slots:
-
   void setMRMLScene(vtkMRMLScene * newScene);
 
   /// \sa qMRMLSliceControllerWidget::setMRMLSliceNode()
