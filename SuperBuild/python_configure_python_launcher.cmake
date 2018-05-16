@@ -126,6 +126,21 @@ set(PYTHONLAUNCHER_PYTHONPATH_INSTALLED
   "<APPLAUNCHER_DIR>/../${Slicer_BIN_DIR}/Python"
   )
 
+# Add paths necessary to import VTK
+if (APPLE)
+  list(APPEND PYTHONLAUNCHER_PYTHONPATH_INSTALLED
+    "${PYTHONHOME}/lib/Slicer-4.9"
+    )
+elseif(MSVC)
+  list(APPEND PYTHONLAUNCHER_PYTHONPATH_INSTALLED
+    "${PYTHONHOME}/${Slicer_BIN_DIR}/Lib/site-packages"
+  )
+else()
+  list(APPEND PYTHONLAUNCHER_PYTHONPATH_INSTALLED
+    "${PYTHONHOME}/lib/Slicer-4.9/python2.7/site-packages"
+  )
+endif()
+
 #
 # Notes:
 #
