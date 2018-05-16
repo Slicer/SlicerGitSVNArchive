@@ -62,6 +62,14 @@ if(Slicer_USE_PYTHONQT)
     COMPONENT Runtime
     )
 
+  # Fixes Slicer issue #4554.
+  if (APPLE)
+    install(CODE
+      "execute_process(COMMAND install_name_tool -add_rpath @executable_path/.. ${Slicer_INSTALL_BIN_DIR}/python-real${CMAKE_EXECUTABLE_SUFFIX}"
+      COMPONENT Runtime
+      )
+  endif()
+
   # Install Slicer python launcher settings
   install(
     FILES ${python_bin_dir}/SlicerPythonLauncherSettingsToInstall.ini
@@ -94,4 +102,3 @@ if(Slicer_USE_PYTHONQT)
     )
 
 endif()
-
