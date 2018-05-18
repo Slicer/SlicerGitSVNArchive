@@ -1091,6 +1091,7 @@ def messageBox(text, parent=None, **kwargs):
   for key, value in kwargs.iteritems():
     if hasattr(mbox, key):
       setattr(mbox, key, value)
+  mbox.deleteLater()
   return mbox.exec_()
 
 def createProgressDialog(parent=None, value=0, maximum=100, labelText="", windowTitle="Processing...", **kwargs):
