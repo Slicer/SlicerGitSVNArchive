@@ -61,7 +61,7 @@ class Q_SLICER_MODULE_TERMINOLOGIES_WIDGETS_EXPORT qSlicerTerminologyNavigatorWi
 
 public:
   /// Constructor
-  explicit qSlicerTerminologyNavigatorWidget(QWidget* parent = 0);
+  explicit qSlicerTerminologyNavigatorWidget(QWidget* parent = nullptr);
   /// Destructor
   virtual ~qSlicerTerminologyNavigatorWidget();
 

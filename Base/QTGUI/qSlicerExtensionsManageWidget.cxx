@@ -92,7 +92,7 @@ public:
 qSlicerExtensionsManageWidgetPrivate::qSlicerExtensionsManageWidgetPrivate(qSlicerExtensionsManageWidget& object)
   :q_ptr(&object)
 {
-  this->ExtensionsManagerModel = 0;
+  this->ExtensionsManagerModel = nullptr;
 }
 
 // --------------------------------------------------------------------------
@@ -104,7 +104,7 @@ class qSlicerExtensionsButtonBox : public QWidget, public Ui_qSlicerExtensionsBu
 {
 public:
   typedef QWidget Superclass;
-  qSlicerExtensionsButtonBox(QWidget* parent = 0) : Superclass(parent)
+  qSlicerExtensionsButtonBox(QWidget* parent = nullptr) : Superclass(parent)
   {
     this->setupUi(this);
   }
@@ -117,7 +117,7 @@ class qSlicerExtensionsItemDelegate : public QStyledItemDelegate
 {
 public:
   qSlicerExtensionsItemDelegate(qSlicerExtensionsManageWidget * list,
-                                QObject * parent = 0)
+                                QObject * parent = nullptr)
     : QStyledItemDelegate(parent), List(list) {}
 
   // --------------------------------------------------------------------------
@@ -248,7 +248,7 @@ QListWidgetItem * qSlicerExtensionsManageWidgetPrivate::extensionItem(const QStr
     {
     return q->item(indices.first().row());
     }
-  return 0;
+  return nullptr;
 }
 
 namespace
@@ -481,7 +481,7 @@ public:
 class qSlicerExtensionsItemWidget : public QWidget
 {
 public:
-  qSlicerExtensionsItemWidget(qSlicerExtensionsDescriptionLabel * label, QWidget* parent = 0)
+  qSlicerExtensionsItemWidget(qSlicerExtensionsDescriptionLabel * label, QWidget* parent = nullptr)
     : QWidget(parent), Label(label)
   {
     QHBoxLayout * layout = new QHBoxLayout;
@@ -511,7 +511,7 @@ void qSlicerExtensionsManageWidgetPrivate::addExtensionItem(const ExtensionMetad
     qCritical() << "Missing metadata identified with 'extensionname' key";
     return;
     }
-  Q_ASSERT(this->extensionItem(extensionName) == 0);
+  Q_ASSERT(this->extensionItem(extensionName) == nullptr);
   QString description = metadata.value("description").toString();
   QString extensionSlicerRevision = metadata.value("slicer_revision").toString();
   bool enabled = QVariant::fromValue(metadata.value("enabled")).toBool();

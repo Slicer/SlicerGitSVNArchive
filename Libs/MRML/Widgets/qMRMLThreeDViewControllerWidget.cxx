@@ -54,8 +54,8 @@ qMRMLThreeDViewControllerWidgetPrivate::qMRMLThreeDViewControllerWidgetPrivate(
   : Superclass(object)
 {
   this->ViewNode = 0;
-  this->ThreeDView = 0;
-  this->CenterToolButton = 0;
+  this->ThreeDView = nullptr;
+  this->CenterToolButton = nullptr;
 }
 
 //---------------------------------------------------------------------------
@@ -274,7 +274,7 @@ void qMRMLThreeDViewControllerWidget::setThreeDView(qMRMLThreeDView* view)
 {
   Q_D(qMRMLThreeDViewControllerWidget);
   d->ThreeDView = view;
-  if(d->ThreeDView != 0)
+  if(d->ThreeDView != nullptr)
     {
     d->actionSwitchToQuadBufferStereo->setEnabled(
           d->ThreeDView->renderWindow()->GetStereoCapableWindow());

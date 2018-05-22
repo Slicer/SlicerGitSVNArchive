@@ -54,7 +54,7 @@ vtkPolyData *vtkFSSurfaceReader::GetOutput()
 
   if (numberOfOutputs < 1)
     {
-    return NULL;
+    return nullptr;
     }
   return this->GetOutput(0);
 }
@@ -153,7 +153,7 @@ int vtkFSSurfaceReader::RequestData(
     {
     char *skipchars = fgets (line, 200, surfaceFile);
     int skip = fscanf (surfaceFile, "\n");
-    if (skipchars == NULL || skip > 0)
+    if (skipchars == nullptr || skip > 0)
       {
       // trying to avoid unused var warnings while checking return values
       }

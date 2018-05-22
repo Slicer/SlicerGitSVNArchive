@@ -15,7 +15,7 @@
 //------------------------------------------------------------------------------
 vtkMRMLAnnotationSnapshotNode::vtkMRMLAnnotationSnapshotNode()
 {
-  this->ScreenShot = NULL;
+  this->ScreenShot = nullptr;
   this->ScaleFactor = 1.0;
 }
 
@@ -25,7 +25,7 @@ vtkMRMLAnnotationSnapshotNode::~vtkMRMLAnnotationSnapshotNode()
   if (this->ScreenShot)
     {
     this->ScreenShot->Delete();
-    this->ScreenShot = NULL;
+    this->ScreenShot = nullptr;
     }
 }
 
@@ -59,7 +59,7 @@ void vtkMRMLAnnotationSnapshotNode::ReadXMLAttributes(const char** atts)
 
   const char* attName;
   const char* attValue;
-  while (*atts != NULL)
+  while (*atts != nullptr)
     {
     attName = *(atts++);
     attValue = *(atts++);

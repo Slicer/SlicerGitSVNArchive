@@ -108,7 +108,7 @@ void vtkMRMLMarkupsDisplayableManagerHelper::PrintSelf(ostream& os, vtkIndent in
 //---------------------------------------------------------------------------
 vtkMRMLMarkupsDisplayableManagerHelper::vtkMRMLMarkupsDisplayableManagerHelper()
 {
-  this->SeedWidget = 0;
+  this->SeedWidget = nullptr;
 }
 
 //---------------------------------------------------------------------------
@@ -182,14 +182,14 @@ void vtkMRMLMarkupsDisplayableManagerHelper::UpdateLocked(vtkMRMLMarkupsNode *no
                                                           vtkMRMLInteractionNode *interactionNode)
 {
   // Sanity checks
-  if (node == 0)
+  if (node == nullptr)
     {
     return;
     }
 
   vtkAbstractWidget * widget = this->GetWidget(node);
   // A widget is expected
-  if(widget == 0)
+  if(widget == nullptr)
     {
     return;
     }
@@ -225,7 +225,7 @@ void vtkMRMLMarkupsDisplayableManagerHelper::UpdateLocked(vtkMRMLMarkupsNode *no
       int numMarkups = node->GetNumberOfMarkups();
       for (int i = 0; i < numMarkups; i++)
         {
-        if (seedWidget->GetSeed(i) == NULL)
+        if (seedWidget->GetSeed(i) == nullptr)
           {
           vtkErrorMacro("UpdateLocked: missing seed at index " << i);
           continue;
@@ -254,7 +254,7 @@ vtkAbstractWidget * vtkMRMLMarkupsDisplayableManagerHelper::GetWidget(vtkMRMLMar
 {
   if (!node)
     {
-    return 0;
+    return nullptr;
     }
 
   // Make sure the map contains a vtkWidget associated with this node
@@ -262,7 +262,7 @@ vtkAbstractWidget * vtkMRMLMarkupsDisplayableManagerHelper::GetWidget(vtkMRMLMar
   if (it == this->Widgets.end())
     {
     // std::cout << "GetWidget: no widget for node " << node->GetID() << std::endl;
-    return 0;
+    return nullptr;
     }
 
   return it->second;
@@ -274,14 +274,14 @@ vtkAbstractWidget * vtkMRMLMarkupsDisplayableManagerHelper::GetIntersectionWidge
 {
   if (!node)
     {
-    return 0;
+    return nullptr;
     }
 
   // Make sure the map contains a vtkWidget associated with this node
   WidgetIntersectionsIt it = this->WidgetIntersections.find(node);
   if (it == this->WidgetIntersections.end())
     {
-    return 0;
+    return nullptr;
     }
 
   return it->second;
@@ -292,14 +292,14 @@ vtkAbstractWidget * vtkMRMLMarkupsDisplayableManagerHelper::GetPointProjectionWi
 {
   if (!uniqueFiducialID.compare(""))
     {
-    return 0;
+    return nullptr;
     }
 
   // Make sure the map contains a vtkWidget associated with this uniqueFiducialID
   WidgetPointProjectionsIt it = this->WidgetPointProjections.find(uniqueFiducialID);
   if (it == this->WidgetPointProjections.end())
     {
-    return 0;
+    return nullptr;
     }
 
   return it->second;
@@ -381,8 +381,8 @@ void vtkMRMLMarkupsDisplayableManagerHelper::RemoveWidgetAndNode(
   // so turn it around and iterate through all the markups in all the lists,
   // then delete the widget point projections for those that don't match up to
   // points in the scene
-  vtkCollection *col = NULL;
-  if (node->GetScene() != NULL)
+  vtkCollection *col = nullptr;
+  if (node->GetScene() != nullptr)
     {
     col = node->GetScene()->GetNodesByClass("vtkMRMLMarkupsNode");
     }
@@ -544,7 +544,7 @@ void vtkMRMLMarkupsDisplayableManagerHelper::RemoveSeeds()
     {
     this->SeedWidget->Off();
     this->SeedWidget->Delete();
-    this->SeedWidget = 0;
+    this->SeedWidget = nullptr;
     }
 }
 
@@ -553,7 +553,7 @@ vtkHandleWidget * vtkMRMLMarkupsDisplayableManagerHelper::GetSeed(int index)
 {
   if (this->HandleWidgetList.empty())
     {
-    return 0;
+    return nullptr;
     }
 
   return this->HandleWidgetList[index];
@@ -566,7 +566,7 @@ vtkMRMLMarkupsNode * vtkMRMLMarkupsDisplayableManagerHelper::GetMarkupsNodeFromD
       !displayNode->GetID())
     {
     vtkErrorMacro("GetMarkupsNodeFromDisplayNode: display node or it's id is null");
-    return NULL;
+    return nullptr;
     }
   // iterate through the node list
   for (unsigned int i = 0; i < this->MarkupsNodeList.size(); i++)
@@ -587,7 +587,7 @@ vtkMRMLMarkupsNode * vtkMRMLMarkupsDisplayableManagerHelper::GetMarkupsNodeFromD
       }
     }
   vtkDebugMacro("GetMarkupsNodeFromDisplayNode: unable to find markups node that has display node " << (displayNode->GetID() ? displayNode->GetID() : "null"));
-  return NULL;
+  return nullptr;
 }
 
 //---------------------------------------------------------------------------

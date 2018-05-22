@@ -109,7 +109,7 @@ bool qSlicerSegmentationsReader::load(const IOProperties& properties)
   QString fileName = properties["fileName"].toString();
 
   this->setLoadedNodes(QStringList());
-  if (d->SegmentationsLogic.GetPointer() == 0)
+  if (d->SegmentationsLogic.GetPointer() == nullptr)
     {
     return false;
     }

@@ -66,10 +66,10 @@ qMRMLTableViewControllerWidgetPrivate::qMRMLTableViewControllerWidgetPrivate(
 {
   this->TableNode = 0;
   this->TableViewNode = 0;
-  this->TableView = 0;
-  this->CopyAction = 0;
-  this->PasteAction = 0;
-  this->PlotAction = 0;
+  this->TableView = nullptr;
+  this->CopyAction = nullptr;
+  this->PasteAction = nullptr;
+  this->PlotAction = nullptr;
 }
 
 //---------------------------------------------------------------------------
@@ -135,7 +135,7 @@ void qMRMLTableViewControllerWidgetPrivate::setupPopupUi()
   QObject::connect(q, SIGNAL(mrmlSceneChanged(vtkMRMLScene*)),
                    this->tableComboBox, SLOT(setMRMLScene(vtkMRMLScene*)));
 
-  onTableNodeSelected(NULL);
+  onTableNodeSelected(nullptr);
 }
 
 //---------------------------------------------------------------------------
@@ -298,7 +298,7 @@ qMRMLTableViewControllerWidget::qMRMLTableViewControllerWidget(QWidget* parentWi
 // --------------------------------------------------------------------------
 qMRMLTableViewControllerWidget::~qMRMLTableViewControllerWidget()
 {
-  this->setMRMLScene(0);
+  this->setMRMLScene(nullptr);
 }
 
 // --------------------------------------------------------------------------
@@ -357,8 +357,8 @@ void qMRMLTableViewControllerWidget::updateWidgetFromMRML()
   // TableNode selector
   d->tableComboBox->setCurrentNodeID(tableNode ? tableNode->GetID() : NULL);
 
-  bool validNode = tableNode != 0;
-  bool editableNode = tableNode != 0 && !tableNode->GetLocked();
+  bool validNode = tableNode != nullptr;
+  bool editableNode = tableNode != nullptr && !tableNode->GetLocked();
 
   d->LockTableButton->setEnabled(validNode);
   d->CopyButton->setEnabled(validNode);

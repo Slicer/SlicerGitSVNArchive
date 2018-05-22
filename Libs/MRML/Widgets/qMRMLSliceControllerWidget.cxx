@@ -64,11 +64,11 @@ qMRMLSliceControllerWidgetPrivate::qMRMLSliceControllerWidgetPrivate(qMRMLSliceC
   : Superclass(object)
 {
   this->SliceLogic = 0;
-  this->MRMLSliceNode = 0;
-  this->MRMLSliceCompositeNode = 0;
-  this->SliceLogics = 0;
+  this->MRMLSliceNode = nullptr;
+  this->MRMLSliceCompositeNode = nullptr;
+  this->SliceLogics = nullptr;
 
-  this->ControllerButtonGroup = 0;
+  this->ControllerButtonGroup = nullptr;
 
   qMRMLOrientation axialOrientation = {qMRMLSliceControllerWidget::tr("S: "), qMRMLSliceControllerWidget::tr("I <-----> S")};
   qMRMLOrientation sagittalOrientation = {qMRMLSliceControllerWidget::tr("R: "), qMRMLSliceControllerWidget::tr("L <-----> R")};
@@ -84,31 +84,31 @@ qMRMLSliceControllerWidgetPrivate::qMRMLSliceControllerWidgetPrivate(qMRMLSliceC
   this->LastForegroundOpacity = 1.;
   this->LastBackgroundOpacity = 1.;
 
-  this->FitToWindowToolButton = 0;
-  this->SliceOffsetSlider = 0;
+  this->FitToWindowToolButton = nullptr;
+  this->SliceOffsetSlider = nullptr;
 
-  this->LightboxMenu = 0;
-  this->CompositingMenu = 0;
-  this->SliceSpacingMenu = 0;
-  this->SliceModelMenu = 0;
-  this->SegmentationMenu = 0;
-  this->LabelMapMenu = 0;
-  this->OrientationMarkerMenu = 0;
-  this->RulerMenu = 0;
+  this->LightboxMenu = nullptr;
+  this->CompositingMenu = nullptr;
+  this->SliceSpacingMenu = nullptr;
+  this->SliceModelMenu = nullptr;
+  this->SegmentationMenu = nullptr;
+  this->LabelMapMenu = nullptr;
+  this->OrientationMarkerMenu = nullptr;
+  this->RulerMenu = nullptr;
 
-  this->SliceSpacingSpinBox = 0;
-  this->SliceFOVSpinBox = 0;
-  this->LightBoxRowsSpinBox = 0;
-  this->LightBoxColumnsSpinBox = 0;
+  this->SliceSpacingSpinBox = nullptr;
+  this->SliceFOVSpinBox = nullptr;
+  this->LightBoxRowsSpinBox = nullptr;
+  this->LightBoxColumnsSpinBox = nullptr;
 
-  this->SliceModelFOVXSpinBox = 0;
-  this->SliceModelFOVYSpinBox = 0;
+  this->SliceModelFOVXSpinBox = nullptr;
+  this->SliceModelFOVYSpinBox = nullptr;
 
-  this->SliceModelOriginXSpinBox = 0;
-  this->SliceModelOriginYSpinBox = 0;
+  this->SliceModelOriginXSpinBox = nullptr;
+  this->SliceModelOriginYSpinBox = nullptr;
 
-  this->SliceModelDimensionXSpinBox = 0;
-  this->SliceModelDimensionYSpinBox = 0;
+  this->SliceModelDimensionXSpinBox = nullptr;
+  this->SliceModelDimensionYSpinBox = nullptr;
 
 }
 
@@ -738,7 +738,7 @@ void qMRMLSliceControllerWidgetPrivate::setMRMLSliceNodeInternal(vtkMRMLSliceNod
   this->updateWidgetFromMRMLSliceNode();
 
   // Enable/disable widget
-  q->setDisabled(newSliceNode == 0);
+  q->setDisabled(newSliceNode == nullptr);
 }
 
 // --------------------------------------------------------------------------
@@ -781,11 +781,11 @@ vtkSmartPointer<vtkCollection> qMRMLSliceControllerWidgetPrivate::saveNodesForUn
 void qMRMLSliceControllerWidgetPrivate::enableLayerWidgets()
 {
   bool hasBackground = this->MRMLSliceCompositeNode ?
-    this->MRMLSliceCompositeNode->GetBackgroundVolumeID() != 0 : false;
+    this->MRMLSliceCompositeNode->GetBackgroundVolumeID() != nullptr : false;
   bool hasForeground = this->MRMLSliceCompositeNode ?
-    this->MRMLSliceCompositeNode->GetForegroundVolumeID() != 0 : false;
+    this->MRMLSliceCompositeNode->GetForegroundVolumeID() != nullptr : false;
   bool hasLabelMap = this->MRMLSliceCompositeNode ?
-    this->MRMLSliceCompositeNode->GetLabelVolumeID() != 0 : false;
+    this->MRMLSliceCompositeNode->GetLabelVolumeID() != nullptr : false;
 
   int volumeCount = 0;
   volumeCount += hasBackground ? 1 : 0;
@@ -1084,7 +1084,7 @@ void qMRMLSliceControllerWidgetPrivate::onForegroundLayerNodeSelected(vtkMRMLNod
     }
 
   this->SliceLogic->StartSliceCompositeNodeInteraction(vtkMRMLSliceCompositeNode::ForegroundVolumeFlag);
-  this->MRMLSliceCompositeNode->SetForegroundVolumeID(node ? node->GetID() : 0);
+  this->MRMLSliceCompositeNode->SetForegroundVolumeID(node ? node->GetID() : nullptr);
   this->SliceLogic->EndSliceCompositeNodeInteraction();
 
   this->enableLayerWidgets();
@@ -1104,7 +1104,7 @@ void qMRMLSliceControllerWidgetPrivate::onBackgroundLayerNodeSelected(vtkMRMLNod
     }
 
   this->SliceLogic->StartSliceCompositeNodeInteraction(vtkMRMLSliceCompositeNode::BackgroundVolumeFlag);
-  this->MRMLSliceCompositeNode->SetBackgroundVolumeID(node ? node->GetID() : 0);
+  this->MRMLSliceCompositeNode->SetBackgroundVolumeID(node ? node->GetID() : nullptr);
   this->SliceLogic->EndSliceCompositeNodeInteraction();
 
   this->enableLayerWidgets();
@@ -1229,7 +1229,7 @@ void qMRMLSliceControllerWidgetPrivate::onLabelMapNodeSelected(vtkMRMLNode * nod
     }
 
   this->SliceLogic->StartSliceCompositeNodeInteraction(vtkMRMLSliceCompositeNode::LabelVolumeFlag);
-  this->MRMLSliceCompositeNode->SetLabelVolumeID(node ? node->GetID() : 0);
+  this->MRMLSliceCompositeNode->SetLabelVolumeID(node ? node->GetID() : nullptr);
   this->SliceLogic->EndSliceCompositeNodeInteraction();
 
   this->enableLayerWidgets();
@@ -1335,9 +1335,9 @@ vtkMRMLSliceLogic* qMRMLSliceControllerWidgetPrivate::compositeNodeLogic(vtkMRML
 {
   if (!this->SliceLogics)
     {
-    return 0;
+    return nullptr;
     }
-  vtkMRMLSliceLogic* logic = 0;
+  vtkMRMLSliceLogic* logic = nullptr;
   vtkCollectionSimpleIterator it;
   for (this->SliceLogics->InitTraversal(it);(logic = static_cast<vtkMRMLSliceLogic*>(
                                                this->SliceLogics->GetNextItemAsObject(it)));)
@@ -1347,7 +1347,7 @@ vtkMRMLSliceLogic* qMRMLSliceControllerWidgetPrivate::compositeNodeLogic(vtkMRML
       return logic;
       }
     }
-  return 0;
+  return nullptr;
 }
 
 //---------------------------------------------------------------------------
@@ -1355,9 +1355,9 @@ vtkMRMLSliceLogic* qMRMLSliceControllerWidgetPrivate::sliceNodeLogic(vtkMRMLSlic
 {
   if (!this->SliceLogics)
     {
-    return 0;
+    return nullptr;
     }
-  vtkMRMLSliceLogic* logic = 0;
+  vtkMRMLSliceLogic* logic = nullptr;
   vtkCollectionSimpleIterator it;
   for (this->SliceLogics->InitTraversal(it);(logic = static_cast<vtkMRMLSliceLogic*>(
                                                this->SliceLogics->GetNextItemAsObject(it)));)
@@ -1367,7 +1367,7 @@ vtkMRMLSliceLogic* qMRMLSliceControllerWidgetPrivate::sliceNodeLogic(vtkMRMLSlic
       return logic;
       }
     }
-  return 0;
+  return nullptr;
 }
 
 
@@ -1441,7 +1441,7 @@ vtkMRMLSegmentationDisplayNode* qMRMLSliceControllerWidgetPrivate::currentSegmen
     this->SegmentSelectorWidget->currentNode() );
   if (!segmentationNode)
     {
-    return NULL;
+    return nullptr;
     }
   return vtkMRMLSegmentationDisplayNode::SafeDownCast(segmentationNode->GetDisplayNode());
 }
@@ -2003,12 +2003,12 @@ bool qMRMLSliceControllerWidget::isCompareView()const
 void qMRMLSliceControllerWidget::setSliceLink(bool linked)
 {
   vtkCollection* sliceCompositeNodes = this->mrmlScene() ?
-    this->mrmlScene()->GetNodesByClass("vtkMRMLSliceCompositeNode") : 0;
+    this->mrmlScene()->GetNodesByClass("vtkMRMLSliceCompositeNode") : nullptr;
   if (!sliceCompositeNodes)
     {
     return;
     }
-  vtkMRMLSliceCompositeNode* sliceCompositeNode = 0;
+  vtkMRMLSliceCompositeNode* sliceCompositeNode = nullptr;
   for(sliceCompositeNodes->InitTraversal();
       (sliceCompositeNode = vtkMRMLSliceCompositeNode::SafeDownCast(
         sliceCompositeNodes->GetNextItemAsObject()));)
@@ -2022,12 +2022,12 @@ void qMRMLSliceControllerWidget::setSliceLink(bool linked)
 void qMRMLSliceControllerWidget::setHotLinked(bool linked)
 {
   vtkCollection* sliceCompositeNodes = this->mrmlScene() ?
-    this->mrmlScene()->GetNodesByClass("vtkMRMLSliceCompositeNode") : 0;
+    this->mrmlScene()->GetNodesByClass("vtkMRMLSliceCompositeNode") : nullptr;
   if (!sliceCompositeNodes)
     {
     return;
     }
-  vtkMRMLSliceCompositeNode* sliceCompositeNode = 0;
+  vtkMRMLSliceCompositeNode* sliceCompositeNode = nullptr;
   for(sliceCompositeNodes->InitTraversal();
       (sliceCompositeNode = vtkMRMLSliceCompositeNode::SafeDownCast(
         sliceCompositeNodes->GetNextItemAsObject()));)
@@ -2078,7 +2078,7 @@ void qMRMLSliceControllerWidget::rotateSliceToBackground()
     {
     return;
     }
-  vtkMRMLSliceNode* node = 0;
+  vtkMRMLSliceNode* node = nullptr;
   vtkCollectionSimpleIterator it;
   for (nodes->InitTraversal(it);(node = static_cast<vtkMRMLSliceNode*>(
                                    nodes->GetNextItemAsObject(it)));)
@@ -2268,7 +2268,7 @@ void qMRMLSliceControllerWidget::showReformatWidget(bool show)
     {
     return;
     }
-  vtkMRMLSliceNode* node = 0;
+  vtkMRMLSliceNode* node = nullptr;
   vtkCollectionSimpleIterator it;
 
   for (nodes->InitTraversal(it);(node = static_cast<vtkMRMLSliceNode*>(
@@ -2297,7 +2297,7 @@ void qMRMLSliceControllerWidget::lockReformatWidgetToCamera(bool lock)
     {
     return;
     }
-  vtkMRMLSliceNode* node = 0;
+  vtkMRMLSliceNode* node = nullptr;
   vtkCollectionSimpleIterator it;
   for (nodes->InitTraversal(it);(node = static_cast<vtkMRMLSliceNode*>(
                                    nodes->GetNextItemAsObject(it)));)
@@ -2318,7 +2318,7 @@ void qMRMLSliceControllerWidget::setCompositing(int mode)
     {
     return;
     }
-  vtkMRMLSliceCompositeNode* node = 0;
+  vtkMRMLSliceCompositeNode* node = nullptr;
   vtkCollectionSimpleIterator it;
   for (nodes->InitTraversal(it);(node = static_cast<vtkMRMLSliceCompositeNode*>(
                                    nodes->GetNextItemAsObject(it)));)
@@ -2409,7 +2409,7 @@ void qMRMLSliceControllerWidget::setSliceFOV(double fov)
     d->SliceLogic->FitFOVToBackground(fov);
     return;
     }
-  vtkMRMLSliceLogic* sliceLogic = 0;
+  vtkMRMLSliceLogic* sliceLogic = nullptr;
   vtkCollectionSimpleIterator it;
   for (d->SliceLogics->InitTraversal(it);
        (sliceLogic = static_cast<vtkMRMLSliceLogic*>(
@@ -2571,7 +2571,7 @@ void qMRMLSliceControllerWidget::setLightbox(int rows, int columns)
     {
     return;
     }
-  vtkMRMLSliceNode* node = 0;
+  vtkMRMLSliceNode* node = nullptr;
   vtkCollectionSimpleIterator it;
   for (nodes->InitTraversal(it);(node = static_cast<vtkMRMLSliceNode*>(
                                    nodes->GetNextItemAsObject(it)));)
@@ -2656,7 +2656,7 @@ void qMRMLSliceControllerWidget::setForegroundInterpolation(bool linear)
     d->setForegroundInterpolation(d->SliceLogic, linear);
     return;
     }
-  vtkMRMLSliceLogic* sliceLogic = 0;
+  vtkMRMLSliceLogic* sliceLogic = nullptr;
   vtkCollectionSimpleIterator it;
   for (d->SliceLogics->InitTraversal(it);(sliceLogic = static_cast<vtkMRMLSliceLogic*>(
                                    d->SliceLogics->GetNextItemAsObject(it)));)
@@ -2677,7 +2677,7 @@ void qMRMLSliceControllerWidget::setBackgroundInterpolation(bool linear)
     d->setBackgroundInterpolation(d->SliceLogic, linear);
     return;
     }
-  vtkMRMLSliceLogic* sliceLogic = 0;
+  vtkMRMLSliceLogic* sliceLogic = nullptr;
   vtkCollectionSimpleIterator it;
   for (d->SliceLogics->InitTraversal(it);(sliceLogic = static_cast<vtkMRMLSliceLogic*>(
                                    d->SliceLogics->GetNextItemAsObject(it)));)
@@ -2698,7 +2698,7 @@ void qMRMLSliceControllerWidget::setOrientationMarkerType(int newOrientationMark
     {
     return;
     }
-  vtkMRMLSliceNode* node = 0;
+  vtkMRMLSliceNode* node = nullptr;
   vtkCollectionSimpleIterator it;
   for (nodes->InitTraversal(it);(node = static_cast<vtkMRMLSliceNode*>(nodes->GetNextItemAsObject(it)));)
     {
@@ -2718,7 +2718,7 @@ void qMRMLSliceControllerWidget::setOrientationMarkerSize(int newOrientationMark
     {
     return;
     }
-  vtkMRMLSliceNode* node = 0;
+  vtkMRMLSliceNode* node = nullptr;
   vtkCollectionSimpleIterator it;
   for (nodes->InitTraversal(it);(node = static_cast<vtkMRMLSliceNode*>(nodes->GetNextItemAsObject(it)));)
     {
@@ -2738,7 +2738,7 @@ void qMRMLSliceControllerWidget::setRulerType(int newRulerType)
     {
     return;
     }
-  vtkMRMLSliceNode* node = 0;
+  vtkMRMLSliceNode* node = nullptr;
   vtkCollectionSimpleIterator it;
   for (nodes->InitTraversal(it);(node = static_cast<vtkMRMLSliceNode*>(nodes->GetNextItemAsObject(it)));)
     {
@@ -2764,7 +2764,7 @@ void qMRMLSliceControllerWidget::updateSegmentationControlsVisibility()
   // If there are any segmentation nodes in the scene and selection is None, then select the first one
   if (!d->SegmentSelectorWidget->currentNode())
     {
-    vtkMRMLNode* firstSegmentationNode = this->mrmlScene()->GetFirstNode(0, "vtkMRMLSegmentationNode");
+    vtkMRMLNode* firstSegmentationNode = this->mrmlScene()->GetFirstNode(nullptr, "vtkMRMLSegmentationNode");
     if (firstSegmentationNode)
       {
       d->SegmentSelectorWidget->setCurrentNode(firstSegmentationNode);

@@ -22,7 +22,7 @@ vtkPichonFastMarchingPDF::vtkPichonFastMarchingPDF( int _realizationMax )
 
   bins = new int [realizationMax+1];
   //  assert( bins!=NULL );
-  if(!(bins!=NULL))
+  if(!(bins!=nullptr))
     {
       vtkErrorMacro("Error in vtkFastMarching, vtkPichonFastMarchingPDF::vtkPichonFastMarchingPDF(...), not enough memory for allocation of 'bins'");
       return;
@@ -30,7 +30,7 @@ vtkPichonFastMarchingPDF::vtkPichonFastMarchingPDF( int _realizationMax )
 
   smoothedBins = new double [realizationMax+1];
   //  assert( smoothedBins!=NULL );
-  if(!(smoothedBins!=NULL))
+  if(!(smoothedBins!=nullptr))
     {
       vtkErrorMacro("Error in vtkFastMarching, vtkPichonFastMarchingPDF::vtkPichonFastMarchingPDF(...), not enough memory for allocation of 'smoothedBins'");
       return;
@@ -38,7 +38,7 @@ vtkPichonFastMarchingPDF::vtkPichonFastMarchingPDF( int _realizationMax )
 
   coefGauss = new double[realizationMax+1];
   //  assert( coefGauss!=NULL );
-  if(!(bins!=NULL))
+  if(!(bins!=nullptr))
     {
       vtkErrorMacro("Error in vtkFastMarching, vtkPichonFastMarchingPDF::vtkPichonFastMarchingPDF(...), not enough memory for allocation of 'bins'");
       return;

@@ -46,7 +46,7 @@ class Q_SLICER_QTMODULES_VIEWCONTROLLERS_EXPORT qSlicerViewControllersModule
 public:
 
   typedef qSlicerLoadableModule Superclass;
-  qSlicerViewControllersModule(QObject *parent=0);
+  qSlicerViewControllersModule(QObject *parent=nullptr);
   virtual ~qSlicerViewControllersModule();
 
   qSlicerGetTitleMacro(QTMODULE_TITLE);

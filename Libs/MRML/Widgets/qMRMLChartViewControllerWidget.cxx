@@ -60,7 +60,7 @@ qMRMLChartViewControllerWidgetPrivate::qMRMLChartViewControllerWidgetPrivate(
   : Superclass(object)
 {
   this->ChartViewNode = 0;
-  this->ChartView = 0;
+  this->ChartView = nullptr;
 }
 
 //---------------------------------------------------------------------------
@@ -156,7 +156,7 @@ vtkMRMLChartNode* qMRMLChartViewControllerWidgetPrivate::chartNode()
   if (!this->ChartViewNode || !q->mrmlScene())
     {
     // qDebug() << "No ChartViewNode or no Scene";
-    return 0;
+    return nullptr;
     }
 
   // Get the current chart node
@@ -274,7 +274,7 @@ qMRMLChartViewControllerWidget::qMRMLChartViewControllerWidget(QWidget* parentWi
 // --------------------------------------------------------------------------
 qMRMLChartViewControllerWidget::~qMRMLChartViewControllerWidget()
 {
-  this->setMRMLScene(0);
+  this->setMRMLScene(nullptr);
 }
 
 // --------------------------------------------------------------------------

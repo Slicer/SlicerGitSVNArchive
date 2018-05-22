@@ -59,7 +59,7 @@ public:
 qSlicerColorsModulePrivate::qSlicerColorsModulePrivate()
 {
   this->ColorDialogPickerWidget =
-    QSharedPointer<qMRMLColorPickerWidget>(new qMRMLColorPickerWidget(0));
+    QSharedPointer<qMRMLColorPickerWidget>(new qMRMLColorPickerWidget(nullptr));
 }
 
 //-----------------------------------------------------------------------------
@@ -96,7 +96,7 @@ void qSlicerColorsModule::setup()
     return;
     }
   vtkSlicerColorLogic* colorLogic = vtkSlicerColorLogic::SafeDownCast(this->logic());
-  if (this->appLogic() != 0)
+  if (this->appLogic() != nullptr)
     {
     this->appLogic()->SetColorLogic(colorLogic);
     }

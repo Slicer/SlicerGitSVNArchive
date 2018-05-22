@@ -83,7 +83,7 @@ vtkMRMLMarkupsDisplayableManager2D::vtkMRMLMarkupsDisplayableManager2D()
 
   // by default, this displayableManager handles a 2d view, so the SliceNode
   // must be set when it's assigned to a viewer
-  this->SliceNode = 0;
+  this->SliceNode = nullptr;
 
   // by default, multiply the display node scale by this when setting scale on elements in 2d windows
   this->ScaleFactor2D = 0.01667;
@@ -100,12 +100,12 @@ vtkMRMLMarkupsDisplayableManager2D::~vtkMRMLMarkupsDisplayableManager2D()
 
   this->DisableInteractorStyleEventsProcessing = 0;
   this->Updating = 0;
-  this->Focus = 0;
+  this->Focus = nullptr;
 
   this->Helper->Delete();
   this->ClickCounter->Delete();
 
-  this->SliceNode = 0;
+  this->SliceNode = nullptr;
 }
 
 //---------------------------------------------------------------------------
@@ -237,7 +237,7 @@ void vtkMRMLMarkupsDisplayableManager2D::RemoveMRMLObservers()
 void vtkMRMLMarkupsDisplayableManager2D::UpdateFromMRML()
 {
   // this gets called from RequestRender, so make sure to jump out quickly if possible
-  if (this->GetMRMLScene() == NULL || this->Focus == NULL)
+  if (this->GetMRMLScene() == nullptr || this->Focus == nullptr)
     {
     return;
     }
@@ -263,7 +263,7 @@ void vtkMRMLMarkupsDisplayableManager2D::UpdateFromMRML()
     if (markupsNode)
       {
       // do we  have a widget for it?
-      if (this->GetWidget(markupsNode) == NULL)
+      if (this->GetWidget(markupsNode) == nullptr)
         {
         vtkDebugMacro("UpdateFromMRML: creating a widget for node " << markupsNode->GetID());
         vtkAbstractWidget *widget = this->AddWidget(markupsNode);
@@ -312,9 +312,9 @@ void vtkMRMLMarkupsDisplayableManager2D
   vtkMRMLMarkupsNode * markupsNode = vtkMRMLMarkupsNode::SafeDownCast(caller);
   vtkMRMLMarkupsDisplayNode *displayNode = vtkMRMLMarkupsDisplayNode::SafeDownCast(caller);
   vtkMRMLInteractionNode * interactionNode = vtkMRMLInteractionNode::SafeDownCast(caller);
-  int *nPtr = NULL;
+  int *nPtr = nullptr;
   int n = -1;
-  if (callData != 0)
+  if (callData != nullptr)
     {
     nPtr = reinterpret_cast<int *>(callData);
     if (nPtr)
@@ -465,7 +465,7 @@ void vtkMRMLMarkupsDisplayableManager2D::OnMRMLSceneNodeAdded(vtkMRMLNode* node)
     }
 
   // There should not be a widget for the new node
-  if (this->Helper->GetWidget(markupsNode) != 0)
+  if (this->Helper->GetWidget(markupsNode) != nullptr)
     {
     vtkErrorMacro("OnMRMLSceneNodeAddedEvent: A widget is already associated to this node!");
     return;
@@ -937,7 +937,7 @@ bool vtkMRMLMarkupsDisplayableManager2D::IsWidgetDisplayableOnSlice(vtkMRMLMarku
         // default to spacing 1.0 in case can't get volume slice spacing from
         // the logic as that will be a multiplicative no-op
         double spacing = 1.0;
-        vtkMRMLSliceLogic *sliceLogic = NULL;
+        vtkMRMLSliceLogic *sliceLogic = nullptr;
         vtkMRMLApplicationLogic *mrmlAppLogic = this->GetMRMLApplicationLogic();
         if (mrmlAppLogic)
           {
@@ -946,7 +946,7 @@ bool vtkMRMLMarkupsDisplayableManager2D::IsWidgetDisplayableOnSlice(vtkMRMLMarku
         if (sliceLogic)
           {
           double *volumeSliceSpacing = sliceLogic->GetLowestVolumeSliceSpacing();
-          if (volumeSliceSpacing != NULL)
+          if (volumeSliceSpacing != nullptr)
             {
             vtkDebugMacro("Slice node " << sliceNode->GetName()
                           << ": volumeSliceSpacing = "
@@ -1102,14 +1102,14 @@ void vtkMRMLMarkupsDisplayableManager2D::OnClickInRenderWindowGetCoordinates()
 
   if (x < windowWidth && y < windowHeight)
     {
-    const char *associatedNodeID = NULL;
+    const char *associatedNodeID = nullptr;
     // is there a volume in the background?
     if (this->GetMRMLSliceNode())
       {
       // find the slice composite node in the scene with the matching layout
       // name
-      vtkMRMLSliceLogic *sliceLogic = NULL;
-      vtkMRMLSliceCompositeNode* sliceCompositeNode = NULL;
+      vtkMRMLSliceLogic *sliceLogic = nullptr;
+      vtkMRMLSliceCompositeNode* sliceCompositeNode = nullptr;
       vtkMRMLApplicationLogic *mrmlAppLogic = this->GetMRMLApplicationLogic();
       if (mrmlAppLogic)
         {
@@ -1222,14 +1222,14 @@ void vtkMRMLMarkupsDisplayableManager2D::GetWorldToDisplayCoordinates(double r, 
   worldCoordinates[3] = 1;
 
   rasToXyMatrix->MultiplyPoint(worldCoordinates,displayCoordinates);
-  xyToRasMatrix = NULL;
+  xyToRasMatrix = nullptr;
 }
 
 //---------------------------------------------------------------------------
 /// Convert world to display coordinates
 void vtkMRMLMarkupsDisplayableManager2D::GetWorldToDisplayCoordinates(double * worldCoordinates, double * displayCoordinates)
 {
-  if (worldCoordinates == NULL)
+  if (worldCoordinates == nullptr)
     {
     return;
     }
@@ -1242,7 +1242,7 @@ void vtkMRMLMarkupsDisplayableManager2D::GetWorldToDisplayCoordinates(double * w
 void vtkMRMLMarkupsDisplayableManager2D::GetDisplayToViewportCoordinates(double x, double y, double * viewportCoordinates)
 {
 
-  if (viewportCoordinates == NULL)
+  if (viewportCoordinates == nullptr)
     {
     return;
     }
@@ -1385,12 +1385,12 @@ bool vtkMRMLMarkupsDisplayableManager2D::IsCorrectDisplayableManager()
 {
 
   vtkMRMLSelectionNode *selectionNode = this->GetMRMLApplicationLogic()->GetSelectionNode();
-  if ( selectionNode == 0 )
+  if ( selectionNode == nullptr )
     {
     vtkErrorMacro ( "IsCorrectDisplayableManager: No selection node in the scene." );
     return false;
     }
-  if ( selectionNode->GetActivePlaceNodeClassName() == 0)
+  if ( selectionNode->GetActivePlaceNodeClassName() == nullptr)
     {
     //vtkErrorMacro ( "IsCorrectDisplayableManager: no active markups");
     return false;
@@ -1429,7 +1429,7 @@ vtkAbstractWidget* vtkMRMLMarkupsDisplayableManager2D::CreateWidget(vtkMRMLMarku
 
   // A widget should be created here.
   vtkErrorMacro("CreateWidget should be overloaded!");
-  return 0;
+  return nullptr;
 }
 
 //---------------------------------------------------------------------------
@@ -1462,7 +1462,7 @@ void vtkMRMLMarkupsDisplayableManager2D::GetWorldToLocalCoordinates(vtkMRMLMarku
                                                                      double *worldCoordinates,
                                                                      double *localCoordinates)
 {
-  if (node == NULL)
+  if (node == nullptr)
     {
     vtkErrorMacro("GetWorldToLocalCoordinates: node is null");
     return;
@@ -1477,11 +1477,11 @@ void vtkMRMLMarkupsDisplayableManager2D::GetWorldToLocalCoordinates(vtkMRMLMarku
 
   vtkGeneralTransform *transformToWorld = vtkGeneralTransform::New();
   transformToWorld->Identity();
-  if (tnode != 0 && !tnode->IsTransformToWorldLinear())
+  if (tnode != nullptr && !tnode->IsTransformToWorldLinear())
     {
     tnode->GetTransformFromWorld(transformToWorld);
     }
-  else if (tnode != NULL && tnode->IsTransformToWorldLinear())
+  else if (tnode != nullptr && tnode->IsTransformToWorldLinear())
     {
     vtkNew<vtkMatrix4x4> matrixTransformToWorld;
     matrixTransformToWorld->Identity();
@@ -1513,7 +1513,7 @@ vtkAbstractWidget * vtkMRMLMarkupsDisplayableManager2D::AddWidget(vtkMRMLMarkups
   if (!newWidget)
     {
     vtkErrorMacro("AddWidget: unable to create a new widget for markups node " << markupsNode->GetID());
-    return NULL;
+    return nullptr;
     }
 
   // record the mapping between node and widget in the helper

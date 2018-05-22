@@ -117,7 +117,7 @@ void qSlicerLabelMapVolumeDisplayWidget::setMRMLVolumeNode(vtkMRMLScalarVolumeNo
                 vtkCommand::ModifiedEvent,
                 this, SLOT(updateWidgetFromMRML()));
   d->VolumeNode = volumeNode;
-  this->setEnabled(volumeNode != 0);
+  this->setEnabled(volumeNode != nullptr);
   this->updateWidgetFromMRML();
 }
 

@@ -147,7 +147,7 @@ void qSlicerUnitsModule::setup()
 qSlicerAbstractModuleRepresentation * qSlicerUnitsModule
 ::createWidgetRepresentation()
 {
-  return 0;
+  return nullptr;
 }
 
 //-----------------------------------------------------------------------------

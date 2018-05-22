@@ -118,22 +118,22 @@ public:
 //------------------------------------------------------------------------------
 qMRMLSubjectHierarchyTreeViewPrivate::qMRMLSubjectHierarchyTreeViewPrivate(qMRMLSubjectHierarchyTreeView& object)
   : q_ptr(&object)
-  , Model(NULL)
-  , SortFilterModel(NULL)
+  , Model(nullptr)
+  , SortFilterModel(nullptr)
   , ShowRootItem(false)
   , RootItemID(vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
   , ContextMenuEnabled(true)
   , EditActionVisible(true)
-  , RenameAction(NULL)
-  , DeleteAction(NULL)
-  , EditAction(NULL)
-  , SelectPluginSubMenu(NULL)
-  , SelectPluginActionGroup(NULL)
-  , ExpandToDepthAction(NULL)
-  , SceneMenu(NULL)
-  , VisibilityMenu(NULL)
-  , TransformItemDelegate(NULL)
-  , SubjectHierarchyNode(NULL)
+  , RenameAction(nullptr)
+  , DeleteAction(nullptr)
+  , EditAction(nullptr)
+  , SelectPluginSubMenu(nullptr)
+  , SelectPluginActionGroup(nullptr)
+  , ExpandToDepthAction(nullptr)
+  , SceneMenu(nullptr)
+  , VisibilityMenu(nullptr)
+  , TransformItemDelegate(nullptr)
+  , SubjectHierarchyNode(nullptr)
   , HighlightReferencedItems(true)
 {
 }
@@ -316,8 +316,8 @@ void qMRMLSubjectHierarchyTreeView::setSubjectHierarchyNode(vtkMRMLSubjectHierar
 
   if (!shNode)
     {
-    d->Model->setMRMLScene(NULL);
-    d->TransformItemDelegate->setMRMLScene(NULL);
+    d->Model->setMRMLScene(nullptr);
+    d->TransformItemDelegate->setMRMLScene(nullptr);
     return;
     }
 
@@ -344,7 +344,7 @@ vtkMRMLSubjectHierarchyNode* qMRMLSubjectHierarchyTreeView::subjectHierarchyNode
 vtkMRMLScene* qMRMLSubjectHierarchyTreeView::mrmlScene()const
 {
   Q_D(const qMRMLSubjectHierarchyTreeView);
-  return d->Model ? d->Model->mrmlScene() : NULL;
+  return d->Model ? d->Model->mrmlScene() : nullptr;
 }
 
 //------------------------------------------------------------------------------
@@ -1187,7 +1187,7 @@ void qMRMLSubjectHierarchyTreeView::deleteSelectedItems()
       && !qSlicerSubjectHierarchyPluginHandler::instance()->autoDeleteSubjectHierarchyChildren() )
       {
       answer =
-        QMessageBox::question(NULL, tr("Delete subject hierarchy branch?"),
+        QMessageBox::question(nullptr, tr("Delete subject hierarchy branch?"),
         tr("The deleted subject hierarchy item has children. "
             "Do you want to remove those too?\n\n"
             "If you choose yes, the whole branch will be deleted, including all children.\n"

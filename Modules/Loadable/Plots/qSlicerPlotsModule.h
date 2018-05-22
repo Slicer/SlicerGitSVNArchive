@@ -43,7 +43,7 @@ class Q_SLICER_QTMODULES_PLOTS_EXPORT qSlicerPlotsModule :
 public:
 
   typedef qSlicerLoadableModule Superclass;
-  explicit qSlicerPlotsModule(QObject *parent=0);
+  explicit qSlicerPlotsModule(QObject *parent=nullptr);
   virtual ~qSlicerPlotsModule();
 
   qSlicerGetTitleMacro(QTMODULE_TITLE);

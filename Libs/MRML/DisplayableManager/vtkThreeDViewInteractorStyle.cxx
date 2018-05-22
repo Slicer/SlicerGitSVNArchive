@@ -40,10 +40,10 @@ vtkThreeDViewInteractorStyle::vtkThreeDViewInteractorStyle()
 {
   this->MotionFactor = 10.0;
   this->ShiftKeyUsedForPreviousAction = false;
-  this->CameraNode = 0;
+  this->CameraNode = nullptr;
   this->NumberOfPlaces= 0;
   this->NumberOfTransientPlaces = 1;
-  this->ModelDisplayableManager = 0;
+  this->ModelDisplayableManager = nullptr;
   this->CellPicker = vtkSmartPointer<vtkCellPicker>::New();
   this->CellPicker->SetTolerance( .005 );
 }
@@ -51,8 +51,8 @@ vtkThreeDViewInteractorStyle::vtkThreeDViewInteractorStyle()
 //----------------------------------------------------------------------------
 vtkThreeDViewInteractorStyle::~vtkThreeDViewInteractorStyle()
 {
-  this->SetCameraNode(0);
-  this->SetModelDisplayableManager(0);
+  this->SetCameraNode(nullptr);
+  this->SetModelDisplayableManager(nullptr);
   this->NumberOfPlaces = 0;
 }
 
@@ -216,29 +216,29 @@ void vtkThreeDViewInteractorStyle::OnMouseMove()
     case VTKIS_ROTATE:
       this->FindPokedRenderer(x, y);
       this->Rotate();
-      this->InvokeEvent(vtkCommand::InteractionEvent, 0);
+      this->InvokeEvent(vtkCommand::InteractionEvent, nullptr);
       break;
 
     case VTKIS_PAN:
       this->FindPokedRenderer(x, y);
       this->Pan();
-      this->InvokeEvent(vtkCommand::InteractionEvent, 0);
+      this->InvokeEvent(vtkCommand::InteractionEvent, nullptr);
       break;
 
     case VTKIS_DOLLY:
       this->FindPokedRenderer(x, y);
       this->Dolly();
-      this->InvokeEvent(vtkCommand::InteractionEvent, 0);
+      this->InvokeEvent(vtkCommand::InteractionEvent, nullptr);
       break;
 
     case VTKIS_SPIN:
       this->FindPokedRenderer(x, y);
       this->Spin();
-      this->InvokeEvent(vtkCommand::InteractionEvent, 0);
+      this->InvokeEvent(vtkCommand::InteractionEvent, nullptr);
       break;
     default:
       if ( (!this->ShiftKeyUsedForPreviousAction) && this->Interactor->GetShiftKey() &&
-           (this->GetCameraNode() != 0) && (this->GetCameraNode()->GetScene() != 0) )
+           (this->GetCameraNode() != nullptr) && (this->GetCameraNode()->GetScene() != nullptr) )
         {
         double pickedRAS[3]={0,0,0};
         bool picked = this->Pick(this->Interactor->GetEventPosition()[0], this->Interactor->GetEventPosition()[1], pickedRAS);
@@ -276,7 +276,7 @@ void vtkThreeDViewInteractorStyle::OnMouseMove()
         }
       else
         {
-        this->InvokeEvent(vtkCommand::MouseMoveEvent, 0);
+        this->InvokeEvent(vtkCommand::MouseMoveEvent, nullptr);
         }
       break;
     }
@@ -290,7 +290,7 @@ void vtkThreeDViewInteractorStyle::OnMouseMove()
 //----------------------------------------------------------------------------
 void vtkThreeDViewInteractorStyle::OnLeave()
 {
-  if (this->GetCameraNode() == NULL || this->GetCameraNode()->GetScene() == NULL)
+  if (this->GetCameraNode() == nullptr || this->GetCameraNode()->GetScene() == nullptr)
     {
     // interactor is not initialized
     return;
@@ -309,7 +309,7 @@ void vtkThreeDViewInteractorStyle::OnLeftButtonDown()
 {
   this->FindPokedRenderer(this->Interactor->GetEventPosition()[0],
                           this->Interactor->GetEventPosition()[1]);
-  if (this->CurrentRenderer == 0)
+  if (this->CurrentRenderer == nullptr)
     {
     vtkDebugMacro("OnLeftButtonDown: couldn't find the poked renderer at event position "
                   << this->Interactor->GetEventPosition()[0] << ", "
@@ -320,15 +320,15 @@ void vtkThreeDViewInteractorStyle::OnLeftButtonDown()
 
   // get the scene's mouse interaction mode
   int mouseInteractionMode = vtkMRMLInteractionNode::ViewTransform;
-  vtkMRMLInteractionNode *interactionNode = 0;
+  vtkMRMLInteractionNode *interactionNode = nullptr;
 
-  if ( this->GetCameraNode() != 0 &&
-       this->GetCameraNode()->GetScene() != 0 )
+  if ( this->GetCameraNode() != nullptr &&
+       this->GetCameraNode()->GetScene() != nullptr )
     {
     interactionNode = vtkMRMLInteractionNode::SafeDownCast(
         this->GetCameraNode()->GetScene()->GetNodeByID("vtkMRMLInteractionNodeSingleton"));
 
-    if (interactionNode != 0)
+    if (interactionNode != nullptr)
       {
       mouseInteractionMode = interactionNode->GetCurrentInteractionMode();
       vtkDebugMacro("OnLeftButtonDown: mouse interaction mode = " << mouseInteractionMode);
@@ -394,15 +394,15 @@ void vtkThreeDViewInteractorStyle::OnLeftButtonUp()
 {
   int mouseInteractionMode = vtkMRMLInteractionNode::ViewTransform;
   int placeModePersistence = 0;
-  vtkMRMLInteractionNode *interactionNode = 0;
+  vtkMRMLInteractionNode *interactionNode = nullptr;
 
-  if ( this->GetCameraNode() != 0 &&
-       this->GetCameraNode()->GetScene() != 0 )
+  if ( this->GetCameraNode() != nullptr &&
+       this->GetCameraNode()->GetScene() != nullptr )
     {
     interactionNode = vtkMRMLInteractionNode::SafeDownCast(
         this->GetCameraNode()->GetScene()->GetNodeByID("vtkMRMLInteractionNodeSingleton"));
 
-    if (interactionNode != 0)
+    if (interactionNode != nullptr)
       {
       mouseInteractionMode = interactionNode->GetCurrentInteractionMode();
       placeModePersistence = interactionNode->GetPlaceModePersistence();
@@ -422,7 +422,7 @@ void vtkThreeDViewInteractorStyle::OnLeftButtonUp()
     //--- the default (transform) if mouse mode
     //--- is transient.
     if ( (this->NumberOfPlaces >= this->NumberOfTransientPlaces ) &&
-         (placeModePersistence == 0 ) && (interactionNode != 0) )
+         (placeModePersistence == 0 ) && (interactionNode != nullptr) )
       {
       interactionNode->NormalizeAllMouseModes();
       interactionNode->SetLastInteractionMode ( mouseInteractionMode );
@@ -461,7 +461,7 @@ void vtkThreeDViewInteractorStyle::OnMiddleButtonDown()
 {
   this->FindPokedRenderer(this->Interactor->GetEventPosition()[0],
                           this->Interactor->GetEventPosition()[1]);
-  if (this->CurrentRenderer == 0)
+  if (this->CurrentRenderer == nullptr)
     {
     return;
     }
@@ -490,7 +490,7 @@ void vtkThreeDViewInteractorStyle::OnRightButtonDown()
 {
   this->FindPokedRenderer(this->Interactor->GetEventPosition()[0],
                           this->Interactor->GetEventPosition()[1]);
-  if (this->CurrentRenderer == 0)
+  if (this->CurrentRenderer == nullptr)
     {
     return;
     }
@@ -519,7 +519,7 @@ void vtkThreeDViewInteractorStyle::OnMouseWheelForward()
 {
   this->FindPokedRenderer(this->Interactor->GetEventPosition()[0],
                           this->Interactor->GetEventPosition()[1]);
-  if (this->CurrentRenderer == 0)
+  if (this->CurrentRenderer == nullptr)
     {
     return;
     }
@@ -538,7 +538,7 @@ void vtkThreeDViewInteractorStyle::OnMouseWheelBackward()
 {
   this->FindPokedRenderer(this->Interactor->GetEventPosition()[0],
                           this->Interactor->GetEventPosition()[1]);
-  if (this->CurrentRenderer == 0)
+  if (this->CurrentRenderer == nullptr)
     {
     return;
     }
@@ -555,7 +555,7 @@ void vtkThreeDViewInteractorStyle::OnMouseWheelBackward()
 //----------------------------------------------------------------------------
 void vtkThreeDViewInteractorStyle::OnExpose()
 {
-  if ( this->GetModelDisplayableManager() != 0 )
+  if ( this->GetModelDisplayableManager() != nullptr )
     {
     this->GetModelDisplayableManager()->RequestRender();
     }
@@ -564,7 +564,7 @@ void vtkThreeDViewInteractorStyle::OnExpose()
 //----------------------------------------------------------------------------
 void vtkThreeDViewInteractorStyle::Rotate()
 {
-  if (this->CurrentRenderer == 0)
+  if (this->CurrentRenderer == nullptr)
     {
     return;
     }
@@ -582,14 +582,14 @@ void vtkThreeDViewInteractorStyle::Rotate()
   double rxf = (double)dx * delta_azimuth * this->MotionFactor;
   double ryf = (double)dy * delta_elevation * this->MotionFactor;
 
-  vtkCamera *camera = 0;
+  vtkCamera *camera = nullptr;
   if (this->CameraNode)
     {
     camera = this->CameraNode->GetCamera();
     }
   else
     {
-    camera = this->CurrentRenderer->IsActiveCameraCreated() ? this->CurrentRenderer->GetActiveCamera() : 0;
+    camera = this->CurrentRenderer->IsActiveCameraCreated() ? this->CurrentRenderer->GetActiveCamera() : nullptr;
     }
 
   if (!camera)
@@ -612,14 +612,14 @@ void vtkThreeDViewInteractorStyle::Rotate()
     }
 
   // release the camera
-  camera = 0;
+  camera = nullptr;
   rwi->Render();
 }
 
 //----------------------------------------------------------------------------
 void vtkThreeDViewInteractorStyle::Spin()
 {
-  if (this->CurrentRenderer == 0)
+  if (this->CurrentRenderer == nullptr)
     {
     return;
     }
@@ -638,14 +638,14 @@ void vtkThreeDViewInteractorStyle::Spin()
 
   newAngle = vtkMath::DegreesFromRadians(newAngle);
   oldAngle = vtkMath::DegreesFromRadians(oldAngle);
-  vtkCamera *camera = 0;
+  vtkCamera *camera = nullptr;
   if (this->CameraNode)
     {
     camera = this->CameraNode->GetCamera();
     }
   else
     {
-    camera = this->CurrentRenderer->IsActiveCameraCreated() ? this->CurrentRenderer->GetActiveCamera() : 0;
+    camera = this->CurrentRenderer->IsActiveCameraCreated() ? this->CurrentRenderer->GetActiveCamera() : nullptr;
     }
 
   if (!camera)
@@ -657,7 +657,7 @@ void vtkThreeDViewInteractorStyle::Spin()
   camera->OrthogonalizeViewUp();
 
   // release the camera
-  camera = 0;
+  camera = nullptr;
 
   rwi->Render();
 }
@@ -665,7 +665,7 @@ void vtkThreeDViewInteractorStyle::Spin()
 //----------------------------------------------------------------------------
 void vtkThreeDViewInteractorStyle::Pan()
 {
-  if (this->CurrentRenderer == 0)
+  if (this->CurrentRenderer == nullptr)
     {
     return;
     }
@@ -676,14 +676,14 @@ void vtkThreeDViewInteractorStyle::Pan()
   double newPickPoint[4], oldPickPoint[4], motionVector[3];
 
   // Calculate the focal depth since we'll be using it a lot
-  vtkCamera *camera = 0;
+  vtkCamera *camera = nullptr;
   if (this->CameraNode)
     {
     camera = this->CameraNode->GetCamera();
     }
   else
     {
-    camera = this->CurrentRenderer->IsActiveCameraCreated() ? this->CurrentRenderer->GetActiveCamera() : 0;
+    camera = this->CurrentRenderer->IsActiveCameraCreated() ? this->CurrentRenderer->GetActiveCamera() : nullptr;
     }
 
   if (!camera)
@@ -731,7 +731,7 @@ void vtkThreeDViewInteractorStyle::Pan()
     }
 
   // release the camera
-  camera = 0;
+  camera = nullptr;
 
   rwi->Render();
 }
@@ -739,7 +739,7 @@ void vtkThreeDViewInteractorStyle::Pan()
 //----------------------------------------------------------------------------
 void vtkThreeDViewInteractorStyle::Dolly()
 {
-  if (this->CurrentRenderer == 0)
+  if (this->CurrentRenderer == nullptr)
     {
     return;
     }
@@ -755,19 +755,19 @@ void vtkThreeDViewInteractorStyle::Dolly()
 //----------------------------------------------------------------------------
 void vtkThreeDViewInteractorStyle::Dolly(double factor)
 {
-  if (this->CurrentRenderer == 0)
+  if (this->CurrentRenderer == nullptr)
     {
     return;
     }
 
-  vtkCamera *camera = 0;
+  vtkCamera *camera = nullptr;
   if (this->CameraNode)
     {
     camera = this->CameraNode->GetCamera();
     }
   else
     {
-    camera = this->CurrentRenderer->IsActiveCameraCreated() ? this->CurrentRenderer->GetActiveCamera() : 0;
+    camera = this->CurrentRenderer->IsActiveCameraCreated() ? this->CurrentRenderer->GetActiveCamera() : nullptr;
     }
 
   if (!camera)
@@ -795,7 +795,7 @@ void vtkThreeDViewInteractorStyle::Dolly(double factor)
 
   this->Interactor->Render();
 
-  camera = 0;
+  camera = nullptr;
 }
 
 //----------------------------------------------------------------------------
@@ -827,7 +827,7 @@ void vtkThreeDViewInteractorStyle::SetInteractor(vtkRenderWindowInteractor *inte
 bool vtkThreeDViewInteractorStyle::Pick(int x, int y, double pickPoint[3])
 {
   this->FindPokedRenderer(x, y);
-  if (this->CurrentRenderer == 0)
+  if (this->CurrentRenderer == nullptr)
     {
     vtkDebugMacro("Pick: couldn't find the poked renderer at event position " << x << ", " << y);
     return false;

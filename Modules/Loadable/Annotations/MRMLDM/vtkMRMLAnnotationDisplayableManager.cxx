@@ -95,7 +95,7 @@ vtkMRMLAnnotationDisplayableManager::~vtkMRMLAnnotationDisplayableManager()
 
   this->DisableInteractorStyleEventsProcessing = 0;
   this->m_Updating = 0;
-  this->m_Focus = 0;
+  this->m_Focus = nullptr;
 
   this->Helper->Delete();
   this->m_ClickCounter->Delete();
@@ -286,7 +286,7 @@ void vtkMRMLAnnotationDisplayableManager::RemoveMRMLObservers()
 void vtkMRMLAnnotationDisplayableManager::UpdateFromMRML()
 {
   // this gets called from RequestRender, so make sure to jump out quickly if possible
-  if (this->GetMRMLScene() == NULL || this->m_Focus == NULL)
+  if (this->GetMRMLScene() == nullptr || this->m_Focus == nullptr)
     {
     return;
     }
@@ -305,7 +305,7 @@ void vtkMRMLAnnotationDisplayableManager::UpdateFromMRML()
     if (annotationNode)
       {
       // do we  have a widget for it?
-      if (this->GetWidget(annotationNode) == NULL)
+      if (this->GetWidget(annotationNode) == nullptr)
         {
         vtkDebugMacro("UpdateFromMRML: adding node " << annotationNode->GetID());
         if (this->AddAnnotation(annotationNode))
@@ -716,7 +716,7 @@ vtkMRMLSliceNode * vtkMRMLAnnotationDisplayableManager::GetSliceNode()
 //---------------------------------------------------------------------------
 bool vtkMRMLAnnotationDisplayableManager::Is2DDisplayableManager()
 {
-  return GetSliceNode() != 0;
+  return GetSliceNode() != nullptr;
 }
 
 //---------------------------------------------------------------------------
@@ -1375,7 +1375,7 @@ bool vtkMRMLAnnotationDisplayableManager::IsWidgetDisplayable(vtkMRMLSliceNode* 
         // default to spacing 1.0 in case can't get volume slice spacing from
         // the logic as that will be a multiplicative no-op
         double spacing = 1.0;
-        vtkMRMLSliceLogic *sliceLogic = NULL;
+        vtkMRMLSliceLogic *sliceLogic = nullptr;
         vtkMRMLApplicationLogic *mrmlAppLogic = this->GetMRMLApplicationLogic();
         if (mrmlAppLogic)
           {
@@ -1384,7 +1384,7 @@ bool vtkMRMLAnnotationDisplayableManager::IsWidgetDisplayable(vtkMRMLSliceNode* 
         if (sliceLogic)
           {
           double *volumeSliceSpacing = sliceLogic->GetLowestVolumeSliceSpacing();
-          if (volumeSliceSpacing != NULL)
+          if (volumeSliceSpacing != nullptr)
             {
             vtkDebugMacro("Slice node " << this->GetSliceNode()->GetName()
                           << ": volumeSliceSpacing = "
@@ -1552,7 +1552,7 @@ void vtkMRMLAnnotationDisplayableManager::OnClickInRenderWindowGetCoordinates()
 
   if (x < windowWidth && y < windowHeight)
     {
-    const char *associatedNodeID = NULL;
+    const char *associatedNodeID = nullptr;
     // is this a 2d manager that has a volume in the background?
     if (this->Is2DDisplayableManager())
       {
@@ -1560,8 +1560,8 @@ void vtkMRMLAnnotationDisplayableManager::OnClickInRenderWindowGetCoordinates()
         {
         // find the slice composite node in the scene with the matching layout
         // name
-        vtkMRMLSliceLogic *sliceLogic = NULL;
-        vtkMRMLSliceCompositeNode* sliceCompositeNode = NULL;
+        vtkMRMLSliceLogic *sliceLogic = nullptr;
+        vtkMRMLSliceCompositeNode* sliceCompositeNode = nullptr;
         vtkMRMLApplicationLogic *mrmlAppLogic = this->GetMRMLApplicationLogic();
         if (mrmlAppLogic)
           {
@@ -1604,7 +1604,7 @@ void vtkMRMLAnnotationDisplayableManager::OnClickInRenderWindowGetCoordinates()
         const char *pickedNodeID = modelDisplayableManager->GetPickedNodeID();
         vtkDebugMacro("Click was on model " << pickedNodeID);
         vtkMRMLNode *mrmlNode = this->GetMRMLScene()->GetNodeByID(pickedNodeID);
-        vtkMRMLDisplayNode *displayNode = NULL;
+        vtkMRMLDisplayNode *displayNode = nullptr;
         if (mrmlNode)
           {
           vtkDebugMacro("Got a mrml node by name, id = " << mrmlNode->GetID());
@@ -1776,7 +1776,7 @@ void vtkMRMLAnnotationDisplayableManager::GetWorldToDisplayCoordinates(double r,
 /// Convert world to display coordinates
 void vtkMRMLAnnotationDisplayableManager::GetWorldToDisplayCoordinates(double * worldCoordinates, double * displayCoordinates)
 {
-  if (worldCoordinates == NULL)
+  if (worldCoordinates == nullptr)
     {
     return;
     }
@@ -1789,7 +1789,7 @@ void vtkMRMLAnnotationDisplayableManager::GetWorldToDisplayCoordinates(double * 
 void vtkMRMLAnnotationDisplayableManager::GetDisplayToViewportCoordinates(double x, double y, double * viewportCoordinates)
 {
 
-  if (viewportCoordinates == NULL)
+  if (viewportCoordinates == nullptr)
     {
     return;
     }
@@ -1958,12 +1958,12 @@ bool vtkMRMLAnnotationDisplayableManager::IsCorrectDisplayableManager()
 
   vtkMRMLSelectionNode *selectionNode = vtkMRMLSelectionNode::SafeDownCast(
         this->GetMRMLScene()->GetNodeByID("vtkMRMLSelectionNodeSingleton"));
-  if ( selectionNode == 0 )
+  if ( selectionNode == nullptr )
     {
     vtkErrorMacro ( "IsCorrectDisplayableManager: No selection node in the scene." );
     return false;
     }
-  if ( selectionNode->GetActivePlaceNodeClassName() == 0)
+  if ( selectionNode->GetActivePlaceNodeClassName() == nullptr)
     {
     //vtkErrorMacro ( "IsCorrectDisplayableManager: no active annotation");
     return false;
@@ -2003,7 +2003,7 @@ vtkAbstractWidget* vtkMRMLAnnotationDisplayableManager::CreateWidget(vtkMRMLAnno
 
   // A widget should be created here.
   vtkErrorMacro("CreateWidget should be overloaded!");
-  return 0;
+  return nullptr;
 }
 
 //---------------------------------------------------------------------------
@@ -2036,14 +2036,14 @@ void vtkMRMLAnnotationDisplayableManager::GetWorldToLocalCoordinates(vtkMRMLAnno
                                                                      double *worldCoordinates,
                                                                      double *localCoordinates)
 {
-  if (node == NULL)
+  if (node == nullptr)
     {
     vtkErrorMacro("GetWorldToLocalCoordinates: node is null");
     return;
     }
 
   vtkMRMLTransformNode* tnode = node->GetParentTransformNode();
-  if (tnode != NULL && tnode->IsTransformToWorldLinear())
+  if (tnode != nullptr && tnode->IsTransformToWorldLinear())
     {
     vtkNew<vtkMatrix4x4> transformToWorld;
     transformToWorld->Identity();
@@ -2153,7 +2153,7 @@ bool vtkMRMLAnnotationDisplayableManager::AddAnnotation(vtkMRMLAnnotationNode *a
     }
 
   // There should not be a widget for the new node
-  if (this->Helper->GetWidget(annotationNode) != 0)
+  if (this->Helper->GetWidget(annotationNode) != nullptr)
     {
     vtkErrorMacro("AddAnnotation: A widget is already associated to this node!");
     return false;

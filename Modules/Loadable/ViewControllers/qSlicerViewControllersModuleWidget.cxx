@@ -96,7 +96,7 @@ qSlicerViewControllersModuleWidgetPrivate::createController(vtkMRMLNode *n, qSli
     }
 
   // create the ControllerWidget and wire it to the appropriate node
-  qMRMLViewControllerBar *barWidget = 0;
+  qMRMLViewControllerBar *barWidget = nullptr;
   vtkMRMLSliceNode *sn = vtkMRMLSliceNode::SafeDownCast(n);
   if (sn)
     {
@@ -441,7 +441,7 @@ void qSlicerViewControllersModuleWidget::onLayoutChanged(int)
 
   // show Controllers for Nodes not currently being managed
   // by this widget
-  vtkObject *v = NULL;
+  vtkObject *v = nullptr;
   vtkCollectionSimpleIterator it;
   for (visibleViews->InitTraversal(it);
     (v = visibleViews->GetNextItemAsObject(it));)

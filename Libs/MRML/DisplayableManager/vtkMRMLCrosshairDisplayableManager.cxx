@@ -118,10 +118,10 @@ vtkMRMLCrosshairDisplayableManager::vtkInternal
 ::vtkInternal(vtkMRMLCrosshairDisplayableManager * external)
 {
   this->External = external;
-  this->SliceCompositeNode = 0;
-  this->CrosshairNode = 0;
-  this->Actor = 0;
-  this->LightBoxRenderer = 0;
+  this->SliceCompositeNode = nullptr;
+  this->CrosshairNode = nullptr;
+  this->Actor = nullptr;
+  this->LightBoxRenderer = nullptr;
   this->CrosshairMode = -1;
   this->CrosshairThickness = -1;
   this->CrosshairPosition[0] = 0.0;
@@ -132,12 +132,12 @@ vtkMRMLCrosshairDisplayableManager::vtkInternal
 //---------------------------------------------------------------------------
 vtkMRMLCrosshairDisplayableManager::vtkInternal::~vtkInternal()
 {
-  this->SetSliceCompositeNode(0);
-  this->SetCrosshairNode(0);
-  this->LightBoxRenderer = 0;
+  this->SetSliceCompositeNode(nullptr);
+  this->SetCrosshairNode(nullptr);
+  this->LightBoxRenderer = nullptr;
   // everything should be empty
-  assert(this->SliceCompositeNode == 0);
-  assert(this->CrosshairNode == 0);
+  assert(this->SliceCompositeNode == nullptr);
+  assert(this->CrosshairNode == nullptr);
 }
 
 //---------------------------------------------------------------------------
@@ -155,7 +155,7 @@ void vtkMRMLCrosshairDisplayableManager::vtkInternal::Modified()
 //---------------------------------------------------------------------------
 bool vtkMRMLCrosshairDisplayableManager::vtkInternal::DidCrosshairPositionChange()
 {
-  if (this->CrosshairNode.GetPointer() == 0)
+  if (this->CrosshairNode.GetPointer() == nullptr)
     {
     return false;
     }
@@ -179,7 +179,7 @@ bool vtkMRMLCrosshairDisplayableManager::vtkInternal::DidCrosshairPositionChange
 //---------------------------------------------------------------------------
 bool vtkMRMLCrosshairDisplayableManager::vtkInternal::DidCrosshairPropertyChange()
 {
-  if (this->CrosshairNode.GetPointer() == 0)
+  if (this->CrosshairNode.GetPointer() == nullptr)
     {
     return false;
     }
@@ -226,13 +226,13 @@ void vtkMRMLCrosshairDisplayableManager::vtkInternal::UpdateSliceNode()
 vtkMRMLSliceCompositeNode* vtkMRMLCrosshairDisplayableManager::vtkInternal
 ::FindSliceCompositeNode()
 {
-  if (this->GetSliceNode() == 0 ||
-      this->External->GetMRMLApplicationLogic() == 0)
+  if (this->GetSliceNode() == nullptr ||
+      this->External->GetMRMLApplicationLogic() == nullptr)
     {
-    return 0;
+    return nullptr;
     }
 
-  vtkMRMLSliceLogic *sliceLogic = NULL;
+  vtkMRMLSliceLogic *sliceLogic = nullptr;
   vtkMRMLApplicationLogic *mrmlAppLogic = this->External->GetMRMLApplicationLogic();
   if (mrmlAppLogic)
     {
@@ -243,7 +243,7 @@ vtkMRMLSliceCompositeNode* vtkMRMLCrosshairDisplayableManager::vtkInternal
     return sliceLogic->GetSliceCompositeNode(this->GetSliceNode());
     }
   // no matching slice composite node is found
-  return 0;
+  return nullptr;
 }
 
 //---------------------------------------------------------------------------
@@ -271,9 +271,9 @@ void vtkMRMLCrosshairDisplayableManager::vtkInternal
 //---------------------------------------------------------------------------
 vtkMRMLCrosshairNode* vtkMRMLCrosshairDisplayableManager::FindCrosshairNode(vtkMRMLScene* scene)
 {
-  if (scene == 0)
+  if (scene == nullptr)
     {
-    return 0;
+    return nullptr;
     }
 
   vtkMRMLNode* node;
@@ -293,7 +293,7 @@ vtkMRMLCrosshairNode* vtkMRMLCrosshairDisplayableManager::FindCrosshairNode(vtkM
     }
   // no matching crosshair node is found
   //assert(0);
-  return 0;
+  return nullptr;
 }
 
 //---------------------------------------------------------------------------
@@ -306,7 +306,7 @@ void vtkMRMLCrosshairDisplayableManager::vtkInternal::BuildCrosshair()
       {
       this->LightBoxRenderer->RemoveActor(this->Actor);
       }
-    this->Actor = 0;
+    this->Actor = nullptr;
     }
 
   if (!this->CrosshairNode.GetPointer())
@@ -478,8 +478,8 @@ void vtkMRMLCrosshairDisplayableManager::UpdateFromMRMLScene()
 //---------------------------------------------------------------------------
 void vtkMRMLCrosshairDisplayableManager::UnobserveMRMLScene()
 {
-  this->Internal->SetSliceCompositeNode(0);
-  this->Internal->SetCrosshairNode(0);
+  this->Internal->SetSliceCompositeNode(nullptr);
+  this->Internal->SetCrosshairNode(nullptr);
 }
 
 //---------------------------------------------------------------------------
@@ -510,7 +510,7 @@ void vtkMRMLCrosshairDisplayableManager::OnMRMLNodeModified(
       int id = (int) (floor(xyz[2] + 0.5)); // round to find the lightbox
       vtkRenderer *renderer
         = this->GetLightBoxRendererManagerProxy()->GetRenderer(id);
-      if (renderer == NULL)
+      if (renderer == nullptr)
         {
         // crosshair must not be displayed in this view
         this->Internal->Actor->SetVisibility(false);

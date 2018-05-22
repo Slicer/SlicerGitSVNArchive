@@ -58,9 +58,9 @@
 qMRMLThreeDViewPrivate::qMRMLThreeDViewPrivate(qMRMLThreeDView& object)
   : q_ptr(&object)
 {
-  this->DisplayableManagerGroup = 0;
-  this->MRMLScene = 0;
-  this->MRMLViewNode = 0;
+  this->DisplayableManagerGroup = nullptr;
+  this->MRMLScene = nullptr;
+  this->MRMLViewNode = nullptr;
 }
 
 //---------------------------------------------------------------------------
@@ -76,7 +76,7 @@ qMRMLThreeDViewPrivate::~qMRMLThreeDViewPrivate()
 void qMRMLThreeDViewPrivate::init()
 {
   Q_Q(qMRMLThreeDView);
-  q->setRenderEnabled(this->MRMLScene != 0);
+  q->setRenderEnabled(this->MRMLScene != nullptr);
 
   vtkNew<vtkThreeDViewInteractorStyle> interactorStyle;
   q->interactor()->SetInteractorStyle(interactorStyle.GetPointer());
@@ -150,7 +150,7 @@ void qMRMLThreeDViewPrivate::setMRMLScene(vtkMRMLScene* newScene)
 
   this->MRMLScene = newScene;
   q->setRenderEnabled(
-    this->MRMLScene != 0 && !this->MRMLScene->IsBatchProcessing());
+    this->MRMLScene != nullptr && !this->MRMLScene->IsBatchProcessing());
 }
 
 //---------------------------------------------------------------------------
@@ -340,7 +340,7 @@ void qMRMLThreeDView::setMRMLScene(vtkMRMLScene* newScene)
 
   if (d->MRMLViewNode && newScene != d->MRMLViewNode->GetScene())
     {
-    this->setMRMLViewNode(0);
+    this->setMRMLViewNode(nullptr);
     }
 }
 
@@ -362,7 +362,7 @@ void qMRMLThreeDView::setMRMLViewNode(vtkMRMLViewNode* newViewNode)
 
   d->updateWidgetFromMRML();
   // Enable/disable widget
-  this->setEnabled(newViewNode != 0);
+  this->setEnabled(newViewNode != nullptr);
 }
 
 //---------------------------------------------------------------------------

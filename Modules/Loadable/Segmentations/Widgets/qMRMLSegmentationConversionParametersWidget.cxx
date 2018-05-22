@@ -439,7 +439,7 @@ void qMRMLSegmentationConversionParametersWidget::onSetReferenceImageGeometryFro
     return;
     }
 
-  QDialog* getGeometryFromVolumeDialog = new QDialog(NULL, Qt::Dialog);
+  QDialog* getGeometryFromVolumeDialog = new QDialog(nullptr, Qt::Dialog);
   QVBoxLayout* geometryLayout = new QVBoxLayout(getGeometryFromVolumeDialog);
   geometryLayout->setContentsMargins(6, 6, 6, 6);
   geometryLayout->setSpacing(12);

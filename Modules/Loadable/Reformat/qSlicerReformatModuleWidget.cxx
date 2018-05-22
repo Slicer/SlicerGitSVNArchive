@@ -92,9 +92,9 @@ qSlicerReformatModuleWidgetPrivate(
   qSlicerReformatModuleWidget& object)
   : q_ptr(&object)
 {
-  this->OriginCoordinateReferenceButtonGroup = 0;
-  this->MRMLSliceNode = 0;
-  this->MRMLSliceLogic = 0;
+  this->OriginCoordinateReferenceButtonGroup = nullptr;
+  this->MRMLSliceNode = nullptr;
+  this->MRMLSliceLogic = nullptr;
   this->LastRotationValues[qSlicerReformatModuleWidget::axisX] = 0;
   this->LastRotationValues[qSlicerReformatModuleWidget::axisY] = 0;
   this->LastRotationValues[qSlicerReformatModuleWidget::axisZ] = 0;

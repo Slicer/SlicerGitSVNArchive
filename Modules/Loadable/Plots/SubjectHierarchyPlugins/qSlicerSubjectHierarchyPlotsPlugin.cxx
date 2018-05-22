@@ -372,13 +372,13 @@ vtkMRMLPlotViewNode* qSlicerSubjectHierarchyPlotsPlugin::getPlotViewNode()const
   if (!scene)
     {
     qCritical() << Q_FUNC_INFO << ": Invalid MRML scene!";
-    return NULL;
+    return nullptr;
     }
 
   qMRMLLayoutManager* layoutManager = qSlicerApplication::application()->layoutManager();
   if (!layoutManager)
     {
-    return NULL;
+    return nullptr;
     }
 
   for (int i=0; i<layoutManager->plotViewCount(); i++)
@@ -397,5 +397,5 @@ vtkMRMLPlotViewNode* qSlicerSubjectHierarchyPlotsPlugin::getPlotViewNode()const
     }
 
   // no valid plot view in current layout
-  return NULL;
+  return nullptr;
 }

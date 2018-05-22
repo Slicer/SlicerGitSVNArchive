@@ -192,7 +192,7 @@ bool vtkMRMLModelSliceDisplayableManager::vtkInternal
   else
     {
     // Only show slice intersection if it is mapped into layout and in the same view group
-    vtkMRMLSliceNode* intersectedSliceNode = NULL;
+    vtkMRMLSliceNode* intersectedSliceNode = nullptr;
     vtkMRMLApplicationLogic *mrmlAppLogic = this->External->GetMRMLApplicationLogic();
     if (mrmlAppLogic)
       {
@@ -532,7 +532,7 @@ void vtkMRMLModelSliceDisplayableManager::vtkInternal
     if (modelDisplayNode->GetSliceDisplayMode() == vtkMRMLModelDisplayNode::SliceDisplayDistanceEncodedProjection)
       {
       vtkMRMLColorNode* colorNode = modelDisplayNode->GetDistanceEncodedProjectionColorNode();
-      vtkLookupTable* dNodeLUT = (colorNode ? colorNode->GetLookupTable() : NULL);
+      vtkLookupTable* dNodeLUT = (colorNode ? colorNode->GetLookupTable() : nullptr);
       if (dNodeLUT)
         {
         mapper->SetScalarRange(modelDisplayNode->GetScalarRange());
@@ -577,7 +577,7 @@ void vtkMRMLModelSliceDisplayableManager::vtkInternal
       // of the colorNode vtkLookupTable in order not to impact
       // that lookup table original range.
       vtkLookupTable* dNodeLUT = modelDisplayNode->GetColorNode() ?
-                                 modelDisplayNode->GetColorNode()->GetLookupTable() : NULL;
+                                 modelDisplayNode->GetColorNode()->GetLookupTable() : nullptr;
       vtkSmartPointer<vtkLookupTable> lut = vtkSmartPointer<vtkLookupTable>::Take(
         vtkMRMLModelDisplayableManager::CreateLookupTableCopy(dNodeLUT));
       lut->SetAlpha(displayNode->GetSliceIntersectionOpacity());
@@ -810,8 +810,8 @@ void vtkMRMLModelSliceDisplayableManager
     return;
     }
 
-  vtkMRMLDisplayableNode* modelNode = NULL;
-  vtkMRMLDisplayNode* displayNode = NULL;
+  vtkMRMLDisplayableNode* modelNode = nullptr;
+  vtkMRMLDisplayNode* displayNode = nullptr;
 
   bool modified = false;
   if ( (modelNode = vtkMRMLDisplayableNode::SafeDownCast(node)) )
@@ -884,7 +884,7 @@ void vtkMRMLModelSliceDisplayableManager::UpdateFromMRML()
     }
   this->Internal->ClearDisplayableNodes();
 
-  vtkMRMLDisplayableNode* mNode = NULL;
+  vtkMRMLDisplayableNode* mNode = nullptr;
   std::vector<vtkMRMLNode *> mNodes;
   int nnodes = scene ? scene->GetNodesByClass("vtkMRMLDisplayableNode", mNodes) : 0;
   for (int i=0; i<nnodes; i++)

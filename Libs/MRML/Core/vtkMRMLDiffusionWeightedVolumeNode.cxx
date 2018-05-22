@@ -45,7 +45,7 @@ vtkMRMLDiffusionWeightedVolumeNode::vtkMRMLDiffusionWeightedVolumeNode()
       }
     }
 
-  this->ExtractComponents = NULL;
+  this->ExtractComponents = nullptr;
 }
 
 //----------------------------------------------------------------------------
@@ -57,7 +57,7 @@ vtkMRMLDiffusionWeightedVolumeNode::~vtkMRMLDiffusionWeightedVolumeNode()
   if (this->ExtractComponents)
     {
     this->ExtractComponents->Delete();
-    this->ExtractComponents = NULL;
+    this->ExtractComponents = nullptr;
     }
 }
 
@@ -110,7 +110,7 @@ void vtkMRMLDiffusionWeightedVolumeNode::ReadXMLAttributes(const char** atts)
 
   const char* attName;
   const char* attValue;
-  while (*atts != NULL)
+  while (*atts != nullptr)
     {
     attName = *(atts++);
     attValue = *(atts++);
@@ -316,7 +316,7 @@ double *vtkMRMLDiffusionWeightedVolumeNode::GetDiffusionGradient(int num)
   if (num < 0 || num >= this->DiffusionGradients->GetNumberOfTuples())
     {
     vtkErrorMacro(<< "Gradient number is out of range.");
-    return 0;
+    return nullptr;
     }
   return static_cast <double *> (this->DiffusionGradients->GetVoidPointer(num*3));
 }
@@ -432,12 +432,12 @@ vtkMRMLStorageNode* vtkMRMLDiffusionWeightedVolumeNode::CreateDefaultStorageNode
 //----------------------------------------------------------------------------
 void vtkMRMLDiffusionWeightedVolumeNode::CreateDefaultDisplayNodes()
 {
-  if (vtkMRMLDiffusionWeightedVolumeDisplayNode::SafeDownCast(this->GetDisplayNode())!=NULL)
+  if (vtkMRMLDiffusionWeightedVolumeDisplayNode::SafeDownCast(this->GetDisplayNode())!=nullptr)
     {
     // display node already exists
     return;
     }
-  if (this->GetScene()==NULL)
+  if (this->GetScene()==nullptr)
     {
     vtkErrorMacro("vtkMRMLDiffusionWeightedVolumeNode::CreateDefaultDisplayNodes failed: scene is invalid");
     return;

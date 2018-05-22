@@ -88,7 +88,7 @@ public:
 qSlicerSegmentationsModuleWidgetPrivate::qSlicerSegmentationsModuleWidgetPrivate(qSlicerSegmentationsModuleWidget& object)
   : q_ptr(&object)
   , ModuleWindowInitialized(false)
-  , TerminologiesLogic(NULL)
+  , TerminologiesLogic(nullptr)
   , ImportExportOperationButtonGroup(NULL)
   , ImportExportTypeButtonGroup(NULL)
 {
@@ -199,7 +199,7 @@ vtkMRMLSegmentationDisplayNode* qSlicerSegmentationsModuleWidget::segmentationDi
     d->MRMLNodeComboBox_Segmentation->currentNode() );
   if (!segmentationNode)
     {
-    return NULL;
+    return nullptr;
     }
 
   vtkMRMLSegmentationDisplayNode* displayNode =
@@ -697,8 +697,8 @@ bool qSlicerSegmentationsModuleWidget::copySegmentsBetweenSegmentations(bool cop
 
   // Get source and target segmentation
   QStringList selectedSegmentIds;
-  vtkSegmentation* sourceSegmentation = NULL;
-  vtkSegmentation* targetSegmentation = NULL;
+  vtkSegmentation* sourceSegmentation = nullptr;
+  vtkSegmentation* targetSegmentation = nullptr;
   if (copyFromCurrentSegmentation)
     {
     sourceSegmentation = currentSegmentationNode->GetSegmentation();
@@ -880,7 +880,7 @@ bool qSlicerSegmentationsModuleWidget::importToCurrentSegmentation()
       modelHierarchyNode->GetChildrenModelNodes(modelNodes.GetPointer());
       }
     QString errorMessage;
-    vtkObject* object = NULL;
+    vtkObject* object = nullptr;
     vtkCollectionSimpleIterator it;
     for (modelNodes->InitTraversal(it); (object = modelNodes->GetNextItemAsObject(it));)
       {

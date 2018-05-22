@@ -69,9 +69,9 @@ public:
 //-----------------------------------------------------------------------------
 qSlicerModelsModuleWidgetPrivate::qSlicerModelsModuleWidgetPrivate()
 {
-  this->InsertHierarchyAction = 0;
-  this->DeleteMultipleNodesAction = 0;
-  this->RenameMultipleNodesAction = 0;
+  this->InsertHierarchyAction = nullptr;
+  this->DeleteMultipleNodesAction = nullptr;
+  this->RenameMultipleNodesAction = nullptr;
   this->HideChildNodeTypes = (QStringList() << "vtkMRMLFiberBundleNode" << "vtkMRMLAnnotationNode");
   this->FiberDisplayClass = "vtkMRMLFiberBundleLineDisplayNode";
   this->CallBack = vtkSmartPointer<vtkCallbackCommand>::New();
@@ -98,7 +98,7 @@ qSlicerModelsModuleWidget::~qSlicerModelsModuleWidget()
     this->mrmlScene()->RemoveObserver(d->CallBack);
     }
 
-  this->setMRMLScene(0);
+  this->setMRMLScene(nullptr);
 }
 
 //-----------------------------------------------------------------------------
@@ -434,7 +434,7 @@ void qSlicerModelsModuleWidget::onMRMLSceneEvent(vtkObject* vtk_obj, unsigned lo
 //-----------------------------------------------------------------------------
 void qSlicerModelsModuleWidget::showAllModels()
 {
-  if (this->logic() == 0)
+  if (this->logic() == nullptr)
     {
     return;
     }
@@ -448,7 +448,7 @@ void qSlicerModelsModuleWidget::showAllModels()
 //-----------------------------------------------------------------------------
 void qSlicerModelsModuleWidget::hideAllModels()
 {
-  if (this->logic() == 0)
+  if (this->logic() == nullptr)
     {
     return;
     }
@@ -513,7 +513,7 @@ void qSlicerModelsModuleWidget::onDisplayClassChanged(int index)
 //-----------------------------------------------------------------------------
 vtkMRMLSelectionNode* qSlicerModelsModuleWidget::getSelectionNode()
 {
-  vtkMRMLSelectionNode* selectionNode = 0;
+  vtkMRMLSelectionNode* selectionNode = nullptr;
   if (this->mrmlScene())
     {
     selectionNode = vtkMRMLSelectionNode::SafeDownCast(

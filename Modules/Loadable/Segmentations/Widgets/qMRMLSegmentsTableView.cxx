@@ -203,7 +203,7 @@ QTableWidgetItem* qMRMLSegmentsTableViewPrivate::findItemBySegmentID(QString seg
       }
     }
 
-  return NULL;
+  return nullptr;
 }
 
 //------------------------------------------------------------------------------
@@ -278,7 +278,7 @@ void qMRMLSegmentsTableView::setMRMLScene(vtkMRMLScene* newScene)
 
   if (d->SegmentationNode && newScene != d->SegmentationNode->GetScene())
     {
-    this->setSegmentationNode(NULL);
+    this->setSegmentationNode(nullptr);
     }
 
   Superclass::setMRMLScene(newScene);
@@ -1185,7 +1185,7 @@ QString qMRMLSegmentsTableView::terminologyTooltipForSegment(vtkSegment* segment
     }
 
   // Get terminologies module logic
-  vtkSlicerTerminologiesModuleLogic* terminologiesLogic = NULL;
+  vtkSlicerTerminologiesModuleLogic* terminologiesLogic = nullptr;
   qSlicerAbstractCoreModule* terminologiesModule = qSlicerCoreApplication::application()->moduleManager()->module("Terminologies");
   if (terminologiesModule)
     {

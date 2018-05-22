@@ -298,7 +298,7 @@ qSlicerAbstractModuleWidget* qSlicerSubjectHierarchyAbstractPlugin::switchToModu
   if (!moduleWithAction)
     {
     qCritical() << Q_FUNC_INFO << ": Module with name '" << moduleName << "' not found!";
-    return NULL;
+    return nullptr;
     }
 
   // Switch to module

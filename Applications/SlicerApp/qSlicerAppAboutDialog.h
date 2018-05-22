@@ -38,7 +38,7 @@ class Q_SLICER_APP_EXPORT qSlicerAppAboutDialog :
 {
   Q_OBJECT
 public:
-  qSlicerAppAboutDialog(QWidget *parentWidget = 0);
+  qSlicerAppAboutDialog(QWidget *parentWidget = nullptr);
   virtual ~qSlicerAppAboutDialog();
 
 protected:

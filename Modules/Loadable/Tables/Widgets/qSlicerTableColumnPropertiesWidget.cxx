@@ -101,7 +101,7 @@ qSlicerTableColumnPropertiesWidget::qSlicerTableColumnPropertiesWidget(QWidget* 
 //-----------------------------------------------------------------------------
 qSlicerTableColumnPropertiesWidget::~qSlicerTableColumnPropertiesWidget()
 {
-  this->setMRMLTableNode((vtkMRMLTableNode*)NULL);
+  this->setMRMLTableNode((vtkMRMLTableNode*)nullptr);
 }
 
 //-----------------------------------------------------------------------------
@@ -256,10 +256,10 @@ void qSlicerTableColumnPropertiesWidget::setSelectionFromMRMLTableView(qMRMLTabl
     // no change
     return;
     }
-  vtkMRMLScene* newScene = NULL;
-  vtkMRMLTableNode* newTableNode = NULL;
+  vtkMRMLScene* newScene = nullptr;
+  vtkMRMLTableNode* newTableNode = nullptr;
 
-  if (tableView != NULL)
+  if (tableView != nullptr)
     {
     newScene = tableView->mrmlScene();
     newTableNode = tableView->mrmlTableNode();
@@ -288,7 +288,7 @@ void qSlicerTableColumnPropertiesWidget::tableViewSelectionChanged()
 
   if (d->TableViewForSelection == NULL)
     {
-    this->setMRMLTableNode((vtkMRMLTableNode*)NULL);
+    this->setMRMLTableNode((vtkMRMLTableNode*)nullptr);
     return;
     }
 
@@ -354,7 +354,7 @@ void qSlicerTableColumnPropertiesWidget::onDataTypeChanged(const QString& newDat
 void qSlicerTableColumnPropertiesWidget::onPropertyChanged(const QString& newPropertyValue)
 {
   QLineEdit* propertyWidget = qobject_cast<QLineEdit*>(sender());
-  if (propertyWidget != NULL)
+  if (propertyWidget != nullptr)
     {
     QString propertyName = propertyWidget->property(SCHEMA_PROPERTY_NAME).toString();
     this->setColumnProperty(propertyName, newPropertyValue);

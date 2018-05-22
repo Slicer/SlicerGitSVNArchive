@@ -90,7 +90,7 @@ qSlicerAbstractCoreModule* qSlicerCLIExecutableModuleFactoryItem::instanciator()
         {
         this->appendInstantiateErrorString(
           QString("Failed to find python interpreter for CLI: %1").arg(this->path()));
-        return 0;
+        return nullptr;
         }
 
       module->setEntryPoint("python");
@@ -124,7 +124,7 @@ qSlicerAbstractCoreModule* qSlicerCLIExecutableModuleFactoryItem::instanciator()
     }
   if (xmlDescription.isEmpty())
     {
-    return 0;
+    return nullptr;
     }
 
   module->setXmlModuleDescription(xmlDescription.toLatin1());
@@ -185,7 +185,7 @@ QString qSlicerCLIExecutableModuleFactoryItem::runCLIWithXmlArgument()
         break;
       }
     this->appendInstantiateErrorString(errorString);
-    return 0;
+    return nullptr;
     }
   QString errors = cli.readAllStandardError();
   if (!errors.isEmpty())

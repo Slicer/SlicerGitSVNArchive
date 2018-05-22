@@ -57,7 +57,7 @@ qMRMLUnitWidgetPrivate::qMRMLUnitWidgetPrivate(
   qMRMLUnitWidget& object)
   : q_ptr(&object)
 {
-  this->CurrentUnitNode = 0;
+  this->CurrentUnitNode = nullptr;
   this->DisplayFlags = qMRMLUnitWidget::All;
   this->EditableProperties = qMRMLUnitWidget::All;
   this->EditableProperties &= ~qMRMLUnitWidget::Quantity;

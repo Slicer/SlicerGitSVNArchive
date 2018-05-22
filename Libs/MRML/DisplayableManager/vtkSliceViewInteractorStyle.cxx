@@ -61,7 +61,7 @@ vtkSliceViewInteractorStyle::vtkSliceViewInteractorStyle()
   this->StartActionFOV[2] = 0.;
   this->VolumeScalarRange[0] = 0;
   this->VolumeScalarRange[1] = 0;
-  this->StartActionSegmentationDisplayNode = 0;
+  this->StartActionSegmentationDisplayNode = nullptr;
 
   this->LastForegroundOpacity = 0.;
   this->LastLabelOpacity = 0.;
@@ -70,13 +70,13 @@ vtkSliceViewInteractorStyle::vtkSliceViewInteractorStyle()
   this->LastVolumeWindowLevel[0] = 0;
   this->LastVolumeWindowLevel[1] = 0;
 
-  this->SliceLogic = 0;
+  this->SliceLogic = nullptr;
 }
 
 //----------------------------------------------------------------------------
 vtkSliceViewInteractorStyle::~vtkSliceViewInteractorStyle()
 {
-  this->SetSliceLogic(0);
+  this->SetSliceLogic(nullptr);
 }
 
 //----------------------------------------------------------------------------
@@ -159,7 +159,7 @@ void vtkSliceViewInteractorStyle::OnChar()
     }
   else if (!strcmp(key, "g") && this->GetActionEnabled(vtkSliceViewInteractorStyle::Translate + vtkSliceViewInteractorStyle::Blend))
     {
-    this->StartActionSegmentationDisplayNode = NULL;
+    this->StartActionSegmentationDisplayNode = nullptr;
     double opacity = this->GetLabelOpacity();
     if ( opacity != 0.0 )
       {
@@ -242,7 +242,7 @@ vtkMRMLSegmentationDisplayNode* vtkSliceViewInteractorStyle::GetVisibleSegmentat
       return displayNode;
       }
     }
-  return NULL;
+  return nullptr;
 }
 
 //----------------------------------------------------------------------------
@@ -334,8 +334,8 @@ void vtkSliceViewInteractorStyle::OnMiddleButtonUp()
 //----------------------------------------------------------------------------
 int vtkSliceViewInteractorStyle::GetMouseInteractionMode()
 {
-  if ( this->SliceLogic == 0 ||
-       this->SliceLogic->GetMRMLScene() == 0 )
+  if ( this->SliceLogic == nullptr ||
+       this->SliceLogic->GetMRMLScene() == nullptr )
     {
     vtkErrorMacro("vtkSliceViewInteractorStyle::GetMouseInteractionMode: failed to get scene");
     return vtkMRMLInteractionNode::ViewTransform;
@@ -343,7 +343,7 @@ int vtkSliceViewInteractorStyle::GetMouseInteractionMode()
   vtkMRMLScene* scene = this->SliceLogic->GetMRMLScene();
 
   vtkMRMLInteractionNode *interactionNode = vtkMRMLInteractionNode::SafeDownCast(scene->GetNodeByID("vtkMRMLInteractionNodeSingleton"));
-  if (interactionNode == 0)
+  if (interactionNode == nullptr)
     {
     vtkErrorMacro("vtkSliceViewInteractorStyle::GetMouseInteractionMode: failed to get interaction node");
     return vtkMRMLInteractionNode::ViewTransform;
@@ -487,7 +487,7 @@ void vtkSliceViewInteractorStyle::OnMouseMove()
       double newForegroundOpacity =
         this->LastForegroundOpacity + offsetY;
       newForegroundOpacity = std::min(std::max(newForegroundOpacity, 0.), 1.);
-      if (sliceCompositeNode->GetForegroundVolumeID() != 0)
+      if (sliceCompositeNode->GetForegroundVolumeID() != nullptr)
         {
         sliceCompositeNode->SetForegroundOpacity(newForegroundOpacity);
         this->LastForegroundOpacity = newForegroundOpacity;
@@ -496,7 +496,7 @@ void vtkSliceViewInteractorStyle::OnMouseMove()
       double offsetX =  (2.0 * deltaX) / windowMinSize;
       double newLabelOpacity = this->LastLabelOpacity + offsetX;
       newLabelOpacity = std::min(std::max(newLabelOpacity, 0.), 1.);
-      if (sliceCompositeNode->GetLabelVolumeID() != 0 || this->StartActionSegmentationDisplayNode != 0)
+      if (sliceCompositeNode->GetLabelVolumeID() != nullptr || this->StartActionSegmentationDisplayNode != nullptr)
         {
         this->SetLabelOpacity(newLabelOpacity);
         this->LastLabelOpacity = newLabelOpacity;
@@ -784,7 +784,7 @@ bool vtkSliceViewInteractorStyle::VolumeWindowLevelEditable(const char* volumeNo
     }
   vtkMRMLVolumeNode* volumeNode =
     vtkMRMLVolumeNode::SafeDownCast(scene->GetNodeByID(volumeNodeID));
-  if (volumeNode == NULL)
+  if (volumeNode == nullptr)
     {
     return false;
     }
@@ -892,7 +892,7 @@ void vtkSliceViewInteractorStyle::CycleVolumeLayer(int layer, int direction)
   // first, find the current volume index for the given layer (can be NULL)
   vtkMRMLScene *scene = this->SliceLogic->GetMRMLScene();
   vtkMRMLSliceCompositeNode *sliceCompositeNode = this->SliceLogic->GetSliceCompositeNode();
-  char *volumeID = NULL;
+  char *volumeID = nullptr;
   switch (layer)
     {
     case 0: { volumeID = sliceCompositeNode->GetBackgroundVolumeID(); } break;

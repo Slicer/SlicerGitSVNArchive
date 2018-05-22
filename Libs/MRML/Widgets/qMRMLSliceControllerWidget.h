@@ -61,7 +61,7 @@ public:
   typedef qMRMLViewControllerBar Superclass;
 
   /// Constructors
-  explicit qMRMLSliceControllerWidget(QWidget* parent = 0);
+  explicit qMRMLSliceControllerWidget(QWidget* parent = nullptr);
   virtual ~qMRMLSliceControllerWidget();
 
   /// Are the slices linked to each other

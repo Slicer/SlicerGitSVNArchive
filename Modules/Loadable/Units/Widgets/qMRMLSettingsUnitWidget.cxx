@@ -65,7 +65,7 @@ qMRMLSettingsUnitWidgetPrivate::qMRMLSettingsUnitWidgetPrivate(
   qMRMLSettingsUnitWidget& object)
   : q_ptr(&object)
 {
-  this->Logic = 0;
+  this->Logic = nullptr;
 }
 
 //-----------------------------------------------------------------------------

@@ -80,7 +80,7 @@ public:
   /// class, and also make it the active on on the selection node, otherwise
   /// add to the passed scene.
   /// On success, return the id, on failure return an empty string.
-  std::string AddNewFiducialNode(const char *name = "F", vtkMRMLScene *scene = NULL);
+  std::string AddNewFiducialNode(const char *name = "F", vtkMRMLScene *scene = nullptr);
 
   /// Add a new fiducial to the currently active list at the given RAS
   /// coordinates (default 0,0,0). Will create a list is one is not active.

@@ -205,7 +205,7 @@ void qSlicerVolumeRenderingSettingsPanel
                    this, SLOT(onDefaultRenderingMethodChanged(int)),Qt::UniqueConnection);
 
   const char* defaultRenderingMethod = d->VolumeRenderingLogic->GetDefaultRenderingMethod();
-  if (defaultRenderingMethod == 0)
+  if (defaultRenderingMethod == nullptr)
     {
     defaultRenderingMethod = "vtkMRMLCPURayCastVolumeRenderingDisplayNode";
     }

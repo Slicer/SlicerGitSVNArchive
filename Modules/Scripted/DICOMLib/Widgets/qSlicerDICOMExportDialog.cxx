@@ -90,9 +90,9 @@ private:
 //-----------------------------------------------------------------------------
 qSlicerDICOMExportDialogPrivate::qSlicerDICOMExportDialogPrivate(qSlicerDICOMExportDialog& object)
   : q_ptr(&object)
-  , Scene(NULL)
+  , Scene(nullptr)
   , ItemToSelect(vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
-  , SelectedExportable(NULL)
+  , SelectedExportable(nullptr)
 {
 }
 

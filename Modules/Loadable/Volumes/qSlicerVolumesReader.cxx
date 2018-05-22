@@ -180,7 +180,7 @@ bool qSlicerVolumesReader::load(const IOProperties& properties)
       vtkSlicerApplicationLogic* appLogic =
         d->Logic->GetApplicationLogic();
       vtkMRMLSelectionNode* selectionNode =
-        appLogic ? appLogic->GetSelectionNode() : 0;
+        appLogic ? appLogic->GetSelectionNode() : nullptr;
       if (selectionNode)
         {
         if (vtkMRMLLabelMapVolumeNode::SafeDownCast(node))
@@ -203,5 +203,5 @@ bool qSlicerVolumesReader::load(const IOProperties& properties)
     {
     this->setLoadedNodes(QStringList());
     }
-  return node != 0;
+  return node != nullptr;
 }

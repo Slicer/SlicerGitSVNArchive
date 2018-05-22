@@ -103,7 +103,7 @@ qSlicerSimpleMarkupsWidget::qSlicerSimpleMarkupsWidget(QWidget* parentWidget) : 
 //-----------------------------------------------------------------------------
 qSlicerSimpleMarkupsWidget::~qSlicerSimpleMarkupsWidget()
 {
-  this->setCurrentNode(NULL);
+  this->setCurrentNode(nullptr);
 }
 
 //-----------------------------------------------------------------------------
@@ -116,7 +116,7 @@ void qSlicerSimpleMarkupsWidget::setup()
   if (qSlicerApplication::application() != NULL && qSlicerApplication::application()->moduleManager() != NULL)
     {
     qSlicerAbstractCoreModule* markupsModule = qSlicerApplication::application()->moduleManager()->module( "Markups" );
-    if ( markupsModule != NULL )
+    if ( markupsModule != nullptr )
       {
       d->MarkupsLogic = vtkSlicerMarkupsLogic::SafeDownCast( markupsModule->logic() );
       }
@@ -398,7 +398,7 @@ void qSlicerSimpleMarkupsWidget::onMarkupsFiducialTableContextMenu(const QPoint&
   int currentFiducial = d->MarkupsFiducialTableWidget->currentRow();
   vtkMRMLMarkupsFiducialNode* currentNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( d->MarkupsFiducialNodeComboBox->currentNode() );
 
-  if ( currentNode == NULL )
+  if ( currentNode == nullptr )
     {
     return;
     }
@@ -460,7 +460,7 @@ void qSlicerSimpleMarkupsWidget::onMarkupsFiducialSelected(int row, int column)
   if (d->JumpToSliceEnabled)
     {
     vtkMRMLMarkupsFiducialNode* currentMarkupsFiducialNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( this->currentNode() );
-    if ( currentMarkupsFiducialNode == NULL )
+    if ( currentMarkupsFiducialNode == nullptr )
       {
       return;
       }
@@ -482,7 +482,7 @@ void qSlicerSimpleMarkupsWidget::onMarkupsFiducialEdited(int row, int column)
 
   vtkMRMLMarkupsFiducialNode* currentMarkupsFiducialNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( this->currentNode() );
 
-  if ( currentMarkupsFiducialNode == NULL )
+  if ( currentMarkupsFiducialNode == nullptr )
     {
     return;
     }

@@ -66,7 +66,7 @@ vtkMRMLSegmentationNode::vtkMRMLSegmentationNode()
   this->SegmentationModifiedCallbackCommand->SetCallback(vtkMRMLSegmentationNode::SegmentationModifiedCallback);
 
   // Create empty segmentations object
-  this->Segmentation = NULL;
+  this->Segmentation = nullptr;
   vtkSmartPointer<vtkSegmentation> segmentation = vtkSmartPointer<vtkSegmentation>::New();
   this->SetAndObserveSegmentation(segmentation);
 }
@@ -74,10 +74,10 @@ vtkMRMLSegmentationNode::vtkMRMLSegmentationNode()
 //----------------------------------------------------------------------------
 vtkMRMLSegmentationNode::~vtkMRMLSegmentationNode()
 {
-  this->SetAndObserveSegmentation(NULL);
+  this->SetAndObserveSegmentation(nullptr);
 
   // Make sure this callback cannot call this object
-  this->SegmentationModifiedCallbackCommand->SetClientData(NULL);
+  this->SegmentationModifiedCallbackCommand->SetClientData(nullptr);
 }
 
 //----------------------------------------------------------------------------
@@ -134,7 +134,7 @@ void vtkMRMLSegmentationNode::Copy(vtkMRMLNode *anode)
     }
   else
     {
-    this->SetAndObserveSegmentation(NULL);
+    this->SetAndObserveSegmentation(nullptr);
     }
 
   this->EndModify(wasModified);
@@ -383,7 +383,7 @@ void vtkMRMLSegmentationNode::CreateDefaultDisplayNodes()
     // Display node already exists
     return;
     }
-  if (this->GetScene() == NULL)
+  if (this->GetScene() == nullptr)
     {
     vtkErrorMacro("vtkMRMLSegmentationNode::CreateDefaultDisplayNodes failed: Scene is invalid");
     return;
@@ -423,8 +423,8 @@ void vtkMRMLSegmentationNode::ApplyTransform(vtkAbstractTransform* transform)
 
   // Make sure preferred display representations exist after transformation
   // (it is invalidated in the process unless it is the master representation)
-  char* preferredDisplayRepresentation2D = NULL;
-  char* preferredDisplayRepresentation3D = NULL;
+  char* preferredDisplayRepresentation2D = nullptr;
+  char* preferredDisplayRepresentation3D = nullptr;
   vtkMRMLSegmentationDisplayNode* displayNode = vtkMRMLSegmentationDisplayNode::SafeDownCast(this->GetDisplayNode());
   if (displayNode)
     {
@@ -461,7 +461,7 @@ bool vtkMRMLSegmentationNode::CanApplyNonLinearTransforms() const
 //---------------------------------------------------------------------------
 void vtkMRMLSegmentationNode::GetRASBounds(double bounds[6])
 {
-  if (this->GetParentTransformNode() == NULL)
+  if (this->GetParentTransformNode() == nullptr)
     {
     // Segmentation is not transformed
     this->GetBounds(bounds);
@@ -470,7 +470,7 @@ void vtkMRMLSegmentationNode::GetRASBounds(double bounds[6])
     {
     // Segmentation is transformed
     vtkNew<vtkGeneralTransform> segmentationToRASTransform;
-    vtkMRMLTransformNode::GetTransformBetweenNodes(this->GetParentTransformNode(), NULL, segmentationToRASTransform.GetPointer());
+    vtkMRMLTransformNode::GetTransformBetweenNodes(this->GetParentTransformNode(), nullptr, segmentationToRASTransform.GetPointer());
     double bounds_Segmentation[6] = { 1, -1, 1, -1, 1, -1 };
     this->GetBounds(bounds_Segmentation);
     vtkOrientedImageDataResample::TransformBounds(bounds_Segmentation, segmentationToRASTransform.GetPointer(), bounds);
@@ -628,7 +628,7 @@ bool vtkMRMLSegmentationNode::GenerateMergedLabelmap(
           mergedImageData,
           binaryLabelmap,
           vtkOrientedImageDataResample::OPERATION_MASKING,
-          NULL,
+          nullptr,
           0,
           colorIndex);
     }
@@ -742,7 +742,7 @@ std::string vtkMRMLSegmentationNode::AddSegmentFromClosedSurfaceRepresentation(v
     {
     newSegment->SetName(segmentName.c_str());
     }
-  if (color!=NULL)
+  if (color!=nullptr)
     {
     newSegment->SetColor(color);
     }
@@ -769,7 +769,7 @@ std::string vtkMRMLSegmentationNode::AddSegmentFromBinaryLabelmapRepresentation(
     {
     newSegment->SetName(segmentName.c_str());
     }
-  if (color != NULL)
+  if (color != nullptr)
     {
     newSegment->SetColor(color);
     }
@@ -820,13 +820,13 @@ vtkOrientedImageData* vtkMRMLSegmentationNode::GetBinaryLabelmapRepresentation(c
   if (!this->Segmentation)
     {
     vtkErrorMacro("GetBinaryLabelmapRepresentation: Invalid segmentation");
-    return NULL;
+    return nullptr;
     }
   vtkSegment* segment = this->Segmentation->GetSegment(segmentId);
   if (!segment)
     {
     vtkErrorMacro("GetBinaryLabelmapRepresentation: Invalid segment");
-    return NULL;
+    return nullptr;
     }
   return vtkOrientedImageData::SafeDownCast(segment->GetRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()));
 }
@@ -859,13 +859,13 @@ vtkPolyData* vtkMRMLSegmentationNode::GetClosedSurfaceRepresentation(const std::
   if (!this->Segmentation)
     {
     vtkErrorMacro("GetClosedSurfaceRepresentation: Invalid segmentation");
-    return NULL;
+    return nullptr;
     }
   vtkSegment* segment = this->Segmentation->GetSegment(segmentId);
   if (!segment)
     {
     vtkErrorMacro("GetClosedSurfaceRepresentation: Invalid segment");
-    return NULL;
+    return nullptr;
     }
   return vtkPolyData::SafeDownCast(segment->GetRepresentation(vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName()));
 }

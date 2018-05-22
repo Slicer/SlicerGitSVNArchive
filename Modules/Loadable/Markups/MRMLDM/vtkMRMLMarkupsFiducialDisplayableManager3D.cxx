@@ -71,9 +71,9 @@ public:
   { return new vtkMarkupsFiducialWidgetCallback3D; }
 
   vtkMarkupsFiducialWidgetCallback3D()
-    : Widget(NULL)
-    , Node(NULL)
-    , DisplayableManager(NULL)
+    : Widget(nullptr)
+    , Node(nullptr)
+    , DisplayableManager(nullptr)
     , LastInteractionEventMarkupIndex(-1)
     , PointMovedSinceStartInteraction(false)
   {
@@ -179,7 +179,7 @@ vtkAbstractWidget * vtkMRMLMarkupsFiducialDisplayableManager3D::CreateWidget(vtk
   if (!node)
     {
     vtkErrorMacro("CreateWidget: Node not set!")
-    return 0;
+    return nullptr;
     }
 
   vtkMRMLMarkupsFiducialNode* fiducialNode = vtkMRMLMarkupsFiducialNode::SafeDownCast(node);
@@ -187,7 +187,7 @@ vtkAbstractWidget * vtkMRMLMarkupsFiducialDisplayableManager3D::CreateWidget(vtk
   if (!fiducialNode)
     {
     vtkErrorMacro("CreateWidget: Could not get fiducial node!")
-    return 0;
+    return nullptr;
     }
 
   vtkMRMLMarkupsDisplayNode *displayNode = fiducialNode->GetMarkupsDisplayNode();
@@ -516,7 +516,7 @@ void vtkMRMLMarkupsFiducialDisplayableManager3D::SetNthSeed(int n, vtkMRMLMarkup
       }
     }
 
-  vtkProperty *prop = NULL;
+  vtkProperty *prop = nullptr;
   prop = handleRep->GetProperty();
   if (prop)
     {
@@ -732,7 +732,7 @@ void vtkMRMLMarkupsFiducialDisplayableManager3D::OnClickInRenderWindow(double x,
   this->GetDisplayToWorldCoordinates(displayCoordinates1,worldCoordinates1);
 
   // Is there an active markups node that's a fiducial node?
-  vtkMRMLMarkupsFiducialNode *activeFiducialNode = NULL;
+  vtkMRMLMarkupsFiducialNode *activeFiducialNode = nullptr;
 
   vtkMRMLSelectionNode *selectionNode = this->GetSelectionNode();
   if (selectionNode)
@@ -852,7 +852,7 @@ void vtkMRMLMarkupsFiducialDisplayableManager3D::OnInteractorStyleEvent(int even
     vtkDebugMacro("OnInteractorStyleEvent 3D: key press event position = "
               << this->GetInteractor()->GetEventPosition()[0] << ", "
               << this->GetInteractor()->GetEventPosition()[1]
-              << ", key sym = " << (keySym == NULL ? "null" : keySym));
+              << ", key sym = " << (keySym == nullptr ? "null" : keySym));
     if (!keySym)
       {
       return;

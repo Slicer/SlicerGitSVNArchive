@@ -42,7 +42,7 @@
 qMRMLTransformItemDelegate::qMRMLTransformItemDelegate(QObject *parent)
   : QStyledItemDelegate(parent)
 {
-  this->MRMLScene = NULL;
+  this->MRMLScene = nullptr;
   this->FixedRowHeight = -1;
 
   this->RemoveTransformAction = new QAction("Remove transforms from branch", this);

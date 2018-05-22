@@ -184,7 +184,7 @@ public:
   /// If point is specified then all markup positions will be initialized to that position,
   /// otherwise markup positions are initialized to (0,0,0).
   /// Return index of new markup, -1 on failure.
-  int AddMarkupWithNPoints(int n, std::string label = std::string(), vtkVector3d* point = NULL);
+  int AddMarkupWithNPoints(int n, std::string label = std::string(), vtkVector3d* point = nullptr);
   /// Create a new markup with one point.
   /// Return index of new markup, -1 on failure.
   int AddPointToNewMarkup(vtkVector3d point, std::string label = std::string());

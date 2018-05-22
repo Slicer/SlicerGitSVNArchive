@@ -98,7 +98,7 @@ int vtkMRMLMarkupsFiducialStorageNode::ReadDataInternal(vtkMRMLNode *refNode)
     }
 
   // get the display node
-  vtkMRMLMarkupsDisplayNode *displayNode = NULL;
+  vtkMRMLMarkupsDisplayNode *displayNode = nullptr;
   vtkMRMLDisplayNode * mrmlNode = markupsNode->GetDisplayNode();
   if (mrmlNode)
     {
@@ -470,13 +470,13 @@ int vtkMRMLMarkupsFiducialStorageNode::WriteDataInternal(vtkMRMLNode *refNode)
   vtkDebugMacro("WriteDataInternal: have file name " << fullName.c_str());
 
   // cast the input node
-  vtkMRMLMarkupsNode *markupsNode = NULL;
+  vtkMRMLMarkupsNode *markupsNode = nullptr;
   if ( refNode->IsA("vtkMRMLMarkupsNode") )
     {
     markupsNode = dynamic_cast <vtkMRMLMarkupsNode *> (refNode);
     }
 
-  if (markupsNode == NULL)
+  if (markupsNode == nullptr)
     {
     vtkErrorMacro("WriteData: unable to cast input node " << refNode->GetID() << " to a known markups node");
     return 0;

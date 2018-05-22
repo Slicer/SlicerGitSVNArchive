@@ -236,18 +236,18 @@ void vtkMRMLVolumeRenderingDisplayNode::ProcessMRMLEvents(vtkObject *caller,
   this->Superclass::ProcessMRMLEvents(caller, event, callData);
 
   vtkMRMLVolumePropertyNode* volumePropertyNode = this->GetVolumePropertyNode();
-  if (volumePropertyNode != NULL &&
+  if (volumePropertyNode != nullptr &&
       volumePropertyNode == vtkMRMLVolumePropertyNode::SafeDownCast(caller) &&
       event ==  vtkCommand::ModifiedEvent)
     {
-    this->InvokeEvent(vtkCommand::ModifiedEvent, NULL);
+    this->InvokeEvent(vtkCommand::ModifiedEvent, nullptr);
     }
   vtkMRMLAnnotationROINode* roiNode = this->GetROINode();
-  if (roiNode != NULL &&
+  if (roiNode != nullptr &&
       roiNode == vtkMRMLAnnotationROINode::SafeDownCast(caller) &&
       event == vtkCommand::ModifiedEvent)
     {
-    this->InvokeEvent(vtkCommand::ModifiedEvent, NULL);
+    this->InvokeEvent(vtkCommand::ModifiedEvent, nullptr);
     }
 
   if (event == vtkCommand::StartEvent ||

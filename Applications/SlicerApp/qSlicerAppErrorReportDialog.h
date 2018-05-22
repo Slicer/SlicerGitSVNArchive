@@ -38,7 +38,7 @@ class Q_SLICER_APP_EXPORT qSlicerAppErrorReportDialog :
 {
   Q_OBJECT
 public:
-  qSlicerAppErrorReportDialog(QWidget *parentWidget = 0);
+  qSlicerAppErrorReportDialog(QWidget *parentWidget = nullptr);
   virtual ~qSlicerAppErrorReportDialog();
 
 protected slots:

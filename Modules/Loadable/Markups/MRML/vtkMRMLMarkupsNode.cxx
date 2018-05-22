@@ -86,7 +86,7 @@ void vtkMRMLMarkupsNode::ReadXMLAttributes(const char** atts)
   const char* attName;
   const char* attValue;
 
-  while (*atts != NULL)
+  while (*atts != nullptr)
     {
     attName = *(atts++);
     attValue = *(atts++);
@@ -263,7 +263,7 @@ void vtkMRMLMarkupsNode::SetText(int id, const char *newText)
     }
 
   // check if the same as before
-  if (((this->TextList->GetNumberOfValues() == 0) && (newText == NULL || newString == "")) ||
+  if (((this->TextList->GetNumberOfValues() == 0) && (newText == nullptr || newString == "")) ||
       ((this->TextList->GetNumberOfValues() > id) &&
        (this->TextList->GetValue(id) == newString)
         ) )
@@ -417,7 +417,7 @@ Markup *vtkMRMLMarkupsNode::GetNthMarkup(int n)
     return &(this->Markups[n]);
     }
 
-  return NULL;
+  return nullptr;
 }
 
 //---------------------------------------------------------------------------
@@ -504,7 +504,7 @@ int vtkMRMLMarkupsNode::AddMarkupWithNPoints(int n, std::string label /*=std::st
   Markup markup;
   markup.Label = label;
   this->InitMarkup(&markup);
-  if (point != NULL)
+  if (point != nullptr)
     {
     markup.points = std::vector<vtkVector3d>(n,*point);
     }
@@ -641,7 +641,7 @@ bool vtkMRMLMarkupsNode::InsertMarkup(Markup m, int targetIndex)
 //-----------------------------------------------------------
 void vtkMRMLMarkupsNode::CopyMarkup(Markup *source, Markup *target)
 {
-  if (source == NULL || target == NULL)
+  if (source == nullptr || target == nullptr)
     {
     return;
     }
@@ -898,7 +898,7 @@ Markup* vtkMRMLMarkupsNode::GetMarkupByID(const char* markupID)
 {
   if (!markupID)
     {
-    return NULL;
+    return nullptr;
     }
 
   int markupIndex = this->GetMarkupIndexByID(markupID);
@@ -906,7 +906,7 @@ Markup* vtkMRMLMarkupsNode::GetMarkupByID(const char* markupID)
     {
     return this->GetNthMarkup(markupIndex);
     }
-  return NULL;
+  return nullptr;
 }
 
 //-----------------------------------------------------------
@@ -1269,7 +1269,7 @@ std::string vtkMRMLMarkupsNode::ReplaceListNameInMarkupLabelFormat()
     // replace the special character with the list name, or an empty string if
     // no list name is set
     std::string name;
-    if (this->GetName() != NULL)
+    if (this->GetName() != nullptr)
       {
       name = std::string(this->GetName());
       }

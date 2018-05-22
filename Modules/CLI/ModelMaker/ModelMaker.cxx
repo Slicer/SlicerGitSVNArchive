@@ -202,7 +202,7 @@ int main(int argc, char * argv[])
     }
 
   // if there's a color based model hierarchy file, import it into the model scene
-  vtkMRMLModelHierarchyNode *topColorHierarchyNode = NULL;
+  vtkMRMLModelHierarchyNode *topColorHierarchyNode = nullptr;
   if (ModelHierarchyFile.length() > 0)
     {
     // only try importing if the scene file exists
@@ -226,7 +226,7 @@ int main(int argc, char * argv[])
 
     // make sure we have a new model hierarchy node
     vtkMRMLNode * mnode = modelScene->GetNthNodeByClass(1,"vtkMRMLModelHierarchyNode");
-    if (mnode != NULL)
+    if (mnode != nullptr)
       {
       topColorHierarchyNode = vtkMRMLModelHierarchyNode::SafeDownCast(mnode);
       }
@@ -245,7 +245,7 @@ int main(int argc, char * argv[])
 
 
   // if have a color hiearchy node, make it a child of the passed in model hiearchy
-  if (topColorHierarchyNode != NULL)
+  if (topColorHierarchyNode != nullptr)
     {
     topColorHierarchyNode->SetParentNodeID(rtnd->GetID());
     // there's also a chance that the parent node refs weren't reset when the top color hierarchy node was re-id'd
@@ -419,7 +419,7 @@ int main(int argc, char * argv[])
     {
     FILE * infile;
     infile = fopen(InputVolume.c_str(), "r");
-    if (infile == NULL)
+    if (infile == nullptr)
       {
       std::cerr << "ERROR: cannot open input volume file " << InputVolume << endl;
       return EXIT_FAILURE;
@@ -1782,7 +1782,7 @@ int main(int argc, char * argv[])
       modelScene->RemoveNode(colorNode);
       }
     // take out any extra hierarchy nodes and display nodes
-    if (topColorHierarchyNode != NULL)
+    if (topColorHierarchyNode != nullptr)
       {
       // get all the hierarchies under it, recursively
       std::vector< vtkMRMLHierarchyNode* > allChildren;

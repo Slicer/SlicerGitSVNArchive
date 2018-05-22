@@ -210,7 +210,7 @@ public:
   /// Return the toplevel Annotation hierarchy node ID or create one and add it to the scene if there is none:
   /// If an optional annotationNode is given, insert the new toplevel hierarchy before it. If not,
   /// just add the new toplevel hierarchy node.
-  char * GetTopLevelHierarchyNodeID(vtkMRMLNode* node=0);
+  char * GetTopLevelHierarchyNodeID(vtkMRMLNode* node=nullptr);
 
   /// Return the top level annotation hierarchy node for this node's class, adding one under the top level annotation hierarchy if there is none. If the passed in node is null, return null
   char * GetTopLevelHierarchyNodeIDForNodeClass(vtkMRMLAnnotationNode *annotationNode);
@@ -265,7 +265,7 @@ public:
   /// fiducial at the given RAS coordinates (default 0,0,0) with the
   /// given label (if NULL, uses default naming convention).
   /// Returns the ID of the newly added node.
-  char *AddFiducial(double r=0.0, double a=0.0, double s=0.0, const char *label=NULL);
+  char *AddFiducial(double r=0.0, double a=0.0, double s=0.0, const char *label=nullptr);
 
 protected:
 
@@ -308,7 +308,7 @@ private:
   /// active hierarchy node, use the top-level annotation hierarchy node as the parent.
   /// If there is no top-level annotation hierarchy node, create additionally a top-level hierarchy node which serves as
   /// a parent to the new hierarchy node. Return true on success, false on failure.
-  bool AddHierarchyNodeForAnnotation(vtkMRMLAnnotationNode* annotationNode=0);
+  bool AddHierarchyNodeForAnnotation(vtkMRMLAnnotationNode* annotationNode=nullptr);
 
 
 };

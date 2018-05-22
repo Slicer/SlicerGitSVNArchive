@@ -188,7 +188,7 @@ void qSlicerVolumesIOOptionsWidget::updateColorSelector()
 {
   Q_D(qSlicerVolumesIOOptionsWidget);
 
-  if (qSlicerCoreApplication::application() != NULL)
+  if (qSlicerCoreApplication::application() != nullptr)
     {
     // access the color logic which has information about default color nodes
     vtkSlicerApplicationLogic* appLogic = qSlicerCoreApplication::application()->applicationLogic();

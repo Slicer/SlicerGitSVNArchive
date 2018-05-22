@@ -164,7 +164,7 @@ void qMRMLColorPickerWidget::onNodeAdded(vtkObject* scene, vtkObject* nodeObject
 void qMRMLColorPickerWidget::setMRMLScene(vtkMRMLScene* scene)
 {
   Q_D(qMRMLColorPickerWidget);
-  this->setCurrentColorNode(0); // eventually disconnect NodeAddedEvent
+  this->setCurrentColorNode(nullptr); // eventually disconnect NodeAddedEvent
   this->qMRMLWidget::setMRMLScene(scene);
   if (scene && !d->ColorTableComboBox->currentNode())
     {

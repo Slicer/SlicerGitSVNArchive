@@ -341,7 +341,7 @@ void qMRMLSegmentationRepresentationsListView::createRepresentationAdvanced()
   QString representationName = this->sender()->property(REPRESENTATION_NAME_PROPERTY).toString();
 
   // Create dialog to show the parameters widget in a popup window
-  QDialog* parametersDialog = new QDialog(NULL, Qt::Dialog);
+  QDialog* parametersDialog = new QDialog(nullptr, Qt::Dialog);
   parametersDialog->setObjectName("SegmentationConversionParametersWindow");
   parametersDialog->setWindowTitle("Advanced segmentation conversion");
   QVBoxLayout* layout = new QVBoxLayout(parametersDialog);

@@ -130,7 +130,9 @@ public:
   /// \param mergedLabelmapGeometry Determines geometry of merged labelmap if not NULL, automatically determined otherwise
   /// \param segmentIDs List of IDs of segments to include in the merged labelmap. If empty or missing, then all segments are included
   /// \return Success flag
-  virtual bool GenerateMergedLabelmap(vtkOrientedImageData* mergedImageData, int extentComputationMode, vtkOrientedImageData* mergedLabelmapGeometry = NULL, const std::vector<std::string>& segmentIDs = std::vector<std::string>());
+  virtual bool GenerateMergedLabelmap(vtkOrientedImageData* mergedImageData,
+      int extentComputationMode, vtkOrientedImageData* mergedLabelmapGeometry = nullptr,
+      const std::vector<std::string>& segmentIDs = std::vector<std::string>());
 //ETX
 #endif // __VTK_WRAP__
 
@@ -140,7 +142,7 @@ public:
   /// \sa GenerateMergedLabelmap
   virtual bool GenerateMergedLabelmapForAllSegments(vtkOrientedImageData* mergedImageData,
     int extentComputationMode = vtkSegmentation::EXTENT_UNION_OF_EFFECTIVE_SEGMENTS,
-    vtkOrientedImageData* mergedLabelmapGeometry = NULL, vtkStringArray* segmentIDs = NULL);
+    vtkOrientedImageData* mergedLabelmapGeometry = nullptr, vtkStringArray* segmentIDs = nullptr);
 
   /// Expose reference identifier to get the volume node defining the reference image geometry if any
   static std::string GetReferenceImageGeometryReferenceRole() { return "referenceImageGeometryRef"; };
@@ -189,12 +191,12 @@ public:
   /// Add new segment from a closed surface.
   /// \return Segment ID of the new segment. Empty string if an error occurred.
   virtual std::string AddSegmentFromClosedSurfaceRepresentation(vtkPolyData* polyData,
-    std::string segmentName = "", double color[3] = NULL, std::string segmentId = "");
+    std::string segmentName = "", double color[3] = nullptr, std::string segmentId = "");
 
   /// Add new segment from a binary labelmap.
   /// \return Segment ID of the new segment. Empty string if an error occurred.
   std::string AddSegmentFromBinaryLabelmapRepresentation(vtkOrientedImageData* imageData,
-    std::string segmentName = "", double color[3] = NULL, std::string segmentId = "");
+    std::string segmentName = "", double color[3] = nullptr, std::string segmentId = "");
 
   /// Delete segment from segmentation.
   void RemoveSegment(const std::string& segmentID);

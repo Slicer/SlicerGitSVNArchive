@@ -73,9 +73,9 @@ qSlicerTablesModuleWidgetPrivate::qSlicerTablesModuleWidgetPrivate(qSlicerTables
   : q_ptr(&object)
 {
   this->MRMLTableNode = 0;
-  this->CopyAction = 0;
-  this->PasteAction = 0;
-  this->PlotAction = 0;
+  this->CopyAction = nullptr;
+  this->PasteAction = nullptr;
+  this->PlotAction = nullptr;
 }
 //-----------------------------------------------------------------------------
 vtkSlicerTablesLogic* qSlicerTablesModuleWidgetPrivate::logic()const
@@ -89,7 +89,7 @@ vtkTable* qSlicerTablesModuleWidgetPrivate::table()const
 {
   if (this->MRMLTableNode.GetPointer()==NULL)
     {
-    return NULL;
+    return nullptr;
     }
   return this->MRMLTableNode->GetTable();
 }
@@ -161,7 +161,7 @@ void qSlicerTablesModuleWidget::setup()
   d->NewColumnPropertiesWidget->setMRMLTableColumnName(vtkMRMLTableNode::GetDefaultColumnName());
   this->connect(d->TableNodeSelector, SIGNAL(currentNodeChanged(vtkMRMLNode*)), d->NewColumnPropertiesWidget, SLOT(setMRMLTableNode(vtkMRMLNode*)));
 
-  this->onNodeSelected(0);
+  this->onNodeSelected(nullptr);
 }
 
 //-----------------------------------------------------------------------------

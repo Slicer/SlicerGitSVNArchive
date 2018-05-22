@@ -87,13 +87,13 @@ qMRMLSliceViewPrivate::vtkInternalLightBoxRendererManagerProxy::New()
 //---------------------------------------------------------------------------
 qMRMLSliceViewPrivate::vtkInternalLightBoxRendererManagerProxy::vtkInternalLightBoxRendererManagerProxy()
 {
-  this->LightBoxRendererManager = 0;
+  this->LightBoxRendererManager = nullptr;
 }
 
 //---------------------------------------------------------------------------
 qMRMLSliceViewPrivate::vtkInternalLightBoxRendererManagerProxy::~vtkInternalLightBoxRendererManagerProxy()
 {
-  this->LightBoxRendererManager = 0;
+  this->LightBoxRendererManager = nullptr;
 }
 
 //---------------------------------------------------------------------------
@@ -103,7 +103,7 @@ vtkRenderer* qMRMLSliceViewPrivate::vtkInternalLightBoxRendererManagerProxy::Get
     {
     return this->LightBoxRendererManager->GetRenderer(id);
     }
-  return NULL;
+  return nullptr;
 }
 
 //---------------------------------------------------------------------------
@@ -119,9 +119,9 @@ void qMRMLSliceViewPrivate::vtkInternalLightBoxRendererManagerProxy::SetLightBox
 qMRMLSliceViewPrivate::qMRMLSliceViewPrivate(qMRMLSliceView& object)
   : q_ptr(&object)
 {
-  this->DisplayableManagerGroup = 0;
-  this->MRMLScene = 0;
-  this->MRMLSliceNode = 0;
+  this->DisplayableManagerGroup = nullptr;
+  this->MRMLScene = nullptr;
+  this->MRMLSliceNode = nullptr;
   this->InactiveBoxColor = QColor(95, 95, 113);
   this->LightBoxRendererManagerProxy = vtkInternalLightBoxRendererManagerProxy::New();
 }
@@ -147,7 +147,7 @@ void qMRMLSliceViewPrivate::init()
   // Highligh first RenderWindowItem
   q->setHighlightedBoxColor(this->InactiveBoxColor);
 
-  q->setRenderEnabled(this->MRMLScene != 0);
+  q->setRenderEnabled(this->MRMLScene != nullptr);
 
   vtkNew<vtkSliceViewInteractorStyle> interactorStyle;
   q->interactor()->SetInteractorStyle(interactorStyle.GetPointer());
@@ -218,7 +218,7 @@ void qMRMLSliceViewPrivate::setMRMLScene(vtkMRMLScene* newScene)
 
   this->MRMLScene = newScene;
   q->setRenderEnabled(
-    this->MRMLScene != 0 && !this->MRMLScene->IsBatchProcessing());
+    this->MRMLScene != nullptr && !this->MRMLScene->IsBatchProcessing());
 }
 
 // --------------------------------------------------------------------------
@@ -303,7 +303,7 @@ void qMRMLSliceView::setMRMLScene(vtkMRMLScene* newScene)
 
   if (d->MRMLSliceNode && newScene != d->MRMLSliceNode->GetScene())
     {
-    this->setMRMLSliceNode(0);
+    this->setMRMLSliceNode(nullptr);
     }
 }
 
@@ -325,7 +325,7 @@ void qMRMLSliceView::setMRMLSliceNode(vtkMRMLSliceNode* newSliceNode)
 
   d->updateWidgetFromMRML();
   // Enable/disable widget
-  this->setEnabled(newSliceNode != 0);
+  this->setEnabled(newSliceNode != nullptr);
 }
 
 //---------------------------------------------------------------------------

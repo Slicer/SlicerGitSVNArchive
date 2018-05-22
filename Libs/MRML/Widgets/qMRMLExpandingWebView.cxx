@@ -62,7 +62,7 @@ const char *htmlPostscript =
 qMRMLExpandingWebViewPrivate::qMRMLExpandingWebViewPrivate(qMRMLExpandingWebView& object)
   : q_ptr(&object)
 {
-  this->MRMLScene = 0;
+  this->MRMLScene = nullptr;
 }
 
 //---------------------------------------------------------------------------
@@ -140,7 +140,7 @@ qMRMLExpandingWebView::qMRMLExpandingWebView(QWidget* _parent) : Superclass(_par
 // --------------------------------------------------------------------------
 qMRMLExpandingWebView::~qMRMLExpandingWebView()
 {
-  this->setMRMLScene(0);
+  this->setMRMLScene(nullptr);
 }
 
 

@@ -146,7 +146,7 @@ public:
 
   /// Helper function for determining what type of scalar is active.
   static bool IsCellScalarsActive(vtkMRMLDisplayNode* displayNode,
-    vtkMRMLModelNode* model = 0);
+    vtkMRMLModelNode* model = nullptr);
 
 protected:
 
@@ -192,7 +192,7 @@ protected:
   int GetDisplayedModelsVisibility(vtkMRMLDisplayNode *model);
 
   const char* GetActiveScalarName(vtkMRMLDisplayNode* displayNode,
-                                  vtkMRMLModelNode* model = 0);
+                                  vtkMRMLModelNode* model = nullptr);
 
   /// Returns not null if modified
   int UpdateClipSlicesFromMRML();

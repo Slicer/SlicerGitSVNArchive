@@ -79,7 +79,7 @@ public:
   /// if both .nrrd and .seg.nrrd are matched), including dot.
   /// If filename is not specified then the current FileName will be used
   /// If there is no match then empty is returned.
-  virtual std::string GetSupportedFileExtension(const char* fileName = NULL, bool includeReadable = true, bool includeWriteable = true);
+  virtual std::string GetSupportedFileExtension(const char* fileName = nullptr, bool includeReadable = true, bool includeWriteable = true);
 
   ///
   /// return the nth file name, null if doesn't exist
@@ -300,7 +300,7 @@ public:
 
   /// Remove suported extension from filename.
   /// If filename is not specified then the current FileName will be used.
-  std::string GetFileNameWithoutExtension(const char* fileName = NULL);
+  std::string GetFileNameWithoutExtension(const char* fileName = nullptr);
 
 protected:
   vtkMRMLStorageNode();

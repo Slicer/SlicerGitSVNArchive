@@ -46,12 +46,12 @@
 qSlicerMouseModeToolBarPrivate::qSlicerMouseModeToolBarPrivate(qSlicerMouseModeToolBar& object)
   : q_ptr(&object)
 {
-  this->CreateAndPlaceToolButton = 0;
-  this->CreateAndPlaceMenu = 0;
+  this->CreateAndPlaceToolButton = nullptr;
+  this->CreateAndPlaceMenu = nullptr;
 
-  this->PersistenceAction = 0;
+  this->PersistenceAction = nullptr;
 
-  this->ActionGroup = 0;
+  this->ActionGroup = nullptr;
   this->DefaultPlaceClassName = "vtkMRMLMarkupsFiducialNode";
 }
 
@@ -123,18 +123,18 @@ void qSlicerMouseModeToolBarPrivate::setMRMLScene(vtkMRMLScene* newScene)
   // watch for changes to the interaction, selection nodes so can update the widget
   vtkMRMLInteractionNode* interactionNode =
     (this->MRMLAppLogic && this->MRMLScene) ?
-    this->MRMLAppLogic->GetInteractionNode() : 0;
+    this->MRMLAppLogic->GetInteractionNode() : nullptr;
   this->qvtkReconnect(interactionNode, vtkCommand::ModifiedEvent,
                       this, SLOT(updateWidgetFromInteractionNode()));
 
   vtkMRMLSelectionNode* selectionNode =
     (this->MRMLAppLogic && this->MRMLScene) ?
-    this->MRMLAppLogic->GetSelectionNode() : 0;
+    this->MRMLAppLogic->GetSelectionNode() : nullptr;
   this->qvtkReconnect(selectionNode, vtkMRMLSelectionNode::ActivePlaceNodeClassNameChangedEvent,
                       this, SLOT(updateWidgetFromSelectionNode()));
 
   // Update UI
-  q->setEnabled(this->MRMLScene != 0);
+  q->setEnabled(this->MRMLScene != nullptr);
   this->updateWidgetFromMRML();
 }
 
@@ -150,7 +150,7 @@ void qSlicerMouseModeToolBarPrivate::updateWidgetFromSelectionNode()
 {
   Q_Q(qSlicerMouseModeToolBar);
   vtkMRMLSelectionNode *selectionNode =
-    this->MRMLAppLogic ? this->MRMLAppLogic->GetSelectionNode() : 0;
+    this->MRMLAppLogic ? this->MRMLAppLogic->GetSelectionNode() : nullptr;
   if (!selectionNode)
     {
     qDebug() << "Mouse Mode ToolBar: no selection node";
@@ -248,7 +248,7 @@ void qSlicerMouseModeToolBarPrivate::updateWidgetFromSelectionNode()
 void qSlicerMouseModeToolBarPrivate::updateWidgetFromInteractionNode()
 {
   vtkMRMLInteractionNode* interactionNode =
-    this->MRMLAppLogic ? this->MRMLAppLogic->GetInteractionNode() : 0;
+    this->MRMLAppLogic ? this->MRMLAppLogic->GetInteractionNode() : nullptr;
   if (!interactionNode)
     {
     qDebug() << "Mouse Mode ToolBar: no interaction node";
@@ -274,7 +274,7 @@ void qSlicerMouseModeToolBarPrivate::updateWidgetFromInteractionNode()
       break;
     case vtkMRMLInteractionNode::ViewTransform:
       // reset the widget to view transform, not supporting pick manipulate
-      this->updateWidgetToPlace(0);
+      this->updateWidgetToPlace(nullptr);
       break;
     default:
       qWarning() << "qSlicerMouseModeToolBarPrivate::updateWidgetFromMRML - "
@@ -566,7 +566,7 @@ QAction* qSlicerMouseModeToolBar::actionFromPlaceNodeClassName(QString placeNode
       return action;
       }
     }
-  return 0;
+  return nullptr;
 }
 
 //---------------------------------------------------------------------------
@@ -575,7 +575,7 @@ void qSlicerMouseModeToolBar::setPersistence(bool persistent)
   Q_D(qSlicerMouseModeToolBar);
 
   vtkMRMLInteractionNode *interactionNode =
-    d->MRMLAppLogic ? d->MRMLAppLogic->GetInteractionNode() : 0;
+    d->MRMLAppLogic ? d->MRMLAppLogic->GetInteractionNode() : nullptr;
 
   if (interactionNode)
     {

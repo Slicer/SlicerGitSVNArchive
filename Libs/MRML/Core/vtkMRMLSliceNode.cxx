@@ -49,7 +49,7 @@ vtkMRMLSliceNode::vtkMRMLSliceNode()
 
   this->JumpMode = OffsetJumpSlice;
 
-  this->OrientationReference = NULL;
+  this->OrientationReference = nullptr;
 
   // calculated by UpdateMatrices()
   this->XYToSlice = vtkSmartPointer<vtkMatrix4x4>::New();
@@ -188,7 +188,7 @@ void vtkMRMLSliceNode::AddThreeDViewID(const char* viewNodeID)
 //----------------------------------------------------------------------------
 void vtkMRMLSliceNode::RemoveThreeDViewID(char* viewNodeID)
 {
-  if (viewNodeID == NULL)
+  if (viewNodeID == nullptr)
     {
     return;
     }
@@ -231,7 +231,7 @@ const char* vtkMRMLSliceNode::GetNthThreeDViewID(unsigned int index)
     {
     vtkErrorMacro("vtkMRMLDisplayNode::GetNthThreeDViewID() index "
       << index << " outside the range 0-" << this->ThreeDViewIDs.size()-1 );
-    return NULL;
+    return nullptr;
     }
   return ThreeDViewIDs[index].c_str();
 }
@@ -239,7 +239,7 @@ const char* vtkMRMLSliceNode::GetNthThreeDViewID(unsigned int index)
 //----------------------------------------------------------------------------
 bool vtkMRMLSliceNode::IsThreeDViewIDPresent(const char* viewNodeID)const
 {
-  if (viewNodeID == 0)
+  if (viewNodeID == nullptr)
     {
     return false;
     }
@@ -268,7 +268,7 @@ bool vtkMRMLSliceNode::SetOrientation(const char* orientation)
 
   vtkMatrix3x3 *orientationPreset =
       this->GetSliceOrientationPreset(orientation);
-  if (orientationPreset == NULL)
+  if (orientationPreset == nullptr)
     {
     return false;
     }
@@ -350,7 +350,7 @@ vtkMatrix3x3 *vtkMRMLSliceNode::GetSliceOrientationPreset(const std::string &nam
 
   vtkErrorMacro("GetSliceOrientationPreset: invalid orientation preset name: "
                 << name);
-  return NULL;
+  return nullptr;
 }
 
 //----------------------------------------------------------------------------
@@ -396,7 +396,7 @@ std::string vtkMRMLSliceNode::GetOrientation(vtkMatrix4x4 *sliceToRAS)
 //----------------------------------------------------------------------------
 void vtkMRMLSliceNode::GetSliceOrientationPresetNames(vtkStringArray *presetOrientationNames)
 {
-  if (presetOrientationNames == NULL)
+  if (presetOrientationNames == nullptr)
     {
     vtkErrorMacro("GetSliceOrientationPresetNames: invalid input vtkStringArray.");
     return;
@@ -931,7 +931,7 @@ void vtkMRMLSliceNode::ReadXMLAttributes(const char** atts)
   const char* attValue;
   bool layoutColorFound = false;
   bool layoutLabelFound = false;
-  while (*atts != NULL)
+  while (*atts != nullptr)
     {
     attName = *(atts++);
     attValue = *(atts++);
@@ -1552,7 +1552,7 @@ void vtkMRMLSliceNode::JumpAllSlices(vtkMRMLScene* scene, double r, double a, do
     {
     vtkMRMLSliceNode *node = vtkMRMLSliceNode::SafeDownCast(
       scene->GetNthNodeByClass(n, "vtkMRMLSliceNode"));
-    if (node == NULL || node == exclude)
+    if (node == nullptr || node == exclude)
       {
       continue;
       }
@@ -2117,7 +2117,7 @@ void vtkMRMLSliceNode::RotateToVolumePlane(vtkMRMLVolumeNode *volumeNode)
   // - pick the right vectors to put in the slice matrix to match existing orientation
   //
 
-  if ( volumeNode == NULL )
+  if ( volumeNode == nullptr )
     {
     return;
     }
@@ -2127,7 +2127,7 @@ void vtkMRMLSliceNode::RotateToVolumePlane(vtkMRMLVolumeNode *volumeNode)
 
   // apply the transform
   vtkMRMLTransformNode *transformNode  = volumeNode->GetParentTransformNode();
-  if ( transformNode != NULL )
+  if ( transformNode != nullptr )
     {
     if ( transformNode->IsTransformToWorldLinear() )
       {

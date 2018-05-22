@@ -50,8 +50,8 @@ qMRMLSubjectHierarchyModelPrivate::qMRMLSubjectHierarchyModelPrivate(qMRMLSubjec
   , IDColumn(-1)
   , VisibilityColumn(-1)
   , TransformColumn(-1)
-  , SubjectHierarchyNode(NULL)
-  , MRMLScene(NULL)
+  , SubjectHierarchyNode(nullptr)
+  , MRMLScene(nullptr)
 {
   this->CallBack = vtkSmartPointer<vtkCallbackCommand>::New();
   this->PendingItemModified = -1; // -1 means not updating
@@ -139,20 +139,20 @@ QStandardItem* qMRMLSubjectHierarchyModelPrivate::insertSubjectHierarchyItem(vtk
     if (!parentItemID)
       {
       qCritical() << Q_FUNC_INFO << ": Unable to get parent for subject hierarchy item with ID " << itemID;
-      return NULL;
+      return nullptr;
       }
     parentItem = q->insertSubjectHierarchyItem(parentItemID);
     if (!parentItem)
       {
       qCritical() << Q_FUNC_INFO << ": Failed to insert parent subject hierarchy item with ID " << parentItemID;
-      return NULL;
+      return nullptr;
       }
     }
   item = q->insertSubjectHierarchyItem(itemID, parentItem, index);
   if (q->itemFromSubjectHierarchyItem(itemID) != item)
     {
     qCritical() << Q_FUNC_INFO << ": Item mismatch when inserting subject hierarchy item with ID " << itemID;
-    return NULL;
+    return nullptr;
     }
   return item;
 }
@@ -270,7 +270,7 @@ QStandardItem* qMRMLSubjectHierarchyModel::subjectHierarchySceneItem()const
   Q_D(const qMRMLSubjectHierarchyModel);
   if (!d->SubjectHierarchyNode || this->maxColumnId() == -1)
     {
-    return NULL;
+    return nullptr;
     }
   int count = this->invisibleRootItem()->rowCount();
   for (int row=0; row<count; ++row)
@@ -286,14 +286,14 @@ QStandardItem* qMRMLSubjectHierarchyModel::subjectHierarchySceneItem()const
       return child;
       }
     }
-  return NULL;
+  return nullptr;
 }
 
 //------------------------------------------------------------------------------
 QModelIndex qMRMLSubjectHierarchyModel::subjectHierarchySceneIndex()const
 {
   QStandardItem* shSceneItem = this->subjectHierarchySceneItem();
-  if (shSceneItem == NULL)
+  if (shSceneItem == nullptr)
     {
     return QModelIndex();
     }
@@ -521,7 +521,7 @@ bool qMRMLSubjectHierarchyModel::reparent(vtkIdType itemID, vtkIdType newParentI
   // If dropped from within the subject hierarchy tree
   QList<qSlicerSubjectHierarchyAbstractPlugin*> foundPlugins =
     qSlicerSubjectHierarchyPluginHandler::instance()->pluginsForReparentingItemInSubjectHierarchy(itemID, newParentID);
-  qSlicerSubjectHierarchyAbstractPlugin* selectedPlugin = NULL;
+  qSlicerSubjectHierarchyAbstractPlugin* selectedPlugin = nullptr;
   if (foundPlugins.size() > 1)
     {
     // Let the user choose a plugin if more than one returned the same non-zero confidence value
@@ -607,7 +607,7 @@ QMimeData* qMRMLSubjectHierarchyModel::mimeData(const QModelIndexList& indexes)c
   Q_D(const qMRMLSubjectHierarchyModel);
   if (!indexes.size())
     {
-    return 0;
+    return nullptr;
     }
   QModelIndexList allColumnsIndexes;
   foreach(const QModelIndex& index, indexes)
@@ -672,7 +672,7 @@ void qMRMLSubjectHierarchyModel::updateFromSubjectHierarchy()
     for (int i = 1; i < this->columnCount(); ++i)
       {
       QStandardItem* sceneOtherColumn = new QStandardItem();
-      sceneOtherColumn->setFlags(0);
+      sceneOtherColumn->setFlags(nullptr);
       sceneItems << sceneOtherColumn;
       }
     sceneItem->setColumnCount(this->columnCount());
@@ -737,7 +737,7 @@ QStandardItem* qMRMLSubjectHierarchyModel::insertSubjectHierarchyItem(vtkIdType 
     {
     // The scene is inserted individually, and the other items must always have a valid parent (if not other then the scene)
     qCritical() << Q_FUNC_INFO << ": Invalid parent to inserted subject hierarchy item with ID " << itemID;
-    return NULL;
+    return nullptr;
     }
 
   QList<QStandardItem*> items;
@@ -862,7 +862,7 @@ void qMRMLSubjectHierarchyModel::updateItemDataFromSubjectHierarchyItem(QStandar
     return;
     }
 
-  qSlicerSubjectHierarchyAbstractPlugin* ownerPlugin = NULL;
+  qSlicerSubjectHierarchyAbstractPlugin* ownerPlugin = nullptr;
   if (!d->SubjectHierarchyNode->GetItemOwnerPluginName(shItemID).empty())
     {
     ownerPlugin = qSlicerSubjectHierarchyPluginHandler::instance()->getOwnerPluginForSubjectHierarchyItem(shItemID);
@@ -977,7 +977,7 @@ void qMRMLSubjectHierarchyModel::updateItemDataFromSubjectHierarchyItem(QStandar
     vtkMRMLTransformableNode* transformableNode = vtkMRMLTransformableNode::SafeDownCast(dataNode);
     if (transformableNode)
       {
-      vtkMRMLTransformNode* parentTransformNode = ( transformableNode->GetParentTransformNode() ? transformableNode->GetParentTransformNode() : NULL );
+      vtkMRMLTransformNode* parentTransformNode = ( transformableNode->GetParentTransformNode() ? transformableNode->GetParentTransformNode() : nullptr );
       QString transformNodeId( parentTransformNode ? parentTransformNode->GetID() : "" );
       QString transformNodeName( parentTransformNode ? parentTransformNode->GetName() : "" );
       // Only change item if the transform itself changed
@@ -1019,7 +1019,7 @@ void qMRMLSubjectHierarchyModel::updateSubjectHierarchyItemFromItem(vtkIdType sh
   // reparented when entering the d&d function)
   for (int col=0; col<columnCount; ++col)
     {
-    if (parentItem->child(item->row(), col) == 0)
+    if (parentItem->child(item->row(), col) == nullptr)
       {
       return;
       }
@@ -1102,7 +1102,7 @@ void qMRMLSubjectHierarchyModel::updateSubjectHierarchyItemFromItemData(vtkIdTyp
     // No checks and questions when the transform is being removed
     if (!newParentTransformNode)
       {
-      vtkSlicerSubjectHierarchyModuleLogic::TransformBranch(d->SubjectHierarchyNode, shItemID, NULL, false);
+      vtkSlicerSubjectHierarchyModuleLogic::TransformBranch(d->SubjectHierarchyNode, shItemID, nullptr, false);
       return;
       }
 
@@ -1111,7 +1111,7 @@ void qMRMLSubjectHierarchyModel::updateSubjectHierarchyItemFromItemData(vtkIdTyp
     if (d->SubjectHierarchyNode->IsAnyNodeInBranchTransformed(shItemID))
       {
       QMessageBox::StandardButton answer =
-        QMessageBox::question(NULL, tr("Some nodes in the branch are already transformed"),
+        QMessageBox::question(nullptr, tr("Some nodes in the branch are already transformed"),
         tr("Do you want to harden all already applied transforms before setting the new one?\n\n"
         "  Note: If you choose no, then the applied transform will simply be replaced."),
         QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel,
@@ -1545,7 +1545,7 @@ void qMRMLSubjectHierarchyModel::onRemoveTransformsFromBranchOfCurrentItem()
   vtkIdType currentItemID = qSlicerSubjectHierarchyPluginHandler::instance()->currentItem();
   if (currentItemID)
     {
-    vtkSlicerSubjectHierarchyModuleLogic::TransformBranch(d->SubjectHierarchyNode, currentItemID, NULL, false);
+    vtkSlicerSubjectHierarchyModuleLogic::TransformBranch(d->SubjectHierarchyNode, currentItemID, nullptr, false);
     }
 }
 

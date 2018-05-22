@@ -239,7 +239,7 @@ void qMRMLVolumeInfoWidget::updateWidgetFromMRML()
     }
   vtkImageData* image = d->VolumeNode->GetImageData();
   double dimensions[3] = {0.,0.,0.};
-  int* dims = image ? image->GetDimensions() : 0;
+  int* dims = image ? image->GetDimensions() : nullptr;
   if (dims)
     {
     dimensions[0] = dims[0];
@@ -320,7 +320,7 @@ void qMRMLVolumeInfoWidget::updateWidgetFromMRML()
 
   d->WindowLevelPresetsListWidget->clear();
   vtkMRMLScalarVolumeDisplayNode *displayNode =
-    scalarNode ? scalarNode->GetScalarVolumeDisplayNode() : 0;
+    scalarNode ? scalarNode->GetScalarVolumeDisplayNode() : nullptr;
   if (displayNode)
     {
     // populate the win/level presets
@@ -416,7 +416,7 @@ void qMRMLVolumeInfoWidget::setNumberOfScalars(int number)
 {
   Q_D(qMRMLVolumeInfoWidget);
   vtkImageData* imageData = d->VolumeNode ? d->VolumeNode->GetImageData() : 0;
-  if (imageData == 0)
+  if (imageData == nullptr)
     {
     return;
     }
@@ -432,7 +432,7 @@ void qMRMLVolumeInfoWidget::setScalarType(int index)
 {
   Q_D(qMRMLVolumeInfoWidget);
   vtkImageData* imageData = d->VolumeNode ? d->VolumeNode->GetImageData() : 0;
-  if (imageData == 0)
+  if (imageData == nullptr)
     {
     return;
     }
@@ -449,8 +449,8 @@ void qMRMLVolumeInfoWidget::setWindowLevelFromPreset(QListWidgetItem *presetItem
 {
   Q_D(qMRMLVolumeInfoWidget);
   vtkMRMLScalarVolumeNode *scalarNode = vtkMRMLScalarVolumeNode::SafeDownCast( d->VolumeNode );
-  vtkMRMLScalarVolumeDisplayNode *displayNode = scalarNode ? scalarNode->GetScalarVolumeDisplayNode() : 0;
-  if (displayNode == 0)
+  vtkMRMLScalarVolumeDisplayNode *displayNode = scalarNode ? scalarNode->GetScalarVolumeDisplayNode() : nullptr;
+  if (displayNode == nullptr)
     {
     return;
     }

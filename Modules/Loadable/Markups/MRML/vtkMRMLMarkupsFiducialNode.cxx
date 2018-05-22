@@ -64,7 +64,7 @@ void vtkMRMLMarkupsFiducialNode::ReadXMLAttributes(const char** atts)
   const char* attValue;
 
   int fidID = 0;
-  while (*atts != NULL)
+  while (*atts != nullptr)
     {
     attName = *(atts++);
     attValue = *(atts++);
@@ -140,13 +140,13 @@ vtkMRMLStorageNode* vtkMRMLMarkupsFiducialNode::CreateDefaultStorageNode()
 //-------------------------------------------------------------------------
 void vtkMRMLMarkupsFiducialNode::CreateDefaultDisplayNodes()
 {
-  if (this->GetDisplayNode() != NULL &&
-      vtkMRMLMarkupsDisplayNode::SafeDownCast(this->GetDisplayNode()) != NULL)
+  if (this->GetDisplayNode() != nullptr &&
+      vtkMRMLMarkupsDisplayNode::SafeDownCast(this->GetDisplayNode()) != nullptr)
     {
     // display node already exists
     return;
     }
-  if (this->GetScene()==NULL)
+  if (this->GetScene()==nullptr)
     {
     vtkErrorMacro("vtkMRMLMarkupsFiducialNode::CreateDefaultDisplayNodes failed: scene is invalid");
     return;
@@ -165,7 +165,7 @@ vtkMRMLMarkupsDisplayNode *vtkMRMLMarkupsFiducialNode::GetMarkupsDisplayNode()
     {
     return vtkMRMLMarkupsDisplayNode::SafeDownCast(displayNode);
     }
-  return NULL;
+  return nullptr;
 }
 
 //-------------------------------------------------------------------------

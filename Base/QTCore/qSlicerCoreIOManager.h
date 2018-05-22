@@ -47,7 +47,7 @@ class Q_SLICER_BASE_QTCORE_EXPORT qSlicerCoreIOManager:public QObject
 {
   Q_OBJECT;
 public:
-  qSlicerCoreIOManager(QObject* parent = 0);
+  qSlicerCoreIOManager(QObject* parent = nullptr);
   virtual ~qSlicerCoreIOManager();
 
   /// Return the file type associated with a \a file
@@ -101,13 +101,13 @@ public:
 #else
   Q_INVOKABLE virtual bool loadNodes(const qSlicerIO::IOFileType& fileType,
                                      const qSlicerIO::IOProperties& parameters,
-                                     vtkCollection* loadedNodes = 0);
+                                     vtkCollection* loadedNodes = nullptr);
 #endif
 
   /// Utility function that loads a bunch of files. The "fileType" attribute should
   /// in the parameter map for each node to load.
   virtual bool loadNodes(const QList<qSlicerIO::IOProperties>& files,
-                         vtkCollection* loadedNodes = 0);
+                         vtkCollection* loadedNodes = nullptr);
 
   /// Load a list of node corresponding to \a fileType and return the first loaded node.
   /// This function is provided for convenience and is equivalent to call loadNodes

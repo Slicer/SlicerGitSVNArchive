@@ -279,7 +279,7 @@ void qSlicerSceneViewsModuleWidget::moveDownSelected(QString mrmlId)
 
   const char* id = d->logic()->MoveSceneViewDown(mrmlId.toLatin1());
 
-  if (id != NULL &&
+  if (id != nullptr &&
       strcmp(id, "") != 0)
     {
     this->updateFromMRMLScene();
@@ -293,7 +293,7 @@ void qSlicerSceneViewsModuleWidget::moveUpSelected(QString mrmlId)
 
   const char* id = d->logic()->MoveSceneViewUp(mrmlId.toLatin1());
 
-  if (id != NULL &&
+  if (id != nullptr &&
       strcmp(id, "") != 0)
     {
     this->updateFromMRMLScene();

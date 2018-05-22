@@ -102,13 +102,13 @@ qSlicerAppMainWindowPrivate::qSlicerAppMainWindowPrivate(qSlicerAppMainWindow& o
   : q_ptr(&object)
 {
 #ifdef Slicer_USE_PYTHONQT
-  this->PythonConsoleDockWidget = 0;
-  this->PythonConsoleToggleViewAction = 0;
+  this->PythonConsoleDockWidget = nullptr;
+  this->PythonConsoleToggleViewAction = nullptr;
 #endif
-  this->ErrorLogWidget = 0;
-  this->ErrorLogToolButton = 0;
-  this->ModuleSelectorToolBar = 0;
-  this->LayoutManager = 0;
+  this->ErrorLogWidget = nullptr;
+  this->ErrorLogToolButton = nullptr;
+  this->ModuleSelectorToolBar = nullptr;
+  this->LayoutManager = nullptr;
   this->WindowInitialShowCompleted = false;
 }
 
@@ -756,9 +756,9 @@ qSlicerAppMainWindow::~qSlicerAppMainWindow()
       {
       continue;
       }
-    sliceLogic->GetSliceCompositeNode()->SetReferenceBackgroundVolumeID(0);
-    sliceLogic->GetSliceCompositeNode()->SetReferenceForegroundVolumeID(0);
-    sliceLogic->GetSliceCompositeNode()->SetReferenceLabelVolumeID(0);
+    sliceLogic->GetSliceCompositeNode()->SetReferenceBackgroundVolumeID(nullptr);
+    sliceLogic->GetSliceCompositeNode()->SetReferenceForegroundVolumeID(nullptr);
+    sliceLogic->GetSliceCompositeNode()->SetReferenceLabelVolumeID(nullptr);
     }
 }
 
@@ -1371,7 +1371,7 @@ void qSlicerAppMainWindow::onNewFileLoaded(const qSlicerIO::IOProperties& filePr
 void qSlicerAppMainWindow::on_CopyAction_triggered()
 {
   QWidget* focused = QApplication::focusWidget();
-  if (focused != 0)
+  if (focused != nullptr)
     {
     QApplication::postEvent(focused,
                             new QKeyEvent( QEvent::KeyPress,
@@ -1388,7 +1388,7 @@ void qSlicerAppMainWindow::on_CopyAction_triggered()
 void qSlicerAppMainWindow::on_PasteAction_triggered()
 {
   QWidget* focused = QApplication::focusWidget();
-  if (focused != 0)
+  if (focused != nullptr)
     {
     QApplication::postEvent(focused,
                             new QKeyEvent( QEvent::KeyPress,
@@ -1405,7 +1405,7 @@ void qSlicerAppMainWindow::on_PasteAction_triggered()
 void qSlicerAppMainWindow::on_CutAction_triggered()
 {
   QWidget* focused = QApplication::focusWidget();
-  if (focused != 0)
+  if (focused != nullptr)
     {
     QApplication::postEvent(focused,
                             new QKeyEvent( QEvent::KeyPress,
@@ -1456,7 +1456,7 @@ void qSlicerAppMainWindow::onModuleLoaded(const QString& moduleName)
     {
     // find the location of where to add the action.
     // Note: FavoriteModules is sorted
-    QAction* beforeAction = 0; // 0 means insert at end
+    QAction* beforeAction = nullptr; // 0 means insert at end
     foreach(QAction* toolBarAction, d->ModuleToolBar->actions())
       {
       bool isActionAFavoriteModule =

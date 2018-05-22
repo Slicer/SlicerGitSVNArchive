@@ -55,7 +55,7 @@ qSlicerAnnotationsIOOptionsWidget::qSlicerAnnotationsIOOptionsWidget(QWidget* pa
   QLayout* oldLayout = this->layout();
   int margins[4];
   oldLayout->getContentsMargins(&margins[0],&margins[1],&margins[2],&margins[3]);
-  QLayoutItem* item = 0;
+  QLayoutItem* item = nullptr;
   while((item = oldLayout->takeAt(0)))
     {
     if (item->widget())

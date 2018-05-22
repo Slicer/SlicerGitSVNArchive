@@ -93,7 +93,7 @@ vtkMRMLMarkupsDisplayableManager3D::~vtkMRMLMarkupsDisplayableManager3D()
 
   this->DisableInteractorStyleEventsProcessing = 0;
   this->Updating = 0;
-  this->Focus = 0;
+  this->Focus = nullptr;
 
   this->Helper->Delete();
   this->ClickCounter->Delete();
@@ -230,7 +230,7 @@ void vtkMRMLMarkupsDisplayableManager3D::RemoveMRMLObservers()
 void vtkMRMLMarkupsDisplayableManager3D::UpdateFromMRML()
 {
   // this gets called from RequestRender, so make sure to jump out quickly if possible
-  if (this->GetMRMLScene() == NULL || this->Focus == NULL)
+  if (this->GetMRMLScene() == nullptr || this->Focus == nullptr)
     {
     return;
     }
@@ -256,7 +256,7 @@ void vtkMRMLMarkupsDisplayableManager3D::UpdateFromMRML()
     if (markupsNode)
       {
       // do we  have a widget for it?
-      if (this->GetWidget(markupsNode) == NULL)
+      if (this->GetWidget(markupsNode) == nullptr)
         {
         vtkDebugMacro("UpdateFromMRML: creating a widget for node " << markupsNode->GetID());
         vtkAbstractWidget *widget = this->AddWidget(markupsNode);
@@ -305,9 +305,9 @@ void vtkMRMLMarkupsDisplayableManager3D
   vtkMRMLMarkupsNode * markupsNode = vtkMRMLMarkupsNode::SafeDownCast(caller);
   vtkMRMLMarkupsDisplayNode *displayNode = vtkMRMLMarkupsDisplayNode::SafeDownCast(caller);
   vtkMRMLInteractionNode * interactionNode = vtkMRMLInteractionNode::SafeDownCast(caller);
-  int *nPtr = NULL;
+  int *nPtr = nullptr;
   int n = -1;
-  if (callData != 0)
+  if (callData != nullptr)
     {
     nPtr = reinterpret_cast<int *>(callData);
     if (nPtr)
@@ -455,7 +455,7 @@ void vtkMRMLMarkupsDisplayableManager3D::OnMRMLSceneNodeAdded(vtkMRMLNode* node)
     }
 
   // There should not be a widget for the new node
-  if (this->Helper->GetWidget(markupsNode) != 0)
+  if (this->Helper->GetWidget(markupsNode) != nullptr)
     {
     vtkErrorMacro("OnMRMLSceneNodeAddedEvent: A widget is already associated to this node!");
     return;
@@ -809,7 +809,7 @@ void vtkMRMLMarkupsDisplayableManager3D::OnClickInRenderWindowGetCoordinates()
 
   if (x < windowWidth && y < windowHeight)
     {
-    const char *associatedNodeID = NULL;
+    const char *associatedNodeID = nullptr;
     // it's a 3D displayable manager and the click could have been on a node
     vtkMRMLModelDisplayableManager * modelDisplayableManager =
       vtkMRMLModelDisplayableManager::SafeDownCast(this->GetMRMLDisplayableManagerGroup()->GetDisplayableManagerByClassName("vtkMRMLModelDisplayableManager"));
@@ -822,7 +822,7 @@ void vtkMRMLMarkupsDisplayableManager3D::OnClickInRenderWindowGetCoordinates()
       const char *pickedNodeID = modelDisplayableManager->GetPickedNodeID();
       vtkDebugMacro("Click was on model " << pickedNodeID);
       vtkMRMLNode *mrmlNode = this->GetMRMLScene()->GetNodeByID(pickedNodeID);
-      vtkMRMLDisplayNode *displayNode = NULL;
+      vtkMRMLDisplayNode *displayNode = nullptr;
       if (mrmlNode)
         {
         vtkDebugMacro("Got a mrml node by name, id = " << mrmlNode->GetID());
@@ -968,7 +968,7 @@ void vtkMRMLMarkupsDisplayableManager3D::GetWorldToDisplayCoordinates(double r, 
 /// Convert world to display coordinates
 void vtkMRMLMarkupsDisplayableManager3D::GetWorldToDisplayCoordinates(double * worldCoordinates, double * displayCoordinates)
 {
-  if (worldCoordinates == NULL)
+  if (worldCoordinates == nullptr)
     {
     return;
     }
@@ -981,7 +981,7 @@ void vtkMRMLMarkupsDisplayableManager3D::GetWorldToDisplayCoordinates(double * w
 void vtkMRMLMarkupsDisplayableManager3D::GetDisplayToViewportCoordinates(double x, double y, double * viewportCoordinates)
 {
 
-  if (viewportCoordinates == NULL)
+  if (viewportCoordinates == nullptr)
     {
     return;
     }
@@ -1052,12 +1052,12 @@ bool vtkMRMLMarkupsDisplayableManager3D::IsCorrectDisplayableManager()
 {
 
   vtkMRMLSelectionNode *selectionNode = this->GetMRMLApplicationLogic()->GetSelectionNode();
-  if ( selectionNode == 0 )
+  if ( selectionNode == nullptr )
     {
     vtkErrorMacro ( "IsCorrectDisplayableManager: No selection node in the scene." );
     return false;
     }
-  if ( selectionNode->GetActivePlaceNodeClassName() == 0)
+  if ( selectionNode->GetActivePlaceNodeClassName() == nullptr)
     {
     //vtkErrorMacro ( "IsCorrectDisplayableManager: no active markups");
     return false;
@@ -1096,7 +1096,7 @@ vtkAbstractWidget* vtkMRMLMarkupsDisplayableManager3D::CreateWidget(vtkMRMLMarku
 
   // A widget should be created here.
   vtkErrorMacro("CreateWidget should be overloaded!");
-  return 0;
+  return nullptr;
 }
 
 //---------------------------------------------------------------------------
@@ -1129,7 +1129,7 @@ void vtkMRMLMarkupsDisplayableManager3D::GetWorldToLocalCoordinates(vtkMRMLMarku
                                                                      double *worldCoordinates,
                                                                      double *localCoordinates)
 {
-  if (node == NULL)
+  if (node == nullptr)
     {
     vtkErrorMacro("GetWorldToLocalCoordinates: node is null");
     return;
@@ -1143,11 +1143,11 @@ void vtkMRMLMarkupsDisplayableManager3D::GetWorldToLocalCoordinates(vtkMRMLMarku
   vtkMRMLTransformNode* tnode = node->GetParentTransformNode();
   vtkGeneralTransform *transformToWorld = vtkGeneralTransform::New();
   transformToWorld->Identity();
-  if (tnode != 0 && !tnode->IsTransformToWorldLinear())
+  if (tnode != nullptr && !tnode->IsTransformToWorldLinear())
     {
     tnode->GetTransformFromWorld(transformToWorld);
     }
-  else if (tnode != NULL && tnode->IsTransformToWorldLinear())
+  else if (tnode != nullptr && tnode->IsTransformToWorldLinear())
     {
     vtkNew<vtkMatrix4x4> matrixTransformToWorld;
     matrixTransformToWorld->Identity();
@@ -1180,7 +1180,7 @@ vtkAbstractWidget * vtkMRMLMarkupsDisplayableManager3D::AddWidget(vtkMRMLMarkups
   if (!newWidget)
     {
     vtkErrorMacro("AddWidget: unable to create a new widget for markups node " << markupsNode->GetID());
-    return NULL;
+    return nullptr;
     }
 
   // record the mapping between node and widget in the helper

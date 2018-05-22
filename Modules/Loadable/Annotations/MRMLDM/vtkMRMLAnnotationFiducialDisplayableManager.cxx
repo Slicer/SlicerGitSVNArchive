@@ -189,7 +189,7 @@ vtkAbstractWidget * vtkMRMLAnnotationFiducialDisplayableManager::CreateWidget(vt
   if (!node)
     {
     vtkErrorMacro("CreateWidget: Node not set!")
-    return 0;
+    return nullptr;
     }
 
   // 2d glyphs and text need to be scaled by 1/60 to show up properly in the 2d slice windows
@@ -200,7 +200,7 @@ vtkAbstractWidget * vtkMRMLAnnotationFiducialDisplayableManager::CreateWidget(vt
   if (!fiducialNode)
     {
     vtkErrorMacro("CreateWidget: Could not get fiducial node!")
-    return 0;
+    return nullptr;
     }
 
   vtkMRMLAnnotationPointDisplayNode *displayNode = fiducialNode->GetAnnotationPointDisplayNode();
@@ -863,7 +863,7 @@ void vtkMRMLAnnotationFiducialDisplayableManager::OnInteractorStyleEvent(int eve
     char *keySym = this->GetInteractor()->GetKeySym();
     vtkDebugMacro("OnInteractorStyleEvent " << (this->Is2DDisplayableManager() ? this->GetSliceNode()->GetName() : "3D")
                   << ": key press event position = " << this->GetInteractor()->GetEventPosition()[0] << ", " << this->GetInteractor()->GetEventPosition()[1]
-                  << ", key sym = " << (keySym == NULL ? "null" : keySym));
+                  << ", key sym = " << (keySym == nullptr ? "null" : keySym));
     if (!keySym)
       {
       return;

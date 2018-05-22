@@ -60,7 +60,7 @@ public:
 qMRMLModelInfoWidgetPrivate::qMRMLModelInfoWidgetPrivate(qMRMLModelInfoWidget& object)
   : q_ptr(&object)
 {
-  this->MRMLModelNode = 0;
+  this->MRMLModelNode = nullptr;
   this->GeometryFilter = vtkSmartPointer<vtkGeometryFilter>::New();
   this->TriangleFilter = vtkSmartPointer<vtkTriangleFilter>::New();
   this->TriangleFilter->SetPassLines(0);
@@ -74,7 +74,7 @@ void qMRMLModelInfoWidgetPrivate::init()
   this->setupUi(q);
   this->ExpandButton->setOrientation(Qt::Vertical);
   this->ExpandButton->setChecked(false);
-  q->setEnabled(this->MRMLModelNode != 0);
+  q->setEnabled(this->MRMLModelNode != nullptr);
 }
 
 //------------------------------------------------------------------------------
@@ -136,7 +136,7 @@ void qMRMLModelInfoWidget::updateWidgetFromMRML()
     // so if the widget is not visible then do not update
     return;
   }
-  vtkPointSet *mesh = d->MRMLModelNode ? d->MRMLModelNode->GetMesh() : 0;
+  vtkPointSet *mesh = d->MRMLModelNode ? d->MRMLModelNode->GetMesh() : nullptr;
   if (mesh)
     {
     vtkPolyDataAlgorithm* filter;
@@ -210,6 +210,6 @@ void qMRMLModelInfoWidget::updateWidgetFromMRML()
     {
     d->FileNameLineEdit->setText("");
     }
-  this->setEnabled(d->MRMLModelNode != 0);
+  this->setEnabled(d->MRMLModelNode != nullptr);
 }
 

@@ -12,7 +12,7 @@ vtkMRMLNodeNewMacro(vtkMRMLAnnotationBidimensionalNode);
 vtkMRMLAnnotationBidimensionalNode::vtkMRMLAnnotationBidimensionalNode()
 {
   this->HideFromEditors = false;
-  this->AnnotationFormat = NULL;
+  this->AnnotationFormat = nullptr;
   this->SetAnnotationFormat("%.1f");
   this->Resolution = 5;
 }
@@ -62,11 +62,11 @@ void vtkMRMLAnnotationBidimensionalNode::Initialize(vtkMRMLScene* mrmlScene)
 //----------------------------------------------------------------------------
 vtkMRMLAnnotationBidimensionalNode::~vtkMRMLAnnotationBidimensionalNode()
 {
-  vtkDebugMacro("Destructing...." << (this->GetID() != NULL ? this->GetID() : "null id"));
+  vtkDebugMacro("Destructing...." << (this->GetID() != nullptr ? this->GetID() : "null id"));
   if (this->AnnotationFormat)
     {
       delete [] this->AnnotationFormat;
-      this->AnnotationFormat = NULL;
+      this->AnnotationFormat = nullptr;
     }
 }
 
@@ -109,7 +109,7 @@ void vtkMRMLAnnotationBidimensionalNode::ReadXMLAttributes(const char** atts)
   Superclass::ReadXMLAttributes(atts);
 
 
-  while (*atts != NULL)
+  while (*atts != nullptr)
     {
     const char* attName = *(atts++);
     std::string attValue(*(atts++));

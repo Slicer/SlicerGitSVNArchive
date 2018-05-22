@@ -47,7 +47,7 @@ vtkMRMLDoubleArrayNode::~vtkMRMLDoubleArrayNode()
   if (this->Array)
     {
     this->Array->Delete();
-    this->Array = NULL;
+    this->Array = nullptr;
     }
 }
 
@@ -108,7 +108,7 @@ void vtkMRMLDoubleArrayNode::ReadXMLAttributes(const char** atts)
   valueY.clear();
   valueYErr.clear();
 
-  while (*atts != NULL)
+  while (*atts != nullptr)
     {
     attName = *(atts++);
     attValue = *(atts++);

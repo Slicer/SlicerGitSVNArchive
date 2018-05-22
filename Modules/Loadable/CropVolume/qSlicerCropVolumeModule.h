@@ -21,7 +21,7 @@ class Q_SLICER_QTMODULES_CROPVOLUME_EXPORT qSlicerCropVolumeModule :
 public:
 
   typedef qSlicerLoadableModule Superclass;
-  explicit qSlicerCropVolumeModule(QObject *parent=0);
+  explicit qSlicerCropVolumeModule(QObject *parent=nullptr);
   virtual ~qSlicerCropVolumeModule();
 
   qSlicerGetTitleMacro(QTMODULE_TITLE);

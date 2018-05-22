@@ -66,14 +66,14 @@ public:
 qSlicerModuleSelectorToolBarPrivate::qSlicerModuleSelectorToolBarPrivate(qSlicerModuleSelectorToolBar& object)
   : q_ptr(&object)
 {
-  this->ModulesMenu = 0;
-  this->ModulesComboBox = 0;
-  this->HistoryMenu = 0;
-  this->HistoryButton = 0;
-  this->PreviousButton = 0;
-  this->PreviousHistoryMenu = 0;
-  this->NextButton = 0;
-  this->NextHistoryMenu = 0;
+  this->ModulesMenu = nullptr;
+  this->ModulesComboBox = nullptr;
+  this->HistoryMenu = nullptr;
+  this->HistoryButton = nullptr;
+  this->PreviousButton = nullptr;
+  this->PreviousHistoryMenu = nullptr;
+  this->NextButton = nullptr;
+  this->NextHistoryMenu = nullptr;
 }
 
 //---------------------------------------------------------------------------

@@ -125,8 +125,8 @@ void vtkMRMLThreeDReformatDisplayableManager::vtkInternal
   sliceNode->AddObserver(vtkCommand::ModifiedEvent,
                            this->External->GetMRMLNodesCallbackCommand());
   this->SliceNodes.insert(
-    std::pair<vtkMRMLSliceNode*, vtkImplicitPlaneWidget2*>(sliceNode, static_cast<vtkImplicitPlaneWidget2*>(0)));
-  this->UpdateWidget(sliceNode, 0);
+    std::pair<vtkMRMLSliceNode*, vtkImplicitPlaneWidget2*>(sliceNode, static_cast<vtkImplicitPlaneWidget2*>(nullptr)));
+  this->UpdateWidget(sliceNode, nullptr);
 }
 
 //---------------------------------------------------------------------------
@@ -177,7 +177,7 @@ void vtkMRMLThreeDReformatDisplayableManager::vtkInternal
 //---------------------------------------------------------------------------
 void vtkMRMLThreeDReformatDisplayableManager::vtkInternal::UpdateSliceNodes()
 {
-  if (this->External->GetMRMLScene() == 0)
+  if (this->External->GetMRMLScene() == nullptr)
     {
     this->RemoveAllSliceNodes();
     return;
@@ -203,11 +203,11 @@ GetSliceNode(vtkImplicitPlaneWidget2* planeWidget)
 {
   if (!planeWidget)
     {
-    return 0;
+    return nullptr;
     }
 
   // Get the slice node
-  vtkMRMLSliceNode* sliceNode = 0;
+  vtkMRMLSliceNode* sliceNode = nullptr;
   for (SliceNodesLink::iterator it=this->SliceNodes.begin();
        it!=this->SliceNodes.end(); ++it)
     {
@@ -258,7 +258,7 @@ vtkImplicitPlaneWidget2* vtkMRMLThreeDReformatDisplayableManager::vtkInternal
 {
   if (!sliceNode)
     {
-    return 0;
+    return nullptr;
     }
 
   SliceNodesLink::iterator it = this->SliceNodes.find(sliceNode);
@@ -294,18 +294,18 @@ bool vtkMRMLThreeDReformatDisplayableManager::vtkInternal
   // Update Bound size
   vtkMRMLSliceCompositeNode* sliceCompositeNode =
     vtkMRMLSliceLogic::GetSliceCompositeNode(sliceNode);
-  const char* volumeNodeID = 0;
+  const char* volumeNodeID = nullptr;
   if (!volumeNodeID)
     {
-    volumeNodeID = sliceCompositeNode ? sliceCompositeNode->GetBackgroundVolumeID() : 0;
+    volumeNodeID = sliceCompositeNode ? sliceCompositeNode->GetBackgroundVolumeID() : nullptr;
     }
   if (!volumeNodeID)
     {
-    volumeNodeID = sliceCompositeNode ? sliceCompositeNode->GetForegroundVolumeID() : 0;
+    volumeNodeID = sliceCompositeNode ? sliceCompositeNode->GetForegroundVolumeID() : nullptr;
     }
   if (!volumeNodeID)
     {
-    volumeNodeID = sliceCompositeNode ? sliceCompositeNode->GetLabelVolumeID() : 0;
+    volumeNodeID = sliceCompositeNode ? sliceCompositeNode->GetLabelVolumeID() : nullptr;
     }
   vtkMRMLVolumeNode* volumeNode = vtkMRMLVolumeNode::SafeDownCast(
     this->External->GetMRMLScene()->GetNodeByID(volumeNodeID));
@@ -427,7 +427,7 @@ ProcessWidgetsEvents(vtkObject *caller,
     vtkImplicitPlaneWidget2::SafeDownCast(caller);
   vtkMRMLSliceNode* sliceNode = Internal->GetSliceNode(planeWidget);
   vtkImplicitPlaneRepresentation* rep = (planeWidget) ?
-    planeWidget->GetImplicitPlaneRepresentation() : 0;
+    planeWidget->GetImplicitPlaneRepresentation() : nullptr;
 
   if (!planeWidget || !sliceNode || !rep)
     {

@@ -237,7 +237,7 @@ void qSlicerApplicationHelper::setupModuleFactoryManager(qSlicerModuleFactoryMan
 //----------------------------------------------------------------------------
 void qSlicerApplicationHelper::showMRMLEventLoggerWidget()
 {
-  qMRMLEventLoggerWidget* logger = new qMRMLEventLoggerWidget(0);
+  qMRMLEventLoggerWidget* logger = new qMRMLEventLoggerWidget(nullptr);
   logger->setAttribute(Qt::WA_DeleteOnClose);
   logger->setConsoleOutputEnabled(false);
   logger->setMRMLScene(qSlicerApplication::application()->mrmlScene());

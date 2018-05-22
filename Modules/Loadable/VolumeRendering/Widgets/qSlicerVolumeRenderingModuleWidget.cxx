@@ -189,7 +189,7 @@ vtkMRMLVolumeRenderingDisplayNode* qSlicerVolumeRenderingModuleWidgetPrivate::di
 {
   if (!volumeNode)
     {
-    return NULL;
+    return nullptr;
     }
 
   Q_Q(const qSlicerVolumeRenderingModuleWidget);
@@ -197,7 +197,7 @@ vtkMRMLVolumeRenderingDisplayNode* qSlicerVolumeRenderingModuleWidgetPrivate::di
   if (!logic)
     {
     qCritical() << Q_FUNC_INFO << ": Failed to access volume rendering logic";
-    return NULL;
+    return nullptr;
     }
 
   // Get volume rendering display node for volume
@@ -214,7 +214,7 @@ vtkMRMLVolumeRenderingDisplayNode* qSlicerVolumeRenderingModuleWidgetPrivate::cr
   if (!logic)
     {
     qCritical() << Q_FUNC_INFO << ": Failed to access volume rendering logic";
-    return NULL;
+    return nullptr;
     }
 
   vtkMRMLVolumeRenderingDisplayNode* displayNode = logic->CreateVolumeRenderingDisplayNode();
@@ -365,9 +365,9 @@ void qSlicerVolumeRenderingModuleWidget::updateWidgetFromDisplayNode()
   d->VisibilityCheckBox->setChecked(displayNode ? displayNode->GetVisibility() : false);
 
   // Input section
-  vtkMRMLVolumePropertyNode* volumePropertyNode = (displayNode ? displayNode->GetVolumePropertyNode() : NULL);
+  vtkMRMLVolumePropertyNode* volumePropertyNode = (displayNode ? displayNode->GetVolumePropertyNode() : nullptr);
   d->VolumePropertyNodeComboBox->setCurrentNode(volumePropertyNode);
-  vtkMRMLAnnotationROINode* roiNode = (displayNode ? displayNode->GetROINode() : NULL);
+  vtkMRMLAnnotationROINode* roiNode = (displayNode ? displayNode->GetROINode() : nullptr);
   bool wasBlocking = d->ROINodeComboBox->blockSignals(true);
   d->ROINodeComboBox->setCurrentNode(roiNode);
   d->ROINodeComboBox->blockSignals(wasBlocking);
@@ -736,8 +736,8 @@ bool qSlicerVolumeRenderingModuleWidget::setEditedNode(vtkMRMLNode* node,
       {
       return false;
       }
-    vtkMRMLVolumeRenderingDisplayNode* displayNode = NULL;
-    vtkObject* itNode = NULL;
+    vtkMRMLVolumeRenderingDisplayNode* displayNode = nullptr;
+    vtkObject* itNode = nullptr;
     vtkCollectionSimpleIterator it;
     for (scene->GetNodes()->InitTraversal(it); (itNode = scene->GetNodes()->GetNextItemAsObject(it));)
       {

@@ -200,7 +200,7 @@ void qMRMLModelDisplayNodeWidget::setMRMLModelOrHierarchyNode(vtkMRMLNode* node)
   // can be set from a model node or a model hierarchy node
   vtkMRMLModelNode* modelNode = vtkMRMLModelNode::SafeDownCast(node);
   vtkMRMLModelHierarchyNode *hierarchyNode = vtkMRMLModelHierarchyNode::SafeDownCast(node);
-  vtkMRMLModelDisplayNode *modelDisplayNode = 0;
+  vtkMRMLModelDisplayNode *modelDisplayNode = nullptr;
   if (modelNode)
     {
     vtkMRMLSelectionNode* selectionNode = this->getSelectionNode(modelNode->GetScene());
@@ -734,7 +734,7 @@ void qMRMLModelDisplayNodeWidget::updateWidgetFromMRML()
 //------------------------------------------------------------------------------
 vtkMRMLSelectionNode* qMRMLModelDisplayNodeWidget::getSelectionNode(vtkMRMLScene *mrmlScene)
 {
-  vtkMRMLSelectionNode* selectionNode = 0;
+  vtkMRMLSelectionNode* selectionNode = nullptr;
   if (mrmlScene)
     {
     selectionNode =

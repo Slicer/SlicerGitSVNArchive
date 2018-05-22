@@ -108,7 +108,7 @@ void qMRMLDisplayNodeWidget::setMRMLDisplayableNode(vtkMRMLNode* node)
 {
   vtkMRMLDisplayableNode* displayableNode =
     vtkMRMLDisplayableNode::SafeDownCast(node);
-  this->setMRMLDisplayNode(displayableNode ? displayableNode->GetDisplayNode() : 0);
+  this->setMRMLDisplayNode(displayableNode ? displayableNode->GetDisplayNode() : nullptr);
 }
 
 //------------------------------------------------------------------------------

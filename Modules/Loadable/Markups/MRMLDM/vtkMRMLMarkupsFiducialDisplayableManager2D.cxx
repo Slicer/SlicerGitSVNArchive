@@ -71,9 +71,9 @@ public:
   { return new vtkMarkupsFiducialWidgetCallback2D; }
 
   vtkMarkupsFiducialWidgetCallback2D()
-    : Widget(NULL)
-    , Node(NULL)
-    , DisplayableManager(NULL)
+    : Widget(nullptr)
+    , Node(nullptr)
+    , DisplayableManager(nullptr)
     , LastInteractionEventMarkupIndex(-1)
     , PointMovedSinceStartInteraction(false)
   {
@@ -115,7 +115,7 @@ public:
           this->Node->SetAttribute("Markups.MovingInSliceView", sliceNode->GetLayoutName());
           std::ostringstream seedNumber;
           int *n =  reinterpret_cast<int *>(callData);
-          if (n != NULL)
+          if (n != nullptr)
             {
             seedNumber << *n;
             }
@@ -264,7 +264,7 @@ vtkAbstractWidget * vtkMRMLMarkupsFiducialDisplayableManager2D::CreateWidget(vtk
   if (!node)
     {
     vtkErrorMacro("CreateWidget: Node not set!")
-    return 0;
+    return nullptr;
     }
 
   // 2d glyphs and text need to be scaled by 1/60 to show up properly in the 2d slice windows
@@ -275,7 +275,7 @@ vtkAbstractWidget * vtkMRMLMarkupsFiducialDisplayableManager2D::CreateWidget(vtk
   if (!fiducialNode)
     {
     vtkErrorMacro("CreateWidget: Could not get fiducial node!")
-    return 0;
+    return nullptr;
     }
 
   vtkMRMLMarkupsDisplayNode *displayNode = fiducialNode->GetMarkupsDisplayNode();
@@ -484,7 +484,7 @@ bool vtkMRMLMarkupsFiducialDisplayableManager2D::UpdateNthSeedPositionFromMRML(i
                   << ": display coordinates changed:\n\tseed display = "
                   << displayCoordinatesBuffer1[0] << ", " << displayCoordinatesBuffer1[1]
                   << "\n\tfid display =  " << displayCoordinates1[0] << ", " << displayCoordinates1[1] );
-    if (seedRepresentation->GetRenderer() != NULL &&
+    if (seedRepresentation->GetRenderer() != nullptr &&
         seedRepresentation->GetRenderer()->IsActiveCameraCreated())
       {
       seedRepresentation->SetSeedDisplayPosition(n,displayCoordinates1);
@@ -646,7 +646,7 @@ void vtkMRMLMarkupsFiducialDisplayableManager2D::SetNthSeed(int n, vtkMRMLMarkup
       }  // end of glyph type
 
     // set the color
-    vtkProperty *prop = NULL;
+    vtkProperty *prop = nullptr;
     prop = handleRep->GetProperty();
     if (prop)
       {
@@ -1025,7 +1025,7 @@ void vtkMRMLMarkupsFiducialDisplayableManager2D::PropagateMRMLToWidget(vtkMRMLMa
       vtkNew<vtkPointHandleRepresentation2D> handle;
       seedRepresentation->SetHandleRepresentation(handle.GetPointer());
       updateHandleType = true;
-      handleRep = NULL;
+      handleRep = nullptr;
       pointHandleRep =
         vtkPointHandleRepresentation2D::SafeDownCast(seedRepresentation->GetHandleRepresentation());
       }
@@ -1045,7 +1045,7 @@ void vtkMRMLMarkupsFiducialDisplayableManager2D::PropagateMRMLToWidget(vtkMRMLMa
       handle->SetHandle(glyphSource->GetOutput());
       seedRepresentation->SetHandleRepresentation(handle.GetPointer());
       updateHandleType = true;
-      pointHandleRep = NULL;
+      pointHandleRep = nullptr;
       handleRep =
         vtkOrientedPolygonalHandleRepresentation3D::SafeDownCast(seedRepresentation->GetHandleRepresentation());
       }
@@ -1275,7 +1275,7 @@ void vtkMRMLMarkupsFiducialDisplayableManager2D::OnClickInRenderWindow(double x,
   this->GetDisplayToWorldCoordinates(displayCoordinates1,worldCoordinates1);
 
   // Is there an active markups node that's a fiducial node?
-  vtkMRMLMarkupsFiducialNode *activeFiducialNode = NULL;
+  vtkMRMLMarkupsFiducialNode *activeFiducialNode = nullptr;
 
   vtkMRMLSelectionNode *selectionNode = this->GetSelectionNode();
   if (selectionNode)
@@ -1396,7 +1396,7 @@ void vtkMRMLMarkupsFiducialDisplayableManager2D::OnInteractorStyleEvent(int even
     vtkDebugMacro("OnInteractorStyleEvent 2D: key press event position = "
           << this->GetInteractor()->GetEventPosition()[0] << ", "
           << this->GetInteractor()->GetEventPosition()[1]
-          << ", key sym = " << (keySym == NULL ? "null" : keySym));
+          << ", key sym = " << (keySym == nullptr ? "null" : keySym));
     if (!keySym)
       {
       return;

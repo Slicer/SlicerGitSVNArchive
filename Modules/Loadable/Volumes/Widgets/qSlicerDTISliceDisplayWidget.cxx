@@ -171,8 +171,8 @@ void qSlicerDTISliceDisplayWidget::setMRMLDTISliceDisplayNode(
 {
   Q_D(qSlicerDTISliceDisplayWidget);
 
-  vtkMRMLDiffusionTensorVolumeSliceDisplayNode* oldDisplayNode = 0;
-  vtkMRMLDiffusionTensorDisplayPropertiesNode* oldDisplayPropertiesNode = 0;
+  vtkMRMLDiffusionTensorVolumeSliceDisplayNode* oldDisplayNode = nullptr;
+  vtkMRMLDiffusionTensorDisplayPropertiesNode* oldDisplayPropertiesNode = nullptr;
   if (displayNode)
     {
     oldDisplayNode = this->displayNode();

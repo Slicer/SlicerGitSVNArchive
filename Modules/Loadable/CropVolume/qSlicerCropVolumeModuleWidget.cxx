@@ -181,7 +181,7 @@ bool qSlicerCropVolumeModuleWidgetPrivate::checkInputs(bool& autoFixAvailable, Q
     }
   if (!outputVolumeTransformValid)
     {
-    const char* newParentTransformNodeID = NULL;
+    const char* newParentTransformNodeID = nullptr;
     if (this->ParametersNode->GetInputVolumeNode())
       {
       newParentTransformNodeID = this->ParametersNode->GetInputVolumeNode()->GetTransformNodeID();
@@ -306,7 +306,7 @@ void qSlicerCropVolumeModuleWidget::enter()
       }
 
     // Use first visible ROI node (or last ROI node, if all are invisible)
-    vtkMRMLAnnotationROINode* foundROINode = NULL;
+    vtkMRMLAnnotationROINode* foundROINode = nullptr;
     std::vector<vtkMRMLNode *> roiNodes;
     scene->GetNodesByClass("vtkMRMLAnnotationROINode", roiNodes);
     for (unsigned int i = 0; i < roiNodes.size(); ++i)
@@ -435,14 +435,14 @@ void qSlicerCropVolumeModuleWidget::setOutputVolume(vtkMRMLNode* volumeNode)
   vtkMRMLCropVolumeParametersNode *parametersNode = vtkMRMLCropVolumeParametersNode::SafeDownCast(d->ParametersNodeComboBox->currentNode());
   if (!parametersNode)
     {
-    if (volumeNode != NULL)
+    if (volumeNode != nullptr)
       {
       qWarning() << Q_FUNC_INFO << ": invalid parameter node";
       }
     return;
     }
 
-  parametersNode->SetOutputVolumeNodeID(volumeNode ? volumeNode->GetID() : NULL);
+  parametersNode->SetOutputVolumeNodeID(volumeNode ? volumeNode->GetID() : nullptr);
 }
 
 //-----------------------------------------------------------------------------
@@ -452,7 +452,7 @@ void qSlicerCropVolumeModuleWidget::setInputROI(vtkMRMLNode* node)
 
   if (!d->ParametersNode.GetPointer())
     {
-    if (node != NULL)
+    if (node != nullptr)
       {
       qWarning() << Q_FUNC_INFO << ": invalid parameter node";
       }
@@ -688,12 +688,12 @@ void qSlicerCropVolumeModuleWidget::updateVolumeInfo()
     return;
     }
 
-  vtkMRMLVolumeNode* inputVolumeNode = NULL;
+  vtkMRMLVolumeNode* inputVolumeNode = nullptr;
   if (d->ParametersNode != NULL)
     {
     inputVolumeNode = d->ParametersNode->GetInputVolumeNode();
     }
-  if (inputVolumeNode != NULL && inputVolumeNode->GetImageData() != NULL)
+  if (inputVolumeNode != nullptr && inputVolumeNode->GetImageData() != nullptr)
     {
     int *dimensions = inputVolumeNode->GetImageData()->GetDimensions();
     d->InputDimensionsWidget->setCoordinates(dimensions[0], dimensions[1], dimensions[2]);

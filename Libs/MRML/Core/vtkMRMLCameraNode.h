@@ -212,7 +212,7 @@ public:
   void Reset(bool resetRotation,
              bool resetTranslation = true,
              bool resetDistance = true,
-             vtkRenderer* renderer = 0);
+             vtkRenderer* renderer = nullptr);
 protected:
   vtkMRMLCameraNode();
   ~vtkMRMLCameraNode();

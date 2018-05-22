@@ -78,7 +78,7 @@ void qSlicerNodeWriterOptionsWidget::setObject(vtkObject* object)
 {
   Q_D(qSlicerNodeWriterOptionsWidget);
   vtkMRMLStorableNode* storableNode = vtkMRMLStorableNode::SafeDownCast(object);
-  if (storableNode != 0)
+  if (storableNode != nullptr)
     {
     d->Properties["nodeID"] = storableNode->GetID();
     }

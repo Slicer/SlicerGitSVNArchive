@@ -161,7 +161,7 @@ class QMRML_WIDGETS_EXPORT qMRMLLayoutThreeDViewFactory
   Q_OBJECT
 public:
   typedef qMRMLLayoutViewFactory Superclass;
-  qMRMLLayoutThreeDViewFactory(QObject* parent = 0);
+  qMRMLLayoutThreeDViewFactory(QObject* parent = nullptr);
 
   virtual QString viewClassName()const;
 
@@ -176,7 +176,7 @@ class QMRML_WIDGETS_EXPORT qMRMLLayoutChartViewFactory
   Q_OBJECT
 public:
   typedef qMRMLLayoutViewFactory Superclass;
-  qMRMLLayoutChartViewFactory(QObject* parent = 0);
+  qMRMLLayoutChartViewFactory(QObject* parent = nullptr);
 
   virtual QString viewClassName()const;
 
@@ -195,7 +195,7 @@ class QMRML_WIDGETS_EXPORT qMRMLLayoutTableViewFactory
   Q_OBJECT
 public:
   typedef qMRMLLayoutViewFactory Superclass;
-  qMRMLLayoutTableViewFactory(QObject* parent = 0);
+  qMRMLLayoutTableViewFactory(QObject* parent = nullptr);
 
   virtual QString viewClassName()const;
 
@@ -210,7 +210,7 @@ class QMRML_WIDGETS_EXPORT qMRMLLayoutPlotViewFactory
   Q_OBJECT
 public:
   typedef qMRMLLayoutViewFactory Superclass;
-  qMRMLLayoutPlotViewFactory(QObject* parent = 0);
+  qMRMLLayoutPlotViewFactory(QObject* parent = nullptr);
 
   virtual QString viewClassName()const;
 
@@ -226,7 +226,7 @@ class QMRML_WIDGETS_EXPORT qMRMLLayoutSliceViewFactory
   Q_OBJECT
 public:
   typedef qMRMLLayoutViewFactory Superclass;
-  qMRMLLayoutSliceViewFactory(QObject* parent = 0);
+  qMRMLLayoutSliceViewFactory(QObject* parent = nullptr);
   virtual ~qMRMLLayoutSliceViewFactory();
 
   virtual QString viewClassName()const;

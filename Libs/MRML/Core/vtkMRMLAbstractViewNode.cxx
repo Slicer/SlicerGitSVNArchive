@@ -37,7 +37,7 @@ static const char* DEFAULT_AXIS_LABELS[vtkMRMLAbstractViewNode::AxisLabelsCount]
 //----------------------------------------------------------------------------
 vtkMRMLAbstractViewNode::vtkMRMLAbstractViewNode()
 : ViewGroup(0)
-, LayoutLabel(NULL)
+, LayoutLabel(nullptr)
 , Visibility(1)
 , Active(0)
 , OrientationMarkerEnabled(false)
@@ -70,7 +70,7 @@ vtkMRMLAbstractViewNode::vtkMRMLAbstractViewNode()
 //----------------------------------------------------------------------------
 vtkMRMLAbstractViewNode::~vtkMRMLAbstractViewNode()
 {
-  this->SetLayoutLabel(NULL);
+  this->SetLayoutLabel(nullptr);
 }
 
 //----------------------------------------------------------------------------
@@ -150,7 +150,7 @@ void vtkMRMLAbstractViewNode::ReadXMLAttributes(const char** atts)
 
   const char* attName;
   const char* attValue;
-  while (*atts != NULL)
+  while (*atts != nullptr)
     {
     attName = *(atts++);
     attValue = *(atts++);
@@ -185,7 +185,7 @@ void vtkMRMLAbstractViewNode::ReadXMLAttributes(const char** atts)
   // vtkMRMLAbstractViewNodes where not singletons before 4.2
   if (!this->GetLayoutName() || strlen(this->GetLayoutName()))
     {
-    const char* layoutName = 0;
+    const char* layoutName = nullptr;
     if (this->GetID() &&
         strncmp(this->GetID(), this->GetClassName(), strlen(this->GetClassName())) == 0)
       {
@@ -336,7 +336,7 @@ const char* vtkMRMLAbstractViewNode::GetOrientationMarkerTypeAsString(int id)
 //-----------------------------------------------------------
 int vtkMRMLAbstractViewNode::GetOrientationMarkerTypeFromString(const char* name)
 {
-  if (name == NULL)
+  if (name == nullptr)
   {
     // invalid name
     return -1;
@@ -370,7 +370,7 @@ const char* vtkMRMLAbstractViewNode::GetOrientationMarkerSizeAsString(int id)
 //-----------------------------------------------------------
 int vtkMRMLAbstractViewNode::GetOrientationMarkerSizeFromString(const char* name)
 {
-  if (name == NULL)
+  if (name == nullptr)
   {
     // invalid name
     return -1;
@@ -404,7 +404,7 @@ const char* vtkMRMLAbstractViewNode::GetRulerTypeAsString(int id)
 //-----------------------------------------------------------
 int vtkMRMLAbstractViewNode::GetRulerTypeFromString(const char* name)
 {
-  if (name == NULL)
+  if (name == nullptr)
   {
     // invalid name
     return -1;
@@ -438,7 +438,7 @@ const char* vtkMRMLAbstractViewNode::GetOrientationMarkerHumanModelNodeID()
   if (!this->OrientationMarkerEnabled)
     {
     vtkErrorMacro("vtkMRMLAbstractViewNode::GetOrientationMarkerHumanModelID failed: orientation marker is disabled");
-    return NULL;
+    return nullptr;
     }
   return this->GetNodeReferenceID(OrientationMarkerHumanModelReferenceRole);
 }
@@ -449,7 +449,7 @@ vtkMRMLModelNode* vtkMRMLAbstractViewNode::GetOrientationMarkerHumanModelNode()
   if (!this->OrientationMarkerEnabled)
     {
     vtkErrorMacro("vtkMRMLAbstractViewNode::GetOrientationMarkerHumanModel failed: orientation marker is disabled");
-    return NULL;
+    return nullptr;
     }
   return vtkMRMLModelNode::SafeDownCast(this->GetNodeReference(OrientationMarkerHumanModelReferenceRole));
 }
@@ -475,7 +475,7 @@ void vtkMRMLAbstractViewNode::SetAxisLabel(int labelIndex, const char* label)
       << vtkMRMLAbstractViewNode::AxisLabelsCount);
     return;
     }
-  if (label==NULL)
+  if (label==nullptr)
     {
     label = "";
     }
@@ -515,7 +515,7 @@ bool vtkMRMLAbstractViewNode::SetAndObserveParentLayoutNode(vtkMRMLNode* node)
     return false;
     }
 
-  return this->SetAndObserveParentLayoutNodeID(node ? node->GetID() : NULL);
+  return this->SetAndObserveParentLayoutNodeID(node ? node->GetID() : nullptr);
 }
 
 //----------------------------------------------------------------------------

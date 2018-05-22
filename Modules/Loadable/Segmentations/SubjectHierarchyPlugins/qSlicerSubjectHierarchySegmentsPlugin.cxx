@@ -74,8 +74,8 @@ qSlicerSubjectHierarchySegmentsPluginPrivate::qSlicerSubjectHierarchySegmentsPlu
 : q_ptr(&object)
 , SegmentIcon(QIcon(":Icons/Segment.png"))
 {
-  this->ShowOnlyCurrentSegmentAction = NULL;
-  this->ShowAllSegmentsAction = NULL;
+  this->ShowOnlyCurrentSegmentAction = nullptr;
+  this->ShowAllSegmentsAction = nullptr;
 }
 
 //------------------------------------------------------------------------------
@@ -196,7 +196,7 @@ bool qSlicerSubjectHierarchySegmentsPlugin::reparentItemInsideSubjectHierarchy(v
     if (fromSegmentationNode->GetSegmentation()->GetMasterRepresentationName() == toSegmentationNode->GetSegmentation()->GetMasterRepresentationName())
       {
       QString message = QString("Segment ID of the moved segment (%1) might exist in the target segmentation.\nPlease check the error window for details.").arg(segmentId.c_str());
-      QMessageBox::warning(NULL, tr("Failed to move segment between segmentations"), message);
+      QMessageBox::warning(nullptr, tr("Failed to move segment between segmentations"), message);
       return false;
       }
 
@@ -209,7 +209,7 @@ bool qSlicerSubjectHierarchySegmentsPlugin::reparentItemInsideSubjectHierarchy(v
       .arg(toSegmentationNode->GetSegmentation()->GetMasterRepresentationName().c_str())
       .arg(segmentId.c_str()).arg(fromSegmentationNode->GetName()).arg(toSegmentationNode->GetName());
     QMessageBox::StandardButton answer =
-      QMessageBox::question(NULL, tr("Failed to move segment between segmentations"), message,
+      QMessageBox::question(nullptr, tr("Failed to move segment between segmentations"), message,
       QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
     if (answer == QMessageBox::Yes)
       {
@@ -220,7 +220,7 @@ bool qSlicerSubjectHierarchySegmentsPlugin::reparentItemInsideSubjectHierarchy(v
         {
         QString message = QString("Failed to convert %1 to %2!").arg(toSegmentationNode->GetName())
           .arg(fromSegmentationNode->GetSegmentation()->GetMasterRepresentationName().c_str());
-        QMessageBox::warning(NULL, tr("Conversion failed"), message);
+        QMessageBox::warning(nullptr, tr("Conversion failed"), message);
         return false;
         }
 

@@ -74,9 +74,9 @@
 qMRMLPlotViewPrivate::qMRMLPlotViewPrivate(qMRMLPlotView& object)
   : q_ptr(&object)
 {
-  this->MRMLScene = 0;
-  this->MRMLPlotViewNode = 0;
-  this->MRMLPlotChartNode = 0;
+  this->MRMLScene = nullptr;
+  this->MRMLPlotViewNode = nullptr;
+  this->MRMLPlotChartNode = nullptr;
   //this->PinButton = 0;
 //  this->PopupWidget = 0;
   this->UpdatingWidgetFromMRML = false;
@@ -187,22 +187,22 @@ void qMRMLPlotViewPrivate::setMRMLScene(vtkMRMLScene* newScene)
 // --------------------------------------------------------------------------
 vtkMRMLPlotSeriesNode* qMRMLPlotViewPrivate::plotSeriesNodeFromPlot(vtkPlot* plot)
 {
-  if (plot == NULL)
+  if (plot == nullptr)
     {
-    return NULL;
+    return nullptr;
     }
   QMap< vtkPlot*, QString >::iterator plotIt = this->MapPlotToPlotSeriesNodeID.find(plot);
   if (plotIt == this->MapPlotToPlotSeriesNodeID.end())
     {
-    return NULL;
+    return nullptr;
     }
   QString plotSeriesNodeID = plotIt.value();
   if (plotSeriesNodeID.isEmpty())
     {
-    return NULL;
+    return nullptr;
     }
   vtkMRMLPlotSeriesNode* plotSeriesNode = vtkMRMLPlotSeriesNode::SafeDownCast(this->mrmlScene()->GetNodeByID(plotSeriesNodeID.toLatin1().constData()));
-  if (plotSeriesNode == NULL)
+  if (plotSeriesNode == nullptr)
     {
     // node is not in the scene anymore
     this->MapPlotToPlotSeriesNodeID.erase(plotIt);
@@ -237,35 +237,35 @@ void qMRMLPlotViewPrivate::adjustRangeForLogScale(double range[2], double comput
 // --------------------------------------------------------------------------
 vtkSmartPointer<vtkPlot> qMRMLPlotViewPrivate::updatePlotFromPlotSeriesNode(vtkMRMLPlotSeriesNode* plotSeriesNode, vtkPlot* existingPlot)
 {
-  if (plotSeriesNode == NULL)
+  if (plotSeriesNode == nullptr)
     {
-    return NULL;
+    return nullptr;
     }
   vtkMRMLTableNode* tableNode = plotSeriesNode->GetTableNode();
-  if (tableNode == NULL || tableNode->GetTable() == NULL)
+  if (tableNode == nullptr || tableNode->GetTable() == nullptr)
     {
-    return NULL;
+    return nullptr;
     }
   vtkTable *table = tableNode->GetTable();
   std::string yColumnName = plotSeriesNode->GetYColumnName();
   if (yColumnName.empty())
     {
-    return NULL;
+    return nullptr;
     }
   vtkAbstractArray* yColumn = table->GetColumnByName(yColumnName.c_str());
   if (!yColumn)
     {
-    return NULL;
+    return nullptr;
     }
   int yColumnType = yColumn->GetDataType();
   if (yColumnType == VTK_STRING || yColumnType == VTK_BIT)
     {
     qWarning() << Q_FUNC_INFO << ": Y column has unsupported data type: 'string' or 'bit'";
-    return NULL;
+    return nullptr;
     }
 
   std::string xColumnName = plotSeriesNode->GetXColumnName();
-  vtkAbstractArray* xColumn = NULL;
+  vtkAbstractArray* xColumn = nullptr;
   if (!xColumnName.empty())
     {
     xColumn = table->GetColumnByName(xColumnName.c_str());
@@ -275,13 +275,13 @@ vtkSmartPointer<vtkPlot> qMRMLPlotViewPrivate::updatePlotFromPlotSeriesNode(vtkM
     {
     if (!xColumn)
       {
-      return NULL;
+      return nullptr;
       }
     int xColumnType = xColumn->GetDataType();
     if (xColumnType == VTK_STRING || xColumnType == VTK_BIT)
       {
       qWarning() << Q_FUNC_INFO << ": X column has unsupported data type for scatter plot: 'string' or 'bit'";
-      return NULL;
+      return nullptr;
       }
     }
 
@@ -304,7 +304,7 @@ vtkSmartPointer<vtkPlot> qMRMLPlotViewPrivate::updatePlotFromPlotSeriesNode(vtkM
         }
       break;
     default:
-      return NULL;
+      return nullptr;
     }
 
   // Common properties
@@ -358,7 +358,7 @@ vtkSmartPointer<vtkPlot> qMRMLPlotViewPrivate::updatePlotFromPlotSeriesNode(vtkM
     plotLine->SetMarkerStyle(markerStyleVtk);
     }
 
-  vtkStringArray* labelArray = NULL;
+  vtkStringArray* labelArray = nullptr;
   std::string labelColumnName = plotSeriesNode->GetLabelColumnName();
   if (!labelColumnName.empty())
     {
@@ -429,7 +429,7 @@ vtkMRMLScene* qMRMLPlotViewPrivate::mrmlScene()
 // --------------------------------------------------------------------------
 void qMRMLPlotViewPrivate::onPlotChartNodeChanged()
 {
-  vtkMRMLPlotChartNode *newPlotChartNode = NULL;
+  vtkMRMLPlotChartNode *newPlotChartNode = nullptr;
 
   if (this->MRMLScene && this->MRMLPlotViewNode && this->MRMLPlotViewNode->GetPlotChartNodeID())
     {
@@ -569,7 +569,7 @@ void qMRMLPlotViewPrivate::RecalculateBounds()
   for (int i = 0; i < 4; ++i)
   {
     vtkAxis* axis = q->chart()->GetAxis(i);
-    double* range = NULL;
+    double* range = nullptr;
     switch (i)
       {
     case 0:
@@ -764,14 +764,14 @@ void qMRMLPlotViewPrivate::updateWidgetFromMRML()
     // If it is NULL then it means that there is no usable associated plot data node
     // and so the plot should be removed.
     vtkMRMLPlotSeriesNode* plotSeriesNode = this->plotSeriesNodeFromPlot(plot);
-    if (plotSeriesNode != NULL)
+    if (plotSeriesNode != nullptr)
       {
       plotSeriesNodesNotToAdd.insert(plotSeriesNode);
       if (std::find(plotSeriesNodesIDs.begin(), plotSeriesNodesIDs.end(),
         plotSeriesNode->GetID()) == plotSeriesNodesIDs.end())
         {
         // plot data node is no longer associated with this chart
-        plotSeriesNode = NULL;
+        plotSeriesNode = nullptr;
         }
       }
 
@@ -817,7 +817,7 @@ void qMRMLPlotViewPrivate::updateWidgetFromMRML()
       // node is invalid or need not to be added
       continue;
       }
-    vtkSmartPointer<vtkPlot> newPlot = this->updatePlotFromPlotSeriesNode(plotSeriesNode, NULL);
+    vtkSmartPointer<vtkPlot> newPlot = this->updatePlotFromPlotSeriesNode(plotSeriesNode, nullptr);
     if (!newPlot)
       {
       continue;
@@ -950,7 +950,7 @@ qMRMLPlotView::qMRMLPlotView(QWidget* _parent) : Superclass(_parent)
 // --------------------------------------------------------------------------
 qMRMLPlotView::~qMRMLPlotView()
 {
-  this->setMRMLScene(0);
+  this->setMRMLScene(nullptr);
 }
 
 
@@ -967,7 +967,7 @@ void qMRMLPlotView::setMRMLScene(vtkMRMLScene* newScene)
 
   if (d->MRMLPlotViewNode && newScene != d->MRMLPlotViewNode->GetScene())
     {
-    this->setMRMLPlotViewNode(0);
+    this->setMRMLPlotViewNode(nullptr);
     }
 
   emit mrmlSceneChanged(newScene);

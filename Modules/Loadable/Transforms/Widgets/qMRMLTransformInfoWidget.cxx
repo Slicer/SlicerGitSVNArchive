@@ -79,7 +79,7 @@ void qMRMLTransformInfoWidgetPrivate::setAndObserveCrosshairNode()
 {
   Q_Q(qMRMLTransformInfoWidget);
 
-  vtkMRMLCrosshairNode* crosshairNode = 0;
+  vtkMRMLCrosshairNode* crosshairNode = nullptr;
   if (this->MRMLScene.GetPointer())
     {
     crosshairNode = vtkMRMLCrosshairNode::SafeDownCast(this->MRMLScene->GetFirstNodeByClass("vtkMRMLCrosshairNode"));

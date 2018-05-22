@@ -83,7 +83,7 @@ qMRMLScreenShotDialogPrivate::qMRMLScreenShotDialogPrivate(qMRMLScreenShotDialog
 {
   qRegisterMetaType<qMRMLScreenShotDialog::WidgetType>(
       "qMRMLScreenShotDialog::WidgetType");
-  this->WidgetTypeGroup = 0;
+  this->WidgetTypeGroup = nullptr;
 
   this->LastWidgetType = qMRMLScreenShotDialog::FullLayout;
 }
@@ -311,8 +311,8 @@ void qMRMLScreenShotDialog::grabScreenShot()
 void qMRMLScreenShotDialog::grabScreenShot(int screenshotWindow)
 {
   Q_D(qMRMLScreenShotDialog);
-  QWidget* widget = 0;
-  vtkRenderWindow* renderWindow = 0;
+  QWidget* widget = nullptr;
+  vtkRenderWindow* renderWindow = nullptr;
   switch (screenshotWindow)
     {
     case qMRMLScreenShotDialog::ThreeD:
@@ -356,7 +356,7 @@ void qMRMLScreenShotDialog::grabScreenShot(int screenshotWindow)
     renderLargeImage->Update();
     newImageData.GetPointer()->DeepCopy(renderLargeImage->GetOutput());
     }
-  else if (!qFuzzyCompare(scaleFactor, 1.0) && renderWindow != NULL)
+  else if (!qFuzzyCompare(scaleFactor, 1.0) && renderWindow != nullptr)
     {
     // Render slice widget at high resolution
 

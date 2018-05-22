@@ -93,7 +93,7 @@ public:
 
 public:
   typedef qSlicerSubjectHierarchyAbstractPlugin Superclass;
-  qSlicerSubjectHierarchyFolderPlugin(QObject* parent = NULL);
+  qSlicerSubjectHierarchyFolderPlugin(QObject* parent = nullptr);
   virtual ~qSlicerSubjectHierarchyFolderPlugin();
 
 public:

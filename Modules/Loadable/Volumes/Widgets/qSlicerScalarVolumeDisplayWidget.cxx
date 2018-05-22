@@ -188,7 +188,7 @@ void qSlicerScalarVolumeDisplayWidget::setMRMLVolumeNode(vtkMRMLScalarVolumeNode
                 vtkCommand::ModifiedEvent,
                 this, SLOT(updateWidgetFromMRML()));
 
-  this->setEnabled(volumeNode != 0);
+  this->setEnabled(volumeNode != nullptr);
 
   this->updateWidgetFromMRML();
 }
@@ -235,8 +235,8 @@ void qSlicerScalarVolumeDisplayWidget::updateHistogram()
   // Get voxel array
   vtkMRMLScalarVolumeNode* volumeNode = this->volumeNode();
   vtkImageData* imageData = volumeNode ? volumeNode->GetImageData() : 0;
-  vtkPointData* pointData = imageData ? imageData->GetPointData() : 0;
-  vtkDataArray* voxelValues = pointData ? pointData->GetScalars() : 0;
+  vtkPointData* pointData = imageData ? imageData->GetPointData() : nullptr;
+  vtkDataArray* voxelValues = pointData ? pointData->GetScalars() : nullptr;
 
   // If there are no voxel values then we completely hide the histogram section
   d->HistogramGroupBox->setVisible(voxelValues != 0);

@@ -40,12 +40,12 @@
 qSlicerCLIModuleWidgetPrivate::qSlicerCLIModuleWidgetPrivate(qSlicerCLIModuleWidget& object)
   :q_ptr(&object)
 {
-  this->CLIModuleUIHelper = 0;
+  this->CLIModuleUIHelper = nullptr;
   this->CommandLineModuleNode = 0;
-  this->AutoRunWhenParameterChanged = 0;
-  this->AutoRunWhenInputModified = 0;
-  this->AutoRunOnOtherInputEvents = 0;
-  this->AutoRunCancelsRunningProcess = 0;
+  this->AutoRunWhenParameterChanged = nullptr;
+  this->AutoRunWhenInputModified = nullptr;
+  this->AutoRunOnOtherInputEvents = nullptr;
+  this->AutoRunCancelsRunningProcess = nullptr;
 }
 
 //-----------------------------------------------------------------------------
@@ -177,7 +177,7 @@ void qSlicerCLIModuleWidgetPrivate::updateUiFromCommandLineModuleNode(
     this->ApplyPushButton->setEnabled(false);
     this->CancelPushButton->setEnabled(false);
     this->DefaultPushButton->setEnabled(false);
-    this->CLIModuleUIHelper->updateUi(0); // disable widgets
+    this->CLIModuleUIHelper->updateUi(nullptr); // disable widgets
     return;
     }
 

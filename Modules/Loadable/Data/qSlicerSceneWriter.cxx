@@ -219,14 +219,14 @@ bool qSlicerSceneWriter::writeToMRB(const qSlicerIO::IOProperties& properties)
     {
     if ( !ctk::removeDirRecursively(bundlePath) )
       {
-      QMessageBox::critical(0, tr("Save Scene as MRB"), tr("Could not remove temp directory"));
+      QMessageBox::critical(nullptr, tr("Save Scene as MRB"), tr("Could not remove temp directory"));
       return false;
       }
     }
 
   if ( !QDir().mkpath(bundlePath) )
     {
-    QMessageBox::critical(0, tr("Save scene as MRB"), tr("Could not make temp directory"));
+    QMessageBox::critical(nullptr, tr("Save scene as MRB"), tr("Could not make temp directory"));
     return false;
     }
 
@@ -251,7 +251,7 @@ bool qSlicerSceneWriter::writeToMRB(const qSlicerIO::IOProperties& properties)
                                                            imageData);
   if (!retval)
     {
-    QMessageBox::critical(0, tr("Save scene as MRB"), tr("Failed to create bundle"));
+    QMessageBox::critical(nullptr, tr("Save scene as MRB"), tr("Failed to create bundle"));
     return false;
     }
 
@@ -259,7 +259,7 @@ bool qSlicerSceneWriter::writeToMRB(const qSlicerIO::IOProperties& properties)
   if ( !applicationLogic->Zip(fileInfo.absoluteFilePath().toLatin1(),
                               bundlePath.toLatin1()) )
     {
-    QMessageBox::critical(0, tr("Save scene as MRB"), tr("Could not compress bundle"));
+    QMessageBox::critical(nullptr, tr("Save scene as MRB"), tr("Could not compress bundle"));
     return false;
     }
 
@@ -268,7 +268,7 @@ bool qSlicerSceneWriter::writeToMRB(const qSlicerIO::IOProperties& properties)
   //
   if ( !ctk::removeDirRecursively(bundlePath) )
     {
-    QMessageBox::critical(0, tr("Save scene as MRB"), tr("Could not remove temp directory"));
+    QMessageBox::critical(nullptr, tr("Save scene as MRB"), tr("Could not remove temp directory"));
     return false;
     }
 
@@ -297,7 +297,7 @@ bool qSlicerSceneWriter::writeToDirectory(const qSlicerIO::IOProperties& propert
   int numFiles = saveDir.count() - 2;
   if (numFiles != 0)
     {
-    ctkMessageBox *emptyMessageBox = new ctkMessageBox(0);
+    ctkMessageBox *emptyMessageBox = new ctkMessageBox(nullptr);
     QString error;
     switch(numFiles)
       {

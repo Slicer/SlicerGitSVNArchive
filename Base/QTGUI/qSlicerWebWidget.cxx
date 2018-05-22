@@ -158,9 +158,9 @@ void qSlicerWebWidgetPrivate::onAppAboutToQuit()
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 6, 0))
   if (this->WebView)
     {
-    this->WebView->setParent(0);
+    this->WebView->setParent(nullptr);
     delete this->WebView;
-    this->WebView = 0;
+    this->WebView = nullptr;
     }
 #endif
 }

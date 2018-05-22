@@ -32,7 +32,7 @@ qSlicerPythonManager::qSlicerPythonManager(QObject* _parent) : Superclass(_paren
 qSlicerPythonManager::~qSlicerPythonManager()
 {
 #ifdef Slicer_USE_PYTHONQT_WITH_TCL
-  vtkEventBroker::GetInstance()->SetScriptHandler(0, 0);
+  vtkEventBroker::GetInstance()->SetScriptHandler(nullptr, nullptr);
 #endif
 }
 

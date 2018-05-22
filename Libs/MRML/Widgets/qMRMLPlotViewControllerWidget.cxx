@@ -72,11 +72,11 @@ qMRMLPlotViewControllerWidgetPrivate::qMRMLPlotViewControllerWidgetPrivate(
   qMRMLPlotViewControllerWidget& object)
   : Superclass(object)
 {
-  this->FitToWindowToolButton = 0;
+  this->FitToWindowToolButton = nullptr;
 
   this->PlotChartNode = 0;
   this->PlotViewNode = 0;
-  this->PlotView = 0;
+  this->PlotView = nullptr;
 }
 
 //---------------------------------------------------------------------------
@@ -134,7 +134,7 @@ vtkMRMLPlotChartNode* qMRMLPlotViewControllerWidgetPrivate::GetPlotChartNodeFrom
   if (!this->PlotViewNode || !q->mrmlScene())
     {
     // qDebug() << "No PlotViewNode or no Scene";
-    return 0;
+    return nullptr;
     }
 
   // Get the current PlotChart node
@@ -267,7 +267,7 @@ qMRMLPlotViewControllerWidget::qMRMLPlotViewControllerWidget(QWidget* parentWidg
 // --------------------------------------------------------------------------
 qMRMLPlotViewControllerWidget::~qMRMLPlotViewControllerWidget()
 {
-  this->setMRMLScene(0);
+  this->setMRMLScene(nullptr);
 }
 
 // --------------------------------------------------------------------------

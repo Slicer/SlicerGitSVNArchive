@@ -62,7 +62,7 @@ qMRMLTransformDisplayNodeWidgetPrivate
 ::qMRMLTransformDisplayNodeWidgetPrivate(qMRMLTransformDisplayNodeWidget& object)
   : q_ptr(&object)
 {
-  this->TransformDisplayNode = NULL;
+  this->TransformDisplayNode = nullptr;
   this->ColorTransferFunction = vtkColorTransferFunction::New();
 }
 
@@ -71,7 +71,7 @@ qMRMLTransformDisplayNodeWidgetPrivate
 ::~qMRMLTransformDisplayNodeWidgetPrivate()
 {
   this->ColorTransferFunction->Delete();
-  this->ColorTransferFunction = NULL;
+  this->ColorTransferFunction = nullptr;
 }
 
 //-----------------------------------------------------------------------------
@@ -191,8 +191,8 @@ void qMRMLTransformDisplayNodeWidget
 ::setMRMLTransformNode(vtkMRMLTransformNode* transformNode)
 {
   Q_D(qMRMLTransformDisplayNodeWidget);
-  vtkMRMLTransformDisplayNode* displayNode = NULL;
-  if (transformNode!=NULL)
+  vtkMRMLTransformDisplayNode* displayNode = nullptr;
+  if (transformNode!=nullptr)
     {
     displayNode=vtkMRMLTransformDisplayNode::SafeDownCast(transformNode->GetDisplayNode());
     }
@@ -210,7 +210,7 @@ void qMRMLTransformDisplayNodeWidget
 {
   Q_D(qMRMLTransformDisplayNodeWidget);
 
-  this->setEnabled(d->TransformDisplayNode != 0);
+  this->setEnabled(d->TransformDisplayNode != nullptr);
 
   if (!d->TransformDisplayNode)
     {
@@ -661,7 +661,7 @@ void qMRMLTransformDisplayNodeWidget::colorUpdateRange()
     }
   // Rescale the chart so that all the points are visible
   vtkColorTransferFunction* colorMap=d->TransformDisplayNode->GetColorMap();
-  if (colorMap==NULL)
+  if (colorMap==nullptr)
     {
     return;
     }

@@ -36,7 +36,7 @@ class Q_SLICER_MODULE_SUBJECTHIERARCHY_WIDGETS_EXPORT qMRMLTransformItemDelegate
 {
   Q_OBJECT
 public:
-  qMRMLTransformItemDelegate(QObject *parent = 0);
+  qMRMLTransformItemDelegate(QObject *parent = nullptr);
   virtual ~qMRMLTransformItemDelegate();
 
   void setMRMLScene(vtkMRMLScene* scene);
