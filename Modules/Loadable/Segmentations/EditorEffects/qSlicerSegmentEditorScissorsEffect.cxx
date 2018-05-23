@@ -430,14 +430,10 @@ void qSlicerSegmentEditorScissorsEffectPrivate::updateGlyphWithNewPosition(Sciss
         vtkIdType newPointId = points->InsertNextPoint(eventPosition[0], eventPosition[1], 0.0);
         vtkSmartPointer<vtkIdList> idList = vtkSmartPointer<vtkIdList>::New();
         idList->InsertNextId(newPointId - 1);
+        idList->InsertNextId(newPointId);
         if (finalize)
           {
-          idList->InsertNextId(newPointId);
           idList->InsertNextId(0);
-          }
-        else
-          {
-          idList->InsertNextId(newPointId);
           }
         pipeline->PolyData->InsertNextCell(VTK_LINE, idList);
         points->Modified();
