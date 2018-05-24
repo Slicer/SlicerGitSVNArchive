@@ -12,7 +12,7 @@ ExternalProject_Include_Dependencies(${proj} PROJECT_VAR proj DEPENDS_VAR ${proj
 
 if(${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
   ExternalProject_FindPythonPackage(
-    MODULE_NAME "dicom"
+    MODULE_NAME "pydicom"
     REQUIRED
     )
 endif()
