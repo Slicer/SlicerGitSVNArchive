@@ -539,6 +539,13 @@ void qSlicerReformatModuleWidget::setWorldPosition(double* worldCoordinates)
 }
 
 //------------------------------------------------------------------------------
+void qSlicerReformatModuleWidget::setWorldPosition(double x, double y, double z)
+{
+  double worldPosition[3] = {x,y,z};
+  this->setWorldPosition(worldPosition);
+}
+
+//------------------------------------------------------------------------------
 void qSlicerReformatModuleWidget::setSliceNormal(double x, double y, double z)
 {
   double sliceNormal[3] = {x,y,z};
