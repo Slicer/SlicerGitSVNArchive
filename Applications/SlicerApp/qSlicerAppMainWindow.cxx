@@ -645,7 +645,7 @@ void qSlicerAppMainWindowPrivate::writeRecentlyLoadedFiles(const QList<qSlicerIO
 }
 
 //-----------------------------------------------------------------------------
-bool qSlicerAppMainWindowPrivate::confirmClose()
+bool qSlicerAppMainWindowPrivate::confirmCloseApplication()
 {
   Q_Q(qSlicerAppMainWindow);
   vtkMRMLScene* scene = qSlicerApplication::application()->mrmlScene();
@@ -661,31 +661,83 @@ bool qSlicerAppMainWindowPrivate::confirmClose()
   bool close = false;
   if (!question.isEmpty())
     {
-    QMessageBox messageBox(QMessageBox::Warning, q->tr("Save before exit?"), question, QMessageBox::NoButton, q);
+    QMessageBox* messageBox = new QMessageBox(QMessageBox::Warning, q->tr("Save before exit?"), question, QMessageBox::NoButton, q);
     QAbstractButton* saveButton =
-       messageBox.addButton(q->tr("Save"), QMessageBox::ActionRole);
+       messageBox->addButton(q->tr("Save"), QMessageBox::ActionRole);
     QAbstractButton* exitButton =
-       messageBox.addButton(q->tr("Exit (discard modifications)"), QMessageBox::ActionRole);
+       messageBox->addButton(q->tr("Exit (discard modifications)"), QMessageBox::ActionRole);
     QAbstractButton* cancelButton =
-       messageBox.addButton(q->tr("Cancel exit"), QMessageBox::ActionRole);
+       messageBox->addButton(q->tr("Cancel exit"), QMessageBox::ActionRole);
     Q_UNUSED(cancelButton);
-    messageBox.exec();
-    if (messageBox.clickedButton() == saveButton)
+    messageBox->exec();
+    if (messageBox->clickedButton() == saveButton)
       {
       // \todo Check if the save data dialog was "applied" and close the
       // app in that case
       this->FileSaveSceneAction->trigger();
       }
-    else if (messageBox.clickedButton() == exitButton)
+    else if (messageBox->clickedButton() == exitButton)
       {
       close = true;
       }
+    messageBox->deleteLater();
     }
   else
     {
     close = ctkMessageBox::confirmExit("MainWindow/DontConfirmExit", q);
     }
   return close;
+}
+
+//-----------------------------------------------------------------------------
+bool qSlicerAppMainWindowPrivate::confirmCloseScene()
+{
+  Q_Q(qSlicerAppMainWindow);
+  vtkMRMLScene* scene = qSlicerApplication::application()->mrmlScene();
+  QString question;
+  if (scene->GetStorableNodesModifiedSinceRead())
+    {
+    question = q->tr("Some data have been modified. Do you want to save them before closing the scene?");
+    }
+  else if (scene->GetModifiedSinceRead())
+    {
+    question = q->tr("The scene has been modified. Do you want to save it before closing the scene?");
+    }
+  else
+    {
+    // no unsaved changes, no need to ask confirmation
+    return true;
+    }
+
+  ctkMessageBox* confirmCloseMsgBox = new ctkMessageBox(q);
+  confirmCloseMsgBox->setAttribute(Qt::WA_DeleteOnClose);
+  confirmCloseMsgBox->setWindowTitle(q->tr("Save before closing scene?"));
+  confirmCloseMsgBox->setText(question);
+
+  // Use AcceptRole&RejectRole instead of Save&Discard becuase we would
+  // like discard changes to be the default behavior.
+  QAbstractButton* exitButton =
+    confirmCloseMsgBox->addButton(q->tr("Close scene (discard modifications)"), QMessageBox::AcceptRole);
+  QAbstractButton* saveButton =
+    confirmCloseMsgBox->addButton(q->tr("Save scene"), QMessageBox::RejectRole);
+  confirmCloseMsgBox->addButton(QMessageBox::Cancel);
+
+  confirmCloseMsgBox->setDontShowAgainVisible(true);
+  confirmCloseMsgBox->setDontShowAgainSettingsKey("MainWindow/DontConfirmSceneClose");
+  confirmCloseMsgBox->setIcon(QMessageBox::Question);
+  int resultCode = confirmCloseMsgBox->exec();
+  if (resultCode == QMessageBox::Cancel)
+    {
+    return false;
+    }
+  if (resultCode != QMessageBox::AcceptRole)
+    {
+    if (!qSlicerApplication::application()->ioManager()->openSaveDataDialog())
+      {
+      return false;
+      }
+    }
+  return true;
 }
 
 //-----------------------------------------------------------------------------
@@ -901,7 +953,11 @@ void qSlicerAppMainWindow::on_SDBSaveToDCMAction_triggered()
 //---------------------------------------------------------------------------
 void qSlicerAppMainWindow::on_FileCloseSceneAction_triggered()
 {
-  qSlicerCoreApplication::application()->mrmlScene()->Clear(false);
+  Q_D(qSlicerAppMainWindow);
+  if (d->confirmCloseScene())
+    {
+    qSlicerCoreApplication::application()->mrmlScene()->Clear(false);
+    }
 }
 
 //---------------------------------------------------------------------------
@@ -1136,7 +1192,7 @@ void qSlicerAppMainWindow::onFileRecentLoadedActionTriggered()
 void qSlicerAppMainWindow::closeEvent(QCloseEvent *event)
 {
   Q_D(qSlicerAppMainWindow);
-  if (d->confirmClose())
+  if (d->confirmCloseApplication())
     {
     // Exit current module to leave it a chance to change the UI (e.g. layout)
     // before writting settings.
