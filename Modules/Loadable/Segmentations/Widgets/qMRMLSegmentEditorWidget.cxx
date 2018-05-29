@@ -99,6 +99,7 @@
 #include <QAction>
 #include <QInputDialog>
 #include <QScrollArea>
+#include <QAbstractItemView>
 
 // CTK includes
 #include <ctkFlowLayout.h>

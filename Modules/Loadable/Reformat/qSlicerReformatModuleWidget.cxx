@@ -21,6 +21,7 @@
 // QT includes
 #include <QMenu>
 #include <QString>
+#include <QButtonGroup>
 
 // SlicerQt includes
 #include "qMRMLSliceControllerWidget_p.h" // For updateSliceOrientationSelector

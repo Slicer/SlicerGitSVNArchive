@@ -52,7 +52,9 @@
 // Qt includes
 #include <QDebug>
 #include <QMessageBox>
-
+#include <QItemSelection>
+#include <QButtonGroup>
+#include <QAbstractItemView>
 //-----------------------------------------------------------------------------
 /// \ingroup SlicerRt_QtModules_Segmentations
 class qSlicerSegmentationsModuleWidgetPrivate: public Ui_qSlicerSegmentationsModule

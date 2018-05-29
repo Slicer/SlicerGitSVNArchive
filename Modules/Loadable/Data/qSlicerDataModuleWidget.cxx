@@ -50,6 +50,7 @@
 #include <QSettings>
 #include <QDebug>
 #include <QTimer>
+#include <QAction>
 
 //-----------------------------------------------------------------------------
 class qSlicerDataModuleWidgetPrivate: public Ui_qSlicerDataModuleWidget

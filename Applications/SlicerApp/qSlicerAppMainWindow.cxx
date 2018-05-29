@@ -38,6 +38,7 @@
 #include <QTextEdit>
 #include <QTimer>
 #include <QToolButton>
+#include <QStyle>
 
 // CTK includes
 #include <ctkErrorLogWidget.h>

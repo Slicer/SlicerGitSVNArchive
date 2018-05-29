@@ -28,6 +28,7 @@
 #include <QPushButton>
 #include <QSpinBox>
 #include <QWidgetAction>
+#include <QButtonGroup>
 
 // CTK includes
 #include <ctkDoubleSlider.h>
