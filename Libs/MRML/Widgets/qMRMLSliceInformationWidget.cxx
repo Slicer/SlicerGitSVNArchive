@@ -20,6 +20,7 @@
 
 // Qt includes
 #include <QDebug>
+#include <QButtonGroup>
 
 // qMRML includes
 #include "qMRMLSliceControllerWidget_p.h" // For updateSliceOrientationSelector

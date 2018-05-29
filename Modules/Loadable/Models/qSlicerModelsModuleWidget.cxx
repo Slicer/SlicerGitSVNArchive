@@ -24,6 +24,7 @@
 #include <QMessageBox>
 #include <QModelIndex>
 #include <QScrollArea>
+#include <QAction>
 
 #include <vtkCallbackCommand.h>
 
