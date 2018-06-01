@@ -38,48 +38,23 @@ public:
 
   virtual vtkMRMLNode* CreateNodeInstance() VTK_OVERRIDE;
 
-  // Description:
-  // Set node attributes
+  /// Set node attributes
   virtual void ReadXMLAttributes( const char** atts) VTK_OVERRIDE;
 
-  // Description:
-  // Write this node's information to a MRML file in XML format.
+  /// Write this node's information to a MRML file in XML format.
   virtual void WriteXML(ostream& of, int indent) VTK_OVERRIDE;
 
-  // Description:
-  // Copy the node's attributes to this object
+  /// Copy the node's attributes to this object
   virtual void Copy(vtkMRMLNode *node) VTK_OVERRIDE;
 
-  // Description:
-  // Get node XML tag name (like Volume, Model)
+  /// Get node XML tag name (like Volume, Model)
   virtual const char* GetNodeTagName() VTK_OVERRIDE {return "MultiVolumeRendering";}
-
-  // Description:
-  // Ray cast technique
-  vtkGetMacro(RaycastTechnique, int);
-  vtkSetMacro(RaycastTechnique, int);
-
-  // Description:
-  // Reduce wood grain artifact to make surfaces appear smoother.
-  // For example, by applying jittering on casted rays.
-  vtkGetMacro(SurfaceSmoothing, bool);
-  vtkSetMacro(SurfaceSmoothing, bool);
 
 protected:
   vtkMRMLMultiVolumeRenderingDisplayNode();
   ~vtkMRMLMultiVolumeRenderingDisplayNode();
   vtkMRMLMultiVolumeRenderingDisplayNode(const vtkMRMLMultiVolumeRenderingDisplayNode&);
   void operator=(const vtkMRMLMultiVolumeRenderingDisplayNode&);
-
-  /* techniques in GPU ray cast
-   * 0: composite with directional lighting (default)
-   * 2: MIP
-   * 3: MINIP
-   * */
-  int RaycastTechnique;
-
-  /// Make surface appearance smoother. Off by default
-  bool SurfaceSmoothing;
 };
 
 #endif

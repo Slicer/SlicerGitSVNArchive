@@ -35,19 +35,15 @@ public:
 
   virtual vtkMRMLNode* CreateNodeInstance() VTK_OVERRIDE;
 
-  ///
   /// Read node attributes from XML file
   virtual void ReadXMLAttributes( const char** atts) VTK_OVERRIDE;
 
-  ///
   /// Write this node's information to a MRML file in XML format.
   virtual void WriteXML(ostream& of, int indent) VTK_OVERRIDE;
 
-  ///
   /// Copy the node's attributes to this object
   virtual void Copy(vtkMRMLNode *node) VTK_OVERRIDE;
 
-  ///
   /// Get node XML tag name (like Volume, Model)
   virtual const char* GetNodeTagName() VTK_OVERRIDE;
 
@@ -55,143 +51,197 @@ public:
   static double* defaultBackgroundColor();
   static double* defaultBackgroundColor2();
 
-  ///
   /// Indicates if the box is visible
   vtkGetMacro(BoxVisible, int);
   vtkSetMacro(BoxVisible, int);
 
-  ///
   /// Indicates if the axis labels are visible
   vtkGetMacro(AxisLabelsVisible, int);
   vtkSetMacro(AxisLabelsVisible, int);
 
-  ///
   /// Indicates if the axis labels visibility controlled by camera orientation
   vtkGetMacro(AxisLabelsCameraDependent, int);
   vtkSetMacro(AxisLabelsCameraDependent, int);
 
-  ///
   /// Toggles visibility of fiducial points in 3D viewer
-  vtkGetMacro(FiducialsVisible, int );
-  vtkSetMacro(FiducialsVisible, int );
+  vtkGetMacro(FiducialsVisible, int);
+  vtkSetMacro(FiducialsVisible, int);
 
-  vtkGetMacro(FiducialLabelsVisible, int );
-  vtkSetMacro(FiducialLabelsVisible, int );
+  vtkGetMacro(FiducialLabelsVisible, int);
+  vtkSetMacro(FiducialLabelsVisible, int);
 
-  ///
   /// Field of view size
   vtkGetMacro(FieldOfView, double);
   vtkSetMacro(FieldOfView, double);
 
-  ///
   /// Axis label size
   vtkGetMacro(LetterSize, double);
   vtkSetMacro(LetterSize, double);
 
-  ///
   /// Turn on and off animated spinning or rocking.
-  vtkGetMacro(AnimationMode, int );
-  vtkSetMacro(AnimationMode, int );
+  vtkGetMacro(AnimationMode, int);
+  vtkSetMacro(AnimationMode, int);
+  const char* GetAnimationModeAsString(int id);
+  int GetAnimationModeFromString(const char* name);
 
-  ///
-  vtkGetMacro(ViewAxisMode, int );
-  vtkSetMacro(ViewAxisMode, int );
+  vtkGetMacro(ViewAxisMode, int);
+  vtkSetMacro(ViewAxisMode, int);
+  const char* GetViewAxisModeAsString(int id);
+  int GetViewAxisModeFromString(const char* name);
 
-  ///
   /// Direction of animated spinning
-  vtkGetMacro(SpinDirection, int );
-  vtkSetMacro(SpinDirection, int );
+  vtkGetMacro(SpinDirection, int);
+  vtkSetMacro(SpinDirection, int);
+  const char* GetSpinDirectionAsString(int id);
+  int GetSpinDirectionFromString(const char* name);
 
-  ///
   /// Number of degrees in spin increment.
-  vtkGetMacro(SpinDegrees, double );
-  vtkSetMacro(SpinDegrees, double );
+  vtkGetMacro(SpinDegrees, double);
+  vtkSetMacro(SpinDegrees, double);
 
-  vtkGetMacro(RotateDegrees, double );
-  vtkSetMacro(RotateDegrees, double );
+  vtkGetMacro(RotateDegrees, double);
+  vtkSetMacro(RotateDegrees, double);
 
-  ///
   /// Amount of wait time between spin increments
-  vtkGetMacro(AnimationMs, int );
-  vtkSetMacro(AnimationMs, int );
+  vtkGetMacro(AnimationMs, int);
+  vtkSetMacro(AnimationMs, int);
 
-  ///
   /// Length of animated rocking
-  vtkGetMacro(RockLength, int );
-  vtkSetMacro(RockLength, int );
+  vtkGetMacro(RockLength, int);
+  vtkSetMacro(RockLength, int);
 
-  ///
   /// Increment of animated rock
-  vtkGetMacro(RockCount, int );
-  vtkSetMacro(RockCount, int );
+  vtkGetMacro(RockCount, int);
+  vtkSetMacro(RockCount, int);
 
-  ///
-  /// stereo mode (including nostereo)
-  vtkGetMacro(StereoType, int );
-  vtkSetMacro(StereoType, int );
+  /// Stereo mode (including NoStereo)
+  vtkGetMacro(StereoType, int);
+  vtkSetMacro(StereoType, int);
+  const char* GetStereoTypeAsString(int id);
+  int GetStereoTypeFromString(const char* name);
 
-  ///
-  /// specifies orthographic or perspective rendering
-  vtkGetMacro(RenderMode, int );
-  vtkSetMacro(RenderMode, int );
+  /// Specifies orthographic or perspective rendering
+  vtkGetMacro(RenderMode, int);
+  vtkSetMacro(RenderMode, int);
+  const char* GetRenderModeAsString(int id);
+  int GetRenderModeFromString(const char* name);
 
   /// Use depth peeling or not.
   /// 0 by default.
-  vtkGetMacro(UseDepthPeeling, int );
-  vtkSetMacro(UseDepthPeeling, int );
+  vtkGetMacro(UseDepthPeeling, int);
+  vtkSetMacro(UseDepthPeeling, int);
 
   /// Show FPS in the lower right side of the screen.
   /// 0 by default.
-  vtkGetMacro(FPSVisible, int );
-  vtkSetMacro(FPSVisible, int );
+  vtkGetMacro(FPSVisible, int);
+  vtkSetMacro(FPSVisible, int);
+
+  /// GPU memory size
+  /// 0 by default (application default)
+  vtkGetMacro(GPUMemorySize, int);
+  vtkSetMacro(GPUMemorySize, int);
+
+  /// Expected FPS
+  vtkSetMacro(ExpectedFPS, double);
+  vtkGetMacro(ExpectedFPS, double);
+
+  vtkSetMacro(VolumeRenderingQuality, int);
+  vtkGetMacro(VolumeRenderingQuality, int);
+  const char* GetVolumeRenderingQualityAsString(int id);
+  int GetVolumeRenderingQualityFromString(const char* name);
+
+  /// Rycasting technique for volume rendering
+  vtkGetMacro(RaycastTechnique, int);
+  vtkSetMacro(RaycastTechnique, int);
+  const char* GetRaycastTechniqueAsString(int id);
+  int GetRaycastTechniqueFromString(const char* name);
+
+  /// Reduce wood grain artifact to make surfaces appear smoother.
+  /// For example, by applying jittering on casted rays.
+  /// Note: Only applies to GPU-based techniques
+  vtkGetMacro(VolumeRenderingSurfaceSmoothing, bool);
+  vtkSetMacro(VolumeRenderingSurfaceSmoothing, bool);
+
+  /// Oversampling factor for sample distance. The sample distance is calculated by \sa
+  /// GetSampleDistance to be the volume's minimum spacing divided by the oversampling
+  /// factor.
+  /// If \sa VolumeRenderingQuality is set to maximum quality, then a fix oversampling factor of 10 is used.
+  vtkSetMacro(VolumeRenderingOversamplingFactor,double);
+  vtkGetMacro(VolumeRenderingOversamplingFactor,double);
 
   /// Modes for automatically controlling camera
   enum
     {
-      RotateAround = 0,
-      LookFrom
+    RotateAround = 0,
+    LookFrom,
+    ViewAxisMode_Last
     };
 
   /// Rotate camera directions
   enum
     {
-      PitchUp = 0,
-      PitchDown,
-      RollLeft,
-      RollRight,
-      YawLeft,
-      YawRight
+    PitchUp = 0,
+    PitchDown,
+    RollLeft,
+    RollRight,
+    YawLeft,
+    YawRight,
+    SpinDirection_Last
     };
 
   /// Stereo modes
   enum
     {
-      NoStereo = 0,
-      RedBlue,
-      Anaglyph,
-      QuadBuffer,
-      Interlaced,
-      UserDefined_1,
-      UserDefined_2,
-      UserDefined_3
+    NoStereo = 0,
+    RedBlue,
+    Anaglyph,
+    QuadBuffer,
+    Interlaced,
+    UserDefined_1,
+    UserDefined_2,
+    UserDefined_3,
+    StereoType_Last
     };
 
-  /// render modes
+  /// Render modes
   enum
     {
-      Perspective = 0,
-      Orthographic
+    Perspective = 0,
+    Orthographic,
+    RenderMode_Last
     };
 
-  /// animation mode
+  /// Animation mode
   enum
     {
-      Off = 0,
-      Spin,
-      Rock
+    Off = 0,
+    Spin,
+    Rock,
+    AnimationMode_Last
     };
 
-  /// events
+  /// Quality setting used for \sa VolumeRenderingQuality
+  enum Quality
+    {
+    AdaptiveQuality = 0, ///< quality determined from desired update rate
+    NormalQuality,       ///< good image quality at reasonable speed
+    MaximumQuality,      ///< high image quality, rendering time is not considered
+    VolumeRenderingQuality_Last
+    };
+
+  /// Ray casting technique for volume rendering
+  enum RayCastType
+    {
+    Composite = 0, // Composite with directional lighting (default)
+    CompositeEdgeColoring, // Composite with fake lighting (edge coloring, faster) - Not used
+    MaximumIntensityProjection,
+    MinimumIntensityProjection,
+    GradiantMagnitudeOpacityModulation, // Not used
+    IllustrativeContextPreservingExploration, // Not used
+    RaycastTechnique_Last
+    };
+
+  /// Events
   enum
     {
     GraphicalResourcesCreatedEvent = 19001,
@@ -212,32 +262,26 @@ protected:
   double FieldOfView;
   double LetterSize;
 
-  ///
-  /// parameters of automatic spin
+  /// Parameters of automatic spin
   int AnimationMode;
   int SpinDirection;
   double SpinDegrees;
   int AnimationMs;
 
-  ///
-  /// parameters of automatic rock
+  /// Parameters of automatic rock
   int RockLength;
   int RockCount;
 
-  ///
   /// Increment used to rotate the view
   /// once about an axis.
   double RotateDegrees;
 
-  ///
-  /// parameters for stereo viewing
+  /// Parameters for stereo viewing
   int StereoType;
 
-  ///
   /// Specifies orthographic or perspective rendering
   int RenderMode;
 
-  ///
   /// Parameters for look-from or rotate-around
   /// automatic view control
   int ViewAxisMode;
@@ -247,6 +291,39 @@ protected:
 
   /// Show the Frame per second as text on the lower right part of the view
   int FPSVisible;
+
+  /// Tracking GPU memory size (in MB), not saved into scene file
+  /// because different machines may have different GPU memory
+  /// values.
+  /// A value of 0 indicates to use the default value in the settings
+  int GPUMemorySize;
+
+  /// Expected frame per second rendered
+  double ExpectedFPS;
+
+  /// Volume rendering quality control mode
+  /// 0: Adaptive
+  /// 1: Maximum Quality
+  /// 2: Fixed Framerate // unsupported yet
+  int VolumeRenderingQuality;
+
+  /// Techniques for volume rendering ray cast
+  /// 0: Composite with directional lighting (default)
+  /// 1: Composite with fake lighting (edge coloring, faster) - Not used
+  /// 2: MIP
+  /// 3: MINIP
+  /// 4: Gradient Magnitude Opacity Modulation - Not used
+  /// 5: Illustrative Context Preserving Exploration - Not used
+  int RaycastTechnique;
+
+  /// Make surface appearance smoother in volume rendering. Off by default
+  bool VolumeRenderingSurfaceSmoothing;
+
+  /// Oversampling factor for sample distance. The sample distance is calculated by \sa
+  /// GetSampleDistance to be the volume's minimum spacing divided by the oversampling
+  /// factor.
+  /// If \sa VolumeRenderingQuality is set to maximum quality, then a fix oversampling factor of 10 is used.
+  double VolumeRenderingOversamplingFactor;
 };
 
 #endif
