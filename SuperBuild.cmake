@@ -100,83 +100,7 @@ mark_as_superbuild(
 # Slicer dependency list
 #------------------------------------------------------------------------------
 
-set(ITK_EXTERNAL_NAME ITKv4)
-
-set(VTK_EXTERNAL_NAME VTKv9)
-
-set(Slicer_DEPENDENCIES
-  curl
-  CTKAppLauncherLib
-  teem
-  ${VTK_EXTERNAL_NAME}
-  ${ITK_EXTERNAL_NAME}
-  CTK
-  LibArchive
-  RapidJSON
-  )
-
-set(CURL_ENABLE_SSL ${Slicer_USE_PYTHONQT_WITH_OPENSSL})
-
-if(Slicer_USE_SimpleITK)
-  list(APPEND Slicer_DEPENDENCIES SimpleITK)
-endif()
-
-if(Slicer_BUILD_CLI_SUPPORT)
-  list(APPEND Slicer_DEPENDENCIES SlicerExecutionModel)
-endif()
-
-if(Slicer_BUILD_EXTENSIONMANAGER_SUPPORT)
-  list(APPEND Slicer_DEPENDENCIES qRestAPI)
-endif()
-
-if(Slicer_BUILD_DICOM_SUPPORT)
-  list(APPEND Slicer_DEPENDENCIES DCMTK)
-endif()
-
-if(Slicer_BUILD_DICOM_SUPPORT AND Slicer_USE_PYTHONQT_WITH_OPENSSL)
-  list(APPEND Slicer_DEPENDENCIES python-pydicom)
-endif()
-
-if(Slicer_USE_PYTHONQT AND Slicer_BUILD_EXTENSIONMANAGER_SUPPORT)
-  list(APPEND Slicer_DEPENDENCIES
-    python-chardet
-    python-couchdb
-    python-GitPython
-    python-pip
-    )
-  if(Slicer_USE_PYTHONQT_WITH_OPENSSL OR Slicer_USE_SYSTEM_python)
-    # python-PyGithub requires SSL support in Python
-    list(APPEND Slicer_DEPENDENCIES python-PyGithub)
-  else()
-    message(STATUS "--------------------------------------------------")
-    message(STATUS "Python was built without SSL support; "
-                   "github integration will not be available. "
-                   "Set Slicer_USE_PYTHONQT_WITH_OPENSSL=ON to enable this feature.")
-    message(STATUS "--------------------------------------------------")
-  endif()
-endif()
-
-if(Slicer_USE_CTKAPPLAUNCHER)
-  list(APPEND Slicer_DEPENDENCIES CTKAPPLAUNCHER)
-endif()
-
-if(Slicer_USE_PYTHONQT)
-  set(PYTHON_ENABLE_SSL ${Slicer_USE_PYTHONQT_WITH_OPENSSL})
-  list(APPEND Slicer_DEPENDENCIES python)
-endif()
-
-if(Slicer_USE_NUMPY)
-  list(APPEND Slicer_DEPENDENCIES NUMPY)
-endif()
-
-if(Slicer_USE_PYTHONQT_WITH_TCL AND UNIX)
-  list(APPEND Slicer_DEPENDENCIES incrTcl)
-endif()
-
-if(Slicer_USE_TBB)
-  list(APPEND Slicer_DEPENDENCIES tbb)
-endif()
-
+set(Slicer_DEPENDENCIES SlicerDependencies)
 
 #------------------------------------------------------------------------------
 # Include remote modules
@@ -367,7 +291,7 @@ foreach(extension_dir ${Slicer_EXTENSION_SOURCE_DIRS})
       set(_additional_project_name "${CMAKE_MATCH_1}")
       list(APPEND _extension_depends ${_additional_project_name})
 
-      ExternalProject_Add_Dependencies(${_additional_project_name} DEPENDS ${Slicer_DEPENDENCIES})
+      ExternalProject_Add_Dependencies(${_additional_project_name} DEPENDS SlicerDependencies)
 
     endforeach()
     message(STATUS "SuperBuild - ${extension_name} extension => ${_extension_depends}")
