@@ -100,99 +100,7 @@ mark_as_superbuild(
 # Slicer dependency list
 #------------------------------------------------------------------------------
 
-set(ITK_EXTERNAL_NAME ITKv4)
-
-set(VTK_EXTERNAL_NAME VTKv9)
-
-set(Slicer_DEPENDENCIES
-  curl
-  CTKAppLauncherLib
-  teem
-  ${VTK_EXTERNAL_NAME}
-  ${ITK_EXTERNAL_NAME}
-  CTK
-  LibArchive
-  RapidJSON
-  )
-
-set(CURL_ENABLE_SSL ${Slicer_USE_PYTHONQT_WITH_OPENSSL})
-
-if(Slicer_USE_SimpleITK)
-  list(APPEND Slicer_DEPENDENCIES SimpleITK)
-endif()
-
-if(Slicer_BUILD_CLI_SUPPORT)
-  list(APPEND Slicer_DEPENDENCIES SlicerExecutionModel)
-endif()
-
-if(Slicer_BUILD_EXTENSIONMANAGER_SUPPORT)
-  list(APPEND Slicer_DEPENDENCIES qRestAPI)
-endif()
-
-if(Slicer_BUILD_DICOM_SUPPORT)
-  list(APPEND Slicer_DEPENDENCIES DCMTK)
-endif()
-
-if(Slicer_BUILD_DICOM_SUPPORT AND Slicer_USE_PYTHONQT_WITH_OPENSSL)
-  list(APPEND Slicer_DEPENDENCIES python-pydicom)
-endif()
-
-if(Slicer_USE_PYTHONQT AND Slicer_BUILD_EXTENSIONMANAGER_SUPPORT)
-  list(APPEND Slicer_DEPENDENCIES
-    python-chardet
-    python-couchdb
-    python-GitPython
-    python-pip
-    )
-  if(Slicer_USE_PYTHONQT_WITH_OPENSSL OR Slicer_USE_SYSTEM_python)
-    # python-PyGithub requires SSL support in Python
-    list(APPEND Slicer_DEPENDENCIES python-PyGithub)
-  else()
-    message(STATUS "--------------------------------------------------")
-    message(STATUS "Python was built without SSL support; "
-                   "github integration will not be available. "
-                   "Set Slicer_USE_PYTHONQT_WITH_OPENSSL=ON to enable this feature.")
-    message(STATUS "--------------------------------------------------")
-  endif()
-endif()
-
-if(Slicer_USE_CTKAPPLAUNCHER)
-  list(APPEND Slicer_DEPENDENCIES CTKAPPLAUNCHER)
-endif()
-
-if(Slicer_USE_PYTHONQT)
-  set(PYTHON_ENABLE_SSL ${Slicer_USE_PYTHONQT_WITH_OPENSSL})
-  list(APPEND Slicer_DEPENDENCIES python)
-endif()
-
-if(Slicer_USE_NUMPY)
-  list(APPEND Slicer_DEPENDENCIES NUMPY)
-endif()
-
-if(Slicer_USE_PYTHONQT_WITH_TCL AND UNIX)
-  list(APPEND Slicer_DEPENDENCIES incrTcl)
-endif()
-
-if(Slicer_USE_TBB)
-  list(APPEND Slicer_DEPENDENCIES tbb)
-endif()
-
-#------------------------------------------------------------------------------
-# Slicer_ADDITIONAL_DEPENDENCIES, EXTERNAL_PROJECT_ADDITIONAL_DIR
-#------------------------------------------------------------------------------
-
-#
-# Setting the variable Slicer_ADDITIONAL_DEPENDENCIES allows to introduce additional
-# Slicer external project dependencies.
-#
-# Additional external project files are looked up in the EXTERNAL_PROJECT_ADDITIONAL_DIR.
-#
-
-if(DEFINED Slicer_ADDITIONAL_DEPENDENCIES)
-  list(APPEND Slicer_DEPENDENCIES ${Slicer_ADDITIONAL_DEPENDENCIES})
-endif()
-
-mark_as_superbuild(Slicer_DEPENDENCIES:STRING)
+set(Slicer_DEPENDENCIES SlicerDependencies)
 
 #------------------------------------------------------------------------------
 # Include remote modules
@@ -352,6 +260,49 @@ list_conditional_append(Slicer_BUILD_LandmarkRegistration Slicer_REMOTE_DEPENDEN
 
 
 #------------------------------------------------------------------------------
+# Superbuild-type bundled extensions
+#------------------------------------------------------------------------------
+
+set(_extension_depends )
+
+# Build only inner-build for superbuild-type extensions
+foreach(extension_dir ${Slicer_EXTENSION_SOURCE_DIRS})
+  get_filename_component(extension_dir ${extension_dir} ABSOLUTE)
+  get_filename_component(extension_name ${extension_dir} NAME) # The assumption is that source directories are named after the extension project
+  if(EXISTS ${extension_dir}/SuperBuild OR ${extension_dir}/Superbuild)
+    set(${extension_name}_SUPERBUILD 0)
+    mark_as_superbuild(${extension_name}_SUPERBUILD:BOOL)
+
+    list(APPEND EXTERNAL_PROJECT_ADDITIONAL_DIRS "${extension_dir}/SuperBuild")
+    list(APPEND EXTERNAL_PROJECT_ADDITIONAL_DIRS "${extension_dir}/Superbuild")
+
+    # SuperBuild
+    file(GLOB _external_project_cmake_files1 RELATIVE "${extension_dir}/SuperBuild" "${extension_dir}/SuperBuild/External_*.cmake")
+    list(APPEND _external_project_cmake_files ${_external_project_cmake_files1})
+
+    # Superbuild
+    file(GLOB _external_project_cmake_files2 RELATIVE "${extension_dir}/Superbuild" "${extension_dir}/Superbuild/External_*.cmake")
+    list(APPEND _external_project_cmake_files ${_external_project_cmake_files2})
+
+    list(REMOVE_DUPLICATES _external_project_cmake_files)
+
+    foreach (_external_project_cmake_file ${_external_project_cmake_files})
+      string(REGEX MATCH "External_(.+)\.cmake" _match ${_external_project_cmake_file})
+      set(_additional_project_name "${CMAKE_MATCH_1}")
+      list(APPEND _extension_depends ${_additional_project_name})
+
+      ExternalProject_Add_Dependencies(${_additional_project_name} DEPENDS SlicerDependencies)
+
+    endforeach()
+    message(STATUS "SuperBuild - ${extension_name} extension => ${_extension_depends}")
+
+  endif()
+endforeach()
+
+list(APPEND Slicer_DEPENDENCIES ${_extension_depends})
+
+
+#------------------------------------------------------------------------------
 # Slicer_ADDITIONAL_PROJECTS
 #------------------------------------------------------------------------------
 
@@ -371,6 +322,25 @@ if(Slicer_ADDITIONAL_PROJECTS)
   endforeach()
   mark_as_superbuild(Slicer_ADDITIONAL_PROJECTS:STRING)
 endif()
+
+
+#------------------------------------------------------------------------------
+# Slicer_ADDITIONAL_DEPENDENCIES, EXTERNAL_PROJECT_ADDITIONAL_DIR, EXTERNAL_PROJECT_ADDITIONAL_DIRS
+#------------------------------------------------------------------------------
+
+#
+# Setting the variable Slicer_ADDITIONAL_DEPENDENCIES allows to introduce additional
+# Slicer external project dependencies.
+#
+# Additional external project files are looked up in the EXTERNAL_PROJECT_ADDITIONAL_DIR and EXTERNAL_PROJECT_ADDITIONAL_DIRS
+#
+
+if(DEFINED Slicer_ADDITIONAL_DEPENDENCIES)
+  list(APPEND Slicer_DEPENDENCIES ${Slicer_ADDITIONAL_DEPENDENCIES})
+endif()
+
+mark_as_superbuild(Slicer_DEPENDENCIES:STRING)
+
 
 #------------------------------------------------------------------------------
 # Process external projects, aggregate variable marked as superbuild and set <proj>_EP_ARGS variable.
