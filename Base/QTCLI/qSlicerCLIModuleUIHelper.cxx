@@ -13,6 +13,7 @@
 // Qt includes
 #include <QDebug>
 #include <QCheckBox>
+#include <QCoreApplication>
 #include <QLineEdit>
 #include <QRadioButton>
 #include <QSpinBox>
@@ -667,6 +668,9 @@ QWidget* qSlicerCLIModuleUIHelperPrivate::createImageTagWidget(const ModuleParam
   QString imageLabel = QString::fromStdString(moduleParameter.GetLabel());
   QString imageName = QString::fromStdString(moduleParameter.GetName());
 
+  imageLabel = QCoreApplication::translate(
+          this->CLIModuleWidget->moduleName().toLatin1(), imageLabel.toLatin1());
+
   // If "type" is specified, only display nodes of type nodeType
   // (e.g. vtkMRMLScalarVolumeNode), don't display subclasses
   // (e.g. vtkMRMLDiffusionTensorVolumeNode)
@@ -1079,6 +1083,10 @@ QWidget* qSlicerCLIModuleUIHelper::createTagWidget(const ModuleParameter& module
   if (widget)
     {
     QString description = QString::fromStdString(moduleParameter.GetDescription());
+
+    description = QCoreApplication::translate(
+          d->CLIModuleWidget->moduleName().toLatin1(), description.toLatin1());
+
     widget->setToolTip(description);
     QString widgetName = QString::fromStdString(moduleParameter.GetName());
     widget->setObjectName(widgetName);

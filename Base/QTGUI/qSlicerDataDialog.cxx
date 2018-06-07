@@ -94,6 +94,11 @@ qSlicerDataDialogPrivate::qSlicerDataDialogPrivate(QWidget* _parent)
   QPushButton* resetButton = this->ButtonBox->button(QDialogButtonBox::Reset);
   connect(resetButton, SIGNAL(clicked()), this, SLOT(reset()));
 
+  // do the internationalization setup for ButtonBox buttons
+  this->ButtonBox->button(QDialogButtonBox::Ok)->setText(tr("OK"));
+  this->ButtonBox->button(QDialogButtonBox::Cancel)->setText(tr("Cancel"));
+  this->ButtonBox->button(QDialogButtonBox::Reset)->setText(tr("Reset"));
+
   // Authorize Drops action from outside
   this->setAcceptDrops(true);
 

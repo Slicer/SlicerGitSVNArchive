@@ -49,14 +49,15 @@ use it for commercial purposes.</p>
 
   def addMenu(self):
     actionIcon = self.parent.icon
-    a = qt.QAction(actionIcon, 'Download Sample Data', slicer.util.mainWindow())
+    mTranslate = slicer.app.translate("qSlicerWelcomeModuleWidget", "Download Sample Data")
+    a = qt.QAction(actionIcon, mTranslate, slicer.util.mainWindow())
     a.setToolTip('Go to the SampleData module to download data from the network')
     a.connect('triggered()', self.select)
 
     fileMenu = slicer.util.lookupTopLevelWidget('FileMenu')
     if fileMenu:
       for action in fileMenu.actions():
-        if action.text == 'Save':
+        if action.name == 'FileSaveSceneAction':
           fileMenu.insertAction(action,a)
 
 
