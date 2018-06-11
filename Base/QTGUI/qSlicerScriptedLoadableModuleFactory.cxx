@@ -77,6 +77,18 @@ qSlicerAbstractCoreModule* ctkFactoryScriptedItem::instanciator()
   module->setInstalled(qSlicerUtils::isPluginInstalled(this->path(), app->slicerHome()));
   module->setBuiltIn(qSlicerUtils::isPluginBuiltIn(this->path(), app->slicerHome()));
 
+  // Set to /path/to/lib/Slicer-X.Y/qt-scripted-modules
+  QString modulePath = QFileInfo(this->path()).absolutePath();
+  // Set to /path/to/lib/Slicer-X.Y
+  modulePath = QFileInfo(modulePath).absolutePath();
+  // Set to /path/to/lib/Slicer-X.Y/qt-loadable-modules/Release|(...)|Debug
+  modulePath = modulePath + "/" Slicer_QTLOADABLEMODULES_SUBDIR + "/" + app->intDir();
+  if (!qSlicerLoadableModule::importModulePythonExtensions(
+        app->corePythonManager(), app->intDir(), modulePath, app->isEmbeddedModule(this->path())))
+    {
+    return 0;
+    }
+
   bool ret = module->setPythonSource(this->path());
   if (!ret)
     {
