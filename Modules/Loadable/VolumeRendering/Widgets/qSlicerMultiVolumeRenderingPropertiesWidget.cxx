@@ -1,8 +1,7 @@
 /*==============================================================================
 
-  Program: 3D Slicer
-
-  Copyright (c) Kitware Inc.
+  Copyright (c) Laboratory for Percutaneous Surgery (PerkLab)
+  Queen's University, Kingston, ON, Canada. All Rights Reserved.
 
   See COPYRIGHT.txt
   or http://www.slicer.org/copyright/copyright.txt for details.
@@ -13,15 +12,17 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 
-  This file was originally developed by Julien Finet, Kitware Inc.
-  and was partially funded by NIH grant 3P41RR013218-12S1
+  This file was originally developed by Csaba Pinter, PerkLab, Queen's University
+  and was supported through the Applied Cancer Research Unit program of Cancer Care
+  Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
+  and CANARIE.
 
 ==============================================================================*/
 
 // qSlicerGPURayCastVolumeRendering includes
-#include "qSlicerGPURayCastVolumeRenderingPropertiesWidget.h"
-#include "vtkMRMLGPURayCastVolumeRenderingDisplayNode.h"
-#include "ui_qSlicerGPURayCastVolumeRenderingPropertiesWidget.h"
+#include "qSlicerMultiVolumeRenderingPropertiesWidget.h"
+#include "vtkMRMLMultiVolumeRenderingDisplayNode.h"
+#include "ui_qSlicerMultiVolumeRenderingPropertiesWidget.h"
 
 // MRML includes
 #include "vtkMRMLScene.h"
@@ -29,41 +30,41 @@
 
 //-----------------------------------------------------------------------------
 /// \ingroup Slicer_QtModules_VolumeRendering
-class qSlicerGPURayCastVolumeRenderingPropertiesWidgetPrivate
-  : public Ui_qSlicerGPURayCastVolumeRenderingPropertiesWidget
+class qSlicerMultiVolumeRenderingPropertiesWidgetPrivate
+  : public Ui_qSlicerMultiVolumeRenderingPropertiesWidget
 {
-  Q_DECLARE_PUBLIC(qSlicerGPURayCastVolumeRenderingPropertiesWidget);
+  Q_DECLARE_PUBLIC(qSlicerMultiVolumeRenderingPropertiesWidget);
 protected:
-  qSlicerGPURayCastVolumeRenderingPropertiesWidget* const q_ptr;
+  qSlicerMultiVolumeRenderingPropertiesWidget* const q_ptr;
 
 public:
-  qSlicerGPURayCastVolumeRenderingPropertiesWidgetPrivate(
-    qSlicerGPURayCastVolumeRenderingPropertiesWidget& object);
-  virtual ~qSlicerGPURayCastVolumeRenderingPropertiesWidgetPrivate();
+  qSlicerMultiVolumeRenderingPropertiesWidgetPrivate(
+    qSlicerMultiVolumeRenderingPropertiesWidget& object);
+  virtual ~qSlicerMultiVolumeRenderingPropertiesWidgetPrivate();
 
-  virtual void setupUi(qSlicerGPURayCastVolumeRenderingPropertiesWidget*);
+  virtual void setupUi(qSlicerMultiVolumeRenderingPropertiesWidget*);
   void populateRenderingTechniqueComboBox();
 };
 
 // --------------------------------------------------------------------------
-qSlicerGPURayCastVolumeRenderingPropertiesWidgetPrivate
-::qSlicerGPURayCastVolumeRenderingPropertiesWidgetPrivate(
-  qSlicerGPURayCastVolumeRenderingPropertiesWidget& object)
+qSlicerMultiVolumeRenderingPropertiesWidgetPrivate
+::qSlicerMultiVolumeRenderingPropertiesWidgetPrivate(
+  qSlicerMultiVolumeRenderingPropertiesWidget& object)
   : q_ptr(&object)
 {
 }
 
 // --------------------------------------------------------------------------
-qSlicerGPURayCastVolumeRenderingPropertiesWidgetPrivate::
-~qSlicerGPURayCastVolumeRenderingPropertiesWidgetPrivate()
+qSlicerMultiVolumeRenderingPropertiesWidgetPrivate::
+~qSlicerMultiVolumeRenderingPropertiesWidgetPrivate()
 {
 }
 
 // --------------------------------------------------------------------------
-void qSlicerGPURayCastVolumeRenderingPropertiesWidgetPrivate
-::setupUi(qSlicerGPURayCastVolumeRenderingPropertiesWidget* widget)
+void qSlicerMultiVolumeRenderingPropertiesWidgetPrivate
+::setupUi(qSlicerMultiVolumeRenderingPropertiesWidget* widget)
 {
-  this->Ui_qSlicerGPURayCastVolumeRenderingPropertiesWidget::setupUi(widget);
+  this->Ui_qSlicerMultiVolumeRenderingPropertiesWidget::setupUi(widget);
   this->populateRenderingTechniqueComboBox();
   QObject::connect(this->RenderingTechniqueComboBox, SIGNAL(currentIndexChanged(int)),
                    widget, SLOT(setRenderingTechnique(int)));
@@ -72,7 +73,7 @@ void qSlicerGPURayCastVolumeRenderingPropertiesWidgetPrivate
 }
 
 // --------------------------------------------------------------------------
-void qSlicerGPURayCastVolumeRenderingPropertiesWidgetPrivate::populateRenderingTechniqueComboBox()
+void qSlicerMultiVolumeRenderingPropertiesWidgetPrivate::populateRenderingTechniqueComboBox()
 {
   this->RenderingTechniqueComboBox->clear();
   this->RenderingTechniqueComboBox->addItem(
@@ -84,37 +85,37 @@ void qSlicerGPURayCastVolumeRenderingPropertiesWidgetPrivate::populateRenderingT
 }
 
 //-----------------------------------------------------------------------------
-// qSlicerGPURayCastVolumeRenderingPropertiesWidget methods
+// qSlicerMultiVolumeRenderingPropertiesWidget methods
 
 //-----------------------------------------------------------------------------
-qSlicerGPURayCastVolumeRenderingPropertiesWidget
-::qSlicerGPURayCastVolumeRenderingPropertiesWidget(QWidget* parentWidget)
+qSlicerMultiVolumeRenderingPropertiesWidget
+::qSlicerMultiVolumeRenderingPropertiesWidget(QWidget* parentWidget)
   : Superclass( parentWidget )
-  , d_ptr( new qSlicerGPURayCastVolumeRenderingPropertiesWidgetPrivate(*this) )
+  , d_ptr( new qSlicerMultiVolumeRenderingPropertiesWidgetPrivate(*this) )
 {
-  Q_D(qSlicerGPURayCastVolumeRenderingPropertiesWidget);
+  Q_D(qSlicerMultiVolumeRenderingPropertiesWidget);
   d->setupUi(this);
 }
 
 //-----------------------------------------------------------------------------
-qSlicerGPURayCastVolumeRenderingPropertiesWidget::~qSlicerGPURayCastVolumeRenderingPropertiesWidget()
+qSlicerMultiVolumeRenderingPropertiesWidget::~qSlicerMultiVolumeRenderingPropertiesWidget()
 {
 }
 
 //-----------------------------------------------------------------------------
-vtkMRMLGPURayCastVolumeRenderingDisplayNode* qSlicerGPURayCastVolumeRenderingPropertiesWidget
-::mrmlGPURayCastDisplayNode()
+vtkMRMLMultiVolumeRenderingDisplayNode* qSlicerMultiVolumeRenderingPropertiesWidget
+::mrmlDisplayNode()
 {
-  return vtkMRMLGPURayCastVolumeRenderingDisplayNode::SafeDownCast(
+  return vtkMRMLMultiVolumeRenderingDisplayNode::SafeDownCast(
     this->mrmlVolumeRenderingDisplayNode());
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerGPURayCastVolumeRenderingPropertiesWidget::updateWidgetFromMRML()
+void qSlicerMultiVolumeRenderingPropertiesWidget::updateWidgetFromMRML()
 {
-  Q_D(qSlicerGPURayCastVolumeRenderingPropertiesWidget);
+  Q_D(qSlicerMultiVolumeRenderingPropertiesWidget);
 
-  vtkMRMLGPURayCastVolumeRenderingDisplayNode* displayNode = this->mrmlGPURayCastDisplayNode();
+  vtkMRMLMultiVolumeRenderingDisplayNode* displayNode = this->mrmlDisplayNode();
   if (!displayNode)
     {
     return;
@@ -141,10 +142,10 @@ void qSlicerGPURayCastVolumeRenderingPropertiesWidget::updateWidgetFromMRML()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerGPURayCastVolumeRenderingPropertiesWidget::setRenderingTechnique(int index)
+void qSlicerMultiVolumeRenderingPropertiesWidget::setRenderingTechnique(int index)
 {
-  Q_D(qSlicerGPURayCastVolumeRenderingPropertiesWidget);
-  vtkMRMLGPURayCastVolumeRenderingDisplayNode* displayNode = this->mrmlGPURayCastDisplayNode();
+  Q_D(qSlicerMultiVolumeRenderingPropertiesWidget);
+  vtkMRMLMultiVolumeRenderingDisplayNode* displayNode = this->mrmlDisplayNode();
   if (!displayNode)
     {
     return;
@@ -164,10 +165,10 @@ void qSlicerGPURayCastVolumeRenderingPropertiesWidget::setRenderingTechnique(int
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerGPURayCastVolumeRenderingPropertiesWidget::setSurfaceSmoothing(bool on)
+void qSlicerMultiVolumeRenderingPropertiesWidget::setSurfaceSmoothing(bool on)
 {
-  Q_D(qSlicerGPURayCastVolumeRenderingPropertiesWidget);
-  vtkMRMLGPURayCastVolumeRenderingDisplayNode* displayNode = this->mrmlGPURayCastDisplayNode();
+  Q_D(qSlicerMultiVolumeRenderingPropertiesWidget);
+  vtkMRMLMultiVolumeRenderingDisplayNode* displayNode = this->mrmlDisplayNode();
   if (!displayNode)
     {
     return;

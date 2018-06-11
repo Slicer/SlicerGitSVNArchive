@@ -20,6 +20,7 @@
 #include "vtkSlicerVolumeRenderingLogic.h"
 #include "vtkMRMLCPURayCastVolumeRenderingDisplayNode.h"
 #include "vtkMRMLGPURayCastVolumeRenderingDisplayNode.h"
+#include "vtkMRMLMultiVolumeRenderingDisplayNode.h"
 
 // Annotations includes
 #include <vtkMRMLAnnotationROINode.h>
@@ -71,6 +72,8 @@ vtkSlicerVolumeRenderingLogic::vtkSlicerVolumeRenderingLogic()
                                 "vtkMRMLCPURayCastVolumeRenderingDisplayNode");
   this->RegisterRenderingMethod("VTK GPU Ray Casting",
                                 "vtkMRMLGPURayCastVolumeRenderingDisplayNode");
+  this->RegisterRenderingMethod("VTK Multi-Volume (experimental)",
+                                "vtkMRMLMultiVolumeRenderingDisplayNode");
 }
 
 //----------------------------------------------------------------------------
@@ -128,7 +131,11 @@ void vtkSlicerVolumeRenderingLogic::RegisterNodes()
 
   vtkNew<vtkMRMLGPURayCastVolumeRenderingDisplayNode> gpuNode;
   this->GetMRMLScene()->RegisterNodeClass( gpuNode.GetPointer() );
+
+  vtkNew<vtkMRMLMultiVolumeRenderingDisplayNode> multiNode;
+  this->GetMRMLScene()->RegisterNodeClass( multiNode.GetPointer() );
 }
+
 //----------------------------------------------------------------------------
 void vtkSlicerVolumeRenderingLogic::RegisterRenderingMethod(const char* methodName, const char* displayNodeClassName)
 {
@@ -227,6 +234,8 @@ void vtkSlicerVolumeRenderingLogic::ChangeVolumeRenderingMethod(const char* disp
     return;
     }
 
+  this->GetMRMLScene()->StartState(vtkMRMLScene::BatchProcessState);
+
   // Create a display node of the requested type for all existing display nodes
   DisplayNodesType displayNodesCopy(this->DisplayNodes);
   DisplayNodesType::iterator displayIt;
@@ -238,7 +247,7 @@ void vtkSlicerVolumeRenderingLogic::ChangeVolumeRenderingMethod(const char* disp
     if (!newDisplayNode)
       {
       vtkErrorMacro("ChangeVolumeRenderingMethod: Failed to create display node of type " << displayNodeClassName);
-      return;
+      continue;
       }
     this->GetMRMLScene()->AddNode(newDisplayNode);
     newDisplayNode->Delete();
@@ -246,6 +255,8 @@ void vtkSlicerVolumeRenderingLogic::ChangeVolumeRenderingMethod(const char* disp
     this->GetMRMLScene()->RemoveNode(oldDisplayNode);
     displayableNode->AddAndObserveDisplayNodeID(newDisplayNode->GetID());
     }
+
+  this->GetMRMLScene()->EndState(vtkMRMLScene::BatchProcessState);
 }
 
 //----------------------------------------------------------------------------

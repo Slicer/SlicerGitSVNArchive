@@ -28,6 +28,9 @@
 #include <vtkMRMLAbstractThreeDViewDisplayableManager.h>
 
 class vtkSlicerVolumeRenderingLogic;
+class vtkMRMLVolumeNode;
+class vtkVolumeMapper;
+class vtkVolume;
 
 #define VTKIS_VOLUME_PROPS 100
 
@@ -52,6 +55,10 @@ public:
   /// Update actors based on volumes in the scene
   virtual void UpdateFromMRML() VTK_OVERRIDE;
 
+  /// Utility functions mainly used for testing
+  vtkVolumeMapper* GetVolumeMapper(vtkMRMLVolumeNode* volumeNode);
+  vtkVolume* GetVolumeActor(vtkMRMLVolumeNode* volumeNode);
+
 public:
   static int DefaultGPUMemorySize;
 
@@ -70,13 +77,6 @@ protected:
   virtual void ProcessMRMLNodesEvents(vtkObject * caller, unsigned long event, void * callData) VTK_OVERRIDE;
 
   virtual void OnInteractorStyleEvent(int eventID) VTK_OVERRIDE;
-
-  /// Return true if the volume wasn't in the view.
-  //bool AddVolumeToView();
-  //void RemoveVolumeFromView();
-  //void RemoveVolumeFromView(vtkVolume* volume);
-  //bool IsVolumeInView();
-  //bool IsVolumeInView(vtkVolume* volume);
 
 protected:
   vtkSlicerVolumeRenderingLogic *VolumeRenderingLogic;

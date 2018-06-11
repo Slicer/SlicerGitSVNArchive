@@ -19,6 +19,7 @@
 ==============================================================================*/
 
 // Qt includes
+#include <QDebug>
 #include <QLineEdit>
 
 // QtGUI includes
@@ -33,10 +34,12 @@
 #include <vtkSlicerVolumeRenderingLogic.h>
 
 // VTK includes
-#include <vtkGPUInfo.h>
-#include <vtkGPUInfoList.h>
 #include <vtkNew.h>
 #include <vtkSmartPointer.h>
+
+// MRML includes
+#include <vtkMRMLScene.h>
+#include <vtkMRMLViewNode.h>
 
 // --------------------------------------------------------------------------
 // qSlicerVolumeRenderingSettingsPanelPrivate
@@ -52,12 +55,11 @@ public:
   qSlicerVolumeRenderingSettingsPanelPrivate(qSlicerVolumeRenderingSettingsPanel& object);
   void init();
 
-  int memoryFromString(const QString& memory)const;
-  QString memoryToString(int memory)const;
-
   void addRenderingMethod(const QString& methodName, const QString& methodClassName);
 
-  QRegExp MemoryRegExp;
+  vtkMRMLScene* mrmlScene();
+  vtkMRMLViewNode* defaultMrmlViewNode();
+
   vtkSmartPointer<vtkSlicerVolumeRenderingLogic> VolumeRenderingLogic;
 };
 
@@ -69,7 +71,6 @@ qSlicerVolumeRenderingSettingsPanelPrivate
 ::qSlicerVolumeRenderingSettingsPanelPrivate(qSlicerVolumeRenderingSettingsPanel& object)
   :q_ptr(&object)
 {
-  this->MemoryRegExp = QRegExp("^(\\d+(?:\\.\\d*)?)\\s?(MB|GB)$");
 }
 
 // --------------------------------------------------------------------------
@@ -79,69 +80,83 @@ void qSlicerVolumeRenderingSettingsPanelPrivate::init()
 
   this->setupUi(q);
 
-  this->GPUMemoryComboBox->setEditable(true);
-  this->GPUMemoryComboBox->lineEdit()->setValidator(
-    new QRegExpValidator(this->MemoryRegExp, q));
-  this->GPUMemoryComboBox->insertItem(0, q->tr("0 MB"));
-  this->GPUMemoryComboBox->insertSeparator(1);
+  //
+  // Quality
+  //
+  for (int qualityIndex=0; qualityIndex<vtkMRMLViewNode::VolumeRenderingQuality_Last; qualityIndex++)
+    {
+    this->QualityControlComboBox->addItem(vtkMRMLViewNode::GetVolumeRenderingQualityAsString(qualityIndex));
+    }
+  QObject::connect(this->QualityControlComboBox, SIGNAL(currentIndexChanged(int)),
+                   q, SLOT(onDefaultQualityChanged(int)));
+  q->registerProperty("VolumeRendering/DefaultQuality", q,
+                      "defaultQuality", SIGNAL(defaultQualityChanged(QString)));
 
+  //
+  // Interactive speed
+  //
+  QObject::connect(this->InteractiveSpeedSlider, SIGNAL(valueChanged(double)),
+                   q, SLOT(onDefaultInteractiveSpeedChanged(double)));
+  q->registerProperty("VolumeRendering/DefaultInteractiveSpeed", q,
+                      "defaultInteractiveSpeed", SIGNAL(defaultInteractiveSpeedChanged(int)));
+
+  //
+  // Surface smoothing
+  //
+  QObject::connect(this->SurfaceSmoothingCheckBox, SIGNAL(toggled(bool)),
+                   q, SLOT(onDefaultSurfaceSmoothingChanged(bool)));
+  q->registerProperty("VolumeRendering/DefaultSurfaceSmoothing", q,
+                      "defaultSurfaceSmoothing", SIGNAL(defaultSurfaceSmoothingChanged(bool)));
+
+  //
+  // GPU memory
+  //
   QObject::connect(this->GPUMemoryComboBox, SIGNAL(editTextChanged(QString)),
                    q, SLOT(onGPUMemoryChanged()));
-  QObject::connect(this->GPUMemoryComboBox, SIGNAL(currentIndexChanged(QString)),
+  QObject::connect(this->GPUMemoryComboBox, SIGNAL(currentTextChanged(QString)),
                    q, SLOT(onGPUMemoryChanged()));
 
-  // Detect the amount of memory in the graphic card
-  vtkNew<vtkGPUInfoList> gpuInfoList;
-  gpuInfoList->Probe();
-
-  if (gpuInfoList->GetNumberOfGPUs() > 0)
-    {
-    int gpuMemoryInBytes = gpuInfoList->GetGPUInfo(0)->GetDedicatedVideoMemory();
-    int gpuMemoryInKo = gpuMemoryInBytes / 1024;
-    int gpuMemoryInMo = gpuMemoryInKo / 1024;
-    // Set it as the default amount of memory
-    q->setGPUMemory(gpuMemoryInMo);
-    }
-
-  q->registerProperty("VolumeRendering/GPUMemorySize", q, "gpuMemory",
-                      SIGNAL(gpuMemoryChanged(int)));
+  q->registerProperty("VolumeRendering/GPUMemorySize", q,
+                      "gpuMemory", SIGNAL(gpuMemoryChanged(QString)));
 }
 
 // --------------------------------------------------------------------------
-int qSlicerVolumeRenderingSettingsPanelPrivate::memoryFromString(const QString& memory)const
+void qSlicerVolumeRenderingSettingsPanelPrivate::addRenderingMethod(
+  const QString& methodName, const QString& methodClassName )
 {
-  int pos = this->MemoryRegExp.indexIn(memory);
-  if (pos < 0)
-    {
-    return 0;
-    }
-
-  QString memoryValue = this->MemoryRegExp.cap(1);
-  QString memoryUnit = this->MemoryRegExp.cap(2);
-
-  double value = memoryValue.toDouble();
-  double unit = memoryUnit == "MB" ? 1. : 1024;
-
-  return static_cast<int>(value * unit);
+  this->RenderingMethodComboBox->addItem(methodName, methodClassName);
 }
 
 // --------------------------------------------------------------------------
-QString qSlicerVolumeRenderingSettingsPanelPrivate::memoryToString(int memory)const
+vtkMRMLScene* qSlicerVolumeRenderingSettingsPanelPrivate::mrmlScene()
 {
-  QString value = QString::number(memory) + " MB";
-  if (memory > 1024)
+  Q_Q(qSlicerVolumeRenderingSettingsPanel);
+
+  vtkSlicerVolumeRenderingLogic* logic = q->volumeRenderingLogic();
+  if (!logic)
     {
-    value = QString::number(static_cast<float>(memory) / 1024) + " GB";
+    return NULL;
     }
-  return value;
+  return logic->GetMRMLScene();
 }
 
 // --------------------------------------------------------------------------
-void qSlicerVolumeRenderingSettingsPanelPrivate
-::addRenderingMethod(const QString& methodName, const QString& methodClassName)
+vtkMRMLViewNode* qSlicerVolumeRenderingSettingsPanelPrivate::defaultMrmlViewNode()
 {
-  this->RenderingMethodComboBox->addItem(
-    methodName, methodClassName);
+  vtkMRMLScene* scene = this->mrmlScene();
+  if (!scene)
+    {
+    return NULL;
+    }
+
+  // Setup a default 3D view node so that the default settings are propagated to all new 3D views
+  vtkSmartPointer<vtkMRMLNode> defaultNode = scene->GetDefaultNodeByClass("vtkMRMLViewNode");
+  if (!defaultNode)
+    {
+    defaultNode.TakeReference(scene->CreateNodeByClass("vtkMRMLViewNode"));
+    scene->AddDefaultNode(defaultNode);
+    }
+  return vtkMRMLViewNode::SafeDownCast(defaultNode.GetPointer());
 }
 
 // --------------------------------------------------------------------------
@@ -162,16 +177,14 @@ qSlicerVolumeRenderingSettingsPanel::~qSlicerVolumeRenderingSettingsPanel()
 }
 
 // --------------------------------------------------------------------------
-vtkSlicerVolumeRenderingLogic* qSlicerVolumeRenderingSettingsPanel
-::volumeRenderingLogic()const
+vtkSlicerVolumeRenderingLogic* qSlicerVolumeRenderingSettingsPanel::volumeRenderingLogic()const
 {
   Q_D(const qSlicerVolumeRenderingSettingsPanel);
   return d->VolumeRenderingLogic;
 }
 
 // --------------------------------------------------------------------------
-void qSlicerVolumeRenderingSettingsPanel
-::setVolumeRenderingLogic(vtkSlicerVolumeRenderingLogic* logic)
+void qSlicerVolumeRenderingSettingsPanel::setVolumeRenderingLogic(vtkSlicerVolumeRenderingLogic* logic)
 {
   Q_D(qSlicerVolumeRenderingSettingsPanel);
 
@@ -186,10 +199,11 @@ void qSlicerVolumeRenderingSettingsPanel
 }
 
 // --------------------------------------------------------------------------
-void qSlicerVolumeRenderingSettingsPanel
-::onVolumeRenderingLogicModified()
+void qSlicerVolumeRenderingSettingsPanel::onVolumeRenderingLogicModified()
 {
   Q_D(qSlicerVolumeRenderingSettingsPanel);
+
+  // Update default rendering method
   const std::map<std::string, std::string>& renderingMethods =
     d->VolumeRenderingLogic->GetRenderingMethods();
   /// \todo not the best test to make sure the list is different
@@ -212,68 +226,71 @@ void qSlicerVolumeRenderingSettingsPanel
   int defaultRenderingMethodIndex = d->RenderingMethodComboBox->findData(
     QString(defaultRenderingMethod));
   d->RenderingMethodComboBox->setCurrentIndex(defaultRenderingMethodIndex);
+
+  // MRML scene is not accessible yet from the logic when it is set, so cannot access default view node
+  // either. Need to setup default node and set defaults to 3D views when the scene is available.
+  this->onDefaultQualityChanged(d->QualityControlComboBox->currentIndex());
+  this->onDefaultInteractiveSpeedChanged(d->InteractiveSpeedSlider->value());
+  this->onDefaultSurfaceSmoothingChanged(d->SurfaceSmoothingCheckBox->isChecked());
+  this->onGPUMemoryChanged();
 }
 
 // --------------------------------------------------------------------------
-int qSlicerVolumeRenderingSettingsPanel::gpuMemory()const
+QString qSlicerVolumeRenderingSettingsPanel::gpuMemory()const
 {
   Q_D(const qSlicerVolumeRenderingSettingsPanel);
-  QString memory = d->GPUMemoryComboBox->currentText();
-  return d->memoryFromString(memory);
+  return d->GPUMemoryComboBox->currentGPUMemoryAsString();
 }
 
 // --------------------------------------------------------------------------
-void qSlicerVolumeRenderingSettingsPanel::setGPUMemory(int gpuMemory)
+void qSlicerVolumeRenderingSettingsPanel::setGPUMemory(const QString& gpuMemoryString)
 {
   Q_D(qSlicerVolumeRenderingSettingsPanel);
-  QString value = d->memoryToString(gpuMemory);
-  int index = d->GPUMemoryComboBox->findText(value);
-  bool currentIndexModified = false;
-  if (index == -1)
-    {
-    int customIndex = 0;
-    d->GPUMemoryComboBox->setItemText(customIndex, value);
-    index = customIndex;
-    if (index == d->GPUMemoryComboBox->currentIndex())
-      {
-      currentIndexModified = true;
-      }
-    }
-  d->GPUMemoryComboBox->setCurrentIndex(index);
-  if (currentIndexModified)
-    {
-    this->onGPUMemoryChanged();
-    }
+  d->GPUMemoryComboBox->setCurrentGPUMemoryFromString(gpuMemoryString);
+  this->onGPUMemoryChanged();
 }
 
 // --------------------------------------------------------------------------
 void qSlicerVolumeRenderingSettingsPanel::onGPUMemoryChanged()
 {
-  vtkMRMLVolumeRenderingDisplayableManager::DefaultGPUMemorySize =
-    this->gpuMemory();
+  Q_D(qSlicerVolumeRenderingSettingsPanel);
+  if (!d->mrmlScene())
+    {
+    return;
+    }
+
+  int memory = d->GPUMemoryComboBox->currentGPUMemoryInMB();
+
+  // Set to default view node
+  vtkMRMLViewNode* defaultViewNode = d->defaultMrmlViewNode();
+  if (defaultViewNode)
+    {
+    defaultViewNode->SetGPUMemorySize(memory);
+    }
+
+  // Set to all existing view nodes
+  std::vector<vtkMRMLNode*> viewNodes;
+  d->mrmlScene()->GetNodesByClass("vtkMRMLViewNode", viewNodes);
+  for (std::vector<vtkMRMLNode*>::iterator it=viewNodes.begin(); it!=viewNodes.end(); ++it)
+    {
+    vtkMRMLViewNode* viewNode = vtkMRMLViewNode::SafeDownCast(*it);
+    viewNode->SetGPUMemorySize(memory);
+    }
 
   emit gpuMemoryChanged(this->gpuMemory());
-  // Todo:
-  // update all the VolumeRendering displayable manager to take the new memory
-  // into account.
-  //vtkMRMLThreeDViewDisplayableManagerFactory* factory
-  //  = vtkMRMLThreeDViewDisplayableManagerFactory::GetInstance();
 }
 
 // --------------------------------------------------------------------------
-QString qSlicerVolumeRenderingSettingsPanel
-::defaultRenderingMethod()const
+QString qSlicerVolumeRenderingSettingsPanel::defaultRenderingMethod()const
 {
   Q_D(const qSlicerVolumeRenderingSettingsPanel);
   QString renderingClassName =
-    d->RenderingMethodComboBox->itemData(
-      d->RenderingMethodComboBox->currentIndex()).toString();
+    d->RenderingMethodComboBox->itemData(d->RenderingMethodComboBox->currentIndex()).toString();
   return renderingClassName;
 }
 
 // --------------------------------------------------------------------------
-void qSlicerVolumeRenderingSettingsPanel
-::setDefaultRenderingMethod(const QString& method)
+void qSlicerVolumeRenderingSettingsPanel::setDefaultRenderingMethod(const QString& method)
 {
   Q_D(qSlicerVolumeRenderingSettingsPanel);
   int methodIndex = d->RenderingMethodComboBox->findData(method);
@@ -281,8 +298,7 @@ void qSlicerVolumeRenderingSettingsPanel
 }
 
 // --------------------------------------------------------------------------
-void qSlicerVolumeRenderingSettingsPanel
-::onDefaultRenderingMethodChanged(int index)
+void qSlicerVolumeRenderingSettingsPanel::onDefaultRenderingMethodChanged(int index)
 {
   Q_UNUSED(index);
   this->updateVolumeRenderingLogicDefaultRenderingMethod();
@@ -290,14 +306,144 @@ void qSlicerVolumeRenderingSettingsPanel
 }
 
 // --------------------------------------------------------------------------
-void qSlicerVolumeRenderingSettingsPanel
-::updateVolumeRenderingLogicDefaultRenderingMethod()
+void qSlicerVolumeRenderingSettingsPanel::updateVolumeRenderingLogicDefaultRenderingMethod()
 {
   Q_D(qSlicerVolumeRenderingSettingsPanel);
-  if (d->VolumeRenderingLogic == 0)
+  if (d->VolumeRenderingLogic == NULL)
     {
     return;
     }
-  d->VolumeRenderingLogic->SetDefaultRenderingMethod(
-    this->defaultRenderingMethod().toLatin1());
+  d->VolumeRenderingLogic->SetDefaultRenderingMethod(this->defaultRenderingMethod().toLatin1());
+}
+
+// --------------------------------------------------------------------------
+QString qSlicerVolumeRenderingSettingsPanel::defaultQuality()const
+{
+  Q_D(const qSlicerVolumeRenderingSettingsPanel);
+  int qualityIndex = d->QualityControlComboBox->currentIndex();
+  QString quality(vtkMRMLViewNode::GetVolumeRenderingQualityAsString(qualityIndex));
+  return quality;
+}
+
+// --------------------------------------------------------------------------
+void qSlicerVolumeRenderingSettingsPanel::setDefaultQuality(const QString& quality)
+{
+  Q_D(qSlicerVolumeRenderingSettingsPanel);
+  int qualityIndex = d->QualityControlComboBox->findText(quality);
+  d->QualityControlComboBox->setCurrentIndex(qualityIndex);
+}
+
+// --------------------------------------------------------------------------
+void qSlicerVolumeRenderingSettingsPanel::onDefaultQualityChanged(int qualityIndex)
+{
+  Q_D(qSlicerVolumeRenderingSettingsPanel);
+  if (!d->mrmlScene())
+    {
+    return;
+    }
+
+  // Set to default view node
+  vtkMRMLViewNode* defaultViewNode = d->defaultMrmlViewNode();
+  if (defaultViewNode)
+    {
+    defaultViewNode->SetVolumeRenderingQuality(qualityIndex);
+    }
+
+  // Set to all existing view nodes
+  std::vector<vtkMRMLNode*> viewNodes;
+  d->mrmlScene()->GetNodesByClass("vtkMRMLViewNode", viewNodes);
+  for (std::vector<vtkMRMLNode*>::iterator it=viewNodes.begin(); it!=viewNodes.end(); ++it)
+    {
+    vtkMRMLViewNode* viewNode = vtkMRMLViewNode::SafeDownCast(*it);
+    viewNode->SetVolumeRenderingQuality(qualityIndex);
+    }
+
+  QString quality(vtkMRMLViewNode::GetVolumeRenderingQualityAsString(qualityIndex));
+  emit defaultQualityChanged(quality);
+}
+
+// --------------------------------------------------------------------------
+int qSlicerVolumeRenderingSettingsPanel::defaultInteractiveSpeed()const
+{
+  Q_D(const qSlicerVolumeRenderingSettingsPanel);
+  int interactiveSpeed = d->InteractiveSpeedSlider->value();
+  return interactiveSpeed;
+}
+
+// --------------------------------------------------------------------------
+void qSlicerVolumeRenderingSettingsPanel::setDefaultInteractiveSpeed(int interactiveSpeed)
+{
+  Q_D(qSlicerVolumeRenderingSettingsPanel);
+  d->InteractiveSpeedSlider->setValue(interactiveSpeed);
+}
+
+// --------------------------------------------------------------------------
+void qSlicerVolumeRenderingSettingsPanel::onDefaultInteractiveSpeedChanged(double interactiveSpeed)
+{
+  Q_D(qSlicerVolumeRenderingSettingsPanel);
+  if (!d->mrmlScene())
+    {
+    return;
+    }
+
+  // Set to default view node
+  vtkMRMLViewNode* defaultViewNode = d->defaultMrmlViewNode();
+  if (defaultViewNode)
+    {
+    defaultViewNode->SetExpectedFPS((int)interactiveSpeed);
+    }
+
+  // Set to all existing view nodes
+  std::vector<vtkMRMLNode*> viewNodes;
+  d->mrmlScene()->GetNodesByClass("vtkMRMLViewNode", viewNodes);
+  for (std::vector<vtkMRMLNode*>::iterator it=viewNodes.begin(); it!=viewNodes.end(); ++it)
+    {
+    vtkMRMLViewNode* viewNode = vtkMRMLViewNode::SafeDownCast(*it);
+    viewNode->SetExpectedFPS((int)interactiveSpeed);
+    }
+
+  emit defaultInteractiveSpeedChanged((int)interactiveSpeed);
+}
+
+// --------------------------------------------------------------------------
+bool qSlicerVolumeRenderingSettingsPanel::defaultSurfaceSmoothing()const
+{
+  Q_D(const qSlicerVolumeRenderingSettingsPanel);
+  bool smoothing = d->SurfaceSmoothingCheckBox->isChecked();
+  return smoothing;
+}
+
+// --------------------------------------------------------------------------
+void qSlicerVolumeRenderingSettingsPanel::setDefaultSurfaceSmoothing(bool surfaceSmoothing)
+{
+  Q_D(qSlicerVolumeRenderingSettingsPanel);
+  d->SurfaceSmoothingCheckBox->setChecked(surfaceSmoothing);
+}
+
+// --------------------------------------------------------------------------
+void qSlicerVolumeRenderingSettingsPanel::onDefaultSurfaceSmoothingChanged(bool smoothing)
+{
+  Q_D(qSlicerVolumeRenderingSettingsPanel);
+  if (!d->mrmlScene())
+    {
+    return;
+    }
+
+  // Set to default view node
+  vtkMRMLViewNode* defaultViewNode = d->defaultMrmlViewNode();
+  if (defaultViewNode)
+    {
+    defaultViewNode->SetVolumeRenderingSurfaceSmoothing(smoothing);
+    }
+
+  // Set to all existing view nodes
+  std::vector<vtkMRMLNode*> viewNodes;
+  d->mrmlScene()->GetNodesByClass("vtkMRMLViewNode", viewNodes);
+  for (std::vector<vtkMRMLNode*>::iterator it=viewNodes.begin(); it!=viewNodes.end(); ++it)
+    {
+    vtkMRMLViewNode* viewNode = vtkMRMLViewNode::SafeDownCast(*it);
+    viewNode->SetVolumeRenderingSurfaceSmoothing(smoothing);
+    }
+
+  emit defaultSurfaceSmoothingChanged(smoothing);
 }

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>qSlicerGPURayCastVolumeRenderingPropertiesWidget</class>
- <widget class="QWidget" name="qSlicerGPURayCastVolumeRenderingPropertiesWidget">
+ <class>qSlicerMultiVolumeRenderingPropertiesWidget</class>
+ <widget class="QWidget" name="qSlicerMultiVolumeRenderingPropertiesWidget">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>GPU RayCast</string>
+   <string>MultiVolume GPU RayCast</string>
   </property>
   <layout class="QFormLayout" name="formLayout">
    <property name="leftMargin">
