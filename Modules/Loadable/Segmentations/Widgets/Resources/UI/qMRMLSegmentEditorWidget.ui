@@ -57,20 +57,6 @@
        </property>
       </widget>
      </item>
-     <item row="0" column="2">
-      <widget class="QToolButton" name="SliceRotateWarningButton">
-       <property name="toolTip">
-        <string>Slice views orientation are not aligned with segmentation. Striping artifacts may appear. Click to align slice views to segmentation.</string>
-       </property>
-       <property name="text">
-        <string>...</string>
-       </property>
-       <property name="icon">
-        <iconset resource="../qSlicerSegmentationsModuleWidgets.qrc">
-         <normaloff>:/Icons/SlicerRotateWarning.png</normaloff>:/Icons/SlicerRotateWarning.png</iconset>
-       </property>
-      </widget>
-     </item>
      <item row="1" column="1" colspan="2">
       <widget class="qMRMLNodeComboBox" name="MasterVolumeNodeComboBox">
        <property name="nodeTypes">
@@ -94,6 +80,26 @@
        </property>
        <property name="noneDisplay">
         <string>Select master volume to enable editing</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="2">
+      <widget class="QToolButton" name="SliceRotateWarningButton">
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>20</height>
+        </size>
+       </property>
+       <property name="toolTip">
+        <string>Slice views orientation are not aligned with segmentation. Striping artifacts may appear. Click to align slice views to segmentation.</string>
+       </property>
+       <property name="text">
+        <string>...</string>
+       </property>
+       <property name="icon">
+        <iconset resource="../qSlicerSegmentationsModuleWidgets.qrc">
+         <normaloff>:/Icons/SlicerRotateWarning.png</normaloff>:/Icons/SlicerRotateWarning.png</iconset>
        </property>
       </widget>
      </item>

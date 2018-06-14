@@ -401,13 +401,13 @@ public:
   /// Adjusts the slice node to align with the
   /// native space of the image data so that no oblique resampling
   /// occurs when rendering (helps to see original acquisition data
-  /// and for obluique volumes with few slices).
+  /// and for oblique volumes with few slices).
   /// For single-slice volume, slice normal is aligned to the volume
   /// plane's normal.
   void RotateToVolumePlane(vtkMRMLVolumeNode *volumeNode);
 
   /// Adjusts the slice node to align with the
-  /// axes of the provided the reference coordinate system
+  /// axes of the provided reference coordinate system
   /// so that no oblique resampling
   /// occurs when rendering (helps to see original acquisition data
   /// and for obluique volumes with few slices).

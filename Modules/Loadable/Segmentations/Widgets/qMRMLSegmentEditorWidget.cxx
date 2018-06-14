@@ -3463,12 +3463,12 @@ void qMRMLSegmentEditorWidget::updateSliceRotateWarningButtonVisibility()
     // Only need to check alignment of X and Y axes, if they are aligned then Z axis will be aligned, too
     for (int sliceAxisIndex = 0; sliceAxisIndex < 2; ++sliceAxisIndex)
       {
-      double sliceAxisDirection[3];
+      double sliceAxisDirection[3] = {0.0};
       vtkAddonMathUtilities::GetOrientationMatrixColumn(sliceToRAS, sliceAxisIndex, sliceAxisDirection);
       bool foundParallelSegmentationAxis = false; // found a segmentation axis that is parallel to this slice axis
       for (int segmentationAxisIndex = 0; segmentationAxisIndex < 3; ++segmentationAxisIndex)
         {
-        double segmentationAxisDirection[3];
+        double segmentationAxisDirection[3] = {0.0};
         vtkAddonMathUtilities::GetOrientationMatrixColumn(segmentationIJKToRAS, segmentationAxisIndex, segmentationAxisDirection);
         double angleDiffRad = vtkMath::AngleBetweenVectors(sliceAxisDirection, segmentationAxisDirection);
         const double maxAngleDifferenceRad = 1e-3; // we consider angles to be parallel if difference is less than about 0.1 deg
