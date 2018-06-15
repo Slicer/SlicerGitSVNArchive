@@ -553,6 +553,48 @@ void vtkThreeDViewInteractorStyle::OnMouseWheelBackward()
 }
 
 //----------------------------------------------------------------------------
+void vtkThreeDViewInteractorStyle::OnPinch()
+{
+  int pointer = this->Interactor->GetPointerIndex();
+
+  this->FindPokedRenderer(this->Interactor->GetEventPositions(pointer)[0],
+                          this->Interactor->GetEventPositions(pointer)[1]);
+
+  if ( this->CurrentRenderer == nullptr )
+  {
+    return;
+  }
+
+  this->GrabFocus(this->EventCallbackCommand);
+  this->StartDolly();
+  double factor = this->Interactor->GetScale();
+  this->Dolly(factor);
+  this->EndDolly();
+  this->ReleaseFocus();
+}
+
+//----------------------------------------------------------------------------
+void vtkThreeDViewInteractorStyle::OnRotate()
+{
+  int pointer = this->Interactor->GetPointerIndex();
+
+  this->FindPokedRenderer(this->Interactor->GetEventPositions(pointer)[0],
+                          this->Interactor->GetEventPositions(pointer)[1]);
+
+  if ( this->CurrentRenderer == nullptr )
+  {
+    return;
+  }
+
+  this->GrabFocus(this->EventCallbackCommand);
+  vtkCamera *camera = this->CurrentRenderer->GetActiveCamera();
+  camera->Roll( -1.0*(this->Interactor->GetRotation() - this->Interactor->GetLastRotation()) );
+  camera->OrthogonalizeViewUp();
+  this->Interactor->Render();
+  this->ReleaseFocus();
+}
+
+//----------------------------------------------------------------------------
 void vtkThreeDViewInteractorStyle::OnExpose()
 {
   if ( this->GetModelDisplayableManager() != 0 )

@@ -75,6 +75,8 @@ public:
   virtual void OnRightButtonUp() VTK_OVERRIDE;
   virtual void OnMouseWheelForward() VTK_OVERRIDE;
   virtual void OnMouseWheelBackward() VTK_OVERRIDE;
+  virtual void OnPinch() VTK_OVERRIDE;
+  virtual void OnRotate() VTK_OVERRIDE;
 
   /// These methods for the different interactions in different modes
   /// are overridden in subclasses to perform the correct motion. Since
