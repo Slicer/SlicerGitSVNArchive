@@ -38,7 +38,7 @@ if((NOT DEFINED LibArchive_INCLUDE_DIR
 
   ExternalProject_SetIfNotDefined(
     ${CMAKE_PROJECT_NAME}_${proj}_GIT_REPOSITORY
-    "${EP_GIT_PROTOCOL}://github.com/Slicer/LibArchive.git"
+    "${EP_GIT_PROTOCOL}://github.com/phcerdan/libarchive"
     QUIET
     )
 
@@ -47,7 +47,7 @@ if((NOT DEFINED LibArchive_INCLUDE_DIR
   # - fixing GCC7 build errors
   ExternalProject_SetIfNotDefined(
     ${CMAKE_PROJECT_NAME}_${proj}_GIT_TAG
-    "ebec58f7698ed04712e885aa2c354547fc8c596d"
+    "944ab1d06a4e190068aadc34e2a10381312412b2"
     QUIET
     )
 
