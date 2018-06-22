@@ -1279,7 +1279,7 @@ vtkMRMLNode* vtkMRMLScene::AddNewNodeByClass(
     }
   if (!nodeBaseName.empty())
     {
-    nodeToAdd->SetName(nodeBaseName.c_str());
+    nodeToAdd->SetName(this->GenerateUniqueName(nodeBaseName).c_str());
     }
   return this->AddNode(nodeToAdd);
 }
