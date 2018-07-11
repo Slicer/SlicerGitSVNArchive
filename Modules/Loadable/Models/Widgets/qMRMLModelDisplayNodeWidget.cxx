@@ -436,8 +436,6 @@ void qMRMLModelDisplayNodeWidget::setScalarsDisplayRange(double min, double max)
     qvtkBlock(d->MRMLModelDisplayNode, vtkCommand::ModifiedEvent, this);
     d->MRMLModelDisplayNode->SetScalarRange(min, max);
     qvtkUnblock(d->MRMLModelDisplayNode, vtkCommand::ModifiedEvent, this);
-    d->ThresholdRangeWidget->setRange(min,max);
-    d->ThresholdRangeWidget->setValues(min,max);
     }
 }
 
