@@ -111,7 +111,7 @@ const std::map<std::string,std::string> vtkTeemNRRDReader::GetHeaderKeysMap()
 }
 
 //----------------------------------------------------------------------------
-std::vector<std::string> vtkTeemNRRDReader::GetHeaderKeysVector()
+const std::vector<std::string> vtkTeemNRRDReader::GetHeaderKeysVector()
 {
   std::vector<std::string> keys;
   for (std::map<std::string,std::string>::iterator i = HeaderKeyValue.begin(); i != HeaderKeyValue.end(); i++)
