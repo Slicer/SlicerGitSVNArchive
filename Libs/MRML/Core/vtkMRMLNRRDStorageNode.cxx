@@ -511,8 +511,6 @@ int vtkMRMLNRRDStorageNode::ParseDiffusionInformation(
     {
     std::string key = nrrd_keys_iter->first;
 
-    std::cout << "key a: " << key << std::endl;
-
     if (!parse_gradient_key(key, grad_idx, gradkey_pad_width, err))
       {
       if (err.empty())
@@ -525,7 +523,6 @@ int vtkMRMLNRRDStorageNode::ParseDiffusionInformation(
         return 0;
         }
       }
-    std::cout << "key d: " << key << std::endl;
     // parse the gradient vector into double[3]
     vnl_double_3 cur_grad(0,0,0);
     std::stringstream grad_value_stream(nrrd_keys_iter->second);
