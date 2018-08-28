@@ -24,6 +24,8 @@ Version:   $Revision: 1.14 $
 #include <vtkNew.h>
 #include <vtkObjectFactory.h>
 
+#include <vnl/vnl_double_3.h>
+
 //------------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLDiffusionWeightedVolumeNode);
 
@@ -265,6 +267,13 @@ int vtkMRMLDiffusionWeightedVolumeNode::GetNumberOfGradients()
   return this->DiffusionGradients->GetNumberOfTuples();
 }
 
+//------------------------------------------------------------------------------
+
+inline bool valid_grad_length(vnl_double_3 grad) {
+  // returns true if grad length is: within GRAD_EPS of 0.0 or 1.0
+  return (grad.two_norm() < 1e-6) || (fabs(1.0 - grad.two_norm()) < 1e-6);
+}
+
 //----------------------------------------------------------------------------
 void vtkMRMLDiffusionWeightedVolumeNode::SetDiffusionGradient(int num, const double grad[3])
 {
@@ -275,14 +284,36 @@ void vtkMRMLDiffusionWeightedVolumeNode::SetDiffusionGradient(int num, const dou
                      "Allocate first the number of gradients with SetNumberOfGradients");
     return;
     }
-  this->DiffusionGradients->SetTuple3(num, grad[0], grad[1], grad[2]);
 
+  vnl_double_3 tmp_grad(grad[0], grad[1], grad[2]);
+  if (!valid_grad_length(tmp_grad))
+    {
+    vtkErrorMacro(<< "vtkMRMLDiffusionWeightedVolumeNode only accepts gradient vectors with length 0.0 or 1.0!"
+                  << "  Got vector with length: " << tmp_grad.two_norm());
+    return;
+    }
+
+  this->DiffusionGradients->SetTuple3(num, grad[0], grad[1], grad[2]);
   this->Modified();
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLDiffusionWeightedVolumeNode::SetDiffusionGradients(vtkDoubleArray *grad)
 {
+  // gradients must all be length 0 (baseline) or 1.
+  vnl_double_3 tmp_grad;
+  for (int i = 0; i < grad->GetNumberOfTuples(); i++)
+    {
+    tmp_grad.copy_in(grad->GetTuple3(i));
+    double grad_norm = tmp_grad.two_norm();
+    if (!valid_grad_length(tmp_grad))
+      {
+      vtkErrorMacro(<< "vtkMRMLDiffusionWeightedVolumeNode only accepts gradient vectors with length 0.0 or 1.0!"
+                    << " Got vector with length: " << tmp_grad.two_norm());
+      return;
+      }
+    }
+
   this->DiffusionGradients->DeepCopy(grad);
   this->Modified();
 }
