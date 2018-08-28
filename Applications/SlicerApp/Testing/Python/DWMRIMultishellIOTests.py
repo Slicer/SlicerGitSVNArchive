@@ -160,8 +160,6 @@ def test_nrrd_dwi_roundtrip(test_nrrd_path):
     # test twice-saved file against original NRRD
     parsed_nrrd3, dw_node3 = test_nrrd_dwi_load(test_nrrd_path, tmp_nrrd2)
 
-    print(test_nrrd_path, tmp_nrrd1, tmp_nrrd2)
-
 
 def run_tests(data_dir, tmp_dir):
     # construct path to test data
