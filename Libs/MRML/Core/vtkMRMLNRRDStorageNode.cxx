@@ -433,7 +433,10 @@ bool parse_gradient_key(std::string key, size_t &grad_number, size_t &gradkey_pa
     }
   // below here key is: DWMRI_gradient_####
 
-  // we enforce the constraint that the padding of the grad key must be consistent
+  // padding is the extra zeros to give a specific digit count
+  //   0001
+  //   ^^^  <- zeros here are padding to 4 digits
+  // we enforce the constraint that the padding of the grad keys must be consistent
   if (gradkey_pad_width == 0) {
     gradkey_pad_width = key.size() - dwmri_grad_tag.size();
   }
