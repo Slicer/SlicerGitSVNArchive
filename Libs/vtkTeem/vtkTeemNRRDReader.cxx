@@ -105,6 +105,12 @@ const char* vtkTeemNRRDReader::GetHeaderKeys()
 }
 
 //----------------------------------------------------------------------------
+const std::map<std::string,std::string> vtkTeemNRRDReader::GetHeaderKeysMap()
+{
+  return this->HeaderKeyValue;
+}
+
+//----------------------------------------------------------------------------
 std::vector<std::string> vtkTeemNRRDReader::GetHeaderKeysVector()
 {
   std::vector<std::string> keys;
