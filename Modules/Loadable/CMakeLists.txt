@@ -13,6 +13,7 @@ set(qtmodules
   Data
   DoubleArrays
   Models
+  Planes
   Plots
   SceneViews
   Segmentations
