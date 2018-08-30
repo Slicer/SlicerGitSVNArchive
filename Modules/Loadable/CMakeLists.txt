@@ -17,6 +17,7 @@ set(qtmodules
   SceneViews
   Segmentations
   SlicerWelcome
+  Splines
   Tables
   Reformat
   ViewControllers

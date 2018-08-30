@@ -1,0 +1,6 @@
+<!DOCTYPE RCC><RCC version="1.0">
+  <qresource>
+    <file>Icons/Splines.png</file>
+    <file>Icons/SplinesMouseModePlace.png</file>
+  </qresource>
+</RCC>
