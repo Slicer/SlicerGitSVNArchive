@@ -71,6 +71,7 @@ class MarkupsGenericStorageTestTest(ScriptedLoadableModuleTest):
     self.setUp()
     self.test_MarkupsGenericStorageTest1()
     self.test_MarkupsGenericStorageTest2()
+    self.test_MarkupsGenericStorageTest3()
 
   def saveAndReload(self, markup):
     self.assertIsNone(markup.GetStorageNode())
@@ -174,5 +175,39 @@ class MarkupsGenericStorageTestTest(ScriptedLoadableModuleTest):
     self.assertEqual(newMarkup.GetNthMarkupSelected(0), 1)
     self.assertEqual(newMarkup.GetNthMarkupLocked(0), 1)
     self.assertEqual(newMarkup.GetNthMarkupVisibility(0), 1)
+
+    self.delayDisplay('Test passed!')
+
+
+  def test_MarkupsGenericStorageTest3(self):
+    self.delayDisplay("Starting testing the generic markups storage test 3")
+
+    # Write markup to file
+    markup = slicer.mrmlScene.AddNode(slicer.vtkMRMLMarkupsNode())
+    markup.AddPointToNewMarkup(vtk.vtkVector3d(0, 0, 0))
+
+    logic = slicer.modules.markups.logic()
+    defaultMarkupJSON = logic.GetModuleShareDirectory() + '/GenericStorage.markups.json'
+    loaded = slicer.util.loadNodeFromFile(defaultMarkupJSON, 'Markups', returnNode=True)
+    self.assertTrue(loaded[0])
+    newMarkup = loaded[1]
+    self.assertIsNotNone(newMarkup)
+
+    self.assertEqual(markup.GetLocked(), newMarkup.GetLocked())
+    self.assertEqual(markup.GetMarkupLabelFormat(), newMarkup.GetMarkupLabelFormat())
+    self.assertEqual(markup.GetNumberOfTexts(), newMarkup.GetNumberOfTexts())
+
+    self.assertEqual(markup.GetNumberOfMarkups(), newMarkup.GetNumberOfMarkups())
+    self.assertEqual(markup.GetNthMarkupLabel(0), newMarkup.GetNthMarkupLabel(0))
+    self.assertEqual(markup.GetNthMarkupDescription(0), newMarkup.GetNthMarkupDescription(0))
+    self.assertEqual(markup.GetNthMarkupAssociatedNodeID(0), newMarkup.GetNthMarkupAssociatedNodeID(0))
+    orientation = range(4)
+    markup.GetNthMarkupOrientation(0, orientation)
+    newOrientation = range(4)
+    newMarkup.GetNthMarkupOrientation(0, newOrientation)
+    self.assertListEqual(orientation, newOrientation)
+    self.assertEqual(markup.GetNthMarkupSelected(0), newMarkup.GetNthMarkupSelected(0))
+    self.assertEqual(markup.GetNthMarkupLocked(0), newMarkup.GetNthMarkupLocked(0))
+    self.assertEqual(markup.GetNthMarkupVisibility(0), newMarkup.GetNthMarkupVisibility(0))
 
     self.delayDisplay('Test passed!')

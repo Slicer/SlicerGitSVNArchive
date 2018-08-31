@@ -1,0 +1,29 @@
+{
+  "Locked":0,
+  "MarkupLabelFormat":"%N-%d",
+  "Markups":
+    [
+      {
+      "AssociatedNodeID":"",
+      "Description":"",
+      "ID":"vtkMRMLMarkupsNode_0",
+      "Label":"Markups-1",
+      "Locked":0,
+      "OrientationWXYZ":[0.0, 0.0, 0.0, 1.0],
+      "Points":
+        [
+          {
+          "x":0.0,
+          "y":0.0,
+          "z":0.0
+          }
+        ],
+      "Points_Count":"1",
+      "Selected":1,
+      "Visibility":1
+    }
+  ],
+  "Markups_Count":1,
+  "TextList":[null],
+  "TextList_Count":0
+}
