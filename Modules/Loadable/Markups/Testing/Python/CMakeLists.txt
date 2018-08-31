@@ -41,3 +41,12 @@ slicerMacroBuildScriptedModule(
   )
 slicer_add_python_unittest(SCRIPT MarkupsInViewsSelfTest.py
                            SLICER_ARGS --disable-cli-modules)
+
+# Test generic markup storage node
+slicerMacroBuildScriptedModule(
+  NAME MarkupsGenericStorageTest
+  SCRIPTS MarkupsGenericStorageTest.py
+  RESOURCES ${MARKUPS_PYTHON_RESOURCES}
+  )
+slicer_add_python_unittest(SCRIPT MarkupsGenericStorageTest.py
+                           SLICER_ARGS --disable-cli-modules)

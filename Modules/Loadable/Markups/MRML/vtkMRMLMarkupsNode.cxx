@@ -20,6 +20,7 @@
 #include "vtkMRMLMarkupsDisplayNode.h"
 #include "vtkMRMLMarkupsNode.h"
 #include "vtkMRMLMarkupsStorageNode.h"
+#include "vtkMRMLMarkupsGenericStorageNode.h"
 #include "vtkMRMLTransformNode.h"
 
 // Slicer MRML includes
@@ -345,7 +346,7 @@ void vtkMRMLMarkupsNode::RemoveAllTexts()
 //-------------------------------------------------------------------------
 vtkMRMLStorageNode* vtkMRMLMarkupsNode::CreateDefaultStorageNode()
 {
-  return vtkMRMLStorageNode::SafeDownCast(vtkMRMLMarkupsStorageNode::New());
+  return vtkMRMLStorageNode::SafeDownCast(vtkMRMLMarkupsGenericStorageNode::New());
 }
 
 //---------------------------------------------------------------------------

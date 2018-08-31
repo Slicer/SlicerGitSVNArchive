@@ -36,6 +36,8 @@ set(MODULE_SRCS
   qSlicer${MODULE_NAME}ModuleWidget.h
   qSlicer${MODULE_NAME}Reader.cxx
   qSlicer${MODULE_NAME}Reader.h
+  qSlicer${MODULE_NAME}FiducialsReader.cxx
+  qSlicer${MODULE_NAME}FiducialsReader.h
   qSlicer${MODULE_NAME}SettingsPanel.cxx
   qSlicer${MODULE_NAME}SettingsPanel.h
   )
@@ -44,6 +46,7 @@ set(MODULE_MOC_SRCS
   qSlicer${MODULE_NAME}Module.h
   qSlicer${MODULE_NAME}ModuleWidget.h
   qSlicer${MODULE_NAME}Reader.h
+  qSlicer${MODULE_NAME}FiducialsReader.h
   qSlicer${MODULE_NAME}SettingsPanel.h
   )
 

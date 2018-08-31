@@ -15,44 +15,33 @@
 
 ==============================================================================*/
 
-#ifndef __qSlicerMarkupsReader_h
-#define __qSlicerMarkupsReader_h
+#ifndef __qSlicerMarkupsFiducialsReader_h
+#define __qSlicerMarkupsFiducialsReader_h
 
 // SlicerQt includes
-#include "qSlicerFileReader.h"
-
-class qSlicerMarkupsReaderPrivate;
-class vtkSlicerMarkupsLogic;
+#include "qSlicerMarkupsReader.h"
 
 //----------------------------------------------------------------------------
 /// \ingroup Slicer_QtModules_Markups
-class qSlicerMarkupsReader
-  : public qSlicerFileReader
+class qSlicerMarkupsFiducialsReader
+  : public qSlicerMarkupsReader
 {
   Q_OBJECT
 public:
-  typedef qSlicerFileReader Superclass;
-  qSlicerMarkupsReader(QObject* parent = 0);
-  qSlicerMarkupsReader(vtkSlicerMarkupsLogic* logic, QObject* parent = 0);
-  virtual ~qSlicerMarkupsReader();
-
-  vtkSlicerMarkupsLogic* markupsLogic()const;
-  void setMarkupsLogic(vtkSlicerMarkupsLogic* logic);
+  typedef qSlicerMarkupsReader Superclass;
+  qSlicerMarkupsFiducialsReader(QObject* parent = 0);
+  qSlicerMarkupsFiducialsReader(vtkSlicerMarkupsLogic* logic, QObject* parent = 0);
+  virtual ~qSlicerMarkupsFiducialsReader();
 
   virtual QString description()const;
   virtual IOFileType fileType()const;
   virtual QStringList extensions()const;
 
-  virtual bool load(const IOProperties& properties);
-
 protected:
-  QScopedPointer<qSlicerMarkupsReaderPrivate> d_ptr;
-
   virtual char* load(const QString& filename, const QString& name);
 
 private:
-  Q_DECLARE_PRIVATE(qSlicerMarkupsReader);
-  Q_DISABLE_COPY(qSlicerMarkupsReader);
+  Q_DISABLE_COPY(qSlicerMarkupsFiducialsReader);
 };
 
 #endif

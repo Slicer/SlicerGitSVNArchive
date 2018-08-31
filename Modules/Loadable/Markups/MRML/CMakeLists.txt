@@ -2,9 +2,12 @@ project(vtkSlicer${MODULE_NAME}ModuleMRML)
 
 set(KIT ${PROJECT_NAME})
 
+find_package(RapidJSON REQUIRED)
+
 set(${KIT}_EXPORT_DIRECTIVE "VTK_SLICER_${MODULE_NAME_UPPER}_MODULE_MRML_EXPORT")
 
 set(${KIT}_INCLUDE_DIRECTORIES
+  ${RapidJSON_INCLUDE_DIR}
   )
 
 set(${KIT}_SRCS
@@ -12,6 +15,7 @@ set(${KIT}_SRCS
   vtkMRML${MODULE_NAME}FiducialNode.cxx
   vtkMRML${MODULE_NAME}Node.cxx
   vtkMRML${MODULE_NAME}FiducialStorageNode.cxx
+  vtkMRML${MODULE_NAME}GenericStorageNode.cxx
   )
 
 set(${KIT}_TARGET_LIBRARIES

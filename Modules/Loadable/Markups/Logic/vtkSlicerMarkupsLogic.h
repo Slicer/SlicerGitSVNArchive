@@ -108,6 +108,11 @@ public:
   /// as well.
   char *LoadMarkupsFiducials(const char *fileName, const char *fidsName);
 
+  /// Load a markups from fileName, return NULL on error, node ID string
+  /// otherwise. Adds the appropriate storage and display nodes to the scene
+  /// as well.
+  char *LoadMarkups(const char *fileName, const char *name);
+
   /// Utility methods to operate on all markups in a markups node
   void SetAllMarkupsVisibility(vtkMRMLMarkupsNode *node, bool flag);
   void ToggleAllMarkupsVisibility(vtkMRMLMarkupsNode *node);

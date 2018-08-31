@@ -76,21 +76,25 @@ vtkSlicerMarkupsLogic* qSlicerMarkupsReader::markupsLogic()const
 //-----------------------------------------------------------------------------
 QString qSlicerMarkupsReader::description()const
 {
-  return "MarkupsFiducials";
+  return "Markups";
 }
 
 //-----------------------------------------------------------------------------
 qSlicerIO::IOFileType qSlicerMarkupsReader::fileType()const
 {
-  return QString("MarkupsFiducials");
+  return QString("Markups");
 }
 
 //-----------------------------------------------------------------------------
 QStringList qSlicerMarkupsReader::extensions()const
 {
-  return QStringList()
-    << "Markups Fiducials (*.fcsv)"
-    << " Annotation Fiducial (*.acsv)";
+  return QStringList() << "Markups (*.markups.json)" << "Markups (*.json)";
+}
+
+//-----------------------------------------------------------------------------
+char* qSlicerMarkupsReader::load(const QString& filename, const QString& name)
+{
+  return this->markupsLogic()->LoadMarkups(filename.toLatin1(), name.toLatin1());
 }
 
 //-----------------------------------------------------------------------------
@@ -114,7 +118,7 @@ bool qSlicerMarkupsReader::load(const IOProperties& properties)
     }
 
   // pass to logic to do the loading
-  char * nodeIDs = d->MarkupsLogic->LoadMarkupsFiducials(fileName.toLatin1(), name.toLatin1());
+  char * nodeIDs = this->load(fileName, name);
 
   if (nodeIDs)
     {

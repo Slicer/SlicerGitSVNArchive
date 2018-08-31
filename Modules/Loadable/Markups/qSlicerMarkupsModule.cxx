@@ -36,6 +36,7 @@
 #include "qSlicerSubjectHierarchyMarkupsPlugin.h"
 
 // Markups includes
+#include "qSlicerMarkupsFiducialsReader.h"
 #include "qSlicerMarkupsModule.h"
 #include "qSlicerMarkupsModuleWidget.h"
 #include "qSlicerMarkupsReader.h"
@@ -135,11 +136,20 @@ void qSlicerMarkupsModule::setup()
 
   // Register IO
   qSlicerIOManager* ioManager = qSlicerApplication::application()->ioManager();
-  qSlicerMarkupsReader *markupsIO = new qSlicerMarkupsReader(vtkSlicerMarkupsLogic::SafeDownCast(this->logic()), this);
+  // Readers
+  qSlicerMarkupsReader *markupsIO =
+    new qSlicerMarkupsReader(vtkSlicerMarkupsLogic::SafeDownCast(this->logic()), this);
   ioManager->registerIO(markupsIO);
+  qSlicerMarkupsFiducialsReader *markupsFiducialIO =
+    new qSlicerMarkupsFiducialsReader(vtkSlicerMarkupsLogic::SafeDownCast(this->logic()), this);
+  ioManager->registerIO(markupsFiducialIO);
+  // Writers
   ioManager->registerIO(new qSlicerNodeWriter(
-                            "MarkupsFiducials", markupsIO->fileType(),
-                            QStringList() << "vtkMRMLMarkupsNode", true, this));
+    "Markups", markupsIO->fileType(),
+    QStringList() << "vtkMRMLMarkupsNode", true, this));
+  ioManager->registerIO(new qSlicerNodeWriter(
+    "MarkupsFiducials", markupsFiducialIO->fileType(),
+    QStringList() << "vtkMRMLMarkupsFiducialsNode", true, this));
 
   // settings
   /*

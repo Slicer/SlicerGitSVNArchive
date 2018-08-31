@@ -20,6 +20,7 @@
 
 // Markups MRML includes
 #include "vtkMRMLMarkupsDisplayNode.h"
+#include "vtkMRMLMarkupsGenericStorageNode.h"
 #include "vtkMRMLMarkupsFiducialNode.h"
 #include "vtkMRMLMarkupsFiducialStorageNode.h"
 #include "vtkMRMLMarkupsNode.h"
@@ -179,6 +180,7 @@ void vtkSlicerMarkupsLogic::RegisterNodes()
 
   // Storage Nodes
   scene->RegisterNodeClass(vtkSmartPointer<vtkMRMLMarkupsStorageNode>::New());
+  scene->RegisterNodeClass(vtkSmartPointer<vtkMRMLMarkupsGenericStorageNode>::New());
   scene->RegisterNodeClass(vtkSmartPointer<vtkMRMLMarkupsFiducialStorageNode>::New());
 }
 
@@ -628,6 +630,44 @@ void vtkSlicerMarkupsLogic::FocusCameraOnNthPointInMarkup(
 
     // and focus the camera there
     cameraNode->SetFocalPoint(point[0], point[1], point[2]);
+}
+
+//---------------------------------------------------------------------------
+char * vtkSlicerMarkupsLogic::LoadMarkups(const char *fileName, const char *name)
+{
+  char *nodeID = NULL;
+  std::string idList;
+  if (!fileName)
+    {
+    vtkErrorMacro("LoadMarkups: null file name, cannot load");
+    return nodeID;
+    }
+
+  // turn on batch processing
+  this->GetMRMLScene()->StartState(vtkMRMLScene::BatchProcessState);
+
+  // make a storage node and fiducial node and set the file name
+  vtkNew<vtkMRMLMarkupsGenericStorageNode> storageNode;
+  storageNode->SetFileName(fileName);
+  vtkNew<vtkMRMLMarkupsNode> markupNode;
+  markupNode->SetName(name);
+
+  // add the nodes to the scene and set up the observation on the storage node
+  this->GetMRMLScene()->AddNode(storageNode.GetPointer());
+  this->GetMRMLScene()->AddNode(markupNode.GetPointer());
+  markupNode->SetAndObserveStorageNodeID(storageNode->GetID());
+
+  // read the file
+  if (storageNode->ReadData(markupNode.GetPointer()))
+    {
+    nodeID = markupNode->GetID();
+    }
+
+  // turn off batch processing
+  this->GetMRMLScene()->EndState(vtkMRMLScene::BatchProcessState);
+
+  return nodeID;
+
 }
 
 //---------------------------------------------------------------------------
