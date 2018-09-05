@@ -43,9 +43,10 @@ if(NOT DEFINED ITK_DIR AND NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
   # * MINC patch to support building using redhat devtoolset 2
   # * fix DCMTK imageIO orientation bug
   # * Support color images (RGB/RGBA) with DCMTK. See #4454
+  # * Fix macOS missing atomic header build error when using clang version 3.1
   ExternalProject_SetIfNotDefined(
     ${CMAKE_PROJECT_NAME}_${proj}_GIT_TAG
-    "9ab5fb62184e1e41982c1eef6932983c6e62940a" # slicer-v4.12.0-2017-05-09-2d63918
+    "fa9c1b3746b3ca5cb91ece3f255d0f72bff5a636" # slicer-v4.12.0-2017-05-09-2d63918
     QUIET
     )
 
