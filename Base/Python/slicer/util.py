@@ -376,6 +376,11 @@ def loadMarkupsFiducialList(filename, returnNode=False):
   properties = {}
   return loadNodeFromFile(filename, filetype, properties, returnNode)
 
+def loadMarkups(filename, returnNode=False):
+  filetype = 'Markups'
+  properties = {}
+  return loadNodeFromFile(filename, filetype, properties, returnNode)
+
 def loadModel(filename, returnNode=False):
   filetype = 'ModelFile'
   return loadNodeFromFile(filename, filetype, {}, returnNode)

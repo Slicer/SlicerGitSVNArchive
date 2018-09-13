@@ -116,7 +116,7 @@ class MarkupsGenericStorageTestTest(ScriptedLoadableModuleTest):
       for subKey in markupSubKeys:
         self.assertTrue(subKey in data['Markups'][i].keys(), msg="Checking for sub key %s" %subKey)
 
-    loaded = slicer.util.loadNodeFromFile(tempFile.fileName(), 'Markups', returnNode=True)
+    loaded = slicer.util.loadMarkups(tempFile.fileName(), returnNode=True)
     self.assertTrue(loaded[0])
     self.assertIsNotNone(loaded[1])
     self.assertTrue(loaded[1].IsA('vtkMRMLMarkupsNode'))
@@ -188,7 +188,7 @@ class MarkupsGenericStorageTestTest(ScriptedLoadableModuleTest):
 
     logic = slicer.modules.markups.logic()
     defaultMarkupJSON = logic.GetModuleShareDirectory() + '/GenericStorage.markups.json'
-    loaded = slicer.util.loadNodeFromFile(defaultMarkupJSON, 'Markups', returnNode=True)
+    loaded = slicer.util.loadMarkups(defaultMarkupJSON, returnNode=True)
     self.assertTrue(loaded[0])
     newMarkup = loaded[1]
     self.assertIsNotNone(newMarkup)
