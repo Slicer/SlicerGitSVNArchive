@@ -928,14 +928,15 @@ void qSlicerCoreApplication::handleCommandLineArguments()
     // Execute python script
     if(!pythonScript.isEmpty())
       {
+      qApp->processEvents();
       if (QFile::exists(pythonScript))
         {
-        qApp->processEvents();
         this->corePythonManager()->executeFile(pythonScript);
         }
       else
         {
-        qWarning() << "Specified python script doesn't exist:" << pythonScript;
+        this->corePythonManager()->executeString(
+              QString("raise RuntimeError(\"Specified python script doesn't exist: %1\")").arg(pythonScript));
         }
       }
     QString pythonCode = options->pythonCode();

@@ -89,6 +89,13 @@ slicer_add_python_test(SCRIPT SlicerTestingExitSuccessTest.py)
 slicer_add_python_test(SCRIPT SlicerTestingExitFailureTest.py)
 set_tests_properties(py_SlicerTestingExitFailureTest PROPERTIES WILL_FAIL TRUE)
 
+slicer_add_python_test(
+  SCRIPT SlicerTestingWithNonExistentScriptTest.py
+  SLICER_ARGS --no-main-window --disable-modules --exit-after-startup
+  TESTNAME_PREFIX nomainwindow_
+  )
+set_tests_properties(py_nomainwindow_SlicerTestingWithNonExistentScriptTest PROPERTIES WILL_FAIL TRUE)
+
 #
 # Check if 'slicer.testing.runUnitTest()' works as expected
 #
