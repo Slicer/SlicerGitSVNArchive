@@ -50,6 +50,9 @@ public:
   /// Append \a paths to \a sys.path
   void appendPythonPaths(const QStringList& paths);
 
+  /// Convert a string to a safe python string literal using single quote (') for the literal
+  virtual QString toPythonStringLiteral(QString path);
+
   /// List of directories containing Python modules.
   virtual QStringList pythonPaths();
 
