@@ -218,6 +218,15 @@ class ScreenCaptureWidget(ScriptedLoadableModuleWidget):
     self.videoFileNameWidget.setEnabled(False)
     outputFormLayout.addRow("Video file name:", self.videoFileNameWidget)
 
+    self.useInputFPSCheckBox = qt.QCheckBox(" ")
+    self.useInputFPSCheckBox.setEnabled(False)
+    self.useInputFPSCheckBox.checked = False
+    self.useInputFPSCheckBox.setToolTip("If checked, set input FPS instead of video length.")
+    outputFormLayout.addRow("Use input FPS:", self.useInputFPSCheckBox)
+
+    self.videoLengthText = qt.QLabel()
+    self.videoLengthText.setText("Video length:")
+
     self.videoLengthSliderWidget = ctk.ctkSliderWidget()
     self.videoLengthSliderWidget.singleStep = 0.1
     self.videoLengthSliderWidget.minimum = 0.1
@@ -227,7 +236,30 @@ class ScreenCaptureWidget(ScriptedLoadableModuleWidget):
     self.videoLengthSliderWidget.decimals = 1
     self.videoLengthSliderWidget.setToolTip("Length of the exported video in seconds (without backward steps and repeating).")
     self.videoLengthSliderWidget.setEnabled(False)
-    outputFormLayout.addRow("Video length:", self.videoLengthSliderWidget)
+
+    self.videoLengthhbox = qt.QHBoxLayout()
+    self.videoLengthhbox.addWidget(self.videoLengthText)
+    self.videoLengthhbox.addWidget(self.videoLengthSliderWidget)
+    outputFormLayout.addRow(self.videoLengthhbox)
+
+    self.videoInputFPSSliderWidget = ctk.ctkSliderWidget()
+    self.videoInputFPSSliderWidget.singleStep = 0.1
+    self.videoInputFPSSliderWidget.minimum = 1
+    self.videoInputFPSSliderWidget.maximum = 30
+    self.videoInputFPSSliderWidget.value = 2
+    self.videoInputFPSSliderWidget.decimals = 3
+    self.videoInputFPSSliderWidget.setToolTip("Input FPS")
+    self.videoInputFPSSliderWidget.setEnabled(False)
+    self.videoInputFPSSliderWidget.setHidden(True)
+
+    self.videoInputFPSText = qt.QLabel()
+    self.videoInputFPSText.setText("Input FPS:")
+    self.videoInputFPSText.setHidden(True)
+
+    self.videoInputFPShbox = qt.QHBoxLayout()
+    self.videoInputFPShbox.addWidget(self.videoInputFPSText)
+    self.videoInputFPShbox.addWidget(self.videoInputFPSSliderWidget)
+    outputFormLayout.addRow(self.videoInputFPShbox)
 
     #
     # Advanced area
@@ -324,9 +356,17 @@ class ScreenCaptureWidget(ScriptedLoadableModuleWidget):
     self.videoExportCheckBox.connect('toggled(bool)', self.videoFileNameWidget, 'setEnabled(bool)')
     self.videoExportCheckBox.connect('toggled(bool)', self.videoLengthSliderWidget, 'setEnabled(bool)')
     self.videoExportCheckBox.connect('toggled(bool)', self.videoFormatWidget, 'setEnabled(bool)')
+    self.videoExportCheckBox.connect('toggled(bool)', self.useInputFPSCheckBox, 'setEnabled(bool)')
+    self.videoExportCheckBox.connect('toggled(bool)', self.videoLengthSliderWidget, 'setEnabled(bool)')
+    self.videoExportCheckBox.connect('toggled(bool)', self.videoInputFPSSliderWidget, 'setEnabled(bool)')
     self.videoFormatWidget.connect("currentIndexChanged(int)", self.updateVideoFormat)
     self.singleStepButton.connect('toggled(bool)', self.numberOfStepsSliderWidget, 'setDisabled(bool)')
     self.maxFramesWidget.connect('valueChanged(int)', self.maxFramesChanged)
+    # self.useInputFPSCheckBox determines whether video length or input FPS options are shown
+    self.useInputFPSCheckBox.connect('toggled(bool)', self.videoLengthText, 'setHidden(bool)')
+    self.useInputFPSCheckBox.connect('toggled(bool)', self.videoLengthSliderWidget, 'setHidden(bool)')
+    self.useInputFPSCheckBox.connect('toggled(bool)', self.videoInputFPSText, 'setVisible(bool)')
+    self.useInputFPSCheckBox.connect('toggled(bool)', self.videoInputFPSSliderWidget, 'setVisible(bool)')
 
     self.updateVideoFormat(0)
     self.updateViewOptions()
@@ -549,7 +589,10 @@ class ScreenCaptureWidget(ScriptedLoadableModuleWidget):
 
       import shutil
 
-      fps = numberOfSteps / self.videoLengthSliderWidget.value
+      if self.useInputFPSCheckBox.checked:
+        fps = self.videoInputFPSSliderWidget.value
+      else:
+        fps = numberOfSteps / self.videoLengthSliderWidget.value
 
       if numberOfSteps > 1:
         forwardBackward = self.forwardBackwardCheckBox.checked
