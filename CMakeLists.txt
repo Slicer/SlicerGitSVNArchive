@@ -299,6 +299,10 @@ CMAKE_DEPENDENT_OPTION(
   "Slicer_BUILD_ITKPython" OFF)
 mark_as_superbuild(Slicer_INSTALL_ITKPython)
 
+set(Slicer_ITK_EXTRA_CMAKE_ARGS "" CACHE STRING "List with extra options to build ITK, i.e -DModule_XXX:BOOL=ON")
+mark_as_advanced(Slicer_ITK_EXTRA_CMAKE_ARGS)
+mark_as_superbuild(Slicer_ITK_EXTRA_CMAKE_ARGS)
+
 option(Slicer_BUILD_PARAMETERSERIALIZER_SUPPORT "Build Slicer with parameter serializer support" ON)
 mark_as_superbuild(Slicer_BUILD_PARAMETERSERIALIZER_SUPPORT)
 
