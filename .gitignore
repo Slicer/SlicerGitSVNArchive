@@ -1,0 +1,25 @@
+# Ignore all dotfiles...
+.*
+!.gitattributes
+
+# Ignore all back-up files...
+*~
+*.bak
+
+# except for .gitignore
+!.gitignore
+
+# ... and .circleci
+!.circleci
+
+# Exclude Kdevelop4 files ...
+.kdev*
+
+# Exclude QtCreator files ...
+CMakeLists.txt.user*
+
+# Ignore ctags file
+tags
+
+# Ignore pyc files ...
+*.pyc

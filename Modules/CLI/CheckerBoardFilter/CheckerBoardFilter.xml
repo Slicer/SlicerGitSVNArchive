@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<executable>
+  <category>Filtering</category>
+  <title>CheckerBoard Filter</title>
+  <description><![CDATA[Create a checkerboard volume of two volumes. The output volume will show the two inputs alternating according to the user supplied checkerPattern. This filter is often used to compare the results of image registration. Note that the second input is resampled to the same origin, spacing and direction before it is composed with the first input. The scalar type of the output volume will be the same as the input image scalar type.]]></description>
+  <version>0.1.0.$Revision$(alpha)</version>
+  <documentation-url>http://wiki.slicer.org/slicerWiki/index.php/Documentation/Nightly/Modules/CheckerBoard</documentation-url>
+  <license/>
+  <contributor>Bill Lorensen (GE)</contributor>
+  <acknowledgements><![CDATA[This work is part of the National Alliance for Medical Image Computing (NAMIC), funded by the National Institutes of Health through the NIH Roadmap for Medical Research, Grant U54 EB005149.]]></acknowledgements>
+  <parameters>
+    <label>CheckerBoard Parameters</label>
+    <description><![CDATA[Parameters for the checkerboard]]></description>
+    <integer-vector>
+      <name>checkerPattern</name>
+      <longflag>--checkerPattern</longflag>
+      <description><![CDATA[The pattern of input 1 and input 2 in the output image. The user can specify the number of checkers in each dimension. A checkerPattern of 2,2,1 means that images will alternate in every other checker in the first two dimensions. The same pattern will be used in the 3rd dimension.]]></description>
+      <label>Checker Pattern</label>
+      <default>2,2,2</default>
+    </integer-vector>
+  </parameters>
+  <parameters>
+    <label>IO</label>
+    <description><![CDATA[Input/output parameters]]></description>
+    <image>
+      <name>inputVolume1</name>
+      <label>Input Volume 1</label>
+      <channel>input</channel>
+      <index>0</index>
+      <description><![CDATA[First Input volume]]></description>
+    </image>
+    <image>
+      <name>inputVolume2</name>
+      <label>Input Volume 2</label>
+      <channel>input</channel>
+      <index>1</index>
+      <description><![CDATA[Second Input volume]]></description>
+    </image>
+    <image reference="inputVolume1">
+      <name>outputVolume</name>
+      <label>Output Volume</label>
+      <channel>output</channel>
+      <index>2</index>
+      <description><![CDATA[Output filtered]]></description>
+    </image>
+  </parameters>
+</executable>

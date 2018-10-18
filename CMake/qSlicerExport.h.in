@@ -1,0 +1,32 @@
+/*=auto=========================================================================
+
+ Portions (c) Copyright 2005 Brigham and Women's Hospital (BWH) 
+ All Rights Reserved.
+
+ See COPYRIGHT.txt
+ or http://www.slicer.org/copyright/copyright.txt for details.
+
+ Program:   3D Slicer
+
+=========================================================================auto=*/
+
+
+// .NAME __@MY_EXPORT_HEADER_PREFIX@Export - manage Windows system differences
+// .SECTION Description
+// The __@MY_EXPORT_HEADER_PREFIX@Export captures some system differences between Unix
+// and Windows operating systems. 
+
+#ifndef __@MY_EXPORT_HEADER_PREFIX@Export_h
+#define __@MY_EXPORT_HEADER_PREFIX@Export_h
+
+#if defined(WIN32) && !defined(@MY_LIBNAME@_STATIC)
+ #if defined(@MY_LIBNAME@_EXPORTS)
+  #define @MY_LIBRARY_EXPORT_DIRECTIVE@ __declspec( dllexport )
+ #else
+  #define @MY_LIBRARY_EXPORT_DIRECTIVE@ __declspec( dllimport )
+ #endif
+#else
+ #define @MY_LIBRARY_EXPORT_DIRECTIVE@
+#endif
+@Slicer_EXPORT_HEADER_CUSTOM_CONTENT@
+#endif

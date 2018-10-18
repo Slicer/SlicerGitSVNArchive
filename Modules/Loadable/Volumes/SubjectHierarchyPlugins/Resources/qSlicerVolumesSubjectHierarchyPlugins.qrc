@@ -1,0 +1,9 @@
+<!DOCTYPE RCC><RCC version="1.0">
+  <qresource>
+    <file>Icons/DiffusionTensorVolume.png</file>
+    <file>Icons/Labelmap.png</file>
+    <file>Icons/Volume.png</file>
+    <file>Icons/VolumeVisibilityOff.png</file>
+    <file>Icons/VolumeVisibilityOn.png</file>
+  </qresource>
+</RCC>

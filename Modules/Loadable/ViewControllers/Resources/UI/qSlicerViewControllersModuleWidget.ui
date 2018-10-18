@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>qSlicerViewControllersModuleWidget</class>
+ <widget class="qSlicerWidget" name="qSlicerViewControllersModuleWidget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>519</width>
+    <height>1181</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout_3">
+   <item>
+    <widget class="ctkCollapsibleButton" name="SliceControllersCollapsibleButton">
+     <property name="text">
+      <string>Slice Controllers</string>
+     </property>
+     <layout class="QVBoxLayout" name="SliceControllersLayout"/>
+    </widget>
+   </item>
+   <item>
+    <widget class="ctkCollapsibleButton" name="ThreeDViewControllersCollapsibleButton">
+     <property name="text">
+      <string>3D View Controllers</string>
+     </property>
+     <layout class="QVBoxLayout" name="ThreeDViewControllersLayout"/>
+    </widget>
+   </item>
+   <item>
+    <widget class="ctkCollapsibleButton" name="PlotViewControllersCollapsibleButton">
+     <property name="text">
+      <string>Plot View Controllers</string>
+     </property>
+     <layout class="QVBoxLayout" name="PlotViewControllersLayout"/>
+    </widget>
+   </item>
+   <item>
+    <widget class="ctkCollapsibleButton" name="AdvancedCollapsibleButton">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
+     <property name="text">
+      <string>Advanced</string>
+     </property>
+     <property name="collapsed">
+      <bool>false</bool>
+     </property>
+     <layout class="QVBoxLayout" name="SliceInformationLayout">
+      <item>
+       <layout class="QFormLayout" name="formLayout_2">
+        <property name="fieldGrowthPolicy">
+         <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+        </property>
+        <item row="0" column="1">
+         <widget class="qMRMLNodeComboBox" name="MRMLViewNodeComboBox">
+          <property name="enabled">
+           <bool>true</bool>
+          </property>
+          <property name="toolTip">
+           <string>Select a view from the current scene. Each element corresponds to a specific widget. View nodes are connected with 3D rendering widgets. PlotView with Plotting widgets. Slices (Red, Green, Yellow) with 2D rendering widgets.</string>
+          </property>
+          <property name="nodeTypes">
+           <stringlist>
+            <string>vtkMRMLSliceNode</string>
+            <string>vtkMRMLViewNode</string>
+            <string>vtkMRMLPlotViewNode</string>
+           </stringlist>
+          </property>
+          <property name="showHidden">
+           <bool>true</bool>
+          </property>
+          <property name="addEnabled">
+           <bool>false</bool>
+          </property>
+          <property name="removeEnabled">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="0">
+         <widget class="QLabel" name="label">
+          <property name="text">
+           <string>View Node:</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <widget class="qMRMLSliceInformationWidget" name="MRMLSliceInformationWidget"/>
+      </item>
+      <item>
+       <widget class="qMRMLThreeDViewInformationWidget" name="MRMLThreeDViewInformationWidget"/>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>226</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>qMRMLNodeComboBox</class>
+   <extends>QWidget</extends>
+   <header>qMRMLNodeComboBox.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>qMRMLSliceInformationWidget</class>
+   <extends>qMRMLWidget</extends>
+   <header>qMRMLSliceInformationWidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>qMRMLThreeDViewInformationWidget</class>
+   <extends>qMRMLWidget</extends>
+   <header>qMRMLThreeDViewInformationWidget.h</header>
+  </customwidget>
+  <customwidget>
+   <class>qMRMLWidget</class>
+   <extends>QWidget</extends>
+   <header>qMRMLWidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>qSlicerWidget</class>
+   <extends>QWidget</extends>
+   <header>qSlicerWidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ctkCollapsibleButton</class>
+   <extends>QWidget</extends>
+   <header>ctkCollapsibleButton.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>qSlicerViewControllersModuleWidget</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>MRMLViewNodeComboBox</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>613</x>
+     <y>317</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>559</x>
+     <y>468</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>qSlicerViewControllersModuleWidget</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>MRMLSliceInformationWidget</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>308</x>
+     <y>401</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>308</x>
+     <y>621</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>MRMLViewNodeComboBox</sender>
+   <signal>currentNodeChanged(vtkMRMLNode*)</signal>
+   <receiver>MRMLSliceInformationWidget</receiver>
+   <slot>setMRMLSliceNode(vtkMRMLNode*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>143</x>
+     <y>456</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>130</x>
+     <y>489</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>qSlicerViewControllersModuleWidget</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>MRMLThreeDViewInformationWidget</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>259</x>
+     <y>279</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>259</x>
+     <y>454</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>MRMLViewNodeComboBox</sender>
+   <signal>currentNodeChanged(vtkMRMLNode*)</signal>
+   <receiver>MRMLThreeDViewInformationWidget</receiver>
+   <slot>setMRMLViewNode(vtkMRMLNode*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>289</x>
+     <y>145</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>259</x>
+     <y>454</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>
