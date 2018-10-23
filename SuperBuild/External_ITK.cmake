@@ -27,13 +27,13 @@ if(NOT DEFINED ITK_DIR AND NOT Slicer_USE_SYSTEM_${proj})
 
   ExternalProject_SetIfNotDefined(
     Slicer_${proj}_GIT_REPOSITORY
-    "${EP_GIT_PROTOCOL}://github.com/Slicer/ITK.git"
+    "${EP_GIT_PROTOCOL}://github.com/InsightSoftwareConsortium/ITK.git"
     QUIET
     )
 
   ExternalProject_SetIfNotDefined(
     Slicer_${proj}_GIT_TAG
-    "a44f430b3edb5fff62671b4ba87cf41c60ee272b" # slicer-v4.13.1-2018-08-17-cdc3e57
+    "f5e254b6680e6e52f6caf8d6eb2321c8829eedf3" # v5.0b01
 
     QUIET
     )
@@ -98,8 +98,8 @@ if(NOT DEFINED ITK_DIR AND NOT Slicer_USE_SYSTEM_${proj})
       -DITK_INSTALL_LIBRARY_DIR:PATH=${Slicer_INSTALL_LIB_DIR}
       -DBUILD_TESTING:BOOL=OFF
       -DBUILD_EXAMPLES:BOOL=OFF
-      -DITK_LEGACY_REMOVE:BOOL=ON
-      -DITKV3_COMPATIBILITY:BOOL=OFF
+      -DITK_LEGACY_REMOVE:BOOL=OFF
+      -DITKV4_COMPATIBILITY:BOOL=ON
       -DITK_BUILD_DEFAULT_MODULES:BOOL=ON
       -DModule_ITKReview:BOOL=ON
       -DModule_MGHIO:BOOL=ON
