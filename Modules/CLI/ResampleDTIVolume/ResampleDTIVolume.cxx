@@ -466,7 +466,7 @@ SetTransformAndOrder( parameters & list,
             {
             std::cerr << "Transformation type not yet implemented for tensors"
                       << std::endl;
-            return NULL;
+            return nullptr;
             }
           }
       }
@@ -477,7 +477,7 @@ SetTransformAndOrder( parameters & list,
         {
         std::cerr << "Error in the file containing the transformation"
                   << std::endl;
-        return NULL;
+        return nullptr;
         }
       }
     }

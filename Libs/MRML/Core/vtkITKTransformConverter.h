@@ -1322,7 +1322,7 @@ itk::Object::Pointer vtkITKTransformConverter::CreateITKTransformFromVTK(vtkObje
   if (transformVtk==NULL)
     {
     vtkErrorWithObjectMacro(loggerObject, "CreateITKTransformFromVTK failed: invalid VTK transform");
-    return 0;
+    return nullptr;
     }
   vtkNew<vtkCollection> transformList;
   vtkMRMLTransformNode::FlattenGeneralTransform(transformList.GetPointer(), transformVtk);
@@ -1346,7 +1346,7 @@ itk::Object::Pointer vtkITKTransformConverter::CreateITKTransformFromVTK(vtkObje
       if (!SetITKLinearTransformFromVTK(loggerObject, primaryTransformItk, transformMatrix))
         {
         // conversion failed
-        return 0;
+        return nullptr;
         }
       return primaryTransformItk;
       }
@@ -1360,7 +1360,7 @@ itk::Object::Pointer vtkITKTransformConverter::CreateITKTransformFromVTK(vtkObje
         if (!SetITKv3BSplineFromVTK(loggerObject, primaryTransformItk, secondaryTransformItk, bsplineTransformVtk, preferITKv3CompatibleTransforms))
           {
           // conversion failed
-          return 0;
+          return nullptr;
           }
         return primaryTransformItk;
         }
@@ -1369,7 +1369,7 @@ itk::Object::Pointer vtkITKTransformConverter::CreateITKTransformFromVTK(vtkObje
         if (!SetITKv4BSplineFromVTK(loggerObject, primaryTransformItk, bsplineTransformVtk))
           {
           // conversion failed
-          return 0;
+          return nullptr;
           }
         return primaryTransformItk;
         }
@@ -1381,7 +1381,7 @@ itk::Object::Pointer vtkITKTransformConverter::CreateITKTransformFromVTK(vtkObje
       if (!SetITKOrientedGridTransformFromVTK(loggerObject, primaryTransformItk, gridTransformVtk))
         {
         // conversion failed
-        return 0;
+        return nullptr;
         }
       return primaryTransformItk;
       }
@@ -1392,7 +1392,7 @@ itk::Object::Pointer vtkITKTransformConverter::CreateITKTransformFromVTK(vtkObje
       if (!SetITKThinPlateSplineTransformFromVTK(loggerObject, primaryTransformItk, tpsTransformVtk, initialize))
         {
         // conversion failed
-        return 0;
+        return nullptr;
         }
       return primaryTransformItk;
       }
@@ -1401,10 +1401,10 @@ itk::Object::Pointer vtkITKTransformConverter::CreateITKTransformFromVTK(vtkObje
       if (singleTransformVtk==NULL)
         {
         vtkErrorWithObjectMacro(loggerObject, "vtkITKTransformConverter::CreateITKTransformFromVTK failed: invalid input transform");
-        return 0;
+        return nullptr;
         }
       vtkErrorWithObjectMacro(loggerObject, "vtkITKTransformConverter::CreateITKTransformFromVTK failed: conversion of transform type "<<singleTransformVtk->GetClassName()<<" is not supported");
-      return 0;
+      return nullptr;
       }
     }
   else
@@ -1425,21 +1425,21 @@ itk::Object::Pointer vtkITKTransformConverter::CreateITKTransformFromVTK(vtkObje
       if (secondaryTransformItk.IsNotNull())
         {
         vtkErrorWithObjectMacro(loggerObject, "vtkITKTransformConverter::CreateITKTransformFromVTK failed: composite transforms cannot contain legacy transforms (that contains secondary transforms). Do not harden transforms on legacy ITK transforms to avoid this error.");
-        return 0;
+        return nullptr;
         }
 
       if (singleTransformItk.IsNull()
           || std::string(singleTransformItk->GetNameOfClass()).find("Transform") == std::string::npos)
         {
         vtkErrorWithObjectMacro(loggerObject, "vtkITKTransformConverter::CreateITKTransformFromVTK failed: invalid element found while trying to create a composite transform");
-        return 0;
+        return nullptr;
         }
       CompositeTransformType::TransformType::Pointer singleTransformItkTypeChecked = static_cast< CompositeTransformType::TransformType* >( singleTransformItk.GetPointer() );
       compositeTransformItk->AddTransform(singleTransformItkTypeChecked.GetPointer());
       }
     return primaryTransformItk;
     }
-  return 0;
+  return nullptr;
 }
 
 #endif // __vtkITKTransformConverter_h

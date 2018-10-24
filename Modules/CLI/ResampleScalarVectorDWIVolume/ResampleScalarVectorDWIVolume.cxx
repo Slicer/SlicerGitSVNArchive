@@ -247,7 +247,7 @@ SetUpTransform( parameters & list,
           }
         else
           {
-          return NULL;
+          return nullptr;
           }
         }
       }
@@ -340,7 +340,7 @@ SetTransformAndOrder( parameters & list,
             {
             std::cerr << "Transformation type not yet implemented"
                       << std::endl;
-            return NULL;
+            return nullptr;
             }
           }
       }
@@ -351,7 +351,7 @@ SetTransformAndOrder( parameters & list,
         {
         std::cerr << "Error in the file containing the matrix transformation"
                   << std::endl;
-        return NULL;
+        return nullptr;
         }
       }
     }
@@ -368,7 +368,7 @@ SetTransform( parameters & list,
               )
 {
   typedef itk::Transform<double, 3, 3> TransformType;
-  typename TransformType::Pointer transform = 0;
+  typename TransformType::Pointer transform = nullptr;
   if( list.transformationFile.compare( "" ) ) // Get transformation matrix from command line if no file given
     {
     if( !list.transformsOrder.compare( "input-to-output" ) )
@@ -500,7 +500,7 @@ SetAllTransform( parameters & list,
   if( nonRigidTransforms < 0 ) // The transform file contains a transform that is not handled by ResampleVolume2, it
                                // exits.
     {
-    return NULL;
+    return nullptr;
     }
   if( list.deffield.compare( "" ) )
     {
@@ -642,7 +642,7 @@ SetAllTransform( parameters & list,
         std::cerr
         << "An affine or rigid transform was not convertible to itk::MatrixOffsetTransformBase< double , 3 , 3 >"
         << std::endl;
-        return NULL;
+        return nullptr;
         }
       typename MatrixTransformType::Pointer localTransform;
       localTransform = static_cast<MatrixTransformType *>(transform.GetPointer() );

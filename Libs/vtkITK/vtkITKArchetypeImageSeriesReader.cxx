@@ -462,7 +462,7 @@ int vtkITKArchetypeImageSeriesReader::RequestInformation(
   double origin[3];
 
 
-  itk::ImageIOBase::Pointer imageIO = NULL;
+  itk::ImageIOBase::Pointer imageIO = nullptr;
 
   try
     {
