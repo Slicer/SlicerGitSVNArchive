@@ -28,7 +28,7 @@
 #include <vtkCollection.h>
 
 // ITK includes
-#include <itkMultiThreader.h>
+#include <itkPlatformMultiThreader.h>
 #include <itkMutexLock.h>
 
 class vtkMRMLSelectionNode;
@@ -239,7 +239,7 @@ private:
   vtkSlicerApplicationLogic(const vtkSlicerApplicationLogic&);
   void operator=(const vtkSlicerApplicationLogic&);
 
-  itk::MultiThreader::Pointer ProcessingThreader;
+  itk::PlatformMultiThreader::Pointer ProcessingThreader;
   itk::MutexLock::Pointer ProcessingThreadActiveLock;
   itk::MutexLock::Pointer ProcessingTaskQueueLock;
   itk::MutexLock::Pointer ModifiedQueueActiveLock;

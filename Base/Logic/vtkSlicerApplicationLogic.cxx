@@ -66,7 +66,7 @@ vtkStandardNewMacro(vtkSlicerApplicationLogic);
 //----------------------------------------------------------------------------
 vtkSlicerApplicationLogic::vtkSlicerApplicationLogic()
 {
-  this->ProcessingThreader = itk::MultiThreader::New();
+  this->ProcessingThreader = itk::PlatformMultiThreader::New();
   this->ProcessingThreadId = -1;
   this->ProcessingThreadActive = false;
   this->ProcessingThreadActiveLock = itk::MutexLock::New();
@@ -305,7 +305,7 @@ vtkSlicerApplicationLogic
   // pull out the reference to the appLogic
   vtkSlicerApplicationLogic *appLogic
     = (vtkSlicerApplicationLogic*)
-    (((itk::MultiThreader::ThreadInfoStruct *)(arg))->UserData);
+    (((itk::PlatformMultiThreader::ThreadInfoStruct *)(arg))->UserData);
 
   // Tell the app to start processing any tasks slated for the
   // processing thread
@@ -387,7 +387,7 @@ vtkSlicerApplicationLogic
   // pull out the reference to the appLogic
   vtkSlicerApplicationLogic *appLogic
     = (vtkSlicerApplicationLogic*)
-    (((itk::MultiThreader::ThreadInfoStruct *)(arg))->UserData);
+    (((itk::PlatformMultiThreader::ThreadInfoStruct *)(arg))->UserData);
 
   // Tell the app to start processing any tasks slated for the
   // processing thread
