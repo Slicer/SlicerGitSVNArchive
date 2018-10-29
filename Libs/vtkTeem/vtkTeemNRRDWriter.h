@@ -55,6 +55,10 @@ public:
   vtkGetMacro(UseCompression,int);
   vtkBooleanMacro(UseCompression,int);
 
+  vtkSetMacro(CompressionLevel,int);
+  vtkGetMacro(CompressionLevel,int);
+  vtkBooleanMacro(CompressionLevel,int);
+
   vtkSetClampMacro(FileType,int,VTK_ASCII,VTK_BINARY);
   vtkGetMacro(FileType,int);
   void SetFileTypeToASCII() {this->SetFileType(VTK_ASCII);};
@@ -105,6 +109,7 @@ protected:
   vtkMatrix4x4* MeasurementFrameMatrix;
 
   int UseCompression;
+  int CompressionLevel;
   int FileType;
 
   AttributeMapType *Attributes;

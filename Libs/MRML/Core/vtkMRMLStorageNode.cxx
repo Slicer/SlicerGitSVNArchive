@@ -46,6 +46,7 @@ vtkMRMLStorageNode::vtkMRMLStorageNode()
   this->URI = NULL;
   this->URIHandler = NULL;
   this->UseCompression = 1;
+  this->CompressionLevel = 1;
   this->ReadState = this->Idle;
   this->WriteState = this->Idle;
   this->URIHandler = NULL;

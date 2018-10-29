@@ -92,6 +92,12 @@ public:
   vtkSetMacro(UseCompression, int);
 
   ///
+  /// Compression level for write
+  vtkBooleanMacro(CompressionLevel, int);
+  vtkGetMacro(CompressionLevel, int);
+  vtkSetMacro(CompressionLevel, int);
+
+  ///
   /// Location of the remote copy of this file.
   vtkSetStringMacro(URI);
   vtkGetStringMacro(URI);
@@ -333,6 +339,7 @@ protected:
   char *URI;
   vtkURIHandler *URIHandler;
   int UseCompression;
+  int CompressionLevel;
   int ReadState;
   int WriteState;
 
