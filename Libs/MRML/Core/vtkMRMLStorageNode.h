@@ -93,9 +93,8 @@ public:
 
   ///
   /// Compression level for write
-  vtkBooleanMacro(CompressionLevel, int);
+  vtkSetClampMacro(CompressionLevel, int, 0, 9);
   vtkGetMacro(CompressionLevel, int);
-  vtkSetMacro(CompressionLevel, int);
 
   ///
   /// Location of the remote copy of this file.
@@ -125,6 +124,17 @@ public:
     Transferring,
     TransferDone,
     Cancelled
+  };
+
+  ///
+  /// Compression levels
+  enum
+  {
+    CompressionLevelNone = 0,
+    CompressionLevelLow = 1,
+    CompressionLevelMedium = 6,
+    CompressionLevelHigh = 9,
+    CompressionLevelDefault = CompressionLevelLow
   };
 
   /// Get/Set the state of reading

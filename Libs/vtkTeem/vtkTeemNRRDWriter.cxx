@@ -29,7 +29,8 @@ vtkTeemNRRDWriter::vtkTeemNRRDWriter()
   this->IJKToRASMatrix = vtkMatrix4x4::New();
   this->MeasurementFrameMatrix = vtkMatrix4x4::New();
   this->UseCompression = 1;
-  this->CompressionLevel = 1;
+  // use default CompressionLevel
+  this->CompressionLevel = -1;
   this->DiffusionWeightedData = 0;
   this->FileType = VTK_BINARY;
   this->WriteErrorOff();

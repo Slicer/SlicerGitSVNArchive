@@ -55,9 +55,8 @@ public:
   vtkGetMacro(UseCompression,int);
   vtkBooleanMacro(UseCompression,int);
 
-  vtkSetMacro(CompressionLevel,int);
-  vtkGetMacro(CompressionLevel,int);
-  vtkBooleanMacro(CompressionLevel,int);
+  vtkSetClampMacro(CompressionLevel, int, 0, 9);
+  vtkGetMacro(CompressionLevel, int);
 
   vtkSetClampMacro(FileType,int,VTK_ASCII,VTK_BINARY);
   vtkGetMacro(FileType,int);
