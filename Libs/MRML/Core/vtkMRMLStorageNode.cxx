@@ -387,6 +387,7 @@ void vtkMRMLStorageNode::PrintSelf(ostream& os, vtkIndent indent)
     os << indent << "URIListMember: " << this->GetNthURI(i) << "\n";
     }
   os << indent << "UseCompression:   " << this->UseCompression << "\n";
+  os << indent << "CompressionLevel:   " << this->CompressionLevel << "\n";
   os << indent << "ReadState:  " << this->GetReadStateAsString() << "\n";
   os << indent << "WriteState: " << this->GetWriteStateAsString() << "\n";
   os << indent << "SupportedWriteFileTypes: \n";
