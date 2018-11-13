@@ -43,6 +43,7 @@ vtkMRMLNRRDStorageNode::vtkMRMLNRRDStorageNode()
 {
   this->CenterImage = 0;
   this->DefaultWriteFileExtension = "nhdr";
+  this->CompressionParameter = this->GetNRRDCompressionPresetLow();
 }
 
 //----------------------------------------------------------------------------
@@ -369,7 +370,7 @@ int vtkMRMLNRRDStorageNode::WriteDataInternal(vtkMRMLNode *refNode)
   writer->SetFileName(fullName.c_str());
   writer->SetInputConnection(volNode->GetImageDataConnection());
   writer->SetUseCompression(this->GetUseCompression());
-  writer->SetCompressionLevel(this->GetCompressionLevel());
+  writer->SetCompressionLevel(this->ConvertNRRDCompressionParameterToInt(this->CompressionParameter));
 
   // set volume attributes
   writer->SetIJKToRASMatrix(ijkToRas.GetPointer());
@@ -578,6 +579,45 @@ void vtkMRMLNRRDStorageNode::InitializeSupportedWriteFileTypes()
 {
   this->SupportedWriteFileTypes->InsertNextValue("NRRD (.nrrd)");
   this->SupportedWriteFileTypes->InsertNextValue("NRRD (.nhdr)");
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLNRRDStorageNode::InitializeCompressionPresets()
+{
+  this->CompressionPresets.clear();
+
+  vtkMRMLStorageNode::CompressionPreset compressionLevelLow;
+  compressionLevelLow.Name = "Low";
+  compressionLevelLow.Parameter = this->GetNRRDCompressionPresetLow();
+  this->CompressionPresets.push_back(compressionLevelLow);
+
+  vtkMRMLStorageNode::CompressionPreset compressionLevelMedium;
+  compressionLevelMedium.Name = "Medium";
+  compressionLevelMedium.Parameter = this->GetNRRDCompressionPresetMedium();
+  this->CompressionPresets.push_back(compressionLevelMedium);
+
+  vtkMRMLStorageNode::CompressionPreset compressionLevelHigh;
+  compressionLevelHigh.Name = "High";
+  compressionLevelHigh.Parameter = this->GetNRRDCompressionPresetHigh();
+  this->CompressionPresets.push_back(compressionLevelHigh);
+}
+
+//----------------------------------------------------------------------------
+int vtkMRMLNRRDStorageNode::ConvertNRRDCompressionParameterToInt(std::string compressionParameter)
+{
+  if (compressionParameter == this->GetNRRDCompressionPresetLow())
+    {
+    return 1;
+    }
+  else if(compressionParameter == this->GetNRRDCompressionPresetMedium())
+    {
+    return 6;
+    }
+  else if (compressionParameter == this->GetNRRDCompressionPresetHigh())
+    {
+    return 9;
+    }
+  return 1;
 }
 
 //----------------------------------------------------------------------------

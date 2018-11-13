@@ -92,11 +92,6 @@ public:
   vtkSetMacro(UseCompression, int);
 
   ///
-  /// Compression level for write
-  vtkSetClampMacro(CompressionLevel, int, 0, 9);
-  vtkGetMacro(CompressionLevel, int);
-
-  ///
   /// Location of the remote copy of this file.
   vtkSetStringMacro(URI);
   vtkGetStringMacro(URI);
@@ -124,17 +119,6 @@ public:
     Transferring,
     TransferDone,
     Cancelled
-  };
-
-  ///
-  /// Compression levels
-  enum
-  {
-    CompressionLevelNone = 0,
-    CompressionLevelLow = 1,
-    CompressionLevelMedium = 6,
-    CompressionLevelHigh = 9,
-    CompressionLevelDefault = CompressionLevelLow
   };
 
   /// Get/Set the state of reading
@@ -318,6 +302,30 @@ public:
   /// If filename is not specified then the current FileName will be used.
   std::string GetFileNameWithoutExtension(const char* fileName = NULL);
 
+  /// Compression parameter that is used to save the node
+  vtkSetMacro(CompressionParameter, std::string);
+  vtkGetMacro(CompressionParameter, std::string);
+
+  /// Returns a list of the names of the supported compression presets
+  virtual std::vector<std::string> GetCompressionPresetNames();
+
+  /// Returns a string representing the specified preset
+  virtual std::string GetCompressionPreset(const std::string& name);
+
+  /// Returns the name of the specified preset
+  virtual std::string GetCompressionPresetName(const std::string& preset);
+
+  /// Get the number of compression presets
+  virtual int GetNumberOfCompressionPresets();
+
+  struct CompressionPreset
+  {
+    std::string Name;
+    std::string Parameter;
+  };
+  /// Get a list of all supported compression presets
+  virtual const std::vector<CompressionPreset> GetCompressionPresets();
+
 protected:
   vtkMRMLStorageNode();
   ~vtkMRMLStorageNode();
@@ -349,9 +357,10 @@ protected:
   char *URI;
   vtkURIHandler *URIHandler;
   int UseCompression;
-  int CompressionLevel;
   int ReadState;
   int WriteState;
+  std::string CompressionParameter;
+  std::vector<CompressionPreset> CompressionPresets;
 
   ///
   /// An array of file names, should contain the FileName but may not
@@ -374,6 +383,10 @@ protected:
   /// Initialize all the supported write file types
   /// Subclasses should use this method to initialize SupportedWriteFileTypes.
   virtual void InitializeSupportedWriteFileTypes();
+  ///
+  /// Initialize all of the supported compression presets
+  /// Subclasses should use this method to initialize CompressionPresets
+  virtual void InitializeCompressionPresets();
 
   /// Time when data was last read or written.
   /// This is used by the storable node to know when it needs to save its data

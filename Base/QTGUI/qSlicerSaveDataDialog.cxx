@@ -26,6 +26,7 @@
 #include <QMessageBox>
 #include <QRegExp>
 #include <QRegExpValidator>
+#include <QSettings>
 
 /// CTK includes
 #include <ctkCheckableHeaderView.h>
@@ -191,6 +192,13 @@ qSlicerSaveDataDialogPrivate::qSlicerSaveDataDialogPrivate(QWidget* parentWidget
           this, SLOT(saveSceneAsDataBundle()));
   connect(this->ShowMoreCheckBox, SIGNAL(toggled(bool)),
           this, SLOT(showMoreColumns(bool)));
+
+  if (!qSlicerApplication::application()->userSettings()->contains("QSlicerSaveDataDialog/ShowMore"))
+  {
+    qSlicerApplication::application()->userSettings()->setValue("QSlicerSaveDataDialog/ShowMore", false);
+  }
+  this->ShowMoreCheckBox->setChecked(
+    qSlicerApplication::application()->userSettings()->value("QSlicerSaveDataDialog/ShowMore").toBool());
   this->showMoreColumns(this->ShowMoreCheckBox->isChecked());
 }
 
@@ -1311,6 +1319,8 @@ void qSlicerSaveDataDialogPrivate::showMoreColumns(bool show)
   this->FileWidget->setColumnHidden(NodeTypeColumn, !show);
   this->FileWidget->setColumnHidden(NodeStatusColumn, !show);
   this->updateSize();
+
+  qSlicerApplication::application()->userSettings()->setValue("QSlicerSaveDataDialog/ShowMore", show);
 }
 
 //-----------------------------------------------------------------------------

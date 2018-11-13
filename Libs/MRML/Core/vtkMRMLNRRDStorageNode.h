@@ -78,11 +78,24 @@ protected:
   /// Initialize all the supported write file types
   virtual void InitializeSupportedWriteFileTypes() VTK_OVERRIDE;
 
+  /// Initialize all the supported compression presets
+  virtual void InitializeCompressionPresets() VTK_OVERRIDE;
+
   /// Read data and set it in the referenced node
   virtual int ReadDataInternal(vtkMRMLNode *refNode) VTK_OVERRIDE;
 
   /// Write data from a  referenced node
   virtual int WriteDataInternal(vtkMRMLNode *refNode) VTK_OVERRIDE;
+
+  /// Compression parameter string representing low compression
+  std::string GetNRRDCompressionPresetLow() { return "nrrd_low_compression"; };
+  /// Compression parameter string representing medium compression
+  std::string GetNRRDCompressionPresetMedium() { return "nrrd_medium_compression"; };
+  /// Compression parameter string representing high compression
+  std::string GetNRRDCompressionPresetHigh() { return "nrrd_high_compression"; };
+
+  /// Convert the nrrd compression parameter string to the corresponding integer representation
+  int ConvertNRRDCompressionParameterToInt(std::string parameter);
 
   int CenterImage;
 
