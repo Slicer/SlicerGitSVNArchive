@@ -161,6 +161,7 @@ Notes:
 - Only visible segments are used by this effect.
 - At least two segments are required.
 - If a part of a segment is erased or painting is removed using Undo (and not overwritten by another segment) then it is recommended to cancel and initialize. The reason is that effect of adding more information (painting more seeds) can be propagated to the complete segmentation, but removing information (removing some seed regions) will not change the complete segmentation.
+- Extent of segmentation is limited to the bounding box defined by seed segments. The reason is that this makes computation faster and reduces memory usage for small segments. The extent can be made arbitrarily large by adding seeds at  bondaries of the preferred extent.
 - The method uses grow-cut algorithm: Liangjia Zhu, Ivan Kolesov, Yi Gao, Ron Kikinis, Allen Tannenbaum. An Effective Interactive Medical Image Segmentation Method Using Fast GrowCut, International Conference on Medical Image Computing and Computer Assisted Intervention (MICCAI), Interactive Medical Image Computing Workshop, 2014.
 
 |fill_between_slices| Fill between slices
