@@ -23,6 +23,15 @@ class vtkMRMLVolumeNode;
 class vtkMatrix3x3;
 class vtkMatrix4x4;
 
+/// \brief Structure to store preset orientation information.
+struct OrientationPresetType
+{
+  std::string Name;
+  vtkSmartPointer<vtkMatrix3x3> Orientation;
+  std::string Prefix;
+  std::string Tooltip;
+};
+
 /// \brief MRML node for storing a slice through RAS space.
 ///
 /// This node stores the information about how to map from RAS space to
@@ -157,7 +166,9 @@ class VTK_MRML_EXPORT vtkMRMLSliceNode : public vtkMRMLAbstractViewNode
   /// Valid \a orientations are known as presets and are easily added,
   /// removed or renamed.
   ///
-  /// \sa AddSliceOrientationPreset(const std::string& name, vtkMatrix4x4* sliceToRAS)
+  /// \sa AddSliceOrientationPreset(
+  ///    const std::string& name, vtkMatrix3x3* sliceToRAS,
+  ///    const std::string& prefix, const std::string& tooltip)
   /// \sa UpdateMatrices()
   bool SetOrientation(const char* orientation);
 
@@ -186,6 +197,16 @@ public:
   /// preset.
   std::string GetSliceOrientationPresetName(vtkMatrix3x3* orientationMatrix);
 
+  /// \brief Return the preset prefix corresponding to a preset \a name.
+  ///
+  /// Returns an empty string if the preset with the given \a name doesn't exist.
+  std::string GetSliceOrientationPresetPrefix(const std::string& name);
+
+  /// \brief Return the preset tooltip corresponding to a preset \a name.
+  ///
+  /// Returns an empty string if the tooltip with the given \a name doesn't exist.
+  std::string GetSliceOrientationPresetTooltip(const std::string& name);
+
   /// \brief Return all the orientation preset names.
   void GetSliceOrientationPresetNames(vtkStringArray* presetOrientationNames);
 
@@ -197,21 +218,46 @@ public:
   ///
   /// \sa RenameSliceOrientationPreset(const std::string& name, const std::string& updatedName)
   /// \sa RemoveSliceOrientationPreset(const std::string& name)
-  bool AddSliceOrientationPreset(const std::string& name, vtkMatrix3x3* orientationMatrix);
+  /// \sa RenameSliceOrientationPresetPrefix(const std::string& name, const std::string& prefix)
+  /// \sa RenameSliceOrientationPresetTooltip(const std::string& name, const std::string& tip)
+  bool AddSliceOrientationPreset(const std::string& name,
+    vtkMatrix3x3* orientationMatrix,
+    const std::string& prefix="",
+    const std::string& tooltip = "Oblique");
 
   /// \brief Remove an orientation preset.
   ///
-  /// \sa AddSliceOrientationPreset(const std::string& name, vtkMatrix4x4* sliceToRAS)
+  /// \sa AddSliceOrientationPreset(
+  ///    const std::string& name, vtkMatrix3x3* sliceToRAS,
+  ///    const std::string& prefix, const std::string& tooltip)
   bool RemoveSliceOrientationPreset(const std::string& name);
 
   /// \brief Rename an orientation preset.
   ///
-  /// \sa AddSliceOrientationPreset(const std::string& name, vtkMatrix4x4* sliceToRAS)
+  /// \sa AddSliceOrientationPreset(
+  ///    const std::string& name, vtkMatrix3x3* sliceToRAS,
+  ///    const std::string& prefix, const std::string& tooltip)
   bool RenameSliceOrientationPreset(const std::string& name, const std::string& updatedName);
+
+  /// \brief Rename an orientation prefix.
+  ///
+  /// \sa AddSliceOrientationPreset(
+  ///    const std::string& name, vtkMatrix3x3* sliceToRAS,
+  ///    const std::string& prefix, const std::string& tooltip)
+  bool RenameSliceOrientationPresetPrefix(const std::string& name, const std::string& prefix);
+
+  /// \brief Rename an orientation prefix.
+  ///
+  /// \sa AddSliceOrientationPreset(
+  ///    const std::string& name, vtkMatrix3x3* sliceToRAS,
+  ///    const std::string& prefix, const std::string& tooltip)
+  bool RenameSliceOrientationPresetTooltip(const std::string& name, const std::string& tip);
 
   /// \brief Return True if an orientation preset is stored.
   ///
-  /// \sa AddSliceOrientationPreset(const std::string& name, vtkMatrix4x4* sliceToRAS)
+  /// \sa AddSliceOrientationPreset(
+  ///    const std::string& name, vtkMatrix3x3* sliceToRAS,
+  ///    const std::string& prefix, const std::string& tooltip)
   bool HasSliceOrientationPreset(const std::string& name);
 
   /// \brief Initialize \a orientationMatrix as an `Axial` orientation matrix.
@@ -509,8 +555,8 @@ protected:
   vtkSmartPointer<vtkMatrix4x4> UVWToSlice;
   vtkSmartPointer<vtkMatrix4x4> UVWToRAS;
 
-  typedef std::pair <std::string, vtkSmartPointer<vtkMatrix3x3> > OrientationPresetType;
   std::vector< OrientationPresetType > OrientationMatrices;
+  OrientationPresetType* GetOrientationPreset(const std::string& name, bool error=true);
 
   int JumpMode;
 

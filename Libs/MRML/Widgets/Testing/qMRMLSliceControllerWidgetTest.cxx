@@ -28,6 +28,7 @@
 // MRML includes
 #include "qMRMLNodeComboBox.h"
 #include "qMRMLSliceControllerWidget.h"
+#include "qMRMLSliderWidget.h"
 #include <vtkMRMLColorLogic.h>
 #include <vtkMRMLLabelMapVolumeNode.h>
 #include <vtkMRMLScalarVolumeNode.h>
@@ -71,6 +72,9 @@ private slots:
   void testSetLabelVolumeWithNoLinkedControl();
 
   void testUpdateSliceOrientationSelector();
+
+  void testPrefix();
+  void testTooltip();
 };
 
 // ----------------------------------------------------------------------------
@@ -349,6 +353,48 @@ void qMRMLSliceControllerWidgetTester::testUpdateSliceOrientationSelector()
   sliceControllerWidget.mrmlSliceNode()->SetOrientation("Axial");
   QCOMPARE(sliceControllerWidget.sliceOrientation(), QString("Axial"));
 
+}
+
+// ----------------------------------------------------------------------------
+void qMRMLSliceControllerWidgetTester::testPrefix()
+{
+  qMRMLSliceControllerWidget sliceControllerWidget;
+  vtkNew<vtkMatrix3x3> testMatrix;
+  this->MRMLSliceNode->AddSliceOrientationPreset(
+    "Test", testMatrix.GetPointer(), "Prefix_test");
+
+  sliceControllerWidget.setMRMLScene(this->MRMLScene);
+  sliceControllerWidget.setMRMLSliceNode(this->MRMLSliceNode);
+  this->MRMLSliceNode->SetOrientation("Test");
+  QCOMPARE(sliceControllerWidget.sliceOrientation(), QString("Test"));
+
+  qMRMLSliderWidget* sliderWidget =
+    sliceControllerWidget.findChild<qMRMLSliderWidget*>();
+  Q_ASSERT(sliderWidget);
+
+  QCOMPARE(sliderWidget->prefix(), QString("Prefix_test"));
+  QCOMPARE(sliderWidget->toolTip(), QString("Oblique"));
+}
+
+// ----------------------------------------------------------------------------
+void qMRMLSliceControllerWidgetTester::testTooltip()
+{
+  qMRMLSliceControllerWidget sliceControllerWidget;
+  vtkNew<vtkMatrix3x3> testMatrix;
+  this->MRMLSliceNode->AddSliceOrientationPreset(
+    "Test", testMatrix.GetPointer(), "t:", "This is a tooltip test");
+
+  sliceControllerWidget.setMRMLScene(this->MRMLScene);
+  sliceControllerWidget.setMRMLSliceNode(this->MRMLSliceNode);
+  this->MRMLSliceNode->SetOrientation("Test");
+  QCOMPARE(sliceControllerWidget.sliceOrientation(), QString("Test"));
+
+  qMRMLSliderWidget* sliderWidget =
+    sliceControllerWidget.findChild<qMRMLSliderWidget*>();
+  Q_ASSERT(sliderWidget);
+
+  QCOMPARE(sliderWidget->prefix(), QString("t:"));
+  QCOMPARE(sliderWidget->toolTip(), QString("This is a tooltip test"));
 }
 
 // ----------------------------------------------------------------------------
