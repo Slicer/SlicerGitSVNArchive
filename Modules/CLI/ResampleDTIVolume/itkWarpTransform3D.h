@@ -53,7 +53,11 @@ public:
 
   virtual void ComputeJacobianWithRespectToPosition(
     const InputPointType & itkNotUsed(x),
+#if ITK_VERSION_MAJOR < 5
     JacobianType & itkNotUsed(j) ) const ITK_OVERRIDE
+#else
+    Superclass::JacobianPositionType & itkNotUsed(j) ) const ITK_OVERRIDE
+#endif
   {
     itkExceptionMacro("ComputeJacobianWithRespectToPosition is not implemented for WarpTransform3D");
   }
