@@ -27,7 +27,11 @@
 #include "itkImageRegionConstIteratorWithIndex.h"
 #include "itkImageRegionIterator.h"
 #include "itkMorphologicalContourInterpolator.h"
+#if ITK_VERSION_MAJOR >= 5
+#include "itkMultiThreaderBase.h"
+#else
 #include "itkMultiThreader.h"
+#endif
 #include "itkObjectFactory.h"
 #include "itkOrImageFilter.h"
 #include "itkSignedMaurerDistanceMapImageFilter.h"
@@ -149,7 +153,11 @@ MorphologicalContourInterpolator< TImage >
   m_UseCustomSlicePositions( false ),
   m_MinAlignIters( pow( 2, TImage::ImageDimension ) ), // smaller of this and pixel count of the search image
   m_MaxAlignIters( pow( 6, TImage::ImageDimension ) ), // bigger of this and root of pixel count of the search image
+#if ITK_VERSION_MAJOR >= 5
+  m_ThreadCount( MultiThreaderBase::GetGlobalDefaultNumberOfThreads() ),
+#else
   m_ThreadCount( MultiThreader::GetGlobalDefaultNumberOfThreads() ),
+#endif
   m_LabeledSlices( TImage::ImageDimension ) // initialize with empty sets
 {
   // set up pipeline for regioned connected components

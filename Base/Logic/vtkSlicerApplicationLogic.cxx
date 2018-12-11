@@ -66,7 +66,11 @@ vtkStandardNewMacro(vtkSlicerApplicationLogic);
 //----------------------------------------------------------------------------
 vtkSlicerApplicationLogic::vtkSlicerApplicationLogic()
 {
-  this->ProcessingThreader = itk::MultiThreader::New();
+#if ITK_VERSION_MAJOR >= 5
+  this->ProcessingThreader = itk::PlatformMultiThreader::New();
+#else
+   this->ProcessingThreader = itk::MultiThreader::New();
+#endif
   this->ProcessingThreadId = -1;
   this->ProcessingThreadActive = false;
   this->ProcessingThreadActiveLock = itk::MutexLock::New();
@@ -279,7 +283,11 @@ void vtkSlicerApplicationLogic::TerminateProcessingThread()
 }
 
 //----------------------------------------------------------------------------
-ITK_THREAD_RETURN_TYPE
+#if ITK_VERSION_MAJOR >= 5
+  itk::ITK_THREAD_RETURN_TYPE
+#else
+  ITK_THREAD_RETURN_TYPE
+#endif
 vtkSlicerApplicationLogic
 ::ProcessingThreaderCallback( void *arg )
 {
@@ -305,13 +313,21 @@ vtkSlicerApplicationLogic
   // pull out the reference to the appLogic
   vtkSlicerApplicationLogic *appLogic
     = (vtkSlicerApplicationLogic*)
+#if ITK_VERSION_MAJOR >= 5
+    (((itk::PlatformMultiThreader::WorkUnitInfo *)(arg))->UserData);
+#else
     (((itk::MultiThreader::ThreadInfoStruct *)(arg))->UserData);
+#endif
 
   // Tell the app to start processing any tasks slated for the
   // processing thread
   appLogic->ProcessProcessingTasks();
 
-  return ITK_THREAD_RETURN_VALUE;
+#if ITK_VERSION_MAJOR >= 5
+  return itk::ITK_THREAD_RETURN_DEFAULT_VALUE;
+#else
+   return ITK_THREAD_RETURN_VALUE;
+#endif
 }
 
 //----------------------------------------------------------------------------
@@ -361,7 +377,11 @@ void vtkSlicerApplicationLogic::ProcessProcessingTasks()
     }
 }
 
-ITK_THREAD_RETURN_TYPE
+#if ITK_VERSION_MAJOR >= 5
+  itk::ITK_THREAD_RETURN_TYPE
+#else
+  ITK_THREAD_RETURN_TYPE
+#endif
 vtkSlicerApplicationLogic
 ::NetworkingThreaderCallback( void *arg )
 {
@@ -387,13 +407,21 @@ vtkSlicerApplicationLogic
   // pull out the reference to the appLogic
   vtkSlicerApplicationLogic *appLogic
     = (vtkSlicerApplicationLogic*)
+#if ITK_VERSION_MAJOR >= 5
+    (((itk::PlatformMultiThreader::WorkUnitInfo *)(arg))->UserData);
+#else
     (((itk::MultiThreader::ThreadInfoStruct *)(arg))->UserData);
+#endif
 
   // Tell the app to start processing any tasks slated for the
   // processing thread
   appLogic->ProcessNetworkingTasks();
 
-  return ITK_THREAD_RETURN_VALUE;
+#if ITK_VERSION_MAJOR >= 5
+  return itk::ITK_THREAD_RETURN_DEFAULT_VALUE;
+#else
+   return ITK_THREAD_RETURN_VALUE;
+#endif
 }
 
 //----------------------------------------------------------------------------

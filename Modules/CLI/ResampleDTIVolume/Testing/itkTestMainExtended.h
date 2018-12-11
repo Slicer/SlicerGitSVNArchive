@@ -38,7 +38,11 @@
 #include <string>
 #include <iostream>
 #include <fstream>
+#if ITK_VERSION_MAJOR >= 5
+#include "itkMultiThreaderBase.h"
+#else
 #include "itkMultiThreader.h"
+#endif
 #include "itkImage.h"
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
@@ -133,13 +137,21 @@ int main(int ac, char* av[] )
       if( strcmp(av[1], "--with-threads") == 0 )
         {
         int numThreads = atoi(av[2]);
+#if ITK_VERSION_MAJOR >= 5
+        itk::MultiThreaderBase::SetGlobalDefaultNumberOfThreads(numThreads);
+#else
         itk::MultiThreader::SetGlobalDefaultNumberOfThreads(numThreads);
+#endif
         av += 2;
         ac -= 2;
         }
       else if( strcmp(av[1], "--without-threads") == 0 )
         {
+#if ITK_VERSION_MAJOR >= 5
+        itk::MultiThreaderBase::SetGlobalDefaultNumberOfThreads(1);
+#else
         itk::MultiThreader::SetGlobalDefaultNumberOfThreads(1);
+#endif
         av += 1;
         ac -= 1;
         }

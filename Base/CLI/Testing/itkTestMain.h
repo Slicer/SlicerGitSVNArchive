@@ -38,7 +38,11 @@
 #include <string>
 #include <iostream>
 #include <fstream>
+#if ITK_VERSION_MAJOR >= 5
+#include "itkMultiThreaderBase.h"
+#else
 #include "itkMultiThreader.h"
+#endif
 #include "itkImage.h"
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"

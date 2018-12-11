@@ -28,7 +28,11 @@
 #include <vtkCollection.h>
 
 // ITK includes
-#include <itkMultiThreader.h>
+#if ITK_VERSION_MAJOR >= 5
+ #include <itkPlatformMultiThreader.h>
+#else
+ #include <itkMultiThreader.h>
+#endif
 #include <itkMutexLock.h>
 
 class vtkMRMLSelectionNode;
@@ -216,11 +220,19 @@ protected:
   vtkSlicerApplicationLogic();
   ~vtkSlicerApplicationLogic();
 
-  /// Callback used by a MultiThreader to start a processing thread
-  static ITK_THREAD_RETURN_TYPE ProcessingThreaderCallback( void * );
+   /// Callback used by a MultiThreader to start a processing thread
+#if ITK_VERSION_MAJOR >= 5
+  static itk::ITK_THREAD_RETURN_TYPE ProcessingThreaderCallback( void * );
+#else
+   static ITK_THREAD_RETURN_TYPE ProcessingThreaderCallback( void * );
+#endif
 
-  /// Callback used by a MultiThreader to start a networking thread
-  static ITK_THREAD_RETURN_TYPE NetworkingThreaderCallback( void * );
+   /// Callback used by a MultiThreader to start a networking thread
+#if ITK_VERSION_MAJOR >= 5
+  static itk::ITK_THREAD_RETURN_TYPE NetworkingThreaderCallback( void * );
+#else
+   static ITK_THREAD_RETURN_TYPE NetworkingThreaderCallback( void * );
+#endif
 
   /// Task processing loop that is run in the processing thread
   void ProcessProcessingTasks();
@@ -239,7 +251,11 @@ private:
   vtkSlicerApplicationLogic(const vtkSlicerApplicationLogic&);
   void operator=(const vtkSlicerApplicationLogic&);
 
+#if ITK_VERSION_MAJOR >= 5
+  itk::PlatformMultiThreader::Pointer ProcessingThreader;
+#else
   itk::MultiThreader::Pointer ProcessingThreader;
+#endif
   itk::MutexLock::Pointer ProcessingThreadActiveLock;
   itk::MutexLock::Pointer ProcessingTaskQueueLock;
   itk::MutexLock::Pointer ModifiedQueueActiveLock;
