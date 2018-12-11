@@ -25,8 +25,8 @@
 #include "vtkMRMLMarkupsDisplayableManager2D.h"
 
 class vtkMRMLMarkupsFiducialNode;
-class vtkSlicerViewerWidget;
 class vtkMRMLMarkupsDisplayNode;
+class vtkSlicerAbstractWidget;
 class vtkTextWidget;
 
 /// \ingroup Slicer_QtModules_Markups
@@ -39,12 +39,6 @@ public:
   vtkTypeMacro(vtkMRMLMarkupsFiducialDisplayableManager2D, vtkMRMLMarkupsDisplayableManager2D);
   void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
-  /// Update a single seed position from the node, return true if the position changed
-  virtual bool UpdateNthSeedPositionFromMRML(int n, vtkAbstractWidget *widget, vtkMRMLMarkupsNode *pointsNode) VTK_OVERRIDE;
-
-  /// Update a single markup position from the seed widget, return true if the position changed
-  virtual bool UpdateNthMarkupPositionFromWidget(int n, vtkMRMLMarkupsNode* pointsNode, vtkAbstractWidget * widget) VTK_OVERRIDE;
-
 protected:
 
   vtkMRMLMarkupsFiducialDisplayableManager2D(){this->Focus="vtkMRMLMarkupsFiducialNode";}
@@ -53,35 +47,25 @@ protected:
   /// Callback for click in RenderWindow
   virtual void OnClickInRenderWindow(double x, double y, const char *associatedNodeID) VTK_OVERRIDE;
   /// Create a widget.
-  virtual vtkAbstractWidget * CreateWidget(vtkMRMLMarkupsNode* node) VTK_OVERRIDE;
-  /// Create new handle on widget when a new markup is added to a markups node
-  virtual void OnMRMLMarkupsNodeMarkupAddedEvent(vtkMRMLMarkupsNode * markupsNode, int n) VTK_OVERRIDE;
-  /// Respond to the nth markup modified event
-  virtual void OnMRMLMarkupsNodeNthMarkupModifiedEvent(vtkMRMLMarkupsNode * markupsNode, int n) VTK_OVERRIDE;
-  /// Respond to a markup being removed from the markups node
-  virtual void OnMRMLMarkupsNodeMarkupRemovedEvent(vtkMRMLMarkupsNode * markupsNode, int n) VTK_OVERRIDE;
-
+  virtual vtkSlicerAbstractWidget* CreateWidget(vtkMRMLMarkupsNode* node);
+  /// the nth point in the active Markup has been modified, check if it is on the slice
+  virtual void OnMRMLMarkupsNthPointModifiedEvent(vtkMRMLNode *node, int n) VTK_OVERRIDE;
+  /// a nth point in the active Markup has been added, check if it is on the slice
+  virtual void OnMRMLMarkupsPointAddedEvent(vtkMRMLNode *node, int n) VTK_OVERRIDE;
+  /// Called after the corresponding MRML View container was modified
+  virtual void OnMRMLDisplayableNodeModifiedEvent(vtkObject* caller);
   /// Gets called when widget was created
-  virtual void OnWidgetCreated(vtkAbstractWidget * widget, vtkMRMLMarkupsNode * node) VTK_OVERRIDE;
-
-  /// Update a single seed from MRML
-  void SetNthSeed(int n, vtkMRMLMarkupsFiducialNode* fiducialNode, vtkSeedWidget *seedWidget);
-  /// Propagate properties of MRML node to widget.
-  virtual void PropagateMRMLToWidget(vtkMRMLMarkupsNode* node, vtkAbstractWidget * widget) VTK_OVERRIDE;
-
-  /// Propagate properties of widget to MRML node.
-  virtual void PropagateWidgetToMRML(vtkAbstractWidget * widget, vtkMRMLMarkupsNode* node) VTK_OVERRIDE;
-
+  virtual void OnWidgetCreated(vtkSlicerAbstractWidget * widget, vtkMRMLMarkupsNode * node) VTK_OVERRIDE;
   /// Set up an observer on the interactor style to watch for key press events
   virtual void AdditionnalInitializeStep();
   /// Respond to the interactor style event
   virtual void OnInteractorStyleEvent(int eventid) VTK_OVERRIDE;
-
-  /// Respond to control point modified events
-  virtual void UpdatePosition(vtkAbstractWidget *widget, vtkMRMLNode *node) VTK_OVERRIDE;
-
-  // Clean up when scene closes
+  /// Clean up when scene closes
   virtual void OnMRMLSceneEndClose() VTK_OVERRIDE;
+  /// Add Control Point
+  virtual int AddControlPoint(vtkMRMLMarkupsFiducialNode *markupsNode, double worldCoordinates[4]);
+  /// Check, if the point is displayable in the current slice geometry
+  virtual bool IsPointDisplayableOnSlice(vtkMRMLMarkupsNode* node, int pointIndex = 0);
 
 private:
 

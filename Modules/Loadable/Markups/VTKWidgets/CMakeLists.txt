@@ -5,11 +5,45 @@ set(KIT ${PROJECT_NAME})
 set(${KIT}_EXPORT_DIRECTIVE "VTK_SLICER_${MODULE_NAME_UPPER}_MODULE_VTKWIDGETS_EXPORT")
 
 set(${KIT}_INCLUDE_DIRECTORIES
+  ${vtkSlicer${MODULE_NAME}ModuleMRML_SOURCE_DIR}
+  ${vtkSlicer${MODULE_NAME}ModuleMRML_BINARY_DIR}
   )
 
 set(${KIT}_SRCS
   vtk${MODULE_NAME}GlyphSource2D.cxx
   vtk${MODULE_NAME}GlyphSource2D.h
+  vtkSlicerAbstractRepresentation.cxx
+  vtkSlicerAbstractRepresentation.h
+  vtkSlicerAbstractRepresentation3D.cxx
+  vtkSlicerAbstractRepresentation3D.h
+  vtkSlicerAbstractRepresentation2D.cxx
+  vtkSlicerAbstractRepresentation2D.h
+  vtkSlicerAbstractWidget.cxx
+  vtkSlicerAbstractWidget.h
+  #vtkSlicerAngleRepresentation.cxx
+  #vtkSlicerAngleRepresentation.h
+  #vtkSlicerAngleWidget.cxx
+  #vtkSlicerAngleWidget.h
+  #vtkSlicerCurveRepresentation.cxx
+  #vtkSlicerCurveRepresentation.h
+  #vtkSlicerCurveWidget.cxx
+  #vtkSlicerCurveWidget.h
+  #vtkSlicerLineRepresentation.cxx
+  #vtkSlicerLineRepresentation.h
+  #vtkSlicerLineWidget.cxx
+  #vtkSlicerLineWidget.h
+  vtkSlicerPointsRepresentation3D.cxx
+  vtkSlicerPointsRepresentation3D.h
+  vtkSlicerPointsRepresentation2D.cxx
+  vtkSlicerPointsRepresentation2D.h
+  vtkSlicerPointsWidget.cxx
+  vtkSlicerPointsWidget.h
+  vtkBezierSlicerLineInterpolator.cxx
+  vtkBezierSlicerLineInterpolator.h
+  vtkLinearSlicerLineInterpolator.cxx
+  vtkLinearSlicerLineInterpolator.h
+  vtkSlicerLineInterpolator.cxx
+  vtkSlicerLineInterpolator.h
   )
 
 set(${KIT}_TARGET_LIBRARIES

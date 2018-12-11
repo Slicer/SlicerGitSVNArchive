@@ -80,7 +80,7 @@ public:
   /// class, and also make it the active on on the selection node, otherwise
   /// add to the passed scene.
   /// On success, return the id, on failure return an empty string.
-  std::string AddNewFiducialNode(const char *name = "F", vtkMRMLScene *scene = NULL);
+  std::string AddNewFiducialNode(const char *name = "F", vtkMRMLScene *scene = nullptr);
 
   /// Add a new fiducial to the currently active list at the given RAS
   /// coordinates (default 0,0,0). Will create a list is one is not active.
@@ -152,21 +152,21 @@ public:
   /// utility method to set up a display node from the defaults
   void SetDisplayNodeToDefaults(vtkMRMLMarkupsDisplayNode *displayNode);
 
-  /// utility method to copy a markup from one list to another, adding it
+  /// utility method to copy a control oint from one list to another, adding it
   /// to the end of the new list
-  /// \sa vtkMRMLMarkupsNode::AddMarkup
+  /// \sa vtkMRMLMarkupsNode::AddControlPoint
   /// Returns true on success, false on failure
-  bool CopyNthMarkupToNewList(int n, vtkMRMLMarkupsNode *markupsNode,
+  bool CopyNthControlPointToNewList(int n, vtkMRMLMarkupsNode *markupsNode,
                               vtkMRMLMarkupsNode *newMarkupsNode);
 
-  /// utility method to move a markup from one list to another, trying to
+  /// utility method to move a control point from one list to another, trying to
   /// insert it at the given new index. If the new index is larger than the
-  /// number of markups in the list, adds it to the end. If new index is
+  /// number of control points in the list, adds it to the end. If new index is
   /// smaller than 0, adds it at the beginning. Otherwise inserts at
   /// that index.
-  /// \sa vtkMRMLMarkupsNode::InsertMarkup
+  /// \sa vtkMRMLMarkupsNode::InsertControlPoint
   /// Returns true on success, false on failure
-  bool MoveNthMarkupToNewListAtIndex(int n, vtkMRMLMarkupsNode *markupsNode,
+  bool MoveNthControlPointToNewListAtIndex(int n, vtkMRMLMarkupsNode *markupsNode,
                                    vtkMRMLMarkupsNode *newMarkupsNode, int newIndex);
 
   /// Searches the scene for annotation fidicual nodes, collecting a list
@@ -187,7 +187,7 @@ public:
   /// Return true on successfully going into place mode, false otherwise.
   /// By default, the default interaction node is updated.
   /// \sa SetActiveIDList
-  bool StartPlaceMode(bool persistent, vtkMRMLInteractionNode* interactionNode = NULL);
+  bool StartPlaceMode(bool persistent, vtkMRMLInteractionNode* interactionNode = nullptr);
 
   /// Inspect all the slice composite nodes in the scene. Return 1 if all have
   /// SliceIntersectionVisibility set to true, 0 if all have it set to false,
@@ -196,6 +196,9 @@ public:
   /// Set the slice intersections visbility on all the slice composite nodes
   /// in the scene
   void SetSliceIntersectionsVisibility(bool flag);
+
+  /// Get the index of teh closest control point to the world coordinates
+  int GetClosestControlPointIndexToPositionWorld(vtkMRMLMarkupsNode *markupsNode, double pos[3]);
 
 protected:
   vtkSlicerMarkupsLogic();

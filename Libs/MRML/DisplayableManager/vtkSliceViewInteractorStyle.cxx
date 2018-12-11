@@ -628,6 +628,18 @@ void vtkSliceViewInteractorStyle::OnConfigure()
 void vtkSliceViewInteractorStyle::OnEnter()
 {
   this->Superclass::OnEnter();
+
+  // Forcing the refresh of the view interactors.
+  vtkMRMLSliceNode *sliceNode = this->SliceLogic->GetSliceNode();
+  if (sliceNode == NULL)
+    {
+    return;
+    }
+  double FieldOfView[3];
+  sliceNode->GetFieldOfView( FieldOfView );
+  sliceNode->SetFieldOfView( FieldOfView[0] * 1.1, FieldOfView[1] * 1.1, FieldOfView[2] * 1.1 );
+  sliceNode->UpdateMatrices();
+  sliceNode->SetFieldOfView( FieldOfView[0], FieldOfView[1], FieldOfView[2]);
 }
 
 //----------------------------------------------------------------------------

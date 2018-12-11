@@ -284,7 +284,17 @@ void vtkThreeDViewInteractorStyle::OnMouseMove()
   if (this->CameraNode)
     {
     this->CameraNode->EndModify(disabledModify);
-    }
+  }
+}
+
+//----------------------------------------------------------------------------
+void vtkThreeDViewInteractorStyle::OnEnter()
+{
+  this->Superclass::OnEnter();
+
+  // Forcing the refresh of the view interactors.
+  this->OnMouseWheelForward();
+  this->OnMouseWheelBackward();
 }
 
 //----------------------------------------------------------------------------

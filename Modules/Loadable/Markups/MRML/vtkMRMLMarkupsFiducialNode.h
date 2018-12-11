@@ -26,11 +26,8 @@
 #include "vtkMRMLMarkupsDisplayNode.h"
 #include "vtkMRMLMarkupsNode.h"
 
-// VTK includes
-#include <vtkSmartPointer.h>
-
 /// \brief MRML node to represent a fiducial markup
-/// Fiducial Markups nodes contain a list of fiducial points.
+/// Fiducial Markups nodes contain a list of control points.
 /// Visualization parameters are set in the vtkMRMLMarkupsDisplayNode class.
 ///
 /// Markups is intended to be used for manual marking/editing of point positions.
@@ -88,7 +85,7 @@ public:
   // Wrapping some of the generic markup methods
 
   /// Get the number of fiducials in this node
-  int GetNumberOfFiducials() { return this->GetNumberOfMarkups(); } ;
+  int GetNumberOfFiducials() { return this->GetNumberOfControlPoints(); } ;
   /// Add a new fiducial from x,y,z coordinates and return the fiducial index
   int AddFiducial(double x, double y, double z);
   int AddFiducial(double x, double y, double z, std::string label);
@@ -104,6 +101,10 @@ public:
   bool GetNthFiducialSelected(int n = 0);
   /// Set selected property on Nth fiducial
   void SetNthFiducialSelected(int n, bool flag);
+  /// Get locked property on Nth fiducial
+  bool GetNthFiducialLocked(int n = 0);
+  /// Set locked property on Nth fiducial
+  void SetNthFiducialLocked(int n, bool flag);
   /// Get visibility property on Nth fiducial
   bool GetNthFiducialVisibility(int n = 0);
   /// Set visibility property on Nth fiducial. If the visibility is set to

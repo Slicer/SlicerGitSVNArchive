@@ -70,9 +70,9 @@ vtkMRMLMarkupsDisplayNode::vtkMRMLMarkupsDisplayNode()
   this->Power = 1;
 
   // markup display node settings
-  this->TextScale = 3.4;
+  this->TextScale = 3;
   this->GlyphType = vtkMRMLMarkupsDisplayNode::Sphere3D;
-  this->GlyphScale = 2.1;
+  this->GlyphScale = 3;
 
   // projection settings
   this->SliceProjection = (vtkMRMLMarkupsDisplayNode::ProjectionOff |
@@ -82,6 +82,8 @@ vtkMRMLMarkupsDisplayNode::vtkMRMLMarkupsDisplayNode()
   this->SliceProjectionColor[1] = 1.0;
   this->SliceProjectionColor[2] = 1.0;
   this->SliceProjectionOpacity = 0.6;
+
+  this->TextVisibility = true;
 }
 
 //----------------------------------------------------------------------------
@@ -116,7 +118,7 @@ void vtkMRMLMarkupsDisplayNode::ReadXMLAttributes(const char** atts)
 
   const char* attName;
   const char* attValue;
-  while (*atts != NULL)
+  while (*atts != nullptr)
     {
     attName = *(atts++);
     attValue = *(atts++);
@@ -176,7 +178,7 @@ void vtkMRMLMarkupsDisplayNode::Copy(vtkMRMLNode *anode)
 
   Superclass::Copy(anode);
 
-  vtkMRMLMarkupsDisplayNode *node = (vtkMRMLMarkupsDisplayNode *)anode;
+  vtkMRMLMarkupsDisplayNode *node = vtkMRMLMarkupsDisplayNode::SafeDownCast(anode);
 
   this->SetTextScale(node->TextScale);
   this->SetGlyphType(node->GlyphType);

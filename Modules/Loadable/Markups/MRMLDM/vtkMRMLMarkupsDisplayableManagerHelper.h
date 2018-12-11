@@ -34,9 +34,7 @@
 #include <vtkMRMLMarkupsNode.h>
 
 // VTK includes
-#include <vtkAbstractWidget.h>
-#include <vtkHandleWidget.h>
-#include <vtkSeedWidget.h>
+#include <vtkSlicerAbstractWidget.h>
 #include <vtkSmartPointer.h>
 
 // MRML includes
@@ -66,15 +64,15 @@ public:
   void UpdateLocked(vtkMRMLMarkupsNode* node, vtkMRMLInteractionNode *interactionNode = NULL);
 
   /// Keep track of the mapping between widgets and nodes
-  void RecordWidgetForNode(vtkAbstractWidget* widget, vtkMRMLMarkupsNode *node);
+  void RecordWidgetForNode(vtkSlicerAbstractWidget* widget, vtkMRMLMarkupsNode *node);
 
-  /// Get a vtkAbstractWidget* given a node
-  vtkAbstractWidget * GetWidget(vtkMRMLMarkupsNode * node);
-  /// ...and its associated vtkAbstractWidget* for Slice intersection representation
-  vtkAbstractWidget * GetIntersectionWidget(vtkMRMLMarkupsNode * node);
-  /// ...and its associated vtkAbstractWidget* for Slice projection representation. There is one
+  /// Get a vtkSlicerAbstractWidget* given a node
+  vtkSlicerAbstractWidget * GetWidget(vtkMRMLMarkupsNode * node);
+  /// ...and its associated vtkSlicerAbstractWidget* for Slice intersection representation
+  vtkSlicerAbstractWidget * GetIntersectionWidget(vtkMRMLMarkupsNode * node);
+  /// ...and its associated vtkSlicerAbstractWidget* for Slice projection representation. There is one
   /// projection widget per unique point.
-  vtkAbstractWidget * GetPointProjectionWidget(std::string uniqueFiducialID);
+  vtkSlicerAbstractWidget * GetPointProjectionWidget(std::string uniqueFiducialID);
 
   /// Remove all widgets, intersection widgets, nodes
   void RemoveAllWidgetsAndNodes();
@@ -92,37 +90,27 @@ public:
   typedef std::vector<vtkMRMLMarkupsNode*>::iterator MarkupsNodeListIt;
 
   /// Map of vtkWidget indexed using associated node ID
-  std::map<vtkMRMLMarkupsNode*, vtkAbstractWidget*> Widgets;
+  std::map<vtkMRMLMarkupsNode*, vtkSlicerAbstractWidget*> Widgets;
 
   /// .. and its associated convenient typedef
-  typedef std::map<vtkMRMLMarkupsNode*, vtkAbstractWidget*>::iterator WidgetsIt;
+  typedef std::map<vtkMRMLMarkupsNode*, vtkSlicerAbstractWidget*>::iterator WidgetsIt;
 
   /// Map of vtkWidgets to reflect the Slice intersections indexed using associated node ID
-  std::map<vtkMRMLMarkupsNode*, vtkAbstractWidget*> WidgetIntersections;
+  std::map<vtkMRMLMarkupsNode*, vtkSlicerAbstractWidget*> WidgetIntersections;
 
   /// .. and its associated convenient typedef
-  typedef std::map<vtkMRMLMarkupsNode*, vtkAbstractWidget*>::iterator WidgetIntersectionsIt;
+  typedef std::map<vtkMRMLMarkupsNode*, vtkSlicerAbstractWidget*>::iterator WidgetIntersectionsIt;
 
   /// Map of vtkWidgets to reflect the Slice projection indexed using associated point IDs
-  std::map<std::string, vtkAbstractWidget*> WidgetPointProjections;
+  std::map<std::string, vtkSlicerAbstractWidget*> WidgetPointProjections;
 
   /// .. and its associated convenient typedef
-  typedef std::map<std::string, vtkAbstractWidget*>::iterator WidgetPointProjectionsIt;
+  typedef std::map<std::string, vtkSlicerAbstractWidget*>::iterator WidgetPointProjectionsIt;
 
   //
   // End of The Lists!!
   //
   //----------------------------------------------------------------------------------
-
-
-  /// Placement of seeds for widget placement
-  void PlaceSeed(double x, double y, vtkRenderWindowInteractor * interactor, vtkRenderer * renderer);
-
-  /// Get a placed seed
-  vtkHandleWidget * GetSeed(int index);
-
-  /// Remove all placed seeds
-  void RemoveSeeds();
 
   /// Get the seed glyph type for the given display node.
   /// Returns -1 if not found
@@ -147,13 +135,6 @@ private:
 
   vtkMRMLMarkupsDisplayableManagerHelper(const vtkMRMLMarkupsDisplayableManagerHelper&); /// Not implemented
   void operator=(const vtkMRMLMarkupsDisplayableManagerHelper&); /// Not Implemented
-
-  /// SeedWidget for point placement
-  vtkSmartPointer<vtkSeedWidget> SeedWidget;
-  /// List of Handles for the SeedWidget
-  std::vector<vtkSmartPointer<vtkHandleWidget> > HandleWidgetList;
-  /// Utility typedef iterator for the list of handles for the seed widget
-  typedef std::vector<vtkSmartPointer<vtkHandleWidget> >::iterator HandleWidgetListIt;
 
   /// Keep a record of the current glyph type for the handles in the widget
   /// associated with this node, prevents changing them unnecessarily

@@ -56,37 +56,37 @@ int vtkMRMLMarkupsFiducialStorageNodeTest1(int argc, char * argv[] )
   markupsNode->SetAndObserveDisplayNodeID(displayNode->GetID());
 
   // add a markup with one point with non default values
-  int index =  markupsNode->AddMarkupWithNPoints(1);
+  int index =  markupsNode->AddNControlPoints(1);
   double orientation[4] = {0.2, 1.0, 0.0, 0.0};
-  markupsNode->SetNthMarkupOrientationFromArray(index, orientation);
-  markupsNode->ResetNthMarkupID(index);
+  markupsNode->SetNthControlPointOrientationFromArray(index, orientation);
+  markupsNode->ResetNthControlPointID(index);
   std::string associatedNodeID = std::string("testingAssociatedID");
-  markupsNode->SetNthMarkupAssociatedNodeID(index,associatedNodeID);
-  markupsNode->SetNthMarkupSelected(index, 0);
-  markupsNode->SetNthMarkupVisibility(index, 0);
-  markupsNode->SetNthMarkupLocked(index, 1);
+  markupsNode->SetNthControlPointAssociatedNodeID(index,associatedNodeID);
+  markupsNode->SetNthControlPointSelected(index, 0);
+  markupsNode->SetNthControlPointVisibility(index, 0);
+  markupsNode->SetNthControlPointLocked(index, 1);
 
   std::string label = std::string("Testing label");
-  markupsNode->SetNthMarkupLabel(index, label);
+  markupsNode->SetNthControlPointLabel(index, label);
   std::string desc = std::string("description with spaces");
-  markupsNode->SetNthMarkupDescription(index, desc);
+  markupsNode->SetNthControlPointDescription(index, desc);
   double inputPoint[3] = {-9.9, 1.1, 0.87};
-  markupsNode->SetMarkupPointFromArray(index, 0, inputPoint);
+  markupsNode->SetNthControlPointPositionFromArray(index, inputPoint);
 
   // and add a markup with 1 point, default values
-  markupsNode->AddMarkupWithNPoints(1);
+  markupsNode->AddNControlPoints(1);
   // and another one unsetting the label
-  index = markupsNode->AddMarkupWithNPoints(1);
-  markupsNode->SetNthMarkupLabel(index,"");
+  index = markupsNode->AddNControlPoints(1);
+  markupsNode->SetNthControlPointLabel(index,"");
 
   // add another one with a label and description that have commas in them
-  int commaIndex = markupsNode->AddMarkupWithNPoints(1);
-  markupsNode->SetNthMarkupLabel(commaIndex, "Label, commas, two");
-  markupsNode->SetNthMarkupDescription(commaIndex, "Description one comma \"and two quotes\", for more testing");
+  int commaIndex = markupsNode->AddNControlPoints(1);
+  markupsNode->SetNthControlPointLabel(commaIndex, "Label, commas, two");
+  markupsNode->SetNthControlPointDescription(commaIndex, "Description one comma \"and two quotes\", for more testing");
   // add another one with a label and description with complex combos of commas and quotes
-  int quotesIndex = markupsNode->AddMarkupWithNPoints(1);
-  markupsNode->SetNthMarkupLabel(quotesIndex, "Label with end quotes \"around the last phrase\"");
-  markupsNode->SetNthMarkupDescription(quotesIndex, "\"Description fully quoted\"");
+  int quotesIndex = markupsNode->AddNControlPoints(1);
+  markupsNode->SetNthControlPointLabel(quotesIndex, "Label with end quotes \"around the last phrase\"");
+  markupsNode->SetNthControlPointDescription(quotesIndex, "\"Description fully quoted\"");
 
   //
   // test write
@@ -139,7 +139,7 @@ int vtkMRMLMarkupsFiducialStorageNodeTest1(int argc, char * argv[] )
   // test values on the first markup
   index = 0;
   double newOrientation[4];
-  markupsNode2->GetNthMarkupOrientation(index, newOrientation);
+  markupsNode2->GetNthControlPointOrientation(index, newOrientation);
   for (int r = 0; r < 4; r++)
     {
     if (newOrientation[r] != orientation[r])
@@ -158,54 +158,54 @@ int vtkMRMLMarkupsFiducialStorageNodeTest1(int argc, char * argv[] )
       return EXIT_FAILURE;
       }
     }
-  if (markupsNode2->GetNthMarkupAssociatedNodeID(index).compare(associatedNodeID) != 0)
+  if (markupsNode2->GetNthControlPointAssociatedNodeID(index).compare(associatedNodeID) != 0)
     {
     std::cerr << "After reading in, expected markup " << index
               << " associatedNodeID of " << associatedNodeID.c_str()
               << " got "
-              << markupsNode2->GetNthMarkupAssociatedNodeID(index).c_str()
+              << markupsNode2->GetNthControlPointAssociatedNodeID(index).c_str()
               << std::endl;
     return EXIT_FAILURE;
     }
-  if (markupsNode2->GetNthMarkupSelected(index) != 0)
+  if (markupsNode2->GetNthControlPointSelected(index) != 0)
     {
     std::cerr << "After reading in, expected markup " << index
               << " sel of 0, got "
-              << markupsNode2->GetNthMarkupSelected(index) << std::endl;
+              << markupsNode2->GetNthControlPointSelected(index) << std::endl;
     return EXIT_FAILURE;
     }
-  if (markupsNode2->GetNthMarkupVisibility(index) != 0)
+  if (markupsNode2->GetNthControlPointVisibility(index) != 0)
     {
     std::cerr << "After reading in, expected markup " << index
               << " vis of 0, got "
-              << markupsNode2->GetNthMarkupVisibility(index) << std::endl;
+              << markupsNode2->GetNthControlPointVisibility(index) << std::endl;
     return EXIT_FAILURE;
     }
-  if (markupsNode2->GetNthMarkupLocked(index) != 1)
+  if (markupsNode2->GetNthControlPointLocked(index) != 1)
     {
     std::cerr << "After reading in, expected markup " << index
               << " locked of 0, got "
-              << markupsNode2->GetNthMarkupLocked(index) << std::endl;
+              << markupsNode2->GetNthControlPointLocked(index) << std::endl;
     return EXIT_FAILURE;
     }
-  if (markupsNode2->GetNthMarkupLabel(index).compare(label) != 0)
+  if (markupsNode2->GetNthControlPointLabel(index).compare(label) != 0)
     {
     std::cerr << "After reading in, expected markup " << index
               << " label of " << label.c_str() << " got '"
-              << markupsNode2->GetNthMarkupLabel(index).c_str()
+              << markupsNode2->GetNthControlPointLabel(index).c_str()
               << "'" << std::endl;
     return EXIT_FAILURE;
     }
-  if (markupsNode2->GetNthMarkupDescription(index).compare(desc) != 0)
+  if (markupsNode2->GetNthControlPointDescription(index).compare(desc) != 0)
     {
     std::cerr << "After reading in, expected markup " << index
               << " description of " << desc.c_str() << " got '"
-              << markupsNode2->GetNthMarkupDescription(index).c_str()
+              << markupsNode2->GetNthControlPointDescription(index).c_str()
               << "'" << std::endl;
     return EXIT_FAILURE;
     }
   double outputPoint[3];
-  markupsNode2->GetMarkupPoint(index, 0, outputPoint);
+  markupsNode2->GetNthControlPointPosition(index, outputPoint);
   double diff = fabs(outputPoint[0] - inputPoint[0]) + fabs(outputPoint[1] - inputPoint[1]) + fabs(outputPoint[2] - inputPoint[2]);
   if (diff > 0.1)
     {
@@ -219,11 +219,11 @@ int vtkMRMLMarkupsFiducialStorageNodeTest1(int argc, char * argv[] )
 
   // test the unset label on the third markup
   index = 2;
-  if (markupsNode2->GetNthMarkupLabel(index).size() != 0)
+  if (markupsNode2->GetNthControlPointLabel(index).size() != 0)
     {
     std::cerr << "After reading in, expected markup " << index
               << " empty label, but got "
-              << markupsNode2->GetNthMarkupLabel(index).c_str() << std::endl;
+              << markupsNode2->GetNthControlPointLabel(index).c_str() << std::endl;
     return EXIT_FAILURE;
     }
 
@@ -256,7 +256,7 @@ int vtkMRMLMarkupsFiducialStorageNodeTest1(int argc, char * argv[] )
     }
   // read it in after clearing out the test data
   snode2->UseLPSOn();
-  markupsNode2->RemoveAllMarkups();
+  markupsNode2->RemoveAllControlPoints();
   std::cout << "Reading with LPS from " << snode2->GetFileName() << std::endl;
 
   retval = snode2->ReadData(markupsNode2.GetPointer());
@@ -273,7 +273,7 @@ int vtkMRMLMarkupsFiducialStorageNodeTest1(int argc, char * argv[] )
   // check the point so that it's been converted back to be the same
   double outputPointAfterLPS[3];
   index = 0;
-  markupsNode2->GetMarkupPoint(index, 0, outputPointAfterLPS);
+  markupsNode2->GetNthControlPointPosition(index, outputPointAfterLPS);
   diff =  fabs(outputPointAfterLPS[0] - inputPoint[0]) + fabs(outputPointAfterLPS[1] - inputPoint[1]) + fabs(outputPointAfterLPS[2] - inputPoint[2]);
   if (diff > 0.1)
     {
@@ -288,7 +288,7 @@ int vtkMRMLMarkupsFiducialStorageNodeTest1(int argc, char * argv[] )
   else
     {
     double lpsPoint[3];
-    markupsNode2->GetMarkupPointLPS(index, 0, lpsPoint);
+    markupsNode2->GetNthControlPointPositionLPS(index, lpsPoint);
     std::cout << "Successfully wrote out point as lps "
               << lpsPoint[0] << "," << lpsPoint[1] << "," << lpsPoint[2]
               << " and read it back in as RAS "
@@ -297,7 +297,7 @@ int vtkMRMLMarkupsFiducialStorageNodeTest1(int argc, char * argv[] )
     }
 
   // check for commas in the markup label and description
-  std::string labelWithCommas = markupsNode2->GetNthMarkupLabel(commaIndex);
+  std::string labelWithCommas = markupsNode2->GetNthControlPointLabel(commaIndex);
   int numCommas = std::count(labelWithCommas.begin(), labelWithCommas.end(), ',');
   if (numCommas != 2)
     {
@@ -305,7 +305,7 @@ int vtkMRMLMarkupsFiducialStorageNodeTest1(int argc, char * argv[] )
               << " in label " << labelWithCommas.c_str() << std::endl;
     return EXIT_FAILURE;
     }
-  std::string descriptionWithCommasAndQuotes = markupsNode2->GetNthMarkupDescription(commaIndex);
+  std::string descriptionWithCommasAndQuotes = markupsNode2->GetNthControlPointDescription(commaIndex);
   numCommas = std::count(descriptionWithCommasAndQuotes.begin(),
                          descriptionWithCommasAndQuotes.end(),
                          ',');
@@ -328,7 +328,7 @@ int vtkMRMLMarkupsFiducialStorageNodeTest1(int argc, char * argv[] )
     }
 
   // check ending quoted label
-  std::string labelWithQuotes = markupsNode2->GetNthMarkupLabel(quotesIndex);
+  std::string labelWithQuotes = markupsNode2->GetNthControlPointLabel(quotesIndex);
   numQuotes = std::count(labelWithQuotes.begin(), labelWithQuotes.end(), '"');
   if (numQuotes != 2)
     {
@@ -336,7 +336,7 @@ int vtkMRMLMarkupsFiducialStorageNodeTest1(int argc, char * argv[] )
     return EXIT_FAILURE;
     }
   // check fully quoted description
-  std::string descWithQuotes = markupsNode2->GetNthMarkupDescription(quotesIndex);
+  std::string descWithQuotes = markupsNode2->GetNthControlPointDescription(quotesIndex);
   numQuotes = std::count(descWithQuotes.begin(), descWithQuotes.end(), '"');
   if (numQuotes != 2)
     {

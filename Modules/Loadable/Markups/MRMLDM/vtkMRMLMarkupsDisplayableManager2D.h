@@ -29,8 +29,7 @@
 #include <vtkMRMLAbstractSliceViewDisplayableManager.h>
 
 // VTK includes
-#include <vtkHandleWidget.h>
-#include <vtkSeedWidget.h>
+#include <vtkSlicerAbstractWidget.h>
 
 class vtkMRMLMarkupsNode;
 class vtkSlicerViewerWidget;
@@ -50,12 +49,6 @@ public:
   /// Hide/Show a widget so that the node's display node visibility setting
   /// matches that of the widget
   void UpdateWidgetVisibility(vtkMRMLMarkupsNode* node);
-
-  // the following functions must be public to be accessible by the callback
-  /// Propagate properties of MRML node to widget.
-  virtual void PropagateMRMLToWidget(vtkMRMLMarkupsNode* node, vtkAbstractWidget * widget);
-  /// Propagate properties of widget to MRML node.
-  virtual void PropagateWidgetToMRML(vtkAbstractWidget * widget, vtkMRMLMarkupsNode* node);
 
   /// Check if the displayCoordinates are inside the viewport and if not,
   /// correct the displayCoordinates. Coordinates are reset if the normalized
@@ -87,7 +80,7 @@ public:
 
   /// Create a new widget for this markups node and save it to the helper.
   /// Returns widget on success, null on failure.
-  vtkAbstractWidget *AddWidget(vtkMRMLMarkupsNode *markupsNode);
+  vtkSlicerAbstractWidget *AddWidget(vtkMRMLMarkupsNode *markupsNode);
 
   vtkMRMLMarkupsDisplayableManagerHelper *  GetHelper() { return this->Helper; };
 
@@ -99,21 +92,7 @@ public:
   /// Gets the world coordinate of the markups node point, transforms it to
   /// display coordinates, takes the z element to calculate the light box index.
   /// Returns -1 if not in lightbox mode or the indices are out of range.
-  int GetLightboxIndex(vtkMRMLMarkupsNode *node, int markupIndex, int pointIndex);
-
-  /// Update a single seed from markup position, implemented by the subclasses, return
-  /// true if the position changed
-  virtual bool UpdateNthSeedPositionFromMRML(int vtkNotUsed(n),
-                 vtkAbstractWidget *vtkNotUsed(widget),
-                 vtkMRMLMarkupsNode *vtkNotUsed(markupsNode))
-    { return false; }
-
-  /// Update a single markup position from the seed widget, implemented by the subclasses,
-  /// return true if the position changed
-  virtual bool UpdateNthMarkupPositionFromWidget(int vtkNotUsed(n),
-                 vtkMRMLMarkupsNode *vtkNotUsed(pointsNode),
-                 vtkAbstractWidget *vtkNotUsed(widget))
-    { return false; }
+  int GetLightboxIndex(vtkMRMLMarkupsNode *node, int pointIndex);
 
 protected:
 
@@ -149,7 +128,7 @@ protected:
 
   /// Check, if the widget is displayable in the current slice geometry for
   /// this markup, returns true if a 3d displayable manager
-  virtual bool IsWidgetDisplayableOnSlice(vtkMRMLMarkupsNode* node, int markupIndex = 0);
+  virtual bool IsWidgetDisplayableOnSlice(vtkMRMLMarkupsNode* node);
 
   /// Observe one node
   void SetAndObserveNode(vtkMRMLMarkupsNode *markupsNode);
@@ -161,42 +140,21 @@ protected:
   void RemoveObserversFromInteractionNode();
 
   /// Preset functions for certain events.
-  void OnMRMLMarkupsNodeModifiedEvent(vtkMRMLNode* node);
-  void OnMRMLMarkupsNodeTransformModifiedEvent(vtkMRMLNode* node);
-  void OnMRMLMarkupsNodeLockModifiedEvent(vtkMRMLNode* node);
-  void OnMRMLMarkupsDisplayNodeModifiedEvent(vtkMRMLNode *node);
-  void OnMRMLMarkupsPointModifiedEvent(vtkMRMLNode *node, int n);
-  /// Subclasses need to react to new markups being added to a markups node or modified
-  virtual void OnMRMLMarkupsNodeMarkupAddedEvent(vtkMRMLMarkupsNode * vtkNotUsed(markupsNode), int vtkNotUsed(n)) {};
-  virtual void OnMRMLMarkupsNodeMarkupRemovedEvent(vtkMRMLMarkupsNode * vtkNotUsed(markupsNode), int vtkNotUsed(n)) {};
-  virtual void OnMRMLMarkupsNodeNthMarkupModifiedEvent(vtkMRMLMarkupsNode* vtkNotUsed(node), int vtkNotUsed(n)) {};
+  virtual void OnMRMLMarkupsNodeModifiedEvent(vtkMRMLNode* node);
+  virtual void OnMRMLMarkupsNodeTransformModifiedEvent(vtkMRMLNode* node);
+  virtual void OnMRMLMarkupsNodeLockModifiedEvent(vtkMRMLNode* node);
+  virtual void OnMRMLMarkupsDisplayNodeModifiedEvent(vtkMRMLNode *node);
+  virtual void OnMRMLMarkupsNthPointModifiedEvent(vtkMRMLNode *node, int n);
+  virtual void OnMRMLMarkupsPointAddedEvent(vtkMRMLNode *node, int n);
+  virtual void OnMRMLMarkupsPointRemovedEvent(vtkMRMLNode *node, int n);
+  virtual void OnMRMLMarkupsAllPointsRemovedEvent(vtkMRMLNode *node);
 
-  //
-  // Handling of interaction within the RenderWindow
-  //
-
-  // Get the coordinates of a click in the RenderWindow
+  /// Get the coordinates of a click in the RenderWindow
   void OnClickInRenderWindowGetCoordinates();
   /// Callback for click in RenderWindow
   virtual void OnClickInRenderWindow(double x, double y, const char *associatedNodeID = NULL);
   /// Counter for clicks in Render Window
   vtkMRMLMarkupsClickCounter* ClickCounter;
-
-  /// Update just the position for the widget, implemented by subclasses.
-  virtual void UpdatePosition(vtkAbstractWidget *vtkNotUsed(widget), vtkMRMLNode *vtkNotUsed(node)) {};
-
-  //
-  // Seeds for widget placement
-  //
-
-  /// Place a seed for widgets
-  virtual void PlaceSeed(double x, double y);
-  /// Return the placed seeds
-  vtkHandleWidget * GetSeed(int index);
-
-  //
-  // Coordinate Conversions
-  //
 
   /// Convert display to world coordinates
   void GetWorldToDisplayCoordinates(double r, double a, double s, double * displayCoordinates);
@@ -206,14 +164,10 @@ protected:
   void GetDisplayToViewportCoordinates(double x, double y, double * viewportCoordinates);
   void GetDisplayToViewportCoordinates(double *displayCoordinates, double * viewportCoordinates);
 
-  //
-  // Widget functionality
-  //
-
   /// Create a widget.
-  virtual vtkAbstractWidget * CreateWidget(vtkMRMLMarkupsNode* node);
+  virtual vtkSlicerAbstractWidget * CreateWidget(vtkMRMLMarkupsNode* node);
   /// Gets called when widget was created
-  virtual void OnWidgetCreated(vtkAbstractWidget * widget, vtkMRMLMarkupsNode * node);
+  virtual void OnWidgetCreated(vtkSlicerAbstractWidget * widget, vtkMRMLMarkupsNode * node);
   /// Get the widget of a node.
   vtkAbstractWidget * GetWidget(vtkMRMLMarkupsNode * node);
 
@@ -233,9 +187,6 @@ protected:
 
   /// Focus of this displayableManager is set to a specific markups type when inherited
   const char* Focus;
-
-  /// Disable processing when updating is in progress.
-  int Updating;
 
   /// Respond to interactor style events
   virtual void OnInteractorStyleEvent(int eventid) VTK_OVERRIDE;

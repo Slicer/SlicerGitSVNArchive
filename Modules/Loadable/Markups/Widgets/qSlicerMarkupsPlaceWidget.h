@@ -53,7 +53,7 @@ qSlicerMarkupsPlaceWidget : public qSlicerWidget
 
 public:
   typedef qSlicerWidget Superclass;
-  qSlicerMarkupsPlaceWidget(QWidget *parent=0);
+  qSlicerMarkupsPlaceWidget(QWidget *parent=nullptr);
   virtual ~qSlicerMarkupsPlaceWidget();
 
   enum PlaceMultipleMarkupsType
@@ -134,11 +134,11 @@ public slots:
   /// Set place mode to persistent (remains active until deactivated). Does not enable or disable placement mode.
   void setPlaceModePersistency(bool);
 
-  /// Delete a markup fiducial from the list.
-  void deleteLastMarkup();
+  /// Delete a point from fiducial from the list.
+  void deleteLastPoint();
 
-  /// Delete all markup fiducials from the current markups node.
-  void deleteAllMarkups();
+  /// Delete all points from the current fiducial markups node.
+  void deleteAllPoints();
 
 protected slots:
 

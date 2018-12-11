@@ -66,6 +66,7 @@ public:
   /// Event bindings controlling the effects of pressing mouse buttons
   /// or moving the mouse.
   virtual void OnMouseMove() VTK_OVERRIDE;
+  virtual void OnEnter() VTK_OVERRIDE;
   virtual void OnLeave() VTK_OVERRIDE;
   virtual void OnLeftButtonDown() VTK_OVERRIDE;
   virtual void OnLeftButtonUp() VTK_OVERRIDE;

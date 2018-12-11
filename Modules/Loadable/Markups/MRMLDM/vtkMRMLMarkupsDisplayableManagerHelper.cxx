@@ -23,16 +23,15 @@
 #include "vtkMRMLMarkupsDisplayableManagerHelper.h"
 
 // VTK includes
-#include <vtkAbstractWidget.h>
+#include <vtkSlicerAbstractWidget.h>
 #include <vtkCollection.h>
-#include <vtkHandleWidget.h>
 #include <vtkNew.h>
 #include <vtkObjectFactory.h>
 #include <vtkProperty.h>
 #include <vtkPickingManager.h>
 #include <vtkRenderWindowInteractor.h>
-#include <vtkSeedRepresentation.h>
-#include <vtkSeedWidget.h>
+#include <vtkSlicerAbstractRepresentation.h>
+#include <vtkSlicerAbstractWidget.h>
 #include <vtkSmartPointer.h>
 #include <vtkSphereHandleRepresentation.h>
 
@@ -71,19 +70,19 @@ void vtkMRMLMarkupsDisplayableManagerHelper::PrintSelf(ostream& os, vtkIndent in
     if (widgetIterator->second &&
         widgetIterator->second->GetRepresentation())
       {
-      vtkSeedRepresentation * seedRepresentation = vtkSeedRepresentation::SafeDownCast(widgetIterator->second->GetRepresentation());
-      int numberOfSeeds = 0;
-      if (seedRepresentation)
+      vtkSlicerAbstractRepresentation * abstractRepresentation = vtkSlicerAbstractRepresentation::SafeDownCast(widgetIterator->second->GetRepresentation());
+      int numberOfNodes = 0;
+      if (abstractRepresentation)
         {
-        numberOfSeeds = seedRepresentation->GetNumberOfSeeds();
+        numberOfNodes = abstractRepresentation->GetNumberOfNodes();
         }
       else
         {
-        vtkWarningMacro("PrintSelf: no seed representation for widget assoc with markups node " << widgetIterator->first->GetID());
+        vtkWarningMacro("PrintSelf: no representation for widget assoc with markups node " << widgetIterator->first->GetID());
         }
       os << indent.GetNextIndent().GetNextIndent() << "enabled = "
         << widgetIterator->second->GetEnabled()
-        << ", number of seeds = " << numberOfSeeds << std::endl;
+        << ", number of nodes = " << numberOfNodes << std::endl;
       }
     }
 
@@ -108,16 +107,11 @@ void vtkMRMLMarkupsDisplayableManagerHelper::PrintSelf(ostream& os, vtkIndent in
 //---------------------------------------------------------------------------
 vtkMRMLMarkupsDisplayableManagerHelper::vtkMRMLMarkupsDisplayableManagerHelper()
 {
-  this->SeedWidget = 0;
 }
 
 //---------------------------------------------------------------------------
 vtkMRMLMarkupsDisplayableManagerHelper::~vtkMRMLMarkupsDisplayableManagerHelper()
 {
-  if(this->SeedWidget)
-    {
-    this->RemoveSeeds();
-    }
   this->RemoveAllWidgetsAndNodes();
 }
 
@@ -182,14 +176,14 @@ void vtkMRMLMarkupsDisplayableManagerHelper::UpdateLocked(vtkMRMLMarkupsNode *no
                                                           vtkMRMLInteractionNode *interactionNode)
 {
   // Sanity checks
-  if (node == 0)
+  if (node == nullptr)
     {
     return;
     }
 
-  vtkAbstractWidget * widget = this->GetWidget(node);
+  vtkSlicerAbstractWidget * widget = this->GetWidget(node);
   // A widget is expected
-  if(widget == 0)
+  if(widget == nullptr)
     {
     return;
     }
@@ -217,15 +211,15 @@ void vtkMRMLMarkupsDisplayableManagerHelper::UpdateLocked(vtkMRMLMarkupsNode *no
   else if (!isLockedOnInteraction && !isLockedOnNode && isLockedOnWidget)
     {
     widget->ProcessEventsOn();
-    // is it a seed widget that can support individually locked seeds?
-    vtkSeedWidget *seedWidget = vtkSeedWidget::SafeDownCast(widget);
-    if (seedWidget)
+    //TO DO: imeplemnt locking for single point
+    // is it a widget that can support individually locked points?
+    /*vtkSlicerAbstractWidget *abstractWidget = vtkSlicerAbstractWidget::SafeDownCast(widget);
+    if (abstractWidget)
       {
-      vtkDebugMacro("UpdateLocked: have a seed widget, list unlocked, checking seeds");
       int numMarkups = node->GetNumberOfMarkups();
       for (int i = 0; i < numMarkups; i++)
         {
-        if (seedWidget->GetSeed(i) == NULL)
+        if (abstractWidget-> == NULL)
           {
           vtkErrorMacro("UpdateLocked: missing seed at index " << i);
           continue;
@@ -245,61 +239,60 @@ void vtkMRMLMarkupsDisplayableManagerHelper::UpdateLocked(vtkMRMLMarkupsNode *no
           seedWidget->GetSeed(i)->EnableTranslationOn();
           }
         }
-      }
+      }*/
     }
 }
 
 //---------------------------------------------------------------------------
-vtkAbstractWidget * vtkMRMLMarkupsDisplayableManagerHelper::GetWidget(vtkMRMLMarkupsNode * node)
+vtkSlicerAbstractWidget * vtkMRMLMarkupsDisplayableManagerHelper::GetWidget(vtkMRMLMarkupsNode * node)
 {
   if (!node)
     {
-    return 0;
+    return nullptr;
     }
 
   // Make sure the map contains a vtkWidget associated with this node
   WidgetsIt it = this->Widgets.find(node);
   if (it == this->Widgets.end())
     {
-    // std::cout << "GetWidget: no widget for node " << node->GetID() << std::endl;
-    return 0;
+    return nullptr;
     }
 
   return it->second;
 }
 
 //---------------------------------------------------------------------------
-vtkAbstractWidget * vtkMRMLMarkupsDisplayableManagerHelper::GetIntersectionWidget(
+vtkSlicerAbstractWidget * vtkMRMLMarkupsDisplayableManagerHelper::GetIntersectionWidget(
     vtkMRMLMarkupsNode * node)
 {
   if (!node)
     {
-    return 0;
+    return nullptr;
     }
 
   // Make sure the map contains a vtkWidget associated with this node
   WidgetIntersectionsIt it = this->WidgetIntersections.find(node);
   if (it == this->WidgetIntersections.end())
     {
-    return 0;
+    return nullptr;
     }
 
   return it->second;
 }
 
 //---------------------------------------------------------------------------
-vtkAbstractWidget * vtkMRMLMarkupsDisplayableManagerHelper::GetPointProjectionWidget(std::string uniqueFiducialID)
+vtkSlicerAbstractWidget * vtkMRMLMarkupsDisplayableManagerHelper::GetPointProjectionWidget(std::string uniqueFiducialID)
 {
   if (!uniqueFiducialID.compare(""))
     {
-    return 0;
+    return nullptr;
     }
 
   // Make sure the map contains a vtkWidget associated with this uniqueFiducialID
   WidgetPointProjectionsIt it = this->WidgetPointProjections.find(uniqueFiducialID);
   if (it == this->WidgetPointProjections.end())
     {
-    return 0;
+    return nullptr;
     }
 
   return it->second;
@@ -366,7 +359,7 @@ void vtkMRMLMarkupsDisplayableManagerHelper::RemoveWidgetAndNode(
   WidgetIntersectionsIt widgetIntersectionIterator = this->WidgetIntersections.find(node);
   if (widgetIntersectionIterator != this->WidgetIntersections.end())
     {
-    // we have a vtkAbstractWidget to represent the slice intersections for this node
+    // we have a vtkSlicerAbstractWidget to represent the slice intersections for this node
     // now delete it!
     if (this->WidgetIntersections[node])
       {
@@ -381,8 +374,8 @@ void vtkMRMLMarkupsDisplayableManagerHelper::RemoveWidgetAndNode(
   // so turn it around and iterate through all the markups in all the lists,
   // then delete the widget point projections for those that don't match up to
   // points in the scene
-  vtkCollection *col = NULL;
-  if (node->GetScene() != NULL)
+  vtkCollection *col = nullptr;
+  if (node->GetScene() != nullptr)
     {
     col = node->GetScene()->GetNodesByClass("vtkMRMLMarkupsNode");
     }
@@ -393,19 +386,19 @@ void vtkMRMLMarkupsDisplayableManagerHelper::RemoveWidgetAndNode(
     col->AddItem(node);
     }
 
- unsigned int numberOfMarkupsNodes = col->GetNumberOfItems();
+ int numberOfMarkupsNodes = col->GetNumberOfItems();
  // use a map so can use find, it's markup id: list node id
  std::map<std::string, std::string> currentMarkupIDs;
- for (unsigned int i = 0; i < numberOfMarkupsNodes; ++i)
+ for (int i = 0; i < numberOfMarkupsNodes; ++i)
    {
    vtkMRMLMarkupsNode *markupsNode = vtkMRMLMarkupsNode::SafeDownCast(col->GetItemAsObject(i));
    if (!markupsNode)
      {
      continue;
      }
-   for (int n = 0; n < markupsNode->GetNumberOfMarkups(); ++n)
+   for (int n = 0; n < markupsNode->GetNumberOfControlPoints(); n++)
     {
-    std::string pointID = markupsNode->GetNthMarkupID(n);
+    std::string pointID = markupsNode->GetNthControlPointID(n);
     currentMarkupIDs[pointID] = std::string(markupsNode->GetID());
     }
    }
@@ -460,113 +453,13 @@ void vtkMRMLMarkupsDisplayableManagerHelper::RemoveWidgetAndNode(
 }
 
 //---------------------------------------------------------------------------
-// Seeds for widget placement
-//---------------------------------------------------------------------------
-
-//---------------------------------------------------------------------------
-void vtkMRMLMarkupsDisplayableManagerHelper::PlaceSeed(double x, double y, vtkRenderWindowInteractor * interactor, vtkRenderer * renderer)
-{
-  vtkDebugMacro("PlaceSeed: " << x << ":" << y)
-
-  if (!interactor)
-    {
-    vtkErrorMacro("PlaceSeed: No renderInteractor found.")
-    }
-
-  if (!renderer)
-    {
-    vtkErrorMacro("PlaceSeed: No renderer found.")
-    }
-
-  if (!this->SeedWidget)
-    {
-
-    vtkNew<vtkSphereHandleRepresentation> handle;
-    handle->GetProperty()->SetColor(1,0,0);
-    handle->SetHandleSize(5);
-
-    vtkNew<vtkSeedRepresentation> rep;
-    rep->SetHandleRepresentation(handle.GetPointer());
-
-    //seed widget
-    vtkSeedWidget * seedWidget = vtkSeedWidget::New();
-    seedWidget->SetRepresentation(rep.GetPointer());
-
-    if (interactor->GetPickingManager())
-      {
-      if (!(interactor->GetPickingManager()->GetEnabled()))
-        {
-        // if the picking manager is not already turned on for this
-        // interactor, enable it
-        interactor->GetPickingManager()->EnabledOn();
-        }
-      }
-
-    seedWidget->SetInteractor(interactor);
-    seedWidget->SetCurrentRenderer(renderer);
-
-    seedWidget->CompleteInteraction();
-    seedWidget->ManagesCursorOff();
-    seedWidget->ProcessEventsOff();
-
-
-    this->SeedWidget = seedWidget;
-
-    }
-
-  // Seed widget exists here, just add a new handle at the position x,y
-
-  double p[3] = {0,0,0};
-  p[0]=x;
-  p[1]=y;
-  p[2]=0;
-
-  //vtkNew<vtkHandleWidget, newhandle);
-  vtkHandleWidget * newhandle = this->SeedWidget->CreateNewHandle();
-  vtkHandleRepresentation::SafeDownCast(newhandle->GetRepresentation())->SetDisplayPosition(p);
-
-  this->HandleWidgetList.push_back(newhandle);
-
-  this->SeedWidget->On();
-  this->SeedWidget->CompleteInteraction();
-  this->SeedWidget->ManagesCursorOff();
-  this->SeedWidget->ProcessEventsOff();
-}
-
-//---------------------------------------------------------------------------
-void vtkMRMLMarkupsDisplayableManagerHelper::RemoveSeeds()
-{
-  while(!this->HandleWidgetList.empty())
-    {
-    this->HandleWidgetList.pop_back();
-    }
-  if (this->SeedWidget)
-    {
-    this->SeedWidget->Off();
-    this->SeedWidget->Delete();
-    this->SeedWidget = 0;
-    }
-}
-
-//---------------------------------------------------------------------------
-vtkHandleWidget * vtkMRMLMarkupsDisplayableManagerHelper::GetSeed(int index)
-{
-  if (this->HandleWidgetList.empty())
-    {
-    return 0;
-    }
-
-  return this->HandleWidgetList[index];
-}
-
-//---------------------------------------------------------------------------
 vtkMRMLMarkupsNode * vtkMRMLMarkupsDisplayableManagerHelper::GetMarkupsNodeFromDisplayNode(vtkMRMLMarkupsDisplayNode *displayNode)
 {
   if (!displayNode ||
       !displayNode->GetID())
     {
     vtkErrorMacro("GetMarkupsNodeFromDisplayNode: display node or it's id is null");
-    return NULL;
+    return nullptr;
     }
   // iterate through the node list
   for (unsigned int i = 0; i < this->MarkupsNodeList.size(); i++)
@@ -587,11 +480,11 @@ vtkMRMLMarkupsNode * vtkMRMLMarkupsDisplayableManagerHelper::GetMarkupsNodeFromD
       }
     }
   vtkDebugMacro("GetMarkupsNodeFromDisplayNode: unable to find markups node that has display node " << (displayNode->GetID() ? displayNode->GetID() : "null"));
-  return NULL;
+  return nullptr;
 }
 
 //---------------------------------------------------------------------------
-void vtkMRMLMarkupsDisplayableManagerHelper::RecordWidgetForNode(vtkAbstractWidget* widget, vtkMRMLMarkupsNode *node)
+void vtkMRMLMarkupsDisplayableManagerHelper::RecordWidgetForNode(vtkSlicerAbstractWidget* widget, vtkMRMLMarkupsNode *node)
 {
   if (!widget)
     {
@@ -618,12 +511,12 @@ int vtkMRMLMarkupsDisplayableManagerHelper::GetNodeGlyphType(vtkMRMLNode *displa
     // no record for this node
     return -1;
     }
-  if (index < 0 || iter->second.size() <= (unsigned int)index)
+  if (index < 0 || iter->second.size() <= static_cast<unsigned int> (index))
     {
     // no entry for this index
     return -1;
     }
-  return iter->second[index];
+  return iter->second[static_cast<size_t> (index)];
 }
 
 //---------------------------------------------------------------------------
@@ -639,20 +532,20 @@ void vtkMRMLMarkupsDisplayableManagerHelper::SetNodeGlyphType(vtkMRMLNode *displ
     {
     // no? add one
     std::vector<int> newEntry;
-    newEntry.resize(index + 1);
-    newEntry.at(index) = glyphType;
+    newEntry.resize(static_cast<size_t> (index + 1));
+    newEntry.at(static_cast<size_t> (index)) = glyphType;
     this->NodeGlyphTypes[displayNode] = newEntry;
     return;
     }
 
   // is there already an entry at this index?
-  if (iter->second.size() <= (unsigned int)index)
+  if (iter->second.size() <= static_cast<unsigned int> (index))
     {
     // no? add space
-    this->NodeGlyphTypes[displayNode].resize(index + 1);
+    this->NodeGlyphTypes[displayNode].resize(static_cast<size_t> (index + 1));
     }
   // set it
-  this->NodeGlyphTypes[displayNode].at(index) = glyphType;
+  this->NodeGlyphTypes[displayNode].at(static_cast<size_t> (index)) = glyphType;
 }
 
 //---------------------------------------------------------------------------

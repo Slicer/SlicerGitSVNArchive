@@ -67,6 +67,13 @@ public:
   vtkGetMacro(TextScale,double);
   vtkSetMacro(TextScale,double);
 
+  /// Set the text visibility of the display node.
+  vtkSetMacro(TextVisibility, int);
+  /// Get the text visibility of the display node.
+  vtkGetMacro(TextVisibility, int);
+  /// Set the text visibility of the display node.
+  vtkBooleanMacro(TextVisibility, int);
+
   /// Which kind of glyph should be used to display this markup?
   /// Vertex2D is supposed to start at 1
   enum GlyphShapes
@@ -183,6 +190,7 @@ protected:
   vtkMRMLMarkupsDisplayNode( const vtkMRMLMarkupsDisplayNode& );
   void operator= ( const vtkMRMLMarkupsDisplayNode& );
 
+  bool TextVisibility;
   double TextScale;
   int GlyphType;
   double GlyphScale;
