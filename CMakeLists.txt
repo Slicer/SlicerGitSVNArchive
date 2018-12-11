@@ -302,6 +302,11 @@ mark_as_superbuild(Slicer_INSTALL_ITKPython)
 option(Slicer_BUILD_PARAMETERSERIALIZER_SUPPORT "Build Slicer with parameter serializer support" ON)
 mark_as_superbuild(Slicer_BUILD_PARAMETERSERIALIZER_SUPPORT)
 
+set(_default_itk "5")
+set(Slicer_ITK_VERSION_MAJOR ${_default_itk} CACHE STRING "The ITK major version (4 or 5).")
+set_property(CACHE Slicer_ITK_VERSION_MAJOR PROPERTY STRINGS "4" "5")
+mark_as_superbuild(Slicer_ITK_VERSION_MAJOR)
+
 set(_default_vtk "7")
 if(DEFINED Qt5_DIR OR CMAKE_CXX_STANDARD MATCHES "^([1][0-9])$")
   set(_default_vtk "8")

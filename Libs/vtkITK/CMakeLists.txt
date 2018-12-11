@@ -25,6 +25,10 @@ endif()
 #find_package(VTK REQUIRED)
 #include(${VTK_USE_FILE})
 
+if(Slicer_ITK_VERSION_MAJOR GREATER_EQUAL 5)
+  set(ITKv5_DeprecatedLib ITKDeprecated)
+endif()
+
 #
 # ITK
 #
@@ -45,6 +49,7 @@ set(${PROJECT_NAME}_ITK_COMPONENTS
   ITKRegionGrowing
   ITKThresholding
   ITKVTK
+  ${ITKv5_DeprecatedLib} # Needed for ITKv5 for the SimpleFastMutexLock is needed as an alias to 
   )
 find_package(ITK 4.6 COMPONENTS ${${PROJECT_NAME}_ITK_COMPONENTS} REQUIRED)
 set(ITK_NO_IO_FACTORY_REGISTER_MANAGER 1) # See Libs/ITKFactoryRegistration/CMakeLists.txt
