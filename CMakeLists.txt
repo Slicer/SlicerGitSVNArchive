@@ -1,19 +1,56 @@
-cmake_minimum_required(VERSION 3.5)
-
-#-----------------------------------------------------------------------------
-# Enable C++11
-#-----------------------------------------------------------------------------
-set(_msg "Setting C++ standard")
-message(STATUS "${_msg}")
-if(NOT DEFINED CMAKE_CXX_STANDARD)
-  if("${Slicer_VTK_VERSION_MAJOR}" STREQUAL "8" OR DEFINED Qt5_DIR)
-    set(CMAKE_CXX_STANDARD 11)
-  else()
-    set(CMAKE_CXX_STANDARD 98)
-  endif()
+# ==== Define cmake build policies that affect compilation and linkage default behaviors
+#
+# Set the SLICER_NEWEST_VALIDATED_POLICIES_VERSION string to the newest cmake version
+# policies that provide successful builds. By setting SLICER_NEWEST_VALIDATED_POLICIES_VERSION
+# to a value greater than the oldest policies, all policies between
+# SLICER_OLDEST_VALIDATED_POLICIES_VERSION and CMAKE_VERSION (used for this build)
+# are set to their NEW behaivor, thereby suppressing policy warnings related to policies
+# between the SLICER_OLDEST_VALIDATED_POLICIES_VERSION and CMAKE_VERSION.
+#
+# CMake versions greater than the SLICER_NEWEST_VALIDATED_POLICIES_VERSION policies will
+# continue to generate policy warnings "CMake Warning (dev)...Policy CMP0XXX is not set:"
+#
+set(SLICER_OLDEST_VALIDATED_POLICIES_VERSION "3.5")
+set(SLICER_NEWEST_VALIDATED_POLICIES_VERSION "3.13.1")
+cmake_minimum_required(VERSION ${SLICER_OLDEST_VALIDATED_POLICIES_VERSION} FATAL_ERROR)
+if("${CMAKE_VERSION}" VERSION_LESS_EQUAL "${SLICER_NEWEST_VALIDATED_POLICIES_VERSION}")
+  #Set and use the newest available cmake policies that are validated to work
+  set(SLICER_CMAKE_POLICY_VERSION "${CMAKE_VERSION}")
+else()
+  set(SLICER_CMAKE_POLICY_VERSION "${SLICER_NEWEST_VALIDATED_POLICIES_VERSION}")
 endif()
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
+cmake_policy(VERSION ${SLICER_CMAKE_POLICY_VERSION})
+#
+# Now enumerate specific policies newer than SLICER_NEWEST_VALIDATED_POLICIES_VERSION
+# that may need to be individually set to NEW/OLD
+#
+foreach(pnew "") # Currently Empty
+  if(POLICY ${pnew})
+    cmake_policy(SET ${pnew} NEW)
+  endif()
+endforeach()
+foreach(pold "") # Currently Empty
+  if(POLICY ${pold})
+    cmake_policy(SET ${pold} OLD)
+  endif()
+endforeach()
+
+# ==== Define language standard configurations requiring at least c++11 standard
+if(CMAKE_CXX_STANDARD EQUAL "98" )
+   message(FATAL_ERROR "CMAKE_CXX_STANDARD:STRING=98 is not supported in Slicer 4.11 and greater.")
+endif()
+
+#####
+##  Set the default target properties for ITK
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 11) # Supported values are ``11``, ``14``, and ``17``.
+endif()
+if(NOT CMAKE_CXX_STANDARD_REQUIRED)
+  set(CMAKE_CXX_STANDARD_REQUIRED ON)
+endif()
+if(NOT CMAKE_CXX_EXTENSIONS)
+  set(CMAKE_CXX_EXTENSIONS OFF)
+endif()
 message(STATUS "${_msg} - C++${CMAKE_CXX_STANDARD}")
 
 #-----------------------------------------------------------------------------
