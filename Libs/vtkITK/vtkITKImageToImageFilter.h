@@ -122,14 +122,22 @@ public:
   /// Pass SetNumberOfThreads.
   void SetNumberOfThreads(int val)
   {
+#if ITK_VERSION_MAJOR >= 5
+    this->m_Process->SetNumberOfWorkUnits(val);
+#else
     this->m_Process->SetNumberOfThreads(val);
+#endif
   };
 
   ///
   /// Pass SetNumberOfThreads.
   int GetNumberOfThreads()
   {
+#if ITK_VERSION_MAJOR >= 5
+    return this->m_Process->GetNumberOfWorkUnits();
+#else
     return this->m_Process->GetNumberOfThreads();
+#endif
   };
 
   ///

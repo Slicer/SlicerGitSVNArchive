@@ -698,7 +698,11 @@ int main( int argc, char * argv[] )
       {
       std::cout << "###numberOfThreads: " << numberOfThreads << std::endl;
       }
-    itk::MultiThreader::SetGlobalDefaultNumberOfThreads(numberOfThreads);
+#if ITK_VERSION_MAJOR >= 5
+    itk::MultiThreaderBase::SetGlobalDefaultNumberOfThreads(numberOfThreads);
+#else
+     itk::MultiThreader::SetGlobalDefaultNumberOfThreads(numberOfThreads);
+#endif
     }
 
   unsigned int                      fixedDimensions = 0;
