@@ -51,12 +51,14 @@ public:
 
   virtual void ComputeJacobianWithRespectToParameters(const InputPointType  & p, JacobianType & jacobian ) const ITK_OVERRIDE;
 
+#if ITK_VERSION_MAJOR < 5
   virtual void ComputeJacobianWithRespectToPosition(
     const InputPointType & itkNotUsed(x),
     JacobianType & itkNotUsed(j) ) const ITK_OVERRIDE
   {
     itkExceptionMacro("ComputeJacobianWithRespectToPosition is not implemented for WarpTransform3D");
   }
+#endif
 
   void SetDeformationField( DeformationImagePointerType deformationField );
 
