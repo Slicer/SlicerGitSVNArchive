@@ -302,6 +302,17 @@ mark_as_superbuild(Slicer_INSTALL_ITKPython)
 option(Slicer_BUILD_PARAMETERSERIALIZER_SUPPORT "Build Slicer with parameter serializer support" ON)
 mark_as_superbuild(Slicer_BUILD_PARAMETERSERIALIZER_SUPPORT)
 
+set(_default_itk "4")
+set(Slicer_ITK_VERSION_MAJOR ${_default_itk} CACHE STRING "The ITK major version (4 or 5).")
+set_property(CACHE Slicer_ITK_VERSION_MAJOR PROPERTY STRINGS "4" "5")
+mark_as_superbuild(Slicer_ITK_VERSION_MAJOR)
+
+# Fail early if cmake version is insufficient to support ITKv5, Once ITK becomes the standard,
+# then Slicer will need to require 3.10.2 as well.
+if(_default_itk GREATER_EQUAL 5)                                                                                                                                                                                                                                      
+  cmake_minimum_required(VERSION 3.10.2 REQUIRED)                                                                                                                                                                                                                       
+endif()       
+
 set(_default_vtk "7")
 if(DEFINED Qt5_DIR)
   set(_default_vtk "8")

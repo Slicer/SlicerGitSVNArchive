@@ -25,6 +25,19 @@ endif()
 
 if(NOT DEFINED ITK_DIR AND NOT Slicer_USE_SYSTEM_${proj})
 
+ if( ${Slicer_ITK_VERSION_MAJOR} GREATER_EQUAL 5)
+  ExternalProject_SetIfNotDefined(
+    Slicer_${proj}_GIT_REPOSITORY
+    "${EP_GIT_PROTOCOL}://itk.org/ITK.git"
+    QUIET
+    )
+
+  ExternalProject_SetIfNotDefined(
+    Slicer_${proj}_GIT_TAG
+    "249aef0152d193d21677d3ba0b891f3abd606090" # 2018-12-11
+    QUIET
+    )
+ else()
   ExternalProject_SetIfNotDefined(
     Slicer_${proj}_GIT_REPOSITORY
     "${EP_GIT_PROTOCOL}://github.com/Slicer/ITK.git"
@@ -36,6 +49,7 @@ if(NOT DEFINED ITK_DIR AND NOT Slicer_USE_SYSTEM_${proj})
     "87f5d83f15929900aea038abed43d46a14b69886" # slicer-v4.13.1-2018-08-17-cdc3e57
     QUIET
     )
+ endif()
 
   set(EXTERNAL_PROJECT_OPTIONAL_CMAKE_CACHE_ARGS)
 
@@ -79,6 +93,20 @@ if(NOT DEFINED ITK_DIR AND NOT Slicer_USE_SYSTEM_${proj})
   set(EP_SOURCE_DIR ${CMAKE_BINARY_DIR}/${proj})
   set(EP_BINARY_DIR ${CMAKE_BINARY_DIR}/${proj}-build)
 
+  if( ${Slicer_ITK_VERSION_MAJOR} GREATER_EQUAL 5)
+    list(APPEND EXTERNAL_PROJECT_OPTIONAL_CMAKE_CACHE_ARGS
+      -DITK_LEGACY_REMOVE:BOOL=OFF   #<-- Allow LEGACY ITKv4 features for now.
+      -DITK_LEGACY_SILENT:BOOL=ON    #<-- Silence for initial ITKv5 migrations.
+      -DModule_ITKDeprecated:BOOL=ON #<-- Needed for ITKv5 now. (itkMultiThreader.h and MutexLock backwards compatibility.)
+    )
+  else()
+    list(APPEND EXTERNAL_PROJECT_OPTIONAL_CMAKE_CACHE_ARGS
+      -DITK_LEGACY_REMOVE:BOOL=ON
+      -DITK_LEGACY_SILENT:BOOL=OFF
+      -DITKV3_COMPATIBILITY:BOOL=OFF
+    )
+  endif()
+
   ExternalProject_Add(${proj}
     ${${proj}_EP_ARGS}
     GIT_REPOSITORY "${Slicer_${proj}_GIT_REPOSITORY}"
@@ -97,8 +125,6 @@ if(NOT DEFINED ITK_DIR AND NOT Slicer_USE_SYSTEM_${proj})
       -DITK_INSTALL_LIBRARY_DIR:PATH=${Slicer_INSTALL_LIB_DIR}
       -DBUILD_TESTING:BOOL=OFF
       -DBUILD_EXAMPLES:BOOL=OFF
-      -DITK_LEGACY_REMOVE:BOOL=ON
-      -DITKV3_COMPATIBILITY:BOOL=OFF
       -DITK_BUILD_DEFAULT_MODULES:BOOL=ON
       -DModule_ITKReview:BOOL=ON
       -DModule_MGHIO:BOOL=ON
