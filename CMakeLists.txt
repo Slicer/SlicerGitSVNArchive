@@ -776,6 +776,7 @@ message(STATUS "Configuring ${Slicer_MAIN_PROJECT_APPLICATION_NAME} for [${Slice
 #-----------------------------------------------------------------------------
 if(Slicer_SUPERBUILD)
   include("${CMAKE_CURRENT_SOURCE_DIR}/SuperBuild.cmake")
+  include(SlicerTestCXX11Features)  #Test necessary cmake features upfront
   return()
 endif()
 
