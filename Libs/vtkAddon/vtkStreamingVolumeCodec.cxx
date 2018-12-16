@@ -221,12 +221,12 @@ std::vector<std::string> vtkStreamingVolumeCodec::GetParameterPresetNames() cons
 }
 
 //------------------------------------------------------------------------------
-std::string vtkStreamingVolumeCodec::GetParameterPreset(const std::string& name) const
+std::string vtkStreamingVolumeCodec::GetParameterPresetValue(const std::string& presetName) const
 {
   std::vector<ParameterPreset>::const_iterator presetIt;
   for (presetIt = this->ParameterPresets.begin(); presetIt != this->ParameterPresets.end(); ++presetIt)
     {
-    if (presetIt->Name == name)
+    if (presetIt->Name == presetName)
       {
       break;
       }
@@ -235,7 +235,7 @@ std::string vtkStreamingVolumeCodec::GetParameterPreset(const std::string& name)
     {
     return "";
     }
-  return presetIt->Parameter;
+  return presetIt->Value;
 }
 
 //------------------------------------------------------------------------------
@@ -244,7 +244,7 @@ std::string vtkStreamingVolumeCodec::GetParameterPresetName(const std::string& p
   std::vector<ParameterPreset>::const_iterator presetIt;
   for (presetIt = this->ParameterPresets.begin(); presetIt != this->ParameterPresets.end(); ++presetIt)
     {
-    if (presetIt->Parameter == parameter)
+    if (presetIt->Value == parameter)
       {
       break;
       }
