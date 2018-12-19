@@ -333,7 +333,7 @@ class SampleDataLogic(object):
   def registerCustomSampleDataSource(category='Custom',
     sampleName=None, uris=None, fileNames=None, nodeNames=None,
     customDownloader=None, thumbnailFileName=None,
-    loadFileType='VolumeFile', loadFileProperties={}):
+    loadFileType='VolumeFile', loadFiles=None, loadFileProperties={}):
     """Adds custom data sets to SampleData.
     :param category: Section title of data set in SampleData module GUI.
     :param sampleName: Displayed name of data set in SampleData module GUI.
@@ -361,6 +361,7 @@ class SampleDataLogic(object):
       nodeNames=nodeNames,
       thumbnailFileName=thumbnailFileName,
       loadFileType=loadFileType,
+      loadFiles=loadFiles,
       loadFileProperties=loadFileProperties
       ))
 
