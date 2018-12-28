@@ -45,11 +45,9 @@ if(NOT DEFINED DCMTK_DIR AND NOT Slicer_USE_SYSTEM_${proj})
       -DCMAKE_CXX_STANDARD_REQUIRED:BOOL=${CMAKE_CXX_STANDARD_REQUIRED}
       -DCMAKE_CXX_EXTENSIONS:BOOL=${CMAKE_CXX_EXTENSIONS}
       )
-    if(NOT CMAKE_CXX_STANDARD EQUAL 98)
-      list(APPEND ep_cxx_standard_args
+    list(APPEND ep_cxx_standard_args
       -DDCMTK_ENABLE_CXX11:BOOL=ON
-      )
-    endif()
+    )
   endif()
 
   ExternalProject_SetIfNotDefined(
