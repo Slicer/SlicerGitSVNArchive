@@ -132,6 +132,7 @@ if(APPLE)
   # QT 5.10.0 only supports 10.11, 10.12, 10.13
   # QT 5.9.0  only supports 10.10, 10.11, 10.12
   # QT 5.8.0  only supports 10.9, 10.10, 10.11, 10.12
+  set(required_deployment_target "10.9") # NOTE 10.12 is supported by Qt 5.8-5.12
   if(DEFINED Slicer_SOURCE_DIR AND DEFINED Qt5_DIR)
     set(required_deployment_target "10.12") # NOTE 10.12 is supported by Qt 5.8-5.12
   endif()
