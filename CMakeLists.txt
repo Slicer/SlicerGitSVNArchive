@@ -6,7 +6,7 @@ cmake_minimum_required(VERSION 3.5)
 set(_msg "Setting C++ standard")
 message(STATUS "${_msg}")
 if(NOT DEFINED CMAKE_CXX_STANDARD)
- set(CMAKE_CXX_STANDARD 11)
+ set(CMAKE_CXX_STANDARD 14) # NOTE: Qt 5.12.0 requires C++14 for supporting QtWebEngine
 endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -156,10 +156,19 @@ mark_as_superbuild(Patch_EXECUTABLE)
 # Qt requirements
 #-----------------------------------------------------------------------------
 if(NOT DEFINED Slicer_REQUIRED_QT_VERSION)
+  # NOTE: Qt 5.12.0 is the first version to support MacOSX Mojave.
   set(_required_qt_version "5.12.0")
   set(Slicer_REQUIRED_QT_VERSION ${_required_qt_version} CACHE STRING "Minimum required Qt version" FORCE)
 endif()
 mark_as_superbuild(Slicer_REQUIRED_QT_VERSION)
+
+if(Slicer_REQUIRED_QT_VERSION VERSION_GREATER_EQUAL "5.12.0" AND CMAKE_CXX_STANDARD LESS 14 )
+  #https://stackoverflow.com/questions/32787244/can-i-use-c14-in-a-library-meant-for-c11-client-applications
+  # NOTE: It may be possible to build Slicer with C++11, and Qt wtih C++14
+  #       but initial conversion is going to require that both are C++14 in order
+  #       avoid unknown incompatibiliites in the inital updates.
+  message(FATAL_ERROR "Qt 5.12.0 requires C++14 features in order to build QtWebEngine")
+endif()
 
 #-----------------------------------------------------------------------------
 # Build shared lib by default
