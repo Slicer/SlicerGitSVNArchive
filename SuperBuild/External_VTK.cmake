@@ -92,10 +92,8 @@ if((NOT DEFINED VTK_DIR OR NOT DEFINED VTK_SOURCE_DIR) AND NOT Slicer_USE_SYSTEM
       #-DVTK_USE_RPATH:BOOL=ON # Unused
       )
   endif()
-  if("${Slicer_VTK_VERSION_MAJOR}" GREATER_EQUAL "8")
-    if (CMAKE_CXX_STANDARD GREATER_EQUAL 11)
-      list(APPEND EXTERNAL_PROJECT_OPTIONAL_CMAKE_CACHE_ARGS -DVTK_USE_CXX11_FEATURES:BOOL=ON)
-    endif()
+  if (CMAKE_CXX_STANDARD GREATER_EQUAL 11)
+    list(APPEND EXTERNAL_PROJECT_OPTIONAL_CMAKE_CACHE_ARGS -DVTK_USE_CXX11_FEATURES:BOOL=ON)
   endif()
   if(UNIX AND NOT APPLE)
     find_package(FontConfig QUIET)
@@ -120,9 +118,7 @@ if((NOT DEFINED VTK_DIR OR NOT DEFINED VTK_SOURCE_DIR) AND NOT Slicer_USE_SYSTEM
     )
 
 set(_git_tag)
-if("${Slicer_VTK_VERSION_MAJOR}" STREQUAL "7")
-  set(_git_tag "43f6ee36f6e28c8347768bd97df4d767da6b4ce7")
-elseif("${Slicer_VTK_VERSION_MAJOR}" STREQUAL "8")
+if("${Slicer_VTK_VERSION_MAJOR}" STREQUAL "8")
   set(_git_tag "99797966b61cb208a4c50d7cace0f875dbae69b9")
 else()
   message(FATAL_ERROR "error: Unsupported Slicer_VTK_VERSION_MAJOR: ${Slicer_VTK_VERSION_MAJOR}")
@@ -201,20 +197,13 @@ endif()
     )
 
   # pythonpath
-  if(Slicer_VTK_VERSION_MAJOR VERSION_GREATER 7)
-    if(UNIX)
-      set(${proj}_PYTHONPATH_LAUNCHER_BUILD
-        ${VTK_DIR}/${_library_output_subdir}/python2.7/site-packages
-        )
-    else()
-      set(${proj}_PYTHONPATH_LAUNCHER_BUILD
-        ${VTK_DIR}/${_library_output_subdir}/<CMAKE_CFG_INTDIR>/Lib/site-packages
-        )
-    endif()
+  if(UNIX)
+    set(${proj}_PYTHONPATH_LAUNCHER_BUILD
+      ${VTK_DIR}/${_library_output_subdir}/python2.7/site-packages
+      )
   else()
     set(${proj}_PYTHONPATH_LAUNCHER_BUILD
-      ${VTK_DIR}/Wrapping/Python
-      ${VTK_DIR}/${_library_output_subdir}/<CMAKE_CFG_INTDIR>
+      ${VTK_DIR}/${_library_output_subdir}/<CMAKE_CFG_INTDIR>/Lib/site-packages
       )
   endif()
 

@@ -6,7 +6,7 @@ cmake_minimum_required(VERSION 3.5)
 set(_msg "Setting C++ standard")
 message(STATUS "${_msg}")
 if(NOT DEFINED CMAKE_CXX_STANDARD)
-  if("${Slicer_VTK_VERSION_MAJOR}" STREQUAL "8" OR DEFINED Qt5_DIR)
+  if(DEFINED Qt5_DIR)
     set(CMAKE_CXX_STANDARD 11)
   else()
     set(CMAKE_CXX_STANDARD 98)
@@ -160,10 +160,7 @@ mark_as_superbuild(Patch_EXECUTABLE)
 # Qt requirements
 #-----------------------------------------------------------------------------
 if(NOT DEFINED Slicer_REQUIRED_QT_VERSION)
-  set(_required_qt_version "4.7.4")
-  if(DEFINED Qt5_DIR OR "${Slicer_VTK_VERSION_MAJOR}" MATCHES "^(8|9)$" OR CMAKE_CXX_STANDARD MATCHES "^([1][0-9])$")
-    set(_required_qt_version "5.6.0")
-  endif()
+  set(_required_qt_version "5.12.0")
   set(Slicer_REQUIRED_QT_VERSION ${_required_qt_version} CACHE STRING "Minimum required Qt version" FORCE)
 endif()
 mark_as_superbuild(Slicer_REQUIRED_QT_VERSION)
@@ -307,18 +304,15 @@ set(Slicer_ITK_VERSION_MAJOR ${_default_itk} CACHE STRING "The ITK major version
 set_property(CACHE Slicer_ITK_VERSION_MAJOR PROPERTY STRINGS "4" "5")
 mark_as_superbuild(Slicer_ITK_VERSION_MAJOR)
 
-set(_default_vtk "7")
-if(DEFINED Qt5_DIR OR CMAKE_CXX_STANDARD MATCHES "^([1][0-9])$")
-  set(_default_vtk "8")
-endif()
-set(Slicer_VTK_VERSION_MAJOR ${_default_vtk} CACHE STRING "The VTK major version (7 or 8).")
-set_property(CACHE Slicer_VTK_VERSION_MAJOR PROPERTY STRINGS "7" "8")
-if(NOT "${Slicer_VTK_VERSION_MAJOR}" MATCHES "^(7|8)$")
+set(_default_vtk "8")
+set(Slicer_VTK_VERSION_MAJOR ${_default_vtk} CACHE STRING "The VTK major version  greater than 8.")
+set_property(CACHE Slicer_VTK_VERSION_MAJOR PROPERTY STRINGS "8")
+if(NOT "${Slicer_VTK_VERSION_MAJOR}" MATCHES "^(8)$")
   if("${Slicer_VTK_VERSION_MAJOR}" STREQUAL "9")
-    set(Slicer_VTK_VERSION_MAJOR 8 CACHE STRING "The VTK major version (7 or 8)." FORCE)
+    set(Slicer_VTK_VERSION_MAJOR 8 CACHE STRING "The VTK major version greater 8." FORCE)
     message(WARNING "Forcing Slicer_VTK_VERSION_MAJOR to 8 because VTK version was changed from 9.0 to 8.2. See http://vtk.1045678.n5.nabble.com/Discussion-OK-to-change-VTK-s-version-number-from-9-0-to-8-2-tt5748702.html")
   else()
-    message(FATAL_ERROR "error: Slicer_VTK_VERSION_MAJOR must be 7 or 8.")
+    message(FATAL_ERROR "error: Slicer_VTK_VERSION_MAJOR must be 8.")
   endif()
 endif()
 mark_as_superbuild(Slicer_VTK_VERSION_MAJOR)
@@ -463,11 +457,7 @@ set(Slicer_EXTENSIONS_DIRNAME "${Slicer_EXTENSIONS_DIRBASENAME}-${Slicer_WC_REVI
 #-----------------------------------------------------------------------------
 # Slicer VTK Options
 #-----------------------------------------------------------------------------
-if(Slicer_VTK_VERSION_MAJOR STREQUAL "7")
-  set(_backend "OpenGL")
-else()
-  set(_backend "OpenGL2")
-endif()
+set(_backend "OpenGL2")
 set(Slicer_VTK_RENDERING_BACKEND "${_backend}" CACHE STRING "Rendering backend." FORCE)
 mark_as_superbuild(Slicer_VTK_RENDERING_BACKEND)
 set(Slicer_VTK_RENDERING_USE_${Slicer_VTK_RENDERING_BACKEND}_BACKEND 1)
@@ -697,12 +687,7 @@ else()
 endif()
 
 # Prefer QVTKOpenGLWidget to QVTKWidget when supported
-set(Slicer_VTK_USE_QVTKOPENGLWIDGET 1)
-if(Slicer_REQUIRED_QT_VERSION VERSION_LESS "5"
-    OR Slicer_VTK_VERSION_MAJOR VERSION_LESS "8"
-    OR NOT Slicer_VTK_RENDERING_USE_OpenGL2_BACKEND)
-  set(Slicer_VTK_USE_QVTKOPENGLWIDGET 0)
-endif()
+set(Slicer_VTK_USE_QVTKOPENGLWIDGET 1) # TODO: Remove this variable. Only supported value is 1!
 
 #-----------------------------------------------------------------------------
 # Testing

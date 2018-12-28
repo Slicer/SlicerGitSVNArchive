@@ -124,13 +124,16 @@ if(APPLE)
     endif()
   endif()
 
-  if(DEFINED Slicer_SOURCE_DIR AND ("${Slicer_VTK_VERSION_MAJOR}" STREQUAL "8" OR DEFINED Qt5_DIR))
-    # Require minimum deployment target of 10.9. In 10.9 libc++ replaces libstdc++
-    # as the default runtime. Requiring this minimum ensures that all libraries
-    # use libc++.
-    set(required_deployment_target "10.9")
-  else()
-    set(required_deployment_target "10.6")
+  # http://doc.qt.io/qt-5/supported-platforms.html
+  # QT 5.12.0 only support 10.12, 10.13, 10.14
+  #
+  # https://doc.qt.io/qt-5.11/supported-platforms-and-configurations.html
+  # QT 5.11.0 only supports 10.11, 10.12, 10.13
+  # QT 5.10.0 only supports 10.11, 10.12, 10.13
+  # QT 5.9.0  only supports 10.10, 10.11, 10.12
+  # QT 5.8.0  only supports 10.9, 10.10, 10.11, 10.12
+  if(DEFINED Slicer_SOURCE_DIR AND DEFINED Qt5_DIR)
+    set(required_deployment_target "10.12") # NOTE 10.12 is supported by Qt 5.8-5.12
   endif()
   if(CMAKE_OSX_DEPLOYMENT_TARGET VERSION_LESS ${required_deployment_target})
     message(FATAL_ERROR "CMAKE_OSX_DEPLOYMENT_TARGET must be ${required_deployment_target} or greater.")
