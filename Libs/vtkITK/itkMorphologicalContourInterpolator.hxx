@@ -349,17 +349,30 @@ MorphologicalContourInterpolator< TImage >
     m_CrossDilator[threadId] = CrossDilateType::New();
     m_BallDilator[threadId] = BallDilateType::New();
     m_And[threadId] = AndFilterType::New();
+#if ITK_VERSION_MAJOR >= 5
+    m_And[threadId]->SetNumberOfWorkUnits( 1 ); // excessive threading is counterproductive
+#else
     m_And[threadId]->SetNumberOfThreads( 1 ); // excessive threading is counterproductive
+#endif
     typedef Size< BoolSliceType::ImageDimension > SizeType;
     SizeType size;
     size.Fill( 1 );
 
+#if ITK_VERSION_MAJOR >= 5
+    m_CrossDilator[threadId]->SetNumberOfWorkUnits( 1 ); // excessive threading is counterproductive
+#else
     m_CrossDilator[threadId]->SetNumberOfThreads( 1 ); // excessive threading is counterproductive
+#endif
     m_CrossStructuringElement[threadId].SetRadius( size );
     m_CrossStructuringElement[threadId].CreateStructuringElement();
     m_CrossDilator[threadId]->SetKernel( m_CrossStructuringElement[threadId] );
 
+#if ITK_VERSION_MAJOR >= 5
+    m_BallDilator[threadId]->SetNumberOfWorkUnits( 1 ); // excessive threading is counterproductive
+#else
     m_BallDilator[threadId]->SetNumberOfThreads( 1 ); // excessive threading is counterproductive
+#endif
+
     m_BallStructuringElement[threadId].SetRadius( size );
     m_BallStructuringElement[threadId].CreateStructuringElement();
     m_BallDilator[threadId]->SetKernel( m_BallStructuringElement[threadId] );
@@ -439,7 +452,11 @@ MorphologicalContourInterpolator< TImage >
   if ( !initialized[threadId] )
     {
     m_Or[threadId] = OrType::New();
+#if ITK_VERSION_MAJOR >= 5
+    m_Or[threadId]->SetNumberOfWorkUnits( 1 ); // excessive threading is counterproductive
+#else
     m_Or[threadId]->SetNumberOfThreads( 1 ); // excessive threading is counterproductive
+#endif
     initialized[threadId] = true;
     }
 
@@ -484,7 +501,11 @@ MorphologicalContourInterpolator< TImage >
     {
     filter[threadId] = FilterType::New();
     filter[threadId]->SetUseImageSpacing( false ); // interpolation algorithm calls for working in index space
+#if ITK_VERSION_MAJOR >= 5
+    filter[threadId]->SetNumberOfWorkUnits( 1 ); // excessive threading is counterproductive
+#else
     filter[threadId]->SetNumberOfThreads( 1 ); // excessive threading is counterproductive
+#endif
     initialized[threadId] = true;
     }
   filter[threadId]->SetInput( mask );
@@ -594,9 +615,17 @@ MorphologicalContourInterpolator< TImage >
   if ( !initialized[threadId] )
     {
     threshold[threadId] = FloatBinarizerType::New();
+#if ITK_VERSION_MAJOR >= 5
+    threshold[threadId]->SetNumberOfWorkUnits( 1 ); // excessive threading is counterproductive
+#else
     threshold[threadId]->SetNumberOfThreads( 1 ); // excessive threading is counterproductive
+#endif
     m_And[threadId] = AndFilterType::New();
+#if ITK_VERSION_MAJOR >= 5
+    m_And[threadId]->SetNumberOfWorkUnits( 1 ); // excessive threading is counterproductive
+#else
     m_And[threadId]->SetNumberOfThreads( 1 ); // excessive threading is counterproductive
+#endif
     initialized[threadId] = true;
     }
   threshold[threadId]->SetInput( sdf );
@@ -760,7 +789,11 @@ MorphologicalContourInterpolator< TImage >
   if ( !initialized[threadId] )
     {
     sAnd[threadId] = AndSliceType::New();
+#if ITK_VERSION_MAJOR >= 5
+    sAnd[threadId]->SetNumberOfWorkUnits( 1 ); // excessive threading is counterproductive
+#else
     sAnd[threadId]->SetNumberOfThreads( 1 ); // excessive threading is counterproductive
+#endif
     initialized[threadId] = true;
     }
   sAnd[threadId]->SetInput( 0, iSlice );
@@ -942,7 +975,11 @@ MorphologicalContourInterpolator< TImage >
 
   typedef UnaryFunctorImageFilter< SliceType, BoolSliceType, MatchesID< TImage > > CastType;
   typename CastType::Pointer caster = CastType::New();
+#if ITK_VERSION_MAJOR >= 5
+  caster->SetNumberOfWorkUnits( 1 ); // excessive threading is counterproductive
+#else
   caster->SetNumberOfThreads( 1 ); // excessive threading is counterproductive
+#endif
   caster->SetFunctor( matchesID );
   caster->SetInput( iConn );
   caster->Update();

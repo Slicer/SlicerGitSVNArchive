@@ -115,7 +115,11 @@ DiffusionTensor3DWrite<TData>
   writer->SetInput( m_Input );
   writer->SetFileName( output );
   writer->UseCompressionOn();
+#if ITK_VERSION_MAJOR >= 5
+  writer->SetNumberOfWorkUnits(m_NumberOfThreads);
+#else
   writer->SetNumberOfThreads(m_NumberOfThreads);
+#endif
   try
     {
     writer->Update();

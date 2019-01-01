@@ -1043,7 +1043,11 @@ int Do( parameters list )
     absFilter->SetInput( image );
     if( list.numberOfThread )
       {
+#if ITK_VERSION_MAJOR >= 5
+      absFilter->SetNumberOfWorkUnits( list.numberOfThread );
+#else
       absFilter->SetNumberOfThreads( list.numberOfThread );
+#endif
       }
     absFilter->Update();
     image = absFilter->GetOutput();
@@ -1056,7 +1060,11 @@ int Do( parameters list )
     nearestFilter->SetInput( image );
     if( list.numberOfThread )
       {
+#if ITK_VERSION_MAJOR >= 5
+      nearestFilter->SetNumberOfWorkUnits( list.numberOfThread );
+#else
       nearestFilter->SetNumberOfThreads( list.numberOfThread );
+#endif
       }
     nearestFilter->Update();
     image = nearestFilter->GetOutput();

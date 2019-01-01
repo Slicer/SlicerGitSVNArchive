@@ -37,7 +37,11 @@ ImageToImageRegistrationMethod<TImage>
   this->ProcessObject::SetNthOutput( 0, transformDecorator.GetPointer() );
 
   this->m_RegistrationNumberOfThreads = this->GetNumberOfThreads();
+#if ITK_VERSION_MAJOR >= 5
+  this->GetMultiThreader()->SetNumberOfWorkUnits( this->m_RegistrationNumberOfThreads );
+#else
   this->GetMultiThreader()->SetNumberOfThreads( this->m_RegistrationNumberOfThreads );
+#endif
 
   this->m_FixedImage = ITK_NULLPTR;
   this->m_MovingImage = ITK_NULLPTR;
@@ -214,7 +218,11 @@ void
 ImageToImageRegistrationMethod<TImage>
 ::Initialize( void )
 {
+#if ITK_VERSION_MAJOR >= 5
+  this->GetMultiThreader()->SetNumberOfWorkUnits( m_RegistrationNumberOfThreads );
+#else
   this->GetMultiThreader()->SetNumberOfThreads( m_RegistrationNumberOfThreads );
+#endif
 
   if( m_Transform.IsNull() )
     {

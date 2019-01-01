@@ -68,7 +68,11 @@ DiffusionTensor3DResample<TInput, TOutput>
     {
     itkExceptionMacro( << "Transform not set" );
     }
+#if ITK_VERSION_MAJOR >= 5
+  // m_Interpolator->SetNumberOfWorkUnits( this->GetNumberOfThreads() ) ;
+#else
   // m_Interpolator->SetNumberOfThreads( this->GetNumberOfThreads() ) ;
+#endif
   m_Interpolator->SetInputImage( const_cast<InputImageType *>
                                  ( this->GetInput() )  );
   // m_Interpolator->SetDefaultPixelValue( m_DefaultPixelValue ) ;

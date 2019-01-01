@@ -589,7 +589,11 @@ SetAllTransform( parameters & list,
         }
       if( list.numberOfThread )
         {
+#if ITK_VERSION_MAJOR >= 5
+        transformDeformationFieldFilter->SetNumberOfWorkUnits( list.numberOfThread );
+#else
         transformDeformationFieldFilter->SetNumberOfThreads( list.numberOfThread );
+#endif
         }
       transformDeformationFieldFilter->SetInput( field );
       transformDeformationFieldFilter->SetTransform( transform );
