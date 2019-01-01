@@ -77,7 +77,9 @@ public:
   static itk::Object::Pointer CreateITKTransformFromVTK(vtkObject* loggerObject, vtkAbstractTransform* transformVtk,
     itk::Object::Pointer& secondaryTransformItk, int preferITKv3CompatibleTransforms, bool initialize = true);
 
-  template <typename T> static bool SetVTKBSplineFromITKv3Generic(vtkObject* loggerObject, vtkOrientedBSplineTransform* bsplineVtk, typename itk::TransformBaseTemplate<T>::Pointer warpTransformItk, typename itk::TransformBaseTemplate<T>::Pointer bulkTransformItk);
+  template <typename T> static bool SetVTKBSplineFromITKv3Generic(vtkObject* loggerObject, vtkOrientedBSplineTransform* bsplineVtk,
+      typename itk::TransformBaseTemplate<T>::ConstPointer warpTransformItk,
+      typename itk::TransformBaseTemplate<T>::ConstPointer bulkTransformItk);
 
   template<typename T>
   static bool SetVTKOrientedGridTransformFromITKImage(vtkObject* loggerObject, vtkOrientedGridTransform* grid_Ras, typename itk::DisplacementFieldTransform< T, 3 >::DisplacementFieldType::Pointer gridImage_Lps);
@@ -103,7 +105,9 @@ protected:
 
   static bool IsIdentityMatrix(vtkMatrix4x4 *matrix);
 
-  template <typename BSplineTransformType> static bool SetVTKBSplineParametersFromITKGeneric(vtkObject* loggerObject, vtkOrientedBSplineTransform* bsplineVtk, typename itk::TransformBaseTemplate<typename BSplineTransformType::ScalarType>::Pointer warpTransformItk);
+  template <typename BSplineTransformType> static bool SetVTKBSplineParametersFromITKGeneric(vtkObject* loggerObject, vtkOrientedBSplineTransform* bsplineVtk,
+      typename itk::TransformBaseTemplate<typename BSplineTransformType::ScalarType>::ConstPointer warpTransformItk);
+
   template <typename T> static bool SetVTKBSplineFromITKv4Generic(vtkObject* loggerObject, vtkOrientedBSplineTransform* bsplineVtk, typename itk::TransformBaseTemplate<T>::Pointer warpTransformItk);
 
   template <typename BSplineTransformType> static bool SetITKBSplineParametersFromVTKGeneric(vtkObject* loggerObject, typename itk::Transform< typename BSplineTransformType::ScalarType,VTKDimension,VTKDimension>::Pointer& warpTransformItk, vtkOrientedBSplineTransform* bsplineVtk);
@@ -315,7 +319,7 @@ template <typename BSplineTransformType>
 bool vtkITKTransformConverter::SetVTKBSplineParametersFromITKGeneric(
     vtkObject* loggerObject,
     vtkOrientedBSplineTransform* bsplineVtk,
-    typename itk::TransformBaseTemplate<typename BSplineTransformType::ScalarType>::Pointer warpTransformItk)
+    typename itk::TransformBaseTemplate<typename BSplineTransformType::ScalarType>::ConstPointer warpTransformItk)
 {
   //
   // this version uses the itk::BSplineTransform not the itk::BSplineDeformableTransform
@@ -341,8 +345,8 @@ bool vtkITKTransformConverter::SetVTKBSplineParametersFromITKGeneric(
     return false;
     }
 
-  typename BSplineTransformType::Pointer bsplineItk = BSplineTransformType::New();
   std::string warpTransformItkName = warpTransformItk->GetNameOfClass();
+  typename BSplineTransformType::ConstPointer bsplineItk = BSplineTransformType::New();
   std::string requestedWarpTransformItkName = bsplineItk->GetNameOfClass();
   if (warpTransformItkName != requestedWarpTransformItkName)
     {
@@ -354,7 +358,7 @@ bool vtkITKTransformConverter::SetVTKBSplineParametersFromITKGeneric(
       << VTKDimension << ", actual = " << warpTransformItk->GetOutputSpaceDimension() << ")");
     return false;
     }
-  bsplineItk = static_cast< BSplineTransformType* >( warpTransformItk.GetPointer() );
+  bsplineItk = static_cast< BSplineTransformType const * const >( warpTransformItk.GetPointer() );
 
   // now get the fixed parameters and map them to the vtk analogs
 
@@ -454,7 +458,8 @@ bool vtkITKTransformConverter::SetVTKBSplineParametersFromITKGeneric(
 //----------------------------------------------------------------------------
 template <typename T> bool vtkITKTransformConverter::SetVTKBSplineFromITKv3Generic(vtkObject* loggerObject,
   vtkOrientedBSplineTransform* bsplineVtk,
-  typename itk::TransformBaseTemplate<T>::Pointer warpTransformItk, typename itk::TransformBaseTemplate<T>::Pointer bulkTransformItk)
+  typename itk::TransformBaseTemplate<T>::ConstPointer warpTransformItk,
+  typename itk::TransformBaseTemplate<T>::ConstPointer bulkTransformItk)
 {
   if (bsplineVtk==ITK_NULLPTR)
     {
@@ -487,7 +492,7 @@ template <typename T> bool vtkITKTransformConverter::SetVTKBSplineFromITKv3Gener
 
     if (bulkTransformItkTransformName == "AffineTransform")
       {
-      BulkTransformType* bulkItkAffine = static_cast<BulkTransformType*> (bulkTransformItk.GetPointer());
+      BulkTransformType const * const bulkItkAffine = static_cast< BulkTransformType const * const > (bulkTransformItk.GetPointer());
       vtkNew<vtkMatrix4x4> bulkMatrix_LPS;
       for (unsigned int i=0; i < VTKDimension; i++)
         {

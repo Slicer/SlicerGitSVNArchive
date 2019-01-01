@@ -164,7 +164,7 @@ int vtkMRMLTransformStorageNode::ReadFromITKv3BSplineTransformFile(vtkMRMLNode *
     }
 
   // For now, grab the first two transforms from the file.
-  TransformListType *transforms = reader->GetTransformList();
+  const TransformListType * const transforms = reader->GetTransformList();
   if (transforms->size() == 0)
     {
     vtkErrorMacro("Could not find a transform in file: " << fullName.c_str());
@@ -174,8 +174,8 @@ int vtkMRMLTransformStorageNode::ReadFromITKv3BSplineTransformFile(vtkMRMLNode *
     {
     vtkWarningMacro(<< "More than two transform in the file: "<< fullName.c_str()<< ". Using only the first two transforms.");
     }
-  TransformListType::iterator it = (*transforms).begin();
-  TransformType::Pointer transform = (*it);
+  TransformListType::const_iterator it = (*transforms).begin();
+  TransformType::ConstPointer transform = (*it);
   if (!transform)
     {
     vtkErrorMacro(<< "Invalid transform in the file: "<< fullName.c_str()<< ", (" << transforms->size() << ")");
@@ -303,7 +303,7 @@ vtkAbstractTransform* ReadFromTransformFile(vtkObject* loggerObject, const std::
     return 0;
     }
 
-  TransformListType *transforms = reader->GetTransformList();
+  TransformListType const * const transforms = reader->GetTransformList();
   if (transforms==NULL || transforms->empty())
     {
     vtkErrorWithObjectMacro(loggerObject, "Transforms not found in transform file: "<< fullName.c_str());

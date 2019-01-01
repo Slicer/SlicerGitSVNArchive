@@ -363,7 +363,7 @@ template <class ImageType>
 typename itk::Transform<double, 3, 3>::Pointer
 SetTransform( parameters & list,
               const typename ImageType::Pointer & image,
-              itk::TransformFileReader::Pointer & transformFile,
+              itk::TransformFileReader::TransformListType & readTransformList,
               const itk::Point<double> & outputImageCenter
               )
 {
@@ -374,12 +374,12 @@ SetTransform( parameters & list,
     if( !list.transformsOrder.compare( "input-to-output" ) )
       {
       transform = static_cast<TransformType *>
-        ( transformFile->GetTransformList()->back().GetPointer() );
+        ( readTransformList.back().GetPointer() );
       }
     else
       {
       transform = static_cast<TransformType *>
-        ( transformFile->GetTransformList()->front().GetPointer() );
+        ( readTransformList.front().GetPointer() );
       }
     }
   transform = SetTransformAndOrder<ImageType>( list, image, transform, outputImageCenter );
@@ -387,11 +387,11 @@ SetTransform( parameters & list,
     {
     if( !list.transformsOrder.compare( "input-to-output" ) )
       {
-      transformFile->GetTransformList()->pop_back();
+      readTransformList.pop_back();
       }
     else
       {
-      transformFile->GetTransformList()->pop_front();
+      readTransformList.pop_front();
       }
     }
   return transform;
@@ -403,7 +403,7 @@ SetTransform( parameters & list,
 template <class ImageType>
 int ReadTransform( parameters & list,
                    const typename ImageType::Pointer & image,
-                   itk::TransformFileReader::Pointer & transformFile
+                   itk::TransformFileReader::TransformListType & readTransformList // Output value
                    )
 {
   int numberOfNonRigidTransform = 0;
@@ -412,14 +412,16 @@ int ReadTransform( parameters & list,
   dummyOutputCenter.Fill( 0 );
   if( list.transformationFile.compare( "" ) )
     {
-    transformFile = itk::TransformFileReader::New();
-    transformFile->SetFileName( list.transformationFile.c_str() );
-    transformFile->Update();
+    itk::TransformFileReader::Pointer tfmReader = itk::TransformFileReader::New();
+    tfmReader->SetFileName( list.transformationFile.c_str() );
+    tfmReader->Update();
+
+    readTransformList = *( tfmReader->GetTransformList() ); //Get copy of transform list for modifying
 
     // Check if any of the transform is not supported and counts the number of non-rigid transform
     do
       {
-      if( !SetTransform<ImageType>( list, image, transformFile, dummyOutputCenter ) )
+      if( !SetTransform<ImageType>( list, image, readTransformList, dummyOutputCenter ) )
         {
         return -1;
         }
@@ -428,9 +430,7 @@ int ReadTransform( parameters & list,
         numberOfNonRigidTransform++;
         }
       }
-    while( transformFile->GetTransformList()->size() );
-
-    transformFile->Update();
+    while( readTransformList.size() );
     return numberOfNonRigidTransform;
     }
   return 0;
@@ -493,10 +493,11 @@ SetAllTransform( parameters & list,
   typedef itk::Transform<double, 3, 3>    TransformType;
   typedef itk::AffineTransform<double, 3> AffineTransformType;
   typename DeformationImageType::Pointer fieldPointer;
-  typedef itk::TransformFileReader::Pointer TransformReaderPointer;
-  TransformReaderPointer transformFile;
-  int                    nonRigidTransforms = 0;
-  nonRigidTransforms = ReadTransform<ImageType>( list, image, transformFile );
+  typedef itk::TransformFileReader::TransformListType TransformListType;
+  TransformListType readTransformList;
+  int               nonRigidTransforms = 0;
+
+  nonRigidTransforms = ReadTransform<ImageType>( list, image, readTransformList );
   if( nonRigidTransforms < 0 ) // The transform file contains a transform that is not handled by ResampleVolume2, it
                                // exits.
     {
@@ -527,7 +528,7 @@ SetAllTransform( parameters & list,
   itk::Point<double> outputImageCenter = ImageCenter<ImageType>( dummyOutputImage );
   // If more than one transform or if hfield, add all transforms and compute the deformation field
   if( ( list.transformationFile.compare( "" )
-        && transformFile->GetTransformList()->size() > 1
+        && readTransformList.size() > 1
         && nonRigidTransforms > 0
         )
       || list.deffield.compare( "" )
@@ -561,15 +562,15 @@ SetAllTransform( parameters & list,
       field->FillBuffer( vectorNull );
       }
     // Compute the transformation field adding all the transforms together
-    while( list.transformationFile.compare( "" ) && transformFile->GetTransformList()->size() )
+    while( list.transformationFile.compare( "" ) && readTransformList.size() )
       {
       typedef itk::TransformDeformationFieldFilter<double, double, 3> itkTransformDeformationFieldFilterType;
       typename itkTransformDeformationFieldFilterType::Pointer transformDeformationFieldFilter =
         itkTransformDeformationFieldFilterType::New();
-      transform = SetTransform<ImageType>( list, image, transformFile, outputImageCenter  );
+      transform = SetTransform<ImageType>( list, image, readTransformList, outputImageCenter  );
       // check if there is a bspline transform and a bulk transform with it
       if( !list.notbulk && transform->GetTransformTypeAsString() == "BSplineDeformableTransform_double_3_3"  &&
-          transformFile->GetTransformList()->size() )                                                                                                        //
+          readTransformList.size() )                                                                                                        //
                                                                                                                                                              // Check
                                                                                                                                                              // if
                                                                                                                                                              // transform
@@ -583,7 +584,7 @@ SetAllTransform( parameters & list,
         BSplineDeformableTransformType::Pointer BSplineTransform;
         BSplineTransform = static_cast<BSplineDeformableTransformType *>(transform.GetPointer() );
         typename TransformType::Pointer bulkTransform;
-        bulkTransform = SetTransform<ImageType>( list, image, transformFile, outputImageCenter );
+        bulkTransform = SetTransform<ImageType>( list, image, readTransformList, outputImageCenter );
         BSplineTransform->SetBulkTransform( bulkTransform );
         }
       if( list.numberOfThread )
@@ -602,7 +603,7 @@ SetAllTransform( parameters & list,
     transform = warpTransform;
     }
   // multiple rigid/affine transforms: concatenate them
-  else if( list.transformationFile.compare( "" ) && transformFile->GetTransformList()->size() > 1 )
+  else if( list.transformationFile.compare( "" ) && readTransformList.size() > 1 )
     {
     typedef itk::MatrixOffsetTransformBase<double, 3, 3> MatrixTransformType;
     itk::Matrix<double, 4, 4> composedMatrix;
@@ -614,7 +615,7 @@ SetAllTransform( parameters & list,
 
     do
       {
-      transform = SetTransform<ImageType>( list, image, transformFile, outputImageCenter );
+      transform = SetTransform<ImageType>( list, image, readTransformList, outputImageCenter );
       std::string transformClassName;
       if ( transform.IsNotNull() )
         {
@@ -660,7 +661,7 @@ SetAllTransform( parameters & list,
       tempMatrix *= composedMatrix;
       composedMatrix = tempMatrix;
       }
-    while( transformFile->GetTransformList()->size() );
+    while( readTransformList.size() );
 
     typename AffineTransformType::Pointer affine = AffineTransformType::New();
     // copy 4x4 matrix into a 3x3 matrix and a vector ;
@@ -679,7 +680,7 @@ SetAllTransform( parameters & list,
   else
     {
     // only one transform, just load it
-    transform = SetTransform<ImageType>( list, image, transformFile, outputImageCenter );
+    transform = SetTransform<ImageType>( list, image, readTransformList, outputImageCenter );
     }
   return transform;
 }

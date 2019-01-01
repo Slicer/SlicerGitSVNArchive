@@ -117,8 +117,8 @@ int main(int argc, char * * argv)
           transformReader->Update();
 
           typedef TransformReaderType::TransformListType TransformListType;
-          TransformListType *         transformList = transformReader->GetTransformList();
-          TransformListType::iterator transformListIt = transformList->begin();
+          TransformListType const * const transformList = transformReader->GetTransformList();
+          TransformListType::const_iterator transformListIt = transformList->begin();
 
           typedef itk::ResampleImageFilter<ImageType, ImageType> ResamplerType;
           while( transformListIt != transformList->end() )

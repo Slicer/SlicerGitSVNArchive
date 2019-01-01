@@ -389,8 +389,7 @@ SetUpTransform( const parameters & list,
     }
   else
     {
-    typename NonRigidTransformType::Pointer nonRigid
-      = NonRigidTransformType::New();
+    typename NonRigidTransformType::Pointer nonRigid = NonRigidTransformType::New();
     nonRigid->SetTransform( nonRigidFile );
     typename itk::DiffusionTensor3DAffineTransform<PixelType>::Pointer affine;
     affine = FSOrPPD<PixelType>( list.ppd );
@@ -488,39 +487,37 @@ SetTransformAndOrder( parameters & list,
 template <class PixelType>
 typename itk::DiffusionTensor3DTransform<PixelType>::Pointer
 SetTransform( parameters & list,
-              const typename itk::Image<itk::DiffusionTensor3D<PixelType>, 3>
-              ::Pointer & image,
-              itk::TransformFileReader::Pointer & transformFile,
+              const typename itk::Image<itk::DiffusionTensor3D<PixelType>, 3>::Pointer & image,
+              itk::TransformFileReader::TransformListType & readTransformList,
               const itk::Point<double> & outputImageCenter
               )
 {
-  typedef typename itk::DiffusionTensor3DNonRigidTransform<PixelType>
-  ::TransformType TransformType;
+  typedef typename itk::DiffusionTensor3DNonRigidTransform<PixelType>::TransformType TransformType;
   typename TransformType::Pointer transform;
-  typename itk::DiffusionTensor3DTransform<PixelType>::Pointer tensorTransform;
   if( list.transformationFile.compare( "" ) )
     {
     if( !list.transformsOrder.compare( "input-to-output" ) )
       {
       transform = static_cast<TransformType *>
-        ( transformFile->GetTransformList()->back().GetPointer() );
+        ( readTransformList.back().GetPointer() );
       }
     else
       {
       transform = static_cast<TransformType *>
-        ( transformFile->GetTransformList()->front().GetPointer() );
+        ( readTransformList.front().GetPointer() );
       }
     }
-  tensorTransform = SetTransformAndOrder<PixelType>( list, image, transform, outputImageCenter );
+  typename itk::DiffusionTensor3DTransform<PixelType>::Pointer 
+     tensorTransform = SetTransformAndOrder<PixelType>( list, image, transform, outputImageCenter );
   if( list.transformationFile.compare( "" ) )
     {
     if( !list.transformsOrder.compare( "input-to-output" ) )
       {
-      transformFile->GetTransformList()->pop_back();
+      readTransformList.pop_back();
       }
     else
       {
-      transformFile->GetTransformList()->pop_front();
+      readTransformList.pop_front();
       }
     }
   return tensorTransform;
@@ -532,7 +529,7 @@ SetTransform( parameters & list,
 template <class PixelType>
 int ReadTransform( parameters & list,
                    const typename itk::Image<itk::DiffusionTensor3D<PixelType>, 3>::Pointer & image,
-                   itk::TransformFileReader::Pointer & transformFile
+                   itk::TransformFileReader::TransformListType & readTransformList //IO This is an output!
                    )
 {
   int numberOfNonRigidTransform = 0;
@@ -541,14 +538,15 @@ int ReadTransform( parameters & list,
   dummyOutputCenter.Fill( 0 );
   if( list.transformationFile.compare( "" ) )
     {
-    transformFile = itk::TransformFileReader::New();
-    transformFile->SetFileName( list.transformationFile.c_str() );
-    transformFile->Update();
+    itk::TransformFileReader::Pointer tfmReader = itk::TransformFileReader::New();
+    tfmReader->SetFileName( list.transformationFile.c_str() );
+    tfmReader->Update();
 
+    readTransformList = *( tfmReader->GetTransformList() ); //Copy TransformList so it can be modified
     // Check if any of the transform is not supported and counts the number of non-rigid transform
     do
       {
-      if( !SetTransform<PixelType>( list, image, transformFile, dummyOutputCenter ) )
+      if( !SetTransform<PixelType>( list, image, readTransformList, dummyOutputCenter ) )
         {
         return -1;
         }
@@ -557,9 +555,7 @@ int ReadTransform( parameters & list,
         numberOfNonRigidTransform++;
         }
       }
-    while( transformFile->GetTransformList()->size() );
-
-    transformFile->Update();
+    while( readTransformList.size() );
     return numberOfNonRigidTransform;
     }
   return 0;
@@ -812,10 +808,10 @@ int Do( parameters list )
                                               );
 
   // Select the transformation
-  typedef itk::TransformFileReader::Pointer TransformReaderPointer;
-  TransformReaderPointer transformFile;
-  int                    nonRigidTransforms;
-  nonRigidTransforms = ReadTransform<PixelType>( list, image, transformFile );
+  using TransformListType = itk::TransformFileReader::TransformListType;
+  TransformListType  readTransformList;
+  int                nonRigidTransforms;
+  nonRigidTransforms = ReadTransform<PixelType>( list, image, readTransformList );
   if( nonRigidTransforms < 0 )  // The transform file contains a transform that is not handled by resampleDTI, it exits.
     {
     return EXIT_FAILURE;
@@ -855,7 +851,7 @@ int Do( parameters list )
   // If more than one transform or if hfield, add all transforms and compute the deformation field
   TransformTypePointer transform;
   if( ( list.transformationFile.compare( "" )
-        && transformFile->GetTransformList()->size() > 1
+        && readTransformList.size() > 1
         && nonRigidTransforms > 0
         )
       || list.deffield.compare( "" )
@@ -889,22 +885,16 @@ int Do( parameters list )
       field->FillBuffer( vectorNull );
       }
     // Compute the transformation field adding all the transforms together
-    while( list.transformationFile.compare( "" ) && transformFile->GetTransformList()->size() )
+    while( list.transformationFile.compare( "" ) && readTransformList.size() )
       {
       typedef itk::TransformDeformationFieldFilter<double, double, 3> itkTransformDeformationFieldFilterType;
       typename itkTransformDeformationFieldFilterType::Pointer transformDeformationFieldFilter =
         itkTransformDeformationFieldFilterType::New();
-      transform = SetTransform<PixelType>( list, image, transformFile, outputImageCenter );
+      transform = SetTransform<PixelType>( list, image, readTransformList, outputImageCenter );
       // check if there is a bspline transform and a bulk transform with it
       if( !list.notbulk && transform->GetTransform()->GetTransformTypeAsString() ==
-          "BSplineDeformableTransform_double_3_3"  && transformFile->GetTransformList()->size() )                                                                            //
-                                                                                                                                                                             // Check
-                                                                                                                                                                             // if
-                                                                                                                                                                             // transform
-                                                                                                                                                                             // file
-                                                                                                                                                                             // contains
-                                                                                                                                                                             // a
-                                                                                                                                                                             // BSpline
+          "BSplineDeformableTransform_double_3_3"  && readTransformList.size() )
+          // Check if transform file contains a BSpline
         {
         // transform = SetTransform< PixelType > ( list , image , transformFile , outputImageCenter ) ;
         // order=3 for the BSpline seems to be standard among tools in Slicer and BRAINTools
@@ -914,13 +904,17 @@ int Do( parameters list )
           BSplineDeformableTransformType::Pointer BSplineTransform;
           BSplineTransform = static_cast<BSplineDeformableTransformType *>(transform->GetTransform().GetPointer() );
           typename TransformType::Pointer bulkTransform;
-          bulkTransform = SetTransform<PixelType>( list, image, transformFile, outputImageCenter  );
+          bulkTransform = SetTransform<PixelType>( list, image, readTransformList, outputImageCenter  );
           BSplineTransform->SetBulkTransform( bulkTransform->GetTransform() );
           }
         }
       if( list.numberOfThread )
         {
+#if ITK_VERSION_MAJOR >= 5
+        transformDeformationFieldFilter->SetNumberOfWorkUnits( list.numberOfThread );
+#else
         transformDeformationFieldFilter->SetNumberOfThreads( list.numberOfThread );
+#endif
         }
       transformDeformationFieldFilter->SetInput( field );
       transformDeformationFieldFilter->SetTransform( transform->GetTransform() );
@@ -939,7 +933,7 @@ int Do( parameters list )
     transform = nonRigid;
     }
   // multiple rigid/affine transforms: concatenate them
-  else if( list.transformationFile.compare( "" ) && transformFile->GetTransformList()->size() > 1 )
+  else if( list.transformationFile.compare( "" ) && readTransformList.size() > 1 )
     {
     typedef itk::DiffusionTensor3DMatrix3x3Transform<PixelType> MatrixTransformType;
     itk::Matrix<double, 4, 4> composedMatrix;
@@ -951,7 +945,7 @@ int Do( parameters list )
 
     do
       {
-      transform = SetTransform<PixelType>( list, image, transformFile, outputImageCenter );
+      transform = SetTransform<PixelType>( list, image, readTransformList, outputImageCenter );
       typename MatrixTransformType::Pointer localTransform;
       std::string transformClassName;
       if ( transform.IsNotNull() )
@@ -979,7 +973,7 @@ int Do( parameters list )
       tempMatrix *= composedMatrix;
       composedMatrix = tempMatrix;
       }
-    while( transformFile->GetTransformList()->size() );
+    while( readTransformList.size() );
 
     // Finite Strain
     transform = FSOrPPD<PixelType>( list.ppd, &composedMatrix );
@@ -987,7 +981,7 @@ int Do( parameters list )
   else
     {
     // only one transform, just load it
-    transform = SetTransform<PixelType>( list, image, transformFile, outputImageCenter );
+    transform = SetTransform<PixelType>( list, image, readTransformList, outputImageCenter );
     }
   double defaultPixelValue = list.defaultPixelValue;
   // start transform
@@ -998,7 +992,11 @@ int Do( parameters list )
     resampler->SetInput( image );
     if( list.numberOfThread )
       {
+#if ITK_VERSION_MAJOR >= 5
+      resampler->SetNumberOfWorkUnits( list.numberOfThread );
+#else
       resampler->SetNumberOfThreads( list.numberOfThread );
+#endif
       }
     resampler->SetInterpolator( interpol );
     itk::Matrix<double, 3, 3> outputImageDirection ;
@@ -1028,7 +1026,11 @@ int Do( parameters list )
     zeroFilter->SetInput( image );
     if( list.numberOfThread )
       {
+#if ITK_VERSION_MAJOR >= 5
+      zeroFilter->SetNumberOfWorkUnits( list.numberOfThread );
+#else
       zeroFilter->SetNumberOfThreads( list.numberOfThread );
+#endif
       }
     zeroFilter->Update();
     image = zeroFilter->GetOutput();
