@@ -283,6 +283,29 @@ def loadUI(path):
     raise RuntimeError(errorMessage)
   return widget
 
+def childWidgetVariables(self, widget):
+  """ Get child widgets as attributes of an object.
+  Each named child widget is accessible as an attribute of the returned object,
+  with the attribute name matching the child widget name.
+  This function provides convenient access to widgets in a loaded UI file.
+
+  Example:
+
+  .. code-block:: python
+
+    uiWidget = slicer.util.loadUI(myUiFilePath)
+    self.ui = slicer.util.childWidgetVariables(uiWidget)
+    self.ui.inputSelector.setMRMLScene(slicer.mrmlScene)
+    self.ui.outputSelector.setMRMLScene(slicer.mrmlScene)
+
+  """
+  ui = type('', (), {})() # empty object
+  childWidgets = slicer.util.findChildren(widget)
+  for childWidget in childWidgets:
+    if hasattr(childWidget, "name"):
+      setattr(ui, childWidget.name, childWidget)
+  return ui
+
 def setSliceViewerLayers(background='keep-current', foreground='keep-current', label='keep-current',
                          foregroundOpacity=None, labelOpacity=None, fit=False):
   """ Set the slice views with the given nodes.

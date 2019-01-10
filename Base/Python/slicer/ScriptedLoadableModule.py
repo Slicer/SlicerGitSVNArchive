@@ -91,6 +91,10 @@ class ScriptedLoadableModuleWidget:
     slicer.app.moduleManager().connect(
       'moduleAboutToBeUnloaded(QString)', self._onModuleAboutToBeUnloaded)
 
+  def resourcePath(self, filename):
+    scriptedModulesPath = os.path.dirname(slicer.util.modulePath(self.moduleName))
+    return os.path.join(scriptedModulesPath, 'Resources', filename)
+
   def cleanup(self):
     """Override this function to implement module widget specific cleanup.
 
