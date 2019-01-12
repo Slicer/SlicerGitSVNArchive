@@ -41,7 +41,7 @@ ExternalProject_Execute(${proj} \"install\" \"${PYTHON_EXECUTABLE}\" Packaging/s
 
   ExternalProject_SetIfNotDefined(
     Slicer_${proj}_GIT_TAG
-    "v1.1.0"
+    "v1.2.0"
     QUIET
     )
 
