@@ -27,7 +27,7 @@
 #include <vtkMarkupsGlyphSource2D.h>
 
 // MRMLDisplayableManager includes
-#include <vtkSliceViewInteractorStyle.h>
+#include <vtkThreeDViewInteractorStyle.h>
 
 // MRML includes
 #include <vtkMRMLInteractionNode.h>
@@ -37,6 +37,7 @@
 
 // VTK includes
 #include <vtkAbstractWidget.h>
+#include <vtkPicker.h>
 #include <vtkFollower.h>
 #include <vtkHandleRepresentation.h>
 #include <vtkInteractorStyle.h>
@@ -617,6 +618,46 @@ void vtkMRMLMarkupsFiducialDisplayableManager3D::PropagateMRMLToWidget(vtkMRMLMa
 }
 
 //---------------------------------------------------------------------------
+/// Move on surface of what's visible in the current ThreeDView
+/// Set coord to new pick position
+void vtkMRMLMarkupsFiducialDisplayableManager3D::ConstrainMovement(vtkMRMLMarkupsFiducialNode *fiducialNode, double coord[3])
+{
+  vtkAbstractWidget *widget = this->Helper->GetWidget(fiducialNode);
+  if (!widget)
+    {
+    vtkErrorMacro("ConstrainMovement: no widget for fiducial node.");
+    return;
+    }
+
+  vtkSeedWidget* seedWidget = vtkSeedWidget::SafeDownCast(widget);
+  if (!seedWidget)
+   {
+   vtkErrorMacro("ConstrainMovement: Could not get seed widget!")
+   return;
+   }
+
+  vtkWidgetRepresentation *widgetRepresentation = seedWidget->GetRepresentation();
+  widgetRepresentation->SetPickable(0);
+
+  double displayCoordinates[3];
+  this->GetWorldToDisplayCoordinates(coord, displayCoordinates);
+
+  vtkThreeDViewInteractorStyle* interactorStyle = vtkThreeDViewInteractorStyle::SafeDownCast(
+              this->GetInteractor()->GetInteractorStyle());
+  vtkCellPicker *cellPicker = interactorStyle->GetCellPicker();
+
+  double pickPoint[3];
+  if (interactorStyle->Pick(displayCoordinates[0], displayCoordinates[1], pickPoint))
+    {
+    coord[0] = pickPoint[0];
+    coord[1] = pickPoint[1];
+    coord[2] = pickPoint[2];
+    }
+
+  widgetRepresentation->SetPickable(1);
+}
+
+//---------------------------------------------------------------------------
 /// Propagate properties of widget to MRML node.
 void vtkMRMLMarkupsFiducialDisplayableManager3D::PropagateWidgetToMRML(vtkAbstractWidget * widget, vtkMRMLMarkupsNode* node)
 {
@@ -680,6 +721,10 @@ void vtkMRMLMarkupsFiducialDisplayableManager3D::PropagateWidgetToMRML(vtkAbstra
           << ", " << currentCoordinates[1] << ", "
           << currentCoordinates[2]);
 
+    // e.g. stick to model surface of associated node
+    this->ConstrainMovement(fiducialNode, worldCoordinates1);
+
+    // make three element arrays for comparison
     double currentCoords[3];
     currentCoords[0] = currentCoordinates[0];
     currentCoords[1] = currentCoordinates[1];
@@ -688,6 +733,7 @@ void vtkMRMLMarkupsFiducialDisplayableManager3D::PropagateWidgetToMRML(vtkAbstra
     newCoords[0] = worldCoordinates1[0];
     newCoords[1] = worldCoordinates1[1];
     newCoords[2] = worldCoordinates1[2];
+
     if (this->GetWorldCoordinatesChanged(currentCoords, newCoords))
       {
       positionChanged = true;

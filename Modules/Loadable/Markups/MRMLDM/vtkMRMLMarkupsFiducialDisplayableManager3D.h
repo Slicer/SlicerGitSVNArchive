@@ -66,6 +66,14 @@ protected:
   /// Propagate properties of widget to MRML node.
   virtual void PropagateWidgetToMRML(vtkAbstractWidget * widget, vtkMRMLMarkupsNode* node) VTK_OVERRIDE;
 
+  /// Constrain movement along surface of displayables in the scene
+  /// NOTE: this method is added to the Markups infrastructure to address a common use
+  /// case of dragging a fiducial on a 3D surface.  Since their is an active development
+  /// process in place to create a new design, this feature is not added as a general
+  /// purpose virtual method.
+  /// See: https://na-mic.github.io/ProjectWeek/PW30_2019_GranCanaria/Projects/MarkupsRedesign/
+  void ConstrainMovement(vtkMRMLMarkupsFiducialNode *fiducialNode, double coords[3]);
+
   /// Set up an observer on the interactor style to watch for key press events
   virtual void AdditionnalInitializeStep();
   /// Respond to the interactor style event

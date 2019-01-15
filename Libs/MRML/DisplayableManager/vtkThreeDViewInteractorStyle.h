@@ -22,13 +22,13 @@
 
 // VTK includes
 #include "vtkObject.h"
+#include "vtkCellPicker.h"
 #include "vtkInteractorStyle.h"
 #include "vtkSmartPointer.h"
 
 #include "vtkMRMLDisplayableManagerExport.h"
 
 class vtkMRMLModelDisplayableManager;
-class vtkCellPicker;
 
 /// \brief Interactive manipulation of the camera.
 ///
@@ -102,11 +102,13 @@ public:
   vtkGetObjectMacro(ModelDisplayableManager, vtkMRMLModelDisplayableManager);
   virtual void SetModelDisplayableManager(vtkMRMLModelDisplayableManager *modelDisplayableManager);
 
+  /// Use the internal picker to find closest intersected point
+  /// along ray from camera through x, y in display coordinates
+  bool Pick(int x, int y, double pickPoint[3]);
+
 protected:
   vtkThreeDViewInteractorStyle();
   ~vtkThreeDViewInteractorStyle();
-
-  bool Pick(int x, int y, double pickPoint[3]);
 
   vtkMRMLCameraNode *CameraNode;
 
