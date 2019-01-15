@@ -132,6 +132,11 @@ void qSlicerSettingsViewsPanelPrivate::init()
                       "checked", SIGNAL(toggled(bool)),
                       "Orthographic projection");
 
+  q->registerProperty("ThreeDView/ConstrainFiducials", this->ThreeDConstrainMarkupsCheckBox,
+                      "checked", SIGNAL(toggled(bool)),
+                      "Orthographic projection",
+                      ctkSettingsPanel::OptionRequireRestart);
+
 }
 
 // --------------------------------------------------------------------------
