@@ -1,16 +1,43 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.12.0)
+# Set policies at the cmake version upto the latest tested 3.13.2.
+cmake_policy(VERSION 3.12.0...3.13.2) 
 
 #-----------------------------------------------------------------------------
 # Enable C++11
 #-----------------------------------------------------------------------------
 set(_msg "Setting C++ standard")
 message(STATUS "${_msg}")
-if(NOT DEFINED CMAKE_CXX_STANDARD)
- set(CMAKE_CXX_STANDARD 14) # NOTE: Qt 5.12.0 requires C++14 for supporting QtWebEngine
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 14)# NOTE: Qt 5.12.0 requires C++14 for supporting QtWebEngine 
 endif()
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
+if(NOT CMAKE_CXX_STANDARD_REQUIRED)
+  set(CMAKE_CXX_STANDARD_REQUIRED ON)
+endif()
+if(NOT CMAKE_CXX_EXTENSIONS)
+  set(CMAKE_CXX_EXTENSIONS OFF)
+endif()
+set(VALID_CXX_STANDARDS "11" "14" "17")
+if(NOT CMAKE_CXX_STANDARD IN_LIST VALID_CXX_STANDARDS )
+   MESSAGE(FATAL_ERROR "CMAKE_CXX_STANDARD:STRING=${CMAKE_CXX_STANDARD} not in know standards list\n ${VALID_CXX_STANDARDS}.")
+endif()
 message(STATUS "${_msg} - C++${CMAKE_CXX_STANDARD}")
+
+set(_msg "Setting C standard")
+message(STATUS "${_msg}")
+if(NOT CMAKE_C_STANDARD)
+  set(CMAKE_C_STANDARD 11) # Be explicit in the C standard used for compilation.
+endif()
+if(NOT CMAKE_C_STANDARD_REQUIRED)
+  set(CMAKE_C_STANDARD_REQUIRED ON)
+endif()
+if(NOT CMAKE_C_EXTENSIONS)
+  set(CMAKE_C_EXTENSIONS OFF)
+endif()
+set(VALID_C_STANDARDS "90" "99" "11")
+if(NOT CMAKE_C_STANDARD IN_LIST VALID_C_STANDARDS )
+   MESSAGE(FATAL_ERROR "CMAKE_C_STANDARD:STRING=${CMAKE_C_STANDARD} not in know standards list\n ${VALID_C_STANDARDS}.")
+endif()
+message(STATUS "${_msg} - C${CMAKE_C_STANDARD}")
 
 #-----------------------------------------------------------------------------
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake" ${CMAKE_MODULE_PATH})
