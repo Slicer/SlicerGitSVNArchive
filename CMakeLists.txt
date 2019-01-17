@@ -72,7 +72,11 @@ endif()
 if(NOT DEFINED Slicer_VERSION_PATCH)
   set(Slicer_VERSION_PATCH "0")
 endif()
-project(Slicer VERSION "${Slicer_VERSION_MAJOR}.${Slicer_VERSION_MINOR}.${Slicer_VERSION_PATCH}")
+project(Slicer
+        VERSION "${Slicer_VERSION_MAJOR}.${Slicer_VERSION_MINOR}.${Slicer_VERSION_PATCH}"
+        DESCRIPTION "3D Slicer is an open source software platform for medical image informatics, image processing, and three-dimensional visualization."
+        HOMEPAGE_URL "https://www.slicer.org/"
+        LANGUAGES C CXX )
 
 #-----------------------------------------------------------------------------
 # Update CMake module path
