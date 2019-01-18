@@ -53,6 +53,7 @@ vtkMRMLMarkupsNode::vtkMRMLMarkupsNode()
   this->MarkupLabelFormat = std::string("%N-%d");
   this->LastUsedControlPointNumber = 0;
   this->ActiveControlPoint = -1;
+  this->PlacingEnded = false;
 }
 
 //----------------------------------------------------------------------------
@@ -192,9 +193,9 @@ void vtkMRMLMarkupsNode::UpdateScene(vtkMRMLScene *scene)
 }
 
 //---------------------------------------------------------------------------
-void vtkMRMLMarkupsNode::ProcessMRMLEvents ( vtkObject *caller,
+void vtkMRMLMarkupsNode::ProcessMRMLEvents(vtkObject *caller,
                                            unsigned long event,
-                                           void *callData )
+                                           void *callData)
 {
   Superclass::ProcessMRMLEvents(caller, event, callData);
 }
@@ -296,8 +297,7 @@ void vtkMRMLMarkupsNode::SetText(int id, const char *newText)
   // check if the same as before
   if (((this->TextList->GetNumberOfValues() == 0) && (newText == nullptr || newString == "")) ||
       ((this->TextList->GetNumberOfValues() > id) &&
-       (this->TextList->GetValue(id) == newString)
-        ) )
+       (this->TextList->GetValue(id) == newString)))
     {
     return;
     }
@@ -326,9 +326,9 @@ int vtkMRMLMarkupsNode::AddText(const char *newText)
 //-------------------------------------------------------------------------
 vtkStdString vtkMRMLMarkupsNode::GetText(int n)
 {
-  if ((this->GetNumberOfTexts() <= n) || n < 0 )
+  if ((this->GetNumberOfTexts() <= n) || n < 0)
     {
-      return vtkStdString();
+    return vtkStdString();
     }
 
   return this->TextList->GetValue(n);
@@ -348,7 +348,7 @@ int  vtkMRMLMarkupsNode::DeleteText(int id)
     return -1;
     }
 
-  for (int i = id; i < n-1; i++ )
+  for (int i = id; i < n-1; i++)
     {
     this->TextList->SetValue(i, this->GetText(i+1));
     }
@@ -480,7 +480,14 @@ void vtkMRMLMarkupsNode::InitControlPoint(ControlPoint *controlPoint)
 
 //-----------------------------------------------------------
 int vtkMRMLMarkupsNode::AddControlPoint(ControlPoint *controlPoint)
-{
+{  
+  if (this->MaximumNumberOfControlPoints != 0 &&
+      this->GetNumberOfControlPoints() + 1 > this->MaximumNumberOfControlPoints)
+    {
+    vtkErrorMacro("AddNControlPoints: number of points major than maximum number of control points allowed.");
+    return -1;
+    }
+
   this->ControlPoints.push_back(controlPoint);
   this->LastUsedControlPointNumber++;
 
@@ -501,17 +508,25 @@ int vtkMRMLMarkupsNode::AddNControlPoints(int n, std::string label /*=std::strin
     return controlPointIndex;
     }
 
-   for (int i = 0; i < n; i++)
-     {
-     ControlPoint *controlPoint = new ControlPoint;
-     controlPoint->Label = label;
-     this->InitControlPoint(controlPoint);
-     if (point != nullptr)
-       {
-       controlPoint->WorldPosition.Set(point->GetX(), point->GetY(), point->GetZ());
-       }
-     controlPointIndex = this->AddControlPoint(controlPoint);
-     }
+  if (this->MaximumNumberOfControlPoints != 0 &&  n > this->MaximumNumberOfControlPoints)
+    {
+    vtkErrorMacro("AddNControlPoints: number of points " << n <<
+                  " major than maximum number of control points allowed : " << this->MaximumNumberOfControlPoints);
+    return controlPointIndex;
+    }
+
+  for (int i = 0; i < n; i++)
+    {
+    ControlPoint *controlPoint = new ControlPoint;
+    controlPoint->Label = label;
+    this->InitControlPoint(controlPoint);
+    if (point != nullptr)
+      {
+      controlPoint->WorldPosition.Set(point->GetX(), point->GetY(), point->GetZ());
+      }
+    controlPointIndex = this->AddControlPoint(controlPoint);
+    }
+
   return controlPointIndex;
 }
 
@@ -582,7 +597,24 @@ void vtkMRMLMarkupsNode::RemoveNthControlPoint(int pointIndex)
 
   this->ControlPoints[static_cast<unsigned int> (pointIndex)]->intermadiatePoints.clear();
   delete this->ControlPoints[static_cast<unsigned int> (pointIndex)];
-  this->ControlPoints.erase( this->ControlPoints.begin() + pointIndex );
+  this->ControlPoints.erase(this->ControlPoints.begin() + pointIndex);
+
+  this->InvokeCustomModifiedEvent(vtkMRMLMarkupsNode::PointRemovedEvent, static_cast<void*>(&pointIndex));
+}
+
+//-----------------------------------------------------------
+void vtkMRMLMarkupsNode::RemoveLastControlPoint()
+{
+  int pointIndex = this->GetNumberOfControlPoints() - 1;
+  if (!this->ControlPointExists(pointIndex))
+    {
+    return;
+    }
+
+  this->ControlPoints[static_cast<unsigned int> (pointIndex)]->intermadiatePoints.clear();
+  delete this->ControlPoints[static_cast<unsigned int> (pointIndex)];
+  this->ControlPoints.erase(this->ControlPoints.begin() + pointIndex);
+  this->LastUsedControlPointNumber--;
 
   this->InvokeCustomModifiedEvent(vtkMRMLMarkupsNode::PointRemovedEvent, static_cast<void*>(&pointIndex));
 }
@@ -773,7 +805,7 @@ void vtkMRMLMarkupsNode::SetNthControlPointOrientation(int n, double w, double x
     }
 
   ControlPoint *controlPoint = this->GetNthControlPoint(n);
-  controlPoint->OrientationWXYZ.Set( w, x, y, z);
+  controlPoint->OrientationWXYZ.Set(w, x, y, z);
 
   this->InvokeCustomModifiedEvent(vtkMRMLMarkupsNode::PointModifiedEvent, static_cast<void*>(&n));
 }

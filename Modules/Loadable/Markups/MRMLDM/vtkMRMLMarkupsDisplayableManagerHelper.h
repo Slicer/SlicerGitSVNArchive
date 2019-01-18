@@ -39,8 +39,9 @@
 
 // MRML includes
 #include <vtkMRMLSliceNode.h>
-#include <vtkMRMLInteractionNode.h>
+
 class vtkMRMLMarkupsDisplayNode;
+class vtkMRMLInteractionNode;
 
 /// \ingroup Slicer_QtModules_Markups
 class VTK_SLICER_MARKUPS_MODULE_MRMLDISPLAYABLEMANAGER_EXPORT vtkMRMLMarkupsDisplayableManagerHelper :
@@ -54,14 +55,15 @@ public:
 
   /// Lock/Unlock all widgets based on the state of the nodes
   void UpdateLockedAllWidgetsFromNodes();
-  /// Lock/Unlock all widgets from interaction node
-  void UpdateLockedAllWidgetsFromInteractionNode(vtkMRMLInteractionNode* interactionNode);
   /// Lock/Unlock all widgets
   void UpdateLockedAllWidgets(bool locked);
   /// Lock/Unlock a widget. If no interaction node is passed in, don't take the
   /// mouse mode into account, if it is passed in, widgets get locked while in
   /// Place mode
-  void UpdateLocked(vtkMRMLMarkupsNode* node, vtkMRMLInteractionNode *interactionNode = NULL);
+  void UpdateLocked(vtkMRMLMarkupsNode* node);
+
+  /// Update all widget status
+  void UpdateAllWidgetsFromInteractionNode(vtkMRMLInteractionNode* interactionNode);
 
   /// Keep track of the mapping between widgets and nodes
   void RecordWidgetForNode(vtkSlicerAbstractWidget* widget, vtkMRMLMarkupsNode *node);
@@ -78,7 +80,6 @@ public:
   void RemoveAllWidgetsAndNodes();
   /// Remove a node, its widget and its intersection widget
   void RemoveWidgetAndNode(vtkMRMLMarkupsNode *node);
-
 
   /// Search the markups node list and return the markups node that has this display node
   vtkMRMLMarkupsNode * GetMarkupsNodeFromDisplayNode(vtkMRMLMarkupsDisplayNode *displayNode);

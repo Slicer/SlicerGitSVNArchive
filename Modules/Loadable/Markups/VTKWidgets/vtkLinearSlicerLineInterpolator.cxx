@@ -29,14 +29,14 @@ vtkLinearSlicerLineInterpolator::vtkLinearSlicerLineInterpolator() = default;
 vtkLinearSlicerLineInterpolator::~vtkLinearSlicerLineInterpolator() = default;
 
 //----------------------------------------------------------------------
-int vtkLinearSlicerLineInterpolator::InterpolateLine( vtkSlicerAbstractRepresentation *rep,
-                                                      int idx1, int idx2 )
+int vtkLinearSlicerLineInterpolator::InterpolateLine(vtkSlicerAbstractRepresentation *rep,
+                                                     int idx1, int idx2)
 {
   double p1[3] = {0}, p2[3] = {0};
-  rep->GetNthNodeWorldPosition( idx1, p1 );
-  rep->AddIntermediatePointWorldPosition( idx1, p1 );
-  rep->GetNthNodeWorldPosition( idx2, p2 );
-  rep->AddIntermediatePointWorldPosition( idx2, p2 );
+  rep->GetNthNodeWorldPosition(idx1, p1);
+  rep->AddIntermediatePointWorldPosition(idx1, p1);
+  rep->GetNthNodeWorldPosition(idx2, p2);
+  rep->AddIntermediatePointWorldPosition(idx2, p2);
   return 1;
 }
 

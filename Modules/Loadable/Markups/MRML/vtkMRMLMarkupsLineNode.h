@@ -15,8 +15,8 @@
 
 ==============================================================================*/
 
-#ifndef __vtkMRMLMarkupsFiducialNode_h
-#define __vtkMRMLMarkupsFiducialNode_h
+#ifndef __vtkMRMLMarkupsLineNode_h
+#define __vtkMRMLMarkupsLineNode_h
 
 // MRML includes
 #include "vtkMRMLDisplayableNode.h"
@@ -26,20 +26,18 @@
 #include "vtkMRMLMarkupsDisplayNode.h"
 #include "vtkMRMLMarkupsNode.h"
 
-/// \brief MRML node to represent a fiducial markup
-/// Fiducial Markups nodes contain a list of control points.
+/// \brief MRML node to represent a line markup
+/// Line Markups nodes contain two control points.
 /// Visualization parameters are set in the vtkMRMLMarkupsDisplayNode class.
 ///
 /// Markups is intended to be used for manual marking/editing of point positions.
-/// There is no specific limit for number of points that can be added to a list,
-/// but performance is optimal if there are less than 2000 points.
 ///
 /// \ingroup Slicer_QtModules_Markups
-class  VTK_SLICER_MARKUPS_MODULE_MRML_EXPORT vtkMRMLMarkupsFiducialNode : public vtkMRMLMarkupsNode
+class  VTK_SLICER_MARKUPS_MODULE_MRML_EXPORT vtkMRMLMarkupsLineNode : public vtkMRMLMarkupsNode
 {
 public:
-  static vtkMRMLMarkupsFiducialNode *New();
-  vtkTypeMacro(vtkMRMLMarkupsFiducialNode,vtkMRMLMarkupsNode);
+  static vtkMRMLMarkupsLineNode *New();
+  vtkTypeMacro(vtkMRMLMarkupsLineNode,vtkMRMLMarkupsNode);
   /// Print out the node information to the output stream
   void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
@@ -51,7 +49,7 @@ public:
 
   virtual vtkMRMLNode* CreateNodeInstance() VTK_OVERRIDE;
   /// Get node XML tag name (like Volume, Model)
-  virtual const char* GetNodeTagName() VTK_OVERRIDE {return "MarkupsFiducial";}
+  virtual const char* GetNodeTagName() VTK_OVERRIDE {return "MarkupsLine";}
 
   /// Read node attributes from XML file
   virtual void ReadXMLAttributes( const char** atts) VTK_OVERRIDE;
@@ -82,58 +80,60 @@ public:
 
   // Wrapping some of the generic markup methods
 
-  /// Get the number of fiducials in this node
-  int GetNumberOfFiducials() { return this->GetNumberOfControlPoints(); } ;
-  /// Add a new fiducial from x,y,z coordinates and return the fiducial index
-  int AddFiducial(double x, double y, double z);
-  int AddFiducial(double x, double y, double z, std::string label);
-  /// Add a new fiducial from an array and return the fiducial index
-  int AddFiducialFromArray(double pos[3], std::string label = std::string());
-  /// Get the position of the nth fiducial, returning it in the pos array
-  void GetNthFiducialPosition(int n, double pos[3]);
-  /// Set the position of the nth fiducial from x, y, z coordinates
-  void SetNthFiducialPosition(int n, double x, double y, double z);
-  /// Set the position of the nth fiducial from a double array
-  void SetNthFiducialPositionFromArray(int n, double pos[3]);
-  /// Get selected property on Nth fiducial
-  bool GetNthFiducialSelected(int n = 0);
-  /// Set selected property on Nth fiducial
-  void SetNthFiducialSelected(int n, bool flag);
-  /// Get locked property on Nth fiducial
-  bool GetNthFiducialLocked(int n = 0);
-  /// Set locked property on Nth fiducial
-  void SetNthFiducialLocked(int n, bool flag);
-  /// Get visibility property on Nth fiducial
-  bool GetNthFiducialVisibility(int n = 0);
-  /// Set visibility property on Nth fiducial. If the visibility is set to
-  /// true on the node/list as a whole, the nth fiducial visibility is used to
+  /// Get the number of Points in this node (maximum number of point is 2)
+  int GetNumberOfPoints() { return this->GetNumberOfControlPoints(); } ;
+  /// Add a new Point from x,y,z coordinates and return the Point index,
+  /// if point index is -1, the point has not been added
+  int AddPoint(double x, double y, double z);
+  int AddPoint(double x, double y, double z, std::string label);
+  /// Add a new Point from an array and return the Point index,
+  /// if point index is -1, the point has not been added
+  int AddPointFromArray(double pos[3], std::string label = std::string());
+  /// Get the position of the nth Point, returning it in the pos array
+  void GetNthPointPosition(int n, double pos[3]);
+  /// Set the position of the nth Point from x, y, z coordinates
+  void SetNthPointPosition(int n, double x, double y, double z);
+  /// Set the position of the nth Point from a double array
+  void SetNthPointPositionFromArray(int n, double pos[3]);
+  /// Get selected property on Nth Point
+  bool GetNthPointSelected(int n = 0);
+  /// Set selected property on Nth Point
+  void SetNthPointSelected(int n, bool flag);
+  /// Get locked property on Nth Point
+  bool GetNthPointLocked(int n = 0);
+  /// Set locked property on Nth Point
+  void SetNthPointLocked(int n, bool flag);
+  /// Get visibility property on Nth Point
+  bool GetNthPointVisibility(int n = 0);
+  /// Set visibility property on Nth Point. If the visibility is set to
+  /// true on the node/list as a whole, the nth Point visibility is used to
   /// determine if it is visible. If the visibility is set to false on the node
-  /// as a whole, all fiducials are hidden but keep this value for when the
+  /// as a whole, all Points are hidden but keep this value for when the
   /// list as a whole is turned visible.
   /// \sa vtkMRMLDisplayableNode::SetDisplayVisibility
   /// \sa vtkMRMLDisplayNode::SetVisibility
-  void SetNthFiducialVisibility(int n, bool flag);
-  /// Get label on nth fiducial
-  std::string GetNthFiducialLabel(int n = 0);
-  /// Set label on nth fiducial
-  void SetNthFiducialLabel(int n, std::string label);
-  /// Get associated node id on nth fiducial
-  std::string GetNthFiducialAssociatedNodeID(int n = 0);
-  /// Set associated node id on nth fiducial
-  void SetNthFiducialAssociatedNodeID(int n, const char* id);
-  /// Set world coordinates on nth fiducial
-  void SetNthFiducialWorldCoordinates(int n, double coords[4]);
-  /// Get world coordinates on nth fiducial
-  void GetNthFiducialWorldCoordinates(int n, double coords[4]);
+  void SetNthPointVisibility(int n, bool flag);
+  /// Get label on nth Point
+  std::string GetNthPointLabel(int n = 0);
+  /// Set label on nth Point
+  void SetNthPointLabel(int n, std::string label);
+  /// Get associated node id on nth Point
+  std::string GetNthPointAssociatedNodeID(int n = 0);
+  /// Set associated node id on nth Point
+  void SetNthPointAssociatedNodeID(int n, const char* id);
+  /// Set world coordinates on nth Point
+  void SetNthPointWorldCoordinates(int n, double coords[4]);
+  /// Get world coordinates on nth Point
+  void GetNthPointWorldCoordinates(int n, double coords[4]);
 
   virtual void GetRASBounds(double bounds[6]) VTK_OVERRIDE;
   virtual void GetBounds(double bounds[6]) VTK_OVERRIDE;
 
 protected:
-  vtkMRMLMarkupsFiducialNode();
-  ~vtkMRMLMarkupsFiducialNode();
-  vtkMRMLMarkupsFiducialNode(const vtkMRMLMarkupsFiducialNode&);
-  void operator=(const vtkMRMLMarkupsFiducialNode&);
+  vtkMRMLMarkupsLineNode();
+  ~vtkMRMLMarkupsLineNode();
+  vtkMRMLMarkupsLineNode(const vtkMRMLMarkupsLineNode&);
+  void operator=(const vtkMRMLMarkupsLineNode&);
 
 };
 

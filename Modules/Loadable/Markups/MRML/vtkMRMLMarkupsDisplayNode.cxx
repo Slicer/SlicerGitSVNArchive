@@ -246,9 +246,9 @@ void vtkMRMLMarkupsDisplayNode::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //---------------------------------------------------------------------------
-void vtkMRMLMarkupsDisplayNode::ProcessMRMLEvents ( vtkObject *caller,
-                                           unsigned long event,
-                                           void *callData )
+void vtkMRMLMarkupsDisplayNode::ProcessMRMLEvents(vtkObject *caller,
+                                                  unsigned long event,
+                                                  void *callData)
 {
   Superclass::ProcessMRMLEvents(caller, event, callData);
   return;

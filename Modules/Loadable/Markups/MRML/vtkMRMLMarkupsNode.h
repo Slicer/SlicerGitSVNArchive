@@ -213,6 +213,9 @@ public:
 
   /// Remove nth Control Point
   void RemoveNthControlPoint(int pointIndex);
+  /// Remove last Control Point
+  void RemoveLastControlPoint();
+
 
   /// Insert a control point in this list at targetIndex.
   /// If targetIndex is < 0, insert at the start of the list.
@@ -266,7 +269,8 @@ public:
   /// Get control point based on it's ID
   ControlPoint* GetNthControlPointByID(const char* controlPointID);
 
-  /// Active control point :
+  /// Active control point
+  /// -1 if no point is active
   void SetActiveControlPoint(int index);
   vtkGetMacro(ActiveControlPoint, int);
 
@@ -360,8 +364,14 @@ public:
   /// prevent adding markups to a node programmatically.
   /// If value is set to lower value than the number of markups in the node, then
   /// existing markups are not deleted.
+  /// 2 for line, and 3 for angle Markups
   vtkSetMacro(MaximumNumberOfControlPoints, int);
   vtkGetMacro(MaximumNumberOfControlPoints, int);
+
+  /// Utily variable to use for the Line and Angle widget
+  /// for which the ending is not giving by the right click.
+  vtkSetMacro(PlacingEnded, bool);
+  vtkGetMacro(PlacingEnded, bool);
 
 protected:
   vtkMRMLMarkupsNode();
@@ -385,8 +395,14 @@ private:
   // Vector of point sets
   std::vector<ControlPoint*> ControlPoints;
 
+  // current active point (hovered by the mouse)
   int ActiveControlPoint;
 
+  // utily variable to use for the Line and Angle widget
+  // for which the ending is not giving by the right click.
+  bool PlacingEnded;
+
+  // Locks all the points and GUI
   int Locked;
 
   // Used for limiting number of markups that may be placed.

@@ -22,7 +22,6 @@
 #include "vtkSlicerMarkupsModuleMRMLDisplayableManagerExport.h"
 
 // MarkupsModule/MRMLDisplayableManager includes
-#include "vtkMRMLMarkupsClickCounter.h"
 #include "vtkMRMLMarkupsDisplayableManagerHelper.h"
 
 // MRMLDisplayableManager includes
@@ -45,10 +44,6 @@ public:
   static vtkMRMLMarkupsDisplayableManager3D *New();
   vtkTypeMacro(vtkMRMLMarkupsDisplayableManager3D, vtkMRMLAbstractThreeDViewDisplayableManager);
   void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
-
-  /// Hide/Show a widget so that the node's display node visibility setting
-  /// matches that of the widget
-  void UpdateWidgetVisibility(vtkMRMLMarkupsNode* node);
 
   /// Check if there are real changes between two sets of displayCoordinates
   bool GetDisplayCoordinatesChanged(double * displayCoordinates1, double * displayCoordinates2);
@@ -124,8 +119,6 @@ protected:
   void OnClickInRenderWindowGetCoordinates();
   /// Callback for click in RenderWindow
   virtual void OnClickInRenderWindow(double x, double y, const char *associatedNodeID = NULL);
-  /// Counter for clicks in Render Window
-  vtkMRMLMarkupsClickCounter* ClickCounter;
 
   /// Convert display to world coordinates
   void GetWorldToDisplayCoordinates(double r, double a, double s, double * displayCoordinates);

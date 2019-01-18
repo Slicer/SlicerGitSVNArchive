@@ -35,8 +35,8 @@
  * <pre>
  *   LeftButtonPressEvent - triggers a Select event
  *   Alt + LeftButtonPressEvent - triggers a Rotate event
- *   MiddleButtonPressEvent - triggers a Shift event
- *   RightButtonPressEvent - triggers a AddFinalPoint event
+ *   MiddleButtonPressEvent - triggers a Translate event
+ *   RightButtonPressEvent - triggers a Scale event
  *
  *   MouseMoveEvent - triggers a Move event
  *
@@ -46,7 +46,7 @@
  *
  *   LeftButtonDoubleClickEvent - triggers an PickOne event
  *   MiddleButtonDoubleClickEvent - triggers an PickTwo event
- *   RightButtonDoubleClickEvent - triggers an AddPoint event
+ *   RightButtonDoubleClickEvent - triggers an PickThree event
  *
  *
  *   Delete key event - triggers a Delete event
@@ -60,14 +60,10 @@
  * <pre>
  *   vtkWidgetEvent::Select
  *        widget state is:
- *            Start or
- *            Define: If we already have at least 2 nodes, test
- *                 whether the current (X,Y) location is near an existing
- *                 node. If so, close the contour and change to Manipulate
- *                 state. Otherwise, attempt to add a node at this (X,Y)
- *                 location.
+ *            Start: Do nothing.
+ *            Define: Do nothing.
  *            Manipulate: If this (X,Y) location activates a node or the line, then
- *                 set the current operation to Translate.
+ *                 set the current operation to Select.
  *
  * @par Event Bindings:
  *   vtkWidgetEvent::PickPoint
@@ -86,12 +82,12 @@
  *                 set the current operation to Rotate. if any node is locked, the rotation is aborted.
  *
  * @par Event Bindings:
- *   vtkWidgetEvent::Shift
+ *   vtkWidgetEvent::Translate
  *        widget state is:
  *            Start: Do nothing.
  *            Define: Do nothing.
  *            Manipulate: If this (X,Y) location activates a node or the line, then
- *                 set the current operation to Shift.
+ *                 set the current operation to Translate.
  *
  * @par Event Bindings:
  *   vtkWidgetEvent::Scale
@@ -102,31 +98,11 @@
  *                 set the current operation to Scale.
  *
  * @par Event Bindings:
- *   vtkWidgetEvent::AddPoint
- *        widget state is:
- *            Start: Do nothing.
- *            Define: Do nothing.
- *            Manipulate: if the current (X,Y) location is near the line, attempt to add a
- *                 new node on the contour at this location.
- *
- * @par Event Bindings:
- *   vtkWidgetEvent::AddFinalPoint
- *        widget state is:
- *            Start: Do nothing.
- *            Define: If we already have at least 2 nodes, test
- *                 whether the current (X,Y) location is near an existing
- *                 node. If so, close the contour and change to Manipulate
- *                 state. Otherwise, attempt to add a node at this (X,Y)
- *                 location. If we do, then leave the contour open and
- *                 change to Manipulate state.
- *            Manipulate: Do nothing.
- *
- * @par Event Bindings:
  *   vtkWidgetEvent::Move
  *        widget state is:
  *            Start or
  *            Define: Do nothing.
- *            Manipulate: If our operation is Translate, Shift or Scale, then invoke
+ *            Manipulate: If our operation is Select, Translate or Scale, then invoke
  *                  WidgetInteraction() on the representation. If our
  *                  operation is Inactive, then just attempt to activate
  *                  a node at this (X,Y) location or the line.
@@ -201,16 +177,16 @@ public:
   /// its superclasses' vtkAbstractWidget::SetEnabled() method.
   virtual void SetEnabled(int) VTK_OVERRIDE;
 
-  ///
+  /// Set the representation
   virtual void SetRepresentation(vtkSlicerAbstractRepresentation *r);
 
-  ///
+  /// Get the representation
   virtual vtkSlicerAbstractRepresentation *GetRepresentation();
 
-  ///
+  /// Build the actors of the representation with the info stored in the vtkMRMLMarkupsNode
   virtual void BuildRepresentation();
 
-  ///
+  /// Build the locator with the info stored in the vtkMRMLMarkupsNode
   virtual void BuildLocator();
 
   /// Create the default widget representation if one is not set.
@@ -225,26 +201,26 @@ public:
   /// Convenient method to determine the state of the method
   vtkGetMacro(WidgetState,int);
 
-  /// Follow the cursor ? If this is ON, during definition, the last node of the
+  /// During definition, the last node of the
   /// contour will automatically follow the cursor, without waiting for the
-  /// point to be dropped. This may be useful for some interpolators, such as the
+  /// point to be dropped. This is useful for some interpolators, such as the
   /// live-wire interpolator to see the shape of the contour that will be placed
   /// as you move the mouse cursor.
-  vtkSetMacro( FollowCursor, vtkTypeBool );
-  vtkGetMacro( FollowCursor, vtkTypeBool );
-  vtkBooleanMacro( FollowCursor, vtkTypeBool );
+  vtkSetMacro(FollowCursor, vtkTypeBool);
+  vtkGetMacro(FollowCursor, vtkTypeBool);
+  vtkBooleanMacro(FollowCursor, vtkTypeBool);
 
   /// Convenient method to remap the horizonbtal axes constrain key.
-  vtkSetMacro( HorizontalActiveKeyCode, const char );
-  vtkGetMacro( HorizontalActiveKeyCode, const char );
+  vtkSetMacro(HorizontalActiveKeyCode, const char);
+  vtkGetMacro(HorizontalActiveKeyCode, char);
 
   /// Convenient method to remap the vertical axes constrain key.
-  vtkSetMacro( VerticalActiveKeyCode, const char );
-  vtkGetMacro( VerticalActiveKeyCode, const char );
+  vtkSetMacro(VerticalActiveKeyCode, const char);
+  vtkGetMacro(VerticalActiveKeyCode, char);
 
   /// Convenient method to remap the depth axes constrain key.
-  vtkSetMacro( DepthActiveKeyCode, const char );
-  vtkGetMacro( DepthActiveKeyCode, const char );
+  vtkSetMacro(DepthActiveKeyCode, const char);
+  vtkGetMacro(DepthActiveKeyCode, char);
 
   /// Initialize the contour widget from a user supplied set of points. The
   /// state of the widget decides if you are still defining the widget, or
@@ -252,7 +228,7 @@ public:
   /// it. Note that if the polydata supplied is closed, the state will be
   /// set to manipulate.
   /// State: Define = 0, Manipulate = 1.
-  virtual void Initialize( vtkPolyData * poly, int state = 1);
+  virtual void Initialize(vtkPolyData * poly, int state = 1);
   virtual void Initialize()
     {this->Initialize(nullptr);}
 
@@ -263,8 +239,6 @@ protected:
   vtkSlicerAbstractWidget();
   ~vtkSlicerAbstractWidget() VTK_OVERRIDE;
 
-  vtkSmartPointer<vtkSlicerAbstractRepresentation> WidgetRepresentation;
-
   int WidgetState;
   int CurrentHandle;
   vtkTypeBool FollowCursor;
@@ -274,22 +248,20 @@ protected:
 
   // Callback interface to capture events when
   // placing the widget.
+  static void SelectAction(vtkAbstractWidget*);
   static void PickAction(vtkAbstractWidget*);
-  static void ShiftAction(vtkAbstractWidget*);
+  static void TranslateAction(vtkAbstractWidget*);
   static void RotateAction(vtkAbstractWidget*);
   static void ScaleAction(vtkAbstractWidget*);
+  static void MoveAction(vtkAbstractWidget*);
   static void EndAction(vtkAbstractWidget*);
   static void ResetAction(vtkAbstractWidget*);
-
-  // Internal helper methods
-  virtual void AddPointToRepresentation() = 0;
-  virtual void AddPointToRepresentationFromWorldCoordinate(double worldCoordinates [3]) = 0;
+  static void DeleteAction(vtkAbstractWidget*);
 
   // Manual axis constrain
   char HorizontalActiveKeyCode;
   char VerticalActiveKeyCode;
   char DepthActiveKeyCode;
-  int KeyCount;
   vtkCallbackCommand *KeyEventCallbackCommand;
   static void ProcessKeyEvents(vtkObject *, unsigned long, void *, void *);
 

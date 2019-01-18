@@ -53,9 +53,8 @@ public:
   /// Subclasses that wish to interpolate a line segment must implement this.
   /// For instance vtkBezierSlicerLineInterpolator adds nodes between idx1
   /// and idx2, that allow the Slicer to adhere to a bezier curve.
-  virtual int InterpolateLine( vtkSlicerAbstractRepresentation *rep,
-                               int idx1, int idx2 ) = 0;
-
+  virtual int InterpolateLine(vtkSlicerAbstractRepresentation *rep,
+                              int idx1, int idx2) = 0;
 
   /// Span of the interpolator. ie. the number of control points its supposed
   /// to interpolate given a node.
@@ -70,8 +69,8 @@ public:
   /// need not always be 1. For instance, cubic spline interpolators, which
   /// have a span of 3 control points, it can be larger. See
   /// vtkBezierSlicerLineInterpolator for instance.
-  virtual void GetSpan( int nodeIndex, vtkIntArray *nodeIndices,
-                        vtkSlicerAbstractRepresentation *rep );
+  virtual void GetSpan(int nodeIndex, vtkIntArray *nodeIndices,
+                       vtkSlicerAbstractRepresentation *rep);
 
  protected:
   vtkSlicerLineInterpolator();

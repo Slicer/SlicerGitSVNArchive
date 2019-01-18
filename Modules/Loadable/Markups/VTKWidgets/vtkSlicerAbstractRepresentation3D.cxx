@@ -47,7 +47,6 @@
 #include "vtkSlicerLineInterpolator.h"
 #include "vtkBezierSlicerLineInterpolator.h"
 #include "vtkSphereSource.h"
-#include "vtkPickingManager.h"
 #include "vtkBox.h"
 #include "vtkIntArray.h"
 #include "vtkMatrix4x4.h"
@@ -58,7 +57,6 @@
 #include "vtkWindow.h"
 #include "vtkProperty.h"
 #include "vtkTextProperty.h"
-#include "vtkCellPicker.h"
 #include "vtkActor2D.h"
 #include "vtkLabelPlacementMapper.h"
 #include "vtkPointSetToLabelHierarchy.h"
@@ -121,80 +119,72 @@ vtkSlicerAbstractRepresentation3D::vtkSlicerAbstractRepresentation3D()
   this->ActiveActor->SetMapper(this->ActiveMapper);
   this->ActiveActor->SetProperty(this->ActiveProperty);
 
-  //Manage the picking stuff
-  this->CursorPicker = vtkCellPicker::New();
-  this->CursorPicker->PickFromListOn();
-  this->CursorPicker->SetTolerance(this->Tolerance);
-  this->CursorPicker->AddPickList(this->Actor);
-  this->CursorPicker->AddPickList(this->SelectedActor);
-  this->CursorPicker->AddPickList(this->ActiveActor);
-
   // Labels
   this->Labels = vtkStringArray::New();
-  this->Labels->SetName( "labels" );
-  this->Labels->SetNumberOfValues( 100 );
-  this->Labels->SetNumberOfValues( 1 );
-  this->Labels->SetValue( 0, "F" );
+  this->Labels->SetName("labels");
+  this->Labels->SetNumberOfValues(100);
+  this->Labels->SetNumberOfValues(1);
+  this->Labels->SetValue(0, "F");
   this->LabelsPriority = vtkStringArray::New();
   this->LabelsPriority->SetName("priority");
-  this->LabelsPriority->SetNumberOfValues( 100 );
-  this->LabelsPriority->SetNumberOfValues( 1 );
-  this->LabelsPriority->SetValue( 0, "1" );
-  this->FocalData->GetPointData()->AddArray( this->Labels );
-  this->FocalData->GetPointData()->AddArray( this->LabelsPriority );
+  this->LabelsPriority->SetNumberOfValues(100);
+  this->LabelsPriority->SetNumberOfValues(1);
+  this->LabelsPriority->SetValue(0, "1");
+  this->FocalData->GetPointData()->AddArray(this->Labels);
+  this->FocalData->GetPointData()->AddArray(this->LabelsPriority);
   this->PointSetToLabelHierarchyFilter = vtkPointSetToLabelHierarchy::New();
-  this->PointSetToLabelHierarchyFilter->SetTextProperty( this->TextProperty );
-  this->PointSetToLabelHierarchyFilter->SetLabelArrayName( "labels" );
-  this->PointSetToLabelHierarchyFilter->SetPriorityArrayName( "priority" );
-  this->PointSetToLabelHierarchyFilter->SetInputData( this->FocalData );
+  this->PointSetToLabelHierarchyFilter->SetTextProperty(this->TextProperty);
+  this->PointSetToLabelHierarchyFilter->SetLabelArrayName("labels");
+  this->PointSetToLabelHierarchyFilter->SetPriorityArrayName("priority");
+  this->PointSetToLabelHierarchyFilter->SetInputData(this->FocalData);
   this->LabelsMapper = vtkLabelPlacementMapper::New();
-  this->LabelsMapper->SetInputConnection( this->PointSetToLabelHierarchyFilter->GetOutputPort() );
+  this->LabelsMapper->SetInputConnection(this->PointSetToLabelHierarchyFilter->GetOutputPort());
   this->LabelsActor = vtkActor2D::New();
-  this->LabelsActor->SetMapper( this->LabelsMapper );
+  this->LabelsActor->SetMapper(this->LabelsMapper);
 
   this->SelectedLabels = vtkStringArray::New();
-  this->SelectedLabels->SetName( "labels" );
-  this->SelectedLabels->SetNumberOfValues( 100 );
-  this->SelectedLabels->SetNumberOfValues( 1 );
-  this->SelectedLabels->SetValue( 0, "F" );
+  this->SelectedLabels->SetName("labels");
+  this->SelectedLabels->SetNumberOfValues(100);
+  this->SelectedLabels->SetNumberOfValues(1);
+  this->SelectedLabels->SetValue(0, "F");
   this->SelectedLabelsPriority = vtkStringArray::New();
-  this->SelectedLabelsPriority->SetName( "priority" );
-  this->SelectedLabelsPriority->SetNumberOfValues( 100 );
-  this->SelectedLabelsPriority->SetNumberOfValues( 1 );
-  this->SelectedLabelsPriority->SetValue( 0, "1" );
-  this->SelectedFocalData->GetPointData()->AddArray( this->SelectedLabels );
-  this->SelectedFocalData->GetPointData()->AddArray( this->SelectedLabelsPriority );
+  this->SelectedLabelsPriority->SetName("priority");
+  this->SelectedLabelsPriority->SetNumberOfValues(100);
+  this->SelectedLabelsPriority->SetNumberOfValues(1);
+  this->SelectedLabelsPriority->SetValue(0, "1");
+  this->SelectedFocalData->GetPointData()->AddArray(this->SelectedLabels);
+  this->SelectedFocalData->GetPointData()->AddArray(this->SelectedLabelsPriority);
   this->SelectedPointSetToLabelHierarchyFilter = vtkPointSetToLabelHierarchy::New();
-  this->SelectedPointSetToLabelHierarchyFilter->SetTextProperty( this->SelectedTextProperty );
-  this->SelectedPointSetToLabelHierarchyFilter->SetLabelArrayName( "labels" );
-  this->SelectedPointSetToLabelHierarchyFilter->SetPriorityArrayName( "priority" );
-  this->SelectedPointSetToLabelHierarchyFilter->SetInputData( this->SelectedFocalData );
+  this->SelectedPointSetToLabelHierarchyFilter->SetTextProperty(this->SelectedTextProperty);
+  this->SelectedPointSetToLabelHierarchyFilter->SetLabelArrayName("labels");
+  this->SelectedPointSetToLabelHierarchyFilter->SetPriorityArrayName("priority");
+  this->SelectedPointSetToLabelHierarchyFilter->SetInputData(this->SelectedFocalData);
   this->SelectedLabelsMapper = vtkLabelPlacementMapper::New();
-  this->SelectedLabelsMapper->SetInputConnection( this->SelectedPointSetToLabelHierarchyFilter->GetOutputPort() );
+  this->SelectedLabelsMapper->SetInputConnection(this->SelectedPointSetToLabelHierarchyFilter->GetOutputPort());
   this->SelectedLabelsActor = vtkActor2D::New();
-  this->SelectedLabelsActor->SetMapper( this->SelectedLabelsMapper );
+  this->SelectedLabelsActor->SetMapper(this->SelectedLabelsMapper);
 
   this->ActiveLabels = vtkStringArray::New();
-  this->ActiveLabels->SetName( "labels" );
-  this->ActiveLabels->SetNumberOfValues( 100 );
-  this->ActiveLabels->SetNumberOfValues( 1 );
-  this->ActiveLabels->SetValue( 0, "F" );
+  this->ActiveLabels->SetName("labels");
+  this->ActiveLabels->SetNumberOfValues(100);
+  this->ActiveLabels->SetNumberOfValues(1);
+  this->ActiveLabels->SetValue(0, "F");
   this->ActiveLabelsPriority = vtkStringArray::New();
-  this->ActiveLabelsPriority->SetName( "priority" );
-  this->ActiveLabelsPriority->SetNumberOfValues( 100 );
-  this->ActiveLabelsPriority->SetNumberOfValues( 1 );
-  this->ActiveLabelsPriority->SetValue( 0, "1" );
-  this->ActiveFocalData->GetPointData()->AddArray( this->ActiveLabels );
-  this->ActiveFocalData->GetPointData()->AddArray( this->ActiveLabelsPriority );
+  this->ActiveLabelsPriority->SetName("priority");
+  this->ActiveLabelsPriority->SetNumberOfValues(100);
+  this->ActiveLabelsPriority->SetNumberOfValues(1);
+  this->ActiveLabelsPriority->SetValue(0, "1");
+  this->ActiveFocalData->GetPointData()->AddArray(this->ActiveLabels);
+  this->ActiveFocalData->GetPointData()->AddArray(this->ActiveLabelsPriority);
   this->ActivePointSetToLabelHierarchyFilter = vtkPointSetToLabelHierarchy::New();
-  this->ActivePointSetToLabelHierarchyFilter->SetTextProperty( this->ActiveTextProperty );
-  this->ActivePointSetToLabelHierarchyFilter->SetLabelArrayName( "labels" );
-  this->ActivePointSetToLabelHierarchyFilter->SetPriorityArrayName( "priority" );
-  this->ActivePointSetToLabelHierarchyFilter->SetInputData( this->ActiveFocalData );
+  this->ActivePointSetToLabelHierarchyFilter->SetTextProperty(this->ActiveTextProperty);
+  this->ActivePointSetToLabelHierarchyFilter->SetLabelArrayName("labels");
+  this->ActivePointSetToLabelHierarchyFilter->SetPriorityArrayName("priority");
+  this->ActivePointSetToLabelHierarchyFilter->SetInputData(this->ActiveFocalData);
   this->ActiveLabelsMapper = vtkLabelPlacementMapper::New();
-  this->ActiveLabelsMapper->SetInputConnection( this->ActivePointSetToLabelHierarchyFilter->GetOutputPort() );
+  this->ActiveLabelsMapper->SetInputConnection(this->ActivePointSetToLabelHierarchyFilter->GetOutputPort());
   this->ActiveLabelsActor = vtkActor2D::New();
-  this->ActiveLabelsActor->SetMapper( this->ActiveLabelsMapper );
+  this->ActiveLabelsActor->SetMapper(this->ActiveLabelsMapper);
 
   this->HandleSize = 3;
 }
@@ -226,8 +216,6 @@ vtkSlicerAbstractRepresentation3D::~vtkSlicerAbstractRepresentation3D()
   this->Glypher->Delete();
   this->SelectedGlypher->Delete();
   this->ActiveGlypher->Delete();
-
-  this->CursorPicker->Delete();
 
   this->Labels->Delete();
   this->LabelsPriority->Delete();
@@ -277,70 +265,70 @@ void vtkSlicerAbstractRepresentation3D::CreateDefaultProperties()
 
   // By default the Points are rendered as spheres
   vtkNew<vtkSphereSource> ss;
-  ss->SetRadius( 0.5 );
+  ss->SetRadius(0.5);
   ss->Update();
-  this->SetCursorShape( ss->GetOutput() );
-  this->SetSelectedCursorShape( ss->GetOutput() );
-  this->SetActiveCursorShape( ss->GetOutput() );
+  this->SetCursorShape(ss->GetOutput());
+  this->SetSelectedCursorShape(ss->GetOutput());
+  this->SetActiveCursorShape(ss->GetOutput());
 
   this->Property = vtkProperty::New();
   this->Property->SetRepresentationToSurface();
-  this->Property->SetColor( 0.4, 1.0, 1.0 );
-  this->Property->SetAmbient( 0.0 );
-  this->Property->SetDiffuse( 1.0 );
-  this->Property->SetSpecular( 0.0 );
-  this->Property->SetShading( true );
-  this->Property->SetSpecularPower( 1.0 );
-  this->Property->SetPointSize( 10. );
-  this->Property->SetLineWidth( 2. );
-  this->Property->SetOpacity( 1. );
+  this->Property->SetColor(0.4, 1.0, 1.0);
+  this->Property->SetAmbient(0.0);
+  this->Property->SetDiffuse(1.0);
+  this->Property->SetSpecular(0.0);
+  this->Property->SetShading(true);
+  this->Property->SetSpecularPower(1.0);
+  this->Property->SetPointSize(10.);
+  this->Property->SetLineWidth(2.);
+  this->Property->SetOpacity(1.);
 
   this->SelectedProperty = vtkProperty::New();
   this->SelectedProperty->SetRepresentationToSurface();
-  this->SelectedProperty->SetColor( 1.0, 0.5, 0.5 );
-  this->SelectedProperty->SetAmbient( 0.0 );
-  this->SelectedProperty->SetDiffuse( 1.0 );
-  this->SelectedProperty->SetSpecular( 0.0 );
-  this->SelectedProperty->SetShading( true );
-  this->SelectedProperty->SetSpecularPower( 1.0 );
-  this->SelectedProperty->SetPointSize( 10. );
-  this->SelectedProperty->SetLineWidth( 2. );
-  this->SelectedProperty->SetOpacity( 1. );
+  this->SelectedProperty->SetColor(1.0, 0.5, 0.5);
+  this->SelectedProperty->SetAmbient(0.0);
+  this->SelectedProperty->SetDiffuse(1.0);
+  this->SelectedProperty->SetSpecular(0.0);
+  this->SelectedProperty->SetShading(true);
+  this->SelectedProperty->SetSpecularPower(1.0);
+  this->SelectedProperty->SetPointSize(10.);
+  this->SelectedProperty->SetLineWidth(2.);
+  this->SelectedProperty->SetOpacity(1.);
 
   this->ActiveProperty = vtkProperty::New();
   this->ActiveProperty->SetRepresentationToSurface();
   // bright green
-  this->ActiveProperty->SetColor( 0.4, 1.0, 0. );
-  this->ActiveProperty->SetAmbient( 0. );
-  this->ActiveProperty->SetDiffuse( 1.0 );
-  this->ActiveProperty->SetSpecular( 0. );
-  this->ActiveProperty->SetShading( true );
-  this->ActiveProperty->SetSpecularPower( 1.0 );
-  this->ActiveProperty->SetPointSize( 10. );
-  this->ActiveProperty->SetLineWidth( 2. );
-  this->ActiveProperty->SetOpacity( 1. );
+  this->ActiveProperty->SetColor(0.4, 1.0, 0.);
+  this->ActiveProperty->SetAmbient(0.);
+  this->ActiveProperty->SetDiffuse(1.0);
+  this->ActiveProperty->SetSpecular(0.);
+  this->ActiveProperty->SetShading(true);
+  this->ActiveProperty->SetSpecularPower(1.0);
+  this->ActiveProperty->SetPointSize(10.);
+  this->ActiveProperty->SetLineWidth(2.);
+  this->ActiveProperty->SetOpacity(1.);
 
   this->TextProperty = vtkTextProperty::New();
   this->TextProperty->SetJustificationToRight();
-  this->TextProperty->SetFontSize( 15 );
-  this->TextProperty->SetFontFamily( vtkTextProperty::GetFontFamilyFromString( "Arial" ) );
-  this->TextProperty->SetColor( 0.4, 1.0, 1.0 );
-  this->TextProperty->SetOpacity( 1. );
+  this->TextProperty->SetFontSize(15);
+  this->TextProperty->SetFontFamily(vtkTextProperty::GetFontFamilyFromString("Arial"));
+  this->TextProperty->SetColor(0.4, 1.0, 1.0);
+  this->TextProperty->SetOpacity(1.);
 
   this->SelectedTextProperty = vtkTextProperty::New();
   this->SelectedTextProperty->SetJustificationToRight();
-  this->SelectedTextProperty->SetFontSize( 15 );
-  this->SelectedTextProperty->SetFontFamily( vtkTextProperty::GetFontFamilyFromString( "Arial" ) );
-  this->SelectedTextProperty->SetColor( 1.0, 0.5, 0.5 );
-  this->SelectedTextProperty->SetOpacity( 1. );
+  this->SelectedTextProperty->SetFontSize(15);
+  this->SelectedTextProperty->SetFontFamily(vtkTextProperty::GetFontFamilyFromString("Arial"));
+  this->SelectedTextProperty->SetColor(1.0, 0.5, 0.5);
+  this->SelectedTextProperty->SetOpacity(1.);
 
   this->ActiveTextProperty = vtkTextProperty::New();
   this->ActiveTextProperty->SetJustificationToRight();
-  this->ActiveTextProperty->SetFontSize( 15 );
-  this->ActiveTextProperty->SetFontFamily( vtkTextProperty::GetFontFamilyFromString( "Arial" ) );
+  this->ActiveTextProperty->SetFontSize(15);
+  this->ActiveTextProperty->SetFontFamily(vtkTextProperty::GetFontFamilyFromString("Arial"));
   // bright green
-  this->ActiveTextProperty->SetColor( 0.4, 1.0, 0. );
-  this->ActiveTextProperty->SetOpacity( 1. );
+  this->ActiveTextProperty->SetColor(0.4, 1.0, 0.);
+  this->ActiveTextProperty->SetOpacity(1.);
 }
 
 //----------------------------------------------------------------------
@@ -428,22 +416,30 @@ vtkPolyData *vtkSlicerAbstractRepresentation3D::GetActiveCursorShape()
   return this->ActiveCursorShape;
 }
 
-//-----------------------------------------------------------------------------
-void vtkSlicerAbstractRepresentation3D::SetTolerance(double tol)
+//----------------------------------------------------------------------
+int vtkSlicerAbstractRepresentation3D::ActivateNode(double displayPos[2])
 {
-  this->Tolerance = tol;
-  this->CursorPicker->SetTolerance(this->Tolerance);
-}
+  this->BuildLocator();
 
-//-----------------------------------------------------------------------------
-void vtkSlicerAbstractRepresentation3D::RegisterPickers()
-{
-  vtkPickingManager* pm = this->GetPickingManager();
-  if ( !pm )
+  // Find closest node to this display pos that
+  // is within PixelTolerance. PixelTolerance is calculated as
+  // a percentage (this->Tolerance) of the size of the window diagonal
+  double dPos[3] = {displayPos[0],displayPos[1],0};
+
+  double scale = this->CalculateViewScaleFactor();
+
+  this->PixelTolerance = scale * scale * this->HandleSize * this->Tolerance  * 500. * 1.39;
+  double closestDistance2 = VTK_DOUBLE_MAX;
+  int closestNode = static_cast<int> (this->Locator->FindClosestPointWithinRadius(
+    this->PixelTolerance, dPos, closestDistance2));
+
+  if (closestNode != this->GetActiveNode() &&
+      ((closestNode != -1 && !this->GetNthNodeLocked(closestNode)) || closestNode == -1  ))
     {
-    return;
+    this->SetActiveNode(closestNode);
+    this->NeedToRender = 1;
     }
-  pm->AddPicker( this->CursorPicker, this );
+  return (this->GetActiveNode() >= 0);
 }
 
 //----------------------------------------------------------------------
@@ -452,19 +448,19 @@ void vtkSlicerAbstractRepresentation3D::BuildRepresentation()
   // Make sure we are up to date with any changes made in the placer
   this->UpdateWidget();
 
-  if ( this->MarkupsNode == nullptr )
+  if (this->MarkupsNode == nullptr)
     {
     return;
     }
 
   vtkMRMLMarkupsDisplayNode* display = vtkMRMLMarkupsDisplayNode::SafeDownCast
-    ( this->MarkupsNode->GetDisplayNode() );
-  if ( display == nullptr )
+    (this->MarkupsNode->GetDisplayNode());
+  if (display == nullptr)
     {
     return;
     }
 
-  if ( display->GetTextVisibility() )
+  if (display->GetTextVisibility())
     {
     LabelsActor->VisibilityOn();
     SelectedLabelsActor->VisibilityOn();
@@ -481,164 +477,126 @@ void vtkSlicerAbstractRepresentation3D::BuildRepresentation()
     {
     // max value 65536 so we subtract 66000 to make sure we are
     // zero or negative
-    this->Mapper->SetRelativeCoincidentTopologyLineOffsetParameters( 0, -66000 );
-    this->Mapper->SetRelativeCoincidentTopologyPolygonOffsetParameters( 0, -66000 );
-    this->Mapper->SetRelativeCoincidentTopologyPointOffsetParameter( -66000 );
-    this->SelectedMapper->SetRelativeCoincidentTopologyLineOffsetParameters( 0, -66000 );
-    this->SelectedMapper->SetRelativeCoincidentTopologyPolygonOffsetParameters( 0, -66000 );
-    this->SelectedMapper->SetRelativeCoincidentTopologyPointOffsetParameter( -66000 );
-    this->ActiveMapper->SetRelativeCoincidentTopologyLineOffsetParameters( 0, -66000 );
-    this->ActiveMapper->SetRelativeCoincidentTopologyPolygonOffsetParameters( 0, -66000 );
-    this->ActiveMapper->SetRelativeCoincidentTopologyPointOffsetParameter( -66000 );
+    this->Mapper->SetRelativeCoincidentTopologyLineOffsetParameters(0, -66000);
+    this->Mapper->SetRelativeCoincidentTopologyPolygonOffsetParameters(0, -66000);
+    this->Mapper->SetRelativeCoincidentTopologyPointOffsetParameter(-66000);
+    this->SelectedMapper->SetRelativeCoincidentTopologyLineOffsetParameters(0, -66000);
+    this->SelectedMapper->SetRelativeCoincidentTopologyPolygonOffsetParameters(0, -66000);
+    this->SelectedMapper->SetRelativeCoincidentTopologyPointOffsetParameter(-66000);
+    this->ActiveMapper->SetRelativeCoincidentTopologyLineOffsetParameters(0, -66000);
+    this->ActiveMapper->SetRelativeCoincidentTopologyPolygonOffsetParameters(0, -66000);
+    this->ActiveMapper->SetRelativeCoincidentTopologyPointOffsetParameter(-66000);
     }
   else
     {
-    this->Mapper->SetRelativeCoincidentTopologyLineOffsetParameters( -1, -1 );
-    this->Mapper->SetRelativeCoincidentTopologyPolygonOffsetParameters( -1, -1 );
-    this->Mapper->SetRelativeCoincidentTopologyPointOffsetParameter( -1 );
-    this->SelectedMapper->SetRelativeCoincidentTopologyLineOffsetParameters( -1, -1 );
-    this->SelectedMapper->SetRelativeCoincidentTopologyPolygonOffsetParameters( -1, -1 );
-    this->SelectedMapper->SetRelativeCoincidentTopologyPointOffsetParameter( -1 );
-    this->ActiveMapper->SetRelativeCoincidentTopologyLineOffsetParameters( -1, -1 );
-    this->ActiveMapper->SetRelativeCoincidentTopologyPolygonOffsetParameters( -1, -1 );
-    this->ActiveMapper->SetRelativeCoincidentTopologyPointOffsetParameter( -1 );
+    this->Mapper->SetRelativeCoincidentTopologyLineOffsetParameters(-1, -1);
+    this->Mapper->SetRelativeCoincidentTopologyPolygonOffsetParameters(-1, -1);
+    this->Mapper->SetRelativeCoincidentTopologyPointOffsetParameter(-1);
+    this->SelectedMapper->SetRelativeCoincidentTopologyLineOffsetParameters(-1, -1);
+    this->SelectedMapper->SetRelativeCoincidentTopologyPolygonOffsetParameters(-1, -1);
+    this->SelectedMapper->SetRelativeCoincidentTopologyPointOffsetParameter(-1);
+    this->ActiveMapper->SetRelativeCoincidentTopologyLineOffsetParameters(-1, -1);
+    this->ActiveMapper->SetRelativeCoincidentTopologyPolygonOffsetParameters(-1, -1);
+    this->ActiveMapper->SetRelativeCoincidentTopologyPointOffsetParameter(-1);
     }
 
-  double p1[4], p2[4];
-  this->Renderer->GetActiveCamera()->GetFocalPoint( p1 );
-  p1[3] = 1.0;
-  this->Renderer->SetWorldPoint( p1 );
-  this->Renderer->WorldToView();
-  this->Renderer->GetViewPoint( p1 );
+  double scale = this->CalculateViewScaleFactor();
 
-  double depth = p1[2];
-  double aspect[2];
-  this->Renderer->ComputeAspect();
-  this->Renderer->GetAspect( aspect );
-
-  p1[0] = -aspect[0];
-  p1[1] = -aspect[1];
-  this->Renderer->SetViewPoint( p1 );
-  this->Renderer->ViewToWorld();
-  this->Renderer->GetWorldPoint( p1 );
-
-  p2[0] = aspect[0];
-  p2[1] = aspect[1];
-  p2[2] = depth;
-  p2[3] = 1.0;
-  this->Renderer->SetViewPoint( p2 );
-  this->Renderer->ViewToWorld();
-  this->Renderer->GetWorldPoint( p2 );
-
-  double distance = sqrt( vtkMath::Distance2BetweenPoints( p1, p2 ) );
-
-  int *size = this->Renderer->GetRenderWindow()->GetSize();
-  double viewport[4];
-  this->Renderer->GetViewport(viewport);
-
-  double x, y, scale;
-
-  x = size[0] * ( viewport[2] - viewport[0] );
-  y = size[1] * ( viewport[3] - viewport[1] );
-
-  scale = sqrt( x * x + y * y );
-  distance = scale / distance;
-
-  this->Glypher->SetScaleFactor( distance * this->HandleSize );
-  this->SelectedGlypher->SetScaleFactor( distance * this->HandleSize );
-  this->ActiveGlypher->SetScaleFactor( distance * this->HandleSize );
+  this->Glypher->SetScaleFactor(scale * this->HandleSize);
+  this->SelectedGlypher->SetScaleFactor(scale * this->HandleSize);
+  this->ActiveGlypher->SetScaleFactor(scale * this->HandleSize);
 
   int numPoints = this->GetNumberOfNodes();
   int ii;
 
-  this->FocalPoint->SetNumberOfPoints( 0 );
-  this->FocalData->GetPointData()->GetNormals()->SetNumberOfTuples( 0 );
-  this->Labels->SetNumberOfValues( 0 );
-  this->LabelsPriority->SetNumberOfValues( 0 );
+  this->FocalPoint->SetNumberOfPoints(0);
+  this->FocalData->GetPointData()->GetNormals()->SetNumberOfTuples(0);
+  this->Labels->SetNumberOfValues(0);
+  this->LabelsPriority->SetNumberOfValues(0);
 
-  for ( ii = 0; ii < numPoints; ii++ )
+  for (ii = 0; ii < numPoints; ii++)
     {
-    if ( !this->GetNthNodeVisibility( ii ) ||
-         ii == this->GetActiveNode() ||
-         this->GetNthNodeSelected( ii ) )
+    if (!this->GetNthNodeVisibility(ii) ||
+        ii == this->GetActiveNode() ||
+        this->GetNthNodeSelected(ii))
       {
       continue;
       }
 
     double worldPos[3], worldOrient[9] = {0}, orientation[4] = {0};
-    this->GetNthNodeWorldPosition( ii, worldPos );
+    this->GetNthNodeWorldPosition(ii, worldPos);
     bool skipPoint = false;
-    for (int jj = 0; jj < this->FocalPoint->GetNumberOfPoints(); jj++ )
+    for (int jj = 0; jj < this->FocalPoint->GetNumberOfPoints(); jj++)
       {
       double* pos = this->FocalPoint->GetPoint(jj);
       double eps = 0.001;
-      if ( fabs(pos[0] - worldPos[0]) < eps &&
+      if (fabs(pos[0] - worldPos[0]) < eps &&
            fabs(pos[1] - worldPos[1]) < eps &&
-           fabs(pos[2] - worldPos[2]) < eps )
+           fabs(pos[2] - worldPos[2]) < eps)
         {
         skipPoint = true;
         break;
         }
       }
 
-    if ( skipPoint )
+    if (skipPoint)
       {
       continue;
       }
 
-    this->FocalPoint->InsertNextPoint( worldPos );
-    this->GetNthNodeOrientation( ii, orientation );
-    this->FromOrientationQuaternionToWorldOrient( orientation, worldOrient );
-    this->FocalData->GetPointData()->GetNormals()->InsertNextTuple( worldOrient + 6 );
-    this->Labels->InsertNextValue( this->GetNthNodeLabel( ii ) );
-    this->LabelsPriority->InsertNextValue( std::to_string ( ii ) );
+    this->FocalPoint->InsertNextPoint(worldPos);
+    this->GetNthNodeOrientation(ii, orientation);
+    this->FromOrientationQuaternionToWorldOrient(orientation, worldOrient);
+    this->FocalData->GetPointData()->GetNormals()->InsertNextTuple(worldOrient + 6);
+    this->Labels->InsertNextValue(this->GetNthNodeLabel(ii));
+    this->LabelsPriority->InsertNextValue(std::to_string (ii));
     }
 
   this->FocalPoint->Modified();
   this->FocalData->GetPointData()->GetNormals()->Modified();
   this->FocalData->Modified();
 
-  this->SelectedFocalPoint->SetNumberOfPoints( 0 );
-  this->SelectedFocalData->GetPointData()->GetNormals()->SetNumberOfTuples( 0 );
-  this->SelectedLabels->SetNumberOfValues( 0 );
-  this->SelectedLabelsPriority->SetNumberOfValues( 0 );
+  this->SelectedFocalPoint->SetNumberOfPoints(0);
+  this->SelectedFocalData->GetPointData()->GetNormals()->SetNumberOfTuples(0);
+  this->SelectedLabels->SetNumberOfValues(0);
+  this->SelectedLabelsPriority->SetNumberOfValues(0);
 
-  for ( ii = 0; ii < numPoints; ii++ )
+  for (ii = 0; ii < numPoints; ii++)
     {
-    if ( !this->GetNthNodeVisibility( ii ) ||
-         ii == this->GetActiveNode() ||
-         !this->GetNthNodeSelected( ii ) )
+    if (!this->GetNthNodeVisibility(ii) ||
+        ii == this->GetActiveNode() ||
+        !this->GetNthNodeSelected(ii))
       {
       continue;
       }
 
     double worldPos[3], worldOrient[9] = {0}, orientation[4] = {0};
-    this->GetNthNodeWorldPosition( ii, worldPos );
+    this->GetNthNodeWorldPosition(ii, worldPos);
     bool skipPoint = false;
-    for (int jj = 0; jj < this->SelectedFocalPoint->GetNumberOfPoints(); jj++ )
+    for (int jj = 0; jj < this->SelectedFocalPoint->GetNumberOfPoints(); jj++)
       {
       double* pos = this->SelectedFocalPoint->GetPoint(jj);
       double eps = 0.001;
-      if ( fabs(pos[0] - worldPos[0]) < eps &&
+      if (fabs(pos[0] - worldPos[0]) < eps &&
            fabs(pos[1] - worldPos[1]) < eps &&
-           fabs(pos[2] - worldPos[2]) < eps )
+           fabs(pos[2] - worldPos[2]) < eps)
         {
         skipPoint = true;
         break;
         }
       }
 
-    if ( skipPoint )
+    if (skipPoint)
       {
       continue;
       }
 
-    this->SelectedFocalPoint->InsertNextPoint( worldPos );
-    this->GetNthNodeOrientation( ii, orientation );
-    this->FromOrientationQuaternionToWorldOrient( orientation, worldOrient );
-    this->SelectedFocalData->GetPointData()->GetNormals()->InsertNextTuple( worldOrient + 6 );
-    this->SelectedLabels->InsertNextValue( this->GetNthNodeLabel( ii ) );
-    this->SelectedLabelsPriority->InsertNextValue( std::to_string( ii ) );
+    this->SelectedFocalPoint->InsertNextPoint(worldPos);
+    this->GetNthNodeOrientation(ii, orientation);
+    this->FromOrientationQuaternionToWorldOrient(orientation, worldOrient);
+    this->SelectedFocalData->GetPointData()->GetNormals()->InsertNextTuple(worldOrient + 6);
+    this->SelectedLabels->InsertNextValue(this->GetNthNodeLabel(ii));
+    this->SelectedLabelsPriority->InsertNextValue(std::to_string(ii));
     }
 
   this->SelectedFocalPoint->Modified();
@@ -647,21 +605,21 @@ void vtkSlicerAbstractRepresentation3D::BuildRepresentation()
 
   if (this->GetActiveNode() >= 0 &&
       this->GetActiveNode() < this->GetNumberOfNodes() &&
-      this->GetNthNodeVisibility( this->GetActiveNode() ) )
+      this->GetNthNodeVisibility(this->GetActiveNode()))
     {
     double worldPos[3], worldOrient[9] = {0}, orientation[4] = {0};
-    this->GetActiveNodeWorldPosition( worldPos );
-    this->ActiveFocalPoint->SetPoint( 0, worldPos );
-    this->GetActiveNodeOrientation( orientation );
-    this->FromOrientationQuaternionToWorldOrient( orientation, worldOrient );
-    this->ActiveFocalData->GetPointData()->GetNormals()->SetTuple( 0, worldOrient + 6 );
+    this->GetActiveNodeWorldPosition(worldPos);
+    this->ActiveFocalPoint->SetPoint(0, worldPos);
+    this->GetActiveNodeOrientation(orientation);
+    this->FromOrientationQuaternionToWorldOrient(orientation, worldOrient);
+    this->ActiveFocalData->GetPointData()->GetNormals()->SetTuple(0, worldOrient + 6);
 
     this->ActiveFocalPoint->Modified();
     this->ActiveFocalData->GetPointData()->GetNormals()->Modified();
     this->ActiveFocalData->Modified();
 
-    this->ActiveLabels->SetValue( 0, this->GetActiveNodeLabel() );
-    this->ActiveLabelsPriority->SetValue( 0, std::to_string(this->GetActiveNode()) );
+    this->ActiveLabels->SetValue(0, this->GetActiveNodeLabel());
+    this->ActiveLabelsPriority->SetValue(0, std::to_string(this->GetActiveNode()));
 
     this->ActiveActor->VisibilityOn();
     this->ActiveLabelsActor->VisibilityOn();
@@ -676,9 +634,9 @@ void vtkSlicerAbstractRepresentation3D::BuildRepresentation()
 //----------------------------------------------------------------------
 int vtkSlicerAbstractRepresentation3D::ComputeInteractionState(int X, int Y, int vtkNotUsed(modified))
 {
-  if ( this->GetAssemblyPath(X, Y, 0., this->CursorPicker) )
+  if (this->Superclass::ActivateNode(X, Y))
     {
-    this->InteractionState = vtkSlicerAbstractRepresentation::Nearby;
+    this->InteractionState = vtkSlicerAbstractRepresentation::OnControlPoint;
     }
   else
     {
@@ -696,13 +654,13 @@ int vtkSlicerAbstractRepresentation3D::ComputeInteractionState(int X, int Y, int
 void vtkSlicerAbstractRepresentation3D::WidgetInteraction(double eventPos[2])
 {
   // Process the motion
-  if (this->CurrentOperation == vtkSlicerAbstractRepresentation::Translate)
+  if (this->CurrentOperation == vtkSlicerAbstractRepresentation::Select)
     {
     this->TranslateNode(eventPos);
     }
-  else if (this->CurrentOperation == vtkSlicerAbstractRepresentation::Shift)
+  else if (this->CurrentOperation == vtkSlicerAbstractRepresentation::Translate)
     {
-    this->ShiftWidget(eventPos);
+    this->TranslateWidget(eventPos);
     }
   else if (this->CurrentOperation == vtkSlicerAbstractRepresentation::Scale)
     {
@@ -721,43 +679,43 @@ void vtkSlicerAbstractRepresentation3D::WidgetInteraction(double eventPos[2])
 //----------------------------------------------------------------------
 void vtkSlicerAbstractRepresentation3D::TranslateNode(double eventPos[2])
 {
-  if (this->GetActiveNodeLocked())
+  if (this->GetActiveNodeLocked() || !this->MarkupsNode)
     {
     return;
     }
 
-  double ref[3];
-
-  if (!this->GetActiveNodeWorldPosition(ref))
+  double oldWorldPos[3];
+  if (!this->GetActiveNodeWorldPosition(oldWorldPos))
     {
     return;
     }
-
-  double displayPos[2];
-  displayPos[0] = eventPos[0] + this->InteractionOffset[0];
-  displayPos[1] = eventPos[1] + this->InteractionOffset[1];
 
   double worldPos[3], worldOrient[9];
   if (this->PointPlacer->ComputeWorldPosition(this->Renderer,
-                                               displayPos, ref, worldPos,
-                                               worldOrient))
+                                              eventPos, oldWorldPos, worldPos,
+                                              worldOrient))
     {
     if (this->RestrictFlag != vtkSlicerAbstractRepresentation::RestrictNone)
       {
-      double oldWorldPos[3];
-      this->GetActiveNodeWorldPosition(oldWorldPos);
       for (int i = 0; i < 3; ++i)
         { 
         worldPos[i] = (this->RestrictFlag == (i + 1)) ? worldPos[i] : oldWorldPos[i];
         }
       }
+    this->MarkupsNode->DisableModifiedEventOn();
     this->SetActiveNodeToWorldPosition(worldPos);
+    this->MarkupsNode->DisableModifiedEventOff();
     }
 }
 
 //----------------------------------------------------------------------
-void vtkSlicerAbstractRepresentation3D::ShiftWidget(double eventPos[2])
+void vtkSlicerAbstractRepresentation3D::TranslateWidget(double eventPos[2])
 {
+  if (!this->MarkupsNode)
+    {
+    return;
+    }
+
   double ref[3] = {0.};
   double displayPos[2] = {0.};
   double worldPos[3], worldOrient[9];
@@ -766,8 +724,8 @@ void vtkSlicerAbstractRepresentation3D::ShiftWidget(double eventPos[2])
   displayPos[1] = this->LastEventPosition[1];
 
   if (this->PointPlacer->ComputeWorldPosition(this->Renderer,
-                                               displayPos, ref, worldPos,
-                                               worldOrient))
+                                              displayPos, ref, worldPos,
+                                              worldOrient))
     {
     ref[0] = worldPos[0];
     ref[1] = worldPos[1];
@@ -793,8 +751,6 @@ void vtkSlicerAbstractRepresentation3D::ShiftWidget(double eventPos[2])
   vector[1] = worldPos[1] - ref[1];
   vector[2] = worldPos[2] - ref[2];
 
-  // SetNthNodeWorldPosition calls vtkMRMLMarkupsNode::PointModifiedEvent reporting the id of the point modified.
-  // However, already for > 200 points, it gets bad perfomance. Therefore, we call a simply modified call at the end.
   this->MarkupsNode->DisableModifiedEventOn();
   for (int i = 0; i < this->GetNumberOfNodes(); i++)
     {
@@ -806,7 +762,7 @@ void vtkSlicerAbstractRepresentation3D::ShiftWidget(double eventPos[2])
     this->GetNthNodeWorldPosition(i, ref);
     for (int i = 0; i < 3; ++i)
       {
-      if ( this->RestrictFlag != vtkSlicerAbstractRepresentation::RestrictNone )
+      if (this->RestrictFlag != vtkSlicerAbstractRepresentation::RestrictNone)
         {
         worldPos[i] = (this->RestrictFlag == (i + 1)) ? ref[i] + vector[i] : ref[i];
         }
@@ -825,6 +781,11 @@ void vtkSlicerAbstractRepresentation3D::ShiftWidget(double eventPos[2])
 //----------------------------------------------------------------------
 void vtkSlicerAbstractRepresentation3D::ScaleWidget(double eventPos[2])
 {
+  if (!this->MarkupsNode)
+    {
+    return;
+    }
+
   double ref[3] = {0.};
   double displayPos[2] = {0.};
   double worldPos[3], worldOrient[9];
@@ -833,8 +794,8 @@ void vtkSlicerAbstractRepresentation3D::ScaleWidget(double eventPos[2])
   displayPos[1] = this->LastEventPosition[1];
 
   if (this->PointPlacer->ComputeWorldPosition(this->Renderer,
-                                               displayPos, ref, worldPos,
-                                               worldOrient))
+                                              displayPos, ref, worldPos,
+                                              worldOrient))
     {
     for (int i = 0; i < 3; i++)
       {
@@ -868,8 +829,6 @@ void vtkSlicerAbstractRepresentation3D::ScaleWidget(double eventPos[2])
 
   double ratio = sqrt(d2 / r2);
 
-  // SetNthNodeWorldPosition calls vtkMRMLMarkupsNode::PointModifiedEvent reporting the id of the point modified.
-  // However, already for > 200 points, it gets bad perfomance. Therefore, we call a simply modified call at the end.
   this->MarkupsNode->DisableModifiedEventOn();
   for (int i = 0; i < this->GetNumberOfNodes(); i++)
     {
@@ -893,6 +852,11 @@ void vtkSlicerAbstractRepresentation3D::ScaleWidget(double eventPos[2])
 //----------------------------------------------------------------------
 void vtkSlicerAbstractRepresentation3D::RotateWidget(double eventPos[2])
 {
+  if (!this->MarkupsNode)
+    {
+    return;
+    }
+
   // If any node is locked return
   for (int i = 0; i < this->GetNumberOfNodes(); i++)
     {
@@ -911,8 +875,8 @@ void vtkSlicerAbstractRepresentation3D::RotateWidget(double eventPos[2])
   displayPos[1] = this->LastEventPosition[1];
 
   if (this->PointPlacer->ComputeWorldPosition(this->Renderer,
-                                               displayPos, ref, lastWorldPos,
-                                               worldOrient))
+                                              displayPos, ref, lastWorldPos,
+                                              worldOrient))
     {
     for (int i = 0; i < 3; i++)
       {
@@ -949,10 +913,8 @@ void vtkSlicerAbstractRepresentation3D::RotateWidget(double eventPos[2])
     worldPos[i] -= centroid[i];
     }
   double angle = -vtkMath::DegreesFromRadians
-                 ( vtkMath::AngleBetweenVectors( lastWorldPos, worldPos ) );
+                 (vtkMath::AngleBetweenVectors(lastWorldPos, worldPos));
 
-  // SetNthNodeWorldPosition calls vtkMRMLMarkupsNode::PointModifiedEvent reporting the id of the point modified.
-  // However, already for > 200 points, it gets bad perfomance. Therefore, we call a simply modified call at the end.
   this->MarkupsNode->DisableModifiedEventOn();
   for (int i = 0; i < this->GetNumberOfNodes(); i++)
     {

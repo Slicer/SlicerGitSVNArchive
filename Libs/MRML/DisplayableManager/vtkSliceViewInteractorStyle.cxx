@@ -305,12 +305,14 @@ void vtkSliceViewInteractorStyle::OnRightButtonDown()
   sliceNode->GetFieldOfView(this->StartActionFOV);
   this->GetInteractor()->GetEventPosition(this->StartActionEventPosition);
   this->GetInteractor()->GetEventPosition(this->LastEventPosition);
+  this->InvokeEvent(vtkCommand::RightButtonPressEvent,nullptr);
 }
 //----------------------------------------------------------------------------
 void vtkSliceViewInteractorStyle::OnRightButtonUp()
 {
   this->SetActionState(vtkSliceViewInteractorStyle::None);
   this->SliceLogic->EndSliceNodeInteraction();
+  this->InvokeEvent(vtkCommand::RightButtonReleaseEvent,nullptr);
 }
 
 //----------------------------------------------------------------------------
@@ -324,11 +326,13 @@ void vtkSliceViewInteractorStyle::OnMiddleButtonDown()
   this->StartTranslate();
   this->GetInteractor()->GetEventPosition(this->StartActionEventPosition);
   this->GetInteractor()->GetEventPosition(this->LastEventPosition);
+  this->InvokeEvent(vtkCommand::MiddleButtonPressEvent,nullptr);
 }
 //----------------------------------------------------------------------------
 void vtkSliceViewInteractorStyle::OnMiddleButtonUp()
 {
   this->EndTranslate();
+  this->InvokeEvent(vtkCommand::MiddleButtonReleaseEvent,nullptr);
 }
 
 //----------------------------------------------------------------------------

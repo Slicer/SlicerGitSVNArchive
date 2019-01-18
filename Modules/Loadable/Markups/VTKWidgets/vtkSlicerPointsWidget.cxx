@@ -36,26 +36,6 @@ vtkStandardNewMacro(vtkSlicerPointsWidget);
 //----------------------------------------------------------------------
 vtkSlicerPointsWidget::vtkSlicerPointsWidget()
 {
-  // These are the event callbacks supported by this widget
-  this->CallbackMapper->SetCallbackMethod(vtkCommand::LeftButtonPressEvent,
-                                          vtkEvent::NoModifier, 0, 0, nullptr,
-                                          vtkWidgetEvent::Select,
-                                          this, vtkSlicerPointsWidget::SelectAction);
-  this->CallbackMapper->SetCallbackMethod(vtkCommand::MouseMoveEvent,
-                                          vtkWidgetEvent::Move,
-                                          this, vtkSlicerPointsWidget::MoveAction);
-
-
-  this->CallbackMapper->SetCallbackMethod(vtkCommand::KeyPressEvent,
-                                          vtkEvent::NoModifier, 127, 1, "Delete",
-                                          vtkWidgetEvent::Delete,
-                                          this, vtkSlicerPointsWidget::DeleteAction);
-  this->CallbackMapper->SetCallbackMethod(vtkCommand::KeyPressEvent,
-                                          vtkEvent::NoModifier, 8, 1, "BackSpace",
-                                          vtkWidgetEvent::Delete,
-                                          this, vtkSlicerPointsWidget::DeleteAction);
-
-  this->WidgetState = vtkSlicerPointsWidget::Manipulate;
 }
 
 //----------------------------------------------------------------------
@@ -71,176 +51,59 @@ void vtkSlicerPointsWidget::CreateDefaultRepresentation()
   this->SetRepresentation(rep);
 }
 
-// The following methods are the callbacks that the widget responds to.
 //-------------------------------------------------------------------------
-void vtkSlicerPointsWidget::SelectAction( vtkAbstractWidget *w )
+void vtkSlicerPointsWidget::AddPointToRepresentationFromWorldCoordinate(double worldCoordinates[3],
+                                                                        bool persistence /*=false*/)
 {
-  vtkSlicerPointsWidget *self = reinterpret_cast<vtkSlicerPointsWidget*>(w);
+  vtkSlicerAbstractRepresentation *rep =
+    reinterpret_cast<vtkSlicerAbstractRepresentation*>(this->WidgetRep);
 
-  int X = self->Interactor->GetEventPosition()[0];
-  int Y = self->Interactor->GetEventPosition()[1];
-  double pos[2];
-  pos[0] = X;
-  pos[1] = Y;
-
-  switch ( self->WidgetState )
-    {
-    case vtkSlicerPointsWidget::Define:
-      {
-      self->AddPointToRepresentation();
-      break;
-      }
-    case vtkSlicerPointsWidget::Manipulate:
-      {
-      int active = self->WidgetRepresentation->ActivateNode( X, Y );
-      self->SetCursor( active );
-      if ( active )
-        {
-        self->GrabFocus(self->EventCallbackCommand);
-        self->StartInteraction();
-        self->CurrentHandle = self->WidgetRepresentation->GetActiveNode();
-        self->WidgetRepresentation->SetCurrentOperationToTranslate();
-        self->InvokeEvent( vtkCommand::StartInteractionEvent, &self->CurrentHandle );
-        self->WidgetRepresentation->StartWidgetInteraction( pos );
-        self->EventCallbackCommand->SetAbortFlag( 1 );
-        }
-
-      if ( self->WidgetRepresentation->GetNeedToRender() )
-        {
-        self->Render();
-        self->WidgetRepresentation->NeedToRenderOff();
-        }
-      break;
-      }
-    }
-}
-
-//------------------------------------------------------------------------
-void vtkSlicerPointsWidget::AddPointToRepresentation()
-{
-  int X = this->Interactor->GetEventPosition()[0];
-  int Y = this->Interactor->GetEventPosition()[1];
-
-  if ( !this->WidgetRepresentation )
+  if (!rep)
     {
     return;
     }
 
-  this->CurrentHandle = this->WidgetRepresentation->GetActiveNode();
-
-  if ( this->WidgetRepresentation->AddNodeAtDisplayPosition( X, Y ) )
+  if (persistence)
     {
-    this->CurrentHandle = this->WidgetRepresentation->GetActiveNode();
-    if ( this->WidgetState == vtkSlicerPointsWidget::Start )
+    if (this->FollowCursor == true)
       {
-      this->InvokeEvent( vtkCommand::StartInteractionEvent, &this->CurrentHandle );
+      rep->DeleteLastNode();
+      }
+    else
+      {
+      this->FollowCursor = true;
+      }
+    }
+  else if (this->FollowCursor == true)
+    {
+    rep->DeleteLastNode();
+    this->FollowCursor = false;
+    }
+
+  if (rep->AddNodeAtWorldPosition(worldCoordinates))
+    {
+    this->CurrentHandle = rep->GetActiveNode();
+    if (this->WidgetState == vtkSlicerPointsWidget::Start)
+      {
+      this->InvokeEvent(vtkCommand::StartInteractionEvent, &this->CurrentHandle);
       }
     this->WidgetState = vtkSlicerPointsWidget::Define;
-    this->WidgetRepresentation->VisibilityOn();
+    rep->VisibilityOn();
     this->EventCallbackCommand->SetAbortFlag(1);
-    this->InvokeEvent( vtkCommand::PlacePointEvent, &this->CurrentHandle );
-    this->WidgetState = vtkSlicerPointsWidget::Manipulate;
+    this->InvokeEvent(vtkCommand::PlacePointEvent, &this->CurrentHandle);
     this->ReleaseFocus();
     this->Render();
-    this->EventCallbackCommand->SetAbortFlag( 1 );
-    this->InvokeEvent( vtkCommand::EndInteractionEvent, &this->CurrentHandle );
-    this->Interactor->MouseWheelForwardEvent();
-    this->Interactor->MouseWheelBackwardEvent();
-    }
-}
-
-//-------------------------------------------------------------------------
-void vtkSlicerPointsWidget::AddPointToRepresentationFromWorldCoordinate(double worldCoordinates[3])
-{
-  if ( !this->WidgetRepresentation )
-    {
-    return;
-    }
-
-  this->CurrentHandle = this->WidgetRepresentation->GetActiveNode();
-
-  if ( this->WidgetRepresentation->AddNodeAtWorldPosition( worldCoordinates ) )
-    {
-    this->CurrentHandle = this->WidgetRepresentation->GetActiveNode();
-    if ( this->WidgetState == vtkSlicerPointsWidget::Start )
+    if (!this->FollowCursor)
       {
-      this->InvokeEvent( vtkCommand::StartInteractionEvent, &this->CurrentHandle );
+      this->WidgetState = vtkSlicerPointsWidget::Manipulate;
+      this->InvokeEvent(vtkCommand::EndInteractionEvent, &this->CurrentHandle);
+      this->Interactor->MouseWheelForwardEvent();
+      this->Interactor->MouseWheelBackwardEvent();
       }
-    this->WidgetState = vtkSlicerPointsWidget::Define;
-    this->WidgetRepresentation->VisibilityOn();
-    this->EventCallbackCommand->SetAbortFlag(1);
-    this->InvokeEvent( vtkCommand::PlacePointEvent, &this->CurrentHandle );
-    this->WidgetState = vtkSlicerPointsWidget::Manipulate;
-    this->ReleaseFocus();
-    this->Render();
-    this->EventCallbackCommand->SetAbortFlag( 1 );
-    this->InvokeEvent( vtkCommand::EndInteractionEvent, &this->CurrentHandle );
-    this->Interactor->MouseWheelForwardEvent();
-    this->Interactor->MouseWheelBackwardEvent();
-    }
-}
-
-//-------------------------------------------------------------------------
-void vtkSlicerPointsWidget::MoveAction( vtkAbstractWidget *w )
-{
-  vtkSlicerPointsWidget *self = reinterpret_cast<vtkSlicerPointsWidget*>(w);
-
-  if ( self->WidgetState == vtkSlicerPointsWidget::Start ||
-       !self->WidgetRepresentation )
-    {
-    return;
     }
 
-  int X = self->Interactor->GetEventPosition()[0];
-  int Y = self->Interactor->GetEventPosition()[1];
-
-  if ( self->WidgetRepresentation->GetCurrentOperation() == vtkSlicerAbstractRepresentation::Inactive )
+  if (this->FollowCursor)
     {
-    self->SetCursor( self->WidgetRepresentation->ActivateNode( X, Y ) );
-    }
-
-  self->CurrentHandle = self->WidgetRepresentation->GetActiveNode();
-  double pos[2];
-  pos[0] = X;
-  pos[1] = Y;
-  self->WidgetRepresentation->WidgetInteraction( pos );
-  if ( self->WidgetRepresentation->GetCurrentOperation() != vtkSlicerAbstractRepresentation::Pick )
-    {
-    self->InvokeEvent( vtkCommand::InteractionEvent, &self->CurrentHandle );
-    }
-
-  if ( self->WidgetRepresentation->GetNeedToRender() )
-    {
-    self->Render();
-    self->WidgetRepresentation->NeedToRenderOff();
-    }
-}
-
-//-------------------------------------------------------------------------
-void vtkSlicerPointsWidget::DeleteAction( vtkAbstractWidget *w )
-{
-  vtkSlicerPointsWidget *self = reinterpret_cast<vtkSlicerPointsWidget*>(w);
-
-  if ( self->WidgetState != vtkSlicerPointsWidget::Manipulate ||
-       !self->WidgetRepresentation )
-    {
-    return;
-    }
-
-  int X = self->Interactor->GetEventPosition()[0];
-  int Y = self->Interactor->GetEventPosition()[1];
-
-  if ( self->WidgetRepresentation->ActivateNode( X, Y ) )
-    {
-    self->SetCursor( 0 );
-    self->CurrentHandle = self->WidgetRepresentation->GetActiveNode();
-    self->WidgetRepresentation->DeleteActiveNode();
-    self->InvokeEvent( vtkCommand::DeletePointEvent, &self->CurrentHandle );
-    }
-
-  if ( self->WidgetRepresentation->GetNeedToRender() )
-    {
-    self->Render();
-    self->WidgetRepresentation->NeedToRenderOff();
+    rep->AddNodeAtWorldPosition(worldCoordinates);
     }
 }

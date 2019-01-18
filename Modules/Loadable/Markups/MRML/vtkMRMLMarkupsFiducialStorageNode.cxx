@@ -254,7 +254,8 @@ void vtkMRMLMarkupsFiducialStorageNode::Copy(vtkMRMLNode *anode)
 //----------------------------------------------------------------------------
 bool vtkMRMLMarkupsFiducialStorageNode::CanReadInReferenceNode(vtkMRMLNode *refNode)
 {
-  return refNode->IsA("vtkMRMLMarkupsFiducialNode");
+  return refNode->IsA("vtkMRMLMarkupsFiducialNode") ||
+         refNode->IsA("vtkMRMLMarkupsLineNode");
 }
 
 //----------------------------------------------------------------------------
@@ -688,7 +689,7 @@ int vtkMRMLMarkupsFiducialStorageNode::WriteDataInternal(vtkMRMLNode *refNode)
 
   // cast the input node
   vtkMRMLMarkupsNode *markupsNode = nullptr;
-  if ( refNode->IsA("vtkMRMLMarkupsNode") )
+  if (refNode->IsA("vtkMRMLMarkupsNode"))
     {
     markupsNode = dynamic_cast <vtkMRMLMarkupsNode *> (refNode);
     }

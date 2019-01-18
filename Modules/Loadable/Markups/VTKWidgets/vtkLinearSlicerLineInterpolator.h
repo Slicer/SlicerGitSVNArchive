@@ -46,8 +46,8 @@ public:
   void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   /// Interpolate the line between two nodes.
-  int InterpolateLine( vtkSlicerAbstractRepresentation *rep,
-                       int idx1, int idx2 ) VTK_OVERRIDE;
+  int InterpolateLine(vtkSlicerAbstractRepresentation *rep,
+                      int idx1, int idx2) VTK_OVERRIDE;
 
 protected:
   vtkLinearSlicerLineInterpolator();

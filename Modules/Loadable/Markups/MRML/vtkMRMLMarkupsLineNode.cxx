@@ -17,7 +17,7 @@
 
 // MRML includes
 #include "vtkMRMLMarkupsDisplayNode.h"
-#include "vtkMRMLMarkupsFiducialNode.h"
+#include "vtkMRMLMarkupsLineNode.h"
 #include "vtkMRMLMarkupsFiducialStorageNode.h"
 #include "vtkMRMLScene.h"
 
@@ -30,29 +30,31 @@
 #include <sstream>
 
 //----------------------------------------------------------------------------
-vtkMRMLNodeNewMacro(vtkMRMLMarkupsFiducialNode);
+vtkMRMLNodeNewMacro(vtkMRMLMarkupsLineNode);
 
 
 //----------------------------------------------------------------------------
-vtkMRMLMarkupsFiducialNode::vtkMRMLMarkupsFiducialNode()
+vtkMRMLMarkupsLineNode::vtkMRMLMarkupsLineNode()
+{
+  // maximum number of control points
+  // 3 so we can have one point to use for the follow cursor option
+  this->SetMaximumNumberOfControlPoints(3);
+}
+
+//----------------------------------------------------------------------------
+vtkMRMLMarkupsLineNode::~vtkMRMLMarkupsLineNode()
 {
 
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLMarkupsFiducialNode::~vtkMRMLMarkupsFiducialNode()
-{
-
-}
-
-//----------------------------------------------------------------------------
-void vtkMRMLMarkupsFiducialNode::WriteXML(ostream& of, int nIndent)
+void vtkMRMLMarkupsLineNode::WriteXML(ostream& of, int nIndent)
 {
   Superclass::WriteXML(of,nIndent);
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLMarkupsFiducialNode::ReadXMLAttributes(const char** atts)
+void vtkMRMLMarkupsLineNode::ReadXMLAttributes(const char** atts)
 {
   int disabledModify = this->StartModify();
   this->RemoveAllControlPoints();
@@ -62,11 +64,11 @@ void vtkMRMLMarkupsFiducialNode::ReadXMLAttributes(const char** atts)
   const char* attValue;
 
   int fidID = 0;
-  while (*atts != NULL)
+  while (*atts != nullptr)
     {
     attName = *(atts++);
     attValue = *(atts++);
-    // backward compatibility reading of annotation fiducials
+    // backward compatibility reading of annotation Points
     if (!strcmp(attName, "ctrlPtsCoord"))
       {
       std::string valStr(attValue);
@@ -76,7 +78,7 @@ void vtkMRMLMarkupsFiducialNode::ReadXMLAttributes(const char** atts)
       ss >> x;
       ss >> y;
       ss >> z;
-      fidID = this->AddFiducial(x,y,z);
+      fidID = this->AddPoint(x,y,z);
       }
     else if (!strcmp(attName, "ctrlPtsSelected"))
       {
@@ -84,7 +86,7 @@ void vtkMRMLMarkupsFiducialNode::ReadXMLAttributes(const char** atts)
       int selected;
       ss << attValue;
       ss >> selected;
-      this->SetNthFiducialSelected(fidID, (selected == 1 ? true : false));
+      this->SetNthPointSelected(fidID, (selected == 1 ? true : false));
       }
     else if (!strcmp(attName, "ctrlPtsVisible"))
       {
@@ -92,7 +94,7 @@ void vtkMRMLMarkupsFiducialNode::ReadXMLAttributes(const char** atts)
       int visible;
       ss << attValue;
       ss >> visible;
-      this->SetNthFiducialVisibility(fidID, (visible == 1 ? true : false));
+      this->SetNthPointVisibility(fidID, (visible == 1 ? true : false));
       }
     else if (!strcmp(attName, "ctrlPtsNumberingScheme"))
       {
@@ -103,66 +105,66 @@ void vtkMRMLMarkupsFiducialNode::ReadXMLAttributes(const char** atts)
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLMarkupsFiducialNode::Copy(vtkMRMLNode *anode)
+void vtkMRMLMarkupsLineNode::Copy(vtkMRMLNode *anode)
 {
   Superclass::Copy(anode);
 }
 
 
 //-----------------------------------------------------------
-void vtkMRMLMarkupsFiducialNode::UpdateScene(vtkMRMLScene *scene)
+void vtkMRMLMarkupsLineNode::UpdateScene(vtkMRMLScene *scene)
 {
   Superclass::UpdateScene(scene);
 }
 
 //---------------------------------------------------------------------------
-void vtkMRMLMarkupsFiducialNode::ProcessMRMLEvents(vtkObject *caller,
-                                                   unsigned long event,
-                                                   void *callData)
+void vtkMRMLMarkupsLineNode::ProcessMRMLEvents (vtkObject *caller,
+                                           unsigned long event,
+                                           void *callData)
 {
   Superclass::ProcessMRMLEvents(caller, event, callData);
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLMarkupsFiducialNode::PrintSelf(ostream& os, vtkIndent indent)
+void vtkMRMLMarkupsLineNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   Superclass::PrintSelf(os,indent);
 }
 
 //-------------------------------------------------------------------------
-vtkMRMLStorageNode* vtkMRMLMarkupsFiducialNode::CreateDefaultStorageNode()
+vtkMRMLStorageNode* vtkMRMLMarkupsLineNode::CreateDefaultStorageNode()
 {
   vtkMRMLScene* scene = this->GetScene();
-  if (scene == NULL)
+  if (scene == nullptr)
     {
     vtkErrorMacro("CreateDefaultStorageNode failed: scene is invalid");
-    return NULL;
+    return nullptr;
     }
   return vtkMRMLStorageNode::SafeDownCast(
     scene->CreateNodeByClass("vtkMRMLMarkupsFiducialStorageNode"));
 }
 
 //-------------------------------------------------------------------------
-void vtkMRMLMarkupsFiducialNode::CreateDefaultDisplayNodes()
+void vtkMRMLMarkupsLineNode::CreateDefaultDisplayNodes()
 {
-  if (this->GetDisplayNode() != NULL &&
-      vtkMRMLMarkupsDisplayNode::SafeDownCast(this->GetDisplayNode()) != NULL)
+  if (this->GetDisplayNode() != nullptr &&
+      vtkMRMLMarkupsDisplayNode::SafeDownCast(this->GetDisplayNode()) != nullptr)
     {
     // display node already exists
     return;
     }
-  if (this->GetScene()==NULL)
+  if (this->GetScene()==nullptr)
     {
-    vtkErrorMacro("vtkMRMLMarkupsFiducialNode::CreateDefaultDisplayNodes failed: scene is invalid");
+    vtkErrorMacro("vtkMRMLMarkupsLineNode::CreateDefaultDisplayNodes failed: scene is invalid");
     return;
     }
-  vtkMRMLMarkupsDisplayNode* dispNode = vtkMRMLMarkupsDisplayNode::SafeDownCast(
-    this->GetScene()->AddNewNodeByClass("vtkMRMLMarkupsDisplayNode"));
+  vtkMRMLMarkupsDisplayNode* dispNode = vtkMRMLMarkupsDisplayNode::SafeDownCast
+    (this->GetScene()->AddNewNodeByClass("vtkMRMLMarkupsDisplayNode"));
   this->SetAndObserveDisplayNodeID(dispNode->GetID());
 }
 
 //-------------------------------------------------------------------------
-vtkMRMLMarkupsDisplayNode *vtkMRMLMarkupsFiducialNode::GetMarkupsDisplayNode()
+vtkMRMLMarkupsDisplayNode *vtkMRMLMarkupsLineNode::GetMarkupsDisplayNode()
 {
   vtkMRMLDisplayNode *displayNode = this->GetDisplayNode();
   if (displayNode &&
@@ -170,18 +172,17 @@ vtkMRMLMarkupsDisplayNode *vtkMRMLMarkupsFiducialNode::GetMarkupsDisplayNode()
     {
     return vtkMRMLMarkupsDisplayNode::SafeDownCast(displayNode);
     }
-  return NULL;
+  return nullptr;
 }
 
 //-------------------------------------------------------------------------
-int vtkMRMLMarkupsFiducialNode::AddFiducial(double x, double y, double z)
+int vtkMRMLMarkupsLineNode::AddPoint(double x, double y, double z)
 {
-  return this->AddFiducial(x, y, z, std::string());
+  return this->AddPoint(x, y, z, std::string());
 }
 
 //-------------------------------------------------------------------------
-int vtkMRMLMarkupsFiducialNode::AddFiducial(double x, double y, double z,
-                                            std::string label)
+int vtkMRMLMarkupsLineNode::AddPoint(double x, double y, double z, std::string label)
 {
   vtkVector3d point;
   point.Set(x, y, z);
@@ -191,13 +192,13 @@ int vtkMRMLMarkupsFiducialNode::AddFiducial(double x, double y, double z,
 //-------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------
-int vtkMRMLMarkupsFiducialNode::AddFiducialFromArray(double pos[3], std::string label)
+int vtkMRMLMarkupsLineNode::AddPointFromArray(double pos[3], std::string label)
 {
-  return this->AddFiducial(pos[0], pos[1], pos[2], label);
+  return this->AddPoint(pos[0], pos[1], pos[2], label);
 }
 
 //-------------------------------------------------------------------------
-void vtkMRMLMarkupsFiducialNode::GetNthFiducialPosition(int n, double pos[3])
+void vtkMRMLMarkupsLineNode::GetNthPointPosition(int n, double pos[3])
 {
   vtkVector3d point= this->GetNthControlPointPositionVector(n);
   pos[0] = point.GetX();
@@ -206,91 +207,91 @@ void vtkMRMLMarkupsFiducialNode::GetNthFiducialPosition(int n, double pos[3])
 }
 
 //-------------------------------------------------------------------------
-void vtkMRMLMarkupsFiducialNode::SetNthFiducialPositionFromArray(int n, double pos[3])
+void vtkMRMLMarkupsLineNode::SetNthPointPositionFromArray(int n, double pos[3])
 {
   this->SetNthControlPointPositionFromArray(n, pos);
 }
 
 //-------------------------------------------------------------------------
-void vtkMRMLMarkupsFiducialNode::SetNthFiducialPosition(int n, double x, double y, double z)
+void vtkMRMLMarkupsLineNode::SetNthPointPosition(int n, double x, double y, double z)
 {
   this->SetNthControlPointPosition(n, x, y, z);
 }
 
 //-------------------------------------------------------------------------
-bool vtkMRMLMarkupsFiducialNode::GetNthFiducialSelected(int n)
+bool vtkMRMLMarkupsLineNode::GetNthPointSelected(int n)
 {
   return this->GetNthControlPointSelected(n);
 }
 
 //-------------------------------------------------------------------------
-void vtkMRMLMarkupsFiducialNode::SetNthFiducialSelected(int n, bool flag)
+void vtkMRMLMarkupsLineNode::SetNthPointSelected(int n, bool flag)
 {
   this->SetNthControlPointSelected(n, flag);
 }
 
 //-------------------------------------------------------------------------
-bool vtkMRMLMarkupsFiducialNode::GetNthFiducialLocked(int n)
+bool vtkMRMLMarkupsLineNode::GetNthPointLocked(int n)
 {
   return this->GetNthControlPointLocked(n);
 }
 
 //-------------------------------------------------------------------------
-void vtkMRMLMarkupsFiducialNode::SetNthFiducialLocked(int n, bool flag)
+void vtkMRMLMarkupsLineNode::SetNthPointLocked(int n, bool flag)
 {
   this->SetNthControlPointLocked(n, flag);
 }
 
 //-------------------------------------------------------------------------
-bool vtkMRMLMarkupsFiducialNode::GetNthFiducialVisibility(int n)
+bool vtkMRMLMarkupsLineNode::GetNthPointVisibility(int n)
 {
   return this->GetNthControlPointVisibility(n);
 }
 
 //-------------------------------------------------------------------------
-void vtkMRMLMarkupsFiducialNode::SetNthFiducialVisibility(int n, bool flag)
+void vtkMRMLMarkupsLineNode::SetNthPointVisibility(int n, bool flag)
 {
   this->SetNthControlPointVisibility(n, flag);
 }
 
 //-------------------------------------------------------------------------
-std::string vtkMRMLMarkupsFiducialNode::GetNthFiducialLabel(int n)
+std::string vtkMRMLMarkupsLineNode::GetNthPointLabel(int n)
 {
   return this->GetNthControlPointLabel(n);
 }
 
 //-------------------------------------------------------------------------
-void vtkMRMLMarkupsFiducialNode::SetNthFiducialLabel(int n, std::string label)
+void vtkMRMLMarkupsLineNode::SetNthPointLabel(int n, std::string label)
 {
   this->SetNthControlPointLabel(n, label);
 }
 
 //-------------------------------------------------------------------------
-std::string vtkMRMLMarkupsFiducialNode::GetNthFiducialAssociatedNodeID(int n)
+std::string vtkMRMLMarkupsLineNode::GetNthPointAssociatedNodeID(int n)
 {
   return this->GetNthControlPointAssociatedNodeID(n);
 }
 
 //-------------------------------------------------------------------------
-void vtkMRMLMarkupsFiducialNode::SetNthFiducialAssociatedNodeID(int n, const char* id)
+void vtkMRMLMarkupsLineNode::SetNthPointAssociatedNodeID(int n, const char* id)
 {
   this->SetNthControlPointAssociatedNodeID(n, std::string(id));
 }
 
 //-------------------------------------------------------------------------
-void vtkMRMLMarkupsFiducialNode::SetNthFiducialWorldCoordinates(int n, double coords[4])
+void vtkMRMLMarkupsLineNode::SetNthPointWorldCoordinates(int n, double coords[4])
 {
   this->SetNthControlPointPositionWorld(n, coords[0], coords[1], coords[2]);
 }
 
 //-------------------------------------------------------------------------
-void vtkMRMLMarkupsFiducialNode::GetNthFiducialWorldCoordinates(int n, double coords[4])
+void vtkMRMLMarkupsLineNode::GetNthPointWorldCoordinates(int n, double coords[4])
 {
   this->GetNthControlPointPositionWorld(n, coords);
 }
 
 //---------------------------------------------------------------------------
-void vtkMRMLMarkupsFiducialNode::GetRASBounds(double bounds[6])
+void vtkMRMLMarkupsLineNode::GetRASBounds(double bounds[6])
 {
   vtkBoundingBox box;
   box.GetBounds(bounds);
@@ -304,14 +305,14 @@ void vtkMRMLMarkupsFiducialNode::GetRASBounds(double bounds[6])
 
   for (int i = 0; i < numberOfControlPoints; i++)
     {
-    this->GetNthFiducialWorldCoordinates(i, markup_RAS);
+    this->GetNthPointWorldCoordinates(i, markup_RAS);
     box.AddPoint(markup_RAS);
     }
   box.GetBounds(bounds);
 }
 
 //---------------------------------------------------------------------------
-void vtkMRMLMarkupsFiducialNode::GetBounds(double bounds[6])
+void vtkMRMLMarkupsLineNode::GetBounds(double bounds[6])
 {
    vtkBoundingBox box;
   box.GetBounds(bounds);
@@ -325,7 +326,7 @@ void vtkMRMLMarkupsFiducialNode::GetBounds(double bounds[6])
 
   for (int i = 0; i < numberOfControlPoints; i++)
     {
-    this->GetNthFiducialPosition(i, markupPos);
+    this->GetNthPointPosition(i, markupPos);
     box.AddPoint(markupPos);
     }
   box.GetBounds(bounds);

@@ -16,12 +16,12 @@
 ==============================================================================*/
 
 // MarkupsModule/MRML includes
-#include <vtkMRMLMarkupsFiducialNode.h>
+#include <vtkMRMLMarkupsLineNode.h>
 #include <vtkMRMLMarkupsNode.h>
 #include <vtkMRMLMarkupsDisplayNode.h>
 
 // MarkupsModule/MRMLDisplayableManager includes
-#include "vtkMRMLMarkupsFiducialDisplayableManager2D.h"
+#include "vtkMRMLMarkupsLineDisplayableManager2D.h"
 
 // MarkupsModule/VTKWidgets includes
 #include <vtkMarkupsGlyphSource2D.h>
@@ -52,8 +52,8 @@
 #include <vtkProperty.h>
 #include <vtkRenderer.h>
 #include <vtkRenderWindowInteractor.h>
-#include <vtkSlicerPointsWidget.h>
-#include <vtkSlicerPointsRepresentation2D.h>
+#include <vtkSlicerLineWidget.h>
+#include <vtkSlicerLineRepresentation2D.h>
 #include <vtkSmartPointer.h>
 #include <vtkSphereSource.h>
 
@@ -62,18 +62,18 @@
 #include <string>
 
 //---------------------------------------------------------------------------
-vtkStandardNewMacro (vtkMRMLMarkupsFiducialDisplayableManager2D);
+vtkStandardNewMacro (vtkMRMLMarkupsLineDisplayableManager2D);
 
 //---------------------------------------------------------------------------
-// vtkMRMLMarkupsFiducialDisplayableManager2D Callback
+// vtkMRMLMarkupsLineDisplayableManager2D Callback
 /// \ingroup Slicer_QtModules_Markups
-class vtkMarkupsFiducialWidgetCallback2D : public vtkCommand
+class vtkMarkupsLineWidgetCallback2D : public vtkCommand
 {
 public:
-  static vtkMarkupsFiducialWidgetCallback2D *New()
-  { return new vtkMarkupsFiducialWidgetCallback2D; }
+  static vtkMarkupsLineWidgetCallback2D *New()
+  { return new vtkMarkupsLineWidgetCallback2D; }
 
-  vtkMarkupsFiducialWidgetCallback2D()
+  vtkMarkupsLineWidgetCallback2D()
     : Widget(nullptr)
     , Node(nullptr)
     , DisplayableManager(nullptr)
@@ -122,7 +122,7 @@ public:
 
       this->PointMovedSinceStartInteraction = false;
       this->Node->InvokeEvent(vtkMRMLMarkupsNode::PointStartInteractionEvent, &this->LastInteractionEventMarkupIndex);
-      vtkSlicerPointsWidget* slicerPointsWidget = vtkSlicerPointsWidget::SafeDownCast(this->Widget);
+      vtkSlicerLineWidget* slicerPointsWidget = vtkSlicerLineWidget::SafeDownCast(this->Widget);
       if (slicerPointsWidget)
         {
         this->SelectionButton = slicerPointsWidget->GetSelectionButton();
@@ -135,27 +135,27 @@ public:
       this->Node->InvokeEvent(vtkMRMLMarkupsNode::PointEndInteractionEvent, &this->LastInteractionEventMarkupIndex);
       if (!this->PointMovedSinceStartInteraction)
         {
-        if (this->SelectionButton == vtkSlicerPointsWidget::LeftButton)
+        if (this->SelectionButton == vtkSlicerLineWidget::LeftButton)
           {
           this->Node->InvokeEvent(vtkMRMLMarkupsNode::PointLeftClickedEvent, &this->LastInteractionEventMarkupIndex);
           }
-        else if (this->SelectionButton == vtkSlicerPointsWidget::MiddleButton)
+        else if (this->SelectionButton == vtkSlicerLineWidget::MiddleButton)
           {
           this->Node->InvokeEvent(vtkMRMLMarkupsNode::PointMiddleClickedEvent, &this->LastInteractionEventMarkupIndex);
           }
-        else if (this->SelectionButton == vtkSlicerPointsWidget::RightButton)
+        else if (this->SelectionButton == vtkSlicerLineWidget::RightButton)
           {
           this->Node->InvokeEvent(vtkMRMLMarkupsNode::PointRightClickedEvent, &this->LastInteractionEventMarkupIndex);
           }
-        else if (this->SelectionButton == vtkSlicerPointsWidget::LeftButtonDoubleClick)
+        else if (this->SelectionButton == vtkSlicerLineWidget::LeftButtonDoubleClick)
           {
           this->Node->InvokeEvent(vtkMRMLMarkupsNode::PointLeftDoubleClickedEvent, &this->LastInteractionEventMarkupIndex);
           }
-        else if (this->SelectionButton == vtkSlicerPointsWidget::MiddleButtonDoubleClick)
+        else if (this->SelectionButton == vtkSlicerLineWidget::MiddleButtonDoubleClick)
           {
           this->Node->InvokeEvent(vtkMRMLMarkupsNode::PointMiddleDoubleClickedEvent, &this->LastInteractionEventMarkupIndex);
           }
-        else if (this->SelectionButton == vtkSlicerPointsWidget::RightButtonDoubleClick)
+        else if (this->SelectionButton == vtkSlicerLineWidget::RightButtonDoubleClick)
           {
           this->Node->InvokeEvent(vtkMRMLMarkupsNode::PointRightDoubleClickedEvent, &this->LastInteractionEventMarkupIndex);
           }
@@ -191,10 +191,10 @@ public:
 };
 
 //---------------------------------------------------------------------------
-// vtkMRMLMarkupsFiducialDisplayableManager2D methods
+// vtkMRMLMarkupsLineDisplayableManager2D methods
 
 //---------------------------------------------------------------------------
-void vtkMRMLMarkupsFiducialDisplayableManager2D::PrintSelf(ostream& os, vtkIndent indent)
+void vtkMRMLMarkupsLineDisplayableManager2D::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
   this->Helper->PrintSelf(os, indent);
@@ -202,7 +202,7 @@ void vtkMRMLMarkupsFiducialDisplayableManager2D::PrintSelf(ostream& os, vtkInden
 
 //---------------------------------------------------------------------------
 /// Create a new seed widget.
-vtkSlicerAbstractWidget * vtkMRMLMarkupsFiducialDisplayableManager2D::CreateWidget(vtkMRMLMarkupsNode* node)
+vtkSlicerAbstractWidget * vtkMRMLMarkupsLineDisplayableManager2D::CreateWidget(vtkMRMLMarkupsNode* node)
 {
   if (!node)
     {
@@ -213,15 +213,14 @@ vtkSlicerAbstractWidget * vtkMRMLMarkupsFiducialDisplayableManager2D::CreateWidg
   // 2d glyphs and text need to be scaled by 1/60 to show up properly in the 2d slice windows
   this->SetScaleFactor2D(0.01667);
 
-  vtkMRMLMarkupsFiducialNode* fiducialNode = vtkMRMLMarkupsFiducialNode::SafeDownCast(node);
-
-  if (!fiducialNode)
+  vtkMRMLMarkupsLineNode* lineNode = vtkMRMLMarkupsLineNode::SafeDownCast(node);
+  if (!lineNode)
     {
     return nullptr;
     }
 
   //SlicerPoints widget
-  vtkSlicerPointsWidget * slicerPointsWidget = vtkSlicerPointsWidget::New();
+  vtkSlicerLineWidget * slicerLineWidget = vtkSlicerLineWidget::New();
 
   if (this->GetInteractor()->GetPickingManager())
     {
@@ -231,40 +230,40 @@ vtkSlicerAbstractWidget * vtkMRMLMarkupsFiducialDisplayableManager2D::CreateWidg
       // will need to have it's picking manager turned on once widgets are
       // going to be used to avoid dragging points that are behind others.
       // Enabling it before setting the interactor on the widget seems to
-      // work better with tests of two fiducial lists.
+      // work better with tests of two lines.
       this->GetInteractor()->GetPickingManager()->EnabledOn();
       }
     }
 
-  slicerPointsWidget->SetInteractor(this->GetInteractor());
-  slicerPointsWidget->SetCurrentRenderer(this->GetRenderer());
+  slicerLineWidget->SetInteractor(this->GetInteractor());
+  slicerLineWidget->SetCurrentRenderer(this->GetRenderer());
   vtkMRMLInteractionNode *interactionNode = this->GetInteractionNode();
   if (interactionNode)
     {
     if (interactionNode->GetCurrentInteractionMode() == vtkMRMLInteractionNode::Place)
       {
-      slicerPointsWidget->SetManagesCursor(false);
+      slicerLineWidget->SetManagesCursor(false);
       }
     else
       {
-      slicerPointsWidget->SetManagesCursor(true);
+      slicerLineWidget->SetManagesCursor(true);
       }
     }
-  vtkDebugMacro("Fids CreateWidget: Created widget for node " << fiducialNode->GetID() << " with a representation");
+  vtkDebugMacro("Fids CreateWidget: Created widget for node " << lineNode->GetID() << " with a representation");
 
   // Add the Representation
-  vtkNew<vtkSlicerPointsRepresentation2D> rep;
+  vtkNew<vtkSlicerLineRepresentation2D> rep;
   rep->SetRenderer(this->GetRenderer());
   rep->SetSliceNode(this->GetMRMLSliceNode());
-  rep->SetMarkupsNode(fiducialNode);
-  slicerPointsWidget->SetRepresentation(rep);
-  slicerPointsWidget->On();
+  rep->SetMarkupsNode(lineNode);
+  slicerLineWidget->SetRepresentation(rep);
+  slicerLineWidget->On();
 
-  return slicerPointsWidget;
+  return slicerLineWidget;
 }
 
 //---------------------------------------------------------------------------
-void vtkMRMLMarkupsFiducialDisplayableManager2D::OnMRMLMarkupsNthPointModifiedEvent(vtkMRMLNode *node, int n)
+void vtkMRMLMarkupsLineDisplayableManager2D::OnMRMLMarkupsNthPointModifiedEvent(vtkMRMLNode *node, int n)
 {
   vtkDebugMacro("OnMRMLMarkupsPointModifiedEvent");
   if (!node)
@@ -298,7 +297,7 @@ void vtkMRMLMarkupsFiducialDisplayableManager2D::OnMRMLMarkupsNthPointModifiedEv
 }
 
 //---------------------------------------------------------------------------
-void vtkMRMLMarkupsFiducialDisplayableManager2D::OnMRMLMarkupsPointAddedEvent(vtkMRMLNode *node, int vtkNotUsed(n))
+void vtkMRMLMarkupsLineDisplayableManager2D::OnMRMLMarkupsPointAddedEvent(vtkMRMLNode *node, int vtkNotUsed(n))
 {
   vtkDebugMacro("OnMRMLMarkupsPointAddedEvent");
   if (!node)
@@ -319,7 +318,7 @@ void vtkMRMLMarkupsFiducialDisplayableManager2D::OnMRMLMarkupsPointAddedEvent(vt
     return;
     }
 
-  // Points widgets have only one Markup/Representation
+  // line widgets have only one Markup/Representation
   vtkSlicerAbstractRepresentation2D *rep = vtkSlicerAbstractRepresentation2D::SafeDownCast
     (widget->GetRepresentation());
   if (!rep || !rep->GetVisibility())
@@ -340,7 +339,7 @@ void vtkMRMLMarkupsFiducialDisplayableManager2D::OnMRMLMarkupsPointAddedEvent(vt
 
 //---------------------------------------------------------------------------
 /// Tear down the widget creation
-void vtkMRMLMarkupsFiducialDisplayableManager2D::OnWidgetCreated(vtkSlicerAbstractWidget * widget, vtkMRMLMarkupsNode * node)
+void vtkMRMLMarkupsLineDisplayableManager2D::OnWidgetCreated(vtkSlicerAbstractWidget * widget, vtkMRMLMarkupsNode * node)
 {
   if (!widget)
     {
@@ -355,7 +354,7 @@ void vtkMRMLMarkupsFiducialDisplayableManager2D::OnWidgetCreated(vtkSlicerAbstra
     }
 
   // add the callback
-  vtkMarkupsFiducialWidgetCallback2D *myCallback = vtkMarkupsFiducialWidgetCallback2D::New();
+  vtkMarkupsLineWidgetCallback2D *myCallback = vtkMarkupsLineWidgetCallback2D::New();
   myCallback->SetNode(node);
   myCallback->SetWidget(widget);
   myCallback->SetDisplayableManager(this);
@@ -369,7 +368,7 @@ void vtkMRMLMarkupsFiducialDisplayableManager2D::OnWidgetCreated(vtkSlicerAbstra
 
 //---------------------------------------------------------------------------
 /// Create a markupsMRMLnode
-void vtkMRMLMarkupsFiducialDisplayableManager2D::OnClickInRenderWindow(double x, double y, const char *associatedNodeID)
+void vtkMRMLMarkupsLineDisplayableManager2D::OnClickInRenderWindow(double x, double y, const char *associatedNodeID)
 {
   if (!this->IsCorrectDisplayableManager())
     {
@@ -385,17 +384,17 @@ void vtkMRMLMarkupsFiducialDisplayableManager2D::OnClickInRenderWindow(double x,
 
   this->GetDisplayToWorldCoordinates(displayCoordinates, worldCoordinates);
 
-  // Is there an active markups node that's a fiducial node?
-  vtkMRMLMarkupsFiducialNode *activeFiducialNode = nullptr;
+  // Is there an active markups node that's a line node?
+  vtkMRMLMarkupsLineNode *activeLineNode = nullptr;
   vtkMRMLSelectionNode *selectionNode = this->GetSelectionNode();
   if (selectionNode)
     {
     const char *activeMarkupsID = selectionNode->GetActivePlaceNodeID();
     vtkMRMLNode *mrmlNode = this->GetMRMLScene()->GetNodeByID(activeMarkupsID);
     if (mrmlNode &&
-        mrmlNode->IsA("vtkMRMLMarkupsFiducialNode"))
+        mrmlNode->IsA("vtkMRMLMarkupsLineNode"))
       {
-      activeFiducialNode = vtkMRMLMarkupsFiducialNode::SafeDownCast(mrmlNode);
+      activeLineNode = vtkMRMLMarkupsLineNode::SafeDownCast(mrmlNode);
       }
     else
       {
@@ -403,47 +402,86 @@ void vtkMRMLMarkupsFiducialDisplayableManager2D::OnClickInRenderWindow(double x,
             << (activeMarkupsID ? activeMarkupsID : "null")
             << ", mrml node is "
             << (mrmlNode ? mrmlNode->GetID() : "null")
-            << ", not a vtkMRMLMarkupsFiducialNode");
+            << ", not a vtkMRMLMarkupsLineNode");
       }
     }
 
-  if (!activeFiducialNode)
+  if (!activeLineNode)
     {
     // create the MRML node
-    activeFiducialNode = vtkMRMLMarkupsFiducialNode::SafeDownCast
-      (this->GetMRMLScene()->AddNewNodeByClass("vtkMRMLMarkupsFiducialNode"));
-    activeFiducialNode->SetName(this->GetMRMLScene()->GetUniqueNameByString("F"));
-    activeFiducialNode->AddDefaultStorageNode();
-    activeFiducialNode->CreateDefaultDisplayNodes();
-    selectionNode->SetActivePlaceNodeID(activeFiducialNode->GetID());
+    activeLineNode = vtkMRMLMarkupsLineNode::SafeDownCast
+      (this->GetMRMLScene()->AddNewNodeByClass("vtkMRMLMarkupsLineNode"));
+    activeLineNode->SetName(this->GetMRMLScene()->GetUniqueNameByString("L"));
+    activeLineNode->AddDefaultStorageNode();
+    activeLineNode->CreateDefaultDisplayNodes();
+    selectionNode->SetActivePlaceNodeID(activeLineNode->GetID());
+    }
+
+  // Check if the widget line has been already place
+  // if yes, create a new node.
+  if (activeLineNode->GetPlacingEnded() == true &&
+      activeLineNode->GetNumberOfPoints() < 2)
+    {
+    activeLineNode->SetPlacingEnded(false);
+    }
+
+  if (activeLineNode->GetPlacingEnded() == true)
+    {
+    activeLineNode = vtkMRMLMarkupsLineNode::SafeDownCast
+      (this->GetMRMLScene()->AddNewNodeByClass("vtkMRMLMarkupsLineNode"));
+    activeLineNode->SetName(this->GetMRMLScene()->GetUniqueNameByString("L"));
+    activeLineNode->AddDefaultStorageNode();
+    activeLineNode->CreateDefaultDisplayNodes();
+    selectionNode->SetActivePlaceNodeID(activeLineNode->GetID());
+    }
+
+  // Check if activeLineNode has already one point.
+  // If yes, place last point and go back to view transform mode
+  if (activeLineNode->GetNumberOfPoints() > 0)
+    {
+    activeLineNode->SetPlacingEnded(true);
     }
 
   // if this was a one time place, go back to view transform mode
   vtkMRMLInteractionNode *interactionNode = this->GetInteractionNode();
-  if (interactionNode && interactionNode->GetPlaceModePersistence() != 1)
+  if (interactionNode && interactionNode->GetPlaceModePersistence() == 0 && activeLineNode->GetPlacingEnded())
     {
     vtkDebugMacro("End of one time place, place mode persistence = " << interactionNode->GetPlaceModePersistence());
-    interactionNode->SetCurrentInteractionMode(vtkMRMLInteractionNode::ViewTransform);
+    interactionNode->SwitchToViewTransformMode();
     }
 
   // save for undo and add the node to the scene after any reset of the
   // interaction node so that don't end up back in place mode
   this->GetMRMLScene()->SaveStateForUndo();
 
-  int pointIndex = this->AddControlPoint(activeFiducialNode, worldCoordinates);
+  int pointIndex = this->AddControlPoint(activeLineNode, worldCoordinates);
   // is there a node associated with this?
   if (associatedNodeID)
     {
-    activeFiducialNode->SetNthFiducialAssociatedNodeID(pointIndex, associatedNodeID);
+    activeLineNode->SetNthPointAssociatedNodeID(pointIndex, associatedNodeID);
+    }
+
+  // Ended the persistence placing, but only one point for the last line.
+  // Add a second point at the same coordinates
+  if (interactionNode->GetPlaceModePersistence() == 1 &&
+      interactionNode->GetCurrentInteractionMode() != vtkMRMLInteractionNode::Place)
+    {
+    pointIndex = this->AddControlPoint(activeLineNode, worldCoordinates);
+    activeLineNode->SetPlacingEnded(true);
+    // is there a node associated with this?
+    if (associatedNodeID)
+      {
+      activeLineNode->SetNthPointAssociatedNodeID(pointIndex, associatedNodeID);
+      }
     }
 
   // force update of widgets on other views
-  activeFiducialNode->GetMarkupsDisplayNode()->Modified();
+  activeLineNode->GetMarkupsDisplayNode()->Modified();
 }
 
 //---------------------------------------------------------------------------
 /// observe key press events
-void vtkMRMLMarkupsFiducialDisplayableManager2D::AdditionnalInitializeStep()
+void vtkMRMLMarkupsLineDisplayableManager2D::AdditionnalInitializeStep()
 {
   // don't add the key press event, as it triggers a crash on start up
   //vtkDebugMacro("Adding an observer on the key press event");
@@ -451,7 +489,7 @@ void vtkMRMLMarkupsFiducialDisplayableManager2D::AdditionnalInitializeStep()
 }
 
 //---------------------------------------------------------------------------
-void vtkMRMLMarkupsFiducialDisplayableManager2D::OnInteractorStyleEvent(int eventid)
+void vtkMRMLMarkupsLineDisplayableManager2D::OnInteractorStyleEvent(int eventid)
 {
   this->Superclass::OnInteractorStyleEvent(eventid);
 
@@ -464,10 +502,10 @@ void vtkMRMLMarkupsFiducialDisplayableManager2D::OnInteractorStyleEvent(int even
   if (eventid == vtkCommand::KeyPressEvent)
     {
     char *keySym = this->GetInteractor()->GetKeySym();
-    vtkDebugMacro("OnInteractorStyleEvent 2D: key press event position = "
-          << this->GetInteractor()->GetEventPosition()[0] << ", "
-          << this->GetInteractor()->GetEventPosition()[1]
-          << ", key sym = " << (keySym == NULL ? "null" : keySym));
+    vtkDebugMacro("OnInteractorStyleEvent 3D: key press event position = "
+              << this->GetInteractor()->GetEventPosition()[0] << ", "
+              << this->GetInteractor()->GetEventPosition()[1]
+              << ", key sym = " << (keySym == NULL ? "null" : keySym));
     if (!keySym)
       {
       return;
@@ -480,7 +518,7 @@ void vtkMRMLMarkupsFiducialDisplayableManager2D::OnInteractorStyleEvent(int even
         }
       else
         {
-        vtkDebugMacro("Fiducial DisplayableManager: key press p, but not in Place mode! Returning.");
+        vtkDebugMacro("Line DisplayableManager: key press p, but not in Place mode! Returning.");
         return;
         }
       }
@@ -492,7 +530,7 @@ void vtkMRMLMarkupsFiducialDisplayableManager2D::OnInteractorStyleEvent(int even
 }
 
 //---------------------------------------------------------------------------
-void vtkMRMLMarkupsFiducialDisplayableManager2D::OnMRMLSceneEndClose()
+void vtkMRMLMarkupsLineDisplayableManager2D::OnMRMLSceneEndClose()
 {
   // make sure to delete widgets and projections
   this->Superclass::OnMRMLSceneEndClose();
@@ -502,34 +540,27 @@ void vtkMRMLMarkupsFiducialDisplayableManager2D::OnMRMLSceneEndClose()
 }
 
 //---------------------------------------------------------------------------
-int vtkMRMLMarkupsFiducialDisplayableManager2D::AddControlPoint(vtkMRMLMarkupsFiducialNode *markupsNode,
-                                                                double worldCoordinates[4])
+int vtkMRMLMarkupsLineDisplayableManager2D::AddControlPoint(vtkMRMLMarkupsLineNode *markupsNode,
+                                                            double worldCoordinates[4])
 {
-  vtkSlicerPointsWidget *slicerWidget = vtkSlicerPointsWidget::SafeDownCast
+  vtkSlicerLineWidget *slicerWidget = vtkSlicerLineWidget::SafeDownCast
     (this->Helper->GetWidget(markupsNode));
   if (slicerWidget == nullptr)
     {
     return -1;
     }
 
-  vtkMRMLInteractionNode *interactionNode = this->GetInteractionNode();
-  bool persistence = false;
-  if (interactionNode && interactionNode->GetPlaceModePersistence() == 1 &&
-      interactionNode->GetCurrentInteractionMode() == vtkMRMLInteractionNode::Place)
-    {
-    persistence = true;
-    }
-  slicerWidget->AddPointToRepresentationFromWorldCoordinate(worldCoordinates, persistence);
+  slicerWidget->AddPointToRepresentationFromWorldCoordinate(worldCoordinates);
 
-  return markupsNode->GetNumberOfFiducials() - 1;
+  return markupsNode->GetNumberOfPoints() - 1;
 }
 
 //---------------------------------------------------------------------------
-bool vtkMRMLMarkupsFiducialDisplayableManager2D::IsPointDisplayableOnSlice(vtkMRMLMarkupsNode *node, int pointIndex)
+bool vtkMRMLMarkupsLineDisplayableManager2D::IsPointDisplayableOnSlice(vtkMRMLMarkupsNode *node, int pointIndex)
 {
   if (this->IsInLightboxMode())
     {
-    // TBD: issue 1690: disable fiducials in light box mode as they appear
+    // TBD: issue 1690: disable line in light box mode as they appear
     // in the wrong location
     return false;
     }
@@ -710,7 +741,7 @@ bool vtkMRMLMarkupsFiducialDisplayableManager2D::IsPointDisplayableOnSlice(vtkMR
 }
 
 //---------------------------------------------------------------------------
-void vtkMRMLMarkupsFiducialDisplayableManager2D::OnMRMLDisplayableNodeModifiedEvent(vtkObject *caller)
+void vtkMRMLMarkupsLineDisplayableManager2D::OnMRMLDisplayableNodeModifiedEvent(vtkObject *caller)
 {
   this->Superclass::OnMRMLDisplayableNodeModifiedEvent(caller);
 
@@ -719,25 +750,25 @@ void vtkMRMLMarkupsFiducialDisplayableManager2D::OnMRMLDisplayableNodeModifiedEv
     return;
     }
 
-  vtkSmartPointer<vtkCollection> FiducialsMarkupsNodes = vtkSmartPointer<vtkCollection>::Take
-        (this->GetMRMLScene()->GetNodesByClass("vtkMRMLMarkupsFiducialNode"));
+  vtkSmartPointer<vtkCollection> linesMarkupsNodes = vtkSmartPointer<vtkCollection>::Take
+        (this->GetMRMLScene()->GetNodesByClass("vtkMRMLMarkupsLineNode"));
 
-  for (int FiducialsMarkupsIndex = 0; FiducialsMarkupsIndex < FiducialsMarkupsNodes->GetNumberOfItems(); FiducialsMarkupsIndex++)
+  for (int lineMarkupsIndex = 0; lineMarkupsIndex < linesMarkupsNodes->GetNumberOfItems(); lineMarkupsIndex++)
     {
-    vtkMRMLMarkupsFiducialNode* FiducialsMarkupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast
-          (FiducialsMarkupsNodes->GetItemAsObject(FiducialsMarkupsIndex));
-    if (!FiducialsMarkupsNode)
+    vtkMRMLMarkupsLineNode* lineMarkupsNode = vtkMRMLMarkupsLineNode::SafeDownCast
+          (linesMarkupsNodes->GetItemAsObject(lineMarkupsIndex));
+    if (!lineMarkupsNode)
       {
       continue;
       }
 
-    vtkSlicerAbstractWidget *widget = this->Helper->GetWidget(FiducialsMarkupsNode);
+    vtkSlicerAbstractWidget *widget = this->Helper->GetWidget(lineMarkupsNode);
     if (!widget)
       {
       continue;
       }
 
-    // Points widgets have only one Markup/Representation
+    // line widgets have only one Markup/Representation
     vtkSlicerAbstractRepresentation2D *rep = vtkSlicerAbstractRepresentation2D::SafeDownCast
       (widget->GetRepresentation());
     if (!rep || !rep->GetVisibility())
@@ -745,9 +776,9 @@ void vtkMRMLMarkupsFiducialDisplayableManager2D::OnMRMLDisplayableNodeModifiedEv
       continue;
       }
 
-    for (int PointIndex = 0; PointIndex < FiducialsMarkupsNode->GetNumberOfFiducials(); PointIndex++)
+    for (int PointIndex = 0; PointIndex < lineMarkupsNode->GetNumberOfPoints(); PointIndex++)
       {
-      bool visibility = this->IsPointDisplayableOnSlice(FiducialsMarkupsNode, PointIndex);
+      bool visibility = this->IsPointDisplayableOnSlice(lineMarkupsNode, PointIndex);
       rep->SetNthPointSliceVisibility(PointIndex, visibility);
       }
 

@@ -43,7 +43,6 @@ class vtkProperty;
 class vtkOpenGLActor;
 class vtkOpenGLPolyDataMapper;
 class vtkGlyph3D;
-class vtkCellPicker;
 class vtkLabelPlacementMapper;
 class vtkPointSetToLabelHierarchy;
 class vtkStringArray;
@@ -81,13 +80,11 @@ public:
   /// with the handle.
   vtkGetObjectMacro(ActiveTextProperty,vtkTextProperty);
 
-  /// Specify tolerance for performing pick operation. Tolerance is specified
-  /// as fraction of rendering window size. (Rendering window size is measured
-  /// across diagonal in display pixel coordinates)
-  void SetTolerance(double tol) VTK_OVERRIDE;
-
-  /// Register internal Pickers within PickingManager
-  void RegisterPickers() VTK_OVERRIDE;
+  /// Given a display position, activate a node. The closest
+  /// node within tolerance will be activated. If a node is
+  /// activated, 1 will be returned, otherwise 0 will be
+  /// returned.
+  virtual int ActivateNode(double displayPos[2]) VTK_OVERRIDE;
 
   /// Subclasses of vtkSlicerAbstractRepresentation3D must implement these methods. These
   /// are the methods that the widget and its representation use to
@@ -136,12 +133,9 @@ protected:
   vtkSlicerAbstractRepresentation3D();
   ~vtkSlicerAbstractRepresentation3D() VTK_OVERRIDE;
 
-  // Support picking
-  vtkCellPicker *CursorPicker;
-
   // Methods to manipulate the cursor
   virtual void TranslateNode(double eventPos[2]);
-  virtual void ShiftWidget(double eventPos[2]);
+  virtual void TranslateWidget(double eventPos[2]);
   virtual void ScaleWidget(double eventPos[2]);
   virtual void RotateWidget(double eventPos[2]);
 

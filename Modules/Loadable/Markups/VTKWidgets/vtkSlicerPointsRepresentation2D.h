@@ -44,10 +44,6 @@ public:
   /// Standard methods for instances of this class.
   vtkTypeMacro(vtkSlicerPointsRepresentation2D,vtkSlicerAbstractRepresentation2D);
 
-  /// These are the methods that the widget and its representation use to
-  /// communicate with each other.
-  void Highlight(int highlight) VTK_OVERRIDE;
-
   /// Get the points in this widget as a vtkPolyData.
   vtkPolyData *GetWidgetRepresentationAsPolyData() VTK_OVERRIDE;
 

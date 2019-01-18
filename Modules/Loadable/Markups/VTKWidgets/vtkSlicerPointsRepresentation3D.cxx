@@ -74,12 +74,6 @@ void vtkSlicerPointsRepresentation3D::BuildLines()
 }
 
 //----------------------------------------------------------------------
-void vtkSlicerPointsRepresentation3D::Highlight(int vtkNotUsed(highlight))
-{
-  return;
-}
-
-//----------------------------------------------------------------------
 vtkPolyData *vtkSlicerPointsRepresentation3D::GetWidgetRepresentationAsPolyData()
 {
   this->appendActors->Update();

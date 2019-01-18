@@ -23,8 +23,8 @@
 #include "vtkMRMLMarkupsDisplayableManagerHelper.h"
 
 // VTK includes
-#include <vtkSlicerAbstractWidget.h>
 #include <vtkCollection.h>
+#include <vtkMRMLInteractionNode.h>
 #include <vtkNew.h>
 #include <vtkObjectFactory.h>
 #include <vtkProperty.h>
@@ -127,28 +127,6 @@ void vtkMRMLMarkupsDisplayableManagerHelper::UpdateLockedAllWidgetsFromNodes()
 }
 
 //---------------------------------------------------------------------------
-void vtkMRMLMarkupsDisplayableManagerHelper::UpdateLockedAllWidgetsFromInteractionNode(vtkMRMLInteractionNode *interactionNode)
-{
-  if (!interactionNode)
-    {
-    return;
-    }
-
-  int currentInteractionMode = interactionNode->GetCurrentInteractionMode();
-  vtkDebugMacro("Markups DisplayableManager Helper: updateLockedAllWidgetsFromInteractionNode, currentInteractionMode = " << currentInteractionMode);
-  if (currentInteractionMode == vtkMRMLInteractionNode::Place)
-    {
-    // turn off processing events on the 3d widgets
-    this->UpdateLockedAllWidgets(true);
-    }
-  else if (currentInteractionMode == vtkMRMLInteractionNode::ViewTransform)
-    {
-    // reset the processing of events on the 3d widgets from the mrml nodes
-    this->UpdateLockedAllWidgetsFromNodes();
-    }
-}
-
-//---------------------------------------------------------------------------
 void vtkMRMLMarkupsDisplayableManagerHelper::UpdateLockedAllWidgets(bool locked)
 {
   // loop through all widgets and update lock status
@@ -172,8 +150,7 @@ void vtkMRMLMarkupsDisplayableManagerHelper::UpdateLockedAllWidgets(bool locked)
 }
 
 //---------------------------------------------------------------------------
-void vtkMRMLMarkupsDisplayableManagerHelper::UpdateLocked(vtkMRMLMarkupsNode *node,
-                                                          vtkMRMLInteractionNode *interactionNode)
+void vtkMRMLMarkupsDisplayableManagerHelper::UpdateLocked(vtkMRMLMarkupsNode *node)
 {
   // Sanity checks
   if (node == nullptr)
@@ -191,55 +168,53 @@ void vtkMRMLMarkupsDisplayableManagerHelper::UpdateLocked(vtkMRMLMarkupsNode *no
   bool isLockedOnNode = (node->GetLocked() != 0 ? true : false);
   bool isLockedOnWidget = (widget->GetProcessEvents() != 0 ? false : true);
   bool isLockedOnInteraction = false;
-  if (interactionNode &&
-      interactionNode->GetCurrentInteractionMode() == vtkMRMLInteractionNode::Place)
-    {
-    // place mode will over ride node locking
-    isLockedOnInteraction = true;
-    }
 
   vtkDebugMacro("UpdateLocked: isLockedOnNode = " << isLockedOnNode
             << ", isLockedOnWidget = " << isLockedOnWidget
             << ", isLockedOnInteraction = " << isLockedOnInteraction);
   // only update the processEvents state of the widget if it is different than
   // what the markups node or the interaction node says it needs to be
-  if ( (isLockedOnNode && !isLockedOnWidget) ||
-       (isLockedOnInteraction && !isLockedOnWidget) )
+  if ((isLockedOnNode && !isLockedOnWidget) ||
+      (isLockedOnInteraction && !isLockedOnWidget))
     {
     widget->ProcessEventsOff();
     }
   else if (!isLockedOnInteraction && !isLockedOnNode && isLockedOnWidget)
     {
     widget->ProcessEventsOn();
-    //TO DO: imeplemnt locking for single point
-    // is it a widget that can support individually locked points?
-    /*vtkSlicerAbstractWidget *abstractWidget = vtkSlicerAbstractWidget::SafeDownCast(widget);
-    if (abstractWidget)
+  }
+}
+
+//---------------------------------------------------------------------------
+void vtkMRMLMarkupsDisplayableManagerHelper::UpdateAllWidgetsFromInteractionNode(vtkMRMLInteractionNode *interactionNode)
+{
+  // Sanity checks
+  if (interactionNode == nullptr)
+    {
+    return;
+    }
+
+  // loop through all widgets and update the widget status
+  for (WidgetsIt it = this->Widgets.begin();
+       it !=  this->Widgets.end();
+       ++it)
+    {
+    if (it->second)
       {
-      int numMarkups = node->GetNumberOfMarkups();
-      for (int i = 0; i < numMarkups; i++)
+      if (interactionNode->GetCurrentInteractionMode() == vtkMRMLInteractionNode::Place)
         {
-        if (abstractWidget-> == NULL)
-          {
-          vtkErrorMacro("UpdateLocked: missing seed at index " << i);
-          continue;
-          }
-        bool isLockedOnNthMarkup = node->GetNthMarkupLocked(i);
-        bool isLockedOnNthSeed = seedWidget->GetSeed(i)->GetEnableTranslation() == 0;
-        if (isLockedOnNthMarkup && !isLockedOnNthSeed)
-          {
-          // lock it
-          seedWidget->GetSeed(i)->ProcessEventsOn();
-          seedWidget->GetSeed(i)->EnableTranslationOff();
-          }
-        else if (!isLockedOnNthMarkup && isLockedOnNthSeed)
-          {
-          // unlock it
-          seedWidget->GetSeed(i)->ProcessEventsOn();
-          seedWidget->GetSeed(i)->EnableTranslationOn();
-          }
+        // Set widget state to define
+        it->second->SetWidgetState(1);
+        it->second->SetFollowCursor(false);
+        it->second->SetManagesCursor(false);
         }
-      }*/
+      else
+        {
+        // Set widget state to manipulate
+        it->second->SetWidgetState(2);
+        it->second->SetManagesCursor(true);
+        }
+      }
     }
 }
 

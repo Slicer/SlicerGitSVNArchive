@@ -41,7 +41,6 @@ class vtkProperty2D;
 class vtkActor2D;
 class vtkOpenGLPolyDataMapper2D;
 class vtkGlyph2D;
-class vtkPropPicker;
 class vtkTextProperty;
 class vtkLabelPlacementMapper;
 class vtkPointSetToLabelHierarchy;
@@ -77,9 +76,6 @@ public:
   /// This is the property used for the text when the user is interacting
   /// with the handle.
   vtkGetObjectMacro(ActiveTextProperty,vtkTextProperty);
-
-  /// Register internal Pickers within PickingManager
-  void RegisterPickers() VTK_OVERRIDE;
 
   /// Subclasses of vtkSlicerAbstractRepresentation2D must implement these methods. These
   /// are the methods that the widget and its representation use to
@@ -131,7 +127,14 @@ public:
   /// Get the nth node's position on the slice. Will return
   /// 1 on success, or 0 if there are not at least
   /// (n+1) nodes (0 based counting).
-  int GetNthNodeSliceDisplayPosition( int n, double pos[2] );
+  int GetNthNodeDisplayPosition(int n, double pos[2]) VTK_OVERRIDE;
+
+  /// Get the display position of the intermediate point at
+  /// index idx between nodes n and (n+1) (or n and 0 if
+  /// n is the last node and the loop is closed). Returns
+  /// 1 on success or 0 if n or idx are out of range.
+  virtual int GetIntermediatePointDisplayPosition(int n,
+                                                   int idx, double pos[2]);
 
   /// Set the nth node's position on the slice. slice position
   /// will be converted into world position according to the
@@ -139,36 +142,29 @@ public:
   /// 1 on success, or 0 if there are not at least
   /// (n+1) nodes (0 based counting) or the world position
   /// is not valid.
-  int SetNthNodeSliceDisplayPosition( int n, double pos[2] );
+  int SetNthNodeDisplayPosition(int n, double pos[2]) VTK_OVERRIDE;
 
   /// Add a node at a specific position on the slice. This will be
   /// converted into a world position according to the current
   /// constraints of the point placer. Return 0 if a point could
   /// not be added, 1 otherwise.
-  int AddNodeAtSliceDisplayPosition( double slicePos[2] );
+  int AddNodeAtDisplayPosition(double slicePos[2]) VTK_OVERRIDE;
 
   /// Delete the nth node. Return 1 on success or 0 if n
   /// is out of range.
-  int DeleteNthNode( int n ) VTK_OVERRIDE;
-
-  /// Delete the nth node. Return 1 on success or 0 if n
-  /// is out of range.
-  virtual void SetNthPointSliceVisibility( int n, bool visibility );
+  virtual void SetNthPointSliceVisibility(int n, bool visibility);
 
 protected:
   vtkSlicerAbstractRepresentation2D();
   ~vtkSlicerAbstractRepresentation2D() VTK_OVERRIDE;
 
-  void GetSliceToWorldCoordinates( double slicePos[2], double worldPos[3] );
+  void GetSliceToWorldCoordinates(double slicePos[2], double worldPos[3]);
 
   vtkWeakPointer<vtkMRMLSliceNode> SliceNode;
 
-  // Support picking
-  vtkPropPicker *CursorPicker;
-
   // Methods to manipulate the cursor
   virtual void TranslateNode(double eventPos[2]);
-  virtual void ShiftWidget(double eventPos[2]);
+  virtual void TranslateWidget(double eventPos[2]);
   virtual void ScaleWidget(double eventPos[2]);
   virtual void RotateWidget(double eventPos[2]);
 
@@ -223,7 +219,7 @@ protected:
 
   void BuildLocator() VTK_OVERRIDE;
 
-  virtual void AddNodeAtPositionInternal( double worldPos[3]) VTK_OVERRIDE;
+  virtual void AddNodeAtPositionInternal(double worldPos[3]) VTK_OVERRIDE;
 
 private:
   vtkSlicerAbstractRepresentation2D(const vtkSlicerAbstractRepresentation2D&) = delete;

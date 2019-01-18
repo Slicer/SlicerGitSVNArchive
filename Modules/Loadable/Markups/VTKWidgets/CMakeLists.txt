@@ -28,10 +28,12 @@ set(${KIT}_SRCS
   #vtkSlicerCurveRepresentation.h
   #vtkSlicerCurveWidget.cxx
   #vtkSlicerCurveWidget.h
-  #vtkSlicerLineRepresentation.cxx
-  #vtkSlicerLineRepresentation.h
-  #vtkSlicerLineWidget.cxx
-  #vtkSlicerLineWidget.h
+  vtkSlicerLineRepresentation3D.cxx
+  vtkSlicerLineRepresentation3D.h
+  vtkSlicerLineRepresentation2D.cxx
+  vtkSlicerLineRepresentation2D.h
+  vtkSlicerLineWidget.cxx
+  vtkSlicerLineWidget.h
   vtkSlicerPointsRepresentation3D.cxx
   vtkSlicerPointsRepresentation3D.h
   vtkSlicerPointsRepresentation2D.cxx

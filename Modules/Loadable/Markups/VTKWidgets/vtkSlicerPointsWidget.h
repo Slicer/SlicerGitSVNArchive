@@ -22,10 +22,10 @@
  *
  * The vtkSlicerPointsWidget is used to select a set of points.
  * The widget handles all processing of widget
- * events (that are triggered by VTK events). The vtkSlicerAbstractRepresentation is
+ * events (that are triggered by VTK events). The vtkSlicerPointRepresentations are
  * responsible for all placement of the points, and
  * points manipulation. This is done through a main helper class:
- * vtkPointPlacer. The representation is also
+ * vtkFocalPlanePointPlacer. The representation is also
  * responsible for drawing the points.
  *
  * @par Event Bindings:
@@ -57,10 +57,10 @@
  * class's vtkWidgetEventTranslator. This class translates VTK events
  * into the vtkSlicerPointsWidget's widget events:
  * <pre>
- *   vtkWidgetEvent::Select
+ *   vtkWidgetEvent::Translate
  *        widget state is:
- *            Start or
- *            Define: Add a node at this (X,Y) location.
+ *            Start: Do nothing.
+ *            Define: Do nothing.
  *            Manipulate: If this (X,Y) location activates a node, then
  *                 set the current operation to Translate.
  *
@@ -69,7 +69,7 @@
  *        widget state is:
  *            Start: Do nothing.
  *            Define: Do nothing.
- *            Manipulate: If this (X,Y) location activates a node. The node or line
+ *            Manipulate: If this (X,Y) location activates a node. The node
  *                 will be selected, but no translate will be possible.
  *
  * @par Event Bindings:
@@ -77,7 +77,7 @@
  *        widget state is:
  *            Start: Do nothing.
  *            Define: Do nothing.
- *            Manipulate: If this (X,Y) location activates a node or the line, then
+ *            Manipulate: If this (X,Y) location activates a node, then
  *                 set the current operation to Rotate. if any node is locked, the rotation is aborted.
  *
  * @par Event Bindings:
@@ -85,7 +85,7 @@
  *        widget state is:
  *            Start: Do nothing.
  *            Define: Do nothing.
- *            Manipulate: If this (X,Y) location activates a node or the line, then
+ *            Manipulate: If this (X,Y) location activates a node, then
  *                 set the current operation to Shift.
  *
  * @par Event Bindings:
@@ -93,14 +93,14 @@
  *        widget state is:
  *            Start: Do nothing.
  *            Define: Do nothing.
- *            Manipulate: If this (X,Y) location activates a node or the line, then
+ *            Manipulate: If this (X,Y) location activates a node, then
  *                 set the current operation to Scale.
  *
  *
  * @par Event Bindings:
  *   vtkWidgetEvent::Move
  *        widget state is:
- *            Start or
+ *            Start: Do nothing.
  *            Define: Do nothing.
  *            Manipulate: If our operation is Translate, Shift or Scale, then invoke
  *                  WidgetInteraction() on the representation. If our
@@ -108,25 +108,9 @@
  *                  a node at this (X,Y) location.
  *
  * @par Event Bindings:
- *   vtkWidgetEvent::EndSelect
+ *   vtkWidgetEvent::EndAction
  *        widget state is:
- *            Start or
- *            Define: Do nothing.
- *            Manipulate: If our operation is not Inactive, set it to
- *                  Inactive.
- *
- * @par Event Bindings:
- *   vtkWidgetEvent::EndTranslate
- *        widget state is:
- *            Start or
- *            Define: Do nothing.
- *            Manipulate: If our operation is not Inactive, set it to
- *                  Inactive.
- *
- * @par Event Bindings:
- *   vtkWidgetEvent::EndScale
- *        widget state is:
- *            Start or
+ *            Start: Do nothing.
  *            Define: Do nothing.
  *            Manipulate: If our operation is not Inactive, set it to
  *                  Inactive.
@@ -192,21 +176,13 @@ public:
   /// NOTE: the representation needs also a Markup object from the MRMLMarkupsNode
   void CreateDefaultRepresentation() VTK_OVERRIDE;
 
-  /// Add a point to the current active Markup at the current X and Y display coordiantes of the interactor.
-  void AddPointToRepresentation() VTK_OVERRIDE;
-
   /// Add a point to the current active Markup at input World coordiantes.
-  void AddPointToRepresentationFromWorldCoordinate(double worldCoordinates [3]) VTK_OVERRIDE;
+  /// If persistence is true, the widget state remains to Define
+  void AddPointToRepresentationFromWorldCoordinate(double worldCoordinates [3], bool persistence = false);
 
 protected:
   vtkSlicerPointsWidget();
   ~vtkSlicerPointsWidget() VTK_OVERRIDE;
-
-  // Callback interface to capture evts when
-  // placing the widget.
-  static void SelectAction(vtkAbstractWidget*);
-  static void MoveAction(vtkAbstractWidget*);
-  static void DeleteAction(vtkAbstractWidget*);
 
 private:
   vtkSlicerPointsWidget(const vtkSlicerPointsWidget&) = delete;

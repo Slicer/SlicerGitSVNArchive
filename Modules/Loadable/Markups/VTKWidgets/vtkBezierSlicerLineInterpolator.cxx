@@ -37,19 +37,19 @@ vtkBezierSlicerLineInterpolator::vtkBezierSlicerLineInterpolator()
 vtkBezierSlicerLineInterpolator::~vtkBezierSlicerLineInterpolator() = default;
 
 //----------------------------------------------------------------------
-int vtkBezierSlicerLineInterpolator::InterpolateLine( vtkSlicerAbstractRepresentation *rep,
-                                                      int idx1, int idx2 )
+int vtkBezierSlicerLineInterpolator::InterpolateLine(vtkSlicerAbstractRepresentation *rep,
+                                                     int idx1, int idx2)
 {
   int maxRecursion = 0;
   int tmp = 3;
 
-  while ( 2*tmp < this->MaximumCurveLineSegments )
+  while (2*tmp < this->MaximumCurveLineSegments)
     {
     tmp *= 2;
     maxRecursion++;
     }
 
-  if ( maxRecursion == 0 )
+  if (maxRecursion == 0)
     {
     return 1;
     }
@@ -62,8 +62,8 @@ int vtkBezierSlicerLineInterpolator::InterpolateLine( vtkSlicerAbstractRepresent
   double slope1[3];
   double slope2[3];
 
-  rep->GetNthNodeSlope( idx1, slope1 );
-  rep->GetNthNodeSlope( idx2, slope2 );
+  rep->GetNthNodeSlope(idx1, slope1);
+  rep->GetNthNodeSlope(idx2, slope2);
 
   controlPointsStack[0] = 0;
   double *p1 = controlPointsStack+1;
@@ -71,10 +71,10 @@ int vtkBezierSlicerLineInterpolator::InterpolateLine( vtkSlicerAbstractRepresent
   double *p3 = controlPointsStack+7;
   double *p4 = controlPointsStack+10;
 
-  rep->GetNthNodeWorldPosition( idx1, p1 );
-  rep->GetNthNodeWorldPosition( idx2, p4 );
+  rep->GetNthNodeWorldPosition(idx1, p1);
+  rep->GetNthNodeWorldPosition(idx2, p4);
 
-  double distance = sqrt( vtkMath::Distance2BetweenPoints( p1, p4 ) );
+  double distance = sqrt(vtkMath::Distance2BetweenPoints(p1, p4));
 
   p2[0] = p1[0] + .333*distance*slope1[0];
   p2[1] = p1[1] + .333*distance*slope1[1];
@@ -86,7 +86,7 @@ int vtkBezierSlicerLineInterpolator::InterpolateLine( vtkSlicerAbstractRepresent
 
   stackCount++;
 
-  while ( stackCount )
+  while (stackCount)
    {
     //process last point on stack
     int recursionLevel = static_cast<int>(controlPointsStack[13*(stackCount-1)]);
@@ -103,15 +103,15 @@ int vtkBezierSlicerLineInterpolator::InterpolateLine( vtkSlicerAbstractRepresent
 
     distance = sqrt(vtkMath::Distance2BetweenPoints(p1,p4));
 
-    if ( recursionLevel >= maxRecursion || distance == 0 ||
-         (totalDist - distance)/distance < this->MaximumCurveError )
+    if (recursionLevel >= maxRecursion || distance == 0 ||
+        (totalDist - distance)/distance < this->MaximumCurveError)
       {
-      rep->AddIntermediatePointWorldPosition( idx1, p2 );
-      rep->AddIntermediatePointWorldPosition( idx1, p3 );
+      rep->AddIntermediatePointWorldPosition(idx1, p2);
+      rep->AddIntermediatePointWorldPosition(idx1, p3);
 
-      if ( stackCount > 1 )
+      if (stackCount > 1)
         {
-        rep->AddIntermediatePointWorldPosition( idx1, p4 );
+        rep->AddIntermediatePointWorldPosition(idx1, p4);
         }
       stackCount--;
       }
@@ -119,12 +119,12 @@ int vtkBezierSlicerLineInterpolator::InterpolateLine( vtkSlicerAbstractRepresent
       {
       double p12[3], p23[3], p34[3], p123[3], p234[3], p1234[3];
 
-      this->ComputeMidpoint( p1, p2, p12 );
-      this->ComputeMidpoint( p2, p3, p23 );
-      this->ComputeMidpoint( p3, p4, p34 );
-      this->ComputeMidpoint( p12, p23, p123 );
-      this->ComputeMidpoint( p23, p34, p234 );
-      this->ComputeMidpoint( p123, p234, p1234 );
+      this->ComputeMidpoint(p1, p2, p12);
+      this->ComputeMidpoint(p2, p3, p23);
+      this->ComputeMidpoint(p3, p4, p34);
+      this->ComputeMidpoint(p12, p23, p123);
+      this->ComputeMidpoint(p23, p34, p234);
+      this->ComputeMidpoint(p123, p234, p1234);
 
       // add these two points to the stack
       controlPointsStack[13*(stackCount-1)] = recursionLevel+1;
@@ -173,9 +173,9 @@ int vtkBezierSlicerLineInterpolator::InterpolateLine( vtkSlicerAbstractRepresent
 }
 
 //----------------------------------------------------------------------
-void vtkBezierSlicerLineInterpolator::GetSpan( int nodeIndex,
-                                               vtkIntArray *nodeIndices,
-                                               vtkSlicerAbstractRepresentation *rep)
+void vtkBezierSlicerLineInterpolator::GetSpan(int nodeIndex,
+                                              vtkIntArray *nodeIndices,
+                                              vtkSlicerAbstractRepresentation *rep)
 {
   int start = nodeIndex - 2;
   int end   = nodeIndex - 1;
@@ -186,35 +186,35 @@ void vtkBezierSlicerLineInterpolator::GetSpan( int nodeIndex,
   nodeIndices->Squeeze();
   nodeIndices->SetNumberOfComponents(2);
 
-  for ( int i = 0; i < 4; i++ )
+  for (int i = 0; i < 4; i++)
     {
     index[0] = start++;
     index[1] = end++;
 
-    if ( rep->GetClosedLoop() )
+    if (rep->GetClosedLoop())
       {
-      if ( index[0] < 0 )
+      if (index[0] < 0)
         {
         index[0] += rep->GetNumberOfNodes();
         }
-      if ( index[1] < 0 )
+      if (index[1] < 0)
         {
         index[1] += rep->GetNumberOfNodes();
         }
-      if ( index[0] >= rep->GetNumberOfNodes() )
+      if (index[0] >= rep->GetNumberOfNodes())
         {
         index[0] -= rep->GetNumberOfNodes();
         }
-      if ( index[1] >= rep->GetNumberOfNodes() )
+      if (index[1] >= rep->GetNumberOfNodes())
         {
         index[1] -= rep->GetNumberOfNodes();
         }
       }
 
-    if ( index[0] >= 0 && index[0] < rep->GetNumberOfNodes() &&
-         index[1] >= 0 && index[1] < rep->GetNumberOfNodes() )
+    if (index[0] >= 0 && index[0] < rep->GetNumberOfNodes() &&
+        index[1] >= 0 && index[1] < rep->GetNumberOfNodes())
       {
-      nodeIndices->InsertNextTypedTuple( index );
+      nodeIndices->InsertNextTypedTuple(index);
       }
     }
 }

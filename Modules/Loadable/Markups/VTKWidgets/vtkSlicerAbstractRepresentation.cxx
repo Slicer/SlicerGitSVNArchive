@@ -47,8 +47,6 @@
 #include "vtkSlicerLineInterpolator.h"
 #include "vtkBezierSlicerLineInterpolator.h"
 #include "vtkSphereSource.h"
-#include "vtkCellPicker.h"
-#include "vtkPickingManager.h"
 #include "vtkBox.h"
 #include "vtkIntArray.h"
 #include "vtkMatrix4x4.h"
@@ -142,9 +140,6 @@ vtkSlicerAbstractRepresentation::vtkSlicerAbstractRepresentation()
   this->ActiveFocalData->GetPointData()->SetNormals(activeNormals);
   activeNormals->Delete();
 
-  this->InteractionOffset[0] = 0.0;
-  this->InteractionOffset[1] = 0.0;
-
   this->AlwaysOnTop = 0;
 
   this->RestrictFlag = RestrictNone;
@@ -187,6 +182,50 @@ void vtkSlicerAbstractRepresentation::ResetLocator()
 }
 
 //----------------------------------------------------------------------
+double vtkSlicerAbstractRepresentation::CalculateViewScaleFactor()
+{
+  double p1[4], p2[4];
+  this->Renderer->GetActiveCamera()->GetFocalPoint(p1);
+  p1[3] = 1.0;
+  this->Renderer->SetWorldPoint(p1);
+  this->Renderer->WorldToView();
+  this->Renderer->GetViewPoint(p1);
+
+  double depth = p1[2];
+  double aspect[2];
+  this->Renderer->ComputeAspect();
+  this->Renderer->GetAspect(aspect);
+
+  p1[0] = -aspect[0];
+  p1[1] = -aspect[1];
+  this->Renderer->SetViewPoint(p1);
+  this->Renderer->ViewToWorld();
+  this->Renderer->GetWorldPoint(p1);
+
+  p2[0] = aspect[0];
+  p2[1] = aspect[1];
+  p2[2] = depth;
+  p2[3] = 1.0;
+  this->Renderer->SetViewPoint(p2);
+  this->Renderer->ViewToWorld();
+  this->Renderer->GetWorldPoint(p2);
+
+  double distance = sqrt(vtkMath::Distance2BetweenPoints(p1, p2));
+
+  int *size = this->Renderer->GetRenderWindow()->GetSize();
+  double viewport[4];
+  this->Renderer->GetViewport(viewport);
+
+  double x, y, distance2;
+
+  x = size[0] * (viewport[2] - viewport[0]);
+  y = size[1] * (viewport[3] - viewport[1]);
+
+  distance2 = sqrt(x * x + y * y);
+  return distance2 / distance;
+}
+
+//----------------------------------------------------------------------
 void vtkSlicerAbstractRepresentation::ClearAllNodes()
 {
   this->ResetLocator();
@@ -197,36 +236,36 @@ void vtkSlicerAbstractRepresentation::ClearAllNodes()
 }
 
 //----------------------------------------------------------------------
-void vtkSlicerAbstractRepresentation::AddNodeAtPositionInternal( double worldPos[3] )
+void vtkSlicerAbstractRepresentation::AddNodeAtPositionInternal(double worldPos[3])
 {
-  if ( !this->MarkupsNode )
+  if (!this->MarkupsNode)
     {
     return;
     }
 
   // Check if this is a valid location
-  if ( !this->PointPlacer->ValidateWorldPosition( worldPos ) )
+  if (!this->PointPlacer->ValidateWorldPosition(worldPos))
     {
     return;
     }
 
   // Add a new point at this position
-  vtkVector3d pos( worldPos[0], worldPos[1], worldPos[2] );
+  vtkVector3d pos(worldPos[0], worldPos[1], worldPos[2]);
   this->MarkupsNode->DisableModifiedEventOn();
   this->MarkupsNode->AddControlPoint(pos);
   this->MarkupsNode->DisableModifiedEventOff();
 
-  this->UpdateLines( this->GetNumberOfNodes() - 1 );
+  this->UpdateLines(this->GetNumberOfNodes() - 1);
   this->NeedToRender = 1;
 }
 
 //----------------------------------------------------------------------
-void vtkSlicerAbstractRepresentation::GetNodePolyData( vtkPolyData* poly )
+void vtkSlicerAbstractRepresentation::GetNodePolyData(vtkPolyData* poly)
 {
   poly->Initialize();
   int count = this->GetNumberOfNodes();
 
-  if ( count == 0 )
+  if (count == 0)
     {
     return;
     }
@@ -234,10 +273,10 @@ void vtkSlicerAbstractRepresentation::GetNodePolyData( vtkPolyData* poly )
   vtkPoints *points = vtkPoints::New();
   vtkCellArray *lines = vtkCellArray::New();
 
-  points->SetNumberOfPoints( count );
+  points->SetNumberOfPoints(count);
   vtkIdType numLines = count;
 
-  if ( this->ClosedLoop )
+  if (this->ClosedLoop)
     {
     numLines++;
     }
@@ -248,40 +287,40 @@ void vtkSlicerAbstractRepresentation::GetNodePolyData( vtkPolyData* poly )
   vtkIdType index = 0;
   double pos[3];
 
-  for ( i = 0; i < this->GetNumberOfNodes(); ++i )
+  for (i = 0; i < this->GetNumberOfNodes(); ++i)
     {
     // Add the node
-    this->GetNthNodeWorldPosition( i, pos );
-    points->InsertPoint( index, pos );
+    this->GetNthNodeWorldPosition(i, pos);
+    points->InsertPoint(index, pos);
     lineIndices[index] = index;
     index++;
     }
 
-  if ( this->ClosedLoop )
+  if (this->ClosedLoop)
     {
     lineIndices[index] = 0;
     }
 
-  lines->InsertNextCell( numLines, lineIndices );
+  lines->InsertNextCell(numLines, lineIndices);
   delete [] lineIndices;
 
-  poly->SetPoints( points );
-  poly->SetLines( lines );
+  poly->SetPoints(points);
+  poly->SetLines(lines);
 
   points->Delete();
   lines->Delete();
 }
 
 //----------------------------------------------------------------------
-int vtkSlicerAbstractRepresentation::AddNodeAtWorldPosition( double worldPos[3])
+int vtkSlicerAbstractRepresentation::AddNodeAtWorldPosition(double worldPos[3])
 {
   // Check if this is a valid location
-  if ( !this->PointPlacer->ValidateWorldPosition( worldPos ) )
+  if (!this->PointPlacer->ValidateWorldPosition(worldPos))
     {
     return 0;
     }
 
-  this->AddNodeAtPositionInternal( worldPos );
+  this->AddNodeAtPositionInternal(worldPos);
 
   return 1;
 }
@@ -291,23 +330,23 @@ int vtkSlicerAbstractRepresentation::AddNodeAtWorldPosition(
   double x, double y, double z)
 {
   double worldPos[3] = {x, y, z};
-  return this->AddNodeAtWorldPosition( worldPos );
+  return this->AddNodeAtWorldPosition(worldPos);
 }
 
 //----------------------------------------------------------------------
 int vtkSlicerAbstractRepresentation::AddNodeAtDisplayPosition(double displayPos[2])
 {
   double worldPos[3], worldOrient[9], orientation[4];
-  if ( !this->PointPlacer->ComputeWorldPosition( this->Renderer,
+  if (!this->PointPlacer->ComputeWorldPosition(this->Renderer,
                                                  displayPos, worldPos,
-                                                 worldOrient) )
+                                                 worldOrient))
     {
     return 0;
     }
 
-  this->AddNodeAtPositionInternal( worldPos );
-  this->FromWorldOrientToOrientationQuaternion( worldOrient, orientation );
-  this->SetNthNodeOrientation( this->GetNumberOfNodes() - 1,  orientation );
+  this->AddNodeAtPositionInternal(worldPos);
+  this->FromWorldOrientToOrientationQuaternion(worldOrient, orientation);
+  this->SetNthNodeOrientation(this->GetNumberOfNodes() - 1,  orientation);
   return 1;
 }
 //----------------------------------------------------------------------
@@ -316,7 +355,7 @@ int vtkSlicerAbstractRepresentation::AddNodeAtDisplayPosition(int displayPos[2])
   double doubleDisplayPos[2];
   doubleDisplayPos[0] = displayPos[0];
   doubleDisplayPos[1] = displayPos[1];
-  return this->AddNodeAtDisplayPosition( doubleDisplayPos );
+  return this->AddNodeAtDisplayPosition(doubleDisplayPos);
 }
 
 //----------------------------------------------------------------------
@@ -325,7 +364,7 @@ int vtkSlicerAbstractRepresentation::AddNodeAtDisplayPosition(int X, int Y)
   double displayPos[2];
   displayPos[0] = X;
   displayPos[1] = Y;
-  return this->AddNodeAtDisplayPosition( displayPos );
+  return this->AddNodeAtDisplayPosition(displayPos);
 }
 
 //----------------------------------------------------------------------
@@ -338,125 +377,108 @@ int vtkSlicerAbstractRepresentation::ActivateNode(double displayPos[2])
   // a percentage (this->Tolerance) of the size of the window diagonal
   double dPos[3] = {displayPos[0],displayPos[1],0};
 
-  double *viewport = this->GetRenderer()->GetViewport();
-  int winSize[2] = {1, 1};
-  double x1, y1, x2, y2;
+  double scale = this->CalculateViewScaleFactor();
 
-  if (this->GetRenderer()->GetRenderWindow())
-    {
-    int *winSizePtr = this->GetRenderer()->GetRenderWindow()->GetSize();
-    if (winSizePtr)
-      {
-      winSize[0] = winSizePtr[0];
-      winSize[1] = winSizePtr[1];
-      }
-    }
-  x1 = winSize[0] * viewport[0];
-  y1 = winSize[1] * viewport[1];
-
-  x2 = winSize[0] * viewport[2];
-  y2 = winSize[1] * viewport[3];
-
-  this->PixelTolerance = sqrt ((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2))
-                         * this->Tolerance * 10.;
-
+  this->PixelTolerance = scale * this->HandleSize * this->Tolerance  * 500.;
   double closestDistance2 = VTK_DOUBLE_MAX;
   int closestNode = static_cast<int> (this->Locator->FindClosestPointWithinRadius(
     this->PixelTolerance, dPos, closestDistance2));
 
-  if ( closestNode != this->GetActiveNode() )
+  if (closestNode != this->GetActiveNode() &&
+      ((closestNode != -1 && !this->GetNthNodeLocked(closestNode)) || closestNode == -1  ))
     {
-    this->SetActiveNode( closestNode );
+    this->SetActiveNode(closestNode);
     this->NeedToRender = 1;
     }
-  return ( this->GetActiveNode() >= 0 );
+  return (this->GetActiveNode() >= 0);
 }
+
 //----------------------------------------------------------------------
-int vtkSlicerAbstractRepresentation::ActivateNode( int displayPos[2] )
+int vtkSlicerAbstractRepresentation::ActivateNode(int displayPos[2])
 {
   double doubleDisplayPos[2];
 
   doubleDisplayPos[0] = displayPos[0];
   doubleDisplayPos[1] = displayPos[1];
-  return this->ActivateNode( doubleDisplayPos );
+  return this->ActivateNode(doubleDisplayPos);
 }
 
 //----------------------------------------------------------------------
-int vtkSlicerAbstractRepresentation::ActivateNode( int X, int Y )
+int vtkSlicerAbstractRepresentation::ActivateNode(int X, int Y)
 {
   double doubleDisplayPos[2];
 
   doubleDisplayPos[0] = X;
   doubleDisplayPos[1] = Y;
-  return this->ActivateNode( doubleDisplayPos );
+  return this->ActivateNode(doubleDisplayPos);
 }
 
 //----------------------------------------------------------------------
-int vtkSlicerAbstractRepresentation::SetActiveNodeToWorldPosition( double worldPos[3] )
+int vtkSlicerAbstractRepresentation::SetActiveNodeToWorldPosition(double worldPos[3])
 {
-  if ( this->GetActiveNode() < 0 ||
-       this->GetActiveNode() >= this->GetNumberOfNodes() )
+  if (this->GetActiveNode() < 0 ||
+       this->GetActiveNode() >= this->GetNumberOfNodes())
     {
     return 0;
     }
 
   // Check if this is a valid location
-  if ( !this->PointPlacer->ValidateWorldPosition( worldPos ) )
+  if (!this->PointPlacer->ValidateWorldPosition(worldPos))
     {
     return 0;
     }
 
-  this->SetNthNodeWorldPositionInternal( this->GetActiveNode(),
-                                         worldPos );
+  this->SetNthNodeWorldPositionInternal(this->GetActiveNode(),
+                                        worldPos);
   return 1;
 }
 
 //----------------------------------------------------------------------
-int vtkSlicerAbstractRepresentation::SetActiveNodeToDisplayPosition( double displayPos[2] )
+int vtkSlicerAbstractRepresentation::SetActiveNodeToDisplayPosition(double displayPos[2])
 {
-  if ( this->GetActiveNode() < 0 ||
-       this->GetActiveNode() >= this->GetNumberOfNodes() )
+  if (this->GetActiveNode() < 0 ||
+       this->GetActiveNode() >= this->GetNumberOfNodes())
     {
     return 0;
     }
 
   double worldPos[3], worldOrient[9];
-  this->GetActiveNodeOrientation( worldOrient );
+  this->GetActiveNodeOrientation(worldOrient);
 
-  if ( !this->PointPlacer->ComputeWorldPosition( this->Renderer,
-                                                 displayPos, worldPos,
-                                                 worldOrient ) )
+  if (!this->PointPlacer->ComputeWorldPosition(this->Renderer,
+                                               displayPos, worldPos,
+                                               worldOrient))
     {
     return 0;
     }
 
-  this->SetNthNodeWorldPositionInternal( this->GetActiveNode(),
-                                         worldPos );
-  this->SetActiveNodeOrientation( worldOrient );
+  this->SetNthNodeWorldPositionInternal(this->GetActiveNode(),
+                                        worldPos);
+  this->SetActiveNodeOrientation(worldOrient);
   return 1;
 }
 //----------------------------------------------------------------------
-int vtkSlicerAbstractRepresentation::SetActiveNodeToDisplayPosition( int displayPos[2] )
+int vtkSlicerAbstractRepresentation::SetActiveNodeToDisplayPosition(int displayPos[2])
 {
   double doubleDisplayPos[2];
   doubleDisplayPos[0] = displayPos[0];
   doubleDisplayPos[1] = displayPos[1];
-  return this->SetActiveNodeToDisplayPosition( doubleDisplayPos );
+  return this->SetActiveNodeToDisplayPosition(doubleDisplayPos);
 }
 
 //----------------------------------------------------------------------
-int vtkSlicerAbstractRepresentation::SetActiveNodeToDisplayPosition( int X, int Y )
+int vtkSlicerAbstractRepresentation::SetActiveNodeToDisplayPosition(int X, int Y)
 {
   double doubleDisplayPos[2];
   doubleDisplayPos[0] = X;
   doubleDisplayPos[1] = Y;
-  return this->SetActiveNodeToDisplayPosition( doubleDisplayPos );
+  return this->SetActiveNodeToDisplayPosition(doubleDisplayPos);
 }
 
 //----------------------------------------------------------------------
 int vtkSlicerAbstractRepresentation::GetActiveNode()
 {
-  if ( !this->MarkupsNode )
+  if (!this->MarkupsNode)
     {
     return -1;
     }
@@ -465,92 +487,92 @@ int vtkSlicerAbstractRepresentation::GetActiveNode()
 }
 
 //----------------------------------------------------------------------
-void vtkSlicerAbstractRepresentation::SetActiveNode( int index )
+void vtkSlicerAbstractRepresentation::SetActiveNode(int index)
 {
-  if ( !this->MarkupsNode )
+  if (!this->MarkupsNode)
     {
     return;
     }
 
-  this->MarkupsNode->SetActiveControlPoint( index );
+  this->MarkupsNode->SetActiveControlPoint(index);
 }
 
 //----------------------------------------------------------------------
-int vtkSlicerAbstractRepresentation::GetActiveNodeWorldPosition( double pos[3] )
+int vtkSlicerAbstractRepresentation::GetActiveNodeWorldPosition(double pos[3])
 {
-  return this->GetNthNodeWorldPosition( this->GetActiveNode(), pos );
+  return this->GetNthNodeWorldPosition(this->GetActiveNode(), pos);
 }
 
 //----------------------------------------------------------------------
-int vtkSlicerAbstractRepresentation::GetActiveNodeDisplayPosition( double pos[2] )
+int vtkSlicerAbstractRepresentation::GetActiveNodeDisplayPosition(double pos[2])
 {
-  return this->GetNthNodeDisplayPosition( this->GetActiveNode(), pos );
+  return this->GetNthNodeDisplayPosition(this->GetActiveNode(), pos);
 }
 
 //----------------------------------------------------------------------
-void vtkSlicerAbstractRepresentation::SetActiveNodeVisibility( bool visibility )
+void vtkSlicerAbstractRepresentation::SetActiveNodeVisibility(bool visibility)
 {
-  this->SetNthNodeVisibility( this->GetActiveNode(), visibility );
+  this->SetNthNodeVisibility(this->GetActiveNode(), visibility);
 }
 
 //----------------------------------------------------------------------
 bool vtkSlicerAbstractRepresentation::GetActiveNodeVisibility()
 {
-  return this->GetNthNodeVisibility( this->GetActiveNode() );
+  return this->GetNthNodeVisibility(this->GetActiveNode());
 }
 
 //----------------------------------------------------------------------
 void vtkSlicerAbstractRepresentation::SetActiveNodeSelected(bool selected)
 {
-  this->SetNthNodeSelected( this->GetActiveNode(), selected );
+  this->SetNthNodeSelected(this->GetActiveNode(), selected);
 }
 
 //----------------------------------------------------------------------
 bool vtkSlicerAbstractRepresentation::GetActiveNodeSelected()
 {
-  return this->GetNthNodeSelected( this->GetActiveNode() );
+  return this->GetNthNodeSelected(this->GetActiveNode());
 }
 
 //----------------------------------------------------------------------
-void vtkSlicerAbstractRepresentation::SetActiveNodeLocked( bool locked )
+void vtkSlicerAbstractRepresentation::SetActiveNodeLocked(bool locked)
 {
-  this->SetNthNodeLocked( this->GetActiveNode(), locked );
+  this->SetNthNodeLocked(this->GetActiveNode(), locked);
 }
 
 //----------------------------------------------------------------------
 bool vtkSlicerAbstractRepresentation::GetActiveNodeLocked()
 {
-  return this->GetNthNodeLocked( this->GetActiveNode() );
+  return this->GetNthNodeLocked(this->GetActiveNode());
 }
 
 //----------------------------------------------------------------------
-void vtkSlicerAbstractRepresentation::SetActiveNodeOrientation( double orientation[4] )
+void vtkSlicerAbstractRepresentation::SetActiveNodeOrientation(double orientation[4])
 {
-  this->SetNthNodeOrientation( this->GetActiveNode(), orientation );
+  this->SetNthNodeOrientation(this->GetActiveNode(), orientation);
 }
 
 //----------------------------------------------------------------------
-void vtkSlicerAbstractRepresentation::GetActiveNodeOrientation( double orientation[4] )
+void vtkSlicerAbstractRepresentation::GetActiveNodeOrientation(double orientation[4])
 {
-  this->GetNthNodeOrientation( this->GetActiveNode(), orientation );
+  this->GetNthNodeOrientation(this->GetActiveNode(), orientation);
 }
 
 //----------------------------------------------------------------------
 void vtkSlicerAbstractRepresentation::SetActiveNodeLabel(vtkStdString label)
 {
-  this->SetNthNodeLabel( this->GetActiveNode(), label );
+  this->SetNthNodeLabel(this->GetActiveNode(), label);
 }
 
 //----------------------------------------------------------------------
 vtkStdString vtkSlicerAbstractRepresentation::GetActiveNodeLabel()
 {
-  return this->GetNthNodeLabel( this->GetActiveNode() );
+  return this->GetNthNodeLabel(this->GetActiveNode());
 }
 
 //----------------------------------------------------------------------
 int vtkSlicerAbstractRepresentation::GetNumberOfNodes()
 {
-  if ( !this->MarkupsNode )
+  if (!this->MarkupsNode)
     {
     return 0;
     }
@@ -559,60 +581,65 @@ int vtkSlicerAbstractRepresentation::GetNumberOfNodes()
 }
 
 //----------------------------------------------------------------------
-int vtkSlicerAbstractRepresentation::GetNumberOfIntermediatePoints( int n )
+int vtkSlicerAbstractRepresentation::GetNumberOfIntermediatePoints(int n)
 {
-  if ( !this->NodeExists( n ) )
+  if (!this->NodeExists(n))
     {
     return 0;
     }
 
-  return static_cast<int> ( this->MarkupsNode->GetNthControlPoint(n)->intermadiatePoints.size() );
+  return static_cast<int> (this->MarkupsNode->GetNthControlPoint(n)->intermadiatePoints.size());
 }
 
 //----------------------------------------------------------------------
-int vtkSlicerAbstractRepresentation::GetIntermediatePointWorldPosition( int n,
-                                                                        int idx,
-                                                                        double point[3] )
+int vtkSlicerAbstractRepresentation::GetIntermediatePointWorldPosition(int n,
+                                                                       int idx,
+                                                                       double point[3])
 {
-  if ( !this->NodeExists( n ) )
+  if (!this->NodeExists(n))
     {
     return 0;
     }
 
-  if ( idx < 0 ||
-       static_cast<unsigned int>(idx) >= this->GetNthNode(n)->intermadiatePoints.size() )
+  if (idx < 0 ||
+       static_cast<unsigned int>(idx) >= this->GetNthNode(n)->intermadiatePoints.size())
     {
     return 0;
     }
 
-  point[0] = this->GetNthNode( n )->intermadiatePoints[static_cast<unsigned int> (idx)].GetX();
-  point[1] = this->GetNthNode( n )->intermadiatePoints[static_cast<unsigned int> (idx)].GetY();
-  point[2] = this->GetNthNode( n )->intermadiatePoints[static_cast<unsigned int> (idx)].GetZ();
+  point[0] = this->GetNthNode(n)->intermadiatePoints[static_cast<unsigned int> (idx)].GetX();
+  point[1] = this->GetNthNode(n)->intermadiatePoints[static_cast<unsigned int> (idx)].GetY();
+  point[2] = this->GetNthNode(n)->intermadiatePoints[static_cast<unsigned int> (idx)].GetZ();
 
   return 1;
 }
 
 //----------------------------------------------------------------------
-// The display position for a given world position must be re-computed
-// from the world positions... It should not be queried from the renderer
-// whose camera position may have changed
-int vtkSlicerAbstractRepresentation::GetNthNodeDisplayPosition( int n, double displayPos[2] )
+int vtkSlicerAbstractRepresentation::GetIntermediatePointDisplayPosition(int n,
+                                                                         int idx,
+                                                                         double displayPos[2])
 {
-  if ( !this->NodeExists( n ) )
+  if (!this->NodeExists(n))
+    {
+    return 0;
+    }
+
+  if (idx < 0 ||
+       static_cast<unsigned int>(idx) >= this->GetNthNode(n)->intermadiatePoints.size())
     {
     return 0;
     }
 
   double pos[4];
-  ControlPoint* node = this->GetNthNode( n );
-  pos[0] = node->WorldPosition.GetX();
-  pos[1] = node->WorldPosition.GetY();
-  pos[2] = node->WorldPosition.GetZ();
+  ControlPoint* node = this->GetNthNode(n);
+  pos[0] = node->intermadiatePoints[static_cast<unsigned int> (idx)].GetX();
+  pos[1] = node->intermadiatePoints[static_cast<unsigned int> (idx)].GetY();
+  pos[2] = node->intermadiatePoints[static_cast<unsigned int> (idx)].GetZ();
   pos[3] = 1.0;
 
-  this->Renderer->SetWorldPoint( pos );
+  this->Renderer->SetWorldPoint(pos);
   this->Renderer->WorldToDisplay();
-  this->Renderer->GetDisplayPoint( pos );
+  this->Renderer->GetDisplayPoint(pos);
 
   displayPos[0] = pos[0];
   displayPos[1] = pos[1];
@@ -620,168 +647,195 @@ int vtkSlicerAbstractRepresentation::GetNthNodeDisplayPosition( int n, double di
 }
 
 //----------------------------------------------------------------------
-int vtkSlicerAbstractRepresentation::GetNthNodeWorldPosition( int n, double worldPos[3] )
+// The display position for a given world position must be re-computed
+// from the world positions... It should not be queried from the renderer
+// whose camera position may have changed
+int vtkSlicerAbstractRepresentation::GetNthNodeDisplayPosition(int n, double displayPos[2])
 {
-  if ( !this->MarkupsNode || !this->NodeExists( n ) )
+  if (!this->NodeExists(n))
     {
     return 0;
     }
 
-  this->MarkupsNode->GetNthControlPointPosition( n, worldPos );
+  double pos[4];
+  ControlPoint* node = this->GetNthNode(n);
+  pos[0] = node->WorldPosition.GetX();
+  pos[1] = node->WorldPosition.GetY();
+  pos[2] = node->WorldPosition.GetZ();
+  pos[3] = 1.0;
+
+  this->Renderer->SetWorldPoint(pos);
+  this->Renderer->WorldToDisplay();
+  this->Renderer->GetDisplayPoint(pos);
+
+  displayPos[0] = pos[0];
+  displayPos[1] = pos[1];
+  return 1;
+}
+
+//----------------------------------------------------------------------
+int vtkSlicerAbstractRepresentation::GetNthNodeWorldPosition(int n, double worldPos[3])
+{
+  if (!this->MarkupsNode || !this->NodeExists(n))
+    {
+    return 0;
+    }
+
+  this->MarkupsNode->GetNthControlPointPosition(n, worldPos);
 
   return 1;
 }
 
 //----------------------------------------------------------------------
-bool vtkSlicerAbstractRepresentation::GetNthNodeVisibility( int n )
+bool vtkSlicerAbstractRepresentation::GetNthNodeVisibility(int n)
 {
-  if ( !this->MarkupsNode || !this->NodeExists( n ) )
+  if (!this->MarkupsNode || !this->NodeExists(n))
     {
     return false;
     }
 
-  return this->MarkupsNode->GetNthControlPointVisibility( n );
+  return this->MarkupsNode->GetNthControlPointVisibility(n);
 }
 
 //----------------------------------------------------------------------
-void vtkSlicerAbstractRepresentation::SetNthNodeVisibility( int n, bool visibility )
+void vtkSlicerAbstractRepresentation::SetNthNodeVisibility(int n, bool visibility)
 {
-  if ( !this->MarkupsNode || !this->NodeExists( n ) )
+  if (!this->MarkupsNode || !this->NodeExists(n))
     {
     return;
     }
 
-  return this->MarkupsNode->SetNthControlPointVisibility( n, visibility );
+  return this->MarkupsNode->SetNthControlPointVisibility(n, visibility);
 }
 
 //----------------------------------------------------------------------
-bool vtkSlicerAbstractRepresentation::GetNthNodeSelected( int n )
+bool vtkSlicerAbstractRepresentation::GetNthNodeSelected(int n)
 {
-  if ( !this->MarkupsNode || !this->NodeExists( n ) )
+  if (!this->MarkupsNode || !this->NodeExists(n))
     {
     return false;
     }
 
-  return this->MarkupsNode->GetNthControlPointSelected( n );
+  return this->MarkupsNode->GetNthControlPointSelected(n);
 }
 
 //----------------------------------------------------------------------
-void vtkSlicerAbstractRepresentation::SetNthNodeSelected( int n, bool selected )
+void vtkSlicerAbstractRepresentation::SetNthNodeSelected(int n, bool selected)
 {
-  if ( !this->MarkupsNode || !this->NodeExists( n ) )
+  if (!this->MarkupsNode || !this->NodeExists(n))
     {
     return;
     }
 
-  return this->MarkupsNode->SetNthControlPointSelected( n, selected );
+  return this->MarkupsNode->SetNthControlPointSelected(n, selected);
 }
 
 //----------------------------------------------------------------------
-bool vtkSlicerAbstractRepresentation::GetNthNodeLocked( int n )
+bool vtkSlicerAbstractRepresentation::GetNthNodeLocked(int n)
 {
-  if ( !this->MarkupsNode || !this->NodeExists( n ) )
+  if (!this->MarkupsNode || !this->NodeExists(n))
     {
     return false;
     }
 
-  return this->MarkupsNode->GetNthControlPointLocked( n );
+  return this->MarkupsNode->GetNthControlPointLocked(n);
 }
 
 //----------------------------------------------------------------------
-void vtkSlicerAbstractRepresentation::SetNthNodeLocked( int n, bool locked )
+void vtkSlicerAbstractRepresentation::SetNthNodeLocked(int n, bool locked)
 {
-  if ( !this->MarkupsNode || !this->NodeExists( n ) )
+  if (!this->MarkupsNode || !this->NodeExists(n))
     {
     return;
     }
 
-  return this->MarkupsNode->SetNthControlPointLocked( n, locked );
+  return this->MarkupsNode->SetNthControlPointLocked(n, locked);
 }
 
 //----------------------------------------------------------------------
-void vtkSlicerAbstractRepresentation::SetNthNodeOrientation( int n, double orientation[4] )
+void vtkSlicerAbstractRepresentation::SetNthNodeOrientation(int n, double orientation[4])
 {
-  if ( !this->MarkupsNode || !this->NodeExists( n ) )
+  if (!this->MarkupsNode || !this->NodeExists(n))
     {
     return;
     }
 
-  this->MarkupsNode->SetNthControlPointOrientationFromArray( n, orientation );
+  this->MarkupsNode->SetNthControlPointOrientationFromArray(n, orientation);
 }
 
 //----------------------------------------------------------------------
-void vtkSlicerAbstractRepresentation::GetNthNodeOrientation( int n, double orientation[4] )
+void vtkSlicerAbstractRepresentation::GetNthNodeOrientation(int n, double orientation[4])
 {
-  if ( !this->MarkupsNode || !this->NodeExists( n ) )
+  if (!this->MarkupsNode || !this->NodeExists(n))
     {
     return;
     }
 
-  this->MarkupsNode->GetNthControlPointOrientation( n, orientation );
+  this->MarkupsNode->GetNthControlPointOrientation(n, orientation);
 }
 
 //----------------------------------------------------------------------
 void vtkSlicerAbstractRepresentation::SetNthNodeLabel(int n, vtkStdString label)
 {
-  if ( !this->MarkupsNode || !this->NodeExists( n ) )
+  if (!this->MarkupsNode || !this->NodeExists(n))
     {
     return;
     }
 
-  this->MarkupsNode->SetNthControlPointLabel( n, label );
+  this->MarkupsNode->SetNthControlPointLabel(n, label);
 }
 
 //----------------------------------------------------------------------
 vtkStdString vtkSlicerAbstractRepresentation::GetNthNodeLabel(int n)
 {
-  if ( !this->MarkupsNode || !this->NodeExists( n ) )
+  if (!this->MarkupsNode || !this->NodeExists(n))
     {
     return nullptr;
     }
 
-  return this->MarkupsNode->GetNthControlPointLabel( n );
+  return this->MarkupsNode->GetNthControlPointLabel(n);
 }
 
 //----------------------------------------------------------------------
-ControlPoint* vtkSlicerAbstractRepresentation::GetNthNode( int n )
+ControlPoint* vtkSlicerAbstractRepresentation::GetNthNode(int n)
 {
-  if ( !this->NodeExists( n ) )
+  if (!this->NodeExists(n))
     {
     return nullptr;
     }
 
-  return this->MarkupsNode->GetNthControlPoint( n );
+  return this->MarkupsNode->GetNthControlPoint(n);
 }
 
 //----------------------------------------------------------------------
-bool vtkSlicerAbstractRepresentation::NodeExists( int n )
+bool vtkSlicerAbstractRepresentation::NodeExists(int n)
 {
-  if ( !this->MarkupsNode )
+  if (!this->MarkupsNode)
     {
     return false;
     }
 
-  return this->MarkupsNode->ControlPointExists( n );
+  return this->MarkupsNode->ControlPointExists(n);
 }
 
 //----------------------------------------------------------------------
-void vtkSlicerAbstractRepresentation::SetNthNodeWorldPositionInternal( int n, double worldPos[3] )
+void vtkSlicerAbstractRepresentation::SetNthNodeWorldPositionInternal(int n, double worldPos[3])
 {
-  if ( !this->MarkupsNode || !this->NodeExists( n ) )
+  if (!this->MarkupsNode || !this->NodeExists(n))
     {
     return;
     }
 
-  this->MarkupsNode->SetNthControlPointPositionFromArray( n, worldPos );
+  this->MarkupsNode->SetNthControlPointPositionFromArray(n, worldPos);
 
-  this->UpdateLines( n );
+  this->UpdateLines(n);
   this->NeedToRender = 1;
 }
 
 //----------------------------------------------------------------------
-void vtkSlicerAbstractRepresentation::FromWorldOrientToOrientationQuaternion( double worldOrient[9], double orientation[4] )
+void vtkSlicerAbstractRepresentation::FromWorldOrientToOrientationQuaternion(double worldOrient[9], double orientation[4])
 {
-  if ( !worldOrient || !orientation )
+  if (!worldOrient || !orientation)
     {
     return;
     }
@@ -797,19 +851,19 @@ void vtkSlicerAbstractRepresentation::FromWorldOrientToOrientationQuaternion( do
   worldOrientMatrix[2][1] = worldOrient[7];
   worldOrientMatrix[2][2] = worldOrient[8];
 
-  vtkMath::Matrix3x3ToQuaternion( worldOrientMatrix, orientation );
+  vtkMath::Matrix3x3ToQuaternion(worldOrientMatrix, orientation);
 }
 
 //----------------------------------------------------------------------
-void vtkSlicerAbstractRepresentation::FromOrientationQuaternionToWorldOrient( double orientation[4], double worldOrient[9] )
+void vtkSlicerAbstractRepresentation::FromOrientationQuaternionToWorldOrient(double orientation[4], double worldOrient[9])
 {
-  if ( !worldOrient || !orientation )
+  if (!worldOrient || !orientation)
     {
     return;
     }
 
   double worldOrientMatrix[3][3];
-  vtkMath::QuaternionToMatrix3x3( orientation, worldOrientMatrix );
+  vtkMath::QuaternionToMatrix3x3(orientation, worldOrientMatrix);
 
   worldOrient[0] = worldOrientMatrix[0][0];
   worldOrient[1] = worldOrientMatrix[0][1];
@@ -823,66 +877,66 @@ void vtkSlicerAbstractRepresentation::FromOrientationQuaternionToWorldOrient( do
 }
 
 //----------------------------------------------------------------------
-int vtkSlicerAbstractRepresentation::SetNthNodeWorldPosition( int n, double worldPos[3] )
+int vtkSlicerAbstractRepresentation::SetNthNodeWorldPosition(int n, double worldPos[3])
 {
-  if ( !this->NodeExists( n ) )
+  if (!this->NodeExists(n))
     {
     return 0;
     }
 
   // Check if this is a valid location
-  if ( !this->PointPlacer->ValidateWorldPosition( worldPos ) )
+  if (!this->PointPlacer->ValidateWorldPosition(worldPos))
     {
     return 0;
     }
 
-  this->SetNthNodeWorldPositionInternal( n, worldPos );
+  this->SetNthNodeWorldPositionInternal(n, worldPos);
   return 1;
 }
 
 //----------------------------------------------------------------------
-int vtkSlicerAbstractRepresentation::SetNthNodeDisplayPosition( int n, double displayPos[2] )
+int vtkSlicerAbstractRepresentation::SetNthNodeDisplayPosition(int n, double displayPos[2])
 {
-  if ( !this->NodeExists( n ) )
+  if (!this->NodeExists(n))
     {
     return 0;
     }
 
   double worldPos[3], worldOrient[9], orientation[4];
-  if ( !this->PointPlacer->ComputeWorldPosition( this->Renderer,
+  if (!this->PointPlacer->ComputeWorldPosition(this->Renderer,
                                                  displayPos, worldPos,
-                                                 worldOrient) )
+                                                 worldOrient))
     {
     return 0;
     }
 
-  this->FromWorldOrientToOrientationQuaternion( worldOrient, orientation );
-  this->SetNthNodeOrientation( n,  orientation );
-  return this->SetNthNodeWorldPosition( n, worldPos );
+  this->FromWorldOrientToOrientationQuaternion(worldOrient, orientation);
+  this->SetNthNodeOrientation(n,  orientation);
+  return this->SetNthNodeWorldPosition(n, worldPos);
 }
 
 //----------------------------------------------------------------------
-int vtkSlicerAbstractRepresentation::SetNthNodeDisplayPosition( int n, int displayPos[2] )
+int vtkSlicerAbstractRepresentation::SetNthNodeDisplayPosition(int n, int displayPos[2])
 {
   double doubleDisplayPos[2];
   doubleDisplayPos[0] = displayPos[0];
   doubleDisplayPos[1] = displayPos[1];
-  return this->SetNthNodeDisplayPosition( n, doubleDisplayPos );
+  return this->SetNthNodeDisplayPosition(n, doubleDisplayPos);
 }
 
 //----------------------------------------------------------------------
-int vtkSlicerAbstractRepresentation::SetNthNodeDisplayPosition( int n, int X, int Y )
+int vtkSlicerAbstractRepresentation::SetNthNodeDisplayPosition(int n, int X, int Y)
 {
   double doubleDisplayPos[2];
   doubleDisplayPos[0] = X;
   doubleDisplayPos[1] = Y;
-  return this->SetNthNodeDisplayPosition( n, doubleDisplayPos );
+  return this->SetNthNodeDisplayPosition(n, doubleDisplayPos);
 }
 
 //----------------------------------------------------------------------
-int vtkSlicerAbstractRepresentation::FindClosestPointOnWidget( int X, int Y,
-                                                               double closestWorldPos[3],
-                                                               int *idx )
+int vtkSlicerAbstractRepresentation::FindClosestPointOnWidget(int X, int Y,
+                                                              double closestWorldPos[3],
+                                                              int *idx)
 {
   // Make a line out of this viewing ray
   double p1[4], p2[4], *p3 = nullptr, *p4 = nullptr;
@@ -891,14 +945,14 @@ int vtkSlicerAbstractRepresentation::FindClosestPointOnWidget( int X, int Y,
   tmp1[0] = X;
   tmp1[1] = Y;
   tmp1[2] = 0.0;
-  this->Renderer->SetDisplayPoint( tmp1 );
+  this->Renderer->SetDisplayPoint(tmp1);
   this->Renderer->DisplayToWorld();
-  this->Renderer->GetWorldPoint( p1 );
+  this->Renderer->GetWorldPoint(p1);
 
   tmp1[2] = 1.0;
-  this->Renderer->SetDisplayPoint( tmp1 );
+  this->Renderer->SetDisplayPoint(tmp1);
   this->Renderer->DisplayToWorld();
-  this->Renderer->GetWorldPoint( p2 );
+  this->Renderer->GetWorldPoint(p2);
 
   double closestDistance2 = VTK_DOUBLE_MAX;
   int closestNode=0;
@@ -906,63 +960,63 @@ int vtkSlicerAbstractRepresentation::FindClosestPointOnWidget( int X, int Y,
   // compute a world tolerance based on pixel
   // tolerance on the focal plane
   double fp[4];
-  this->Renderer->GetActiveCamera()->GetFocalPoint( fp );
+  this->Renderer->GetActiveCamera()->GetFocalPoint(fp);
   fp[3] = 1.0;
-  this->Renderer->SetWorldPoint( fp );
+  this->Renderer->SetWorldPoint(fp);
   this->Renderer->WorldToDisplay();
-  this->Renderer->GetDisplayPoint( tmp1 );
+  this->Renderer->GetDisplayPoint(tmp1);
 
   tmp1[0] = 0;
   tmp1[1] = 0;
-  this->Renderer->SetDisplayPoint( tmp1 );
+  this->Renderer->SetDisplayPoint(tmp1);
   this->Renderer->DisplayToWorld();
-  this->Renderer->GetWorldPoint( tmp2 );
+  this->Renderer->GetWorldPoint(tmp2);
 
   tmp1[0] = this->PixelTolerance;
-  this->Renderer->SetDisplayPoint( tmp1 );
+  this->Renderer->SetDisplayPoint(tmp1);
   this->Renderer->DisplayToWorld();
-  this->Renderer->GetWorldPoint( tmp1 );
+  this->Renderer->GetWorldPoint(tmp1);
 
-  double wt2 = vtkMath::Distance2BetweenPoints( tmp1, tmp2 );
+  double wt2 = vtkMath::Distance2BetweenPoints(tmp1, tmp2);
 
   // Now loop through all lines and look for closest one within tolerance
   for(int i = 0; i < this->GetNumberOfNodes(); i++)
     {
-    if ( !this->NodeExists( i ) )
+    if (!this->NodeExists(i))
       {
       continue;
       }
-    for (unsigned int j = 0; j <= this->GetNthNode( i )->intermadiatePoints.size(); j++)
+    for (unsigned int j = 0; j <= this->GetNthNode(i)->intermadiatePoints.size(); j++)
       {
-      if ( j == 0 )
+      if (j == 0)
         {
-        p3 = this->GetNthNode( i )->WorldPosition.GetData();
-        if ( !this->GetNthNode( i )->intermadiatePoints.empty() )
+        p3 = this->GetNthNode(i)->WorldPosition.GetData();
+        if (!this->GetNthNode(i)->intermadiatePoints.empty())
           {
-          p4 = this->GetNthNode( i )->intermadiatePoints[j].GetData();
+          p4 = this->GetNthNode(i)->intermadiatePoints[j].GetData();
           }
         else
           {
-          if ( i < this->GetNumberOfNodes() - 1 )
+          if (i < this->GetNumberOfNodes() - 1)
             {
-            p4 = this->GetNthNode( i + 1 )->WorldPosition.GetData();
+            p4 = this->GetNthNode(i + 1)->WorldPosition.GetData();
             }
-          else if ( this->ClosedLoop )
+          else if (this->ClosedLoop)
             {
-            p4 = this->GetNthNode( 0 )->WorldPosition.GetData();
+            p4 = this->GetNthNode(0)->WorldPosition.GetData();
             }
           }
         }
-      else if ( j == this->GetNthNode( i )->intermadiatePoints.size() )
+      else if (j == this->GetNthNode(i)->intermadiatePoints.size())
         {
-        p3 = this->GetNthNode( i )->intermadiatePoints[j-1].GetData();
-        if ( i < this->GetNumberOfNodes() - 1 )
+        p3 = this->GetNthNode(i)->intermadiatePoints[j-1].GetData();
+        if (i < this->GetNumberOfNodes() - 1)
           {
-          p4 = this->GetNthNode( i + 1 )->WorldPosition.GetData();
+          p4 = this->GetNthNode(i + 1)->WorldPosition.GetData();
           }
-        else if ( this->ClosedLoop )
+        else if (this->ClosedLoop)
           {
-          p4 = this->GetNthNode( 0 )->WorldPosition.GetData();
+          p4 = this->GetNthNode(0)->WorldPosition.GetData();
           }
         else
           {
@@ -974,14 +1028,14 @@ int vtkSlicerAbstractRepresentation::FindClosestPointOnWidget( int X, int Y,
         }
       else
         {
-        p3 = this->GetNthNode( i )->intermadiatePoints[j-1].GetData();
-        p4 = this->GetNthNode( i )->intermadiatePoints[j].GetData();
+        p3 = this->GetNthNode(i)->intermadiatePoints[j-1].GetData();
+        p4 = this->GetNthNode(i)->intermadiatePoints[j].GetData();
         }
 
       // Now we have the four points - check closest intersection
       double u, v;
 
-      if ( vtkLine::Intersection( p1, p2, p3, p4, u, v ) )
+      if (vtkLine::Intersection(p1, p2, p3, p4, u, v))
         {
         double p5[3], p6[3];
         p5[0] = p1[0] + u*(p2[0]-p1[0]);
@@ -994,7 +1048,7 @@ int vtkSlicerAbstractRepresentation::FindClosestPointOnWidget( int X, int Y,
 
         double d = vtkMath::Distance2BetweenPoints(p5, p6);
 
-        if ( d < wt2 && d < closestDistance2 )
+        if (d < wt2 && d < closestDistance2)
           {
           closestWorldPos[0] = p6[0];
           closestWorldPos[1] = p6[1];
@@ -1005,8 +1059,8 @@ int vtkSlicerAbstractRepresentation::FindClosestPointOnWidget( int X, int Y,
         }
       else
         {
-        double d = vtkLine::DistanceToLine( p3, p1, p2 );
-        if ( d < wt2 && d < closestDistance2 )
+        double d = vtkLine::DistanceToLine(p3, p1, p2);
+        if (d < wt2 && d < closestDistance2)
           {
           closestWorldPos[0] = p3[0];
           closestWorldPos[1] = p3[1];
@@ -1015,8 +1069,8 @@ int vtkSlicerAbstractRepresentation::FindClosestPointOnWidget( int X, int Y,
           closestNode = static_cast<int>(i);
           }
 
-        d = vtkLine::DistanceToLine( p4, p1, p2 );
-        if ( d < wt2 && d < closestDistance2 )
+        d = vtkLine::DistanceToLine(p4, p1, p2);
+        if (d < wt2 && d < closestDistance2)
           {
           closestWorldPos[0] = p4[0];
           closestWorldPos[1] = p4[1];
@@ -1028,14 +1082,14 @@ int vtkSlicerAbstractRepresentation::FindClosestPointOnWidget( int X, int Y,
       }
     }
 
-  if ( closestDistance2 < VTK_DOUBLE_MAX )
+  if (closestDistance2 < VTK_DOUBLE_MAX)
     {
-    if ( closestNode < this->GetNumberOfNodes() -1 )
+    if (closestNode < this->GetNumberOfNodes() -1)
       {
       *idx = closestNode+1;
       return 1;
       }
-    else if ( this->ClosedLoop )
+    else if (this->ClosedLoop)
       {
       *idx = 0;
       return 1;
@@ -1046,9 +1100,9 @@ int vtkSlicerAbstractRepresentation::FindClosestPointOnWidget( int X, int Y,
 }
 
 //----------------------------------------------------------------------
-int vtkSlicerAbstractRepresentation::AddNodeOnWidget( int X, int Y )
+int vtkSlicerAbstractRepresentation::AddNodeOnWidget(int X, int Y)
 {
-  if ( !this->MarkupsNode )
+  if (!this->MarkupsNode)
     {
     return 0;
     }
@@ -1058,24 +1112,24 @@ int vtkSlicerAbstractRepresentation::AddNodeOnWidget( int X, int Y )
   displayPos[0] = X;
   displayPos[1] = Y;
 
-  if ( !this->PointPlacer->ComputeWorldPosition( this->Renderer,
-                                                 displayPos, worldPos,
-                                                 worldOrient ) )
+  if (!this->PointPlacer->ComputeWorldPosition(this->Renderer,
+                                               displayPos, worldPos,
+                                               worldOrient))
     {
     return 0;
     }
 
   double pos[3];
-  if ( !this->FindClosestPointOnWidget( X, Y, pos, &idx ) )
+  if (!this->FindClosestPointOnWidget(X, Y, pos, &idx))
     {
     return 0;
     }
 
-  if ( !this->PointPlacer->ComputeWorldPosition( this->Renderer,
-                                                 displayPos,
-                                                 pos,
-                                                 worldPos,
-                                                 worldOrient ) )
+  if (!this->PointPlacer->ComputeWorldPosition(this->Renderer,
+                                               displayPos,
+                                               pos,
+                                               worldPos,
+                                               worldOrient))
     {
     return 0;
     }
@@ -1089,30 +1143,30 @@ int vtkSlicerAbstractRepresentation::AddNodeOnWidget( int X, int Y )
   node->WorldPosition.SetZ(worldPos[2]);
 
   this->MarkupsNode->DisableModifiedEventOn();
-  this->MarkupsNode->InsertControlPoint( node, idx );
-  this->FromWorldOrientToOrientationQuaternion( worldOrient, orientation );
-  this->SetNthNodeOrientation( idx,  orientation );
+  this->MarkupsNode->InsertControlPoint(node, idx);
+  this->FromWorldOrientToOrientationQuaternion(worldOrient, orientation);
+  this->SetNthNodeOrientation(idx,  orientation);
   this->MarkupsNode->DisableModifiedEventOff();
 
-  this->UpdateLines( idx );
+  this->UpdateLines(idx);
   this->NeedToRender = 1;
 
   return 1;
 }
 
 //----------------------------------------------------------------------
-int vtkSlicerAbstractRepresentation::DeleteNthNode( int n )
+int vtkSlicerAbstractRepresentation::DeleteNthNode(int n)
 {
-  if ( !this->MarkupsNode || !this->NodeExists( n ) )
+  if (!this->MarkupsNode || !this->NodeExists(n))
     {
     return 0;
     }
 
   this->MarkupsNode->DisableModifiedEventOn();
-  this->MarkupsNode->RemoveNthControlPoint( n );
+  this->MarkupsNode->RemoveNthControlPoint(n);
   this->MarkupsNode->DisableModifiedEventOff();
 
-  this->UpdateLines( n - 1 );
+  this->UpdateLines(n - 1);
 
   this->NeedToRender = 1;
   return 1;
@@ -1121,40 +1175,52 @@ int vtkSlicerAbstractRepresentation::DeleteNthNode( int n )
 //----------------------------------------------------------------------
 int vtkSlicerAbstractRepresentation::DeleteActiveNode()
 {
-  return this->DeleteNthNode( this->GetActiveNode() );
+  return this->DeleteNthNode(this->GetActiveNode());
 }
 
 //----------------------------------------------------------------------
 int vtkSlicerAbstractRepresentation::DeleteLastNode()
 {
-  return this->DeleteNthNode( this->GetNumberOfNodes() - 1 );
+  if (!this->MarkupsNode)
+    {
+    return 0;
+    }
+
+  this->MarkupsNode->DisableModifiedEventOn();
+  this->MarkupsNode->RemoveLastControlPoint();
+  this->MarkupsNode->DisableModifiedEventOff();
+
+  this->UpdateLines(this->GetNumberOfNodes());
+
+  this->NeedToRender = 1;
+  return 1;
 }
 
 //----------------------------------------------------------------------
-void vtkSlicerAbstractRepresentation::UpdateLines( int index )
+void vtkSlicerAbstractRepresentation::UpdateLines(int index)
 {
   int indices[2];
 
   if (this->LineInterpolator)
     {
     vtkIntArray *arr = vtkIntArray::New();
-    this->LineInterpolator->GetSpan( index, arr, this );
+    this->LineInterpolator->GetSpan(index, arr, this);
 
     int nNodes = static_cast<int> (arr->GetNumberOfTuples());
     for (int i = 0; i < nNodes; i++)
       {
-      arr->GetTypedTuple( i, indices );
-      this->UpdateLine( indices[0], indices[1] );
+      arr->GetTypedTuple(i, indices);
+      this->UpdateLine(indices[0], indices[1]);
       }
     arr->Delete();
     }
 
   // A check to make sure that we have no line segments in
   // the last node if the loop is not closed
-  if ( !this->ClosedLoop && this->GetNumberOfNodes() > 0 )
+  if (!this->ClosedLoop && this->GetNumberOfNodes() > 0)
     {
     int idx = this->GetNumberOfNodes() - 1;
-    this->GetNthNode( idx )->intermadiatePoints.clear();
+    this->GetNthNode(idx)->intermadiatePoints.clear();
     }
 
   this->BuildLines();
@@ -1162,37 +1228,37 @@ void vtkSlicerAbstractRepresentation::UpdateLines( int index )
 }
 
 //----------------------------------------------------------------------
-int vtkSlicerAbstractRepresentation::AddIntermediatePointWorldPosition( int n,
-                                                                        double pos[3] )
+int vtkSlicerAbstractRepresentation::AddIntermediatePointWorldPosition(int n,
+                                                                       double pos[3])
 {
-  if ( !this->NodeExists( n ) )
+  if (!this->NodeExists(n))
     {
     return 0;
     }
 
   vtkVector3d point;
-  point.Set( pos[0], pos[1], pos[2] );
+  point.Set(pos[0], pos[1], pos[2]);
 
-  this->GetNthNode( n )->intermadiatePoints.push_back( point );
+  this->GetNthNode(n)->intermadiatePoints.push_back(point);
   return 1;
 }
 
 //----------------------------------------------------------------------
-int vtkSlicerAbstractRepresentation::GetNthNodeSlope( int n, double slope[3] )
+int vtkSlicerAbstractRepresentation::GetNthNodeSlope(int n, double slope[3])
 {
-  if ( !this->NodeExists( n ) )
+  if (!this->NodeExists(n))
     {
     return 0;
     }
 
   int idx1, idx2;
 
-  if ( n == 0 && !this->ClosedLoop )
+  if (n == 0 && !this->ClosedLoop)
     {
     idx1 = 0;
     idx2 = 1;
     }
-  else if ( n == this->GetNumberOfNodes() - 1 && !this->ClosedLoop )
+  else if (n == this->GetNumberOfNodes() - 1 && !this->ClosedLoop)
     {
     idx1 = this->GetNumberOfNodes() - 2;
     idx2 = idx1+1;
@@ -1202,48 +1268,48 @@ int vtkSlicerAbstractRepresentation::GetNthNodeSlope( int n, double slope[3] )
     idx1 = n - 1;
     idx2 = n + 1;
 
-    if ( idx1 < 0 )
+    if (idx1 < 0)
       {
       idx1 += this->GetNumberOfNodes();
       }
-    if ( idx2 >= this->GetNumberOfNodes() )
+    if (idx2 >= this->GetNumberOfNodes())
       {
       idx2 -= this->GetNumberOfNodes();
       }
     }
 
   slope[0] =
-    this->GetNthNode( idx2 )->WorldPosition.GetX() -
-    this->GetNthNode( idx1 )->WorldPosition.GetX();
+    this->GetNthNode(idx2)->WorldPosition.GetX() -
+    this->GetNthNode(idx1)->WorldPosition.GetX();
   slope[1] =
-    this->GetNthNode( idx2 )->WorldPosition.GetY() -
-    this->GetNthNode( idx1 )->WorldPosition.GetY();
+    this->GetNthNode(idx2)->WorldPosition.GetY() -
+    this->GetNthNode(idx1)->WorldPosition.GetY();
   slope[2] =
-    this->GetNthNode( idx2 )->WorldPosition.GetZ() -
-    this->GetNthNode( idx1 )->WorldPosition.GetZ();
+    this->GetNthNode(idx2)->WorldPosition.GetZ() -
+    this->GetNthNode(idx1)->WorldPosition.GetZ();
 
-  vtkMath::Normalize( slope );
+  vtkMath::Normalize(slope);
   return 1;
 }
 
 //----------------------------------------------------------------------
-void vtkSlicerAbstractRepresentation::UpdateLine( int idx1, int idx2 )
+void vtkSlicerAbstractRepresentation::UpdateLine(int idx1, int idx2)
 {
-  if ( !this->LineInterpolator || !this->NodeExists(idx1) )
+  if (!this->LineInterpolator || !this->NodeExists(idx1))
     {
     return;
     }
 
   // Clear all the points at idx1
-  this->GetNthNode( idx1 )->intermadiatePoints.clear();
+  this->GetNthNode(idx1)->intermadiatePoints.clear();
 
-  this->LineInterpolator->InterpolateLine( this, idx1, idx2 );
+  this->LineInterpolator->InterpolateLine(this, idx1, idx2);
 }
 
 //---------------------------------------------------------------------
-int vtkSlicerAbstractRepresentation::UpdateWidget()
+int vtkSlicerAbstractRepresentation::UpdateWidget(bool force /*=false*/)
 {
-  if ( !this->Locator || !this->PointPlacer )
+  if (!this->Locator || !this->PointPlacer)
     {
     return 0;
     }
@@ -1252,25 +1318,25 @@ int vtkSlicerAbstractRepresentation::UpdateWidget()
 
   //even if just the camera has moved we need to mark the locator
   //as needing to be rebuilt
-  if ( this->Locator->GetMTime() < this->Renderer->GetActiveCamera()->GetMTime())
+  if (this->Locator->GetMTime() < this->Renderer->GetActiveCamera()->GetMTime())
     {
     this->RebuildLocator = true;
     }
 
-  if ( this->WidgetBuildTime > this->PointPlacer->GetMTime())
+  if (this->WidgetBuildTime > this->PointPlacer->GetMTime() && !force)
     {
     // Widget does not need to be rebuilt
     return 0;
     }
 
-  for(int i = 0; ( i + 1 ) < this->GetNumberOfNodes(); i++)
+  for(int i = 0; (i + 1) < this->GetNumberOfNodes(); i++)
     {
-    this->UpdateLine( i, i + 1 );
+    this->UpdateLine(i, i + 1);
     }
 
-  if ( this->ClosedLoop )
+  if (this->ClosedLoop)
     {
-    this->UpdateLine( this->GetNumberOfNodes() - 1, 0 );
+    this->UpdateLine(this->GetNumberOfNodes() - 1, 0);
     }
   this->BuildLines();
   this->RebuildLocator = true;
@@ -1282,8 +1348,8 @@ int vtkSlicerAbstractRepresentation::UpdateWidget()
 
 //----------------------------------------------------------------------
 void vtkSlicerAbstractRepresentation
-::GetRendererComputedDisplayPositionFromWorldPosition( double worldPos[3],
-                                                       double displayPos[2] )
+::GetRendererComputedDisplayPositionFromWorldPosition(double worldPos[3],
+                                                      double displayPos[2])
 {  
   double pos[4];
   pos[0] = worldPos[0];
@@ -1291,18 +1357,18 @@ void vtkSlicerAbstractRepresentation
   pos[2] = worldPos[2];
   pos[3] = 1.0;
 
-  this->Renderer->SetWorldPoint( pos );
+  this->Renderer->SetWorldPoint(pos);
   this->Renderer->WorldToDisplay();
-  this->Renderer->GetDisplayPoint( pos );
+  this->Renderer->GetDisplayPoint(pos);
 
-  displayPos[0] = static_cast<int>( pos[0] );
-  displayPos[1] = static_cast<int>( pos[1] );
+  displayPos[0] = static_cast<int>(pos[0]);
+  displayPos[1] = static_cast<int>(pos[1]);
 }
 
 //----------------------------------------------------------------------
-void vtkSlicerAbstractRepresentation::Initialize( vtkPolyData * pd )
+void vtkSlicerAbstractRepresentation::Initialize(vtkPolyData * pd)
 {
-  if ( !this->MarkupsNode )
+  if (!this->MarkupsNode)
     {
     return;
     }
@@ -1332,42 +1398,42 @@ void vtkSlicerAbstractRepresentation::Initialize( vtkPolyData * pd )
   double ref[3], displayPos[2], worldPos[3], worldOrient[9], orientation[4];
   ref[0] = 0.0; ref[1] = 0.0; ref[2] = 0.0;
   displayPos[0] = 0.0; displayPos[1] = 0.0;
-  this->PointPlacer->ComputeWorldPosition( this->Renderer,
-                                           displayPos, ref, worldPos, worldOrient );
+  this->PointPlacer->ComputeWorldPosition(this->Renderer,
+                                          displayPos, ref, worldPos, worldOrient);
 
   // Add nodes without calling rebuild lines
   // to improve performance dramatically(~15x) on large datasets
   double *pos;
-  for ( vtkIdType i=0; i < nPoints; i++ )
+  for (vtkIdType i=0; i < nPoints; i++)
     {
-    pos = points->GetPoint( i );
+    pos = points->GetPoint(i);
     // Check if this is a valid location
-    if ( !this->PointPlacer->ValidateWorldPosition( pos ) )
+    if (!this->PointPlacer->ValidateWorldPosition(pos))
       {
       continue;
       }
 
-    this->GetRendererComputedDisplayPositionFromWorldPosition( pos, displayPos );
+    this->GetRendererComputedDisplayPositionFromWorldPosition(pos, displayPos);
 
     // Add a new point at this position
 
     this->MarkupsNode->DisableModifiedEventOn();
-    vtkVector3d controlPointPos( pos[0], pos[1], pos[2] );
-    int pointIndex = this->MarkupsNode->AddControlPoint( controlPointPos );
-    this->FromWorldOrientToOrientationQuaternion( worldOrient, orientation );
-    this->SetNthNodeOrientation( pointIndex,  orientation );
+    vtkVector3d controlPointPos(pos[0], pos[1], pos[2]);
+    int pointIndex = this->MarkupsNode->AddControlPoint(controlPointPos);
+    this->FromWorldOrientToOrientationQuaternion(worldOrient, orientation);
+    this->SetNthNodeOrientation(pointIndex,  orientation);
     this->MarkupsNode->DisableModifiedEventOff();
     }
 
-  if ( pointIds->GetNumberOfIds() > nPoints )
+  if (pointIds->GetNumberOfIds() > nPoints)
     {
     this->ClosedLoopOn();
     }
 
   // Update the widget representation from the nodes using the line interpolator
-  for ( int i = 1; i <= nPoints; i++ )
+  for (int i = 1; i <= nPoints; i++)
     {
-    this->UpdateLines( i );
+    this->UpdateLines(i);
     }
   this->BuildRepresentation();
 
@@ -1378,14 +1444,14 @@ void vtkSlicerAbstractRepresentation::Initialize( vtkPolyData * pd )
 //----------------------------------------------------------------------
 void vtkSlicerAbstractRepresentation::BuildLocator()
 {
-  if ( (!this->RebuildLocator && !this->NeedToRender) ||
-       !this->MarkupsNode )
+  if ((!this->RebuildLocator && !this->NeedToRender) ||
+       !this->MarkupsNode)
     {
     return;
     }
 
   int size = this->GetNumberOfNodes();
-  if ( size < 1 )
+  if (size < 1)
     {
     return;
     }
@@ -1406,14 +1472,14 @@ void vtkSlicerAbstractRepresentation::BuildLocator()
   int sizex,sizey;
 
   /* get physical window dimensions */
-  if ( this->Renderer->GetVTKWindow() )
+  if (this->Renderer->GetVTKWindow())
     {
     double *viewPort = this->Renderer->GetViewport();
     sizex = this->Renderer->GetVTKWindow()->GetSize()[0];
     sizey = this->Renderer->GetVTKWindow()->GetSize()[1];
-    viewPortRatio[0] = ( sizex * ( viewPort[2] - viewPort[0] ) ) / 2.0 +
+    viewPortRatio[0] = (sizex * (viewPort[2] - viewPort[0])) / 2.0 +
         sizex*viewPort[0];
-    viewPortRatio[1] = ( sizey * ( viewPort[3] - viewPort[1] ) ) / 2.0 +
+    viewPortRatio[1] = (sizey * (viewPort[3] - viewPort[1])) / 2.0 +
         sizey*viewPort[1];
     }
   else
@@ -1425,13 +1491,13 @@ void vtkSlicerAbstractRepresentation::BuildLocator()
   double view[4];
   double pos[3] = {0,0,0};
   double *wp;
-  for ( int i = 0; i < size; i++ )
+  for (int i = 0; i < size; i++)
     {
-    if ( !this->MarkupsNode->ControlPointExists(i) )
+    if (!this->MarkupsNode->ControlPointExists(i))
       {
       continue;
       }
-    ControlPoint* node = this->GetNthNode( i );
+    ControlPoint* node = this->GetNthNode(i);
     wp = node->WorldPosition.GetData();
     pos[0] = node->WorldPosition.GetX();
     pos[1] = node->WorldPosition.GetY();
@@ -1453,17 +1519,17 @@ void vtkSlicerAbstractRepresentation::BuildLocator()
       }
 
     //now from view to display
-    pos[0] = ( pos[0] + 1.0 ) * viewPortRatio[0];
-    pos[1] = ( pos[1] + 1.0 ) * viewPortRatio[1];
+    pos[0] = (pos[0] + 1.0) * viewPortRatio[0];
+    pos[1] = (pos[1] + 1.0) * viewPortRatio[1];
     pos[2] = 0;
 
-    points->InsertPoint( i, pos );
+    points->InsertPoint(i, pos);
     }
 
   matrix->Delete();
   vtkPolyData *tmp = vtkPolyData::New();
-  tmp->SetPoints( points );
-  this->Locator->SetDataSet( tmp );
+  tmp->SetPoints(points);
+  this->Locator->SetDataSet(tmp);
   tmp->FastDelete();
   points->FastDelete();
 
@@ -1473,7 +1539,7 @@ void vtkSlicerAbstractRepresentation::BuildLocator()
 
 //----------------------------------------------------------------------
 // Record the current event position, and the rectilinear wipe position.
-void vtkSlicerAbstractRepresentation::StartWidgetInteraction( double startEventPos[2] )
+void vtkSlicerAbstractRepresentation::StartWidgetInteraction(double startEventPos[2])
 {
   this->StartEventPosition[0] = startEventPos[0];
   this->StartEventPosition[1] = startEventPos[1];
@@ -1488,32 +1554,29 @@ void vtkSlicerAbstractRepresentation::StartWidgetInteraction( double startEventP
 
   // convert position to display coordinates
   double pos[2];
-  this->GetNthNodeDisplayPosition( this->GetActiveNode(), pos );
-
-  this->InteractionOffset[0] = pos[0] - startEventPos[0];
-  this->InteractionOffset[1] = pos[1] - startEventPos[1];
+  this->GetNthNodeDisplayPosition(this->GetActiveNode(), pos);
 }
 
 //----------------------------------------------------------------------
-void vtkSlicerAbstractRepresentation::SetInteractionState( int state )
+void vtkSlicerAbstractRepresentation::SetInteractionState(int state)
 {
   this->InteractionState = state;
 }
 
 //----------------------------------------------------------------------
-void vtkSlicerAbstractRepresentation::SetClosedLoop( vtkTypeBool val )
+void vtkSlicerAbstractRepresentation::SetClosedLoop(vtkTypeBool val)
 {
-  if ( this->ClosedLoop != val )
+  if (this->ClosedLoop != val)
   {
     this->ClosedLoop = val;
-    this->UpdateLines( this->GetNumberOfNodes() - 1 );
+    this->UpdateLines(this->GetNumberOfNodes() - 1);
     this->NeedToRender = 1;
     this->Modified();
   }
 }
 
 //----------------------------------------------------------------------
-void vtkSlicerAbstractRepresentation::ComputeCentroid( double *ioCentroid )
+void vtkSlicerAbstractRepresentation::ComputeCentroid(double *ioCentroid)
 {
   double p[3];
   ioCentroid[0] = 0.;
@@ -1522,12 +1585,12 @@ void vtkSlicerAbstractRepresentation::ComputeCentroid( double *ioCentroid )
 
   for (int i = 0; i < this->GetNumberOfNodes(); i++)
   {
-    this->GetNthNodeWorldPosition( i, p );
+    this->GetNthNodeWorldPosition(i, p);
     ioCentroid[0] += p[0];
     ioCentroid[1] += p[1];
     ioCentroid[2] += p[2];
   }
-  double inv_N = 1. / static_cast< double >( this->GetNumberOfNodes() );
+  double inv_N = 1. / static_cast< double >(this->GetNumberOfNodes());
   ioCentroid[0] *= inv_N;
   ioCentroid[1] *= inv_N;
   ioCentroid[2] *= inv_N;
@@ -1536,7 +1599,7 @@ void vtkSlicerAbstractRepresentation::ComputeCentroid( double *ioCentroid )
 //----------------------------------------------------------------------
 void vtkSlicerAbstractRepresentation::SetMarkupsNode(vtkMRMLMarkupsNode *markupNode)
 {
-  if ( markupNode == nullptr || this->MarkupsNode == markupNode )
+  if (markupNode == nullptr || this->MarkupsNode == markupNode)
   {
     return;
   }
@@ -1551,6 +1614,25 @@ vtkMRMLMarkupsNode *vtkSlicerAbstractRepresentation::GetMarkupsNode()
 }
 
 //-----------------------------------------------------------------------------
+void vtkSlicerAbstractRepresentation::SetRenderer(vtkRenderer *ren)
+{
+  if ( ren == this->Renderer )
+    {
+    return;
+    }
+
+  // vtkPickingManager reduces perfomances, we don't use it
+  this->UnRegisterPickers();
+  this->Renderer = ren;
+  // register with potentially new picker
+  if (this->Renderer)
+  {
+    this->RegisterPickers();
+  }
+  this->Modified();
+}
+
+//-----------------------------------------------------------------------------
 void vtkSlicerAbstractRepresentation::PrintSelf(ostream& os,
                                                       vtkIndent indent)
 {
@@ -1562,7 +1644,7 @@ void vtkSlicerAbstractRepresentation::PrintSelf(ostream& os,
      (this->RebuildLocator ? "On" : "Off") << endl;
 
   os << indent << "Current Operation: ";
-  if ( this->CurrentOperation == vtkSlicerAbstractRepresentation::Inactive )
+  if (this->CurrentOperation == vtkSlicerAbstractRepresentation::Inactive)
   {
     os << "Inactive\n";
   }

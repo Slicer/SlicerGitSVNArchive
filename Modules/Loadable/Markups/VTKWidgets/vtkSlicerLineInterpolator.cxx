@@ -28,9 +28,9 @@ vtkSlicerLineInterpolator::vtkSlicerLineInterpolator() = default;
 vtkSlicerLineInterpolator::~vtkSlicerLineInterpolator() = default;
 
 //----------------------------------------------------------------------
-void vtkSlicerLineInterpolator::GetSpan( int nodeIndex,
-                                          vtkIntArray *nodeIndices,
-                                          vtkSlicerAbstractRepresentation *rep)
+void vtkSlicerLineInterpolator::GetSpan(int nodeIndex,
+                                        vtkIntArray *nodeIndices,
+                                        vtkSlicerAbstractRepresentation *rep)
 {
   int start = nodeIndex - 1;
   int end   = nodeIndex;
@@ -41,35 +41,35 @@ void vtkSlicerLineInterpolator::GetSpan( int nodeIndex,
   nodeIndices->Squeeze();
   nodeIndices->SetNumberOfComponents(2);
 
-  for ( int i = 0; i < 3; i++ )
+  for (int i = 0; i < 3; i++)
     {
     index[0] = start++;
     index[1] = end++;
 
-    if ( rep->GetClosedLoop() )
+    if (rep->GetClosedLoop())
       {
-      if ( index[0] < 0 )
+      if (index[0] < 0)
         {
         index[0] += rep->GetNumberOfNodes();
         }
-      if ( index[1] < 0 )
+      if (index[1] < 0)
         {
         index[1] += rep->GetNumberOfNodes();
         }
-      if ( index[0] >= rep->GetNumberOfNodes() )
+      if (index[0] >= rep->GetNumberOfNodes())
         {
         index[0] -= rep->GetNumberOfNodes();
         }
-      if ( index[1] >= rep->GetNumberOfNodes() )
+      if (index[1] >= rep->GetNumberOfNodes())
         {
         index[1] -= rep->GetNumberOfNodes();
         }
       }
 
-    if ( index[0] >= 0 && index[0] < rep->GetNumberOfNodes() &&
-         index[1] >= 0 && index[1] < rep->GetNumberOfNodes() )
+    if (index[0] >= 0 && index[0] < rep->GetNumberOfNodes() &&
+         index[1] >= 0 && index[1] < rep->GetNumberOfNodes())
       {
-      nodeIndices->InsertNextTypedTuple( index );
+      nodeIndices->InsertNextTypedTuple(index);
       }
     }
 }
