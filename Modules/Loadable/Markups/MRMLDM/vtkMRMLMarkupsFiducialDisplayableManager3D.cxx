@@ -644,7 +644,6 @@ void vtkMRMLMarkupsFiducialDisplayableManager3D::ConstrainMovement(vtkMRMLMarkup
 
   vtkThreeDViewInteractorStyle* interactorStyle = vtkThreeDViewInteractorStyle::SafeDownCast(
               this->GetInteractor()->GetInteractorStyle());
-  vtkCellPicker *cellPicker = interactorStyle->GetCellPicker();
 
   double pickPoint[3];
   if (interactorStyle->Pick(displayCoordinates[0], displayCoordinates[1], pickPoint))
