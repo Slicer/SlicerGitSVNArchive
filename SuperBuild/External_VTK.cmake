@@ -110,7 +110,7 @@ if((NOT DEFINED VTK_DIR OR NOT DEFINED VTK_SOURCE_DIR) AND NOT Slicer_USE_SYSTEM
 
   ExternalProject_SetIfNotDefined(
     Slicer_${proj}_GIT_REPOSITORY
-    "${EP_GIT_PROTOCOL}://github.com/slicer/VTK.git"
+    "${EP_GIT_PROTOCOL}://github.com/Punzo/VTK.git"
     QUIET
     )
 
@@ -118,7 +118,7 @@ set(_git_tag)
 if("${Slicer_VTK_VERSION_MAJOR}" STREQUAL "7")
   set(_git_tag "43f6ee36f6e28c8347768bd97df4d767da6b4ce7")
 elseif("${Slicer_VTK_VERSION_MAJOR}" STREQUAL "8")
-  set(_git_tag "31dc6a08b8268133eb8bad83b7a65d70535673fa")
+  set(_git_tag "slicer-widget-rework")
 else()
   message(FATAL_ERROR "error: Unsupported Slicer_VTK_VERSION_MAJOR: ${Slicer_VTK_VERSION_MAJOR}")
 endif()
