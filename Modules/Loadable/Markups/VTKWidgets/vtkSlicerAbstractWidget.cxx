@@ -638,9 +638,7 @@ void vtkSlicerAbstractWidget::EndAction(vtkAbstractWidget *w)
 
   if (rep->GetCurrentOperation() != vtkSlicerAbstractRepresentation::Inactive)
     {
-    int X = self->Interactor->GetEventPosition()[0];
-    int Y = self->Interactor->GetEventPosition()[1];
-    rep->ActivateNode(X, Y);
+    rep->SetActiveNode(-1);
     self->SetCursor(0);
     rep->SetCurrentOperationToInactive();
     self->ReleaseFocus();
