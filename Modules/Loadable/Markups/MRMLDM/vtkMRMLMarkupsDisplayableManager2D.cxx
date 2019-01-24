@@ -256,7 +256,6 @@ void vtkMRMLMarkupsDisplayableManager2D::SetMRMLSceneInternal(vtkMRMLScene* newS
 void vtkMRMLMarkupsDisplayableManager2D
 ::ProcessMRMLNodesEvents(vtkObject *caller,unsigned long event,void *callData)
 {
-
   vtkMRMLMarkupsNode * markupsNode = vtkMRMLMarkupsNode::SafeDownCast(caller);
   vtkMRMLInteractionNode * interactionNode = vtkMRMLInteractionNode::SafeDownCast(caller);
   int *nPtr = nullptr;
@@ -270,7 +269,7 @@ void vtkMRMLMarkupsDisplayableManager2D
       }
     }
   if (markupsNode)
-    {  
+    {
     switch(event)
       {
       case vtkCommand::ModifiedEvent:
@@ -324,6 +323,15 @@ void vtkMRMLMarkupsDisplayableManager2D::OnMRMLSceneEndClose()
   this->SetUpdateFromMRMLRequested(1);
   this->RequestRender();
 
+}
+
+//---------------------------------------------------------------------------
+void vtkMRMLMarkupsDisplayableManager2D::OnMRMLSceneEndImport()
+{
+  this->SetUpdateFromMRMLRequested(1);
+  this->UpdateFromMRMLScene();
+  this->Helper->SetAllWidgetsToManipulate();
+  this->RequestRender();
 }
 
 //---------------------------------------------------------------------------
@@ -639,12 +647,23 @@ void vtkMRMLMarkupsDisplayableManager2D::OnMRMLMarkupsPointAddedEvent(vtkMRMLNod
     }
 
   vtkSlicerAbstractWidget *widget = this->Helper->GetWidget(markupsNode);
-  if (widget)
+  if (!widget)
     {
-    // Rebuild representation
-    widget->BuildRepresentation();
-    this->RequestRender();
+    return;
     }
+
+  if (this->GetInteractionNode()->GetCurrentInteractionMode() != vtkMRMLInteractionNode::Place)
+    {
+    // The point has not been added by clicks.
+    // If the user has never interacted with the widget:
+    // set the widget to manipulate and the placing ended for the markups.
+    widget->SetWidgetState(vtkSlicerAbstractWidget::Manipulate);
+    markupsNode->SetPlacingEnded(true);
+    }
+
+  // Rebuild representation
+  widget->BuildRepresentation();
+  this->RequestRender();
 }
 
 //---------------------------------------------------------------------------

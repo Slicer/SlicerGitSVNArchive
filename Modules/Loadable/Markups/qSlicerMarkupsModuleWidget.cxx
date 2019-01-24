@@ -44,6 +44,10 @@
 #include "vtkMRMLSliceLogic.h"
 #include "vtkMRMLSliceNode.h"
 
+// MRMLDM includes
+#include "vtkMRMLMarkupsDisplayableManager2D.h"
+#include "vtkMRMLMarkupsDisplayableManager3D.h"
+
 // Markups includes
 #include "qSlicerMarkupsModule.h"
 #include "qSlicerMarkupsModuleWidget.h"
@@ -1652,15 +1656,18 @@ void qSlicerMarkupsModuleWidget::onAddMarkupPushButtonClicked()
   Q_D(qSlicerMarkupsModuleWidget);
 
   // get the active node
-  vtkMRMLMarkupsNode *markupsNode = vtkMRMLMarkupsNode::SafeDownCast(d->activeMarkupMRMLNodeComboBox->currentNode());
-  if (!markupsNode)
-    {
-    return;
-    }
-
-  vtkVector3d point;
-  point.Set(0,0,0);
-  markupsNode->AddControlPoint(point);
+ vtkMRMLMarkupsFiducialNode *listNode = vtkMRMLMarkupsFiducialNode::SafeDownCast(d->activeMarkupMRMLNodeComboBox->currentNode());
+ vtkMRMLMarkupsLineNode *lineNode = vtkMRMLMarkupsLineNode::SafeDownCast(d->activeMarkupMRMLNodeComboBox->currentNode());
+ if (listNode)
+   {
+   listNode->AddFiducial(0,0,0);
+   listNode->SetActiveControlPoint(-1);
+   }
+ else if (lineNode)
+   {
+   lineNode->AddPoint(0,0,0);
+   lineNode->SetActiveControlPoint(-1);
+   }
 }
 
 //-----------------------------------------------------------------------------

@@ -184,6 +184,10 @@ int vtkMRMLMarkupsLineNode::AddPoint(double x, double y, double z)
 //-------------------------------------------------------------------------
 int vtkMRMLMarkupsLineNode::AddPoint(double x, double y, double z, std::string label)
 {
+  if (this->GetNumberOfPoints() > 1)
+    {
+    return -1;
+    }
   vtkVector3d point;
   point.Set(x, y, z);
   return this->AddControlPoint(point, label);

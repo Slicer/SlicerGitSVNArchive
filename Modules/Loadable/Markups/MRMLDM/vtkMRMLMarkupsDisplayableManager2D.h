@@ -112,6 +112,7 @@ protected:
   /// \sa ProcessMRMLSceneEvents
   virtual void UpdateFromMRMLScene() VTK_OVERRIDE;
   virtual void OnMRMLSceneEndClose() VTK_OVERRIDE;
+  virtual void OnMRMLSceneEndImport() VTK_OVERRIDE;
   virtual void OnMRMLSceneNodeAdded(vtkMRMLNode* node) VTK_OVERRIDE;
   virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node) VTK_OVERRIDE;
 

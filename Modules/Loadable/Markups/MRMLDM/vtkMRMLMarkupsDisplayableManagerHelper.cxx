@@ -204,14 +204,14 @@ void vtkMRMLMarkupsDisplayableManagerHelper::UpdateAllWidgetsFromInteractionNode
       if (interactionNode->GetCurrentInteractionMode() == vtkMRMLInteractionNode::Place)
         {
         // Set widget state to define
-        it->second->SetWidgetState(1);
+        it->second->SetWidgetState(vtkSlicerAbstractWidget::Define);
         it->second->SetFollowCursor(false);
         it->second->SetManagesCursor(false);
         }
       else
         {
         // Set widget state to manipulate
-        it->second->SetWidgetState(2);
+        it->second->SetWidgetState(vtkSlicerAbstractWidget::Manipulate);
         it->second->SetManagesCursor(true);
         }
       }
@@ -229,7 +229,7 @@ void vtkMRMLMarkupsDisplayableManagerHelper::SetAllWidgetsToManipulate()
     if (it->second)
       {
       // Set widget state to manipulate
-      it->second->SetWidgetState(2);
+      it->second->SetWidgetState(vtkSlicerAbstractWidget::Manipulate);
       // Reset also the representation status
       if (it->second->GetRepresentation())
         {

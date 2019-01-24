@@ -598,12 +598,23 @@ void vtkMRMLMarkupsDisplayableManager3D::OnMRMLMarkupsPointAddedEvent(vtkMRMLNod
     }
 
   vtkSlicerAbstractWidget *widget = this->Helper->GetWidget(markupsNode);
-  if (widget)
+  if (!widget)
     {
-    // Rebuild representation
-    widget->BuildRepresentation();
-    this->RequestRender();
+    return;
     }
+
+  if (this->GetInteractionNode()->GetCurrentInteractionMode() != vtkMRMLInteractionNode::Place)
+    {
+    // The point has not been added by clicks.
+    // If the user has never interacted with the widget:
+    // set the widget to manipulate and the placing ended for the markups.
+    widget->SetWidgetState(vtkSlicerAbstractWidget::Manipulate);
+    markupsNode->SetPlacingEnded(true);
+    }
+
+  // Rebuild representation
+  widget->BuildRepresentation();
+  this->RequestRender();
 }
 
 //---------------------------------------------------------------------------
