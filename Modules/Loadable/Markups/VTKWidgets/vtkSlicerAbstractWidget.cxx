@@ -53,9 +53,6 @@ vtkSlicerAbstractWidget::vtkSlicerAbstractWidget()
   this->CallbackMapper->SetCallbackMethod(vtkCommand::MiddleButtonPressEvent,
                                           vtkWidgetEvent::Translate,
                                           this, vtkSlicerAbstractWidget::TranslateAction);
-  this->CallbackMapper->SetCallbackMethod(vtkCommand::RightButtonPressEvent,
-                                          vtkWidgetEvent::Scale,
-                                          this, vtkSlicerAbstractWidget::ScaleAction);
 
   this->CallbackMapper->SetCallbackMethod(vtkCommand::MouseMoveEvent,
                                           vtkWidgetEvent::Move,

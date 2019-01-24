@@ -36,6 +36,9 @@ vtkStandardNewMacro(vtkSlicerPointsWidget);
 //----------------------------------------------------------------------
 vtkSlicerPointsWidget::vtkSlicerPointsWidget()
 {
+  this->CallbackMapper->SetCallbackMethod(vtkCommand::RightButtonPressEvent,
+                                          vtkWidgetEvent::Select,
+                                          this, vtkSlicerAbstractWidget::SelectAction);
 }
 
 //----------------------------------------------------------------------

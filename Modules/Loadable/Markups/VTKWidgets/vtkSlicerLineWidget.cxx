@@ -36,6 +36,9 @@ vtkStandardNewMacro(vtkSlicerLineWidget);
 //----------------------------------------------------------------------
 vtkSlicerLineWidget::vtkSlicerLineWidget()
 {
+  this->CallbackMapper->SetCallbackMethod(vtkCommand::RightButtonPressEvent,
+                                          vtkWidgetEvent::Scale,
+                                          this, vtkSlicerAbstractWidget::ScaleAction);
 }
 
 //----------------------------------------------------------------------
