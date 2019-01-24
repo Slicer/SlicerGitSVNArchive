@@ -16,12 +16,12 @@
 ==============================================================================*/
 
 // MarkupsModule/MRML includes
-#include <vtkMRMLMarkupsLineNode.h>
+#include <vtkMRMLMarkupsAngleNode.h>
 #include <vtkMRMLMarkupsNode.h>
 #include <vtkMRMLMarkupsDisplayNode.h>
 
 // MarkupsModule/MRMLDisplayableManager includes
-#include "vtkMRMLMarkupsLineDisplayableManager2D.h"
+#include "vtkMRMLMarkupsAngleDisplayableManager2D.h"
 
 // MarkupsModule/VTKWidgets includes
 #include <vtkMarkupsGlyphSource2D.h>
@@ -52,8 +52,8 @@
 #include <vtkProperty.h>
 #include <vtkRenderer.h>
 #include <vtkRenderWindowInteractor.h>
-#include <vtkSlicerLineWidget.h>
-#include <vtkSlicerLineRepresentation2D.h>
+#include <vtkSlicerAngleWidget.h>
+#include <vtkSlicerAngleRepresentation2D.h>
 #include <vtkSmartPointer.h>
 #include <vtkSphereSource.h>
 
@@ -62,18 +62,18 @@
 #include <string>
 
 //---------------------------------------------------------------------------
-vtkStandardNewMacro (vtkMRMLMarkupsLineDisplayableManager2D);
+vtkStandardNewMacro (vtkMRMLMarkupsAngleDisplayableManager2D);
 
 //---------------------------------------------------------------------------
-// vtkMRMLMarkupsLineDisplayableManager2D Callback
+// vtkMRMLMarkupsAngleDisplayableManager2D Callback
 /// \ingroup Slicer_QtModules_Markups
-class vtkMarkupsLineWidgetCallback2D : public vtkCommand
+class vtkMarkupsAngleWidgetCallback2D : public vtkCommand
 {
 public:
-  static vtkMarkupsLineWidgetCallback2D *New()
-  { return new vtkMarkupsLineWidgetCallback2D; }
+  static vtkMarkupsAngleWidgetCallback2D *New()
+  { return new vtkMarkupsAngleWidgetCallback2D; }
 
-  vtkMarkupsLineWidgetCallback2D()
+  vtkMarkupsAngleWidgetCallback2D()
     : Widget(nullptr)
     , Node(nullptr)
     , DisplayableManager(nullptr)
@@ -122,10 +122,10 @@ public:
 
       this->PointMovedSinceStartInteraction = false;
       this->Node->InvokeEvent(vtkMRMLMarkupsNode::PointStartInteractionEvent, &this->LastInteractionEventMarkupIndex);
-      vtkSlicerLineWidget* slicerLineWidget = vtkSlicerLineWidget::SafeDownCast(this->Widget);
-      if (slicerLineWidget)
+      vtkSlicerAngleWidget* slicerAngleWidget = vtkSlicerAngleWidget::SafeDownCast(this->Widget);
+      if (slicerAngleWidget)
         {
-        this->SelectionButton = slicerLineWidget->GetSelectionButton();
+        this->SelectionButton = slicerAngleWidget->GetSelectionButton();
         }
       // no need to propagate to MRML, just notify external observers that the user selected a markup
       return;
@@ -135,27 +135,27 @@ public:
       this->Node->InvokeEvent(vtkMRMLMarkupsNode::PointEndInteractionEvent, &this->LastInteractionEventMarkupIndex);
       if (!this->PointMovedSinceStartInteraction)
         {
-        if (this->SelectionButton == vtkSlicerLineWidget::LeftButton)
+        if (this->SelectionButton == vtkSlicerAngleWidget::LeftButton)
           {
           this->Node->InvokeEvent(vtkMRMLMarkupsNode::PointLeftClickedEvent, &this->LastInteractionEventMarkupIndex);
           }
-        else if (this->SelectionButton == vtkSlicerLineWidget::MiddleButton)
+        else if (this->SelectionButton == vtkSlicerAngleWidget::MiddleButton)
           {
           this->Node->InvokeEvent(vtkMRMLMarkupsNode::PointMiddleClickedEvent, &this->LastInteractionEventMarkupIndex);
           }
-        else if (this->SelectionButton == vtkSlicerLineWidget::RightButton)
+        else if (this->SelectionButton == vtkSlicerAngleWidget::RightButton)
           {
           this->Node->InvokeEvent(vtkMRMLMarkupsNode::PointRightClickedEvent, &this->LastInteractionEventMarkupIndex);
           }
-        else if (this->SelectionButton == vtkSlicerLineWidget::LeftButtonDoubleClick)
+        else if (this->SelectionButton == vtkSlicerAngleWidget::LeftButtonDoubleClick)
           {
           this->Node->InvokeEvent(vtkMRMLMarkupsNode::PointLeftDoubleClickedEvent, &this->LastInteractionEventMarkupIndex);
           }
-        else if (this->SelectionButton == vtkSlicerLineWidget::MiddleButtonDoubleClick)
+        else if (this->SelectionButton == vtkSlicerAngleWidget::MiddleButtonDoubleClick)
           {
           this->Node->InvokeEvent(vtkMRMLMarkupsNode::PointMiddleDoubleClickedEvent, &this->LastInteractionEventMarkupIndex);
           }
-        else if (this->SelectionButton == vtkSlicerLineWidget::RightButtonDoubleClick)
+        else if (this->SelectionButton == vtkSlicerAngleWidget::RightButtonDoubleClick)
           {
           this->Node->InvokeEvent(vtkMRMLMarkupsNode::PointRightDoubleClickedEvent, &this->LastInteractionEventMarkupIndex);
           }
@@ -191,10 +191,10 @@ public:
 };
 
 //---------------------------------------------------------------------------
-// vtkMRMLMarkupsLineDisplayableManager2D methods
+// vtkMRMLMarkupsAngleDisplayableManager2D methods
 
 //---------------------------------------------------------------------------
-void vtkMRMLMarkupsLineDisplayableManager2D::PrintSelf(ostream& os, vtkIndent indent)
+void vtkMRMLMarkupsAngleDisplayableManager2D::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
   this->Helper->PrintSelf(os, indent);
@@ -202,7 +202,7 @@ void vtkMRMLMarkupsLineDisplayableManager2D::PrintSelf(ostream& os, vtkIndent in
 
 //---------------------------------------------------------------------------
 /// Create a new seed widget.
-vtkSlicerAbstractWidget * vtkMRMLMarkupsLineDisplayableManager2D::CreateWidget(vtkMRMLMarkupsNode* node)
+vtkSlicerAbstractWidget * vtkMRMLMarkupsAngleDisplayableManager2D::CreateWidget(vtkMRMLMarkupsNode* node)
 {
   if (!node)
     {
@@ -213,14 +213,14 @@ vtkSlicerAbstractWidget * vtkMRMLMarkupsLineDisplayableManager2D::CreateWidget(v
   // 2d glyphs and text need to be scaled by 1/60 to show up properly in the 2d slice windows
   this->SetScaleFactor2D(0.01667);
 
-  vtkMRMLMarkupsLineNode* lineNode = vtkMRMLMarkupsLineNode::SafeDownCast(node);
-  if (!lineNode)
+  vtkMRMLMarkupsAngleNode* angleNode = vtkMRMLMarkupsAngleNode::SafeDownCast(node);
+  if (!angleNode)
     {
     return nullptr;
     }
 
-  //SlicerPoints widget
-  vtkSlicerLineWidget * slicerLineWidget = vtkSlicerLineWidget::New();
+  // widget
+  vtkSlicerAngleWidget * slicerAngleWidget = vtkSlicerAngleWidget::New();
 
   if (this->GetInteractor()->GetPickingManager())
     {
@@ -230,40 +230,40 @@ vtkSlicerAbstractWidget * vtkMRMLMarkupsLineDisplayableManager2D::CreateWidget(v
       // will need to have it's picking manager turned on once widgets are
       // going to be used to avoid dragging points that are behind others.
       // Enabling it before setting the interactor on the widget seems to
-      // work better with tests of two lines.
+      // work better with tests of two angles.
       this->GetInteractor()->GetPickingManager()->EnabledOn();
       }
     }
 
-  slicerLineWidget->SetInteractor(this->GetInteractor());
-  slicerLineWidget->SetCurrentRenderer(this->GetRenderer());
+  slicerAngleWidget->SetInteractor(this->GetInteractor());
+  slicerAngleWidget->SetCurrentRenderer(this->GetRenderer());
   vtkMRMLInteractionNode *interactionNode = this->GetInteractionNode();
   if (interactionNode)
     {
     if (interactionNode->GetCurrentInteractionMode() == vtkMRMLInteractionNode::Place)
       {
-      slicerLineWidget->SetManagesCursor(false);
+      slicerAngleWidget->SetManagesCursor(false);
       }
     else
       {
-      slicerLineWidget->SetManagesCursor(true);
+      slicerAngleWidget->SetManagesCursor(true);
       }
     }
-  vtkDebugMacro("Fids CreateWidget: Created widget for node " << lineNode->GetID() << " with a representation");
+  vtkDebugMacro("Fids CreateWidget: Created widget for node " << angleNode->GetID() << " with a representation");
 
   // Add the Representation
-  vtkNew<vtkSlicerLineRepresentation2D> rep;
+  vtkNew<vtkSlicerAngleRepresentation2D> rep;
   rep->SetRenderer(this->GetRenderer());
   rep->SetSliceNode(this->GetMRMLSliceNode());
-  rep->SetMarkupsNode(lineNode);
-  slicerLineWidget->SetRepresentation(rep);
-  slicerLineWidget->On();
+  rep->SetMarkupsNode(angleNode);
+  slicerAngleWidget->SetRepresentation(rep);
+  slicerAngleWidget->On();
 
-  return slicerLineWidget;
+  return slicerAngleWidget;
 }
 
 //---------------------------------------------------------------------------
-void vtkMRMLMarkupsLineDisplayableManager2D::OnMRMLMarkupsNthPointModifiedEvent(vtkMRMLNode *node, int n)
+void vtkMRMLMarkupsAngleDisplayableManager2D::OnMRMLMarkupsNthPointModifiedEvent(vtkMRMLNode *node, int n)
 {
   vtkDebugMacro("OnMRMLMarkupsPointModifiedEvent");
   if (!node)
@@ -297,7 +297,7 @@ void vtkMRMLMarkupsLineDisplayableManager2D::OnMRMLMarkupsNthPointModifiedEvent(
 }
 
 //---------------------------------------------------------------------------
-void vtkMRMLMarkupsLineDisplayableManager2D::OnMRMLMarkupsPointAddedEvent(vtkMRMLNode *node, int vtkNotUsed(n))
+void vtkMRMLMarkupsAngleDisplayableManager2D::OnMRMLMarkupsPointAddedEvent(vtkMRMLNode *node, int vtkNotUsed(n))
 {
   vtkDebugMacro("OnMRMLMarkupsPointAddedEvent");
   if (!node)
@@ -325,7 +325,7 @@ void vtkMRMLMarkupsLineDisplayableManager2D::OnMRMLMarkupsPointAddedEvent(vtkMRM
     widget->SetWidgetState(vtkSlicerAbstractWidget::Manipulate);
     }
 
-  // line widgets have only one Markup/Representation
+  // angle widgets have only one Markup/Representation
   vtkSlicerAbstractRepresentation2D *rep = vtkSlicerAbstractRepresentation2D::SafeDownCast
     (widget->GetRepresentation());
   if (!rep)
@@ -346,7 +346,7 @@ void vtkMRMLMarkupsLineDisplayableManager2D::OnMRMLMarkupsPointAddedEvent(vtkMRM
 
 //---------------------------------------------------------------------------
 /// Tear down the widget creation
-void vtkMRMLMarkupsLineDisplayableManager2D::OnWidgetCreated(vtkSlicerAbstractWidget * widget, vtkMRMLMarkupsNode * node)
+void vtkMRMLMarkupsAngleDisplayableManager2D::OnWidgetCreated(vtkSlicerAbstractWidget * widget, vtkMRMLMarkupsNode * node)
 {
   if (!widget)
     {
@@ -361,7 +361,7 @@ void vtkMRMLMarkupsLineDisplayableManager2D::OnWidgetCreated(vtkSlicerAbstractWi
     }
 
   // add the callback
-  vtkMarkupsLineWidgetCallback2D *myCallback = vtkMarkupsLineWidgetCallback2D::New();
+  vtkMarkupsAngleWidgetCallback2D *myCallback = vtkMarkupsAngleWidgetCallback2D::New();
   myCallback->SetNode(node);
   myCallback->SetWidget(widget);
   myCallback->SetDisplayableManager(this);
@@ -375,7 +375,7 @@ void vtkMRMLMarkupsLineDisplayableManager2D::OnWidgetCreated(vtkSlicerAbstractWi
 
 //---------------------------------------------------------------------------
 /// Create a markupsMRMLnode
-void vtkMRMLMarkupsLineDisplayableManager2D::OnClickInRenderWindow(double x, double y, const char *associatedNodeID)
+void vtkMRMLMarkupsAngleDisplayableManager2D::OnClickInRenderWindow(double x, double y, const char *associatedNodeID)
 {
   if (!this->IsCorrectDisplayableManager())
     {
@@ -391,17 +391,17 @@ void vtkMRMLMarkupsLineDisplayableManager2D::OnClickInRenderWindow(double x, dou
 
   this->GetDisplayToWorldCoordinates(displayCoordinates, worldCoordinates);
 
-  // Is there an active markups node that's a line node?
-  vtkMRMLMarkupsLineNode *activeLineNode = nullptr;
+  // Is there an active markups node that's a angle node?
+  vtkMRMLMarkupsAngleNode *activeAngleNode = nullptr;
   vtkMRMLSelectionNode *selectionNode = this->GetSelectionNode();
   if (selectionNode)
     {
     const char *activeMarkupsID = selectionNode->GetActivePlaceNodeID();
     vtkMRMLNode *mrmlNode = this->GetMRMLScene()->GetNodeByID(activeMarkupsID);
     if (mrmlNode &&
-        mrmlNode->IsA("vtkMRMLMarkupsLineNode"))
+        mrmlNode->IsA("vtkMRMLMarkupsAngleNode"))
       {
-      activeLineNode = vtkMRMLMarkupsLineNode::SafeDownCast(mrmlNode);
+      activeAngleNode = vtkMRMLMarkupsAngleNode::SafeDownCast(mrmlNode);
       }
     else
       {
@@ -409,23 +409,23 @@ void vtkMRMLMarkupsLineDisplayableManager2D::OnClickInRenderWindow(double x, dou
             << (activeMarkupsID ? activeMarkupsID : "null")
             << ", mrml node is "
             << (mrmlNode ? mrmlNode->GetID() : "null")
-            << ", not a vtkMRMLMarkupsLineNode");
+            << ", not a vtkMRMLMarkupsAngleNode");
       }
     }
 
-  if (!activeLineNode)
+  if (!activeAngleNode)
     {
     // create the MRML node
-    activeLineNode = vtkMRMLMarkupsLineNode::SafeDownCast
-      (this->GetMRMLScene()->AddNewNodeByClass("vtkMRMLMarkupsLineNode"));
-    activeLineNode->SetName(this->GetMRMLScene()->GetUniqueNameByString("L"));
-    activeLineNode->AddDefaultStorageNode();
-    activeLineNode->CreateDefaultDisplayNodes();
-    selectionNode->SetActivePlaceNodeID(activeLineNode->GetID());
+    activeAngleNode = vtkMRMLMarkupsAngleNode::SafeDownCast
+      (this->GetMRMLScene()->AddNewNodeByClass("vtkMRMLMarkupsAngleNode"));
+    activeAngleNode->SetName(this->GetMRMLScene()->GetUniqueNameByString("L"));
+    activeAngleNode->AddDefaultStorageNode();
+    activeAngleNode->CreateDefaultDisplayNodes();
+    selectionNode->SetActivePlaceNodeID(activeAngleNode->GetID());
     }
 
-  vtkSlicerLineWidget *slicerWidget = vtkSlicerLineWidget::SafeDownCast
-    (this->Helper->GetWidget(activeLineNode));
+  vtkSlicerAngleWidget *slicerWidget = vtkSlicerAngleWidget::SafeDownCast
+    (this->Helper->GetWidget(activeAngleNode));
   if (slicerWidget == nullptr)
     {
     return;
@@ -439,51 +439,51 @@ void vtkMRMLMarkupsLineDisplayableManager2D::OnClickInRenderWindow(double x, dou
 
   // Check if the widget angle has been already place
   // if yes, create a new node.
-  if (slicerWidget->GetWidgetState() == vtkSlicerLineWidget::Manipulate &&
-      activeLineNode->GetNumberOfPoints() < 2)
+  if (slicerWidget->GetWidgetState() == vtkSlicerAngleWidget::Manipulate &&
+      activeAngleNode->GetNumberOfPoints() < 2)
     {
-    slicerWidget->SetWidgetState(vtkSlicerLineWidget::Define);
+    slicerWidget->SetWidgetState(vtkSlicerAngleWidget::Define);
     slicerWidget->SetFollowCursor(true);
     slicerWidget->SetManagesCursor(false);
     }
 
-  if (slicerWidget->GetWidgetState() == vtkSlicerLineWidget::Manipulate)
+  if (slicerWidget->GetWidgetState() == vtkSlicerAngleWidget::Manipulate)
     {
-    activeLineNode = vtkMRMLMarkupsLineNode::SafeDownCast
-      (this->GetMRMLScene()->AddNewNodeByClass("vtkMRMLMarkupsLineNode"));
-    activeLineNode->SetName(this->GetMRMLScene()->GetUniqueNameByString("L"));
-    activeLineNode->AddDefaultStorageNode();
-    activeLineNode->CreateDefaultDisplayNodes();
-    selectionNode->SetActivePlaceNodeID(activeLineNode->GetID());
-    slicerWidget = vtkSlicerLineWidget::SafeDownCast
-      (this->Helper->GetWidget(activeLineNode));
+    activeAngleNode = vtkMRMLMarkupsAngleNode::SafeDownCast
+      (this->GetMRMLScene()->AddNewNodeByClass("vtkMRMLMarkupsAngleNode"));
+    activeAngleNode->SetName(this->GetMRMLScene()->GetUniqueNameByString("L"));
+    activeAngleNode->AddDefaultStorageNode();
+    activeAngleNode->CreateDefaultDisplayNodes();
+    selectionNode->SetActivePlaceNodeID(activeAngleNode->GetID());
+    slicerWidget = vtkSlicerAngleWidget::SafeDownCast
+      (this->Helper->GetWidget(activeAngleNode));
     }
 
   // save for undo and add the node to the scene after any reset of the
   // interaction node so that don't end up back in place mode
   this->GetMRMLScene()->SaveStateForUndo();
 
-  int pointIndex = this->AddControlPoint(activeLineNode, worldCoordinates);
+  int pointIndex = this->AddControlPoint(activeAngleNode, worldCoordinates);
   // is there a node associated with this?
   if (associatedNodeID)
     {
-    activeLineNode->SetNthPointAssociatedNodeID(pointIndex, associatedNodeID);
+    activeAngleNode->SetNthPointAssociatedNodeID(pointIndex, associatedNodeID);
     }
 
   // if this was a one time place, go back to view transform mode
   if (interactionNode->GetPlaceModePersistence() == 0 &&
-      slicerWidget->GetWidgetState() == vtkSlicerLineWidget::Manipulate)
+      slicerWidget->GetWidgetState() == vtkSlicerAngleWidget::Manipulate)
     {
     interactionNode->SwitchToViewTransformMode();
     }
 
   // force update of widgets on other views
-  activeLineNode->GetMarkupsDisplayNode()->Modified();
+  activeAngleNode->GetMarkupsDisplayNode()->Modified();
 }
 
 //---------------------------------------------------------------------------
 /// observe key press events
-void vtkMRMLMarkupsLineDisplayableManager2D::AdditionnalInitializeStep()
+void vtkMRMLMarkupsAngleDisplayableManager2D::AdditionnalInitializeStep()
 {
   // don't add the key press event, as it triggers a crash on start up
   //vtkDebugMacro("Adding an observer on the key press event");
@@ -491,7 +491,7 @@ void vtkMRMLMarkupsLineDisplayableManager2D::AdditionnalInitializeStep()
 }
 
 //---------------------------------------------------------------------------
-void vtkMRMLMarkupsLineDisplayableManager2D::OnInteractorStyleEvent(int eventid)
+void vtkMRMLMarkupsAngleDisplayableManager2D::OnInteractorStyleEvent(int eventid)
 {
   this->Superclass::OnInteractorStyleEvent(eventid);
 
@@ -520,7 +520,7 @@ void vtkMRMLMarkupsLineDisplayableManager2D::OnInteractorStyleEvent(int eventid)
         }
       else
         {
-        vtkDebugMacro("Line DisplayableManager: key press p, but not in Place mode! Returning.");
+        vtkDebugMacro("Angle DisplayableManager: key press p, but not in Place mode! Returning.");
         return;
         }
       }
@@ -532,7 +532,7 @@ void vtkMRMLMarkupsLineDisplayableManager2D::OnInteractorStyleEvent(int eventid)
 }
 
 //---------------------------------------------------------------------------
-void vtkMRMLMarkupsLineDisplayableManager2D::OnMRMLSceneEndClose()
+void vtkMRMLMarkupsAngleDisplayableManager2D::OnMRMLSceneEndClose()
 {
   // make sure to delete widgets and projections
   this->Superclass::OnMRMLSceneEndClose();
@@ -542,10 +542,10 @@ void vtkMRMLMarkupsLineDisplayableManager2D::OnMRMLSceneEndClose()
 }
 
 //---------------------------------------------------------------------------
-int vtkMRMLMarkupsLineDisplayableManager2D::AddControlPoint(vtkMRMLMarkupsLineNode *markupsNode,
-                                                            double worldCoordinates[4])
+int vtkMRMLMarkupsAngleDisplayableManager2D::AddControlPoint(vtkMRMLMarkupsAngleNode *markupsNode,
+                                                             double worldCoordinates[4])
 {
-  vtkSlicerLineWidget *slicerWidget = vtkSlicerLineWidget::SafeDownCast
+  vtkSlicerAngleWidget *slicerWidget = vtkSlicerAngleWidget::SafeDownCast
     (this->Helper->GetWidget(markupsNode));
   if (slicerWidget == nullptr)
     {
@@ -558,11 +558,11 @@ int vtkMRMLMarkupsLineDisplayableManager2D::AddControlPoint(vtkMRMLMarkupsLineNo
 }
 
 //---------------------------------------------------------------------------
-bool vtkMRMLMarkupsLineDisplayableManager2D::IsPointDisplayableOnSlice(vtkMRMLMarkupsNode *node, int pointIndex)
+bool vtkMRMLMarkupsAngleDisplayableManager2D::IsPointDisplayableOnSlice(vtkMRMLMarkupsNode *node, int pointIndex)
 {
   if (this->IsInLightboxMode())
     {
-    // TBD: issue 1690: disable line in light box mode as they appear
+    // TBD: issue 1690: disable angle in light box mode as they appear
     // in the wrong location
     return false;
     }
@@ -593,15 +593,15 @@ bool vtkMRMLMarkupsLineDisplayableManager2D::IsPointDisplayableOnSlice(vtkMRMLMa
     }
 
   // down cast the node as a controlpoints node to get the coordinates
-  vtkMRMLMarkupsLineNode *lineNode = vtkMRMLMarkupsLineNode::SafeDownCast(node);
-  if (!lineNode)
+  vtkMRMLMarkupsAngleNode *angleNode = vtkMRMLMarkupsAngleNode::SafeDownCast(node);
+  if (!angleNode)
     {
     vtkErrorMacro("IsWidgetDisplayableOnSlice: Could not get the controlpoints node.")
     return 0;
     }
 
   double transformedWorldCoordinates[4];
-  lineNode->GetNthControlPointPositionWorld(pointIndex, transformedWorldCoordinates);
+  angleNode->GetNthControlPointPositionWorld(pointIndex, transformedWorldCoordinates);
 
   // now get the displayCoordinates for the transformed worldCoordinates
   double displayCoordinates[4];
@@ -615,7 +615,7 @@ bool vtkMRMLMarkupsLineDisplayableManager2D::IsPointDisplayableOnSlice(vtkMRMLMa
     // get the corresponding lightbox index for this display coordinate and
     // check if it's in the range of the current number of light boxes being
     // displayed in the grid rows/columns.
-    int lightboxIndex = this->GetLightboxIndex(lineNode, pointIndex);
+    int lightboxIndex = this->GetLightboxIndex(angleNode, pointIndex);
     int numberOfLightboxes = sliceNode->GetLayoutGridColumns() * sliceNode->GetLayoutGridRows();
     if (lightboxIndex < 0 ||
         lightboxIndex >= numberOfLightboxes)
@@ -676,7 +676,7 @@ bool vtkMRMLMarkupsLineDisplayableManager2D::IsPointDisplayableOnSlice(vtkMRMLMa
       // this gives the distance to light box plane 0, but have to offset by
       // number of light box planes (as determined by the light box index) times the volume
       // slice spacing
-      int lightboxIndex = this->GetLightboxIndex(lineNode, pointIndex);
+      int lightboxIndex = this->GetLightboxIndex(angleNode, pointIndex);
       double lightboxOffset = lightboxIndex * spacing;
       double distanceToSlice = distanceToPlane - lightboxOffset;
       double maxDistance = 0.5;
@@ -714,7 +714,7 @@ bool vtkMRMLMarkupsLineDisplayableManager2D::IsPointDisplayableOnSlice(vtkMRMLMa
 }
 
 //---------------------------------------------------------------------------
-void vtkMRMLMarkupsLineDisplayableManager2D::OnMRMLDisplayableNodeModifiedEvent(vtkObject *caller)
+void vtkMRMLMarkupsAngleDisplayableManager2D::OnMRMLDisplayableNodeModifiedEvent(vtkObject *caller)
 {
   this->Superclass::OnMRMLDisplayableNodeModifiedEvent(caller);
 
@@ -723,25 +723,25 @@ void vtkMRMLMarkupsLineDisplayableManager2D::OnMRMLDisplayableNodeModifiedEvent(
     return;
     }
 
-  vtkSmartPointer<vtkCollection> linesMarkupsNodes = vtkSmartPointer<vtkCollection>::Take
-        (this->GetMRMLScene()->GetNodesByClass("vtkMRMLMarkupsLineNode"));
+  vtkSmartPointer<vtkCollection> anglesMarkupsNodes = vtkSmartPointer<vtkCollection>::Take
+        (this->GetMRMLScene()->GetNodesByClass("vtkMRMLMarkupsAngleNode"));
 
-  for (int lineMarkupsIndex = 0; lineMarkupsIndex < linesMarkupsNodes->GetNumberOfItems(); lineMarkupsIndex++)
+  for (int angleMarkupsIndex = 0; angleMarkupsIndex < anglesMarkupsNodes->GetNumberOfItems(); angleMarkupsIndex++)
     {
-    vtkMRMLMarkupsLineNode* lineMarkupsNode = vtkMRMLMarkupsLineNode::SafeDownCast
-          (linesMarkupsNodes->GetItemAsObject(lineMarkupsIndex));
-    if (!lineMarkupsNode)
+    vtkMRMLMarkupsAngleNode* angleMarkupsNode = vtkMRMLMarkupsAngleNode::SafeDownCast
+          (anglesMarkupsNodes->GetItemAsObject(angleMarkupsIndex));
+    if (!angleMarkupsNode)
       {
       continue;
       }
 
-    vtkSlicerAbstractWidget *widget = this->Helper->GetWidget(lineMarkupsNode);
+    vtkSlicerAbstractWidget *widget = this->Helper->GetWidget(angleMarkupsNode);
     if (!widget)
       {
       continue;
       }
 
-    // line widgets have only one Markup/Representation
+    // angle widgets have only one Markup/Representation
     vtkSlicerAbstractRepresentation2D *rep = vtkSlicerAbstractRepresentation2D::SafeDownCast
       (widget->GetRepresentation());
     if (!rep)
@@ -749,9 +749,9 @@ void vtkMRMLMarkupsLineDisplayableManager2D::OnMRMLDisplayableNodeModifiedEvent(
       continue;
       }
 
-    for (int PointIndex = 0; PointIndex < lineMarkupsNode->GetNumberOfPoints(); PointIndex++)
+    for (int PointIndex = 0; PointIndex < angleMarkupsNode->GetNumberOfPoints(); PointIndex++)
       {
-      bool visibility = this->IsPointDisplayableOnSlice(lineMarkupsNode, PointIndex);
+      bool visibility = this->IsPointDisplayableOnSlice(angleMarkupsNode, PointIndex);
       rep->SetNthPointSliceVisibility(PointIndex, visibility);
       }
 

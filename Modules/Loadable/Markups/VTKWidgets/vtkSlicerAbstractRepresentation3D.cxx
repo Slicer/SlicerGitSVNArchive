@@ -133,6 +133,7 @@ vtkSlicerAbstractRepresentation3D::vtkSlicerAbstractRepresentation3D()
   this->FocalData->GetPointData()->AddArray(this->Labels);
   this->FocalData->GetPointData()->AddArray(this->LabelsPriority);
   this->PointSetToLabelHierarchyFilter = vtkPointSetToLabelHierarchy::New();
+  this->TextProperty->SetJustificationToCentered();
   this->PointSetToLabelHierarchyFilter->SetTextProperty(this->TextProperty);
   this->PointSetToLabelHierarchyFilter->SetLabelArrayName("labels");
   this->PointSetToLabelHierarchyFilter->SetPriorityArrayName("priority");
@@ -155,6 +156,7 @@ vtkSlicerAbstractRepresentation3D::vtkSlicerAbstractRepresentation3D()
   this->SelectedFocalData->GetPointData()->AddArray(this->SelectedLabels);
   this->SelectedFocalData->GetPointData()->AddArray(this->SelectedLabelsPriority);
   this->SelectedPointSetToLabelHierarchyFilter = vtkPointSetToLabelHierarchy::New();
+  this->SelectedTextProperty->SetJustificationToCentered();
   this->SelectedPointSetToLabelHierarchyFilter->SetTextProperty(this->SelectedTextProperty);
   this->SelectedPointSetToLabelHierarchyFilter->SetLabelArrayName("labels");
   this->SelectedPointSetToLabelHierarchyFilter->SetPriorityArrayName("priority");
@@ -177,6 +179,7 @@ vtkSlicerAbstractRepresentation3D::vtkSlicerAbstractRepresentation3D()
   this->ActiveFocalData->GetPointData()->AddArray(this->ActiveLabels);
   this->ActiveFocalData->GetPointData()->AddArray(this->ActiveLabelsPriority);
   this->ActivePointSetToLabelHierarchyFilter = vtkPointSetToLabelHierarchy::New();
+  this->ActiveTextProperty->SetJustificationToCentered();
   this->ActivePointSetToLabelHierarchyFilter->SetTextProperty(this->ActiveTextProperty);
   this->ActivePointSetToLabelHierarchyFilter->SetLabelArrayName("labels");
   this->ActivePointSetToLabelHierarchyFilter->SetPriorityArrayName("priority");
@@ -732,15 +735,15 @@ void vtkSlicerAbstractRepresentation3D::TranslateWidget(double eventPos[2])
       }
 
     this->GetNthNodeWorldPosition(i, ref);
-    for (int i = 0; i < 3; ++i)
+    for (int j = 0; j < 3; j++)
       {
       if (this->RestrictFlag != vtkSlicerAbstractRepresentation::RestrictNone)
         {
-        worldPos[i] = (this->RestrictFlag == (i + 1)) ? ref[i] + vector[i] : ref[i];
+        worldPos[j] = (this->RestrictFlag == (j + 1)) ? ref[j] + vector[j] : ref[j];
         }
       else
         {
-        worldPos[i] = ref[i] + vector[i];
+        worldPos[j] = ref[j] + vector[j];
         }
       }
 
@@ -810,9 +813,9 @@ void vtkSlicerAbstractRepresentation3D::ScaleWidget(double eventPos[2])
       }
 
     this->GetNthNodeWorldPosition(i, ref);
-    for (int i = 0; i < 3; i++)
+    for (int j = 0; j < 3; j++)
       {
-      worldPos[i] = centroid[i] + ratio * (ref[i] - centroid[i]);
+      worldPos[j] = centroid[j] + ratio * (ref[j] - centroid[j]);
       }
 
     this->SetNthNodeWorldPosition(i, worldPos);
@@ -891,17 +894,17 @@ void vtkSlicerAbstractRepresentation3D::RotateWidget(double eventPos[2])
   for (int i = 0; i < this->GetNumberOfNodes(); i++)
     {
     this->GetNthNodeWorldPosition(i, ref);
-    for (int i = 0; i < 3; i++)
+    for (int j = 0; j < 3; j++)
       {
-      ref[i] -= centroid[i];
+      ref[j] -= centroid[j];
       }
     vtkNew<vtkTransform> RotateTransform;
     RotateTransform->RotateY(angle);
     RotateTransform->TransformPoint(ref, worldPos);
 
-    for (int i = 0; i < 3; i++)
+    for (int j = 0; j < 3; j++)
       {
-      worldPos[i] += centroid[i];
+      worldPos[j] += centroid[j];
       }
 
     this->SetNthNodeWorldPosition(i, worldPos);

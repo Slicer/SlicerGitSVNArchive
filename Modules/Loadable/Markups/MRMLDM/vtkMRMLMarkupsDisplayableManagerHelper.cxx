@@ -32,6 +32,9 @@
 #include <vtkRenderWindowInteractor.h>
 #include <vtkSlicerAbstractRepresentation.h>
 #include <vtkSlicerAbstractWidget.h>
+#include <vtkSlicerPointsWidget.h>
+#include <vtkSlicerLineWidget.h>
+#include <vtkSlicerAngleWidget.h>
 #include <vtkSmartPointer.h>
 #include <vtkSphereHandleRepresentation.h>
 
@@ -201,18 +204,26 @@ void vtkMRMLMarkupsDisplayableManagerHelper::UpdateAllWidgetsFromInteractionNode
     {
     if (it->second)
       {
-      if (interactionNode->GetCurrentInteractionMode() == vtkMRMLInteractionNode::Place)
+      vtkSlicerAbstractRepresentation* rep = it->second->GetRepresentation();
+      if (rep)
         {
-        // Set widget state to define
-        it->second->SetWidgetState(vtkSlicerAbstractWidget::Define);
-        it->second->SetFollowCursor(false);
-        it->second->SetManagesCursor(false);
-        }
-      else
-        {
-        // Set widget state to manipulate
-        it->second->SetWidgetState(vtkSlicerAbstractWidget::Manipulate);
-        it->second->SetManagesCursor(true);
+        if (interactionNode->GetCurrentInteractionMode() == vtkMRMLInteractionNode::Place)
+          {
+          // Set widget state to define if Points, Line < 2 points or Angle < 3 points
+          if (vtkSlicerPointsWidget::SafeDownCast(it->second) ||
+              (vtkSlicerLineWidget::SafeDownCast(it->second) && rep->GetNumberOfNodes() < 2) ||
+              (vtkSlicerAngleWidget::SafeDownCast(it->second) && rep->GetNumberOfNodes() < 3))
+          it->second->SetWidgetState(vtkSlicerAbstractWidget::Define);
+          it->second->SetFollowCursor(true);
+          it->second->SetManagesCursor(false);
+          }
+        else
+          {
+          // Set widget state to manipulate
+          it->second->SetWidgetState(vtkSlicerAbstractWidget::Manipulate);
+          it->second->SetFollowCursor(false);
+          it->second->SetManagesCursor(true);
+          }
         }
       }
     }

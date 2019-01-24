@@ -324,7 +324,6 @@ void vtkMRMLMarkupsFiducialDisplayableManager2D::OnMRMLMarkupsPointAddedEvent(vt
     // If the user has never interacted with the widget:
     // set the widget to manipulate and the placing ended for the markups.
     widget->SetWidgetState(vtkSlicerAbstractWidget::Manipulate);
-    markupsNode->SetPlacingEnded(true);
     }
 
   // Points widgets have only one Markup/Representation
@@ -569,8 +568,7 @@ bool vtkMRMLMarkupsFiducialDisplayableManager2D::IsPointDisplayableOnSlice(vtkMR
     }
 
   // down cast the node as a controlpoints node to get the coordinates
-  vtkMRMLMarkupsNode *controlPointsNode = vtkMRMLMarkupsNode::SafeDownCast(node);
-
+  vtkMRMLMarkupsFiducialNode *controlPointsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast(node);
   if (!controlPointsNode)
     {
     vtkErrorMacro("IsWidgetDisplayableOnSlice: Could not get the controlpoints node.")
@@ -748,7 +746,7 @@ void vtkMRMLMarkupsFiducialDisplayableManager2D::OnMRMLDisplayableNodeModifiedEv
     // Points widgets have only one Markup/Representation
     vtkSlicerAbstractRepresentation2D *rep = vtkSlicerAbstractRepresentation2D::SafeDownCast
       (widget->GetRepresentation());
-    if (!rep || !rep->GetVisibility())
+    if (!rep)
       {
       continue;
       }

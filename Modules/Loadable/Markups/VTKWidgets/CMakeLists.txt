@@ -20,10 +20,12 @@ set(${KIT}_SRCS
   vtkSlicerAbstractRepresentation2D.h
   vtkSlicerAbstractWidget.cxx
   vtkSlicerAbstractWidget.h
-  #vtkSlicerAngleRepresentation.cxx
-  #vtkSlicerAngleRepresentation.h
-  #vtkSlicerAngleWidget.cxx
-  #vtkSlicerAngleWidget.h
+  vtkSlicerAngleRepresentation2D.cxx
+  vtkSlicerAngleRepresentation2D.h
+  vtkSlicerAngleRepresentation3D.cxx
+  vtkSlicerAngleRepresentation3D.h
+  vtkSlicerAngleWidget.cxx
+  vtkSlicerAngleWidget.h
   #vtkSlicerCurveRepresentation.cxx
   #vtkSlicerCurveRepresentation.h
   #vtkSlicerCurveWidget.cxx

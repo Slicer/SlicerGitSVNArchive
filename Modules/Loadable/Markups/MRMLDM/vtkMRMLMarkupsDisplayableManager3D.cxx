@@ -609,7 +609,6 @@ void vtkMRMLMarkupsDisplayableManager3D::OnMRMLMarkupsPointAddedEvent(vtkMRMLNod
     // If the user has never interacted with the widget:
     // set the widget to manipulate and the placing ended for the markups.
     widget->SetWidgetState(vtkSlicerAbstractWidget::Manipulate);
-    markupsNode->SetPlacingEnded(true);
     }
 
   // Rebuild representation
@@ -757,8 +756,8 @@ void vtkMRMLMarkupsDisplayableManager3D::OnInteractorStyleEvent(int eventid)
     if (this->GetInteractionNode()->GetCurrentInteractionMode() == vtkMRMLInteractionNode::Place &&
         this->GetInteractionNode()->GetPlaceModePersistence() == 1)
       {
-      this->GetInteractionNode()->SwitchToViewTransformMode();
       this->OnClickInRenderWindowGetCoordinates();
+      this->GetInteractionNode()->SwitchToViewTransformMode();
       }
     }
   else if (eventid == vtkCommand::EnterEvent || eventid == vtkCommand::ExitEvent)

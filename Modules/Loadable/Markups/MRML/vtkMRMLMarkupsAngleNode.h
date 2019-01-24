@@ -15,8 +15,8 @@
 
 ==============================================================================*/
 
-#ifndef __vtkMRMLMarkupsLineNode_h
-#define __vtkMRMLMarkupsLineNode_h
+#ifndef __vtkMRMLMarkupsAngleNode_h
+#define __vtkMRMLMarkupsAngleNode_h
 
 // MRML includes
 #include "vtkMRMLDisplayableNode.h"
@@ -26,22 +26,22 @@
 #include "vtkMRMLMarkupsDisplayNode.h"
 #include "vtkMRMLMarkupsNode.h"
 
-/// \brief MRML node to represent a line markup
-/// Line Markups nodes contain two control points.
+/// \brief MRML node to represent an angle markup
+/// Angle Markups nodes contain two control points.
 /// Visualization parameters are set in the vtkMRMLMarkupsDisplayNode class.
 ///
 /// Markups is intended to be used for manual marking/editing of point positions.
 ///
 /// \ingroup Slicer_QtModules_Markups
-class  VTK_SLICER_MARKUPS_MODULE_MRML_EXPORT vtkMRMLMarkupsLineNode : public vtkMRMLMarkupsNode
+class  VTK_SLICER_MARKUPS_MODULE_MRML_EXPORT vtkMRMLMarkupsAngleNode : public vtkMRMLMarkupsNode
 {
 public:
-  static vtkMRMLMarkupsLineNode *New();
-  vtkTypeMacro(vtkMRMLMarkupsLineNode,vtkMRMLMarkupsNode);
+  static vtkMRMLMarkupsAngleNode *New();
+  vtkTypeMacro(vtkMRMLMarkupsAngleNode,vtkMRMLMarkupsNode);
   /// Print out the node information to the output stream
   void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
-  virtual const char* GetIcon() VTK_OVERRIDE {return ":/Icons/MarkupsLineMouseModePlace.png";}
+  virtual const char* GetIcon() VTK_OVERRIDE {return ":/Icons/MarkupsAngleMouseModePlace.png";}
 
   //--------------------------------------------------------------------------
   // MRMLNode methods
@@ -49,7 +49,7 @@ public:
 
   virtual vtkMRMLNode* CreateNodeInstance() VTK_OVERRIDE;
   /// Get node XML tag name (like Volume, Model)
-  virtual const char* GetNodeTagName() VTK_OVERRIDE {return "MarkupsLine";}
+  virtual const char* GetNodeTagName() VTK_OVERRIDE {return "MarkupsAngle";}
 
   /// Read node attributes from XML file
   virtual void ReadXMLAttributes( const char** atts) VTK_OVERRIDE;
@@ -75,7 +75,7 @@ public:
   /// Create and observe default display node(s)
   virtual void CreateDefaultDisplayNodes() VTK_OVERRIDE;
 
-  /// Get the number of Points in this node (maximum number of point is 2)
+  /// Get the number of Points in this node (maximum number of point is 3)
   int GetNumberOfPoints() { return this->GetNumberOfControlPoints(); } ;
   /// Add a new Point from x,y,z coordinates and return the Point index,
   /// if point index is -1, the point has not been added
@@ -125,10 +125,10 @@ public:
   virtual void GetBounds(double bounds[6]) VTK_OVERRIDE;
 
 protected:
-  vtkMRMLMarkupsLineNode();
-  ~vtkMRMLMarkupsLineNode();
-  vtkMRMLMarkupsLineNode(const vtkMRMLMarkupsLineNode&);
-  void operator=(const vtkMRMLMarkupsLineNode&);
+  vtkMRMLMarkupsAngleNode();
+  ~vtkMRMLMarkupsAngleNode();
+  vtkMRMLMarkupsAngleNode(const vtkMRMLMarkupsAngleNode&);
+  void operator=(const vtkMRMLMarkupsAngleNode&);
 
 };
 

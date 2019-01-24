@@ -17,7 +17,7 @@
 =========================================================================*/
 
 #include "vtkSlicerAngleWidget.h"
-#include "vtkSlicerLineRepresentation.h"
+#include "vtkSlicerLineRepresentation3D.h"
 #include "vtkCommand.h"
 #include "vtkCallbackCommand.h"
 #include "vtkRenderWindowInteractor.h"
@@ -36,22 +36,19 @@ vtkStandardNewMacro(vtkSlicerAngleWidget);
 //----------------------------------------------------------------------
 vtkSlicerAngleWidget::vtkSlicerAngleWidget()
 {
-  // These are the event callbacks supported by this widget
   this->CallbackMapper->SetCallbackMethod(vtkCommand::LeftButtonPressEvent,
-                                          vtkEvent::NoModifier, 0, 0, nullptr,
-                                          vtkWidgetEvent::Select,
-                                          this, vtkSlicerAngleWidget::SelectAction);
-  this->CallbackMapper->SetCallbackMethod(vtkCommand::RightButtonPressEvent,
-                                          vtkWidgetEvent::AddFinalPoint,
-                                          this, vtkSlicerAngleWidget::ScaleAction);
-  this->CallbackMapper->SetCallbackMethod(vtkCommand::MouseMoveEvent,
-                                          vtkWidgetEvent::Move,
-                                          this, vtkSlicerAngleWidget::MoveAction);
-  this->CallbackMapper->SetCallbackMethod(vtkCommand::RightButtonDoubleClickEvent,
-                                          vtkWidgetEvent::PickThree,
-                                          this, vtkSlicerAbstractWidget::PickAction);
+                                          vtkEvent::AltModifier, 0, 0, nullptr,
+                                          vtkWidgetEvent::Rotate,
+                                          this, vtkSlicerAbstractWidget::RotateAction);
 
-  this->CreateDefaultRepresentation();
+  this->CallbackMapper->SetCallbackMethod(vtkCommand::RightButtonPressEvent,
+                                          vtkEvent::NoModifier, 0, 0, nullptr,
+                                          vtkWidgetEvent::Pick,
+                                          this, vtkSlicerAbstractWidget::PickAction);
+  this->CallbackMapper->SetCallbackMethod(vtkCommand::RightButtonPressEvent,
+                                          vtkEvent::AltModifier, 0, 0, nullptr,
+                                          vtkWidgetEvent::Scale,
+                                          this, vtkSlicerAbstractWidget::ScaleAction);
 }
 
 //----------------------------------------------------------------------
@@ -62,216 +59,57 @@ vtkSlicerAngleWidget::~vtkSlicerAngleWidget()
 //----------------------------------------------------------------------
 void vtkSlicerAngleWidget::CreateDefaultRepresentation()
 {
-  if ( !this->WidgetRep )
-  {
-    vtkSlicerLineRepresentation *rep =
-      vtkSlicerLineRepresentation::New();
-
-    this->WidgetRep = rep;
-  }
+  vtkSlicerLineRepresentation3D *rep = vtkSlicerLineRepresentation3D::New();
+  rep->SetRenderer(this->GetCurrentRenderer());
+  this->SetRepresentation(rep);
 }
 
-// The following methods are the callbacks that the widget responds to.
 //-------------------------------------------------------------------------
-void vtkSlicerAngleWidget::SelectAction( vtkAbstractWidget *w )
+void vtkSlicerAngleWidget::AddPointToRepresentationFromWorldCoordinate(double worldCoordinates[3])
 {
-  vtkSlicerAngleWidget *self = reinterpret_cast<vtkSlicerAngleWidget*>(w);
   vtkSlicerAbstractRepresentation *rep =
-    reinterpret_cast<vtkSlicerAbstractRepresentation*>(self->WidgetRep);
-
-  int X = self->Interactor->GetEventPosition()[0];
-  int Y = self->Interactor->GetEventPosition()[1];
-  double pos[2];
-  pos[0] = X;
-  pos[1] = Y;
-
-  switch ( self->WidgetState )
-  {
-    case vtkSlicerAngleWidget::Start:
-    case vtkSlicerAngleWidget::Define:
-    {
-      // If we are following the cursor, let's add 2 nodes rightaway, on the
-      // first click. The second node is the one that follows the cursor
-      // around.
-      if ( self->FollowCursor && (rep->GetNumberOfNodes() == 0) )
-      {
-        self->AddNode();
-      }
-
-      self->AddNode();
-      break;
-    }
-
-    case vtkSlicerAngleWidget::Manipulate:
-    {
-      if ( rep->ComputeInteractionState( X, Y ) == vtkSlicerAbstractRepresentation::Nearby )
-      {
-        rep->ActivateNode( X, Y );
-        self->GrabFocus(self->EventCallbackCommand);
-        self->StartInteraction();
-        self->CurrentHandle = rep->GetActiveNode();
-        rep->SetCurrentOperationToTranslate();
-        self->InvokeEvent( vtkCommand::StartInteractionEvent, &self->CurrentHandle );
-        rep->StartWidgetInteraction( pos );
-        self->EventCallbackCommand->SetAbortFlag( 1 );
-      }
-      break;
-    }
-  }
-
-  if ( rep->GetNeedToRender() )
-  {
-    self->Render();
-    rep->NeedToRenderOff();
-  }
-}
-
-//------------------------------------------------------------------------
-void vtkSlicerAngleWidget::AddNode()
-{
-  int X = this->Interactor->GetEventPosition()[0];
-  int Y = this->Interactor->GetEventPosition()[1];
-
-  // If the rep already has at least 2 nodes, check how close we are to
-  // the first
-  vtkSlicerAbstractRepresentation* rep =
     reinterpret_cast<vtkSlicerAbstractRepresentation*>(this->WidgetRep);
-  this->CurrentHandle = rep->GetActiveNode();
 
-  int numNodes = rep->GetNumberOfNodes();
-  if ( numNodes > 2 )
-  {
-    this->WidgetState = vtkSlicerAngleWidget::Manipulate;
-    this->ReleaseFocus();
-    this->Render();
-    this->EventCallbackCommand->SetAbortFlag( 1 );
-    this->InvokeEvent( vtkCommand::EndInteractionEvent, &this->CurrentHandle );
-    this->Interactor->MouseWheelForwardEvent();
-    this->Interactor->MouseWheelBackwardEvent();
-    return;
-  }
-
-  if ( rep->AddNodeAtDisplayPosition( X, Y ) )
-  {
-    this->GrabFocus(this->EventCallbackCommand);
-    rep->ActivateNode( X, Y );
-    this->CurrentHandle = rep->GetActiveNode();
-    if ( this->WidgetState == vtkSlicerAngleWidget::Start )
+  if (!rep)
     {
-      this->InvokeEvent( vtkCommand::StartInteractionEvent, &this->CurrentHandle );
+    return;
     }
 
+  if (rep->GetNumberOfNodes() == 0)
+    {
+    this->FollowCursor = true;
+    }
+  else if (rep->GetNumberOfNodes() > 0)
+    {
+    rep->DeleteLastNode();
+    if (rep->GetNumberOfNodes() > 1)
+      {
+      this->FollowCursor = false;
+      }
+    }
+
+  if (rep->AddNodeAtWorldPosition(worldCoordinates))
+    {
+    this->CurrentHandle = rep->GetActiveNode();
+    if (this->WidgetState == vtkSlicerAngleWidget::Start)
+      {
+      this->InvokeEvent(vtkCommand::StartInteractionEvent, &this->CurrentHandle);
+      }
     this->WidgetState = vtkSlicerAngleWidget::Define;
     rep->VisibilityOn();
     this->EventCallbackCommand->SetAbortFlag(1);
-    this->InvokeEvent( vtkCommand::PlacePointEvent, &this->CurrentHandle );
-  }
-}
-
-//-------------------------------------------------------------------------
-void vtkSlicerAngleWidget::ScaleAction(vtkAbstractWidget *w)
-{
-  vtkSlicerAngleWidget *self = reinterpret_cast<vtkSlicerAngleWidget*>(w);
-  vtkSlicerAbstractRepresentation *rep =
-    reinterpret_cast<vtkSlicerAbstractRepresentation*>(self->WidgetRep);
-
-  if (self->WidgetState == vtkSlicerAngleWidget::Manipulate)
-  {
-    vtkSlicerAbstractRepresentation *rep =
-      reinterpret_cast<vtkSlicerAbstractRepresentation*>(self->WidgetRep);
-
-    int X = self->Interactor->GetEventPosition()[0];
-    int Y = self->Interactor->GetEventPosition()[1];
-    double pos[2];
-    pos[0] = X;
-    pos[1] = Y;
-
-    if ( rep->ComputeInteractionState( X, Y ) == vtkSlicerAbstractRepresentation::Nearby )
-    {
-      rep->ActivateNode( X, Y );
-      self->GrabFocus(self->EventCallbackCommand);
-      self->StartInteraction();
-      self->CurrentHandle = rep->GetActiveNode();
-      rep->SetCurrentOperationToScale();
-      self->InvokeEvent( vtkCommand::StartInteractionEvent, &self->CurrentHandle );
-      rep->StartWidgetInteraction( pos );
-      self->EventCallbackCommand->SetAbortFlag( 1 );
-    }
-  }
-
-  if ( rep->GetNeedToRender() )
-  {
-    self->Render();
-    rep->NeedToRenderOff();
-  }
-}
-
-//-------------------------------------------------------------------------
-void vtkSlicerAngleWidget::MoveAction( vtkAbstractWidget *w )
-{
-  vtkSlicerAngleWidget *self = reinterpret_cast<vtkSlicerAngleWidget*>(w);
-
-  if ( self->WidgetState == vtkSlicerAngleWidget::Start )
-  {
-    return;
-  }
-
-  int X = self->Interactor->GetEventPosition()[0];
-  int Y = self->Interactor->GetEventPosition()[1];
-  vtkSlicerAbstractRepresentation *rep =
-    reinterpret_cast<vtkSlicerAbstractRepresentation*>(self->WidgetRep);
-
-  if ( self->WidgetState == vtkSlicerAngleWidget::Define )
-  {
-    if ( self->FollowCursor )
-    {
-      // Have the last node follow the mouse in this case...
-      const int numNodes = rep->GetNumberOfNodes();
-      if ( numNodes > 0 )
+    this->InvokeEvent(vtkCommand::PlacePointEvent, &this->CurrentHandle);
+    this->ReleaseFocus();
+    this->Render();
+    if (!this->FollowCursor)
       {
-      rep->SetNthNodeDisplayPosition( numNodes-1, X, Y );
+      this->WidgetState = vtkSlicerAngleWidget::Manipulate;
+      this->InvokeEvent(vtkCommand::EndInteractionEvent, &this->CurrentHandle);
       }
     }
-    else
-    {
-      return;
-    }
-  }
 
-  if ( rep->GetCurrentOperation() == vtkSlicerAbstractRepresentation::Inactive )
-  {
-    int state = rep->ComputeInteractionState( X, Y );
-    rep->ActivateNode( X, Y );
-    if ( state == vtkSlicerAbstractRepresentation::Nearby )
+  if (this->FollowCursor)
     {
-      rep->Highlight(1);
-      self->CurrentHandle = rep->GetActiveNode();
-      self->InvokeEvent( vtkCommand::InteractionEvent, &self->CurrentHandle );
+    rep->AddNodeAtWorldPosition(worldCoordinates);
     }
-    else
-    {
-      rep->Highlight(0);
-    }
-  }
-  else
-  {
-    if ( rep->GetInteractionState() == vtkSlicerAbstractRepresentation::Nearby )
-    {
-      self->CurrentHandle = rep->GetActiveNode();
-      double pos[2];
-      pos[0] = X;
-      pos[1] = Y;
-      self->WidgetRep->WidgetInteraction( pos );
-      if ( rep->GetCurrentOperation() != vtkSlicerAbstractRepresentation::Pick )
-      {
-        self->InvokeEvent( vtkCommand::InteractionEvent, &self->CurrentHandle );
-      }
-    }
-  }
-
-  if ( self->WidgetRep->GetNeedToRender() )
-  {
-    self->Render();
-    self->WidgetRep->NeedToRenderOff();
-  }
 }

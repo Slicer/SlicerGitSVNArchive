@@ -37,8 +37,8 @@ vtkStandardNewMacro(vtkSlicerPointsWidget);
 vtkSlicerPointsWidget::vtkSlicerPointsWidget()
 {
   this->CallbackMapper->SetCallbackMethod(vtkCommand::RightButtonPressEvent,
-                                          vtkWidgetEvent::Select,
-                                          this, vtkSlicerAbstractWidget::SelectAction);
+                                          vtkWidgetEvent::Pick,
+                                          this, vtkSlicerAbstractWidget::PickAction);
 }
 
 //----------------------------------------------------------------------
@@ -100,8 +100,6 @@ void vtkSlicerPointsWidget::AddPointToRepresentationFromWorldCoordinate(double w
       {
       this->WidgetState = vtkSlicerPointsWidget::Manipulate;
       this->InvokeEvent(vtkCommand::EndInteractionEvent, &this->CurrentHandle);
-      this->Interactor->MouseWheelForwardEvent();
-      this->Interactor->MouseWheelBackwardEvent();
       }
     }
 

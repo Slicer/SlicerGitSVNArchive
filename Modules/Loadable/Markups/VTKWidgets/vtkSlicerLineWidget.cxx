@@ -36,7 +36,17 @@ vtkStandardNewMacro(vtkSlicerLineWidget);
 //----------------------------------------------------------------------
 vtkSlicerLineWidget::vtkSlicerLineWidget()
 {
+  this->CallbackMapper->SetCallbackMethod(vtkCommand::LeftButtonPressEvent,
+                                          vtkEvent::AltModifier, 0, 0, nullptr,
+                                          vtkWidgetEvent::Rotate,
+                                          this, vtkSlicerAbstractWidget::RotateAction);
+
   this->CallbackMapper->SetCallbackMethod(vtkCommand::RightButtonPressEvent,
+                                          vtkEvent::NoModifier, 0, 0, nullptr,
+                                          vtkWidgetEvent::Pick,
+                                          this, vtkSlicerAbstractWidget::PickAction);
+  this->CallbackMapper->SetCallbackMethod(vtkCommand::RightButtonPressEvent,
+                                          vtkEvent::AltModifier, 0, 0, nullptr,
                                           vtkWidgetEvent::Scale,
                                           this, vtkSlicerAbstractWidget::ScaleAction);
 }
@@ -92,8 +102,6 @@ void vtkSlicerLineWidget::AddPointToRepresentationFromWorldCoordinate(double wor
       {
       this->WidgetState = vtkSlicerLineWidget::Manipulate;
       this->InvokeEvent(vtkCommand::EndInteractionEvent, &this->CurrentHandle);
-      this->Interactor->MouseWheelForwardEvent();
-      this->Interactor->MouseWheelBackwardEvent();
       }
     }
 

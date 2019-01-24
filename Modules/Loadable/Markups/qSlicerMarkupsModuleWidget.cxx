@@ -54,6 +54,7 @@
 #include "ui_qSlicerMarkupsModule.h"
 #include "vtkMRMLMarkupsFiducialNode.h"
 #include "vtkMRMLMarkupsLineNode.h"
+#include "vtkMRMLMarkupsAngleNode.h"
 #include "vtkMRMLMarkupsFiducialStorageNode.h"
 #include "vtkMRMLMarkupsNode.h"
 #include "vtkSlicerMarkupsLogic.h"
@@ -1273,23 +1274,20 @@ void qSlicerMarkupsModuleWidget::onSelectedColorPickerButtonChanged(QColor qcolo
   double color[3];
   qMRMLUtils::qColorToColor(qcolor, color);
 
-   // get the active node
-  vtkMRMLMarkupsFiducialNode *listNode = vtkMRMLMarkupsFiducialNode::SafeDownCast(d->activeMarkupMRMLNodeComboBox->currentNode());
-  vtkMRMLMarkupsLineNode *lineNode = vtkMRMLMarkupsLineNode::SafeDownCast(d->activeMarkupMRMLNodeComboBox->currentNode());
+  // get the active node
+  vtkMRMLMarkupsNode *markupsNode = vtkMRMLMarkupsNode::SafeDownCast(d->activeMarkupMRMLNodeComboBox->currentNode());
+  if (!markupsNode)
+    {
+    return;
+    }
   // get the display node
-  vtkMRMLMarkupsDisplayNode *displayNode = nullptr;
-  if (listNode)
+  vtkMRMLMarkupsDisplayNode *displayNode = markupsNode->GetMarkupsDisplayNode();
+  if (!displayNode)
     {
-    displayNode = listNode->GetMarkupsDisplayNode();
+    return;
     }
-  else if (lineNode)
-    {
-    displayNode = lineNode->GetMarkupsDisplayNode();
-    }
-  if (displayNode)
-    {
-    displayNode->SetSelectedColor(color);
-    }
+
+  displayNode->SetSelectedColor(color);
 }
 
 //-----------------------------------------------------------------------------
@@ -1300,23 +1298,20 @@ void qSlicerMarkupsModuleWidget::onUnselectedColorPickerButtonChanged(QColor qco
   double color[3];
   qMRMLUtils::qColorToColor(qcolor, color);
 
-   // get the active node
-  vtkMRMLMarkupsFiducialNode *listNode = vtkMRMLMarkupsFiducialNode::SafeDownCast(d->activeMarkupMRMLNodeComboBox->currentNode());
-  vtkMRMLMarkupsLineNode *lineNode = vtkMRMLMarkupsLineNode::SafeDownCast(d->activeMarkupMRMLNodeComboBox->currentNode());
+  // get the active node
+  vtkMRMLMarkupsNode *markupsNode = vtkMRMLMarkupsNode::SafeDownCast(d->activeMarkupMRMLNodeComboBox->currentNode());
+  if (!markupsNode)
+    {
+    return;
+    }
   // get the display node
-  vtkMRMLMarkupsDisplayNode *displayNode = nullptr;
-  if (listNode)
+  vtkMRMLMarkupsDisplayNode *displayNode = markupsNode->GetMarkupsDisplayNode();
+  if (!displayNode)
     {
-    displayNode = listNode->GetMarkupsDisplayNode();
+    return;
     }
-  else if (lineNode)
-    {
-    displayNode = lineNode->GetMarkupsDisplayNode();
-    }
-  if (displayNode)
-    {
-    displayNode->SetColor(color);
-    }
+
+  displayNode->SetColor(color);
 }
 
 //-----------------------------------------------------------------------------
@@ -1330,22 +1325,19 @@ void qSlicerMarkupsModuleWidget::onGlyphTypeComboBoxChanged(QString value)
     }
 
   // get the active node
-  vtkMRMLMarkupsFiducialNode *listNode = vtkMRMLMarkupsFiducialNode::SafeDownCast(d->activeMarkupMRMLNodeComboBox->currentNode());
-  vtkMRMLMarkupsLineNode *lineNode = vtkMRMLMarkupsLineNode::SafeDownCast(d->activeMarkupMRMLNodeComboBox->currentNode());
+  vtkMRMLMarkupsNode *markupsNode = vtkMRMLMarkupsNode::SafeDownCast(d->activeMarkupMRMLNodeComboBox->currentNode());
+  if (!markupsNode)
+    {
+    return;
+    }
   // get the display node
-  vtkMRMLMarkupsDisplayNode *displayNode = nullptr;
-  if (listNode)
+  vtkMRMLMarkupsDisplayNode *displayNode = markupsNode->GetMarkupsDisplayNode();
+  if (!displayNode)
     {
-    displayNode = listNode->GetMarkupsDisplayNode();
+    return;
     }
-  else if (lineNode)
-    {
-    displayNode = lineNode->GetMarkupsDisplayNode();
-    }
-  if (displayNode)
-    {
-    displayNode->SetGlyphTypeFromString(value.toLatin1());
-    }
+
+  displayNode->SetGlyphTypeFromString(value.toLatin1());
 }
 
 //-----------------------------------------------------------------------------
@@ -1354,22 +1346,19 @@ void qSlicerMarkupsModuleWidget::onGlyphScaleSliderWidgetChanged(double value)
   Q_D(qSlicerMarkupsModuleWidget);
 
   // get the active node
-  vtkMRMLMarkupsFiducialNode *listNode = vtkMRMLMarkupsFiducialNode::SafeDownCast(d->activeMarkupMRMLNodeComboBox->currentNode());
-  vtkMRMLMarkupsLineNode *lineNode = vtkMRMLMarkupsLineNode::SafeDownCast(d->activeMarkupMRMLNodeComboBox->currentNode());
+  vtkMRMLMarkupsNode *markupsNode = vtkMRMLMarkupsNode::SafeDownCast(d->activeMarkupMRMLNodeComboBox->currentNode());
+  if (!markupsNode)
+    {
+    return;
+    }
   // get the display node
-  vtkMRMLMarkupsDisplayNode *displayNode = nullptr;
-  if (listNode)
+  vtkMRMLMarkupsDisplayNode *displayNode = markupsNode->GetMarkupsDisplayNode();
+  if (!displayNode)
     {
-    displayNode = listNode->GetMarkupsDisplayNode();
+    return;
     }
-  else if (lineNode)
-    {
-    displayNode = lineNode->GetMarkupsDisplayNode();
-    }
-  if (displayNode)
-    {
-    displayNode->SetGlyphScale(value);
-    }
+
+  displayNode->SetGlyphScale(value);
 }
 
 //-----------------------------------------------------------------------------
@@ -1378,46 +1367,40 @@ void qSlicerMarkupsModuleWidget::onTextScaleSliderWidgetChanged(double value)
   Q_D(qSlicerMarkupsModuleWidget);
 
   // get the active node
-  vtkMRMLMarkupsFiducialNode *listNode = vtkMRMLMarkupsFiducialNode::SafeDownCast(d->activeMarkupMRMLNodeComboBox->currentNode());
-  vtkMRMLMarkupsLineNode *lineNode = vtkMRMLMarkupsLineNode::SafeDownCast(d->activeMarkupMRMLNodeComboBox->currentNode());
+  vtkMRMLMarkupsNode *markupsNode = vtkMRMLMarkupsNode::SafeDownCast(d->activeMarkupMRMLNodeComboBox->currentNode());
+  if (!markupsNode)
+    {
+    return;
+    }
   // get the display node
-  vtkMRMLMarkupsDisplayNode *displayNode = nullptr;
-  if (listNode)
+  vtkMRMLMarkupsDisplayNode *displayNode = markupsNode->GetMarkupsDisplayNode();
+  if (!displayNode)
     {
-    displayNode = listNode->GetMarkupsDisplayNode();
+    return;
     }
-  else if (lineNode)
-    {
-    displayNode = lineNode->GetMarkupsDisplayNode();
-    }
-  if (displayNode)
-    {
-    displayNode->SetTextScale(value);
-    }
+
+  displayNode->SetTextScale(value);
 }
 
 //-----------------------------------------------------------------------------
 void qSlicerMarkupsModuleWidget::onOpacitySliderWidgetChanged(double value)
 {
-   Q_D(qSlicerMarkupsModuleWidget);
+  Q_D(qSlicerMarkupsModuleWidget);
 
   // get the active node
-   vtkMRMLMarkupsFiducialNode *listNode = vtkMRMLMarkupsFiducialNode::SafeDownCast(d->activeMarkupMRMLNodeComboBox->currentNode());
-   vtkMRMLMarkupsLineNode *lineNode = vtkMRMLMarkupsLineNode::SafeDownCast(d->activeMarkupMRMLNodeComboBox->currentNode());
+  vtkMRMLMarkupsNode *markupsNode = vtkMRMLMarkupsNode::SafeDownCast(d->activeMarkupMRMLNodeComboBox->currentNode());
+  if (!markupsNode)
+    {
+    return;
+    }
   // get the display node
-  vtkMRMLMarkupsDisplayNode *displayNode = nullptr;
-  if (listNode)
+  vtkMRMLMarkupsDisplayNode *displayNode = markupsNode->GetMarkupsDisplayNode();
+  if (!displayNode)
     {
-    displayNode = listNode->GetMarkupsDisplayNode();
+    return;
     }
-  else if (lineNode)
-    {
-    displayNode = lineNode->GetMarkupsDisplayNode();
-    }
-  if (displayNode)
-    {
-    displayNode->SetOpacity(value);
-    }
+
+  displayNode->SetOpacity(value);
 }
 
 //-----------------------------------------------------------------------------
@@ -1426,20 +1409,13 @@ void qSlicerMarkupsModuleWidget::onResetToDefaultDisplayPropertiesPushButtonClic
   Q_D(qSlicerMarkupsModuleWidget);
 
   // get the active node
-  vtkMRMLMarkupsFiducialNode *listNode = vtkMRMLMarkupsFiducialNode::SafeDownCast(d->activeMarkupMRMLNodeComboBox->currentNode());
-  vtkMRMLMarkupsLineNode *lineNode = vtkMRMLMarkupsLineNode::SafeDownCast(d->activeMarkupMRMLNodeComboBox->currentNode());
-
+  vtkMRMLMarkupsNode *markupsNode = vtkMRMLMarkupsNode::SafeDownCast(d->activeMarkupMRMLNodeComboBox->currentNode());
+  if (!markupsNode)
+    {
+    return;
+    }
   // get the display node
-  vtkMRMLMarkupsDisplayNode *displayNode = nullptr;
-  if (listNode)
-    {
-    displayNode = listNode->GetMarkupsDisplayNode();
-    }
-  else if (lineNode)
-    {
-    displayNode = lineNode->GetMarkupsDisplayNode();
-    }
-
+  vtkMRMLMarkupsDisplayNode *displayNode = markupsNode->GetMarkupsDisplayNode();
   if (!displayNode)
     {
     return;
@@ -1459,20 +1435,15 @@ void qSlicerMarkupsModuleWidget::onResetToDefaultDisplayPropertiesPushButtonClic
 void qSlicerMarkupsModuleWidget::onSaveToDefaultDisplayPropertiesPushButtonClicked()
 {
   Q_D(qSlicerMarkupsModuleWidget);
-  // get the active node
-  vtkMRMLMarkupsFiducialNode *listNode = vtkMRMLMarkupsFiducialNode::SafeDownCast(d->activeMarkupMRMLNodeComboBox->currentNode());
-  vtkMRMLMarkupsLineNode *lineNode = vtkMRMLMarkupsLineNode::SafeDownCast(d->activeMarkupMRMLNodeComboBox->currentNode());
 
+  // get the active node
+  vtkMRMLMarkupsNode *markupsNode = vtkMRMLMarkupsNode::SafeDownCast(d->activeMarkupMRMLNodeComboBox->currentNode());
+  if (!markupsNode)
+    {
+    return;
+    }
   // get the display node
-  vtkMRMLMarkupsDisplayNode *displayNode = nullptr;
-  if (listNode)
-    {
-    displayNode = listNode->GetMarkupsDisplayNode();
-    }
-  else if (lineNode)
-    {
-    displayNode = lineNode->GetMarkupsDisplayNode();
-    }
+  vtkMRMLMarkupsDisplayNode *displayNode = markupsNode->GetMarkupsDisplayNode();
   if (!displayNode)
     {
     return;
@@ -1628,26 +1599,23 @@ void qSlicerMarkupsModuleWidget::onMarkupScaleSliderWidgetValueChanged(double va
    Q_D(qSlicerMarkupsModuleWidget);
 
   // get the active node
-   vtkMRMLMarkupsFiducialNode *listNode = vtkMRMLMarkupsFiducialNode::SafeDownCast(d->activeMarkupMRMLNodeComboBox->currentNode());
-   vtkMRMLMarkupsLineNode *lineNode = vtkMRMLMarkupsLineNode::SafeDownCast(d->activeMarkupMRMLNodeComboBox->currentNode());
+  vtkMRMLMarkupsNode *markupsNode = vtkMRMLMarkupsNode::SafeDownCast(d->activeMarkupMRMLNodeComboBox->currentNode());
+  if (!markupsNode)
+    {
+    return;
+    }
   // get the display node
-  vtkMRMLMarkupsDisplayNode *displayNode = nullptr;
-  if (listNode)
+  vtkMRMLMarkupsDisplayNode *displayNode = markupsNode->GetMarkupsDisplayNode();
+  if (!displayNode)
     {
-    displayNode = listNode->GetMarkupsDisplayNode();
+    return;
     }
-  else if (lineNode)
-    {
-    displayNode = lineNode->GetMarkupsDisplayNode();
-    }
-  if (displayNode)
-    {
-    // apply the value for both glyph and text scale
-    int disabledModify = displayNode->StartModify();
-    displayNode->SetGlyphScale(value);
-    displayNode->SetTextScale(value);
-    displayNode->EndModify(disabledModify);
-    }
+
+  // apply the value for both glyph and text scale
+  int disabledModify = displayNode->StartModify();
+  displayNode->SetGlyphScale(value);
+  displayNode->SetTextScale(value);
+  displayNode->EndModify(disabledModify);
 }
 
 //-----------------------------------------------------------------------------
@@ -1655,19 +1623,26 @@ void qSlicerMarkupsModuleWidget::onAddMarkupPushButtonClicked()
 {
   Q_D(qSlicerMarkupsModuleWidget);
 
-  // get the active node
- vtkMRMLMarkupsFiducialNode *listNode = vtkMRMLMarkupsFiducialNode::SafeDownCast(d->activeMarkupMRMLNodeComboBox->currentNode());
- vtkMRMLMarkupsLineNode *lineNode = vtkMRMLMarkupsLineNode::SafeDownCast(d->activeMarkupMRMLNodeComboBox->currentNode());
- if (listNode)
-   {
-   listNode->AddFiducial(0,0,0);
-   listNode->SetActiveControlPoint(-1);
-   }
- else if (lineNode)
-   {
-   lineNode->AddPoint(0,0,0);
-   lineNode->SetActiveControlPoint(-1);
-   }
+   // get the active node
+  vtkMRMLMarkupsFiducialNode *listNode = vtkMRMLMarkupsFiducialNode::SafeDownCast(d->activeMarkupMRMLNodeComboBox->currentNode());
+  vtkMRMLMarkupsLineNode *lineNode = vtkMRMLMarkupsLineNode::SafeDownCast(d->activeMarkupMRMLNodeComboBox->currentNode());
+  vtkMRMLMarkupsAngleNode *angleNode = vtkMRMLMarkupsAngleNode::SafeDownCast(d->activeMarkupMRMLNodeComboBox->currentNode());
+  if (listNode)
+    {
+    listNode->AddFiducial(0,0,0);
+    listNode->SetActiveControlPoint(-1);
+    }
+  else if (lineNode)
+    {
+    angleNode->AddPoint(0,0,0);
+    angleNode->SetActiveControlPoint(-1);
+    }
+  else if (lineNode)
+    {
+    angleNode->AddPoint(0,0,0);
+    angleNode->SetActiveControlPoint(-1);
+    }
+
 }
 
 //-----------------------------------------------------------------------------
@@ -3085,7 +3060,7 @@ bool qSlicerMarkupsModuleWidget::setEditedNode(vtkMRMLNode* node,
   Q_D(qSlicerMarkupsModuleWidget);
   Q_UNUSED(role);
   Q_UNUSED(context);
-  if (vtkMRMLMarkupsFiducialNode::SafeDownCast(node))
+  if (vtkMRMLMarkupsNode::SafeDownCast(node))
     {
     d->activeMarkupMRMLNodeComboBox->setCurrentNode(node);
     return true;
@@ -3094,8 +3069,8 @@ bool qSlicerMarkupsModuleWidget::setEditedNode(vtkMRMLNode* node,
   if (vtkMRMLMarkupsDisplayNode::SafeDownCast(node))
     {
     vtkMRMLMarkupsDisplayNode* displayNode = vtkMRMLMarkupsDisplayNode::SafeDownCast(node);
-    vtkMRMLMarkupsFiducialNode* displayableNode = vtkMRMLMarkupsFiducialNode::SafeDownCast(displayNode->GetDisplayableNode());
-    if (!displayableNode)
+    vtkMRMLMarkupsNode* displayableNode = vtkMRMLMarkupsNode::SafeDownCast(displayNode->GetDisplayableNode());
+     if (!displayableNode)
       {
       return false;
       }
@@ -3109,7 +3084,7 @@ bool qSlicerMarkupsModuleWidget::setEditedNode(vtkMRMLNode* node,
 //-----------------------------------------------------------
 double qSlicerMarkupsModuleWidget::nodeEditable(vtkMRMLNode* node)
 {
-  if (vtkMRMLMarkupsFiducialNode::SafeDownCast(node)
+  if (vtkMRMLMarkupsNode::SafeDownCast(node)
     || vtkMRMLMarkupsDisplayNode::SafeDownCast(node))
     {
     return 0.5;

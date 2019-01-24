@@ -16,5 +16,6 @@
         <file>Icons/MarkupsSelectedOrUnselected.png</file>
         <file>Icons/MarkupsUnselected.png</file>
         <file>Icons/MarkupsLineMouseModePlace.png</file>
+        <file>Icons/MarkupsAngleMouseModePlace.png</file>
     </qresource>
 </RCC>

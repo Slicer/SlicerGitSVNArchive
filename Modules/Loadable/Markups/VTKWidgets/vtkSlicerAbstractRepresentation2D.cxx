@@ -928,7 +928,7 @@ void vtkSlicerAbstractRepresentation2D::WidgetInteraction(double eventPos[2])
 //----------------------------------------------------------------------
 void vtkSlicerAbstractRepresentation2D::TranslateNode(double eventPos[2])
 {
-  if (this->GetActiveNodeLocked())
+  if (this->GetActiveNodeLocked() || !this->MarkupsNode)
     {
     return;
     }
@@ -953,6 +953,11 @@ void vtkSlicerAbstractRepresentation2D::TranslateNode(double eventPos[2])
 //----------------------------------------------------------------------
 void vtkSlicerAbstractRepresentation2D::TranslateWidget(double eventPos[2])
 {
+  if (!this->MarkupsNode)
+    {
+    return;
+    }
+
   double ref[3] = {0.};
   double slicePos[2] = {0.};
   double worldPos[3] = {0.};
@@ -972,9 +977,6 @@ void vtkSlicerAbstractRepresentation2D::TranslateWidget(double eventPos[2])
   vector[1] = worldPos[1] - ref[1];
   vector[2] = worldPos[2] - ref[2];
 
-
-  // SetNthNodeWorldPosition calls vtkMRMLMarkupsNode::PointModifiedEvent reporting the id of the point modified.
-  // However, already for > 200 points, it gets bad perfomance. Therefore, we call a simply modified call at the end.
   this->MarkupsNode->DisableModifiedEventOn();
   for (int i = 0; i < this->GetNumberOfNodes(); i++)
     {
@@ -984,15 +986,15 @@ void vtkSlicerAbstractRepresentation2D::TranslateWidget(double eventPos[2])
       }
 
     this->GetNthNodeWorldPosition(i, ref);
-    for (int i = 0; i < 3; ++i)
+    for (int j = 0; j < 3; j++)
       {
       if (this->RestrictFlag != vtkSlicerAbstractRepresentation::RestrictNone)
         {
-        worldPos[i] = (this->RestrictFlag == (i + 1)) ? ref[i] + vector[i] : ref[i];
+        worldPos[j] = (this->RestrictFlag == (j + 1)) ? ref[j] + vector[j] : ref[j];
         }
       else
         {
-        worldPos[i] = ref[i] + vector[i];
+        worldPos[j] = ref[j] + vector[j];
         }
       }
 
@@ -1005,6 +1007,11 @@ void vtkSlicerAbstractRepresentation2D::TranslateWidget(double eventPos[2])
 //----------------------------------------------------------------------
 void vtkSlicerAbstractRepresentation2D::ScaleWidget(double eventPos[2])
 {
+  if (!this->MarkupsNode)
+    {
+    return;
+    }
+
   double ref[3] = {0.};
   double slicePos[2] = {0.};
   double worldPos[3] = {0.};
@@ -1032,8 +1039,6 @@ void vtkSlicerAbstractRepresentation2D::ScaleWidget(double eventPos[2])
 
   double ratio = sqrt(d2 / r2);
 
-  // SetNthNodeWorldPosition calls vtkMRMLMarkupsNode::PointModifiedEvent reporting the id of the point modified.
-  // However, already for > 200 points, it gets bad perfomance. Therefore, we call a simply modified call at the end.
   this->MarkupsNode->DisableModifiedEventOn();
   for (int i = 0; i < this->GetNumberOfNodes(); i++)
     {
@@ -1043,9 +1048,9 @@ void vtkSlicerAbstractRepresentation2D::ScaleWidget(double eventPos[2])
       }
 
     this->GetNthNodeWorldPosition(i, ref);
-    for (int i = 0; i < 3; i++)
+    for (int j = 0; j < 3; j++)
       {
-      worldPos[i] = centroid[i] + ratio * (ref[i] - centroid[i]);
+      worldPos[j] = centroid[j] + ratio * (ref[j] - centroid[j]);
       }
 
     this->SetNthNodeWorldPosition(i, worldPos);
@@ -1057,6 +1062,11 @@ void vtkSlicerAbstractRepresentation2D::ScaleWidget(double eventPos[2])
 //----------------------------------------------------------------------
 void vtkSlicerAbstractRepresentation2D::RotateWidget(double eventPos[2])
 {
+  if (!this->MarkupsNode)
+    {
+    return;
+    }
+
   // If any node is locked return
   for (int i = 0; i < this->GetNumberOfNodes(); i++)
     {
@@ -1098,23 +1108,21 @@ void vtkSlicerAbstractRepresentation2D::RotateWidget(double eventPos[2])
    double angle = -vtkMath::DegreesFromRadians
                   (vtkMath::AngleBetweenVectors(lastWorldPos, worldPos));
 
-   // SetNthNodeWorldPosition calls vtkMRMLMarkupsNode::PointModifiedEvent reporting the id of the point modified.
-   // However, already for > 200 points, it gets bad perfomance. Therefore, we call a simply modified call at the end.
    this->MarkupsNode->DisableModifiedEventOn();
    for (int i = 0; i < this->GetNumberOfNodes(); i++)
      {
      this->GetNthNodeWorldPosition(i, ref);
-     for (int i = 0; i < 3; i++)
+     for (int j = 0; j < 3; j++)
        {
-       ref[i] -= centroid[i];
+       ref[j] -= centroid[j];
        }
      vtkNew<vtkTransform> RotateTransform;
      RotateTransform->RotateY(angle);
      RotateTransform->TransformPoint(ref, worldPos);
 
-     for (int i = 0; i < 3; i++)
+     for (int j = 0; j < 3; j++)
        {
-       worldPos[i] += centroid[i];
+       worldPos[j] += centroid[j];
        }
 
      this->SetNthNodeWorldPosition(i, worldPos);

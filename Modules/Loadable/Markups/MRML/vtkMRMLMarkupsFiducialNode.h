@@ -77,11 +77,6 @@ public:
   /// Create and observe default display node(s)
   virtual void CreateDefaultDisplayNodes() VTK_OVERRIDE;
 
-  /// Return a cast display node, returns null if none
-  vtkMRMLMarkupsDisplayNode *GetMarkupsDisplayNode();
-
-  // Wrapping some of the generic markup methods
-
   /// Get the number of fiducials in this node
   int GetNumberOfFiducials() { return this->GetNumberOfControlPoints(); } ;
   /// Add a new fiducial from x,y,z coordinates and return the fiducial index

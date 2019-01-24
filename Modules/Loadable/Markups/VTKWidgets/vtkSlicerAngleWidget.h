@@ -18,14 +18,14 @@
 
 /**
  * @class   vtkSlicerAngleWidget
- * @brief   create a angle with a set of 3 points
+ * @brief   create an angle with a set of 2 points
  *
- * The vtkSlicerAngleWidget is used to select a set of 3 points.
+ * The vtkSlicerAngleWidget is used to select a set of 2 points.
  * The widget handles all processing of widget
- * events (that are triggered by VTK events). The vtkSlicerAngleRepresentation is
+ * events (that are triggered by VTK events). The vtkSlicerAngleRepresentations are
  * responsible for all placement of the points, and
- * manipulation. This is done through a main helper class:
- * vtkPointPlacer. The representation is also
+ * line manipulation. This is done through a main helper class:
+ * vtkFocalPlanePointPlacer. The representation is also
  * responsible for drawing the points.
  *
  * @par Event Bindings:
@@ -34,13 +34,13 @@
  * <pre>
  *   LeftButtonPressEvent - triggers a Select event
  *   Alt + LeftButtonPressEvent - triggers a Rotate event
- *   MiddleButtonPressEvent - triggers a Translate event
+ *   MiddleButtonPressEvent - triggers a Shift event
  *   RightButtonPressEvent - triggers a Scale event
  *
  *   MouseMoveEvent - triggers a Move event
  *
  *   LeftButtonReleaseEvent - triggers an EndSelect event
- *   MiddleButtonReleaseEvent - triggers an EndTranslate event
+ *   MiddleButtonReleaseEvent - triggers an EndShift event
  *   RightButtonReleaseEvent - triggers an EndScale event
  *
  *   LeftButtonDoubleClickEvent - triggers an PickOne event
@@ -57,12 +57,10 @@
  * class's vtkWidgetEventTranslator. This class translates VTK events
  * into the vtkSlicerAngleWidget's widget events:
  * <pre>
- *   vtkWidgetEvent::Select
+ *   vtkWidgetEvent::Translate
  *        widget state is:
- *            Start or
- *            Define: If we already have at least 3 nodes, change to Manipulate
- *                 state. Otherwise, attempt to add a node at this (X,Y)
- *                 location.
+ *            Start: Do nothing.
+ *            Define: Do nothing.
  *            Manipulate: If this (X,Y) location activates a node, then
  *                 set the current operation to Translate.
  *
@@ -71,7 +69,7 @@
  *        widget state is:
  *            Start: Do nothing.
  *            Define: Do nothing.
- *            Manipulate: If this (X,Y) location activates a node. The node or line
+ *            Manipulate: If this (X,Y) location activates a node or line. The node or line
  *                 will be selected, but no translate will be possible.
  *
  * @par Event Bindings:
@@ -83,7 +81,7 @@
  *                 set the current operation to Rotate.
  *
  * @par Event Bindings:
- *   vtkWidgetEvent::Translate
+ *   vtkWidgetEvent::Shift
  *        widget state is:
  *            Start: Do nothing.
  *            Define: Do nothing.
@@ -98,7 +96,6 @@
  *            Manipulate: If this (X,Y) location activates a node or the line, then
  *                 set the current operation to Scale.
  *
- *
  * @par Event Bindings:
  *   vtkWidgetEvent::Move
  *        widget state is:
@@ -110,23 +107,7 @@
  *                  a node at this (X,Y) location.
  *
  * @par Event Bindings:
- *   vtkWidgetEvent::EndSelect
- *        widget state is:
- *            Start or
- *            Define: Do nothing.
- *            Manipulate: If our operation is not Inactive, set it to
- *                  Inactive.
- *
- * @par Event Bindings:
- *   vtkWidgetEvent::EndTranslate
- *        widget state is:
- *            Start or
- *            Define: Do nothing.
- *            Manipulate: If our operation is not Inactive, set it to
- *                  Inactive.
- *
- * @par Event Bindings:
- *   vtkWidgetEvent::EndScale
+ *   vtkWidgetEvent::EndAction
  *        widget state is:
  *            Start or
  *            Define: Do nothing.
@@ -184,36 +165,22 @@ class vtkIdList;
 class VTK_SLICER_MARKUPS_MODULE_VTKWIDGETS_EXPORT vtkSlicerAngleWidget : public vtkSlicerAbstractWidget
 {
 public:
-  /**
-   * Instantiate this class.
-   */
+  /// Instantiate this class.
   static vtkSlicerAngleWidget *New();
 
-  //@{
-  /**
-   * Standard methods for a VTK class.
-   */
+  /// Standard methods for a VTK class.
   vtkTypeMacro(vtkSlicerAngleWidget,vtkSlicerAbstractWidget);
-  //@}
 
-  //@{
-  /**
-   * Create the default widget representation if one is not set.
-   */
+  /// Create the default widget representation if one is not set.
+  /// NOTE: the representation needs also a Markup object from the MRMLMarkupsNode
   virtual void CreateDefaultRepresentation() override;
-  //@}
+
+  /// Add a point to the current active Markup at input World coordiantes.
+  void AddPointToRepresentationFromWorldCoordinate(double worldCoordinates [3]);
 
 protected:
   vtkSlicerAngleWidget();
   ~vtkSlicerAngleWidget() override;
-
-  // Callback interface to capture evts when
-  // placing the widget.
-  static void SelectAction(vtkAbstractWidget*);
-  static void ScaleAction(vtkAbstractWidget*);
-  static void MoveAction(vtkAbstractWidget*);
-
-  virtual void AddNode();
 
 private:
   vtkSlicerAngleWidget(const vtkSlicerAngleWidget&) = delete;

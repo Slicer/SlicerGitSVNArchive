@@ -164,18 +164,6 @@ void vtkMRMLMarkupsLineNode::CreateDefaultDisplayNodes()
 }
 
 //-------------------------------------------------------------------------
-vtkMRMLMarkupsDisplayNode *vtkMRMLMarkupsLineNode::GetMarkupsDisplayNode()
-{
-  vtkMRMLDisplayNode *displayNode = this->GetDisplayNode();
-  if (displayNode &&
-      displayNode->IsA("vtkMRMLMarkupsDisplayNode"))
-    {
-    return vtkMRMLMarkupsDisplayNode::SafeDownCast(displayNode);
-    }
-  return nullptr;
-}
-
-//-------------------------------------------------------------------------
 int vtkMRMLMarkupsLineNode::AddPoint(double x, double y, double z)
 {
   return this->AddPoint(x, y, z, std::string());

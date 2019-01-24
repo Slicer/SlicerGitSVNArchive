@@ -53,7 +53,6 @@ vtkMRMLMarkupsNode::vtkMRMLMarkupsNode()
   this->MarkupLabelFormat = std::string("%N-%d");
   this->LastUsedControlPointNumber = 0;
   this->ActiveControlPoint = -1;
-  this->PlacingEnded = false;
 }
 
 //----------------------------------------------------------------------------
@@ -75,7 +74,6 @@ void vtkMRMLMarkupsNode::WriteXML(ostream& of, int nIndent)
     of << " MaximumNumberOfControlPoints=\"" << this->MaximumNumberOfControlPoints << "\"";
     }
   of << " ActiveControlPoint=\"" << this->ActiveControlPoint << "\"";
-  of << " PlacingEnded=\"" << this->PlacingEnded << "\"";
 
   of << " markupLabelFormat=\"" << this->MarkupLabelFormat.c_str() << "\"";
 
@@ -122,10 +120,6 @@ void vtkMRMLMarkupsNode::ReadXMLAttributes(const char** atts)
       {
       this->SetActiveControlPoint(atoi(attValue));
       }
-    else if (!strcmp(attName, "PlacingEnded"))
-      {
-      this->SetPlacingEnded(atoi(attValue));
-      }
     else if (!strcmp(attName, "markupLabelFormat"))
       {
       this->SetMarkupLabelFormat(attValue);
@@ -157,7 +151,6 @@ void vtkMRMLMarkupsNode::Copy(vtkMRMLNode *anode)
   this->SetMaximumNumberOfControlPoints(node->GetMaximumNumberOfControlPoints());
   this->TextList->DeepCopy(node->TextList);
   this->SetActiveControlPoint(node->GetActiveControlPoint());
-  this->SetPlacingEnded(node->GetPlacingEnded());
 
   // BUG: When fiducial nodes appear in scene views as of Slicer 4.1 the per
   // fiducial information (visibility, position etc) is saved to the file on
@@ -224,7 +217,6 @@ void vtkMRMLMarkupsNode::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "MarkupLabelFormat: " << this->MarkupLabelFormat.c_str() << "\n";
   os << indent << "NumberOfControlPoints: " << this->GetNumberOfControlPoints() << "\n";
   os << indent << "ActiveControlPoint: " << this->ActiveControlPoint << "\n";
-  os << indent << "PlacingEnded: " << this->PlacingEnded << "\n";
 
   for (int controlPointIndex = 0; controlPointIndex < this->GetNumberOfControlPoints(); controlPointIndex++)
     {
@@ -405,6 +397,18 @@ void vtkMRMLMarkupsNode::SetLocked(int locked)
   this->Locked = locked;
 
   this->InvokeCustomModifiedEvent(vtkMRMLMarkupsNode::LockModifiedEvent);
+}
+
+//---------------------------------------------------------------------------
+vtkMRMLMarkupsDisplayNode *vtkMRMLMarkupsNode::GetMarkupsDisplayNode()
+{
+  vtkMRMLDisplayNode *displayNode = this->GetDisplayNode();
+  if (displayNode &&
+      displayNode->IsA("vtkMRMLMarkupsDisplayNode"))
+    {
+    return vtkMRMLMarkupsDisplayNode::SafeDownCast(displayNode);
+    }
+  return nullptr;
 }
 
 //---------------------------------------------------------------------------

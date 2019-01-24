@@ -262,7 +262,7 @@ public:
 
   /// Specify tolerance for performing pick operations of points
   /// (by the locator, see ActivateNode).
-  /// Tolerance is defined in temrs of percentage of the handle size.
+  /// Tolerance is defined in terms of percentage of the handle size.
   /// Default value is 0.5
   vtkSetMacro(Tolerance, double);
   vtkGetMacro(Tolerance, double);

@@ -45,7 +45,7 @@
 #include "vtkCellArray.h"
 #include "vtkFocalPlanePointPlacer.h"
 #include "vtkSlicerLineInterpolator.h"
-#include "vtkBezierSlicerLineInterpolator.h"
+#include "vtkLinearSlicerLineInterpolator.h"
 #include "vtkSphereSource.h"
 #include "vtkBox.h"
 #include "vtkIntArray.h"
@@ -89,7 +89,7 @@ vtkSlicerAbstractRepresentation::vtkSlicerAbstractRepresentation()
   this->ActiveCursorShape = nullptr;
 
   this->PointPlacer = vtkFocalPlanePointPlacer::New();
-  this->LineInterpolator = vtkBezierSlicerLineInterpolator::New();
+  this->LineInterpolator = vtkLinearSlicerLineInterpolator::New();
 
   this->FocalPoint = vtkPoints::New();
   this->FocalPoint->SetNumberOfPoints(100);

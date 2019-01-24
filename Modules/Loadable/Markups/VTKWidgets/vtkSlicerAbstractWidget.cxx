@@ -40,16 +40,13 @@ vtkSlicerAbstractWidget::vtkSlicerAbstractWidget()
   this->WidgetState      = vtkSlicerAbstractWidget::Start;
   this->CurrentHandle    = 0;
   this->FollowCursor     = false;
+  this->ManagesCursorOff();
 
   // These are the event callbacks supported by this widget
   this->CallbackMapper->SetCallbackMethod(vtkCommand::LeftButtonPressEvent,
                                           vtkEvent::NoModifier, 0, 0, nullptr,
                                           vtkWidgetEvent::Select,
                                           this, vtkSlicerAbstractWidget::SelectAction);
-  this->CallbackMapper->SetCallbackMethod(vtkCommand::LeftButtonPressEvent,
-                                          vtkEvent::AltModifier, 0, 0, nullptr,
-                                          vtkWidgetEvent::Rotate,
-                                          this, vtkSlicerAbstractWidget::RotateAction);
   this->CallbackMapper->SetCallbackMethod(vtkCommand::MiddleButtonPressEvent,
                                           vtkWidgetEvent::Translate,
                                           this, vtkSlicerAbstractWidget::TranslateAction);
@@ -69,13 +66,13 @@ vtkSlicerAbstractWidget::vtkSlicerAbstractWidget()
                                           this, vtkSlicerAbstractWidget::EndAction);
 
   this->CallbackMapper->SetCallbackMethod(vtkCommand::LeftButtonDoubleClickEvent,
-                                          vtkWidgetEvent::PickOne,
+                                          vtkWidgetEvent::Pick,
                                           this, vtkSlicerAbstractWidget::PickAction);
   this->CallbackMapper->SetCallbackMethod(vtkCommand::MiddleButtonDoubleClickEvent,
-                                          vtkWidgetEvent::PickTwo,
+                                          vtkWidgetEvent::Pick,
                                           this, vtkSlicerAbstractWidget::PickAction);
   this->CallbackMapper->SetCallbackMethod(vtkCommand::RightButtonDoubleClickEvent,
-                                          vtkWidgetEvent::PickThree,
+                                          vtkWidgetEvent::Pick,
                                           this, vtkSlicerAbstractWidget::PickAction);
 
   this->CallbackMapper->SetCallbackMethod(vtkCommand::KeyPressEvent,
@@ -453,7 +450,9 @@ void vtkSlicerAbstractWidget::PickAction(vtkAbstractWidget *w)
     return;
     }
 
-  int state = rep->GetInteractionState();
+  int X = self->Interactor->GetEventPosition()[0];
+  int Y = self->Interactor->GetEventPosition()[1];
+  int state = rep->ComputeInteractionState(X, Y);
   self->SetCursor(state != vtkSlicerAbstractRepresentation::Outside);
   if (state == vtkSlicerAbstractRepresentation::OnControlPoint)
     {

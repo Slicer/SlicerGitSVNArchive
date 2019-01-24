@@ -69,6 +69,9 @@ typedef struct
 ///
 /// \sa vtkMRMLMarkupsDisplayNode
 /// \ingroup Slicer_QtModules_Markups
+
+class vtkMRMLMarkupsDisplayNode;
+
 class  VTK_SLICER_MARKUPS_MODULE_MRML_EXPORT vtkMRMLMarkupsNode : public vtkMRMLDisplayableNode
 {
   /// Make the storage node a friend so that ReadDataInternal can set the ControlPoint ids
@@ -174,6 +177,9 @@ public:
   /// Get/Set the Locked property on the markupNode.
   /// If set to 1 then parameters should not be changed
   vtkBooleanMacro(Locked, int);
+
+  /// Return a cast display node, returns null if none
+  vtkMRMLMarkupsDisplayNode *GetMarkupsDisplayNode();
 
   /// Return true if n is a valid control point, false otherwise
   bool ControlPointExists(int n);
@@ -368,11 +374,6 @@ public:
   vtkSetMacro(MaximumNumberOfControlPoints, int);
   vtkGetMacro(MaximumNumberOfControlPoints, int);
 
-  /// Utily variable to use for the Line and Angle widget
-  /// for which the ending is not giving by the right click.
-  vtkSetMacro(PlacingEnded, bool);
-  vtkGetMacro(PlacingEnded, bool);
-
 protected:
   vtkMRMLMarkupsNode();
   ~vtkMRMLMarkupsNode();
@@ -397,10 +398,6 @@ private:
 
   // current active point (hovered by the mouse)
   int ActiveControlPoint;
-
-  // utily variable to use for the Line and Angle widget
-  // for which the ending is not giving by the right click.
-  bool PlacingEnded;
 
   // Locks all the points and GUI
   int Locked;
