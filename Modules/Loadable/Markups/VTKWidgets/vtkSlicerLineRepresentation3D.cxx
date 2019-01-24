@@ -298,12 +298,10 @@ void vtkSlicerLineRepresentation3D::BuildRepresentation()
     this->LineMapper->SetRelativeCoincidentTopologyPointOffsetParameter(-1);
     }
 
-  double scale = this->CalculateViewScaleFactor();
-
-  this->Glypher->SetScaleFactor(scale * this->HandleSize);
-  this->SelectedGlypher->SetScaleFactor(scale * this->HandleSize);
-  this->ActiveGlypher->SetScaleFactor(scale * this->HandleSize);
-   this->TubeFilter->SetRadius(scale * this->HandleSize * 0.125);
+  this->Glypher->SetScaleFactor(this->HandleSize);
+  this->SelectedGlypher->SetScaleFactor(this->HandleSize);
+  this->ActiveGlypher->SetScaleFactor(this->HandleSize);
+   this->TubeFilter->SetRadius(this->HandleSize * 0.125);
 
   int numPoints = this->GetNumberOfNodes();
   int ii;

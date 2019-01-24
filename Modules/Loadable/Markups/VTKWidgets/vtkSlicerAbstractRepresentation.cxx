@@ -69,8 +69,8 @@ vtkSlicerAbstractRepresentation::vtkSlicerAbstractRepresentation()
 {
   this->ActiveControl            = -3;
 
-  this->PixelTolerance           = 0;
-  this->Tolerance                = 0.001;
+  this->Tolerance                = 0.5;
+  this->PixelTolerance           = 1;
   this->PointPlacer              = nullptr;
   this->LineInterpolator         = nullptr;
   this->Locator                  = nullptr;
@@ -372,14 +372,10 @@ int vtkSlicerAbstractRepresentation::ActivateNode(double displayPos[2])
 {
   this->BuildLocator();
 
-  // Find closest node to this display pos that
-  // is within PixelTolerance. PixelTolerance is calculated as
-  // a percentage (this->Tolerance) of the size of the window diagonal
   double dPos[3] = {displayPos[0],displayPos[1],0};
 
   double scale = this->CalculateViewScaleFactor();
-
-  this->PixelTolerance = scale * this->HandleSize * this->Tolerance  * 500.;
+  this->PixelTolerance = (this->HandleSize + this->HandleSize * this->Tolerance) * scale;
   double closestDistance2 = VTK_DOUBLE_MAX;
   int closestNode = static_cast<int> (this->Locator->FindClosestPointWithinRadius(
     this->PixelTolerance, dPos, closestDistance2));

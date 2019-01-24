@@ -417,32 +417,6 @@ vtkPolyData *vtkSlicerAbstractRepresentation3D::GetActiveCursorShape()
 }
 
 //----------------------------------------------------------------------
-int vtkSlicerAbstractRepresentation3D::ActivateNode(double displayPos[2])
-{
-  this->BuildLocator();
-
-  // Find closest node to this display pos that
-  // is within PixelTolerance. PixelTolerance is calculated as
-  // a percentage (this->Tolerance) of the size of the window diagonal
-  double dPos[3] = {displayPos[0],displayPos[1],0};
-
-  double scale = this->CalculateViewScaleFactor();
-
-  this->PixelTolerance = scale * scale * this->HandleSize * this->Tolerance  * 500. * 1.39;
-  double closestDistance2 = VTK_DOUBLE_MAX;
-  int closestNode = static_cast<int> (this->Locator->FindClosestPointWithinRadius(
-    this->PixelTolerance, dPos, closestDistance2));
-
-  if (closestNode != this->GetActiveNode() &&
-      ((closestNode != -1 && !this->GetNthNodeLocked(closestNode)) || closestNode == -1  ))
-    {
-    this->SetActiveNode(closestNode);
-    this->NeedToRender = 1;
-    }
-  return (this->GetActiveNode() >= 0);
-}
-
-//----------------------------------------------------------------------
 void vtkSlicerAbstractRepresentation3D::BuildRepresentation()
 {
   // Make sure we are up to date with any changes made in the placer
@@ -500,11 +474,9 @@ void vtkSlicerAbstractRepresentation3D::BuildRepresentation()
     this->ActiveMapper->SetRelativeCoincidentTopologyPointOffsetParameter(-1);
     }
 
-  double scale = this->CalculateViewScaleFactor();
-
-  this->Glypher->SetScaleFactor(scale * this->HandleSize);
-  this->SelectedGlypher->SetScaleFactor(scale * this->HandleSize);
-  this->ActiveGlypher->SetScaleFactor(scale * this->HandleSize);
+  this->Glypher->SetScaleFactor(this->HandleSize);
+  this->SelectedGlypher->SetScaleFactor(this->HandleSize);
+  this->ActiveGlypher->SetScaleFactor(this->HandleSize);
 
   int numPoints = this->GetNumberOfNodes();
   int ii;

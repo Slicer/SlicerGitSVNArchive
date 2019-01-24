@@ -256,16 +256,13 @@ public:
   /// on the widget at this location.
   virtual int AddNodeOnWidget(int X, int Y);
 
-  /// Specify tolerance for performing pick operations of points (trough a locator).
-  /// Tolerance is specified as fraction of rendering window size.
-  /// (Rendering window size is measured across diagonal in display pixel coordinates)
-  /// Default value is 0.001
+  /// Specify tolerance for performing pick operations of points
+  /// (by the locator, see ActivateNode).
+  /// Tolerance is defined in temrs of percentage of the handle size.
+  /// Default value is 0.5
   vtkSetMacro(Tolerance, double);
   vtkGetMacro(Tolerance, double);
 
-  /// The tolerance used to pick points in pixel.
-  /// Calculated from the tolerance value.
-  vtkGetMacro(PixelTolerance,int);
 
   /// Give an inter which provides
   vtkGetMacro(ActiveControl,int);
@@ -374,9 +371,8 @@ protected:
   vtkWeakPointer<vtkMRMLMarkupsNode> MarkupsNode;
 
   // Selection tolerance for the picking of points
-  double PixelTolerance;
   double Tolerance;
-
+  double PixelTolerance;
   int ActiveControl;
 
   vtkPointPlacer             *PointPlacer;
