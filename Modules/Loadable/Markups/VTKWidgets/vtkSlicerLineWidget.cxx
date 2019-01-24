@@ -102,5 +102,3 @@ void vtkSlicerLineWidget::AddPointToRepresentationFromWorldCoordinate(double wor
     rep->AddNodeAtWorldPosition(worldCoordinates);
     }
 }
-
-

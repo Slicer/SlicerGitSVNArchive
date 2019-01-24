@@ -477,6 +477,7 @@ int vtkSlicerLineRepresentation3D::ComputeInteractionState(int X, int Y, int vtk
     {
     this->InteractionState = vtkSlicerAbstractRepresentation::Outside;
     }
+
   this->NeedToRenderOn();
   return this->InteractionState;
 }

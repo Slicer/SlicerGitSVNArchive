@@ -97,6 +97,10 @@ public:
   //@}
 
   /// Get/Set the active node.
+  /// If index is from 0 to N it indicates the active point index.
+  /// If is -1 indicates that nothing is selected.
+  /// If is -2 indicates that a line is selected.
+  /// If is -3 indicates that a centroid is selected.
   virtual int GetActiveNode();
   virtual void SetActiveNode(int index);
 

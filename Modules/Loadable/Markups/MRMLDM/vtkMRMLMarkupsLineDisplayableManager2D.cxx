@@ -582,7 +582,6 @@ bool vtkMRMLMarkupsLineDisplayableManager2D::IsPointDisplayableOnSlice(vtkMRMLMa
     }
 
   bool showPoint = true;
-  bool inViewport = false;
 
   // allow annotations to appear only in designated viewers
   vtkMRMLDisplayNode *displayNode = node->GetDisplayNode();
@@ -710,34 +709,7 @@ bool vtkMRMLMarkupsLineDisplayableManager2D::IsPointDisplayableOnSlice(vtkMRMLMa
       }
     }
 
-  // -----------------------------------------
-  // special cases when the slices get panned:
-
-  // if all of the controlpoints are outside the viewport coordinates, the widget should not be shown
-  // if one controlpoint is inside the viewport coordinates, the widget should be shown
-
-  // we need to check if we are inside the viewport
-  double coords[2] = {displayCoordinates[0], displayCoordinates[1]};
-
-  vtkRenderer* pokedRenderer = this->GetInteractor()->
-    FindPokedRenderer(static_cast<int>(coords[0]), static_cast<int>(coords[1]));
-  if (!pokedRenderer)
-    {
-    vtkErrorMacro("IsWidgetDisplayableOnSlice: Could not find the poked renderer!")
-    return false;
-    }
-
-  pokedRenderer->DisplayToNormalizedDisplay(coords[0],coords[1]);
-  pokedRenderer->NormalizedDisplayToViewport(coords[0],coords[1]);
-  pokedRenderer->ViewportToNormalizedViewport(coords[0],coords[1]);
-
-  if ((coords[0]>0.0) && (coords[0]<1.0) && (coords[1]>0.0) && (coords[1]<1.0))
-    {
-    // current point is inside of view
-    inViewport = true;
-    }
-
-  return showPoint && inViewport;
+  return showPoint;
 }
 
 //---------------------------------------------------------------------------

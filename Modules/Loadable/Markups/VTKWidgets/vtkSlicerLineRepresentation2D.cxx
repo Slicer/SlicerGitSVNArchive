@@ -345,9 +345,24 @@ int vtkSlicerLineRepresentation2D::ComputeInteractionState(int X, int Y, int vtk
     return this->InteractionState;
     }
 
+  if (this->MarkupsNode == nullptr)
+    {
+    this->InteractionState = vtkSlicerAbstractRepresentation::Outside;
+    return this->InteractionState;
+    }
+
+  this->MarkupsNode->DisableModifiedEventOn();
   if (this->ActivateNode(X, Y))
     {
-    this->InteractionState = vtkSlicerAbstractRepresentation::OnControlPoint;
+    if (this->pointsVisibilityOnSlice->GetValue(this->GetActiveNode()))
+      {
+      this->InteractionState = vtkSlicerAbstractRepresentation::OnControlPoint;
+      }
+    else
+      {
+      this->SetActiveNode(-1);
+      this->InteractionState = vtkSlicerAbstractRepresentation::Outside;
+      }
     }
   //else if (this->GetAssemblyPath(X, Y, 0, this->LinePicker)) // poor perfomances when widgets > 5
   else if (this->LinePicker->Pick(X, Y, 0, this->Renderer)) // produce many rendering flickering when < 10
@@ -359,6 +374,9 @@ int vtkSlicerLineRepresentation2D::ComputeInteractionState(int X, int Y, int vtk
     {
     this->InteractionState = vtkSlicerAbstractRepresentation::Outside;
     }
+  this->MarkupsNode->DisableModifiedEventOff();
+  this->MarkupsNode->Modified();
+
   this->NeedToRenderOn();
   return this->InteractionState;
 }

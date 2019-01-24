@@ -884,14 +884,32 @@ void vtkSlicerAbstractRepresentation2D::BuildRepresentation()
 //----------------------------------------------------------------------
 int vtkSlicerAbstractRepresentation2D::ComputeInteractionState(int X, int Y, int vtkNotUsed(modified))
 {
+  if (this->MarkupsNode == nullptr)
+    {
+    this->InteractionState = vtkSlicerAbstractRepresentation::Outside;
+    return this->InteractionState;
+    }
+
+  this->MarkupsNode->DisableModifiedEventOn();
   if (this->ActivateNode(X, Y))
     {
-    this->InteractionState = vtkSlicerAbstractRepresentation::OnControlPoint;
+    if (this->pointsVisibilityOnSlice->GetValue(this->GetActiveNode()))
+      {
+      this->InteractionState = vtkSlicerAbstractRepresentation::OnControlPoint;
+      }
+    else
+      {
+      this->SetActiveNode(-1);
+      this->InteractionState = vtkSlicerAbstractRepresentation::Outside;
+      }
     }
   else
     {
     this->InteractionState = vtkSlicerAbstractRepresentation::Outside;
     }
+  this->MarkupsNode->DisableModifiedEventOff();
+  this->MarkupsNode->Modified();
+
   return this->InteractionState;
 }
 
