@@ -230,6 +230,7 @@ void vtkMRMLMarkupsDisplayableManagerHelper::SetAllWidgetsToManipulate()
       {
       // Set widget state to manipulate
       it->second->SetWidgetState(2);
+      // Reset also the representation status
       if (it->second->GetRepresentation())
         {
         it->second->GetRepresentation()->SetActiveNode(-1);

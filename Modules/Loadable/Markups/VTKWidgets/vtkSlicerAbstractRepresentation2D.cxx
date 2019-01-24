@@ -309,29 +309,10 @@ void vtkSlicerAbstractRepresentation2D::GetSliceToWorldCoordinates(double sliceP
     return;
     }
 
-  double xyz[3];
-  double windowWidth = this->Renderer->GetRenderWindow()->GetSize()[0];
-  double windowHeight = this->Renderer->GetRenderWindow()->GetSize()[1];
-
-  int numberOfColumns = this->SliceNode->GetLayoutGridColumns();
-  int numberOfRows = this->SliceNode->GetLayoutGridRows();
-
-  double tempX = slicePos[0] / windowWidth;
-  double tempY = (windowHeight - 1 - slicePos[1]) / windowHeight;
-
-  double z = floor(tempY*numberOfRows)*numberOfColumns + floor(tempX*numberOfColumns);
-
-  vtkRenderer* pokedRenderer = this->Renderer->GetRenderWindow()->GetInteractor()->
-                               FindPokedRenderer(static_cast<int>(slicePos[0]), static_cast<int>(slicePos[1]));
-
-  xyz[0] = slicePos[0] - (pokedRenderer ? pokedRenderer->GetOrigin()[0] : 0.);
-  xyz[1] = slicePos[1] - (pokedRenderer ? pokedRenderer->GetOrigin()[1] : 0.);
-  xyz[2] = z;
-
   double rasw[4], xyzw[4];
-  xyzw[0] = xyz[0];
-  xyzw[1] = xyz[1];
-  xyzw[2] = xyz[2];
+  xyzw[0] = slicePos[0] - this->Renderer->GetOrigin()[0];
+  xyzw[1] = slicePos[1] - this->Renderer->GetOrigin()[1];
+  xyzw[2] = 0.;
   xyzw[3] = 1.0;
 
   this->SliceNode->GetXYToRAS()->MultiplyPoint(xyzw, rasw);

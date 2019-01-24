@@ -337,10 +337,6 @@ void vtkMRMLMarkupsLineDisplayableManager3D::OnInteractorStyleEvent(int eventid)
     {
     vtkDebugMacro("Got a key release event");
     }
-  else if (eventid == vtkCommand::EnterEvent || eventid == vtkCommand::ExitEvent)
-    {
-    this->RequestRender();
-    }
 }
 
 //---------------------------------------------------------------------------

@@ -1036,6 +1036,10 @@ void vtkMRMLMarkupsDisplayableManager2D::OnInteractorStyleEvent(int eventid)
       this->OnClickInRenderWindowGetCoordinates();
       }
     }
+  else if (eventid == vtkCommand::EnterEvent || eventid == vtkCommand::ExitEvent)
+    {
+    this->RequestRender();
+    }
 }
 
 //---------------------------------------------------------------------------
