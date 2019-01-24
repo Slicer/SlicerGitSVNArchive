@@ -65,6 +65,9 @@ public:
   /// Update all widget status
   void UpdateAllWidgetsFromInteractionNode(vtkMRMLInteractionNode* interactionNode);
 
+  /// set all widget status to manipulate
+  void SetAllWidgetsToManipulate();
+
   /// Keep track of the mapping between widgets and nodes
   void RecordWidgetForNode(vtkSlicerAbstractWidget* widget, vtkMRMLMarkupsNode *node);
 

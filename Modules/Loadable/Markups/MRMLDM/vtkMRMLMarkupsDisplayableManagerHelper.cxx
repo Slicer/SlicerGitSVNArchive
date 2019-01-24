@@ -219,6 +219,27 @@ void vtkMRMLMarkupsDisplayableManagerHelper::UpdateAllWidgetsFromInteractionNode
 }
 
 //---------------------------------------------------------------------------
+void vtkMRMLMarkupsDisplayableManagerHelper::SetAllWidgetsToManipulate()
+{
+  // loop through all widgets and update the widget status
+  for (WidgetsIt it = this->Widgets.begin();
+       it !=  this->Widgets.end();
+       ++it)
+    {
+    if (it->second)
+      {
+      // Set widget state to manipulate
+      it->second->SetWidgetState(2);
+      if (it->second->GetRepresentation())
+        {
+        it->second->GetRepresentation()->SetActiveNode(-1);
+        it->second->GetRepresentation()->SetInteractionState(0);
+        }
+      }
+    }
+}
+
+//---------------------------------------------------------------------------
 vtkSlicerAbstractWidget * vtkMRMLMarkupsDisplayableManagerHelper::GetWidget(vtkMRMLMarkupsNode * node)
 {
   if (!node)

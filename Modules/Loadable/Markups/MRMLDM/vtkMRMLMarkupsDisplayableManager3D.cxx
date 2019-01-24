@@ -304,6 +304,15 @@ void vtkMRMLMarkupsDisplayableManager3D::OnMRMLSceneEndClose()
 }
 
 //---------------------------------------------------------------------------
+void vtkMRMLMarkupsDisplayableManager3D::OnMRMLSceneEndImport()
+{
+ this->SetUpdateFromMRMLRequested(1);
+ this->UpdateFromMRMLScene();
+ this->Helper->SetAllWidgetsToManipulate();
+ this->RequestRender();
+}
+
+//---------------------------------------------------------------------------
 void vtkMRMLMarkupsDisplayableManager3D::UpdateFromMRMLScene()
 {
   this->UpdateFromMRML();
