@@ -531,8 +531,8 @@ void vtkSlicerAngleRepresentation3D::BuildRepresentation()
     this->TextActor->SetTextProperty(this->ActiveTextProperty);
     }
   else if (!this->GetNthNodeSelected(0) ||
-           !this->GetNthNodeSelected(1) ||
-           (this->GetNumberOfNodes() == 2 && !this->GetNthNodeSelected(2)))
+           (this->GetNumberOfNodes() > 1 && !this->GetNthNodeSelected(1)) ||
+           (this->GetNumberOfNodes() > 2 && !this->GetNthNodeSelected(2)))
     {
     this->LineActor->SetProperty(this->Property);
     this->ArcActor->SetProperty(this->Property);
