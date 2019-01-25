@@ -197,60 +197,25 @@ class vtkIdList;
 class VTK_SLICER_MARKUPS_MODULE_VTKWIDGETS_EXPORT vtkSlicerCurveWidget : public vtkSlicerAbstractWidget
 {
 public:
-  /**
-   * Instantiate this class.
-   */
+  /// Instantiate this class.
   static vtkSlicerCurveWidget *New();
 
-  //@{
-  /**
-   * Standard methods for a VTK class.
-   */
+  /// Standard methods for a VTK class.
   vtkTypeMacro(vtkSlicerCurveWidget,vtkSlicerAbstractWidget);
-  //@}
 
-  //@{
-  /**
-   * Create the default widget representation if one is not set.
-   */
+  /// Create the default widget representation if one is not set.
   virtual void CreateDefaultRepresentation() override;
-  //@}
 
-  //@{
-  /**
-   * If true, force to have always a closed loop
-   */
-  vtkSetMacro( ClosedLoop, vtkTypeBool );
-  vtkGetMacro( ClosedLoop, vtkTypeBool );
-  vtkBooleanMacro( ClosedLoop, vtkTypeBool );
-  //@}
-
-  //@{
-  /**
-   * If ClosedLoop is off and ForceLoopOpen is on,
-   * the loop will be forced to be open even if the user try to place
-   * the last point over the first point.
-   */
-  vtkSetMacro( ForceLoopOpen, vtkTypeBool );
-  vtkGetMacro( ForceLoopOpen, vtkTypeBool );
-  vtkBooleanMacro( ForceLoopOpen, vtkTypeBool );
-  //@}
+  /// Add a point to the current active Markup at input World coordiantes.
+  int AddPointToRepresentationFromWorldCoordinate(double worldCoordinates [3], bool persistence = false);
 
 protected:
   vtkSlicerCurveWidget();
   ~vtkSlicerCurveWidget() override;
 
-  vtkTypeBool ClosedLoop;
-  vtkTypeBool ForceLoopOpen;
-
-  // Callback interface to capture evts when
+  // Callback interface to capture evets when
   // placing the widget.
-  static void SelectAction(vtkAbstractWidget*);
-  static void AddPointAction(vtkAbstractWidget*);
-  static void AddFinalPointAction(vtkAbstractWidget*);
-  static void MoveAction(vtkAbstractWidget*);
-
-  virtual void AddNode();
+  static void AddPointOnCurveAction(vtkAbstractWidget*);
 
 private:
   vtkSlicerCurveWidget(const vtkSlicerCurveWidget&) = delete;

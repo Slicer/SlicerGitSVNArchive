@@ -67,12 +67,9 @@
 vtkCxxSetObjectMacro(vtkSlicerAbstractRepresentation, PointPlacer, vtkPointPlacer);
 vtkCxxSetObjectMacro(vtkSlicerAbstractRepresentation, LineInterpolator, vtkSlicerLineInterpolator);
 
-
 //----------------------------------------------------------------------
 vtkSlicerAbstractRepresentation::vtkSlicerAbstractRepresentation()
 {
-  this->ActiveControl            = -3;
-
   this->Tolerance                = 0.5;
   this->PixelTolerance           = 1;
   this->PointPlacer              = nullptr;
@@ -93,7 +90,6 @@ vtkSlicerAbstractRepresentation::vtkSlicerAbstractRepresentation()
   this->ActiveCursorShape = nullptr;
 
   this->PointPlacer = vtkFocalPlanePointPlacer::New();
-  this->LineInterpolator = vtkLinearSlicerLineInterpolator::New();
 
   this->TextProperty = vtkTextProperty::New();
   this->TextProperty->SetFontSize(15);
@@ -276,8 +272,7 @@ vtkSlicerAbstractRepresentation::vtkSlicerAbstractRepresentation()
 //----------------------------------------------------------------------
 vtkSlicerAbstractRepresentation::~vtkSlicerAbstractRepresentation()
 {
-  this->SetPointPlacer(nullptr);
-  this->SetLineInterpolator(nullptr);
+  this->PointPlacer->Delete();
 
   if (this->Locator)
     {

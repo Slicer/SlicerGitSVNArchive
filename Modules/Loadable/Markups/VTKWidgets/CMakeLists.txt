@@ -26,10 +26,12 @@ set(${KIT}_SRCS
   vtkSlicerAngleRepresentation3D.h
   vtkSlicerAngleWidget.cxx
   vtkSlicerAngleWidget.h
-  #vtkSlicerCurveRepresentation.cxx
-  #vtkSlicerCurveRepresentation.h
-  #vtkSlicerCurveWidget.cxx
-  #vtkSlicerCurveWidget.h
+  vtkSlicerCurveRepresentation2D.cxx
+  vtkSlicerCurveRepresentation2D.h
+  vtkSlicerCurveRepresentation3D.cxx
+  vtkSlicerCurveRepresentation3D.h
+  vtkSlicerCurveWidget.cxx
+  vtkSlicerCurveWidget.h
   vtkSlicerLineRepresentation3D.cxx
   vtkSlicerLineRepresentation3D.h
   vtkSlicerLineRepresentation2D.cxx

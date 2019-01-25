@@ -44,7 +44,7 @@
 #include "vtkPoints.h"
 #include "vtkCellArray.h"
 #include "vtkFocalPlanePointPlacer.h"
-#include "vtkBezierSlicerLineInterpolator.h"
+#include "vtkLinearSlicerLineInterpolator.h"
 #include "vtkSphereSource.h"
 #include "vtkPropPicker.h"
 #include "vtkAppendPolyData.h"
@@ -62,6 +62,8 @@ vtkStandardNewMacro(vtkSlicerAngleRepresentation2D);
 //----------------------------------------------------------------------
 vtkSlicerAngleRepresentation2D::vtkSlicerAngleRepresentation2D()
 {
+  this->LineInterpolator = vtkLinearSlicerLineInterpolator::New();
+
   this->Line = vtkPolyData::New();
   this->Arc = vtkArcSource::New();
   this->Arc->SetResolution(30);
@@ -115,6 +117,8 @@ vtkSlicerAngleRepresentation2D::vtkSlicerAngleRepresentation2D()
 //----------------------------------------------------------------------
 vtkSlicerAngleRepresentation2D::~vtkSlicerAngleRepresentation2D()
 {
+  this->LineInterpolator->Delete();
+
   this->Line->Delete();
   this->Arc->Delete();
   this->LineMapper->Delete();
@@ -278,7 +282,7 @@ void vtkSlicerAngleRepresentation2D::RotateWidget(double eventPos[2])
 void vtkSlicerAngleRepresentation2D::BuildLines()
 {
   vtkNew<vtkPoints> points;
-  vtkNew<vtkCellArray> Line;
+  vtkNew<vtkCellArray> line;
 
   int i, j;
   vtkIdType index = 0;
@@ -316,12 +320,12 @@ void vtkSlicerAngleRepresentation2D::BuildLines()
         }
       }
 
-    Line->InsertNextCell(numLine, lineIndices);
+    line->InsertNextCell(numLine, lineIndices);
     delete [] lineIndices;
     }
 
   this->Line->SetPoints(points);
-  this->Line->SetLines(Line);
+  this->Line->SetLines(line);
 
   // Build Arc
   if (this->GetNumberOfNodes() != 3)

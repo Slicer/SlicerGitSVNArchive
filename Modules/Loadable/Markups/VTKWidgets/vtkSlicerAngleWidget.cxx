@@ -17,7 +17,7 @@
 =========================================================================*/
 
 #include "vtkSlicerAngleWidget.h"
-#include "vtkSlicerLineRepresentation3D.h"
+#include "vtkSlicerAngleRepresentation3D.h"
 #include "vtkCommand.h"
 #include "vtkCallbackCommand.h"
 #include "vtkRenderWindowInteractor.h"
@@ -59,7 +59,7 @@ vtkSlicerAngleWidget::~vtkSlicerAngleWidget()
 //----------------------------------------------------------------------
 void vtkSlicerAngleWidget::CreateDefaultRepresentation()
 {
-  vtkSlicerLineRepresentation3D *rep = vtkSlicerLineRepresentation3D::New();
+  vtkSlicerAngleRepresentation3D *rep = vtkSlicerAngleRepresentation3D::New();
   rep->SetRenderer(this->GetCurrentRenderer());
   this->SetRepresentation(rep);
 }

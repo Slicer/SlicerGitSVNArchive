@@ -45,7 +45,6 @@
 #include "vtkPoints.h"
 #include "vtkCellArray.h"
 #include "vtkFocalPlanePointPlacer.h"
-#include "vtkBezierSlicerLineInterpolator.h"
 #include "vtkSphereSource.h"
 #include "vtkVolumePicker.h"
 #include "vtkPickingManager.h"

@@ -39,6 +39,7 @@
          <string>vtkMRMLMarkupsFiducialNode</string>
          <string>vtkMRMLMarkupsLineNode</string>
          <string>vtkMRMLMarkupsAngleNode</string>
+         <string>vtkMRMLMarkupsCurveNode</string>
         </stringlist>
        </property>
        <property name="baseName" stdset="0">

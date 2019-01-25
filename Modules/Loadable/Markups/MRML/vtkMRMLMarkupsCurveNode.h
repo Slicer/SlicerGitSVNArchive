@@ -15,8 +15,8 @@
 
 ==============================================================================*/
 
-#ifndef __vtkMRMLMarkupsAngleNode_h
-#define __vtkMRMLMarkupsAngleNode_h
+#ifndef __vtkMRMLMarkupsCurveNode_h
+#define __vtkMRMLMarkupsCurveNode_h
 
 // MRML includes
 #include "vtkMRMLDisplayableNode.h"
@@ -26,22 +26,22 @@
 #include "vtkMRMLMarkupsDisplayNode.h"
 #include "vtkMRMLMarkupsNode.h"
 
-/// \brief MRML node to represent an angle markup
-/// Angle Markups nodes contain three control points.
+/// \brief MRML node to represent an curve markup
+/// Curve Markups nodes contain N control points.
 /// Visualization parameters are set in the vtkMRMLMarkupsDisplayNode class.
 ///
 /// Markups is intended to be used for manual marking/editing of point positions.
 ///
 /// \ingroup Slicer_QtModules_Markups
-class  VTK_SLICER_MARKUPS_MODULE_MRML_EXPORT vtkMRMLMarkupsAngleNode : public vtkMRMLMarkupsNode
+class  VTK_SLICER_MARKUPS_MODULE_MRML_EXPORT vtkMRMLMarkupsCurveNode : public vtkMRMLMarkupsNode
 {
 public:
-  static vtkMRMLMarkupsAngleNode *New();
-  vtkTypeMacro(vtkMRMLMarkupsAngleNode,vtkMRMLMarkupsNode);
+  static vtkMRMLMarkupsCurveNode *New();
+  vtkTypeMacro(vtkMRMLMarkupsCurveNode,vtkMRMLMarkupsNode);
   /// Print out the node information to the output stream
   void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
-  virtual const char* GetIcon() VTK_OVERRIDE {return ":/Icons/MarkupsAngleMouseModePlace.png";}
+  virtual const char* GetIcon() VTK_OVERRIDE {return ":/Icons/MarkupsCurveMouseModePlace.png";}
 
   //--------------------------------------------------------------------------
   // MRMLNode methods
@@ -49,7 +49,7 @@ public:
 
   virtual vtkMRMLNode* CreateNodeInstance() VTK_OVERRIDE;
   /// Get node XML tag name (like Volume, Model)
-  virtual const char* GetNodeTagName() VTK_OVERRIDE {return "MarkupsAngle";}
+  virtual const char* GetNodeTagName() VTK_OVERRIDE {return "MarkupsCurve";}
 
   /// Read node attributes from XML file
   virtual void ReadXMLAttributes( const char** atts) VTK_OVERRIDE;
@@ -125,10 +125,10 @@ public:
   virtual void GetBounds(double bounds[6]) VTK_OVERRIDE;
 
 protected:
-  vtkMRMLMarkupsAngleNode();
-  ~vtkMRMLMarkupsAngleNode();
-  vtkMRMLMarkupsAngleNode(const vtkMRMLMarkupsAngleNode&);
-  void operator=(const vtkMRMLMarkupsAngleNode&);
+  vtkMRMLMarkupsCurveNode();
+  ~vtkMRMLMarkupsCurveNode();
+  vtkMRMLMarkupsCurveNode(const vtkMRMLMarkupsCurveNode&);
+  void operator=(const vtkMRMLMarkupsCurveNode&);
 
 };
 

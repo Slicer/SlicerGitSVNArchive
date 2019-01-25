@@ -16,7 +16,7 @@
 
 =========================================================================*/
 
-#include "vtkSlicerLineRepresentation2D.h"
+#include "vtkSlicerCurveRepresentation2D.h"
 #include "vtkCleanPolyData.h"
 #include "vtkOpenGLPolyDataMapper2D.h"
 #include "vtkActor2D.h"
@@ -44,25 +44,28 @@
 #include "vtkPoints.h"
 #include "vtkCellArray.h"
 #include "vtkFocalPlanePointPlacer.h"
-#include "vtkLinearSlicerLineInterpolator.h"
+#include "vtkBezierSlicerLineInterpolator.h"
 #include "vtkSphereSource.h"
 #include "vtkPropPicker.h"
 #include "vtkAppendPolyData.h"
 #include "vtkTubeFilter.h"
 #include "vtkStringArray.h"
 #include "vtkPickingManager.h"
+#include "vtkVectorText.h"
+#include "vtkOpenGLTextActor.h"
+#include "cmath"
 #include "vtkMRMLMarkupsDisplayNode.h"
 
-vtkStandardNewMacro(vtkSlicerLineRepresentation2D);
+vtkStandardNewMacro(vtkSlicerCurveRepresentation2D);
 
 //----------------------------------------------------------------------
-vtkSlicerLineRepresentation2D::vtkSlicerLineRepresentation2D()
+vtkSlicerCurveRepresentation2D::vtkSlicerCurveRepresentation2D()
 {
-  this->LineInterpolator = vtkLinearSlicerLineInterpolator::New();
+  this->LineInterpolator = vtkBezierSlicerLineInterpolator::New();
 
   this->Line = vtkPolyData::New();
   this->TubeFilter = vtkTubeFilter::New();
-  this->TubeFilter->SetInputData(Line);
+  this->TubeFilter->SetInputData(this->Line);
   this->TubeFilter->SetNumberOfSides(20);
   this->TubeFilter->SetRadius(1);
 
@@ -83,11 +86,11 @@ vtkSlicerLineRepresentation2D::vtkSlicerLineRepresentation2D()
   this->appendActors->AddInputData(this->CursorShape);
   this->appendActors->AddInputData(this->SelectedCursorShape);
   this->appendActors->AddInputData(this->ActiveCursorShape);
-  this->appendActors->AddInputData(this->Line);
+  this->appendActors->AddInputData(this->TubeFilter->GetOutput());
 }
 
 //----------------------------------------------------------------------
-vtkSlicerLineRepresentation2D::~vtkSlicerLineRepresentation2D()
+vtkSlicerCurveRepresentation2D::~vtkSlicerCurveRepresentation2D()
 {
   this->LineInterpolator->Delete();
 
@@ -100,7 +103,7 @@ vtkSlicerLineRepresentation2D::~vtkSlicerLineRepresentation2D()
 }
 
 //----------------------------------------------------------------------
-void vtkSlicerLineRepresentation2D::TranslateWidget(double eventPos[2])
+void vtkSlicerCurveRepresentation2D::TranslateWidget(double eventPos[2])
 {
   // If any node is locked return
   for (int i = 0; i < this->GetNumberOfNodes(); i++)
@@ -115,7 +118,7 @@ void vtkSlicerLineRepresentation2D::TranslateWidget(double eventPos[2])
 }
 
 //----------------------------------------------------------------------
-void vtkSlicerLineRepresentation2D::ScaleWidget(double eventPos[2])
+void vtkSlicerCurveRepresentation2D::ScaleWidget(double eventPos[2])
 {
   // If any node is locked return
   for (int i = 0; i < this->GetNumberOfNodes(); i++)
@@ -130,7 +133,7 @@ void vtkSlicerLineRepresentation2D::ScaleWidget(double eventPos[2])
 }
 
 //----------------------------------------------------------------------
-void vtkSlicerLineRepresentation2D::RotateWidget(double eventPos[2])
+void vtkSlicerCurveRepresentation2D::RotateWidget(double eventPos[2])
 {
   // If any node is locked return
   for (int i = 0; i < this->GetNumberOfNodes(); i++)
@@ -144,9 +147,58 @@ void vtkSlicerLineRepresentation2D::RotateWidget(double eventPos[2])
   this->Superclass::RotateWidget(eventPos);
 }
 
+//----------------------------------------------------------------------
+void vtkSlicerCurveRepresentation2D::BuildLines()
+{
+  vtkNew<vtkPoints> points;
+  vtkNew<vtkCellArray> line;
+
+  int i, j;
+  vtkIdType index = 0;
+
+  int numberOfNodes = this->GetNumberOfNodes();
+  int count = numberOfNodes;
+  for (i = 0; i < numberOfNodes; i++)
+    {
+    count += this->GetNumberOfIntermediatePoints(i);
+    }
+
+  points->SetNumberOfPoints(count);
+  vtkIdType numLine = count;
+  if (numLine > 0)
+    {
+    vtkIdType *lineIndices = new vtkIdType[numLine];
+
+    double pos[2];
+    for (i = 0; i < numberOfNodes; i++)
+      {
+      // Add the node
+      this->GetNthNodeDisplayPosition(i, pos);
+      points->InsertPoint(index, pos);
+      lineIndices[index] = index;
+      index++;
+
+      int numIntermediatePoints = this->GetNumberOfIntermediatePoints(i);
+
+      for (j = 0; j < numIntermediatePoints; j++)
+        {
+        this->GetIntermediatePointDisplayPosition(i, j, pos);
+        points->InsertPoint(index, pos);
+        lineIndices[index] = index;
+        index++;
+        }
+      }
+
+    line->InsertNextCell(numLine, lineIndices);
+    delete [] lineIndices;
+    }
+
+  this->Line->SetPoints(points);
+  this->Line->SetLines(line);
+}
 
 //----------------------------------------------------------------------
-void vtkSlicerLineRepresentation2D::BuildRepresentation()
+void vtkSlicerCurveRepresentation2D::BuildRepresentation()
 {
   // Make sure we are up to date with any changes made in the placer
   this->UpdateWidget(true);
@@ -200,7 +252,9 @@ void vtkSlicerLineRepresentation2D::BuildRepresentation()
     {
     this->LineActor->SetProperty(this->ActiveProperty);
     }
-  else if (!this->GetNthNodeSelected(0) || !this->GetNthNodeSelected(1))
+  else if (!this->GetNthNodeSelected(0) ||
+           (this->GetNumberOfNodes() > 1 && !this->GetNthNodeSelected(1)) ||
+           (this->GetNumberOfNodes() > 2 && !this->GetNthNodeSelected(2)))
     {
     this->LineActor->SetProperty(this->Property);
     }
@@ -211,7 +265,7 @@ void vtkSlicerLineRepresentation2D::BuildRepresentation()
 }
 
 //----------------------------------------------------------------------
-int vtkSlicerLineRepresentation2D::ComputeInteractionState(int X, int Y, int vtkNotUsed(modified))
+int vtkSlicerCurveRepresentation2D::ComputeInteractionState(int X, int Y, int vtkNotUsed(modified))
 {
   if (!this->MarkupsNode || this->MarkupsNode->GetLocked())
     {
@@ -249,7 +303,7 @@ int vtkSlicerLineRepresentation2D::ComputeInteractionState(int X, int Y, int vtk
 }
 
 //----------------------------------------------------------------------
-void vtkSlicerLineRepresentation2D::RegisterPickers()
+void vtkSlicerCurveRepresentation2D::RegisterPickers()
 {
   vtkPickingManager* pm = this->GetPickingManager();
   if (!pm)
@@ -260,57 +314,7 @@ void vtkSlicerLineRepresentation2D::RegisterPickers()
 }
 
 //----------------------------------------------------------------------
-void vtkSlicerLineRepresentation2D::BuildLines()
-{
-  vtkNew<vtkPoints> points;
-  vtkNew<vtkCellArray> line;
-
-  int i, j;
-  vtkIdType index = 0;
-
-  int numberOfNodes = this->GetNumberOfNodes();
-  int count = numberOfNodes;
-  for (i = 0; i < numberOfNodes; i++)
-    {
-    count += this->GetNumberOfIntermediatePoints(i);
-    }
-
-  points->SetNumberOfPoints(count);
-  vtkIdType numLine = count;
-  if (numLine > 0)
-    {
-    vtkIdType *lineIndices = new vtkIdType[numLine];
-
-    double pos[2];
-    for (i = 0; i < numberOfNodes; i++)
-      {
-      // Add the node
-      this->GetNthNodeDisplayPosition(i, pos);
-      points->InsertPoint(index, pos);
-      lineIndices[index] = index;
-      index++;
-
-      int numIntermediatePoints = this->GetNumberOfIntermediatePoints(i);
-
-      for (j = 0; j < numIntermediatePoints; j++)
-        {
-        this->GetIntermediatePointDisplayPosition(i, j, pos);
-        points->InsertPoint(index, pos);
-        lineIndices[index] = index;
-        index++;
-        }
-      }
-
-    line->InsertNextCell(numLine, lineIndices);
-    delete [] lineIndices;
-    }
-
-  this->Line->SetPoints(points);
-  this->Line->SetLines(line);
-}
-
-//----------------------------------------------------------------------
-vtkPolyData *vtkSlicerLineRepresentation2D::GetWidgetRepresentationAsPolyData()
+vtkPolyData *vtkSlicerCurveRepresentation2D::GetWidgetRepresentationAsPolyData()
 {
   this->appendActors->Update();
   return this->appendActors->GetOutput();
@@ -318,14 +322,14 @@ vtkPolyData *vtkSlicerLineRepresentation2D::GetWidgetRepresentationAsPolyData()
 
 
 //----------------------------------------------------------------------
-void vtkSlicerLineRepresentation2D::GetActors(vtkPropCollection *pc)
+void vtkSlicerCurveRepresentation2D::GetActors(vtkPropCollection *pc)
 {
   this->Superclass::GetActors(pc);
   this->LineActor->GetActors(pc);
 }
 
 //----------------------------------------------------------------------
-void vtkSlicerLineRepresentation2D::ReleaseGraphicsResources(
+void vtkSlicerCurveRepresentation2D::ReleaseGraphicsResources(
   vtkWindow *win)
 {
   this->Superclass::ReleaseGraphicsResources(win);
@@ -333,7 +337,7 @@ void vtkSlicerLineRepresentation2D::ReleaseGraphicsResources(
 }
 
 //----------------------------------------------------------------------
-int vtkSlicerLineRepresentation2D::RenderOverlay(vtkViewport *viewport)
+int vtkSlicerCurveRepresentation2D::RenderOverlay(vtkViewport *viewport)
 {
   int count=0;
   count = this->Superclass::RenderOverlay(viewport);
@@ -345,7 +349,7 @@ int vtkSlicerLineRepresentation2D::RenderOverlay(vtkViewport *viewport)
 }
 
 //-----------------------------------------------------------------------------
-int vtkSlicerLineRepresentation2D::RenderOpaqueGeometry(
+int vtkSlicerCurveRepresentation2D::RenderOpaqueGeometry(
   vtkViewport *viewport)
 {
   // Since we know RenderOpaqueGeometry gets called first, will do the
@@ -362,7 +366,7 @@ int vtkSlicerLineRepresentation2D::RenderOpaqueGeometry(
 }
 
 //-----------------------------------------------------------------------------
-int vtkSlicerLineRepresentation2D::RenderTranslucentPolygonalGeometry(
+int vtkSlicerCurveRepresentation2D::RenderTranslucentPolygonalGeometry(
   vtkViewport *viewport)
 {
   int count=0;
@@ -375,7 +379,7 @@ int vtkSlicerLineRepresentation2D::RenderTranslucentPolygonalGeometry(
 }
 
 //-----------------------------------------------------------------------------
-vtkTypeBool vtkSlicerLineRepresentation2D::HasTranslucentPolygonalGeometry()
+vtkTypeBool vtkSlicerCurveRepresentation2D::HasTranslucentPolygonalGeometry()
 {
   int result=0;
   result |= this->Superclass::HasTranslucentPolygonalGeometry();
@@ -387,7 +391,7 @@ vtkTypeBool vtkSlicerLineRepresentation2D::HasTranslucentPolygonalGeometry()
 }
 
 //----------------------------------------------------------------------
-double *vtkSlicerLineRepresentation2D::GetBounds()
+double *vtkSlicerCurveRepresentation2D::GetBounds()
 {
   this->appendActors->Update();
   return this->appendActors->GetOutput()->GetPoints() ?
@@ -395,7 +399,7 @@ double *vtkSlicerLineRepresentation2D::GetBounds()
 }
 
 //-----------------------------------------------------------------------------
-void vtkSlicerLineRepresentation2D::PrintSelf(ostream& os, vtkIndent indent)
+void vtkSlicerCurveRepresentation2D::PrintSelf(ostream& os, vtkIndent indent)
 {
   //Superclass typedef defined in vtkTypeMacro() found in vtkSetGet.h
   this->Superclass::PrintSelf(os, indent);
@@ -408,5 +412,4 @@ void vtkSlicerLineRepresentation2D::PrintSelf(ostream& os, vtkIndent indent)
     {
     os << indent << "Line Actor: (none)\n";
     }
-
 }

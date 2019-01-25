@@ -45,7 +45,7 @@
 #include "vtkPoints.h"
 #include "vtkCellArray.h"
 #include "vtkFocalPlanePointPlacer.h"
-#include "vtkBezierSlicerLineInterpolator.h"
+#include "vtkLinearSlicerLineInterpolator.h"
 #include "vtkSphereSource.h"
 #include "vtkPropPicker.h"
 #include "vtkPickingManager.h"
@@ -59,6 +59,8 @@ vtkStandardNewMacro(vtkSlicerLineRepresentation3D);
 //----------------------------------------------------------------------
 vtkSlicerLineRepresentation3D::vtkSlicerLineRepresentation3D()
 {
+  this->LineInterpolator = vtkLinearSlicerLineInterpolator::New();
+
   this->Line = vtkPolyData::New();
   this->TubeFilter = vtkTubeFilter::New();
   this->TubeFilter->SetInputData(Line);
@@ -92,6 +94,8 @@ vtkSlicerLineRepresentation3D::vtkSlicerLineRepresentation3D()
 //----------------------------------------------------------------------
 vtkSlicerLineRepresentation3D::~vtkSlicerLineRepresentation3D()
 {
+  this->LineInterpolator->Delete();
+
   this->Line->Delete();
   this->LineMapper->Delete();
   this->LineActor->Delete();
@@ -142,14 +146,14 @@ void vtkSlicerLineRepresentation3D::RotateWidget(double eventPos[2])
       }
     }
 
-  this->Superclass::ScaleWidget(eventPos);
+  this->Superclass::RotateWidget(eventPos);
 }
 
 //----------------------------------------------------------------------
 void vtkSlicerLineRepresentation3D::BuildLines()
 {
   vtkNew<vtkPoints> points;
-  vtkNew<vtkCellArray> Line;
+  vtkNew<vtkCellArray> line;
 
   int i, j;
   vtkIdType index = 0;
@@ -187,12 +191,12 @@ void vtkSlicerLineRepresentation3D::BuildLines()
         }
       }
 
-    Line->InsertNextCell(numLine, lineIndices);
+    line->InsertNextCell(numLine, lineIndices);
     delete [] lineIndices;
     }
 
   this->Line->SetPoints(points);
-  this->Line->SetLines(Line);
+  this->Line->SetLines(line);
 }
 
 //----------------------------------------------------------------------

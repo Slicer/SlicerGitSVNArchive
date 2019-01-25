@@ -12,6 +12,7 @@ set(${KIT}_SRCS
   vtkMRML${MODULE_NAME}FiducialNode.cxx
   vtkMRML${MODULE_NAME}LineNode.cxx
   vtkMRML${MODULE_NAME}AngleNode.cxx
+  vtkMRML${MODULE_NAME}CurveNode.cxx
   vtkMRML${MODULE_NAME}Node.cxx
   vtkMRML${MODULE_NAME}FiducialStorageNode.cxx
   )

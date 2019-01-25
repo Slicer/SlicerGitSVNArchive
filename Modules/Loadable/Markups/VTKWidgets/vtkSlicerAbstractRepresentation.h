@@ -115,7 +115,6 @@ public:
   /// If index is from 0 to N it indicates the active point index.
   /// If is -1 indicates that nothing is selected.
   /// If is -2 indicates that a line is selected.
-  /// If is -3 indicates that a centroid is selected.
   virtual int GetActiveNode();
   virtual void SetActiveNode(int index);
 
@@ -282,10 +281,6 @@ public:
   vtkSetMacro(Tolerance, double);
   vtkGetMacro(Tolerance, double);
 
-
-  /// Give an inter which provides
-  vtkGetMacro(ActiveControl,int);
-
   /// Used to communicate about the state of the representation
   enum {
     Outside = 0,
@@ -392,7 +387,6 @@ protected:
   // Selection tolerance for the picking of points
   double Tolerance;
   double PixelTolerance;
-  int ActiveControl;
 
   vtkPointPlacer             *PointPlacer;
   vtkSlicerLineInterpolator  *LineInterpolator;
