@@ -756,12 +756,26 @@ void vtkMRMLMarkupsDisplayableManager3D::OnInteractorStyleEvent(int eventid)
     if (this->GetInteractionNode()->GetCurrentInteractionMode() == vtkMRMLInteractionNode::Place &&
         this->GetInteractionNode()->GetPlaceModePersistence() == 1)
       {
-      this->OnClickInRenderWindowGetCoordinates();
+      // add point after is switched to no place
+      // the manager helper will take care to set the right status on the widgets
       this->GetInteractionNode()->SwitchToViewTransformMode();
+      this->OnClickInRenderWindowGetCoordinates();
       }
     }
-  else if (eventid == vtkCommand::EnterEvent || eventid == vtkCommand::ExitEvent)
+  else if (eventid == vtkCommand::EnterEvent)
     {
+    if (this->GetInteractionNode()->GetCurrentInteractionMode() == vtkMRMLInteractionNode::Place)
+      {
+      this->OnClickInRenderWindowGetCoordinates(vtkMRMLMarkupsDisplayableManager3D::AddPreview);
+      }
+    this->RequestRender();
+    }
+  else if (eventid == vtkCommand::LeaveEvent)
+    {
+    if (this->GetInteractionNode()->GetCurrentInteractionMode() == vtkMRMLInteractionNode::Place)
+      {
+      this->OnClickInRenderWindowGetCoordinates(vtkMRMLMarkupsDisplayableManager3D::RemovePreview);
+      }
     this->RequestRender();
     }
 }
@@ -810,7 +824,7 @@ vtkSlicerAbstractWidget * vtkMRMLMarkupsDisplayableManager3D::GetWidget(vtkMRMLM
 }
 
 //---------------------------------------------------------------------------
-void vtkMRMLMarkupsDisplayableManager3D::OnClickInRenderWindowGetCoordinates()
+void vtkMRMLMarkupsDisplayableManager3D::OnClickInRenderWindowGetCoordinates(int action /*= 0 */)
 {
 
   double x = this->GetInteractor()->GetEventPosition()[0];
@@ -819,7 +833,8 @@ void vtkMRMLMarkupsDisplayableManager3D::OnClickInRenderWindowGetCoordinates()
   double windowWidth = this->GetInteractor()->GetRenderWindow()->GetSize()[0];
   double windowHeight = this->GetInteractor()->GetRenderWindow()->GetSize()[1];
 
-  if (x < windowWidth && y < windowHeight)
+  if ((x < windowWidth && y < windowHeight) ||
+       action != vtkMRMLMarkupsDisplayableManager3D::RemovePreview)
     {
     const char *associatedNodeID = nullptr;
     // it's a 3D displayable manager and the click could have been on a node
@@ -895,9 +910,8 @@ void vtkMRMLMarkupsDisplayableManager3D::OnClickInRenderWindowGetCoordinates()
         }
       }
     vtkDebugMacro("associatedNodeID set to " << (associatedNodeID ? associatedNodeID : "NULL"));
-    this->OnClickInRenderWindow(x, y, associatedNodeID);
-    //this->Helper->UpdateLockedAllWidgetsFromNodes();
-  }
+    this->OnClickInRenderWindow(x, y, associatedNodeID, action);
+    }
 }
 
 //---------------------------------------------------------------------------
@@ -1069,7 +1083,9 @@ bool vtkMRMLMarkupsDisplayableManager3D::IsManageable(const char* nodeClassName)
 //---------------------------------------------------------------------------
 
 //---------------------------------------------------------------------------
-void vtkMRMLMarkupsDisplayableManager3D::OnClickInRenderWindow(double vtkNotUsed(x), double vtkNotUsed(y), const char * vtkNotUsed(associatedNodeID))
+void vtkMRMLMarkupsDisplayableManager3D::OnClickInRenderWindow(double vtkNotUsed(x), double vtkNotUsed(y),
+                                                               const char * vtkNotUsed(associatedNodeID),
+                                                               int vtkNotUsed(onlyPreview))
 {
   // The user clicked in the renderWindow
   vtkErrorMacro("OnClickInRenderWindow should be overloaded!");

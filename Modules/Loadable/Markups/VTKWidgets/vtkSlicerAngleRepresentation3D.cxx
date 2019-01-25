@@ -794,11 +794,11 @@ int vtkSlicerAngleRepresentation3D::ComputeInteractionState(int X, int Y, int vt
 {
   if (!this->MarkupsNode || this->MarkupsNode->GetLocked())
     {
-    // both points are not selected, do not perfom the picking and no active
     this->InteractionState = vtkSlicerAbstractRepresentation::Outside;
     return this->InteractionState;
     }
 
+  this->MarkupsNode->DisableModifiedEventOn();
   if (this->Superclass::Superclass::ActivateNode(X, Y))
     {
     this->InteractionState = vtkSlicerAbstractRepresentation::OnControlPoint;
@@ -813,6 +813,7 @@ int vtkSlicerAngleRepresentation3D::ComputeInteractionState(int X, int Y, int vt
     {
     this->InteractionState = vtkSlicerAbstractRepresentation::Outside;
     }
+  this->MarkupsNode->DisableModifiedEventOff();
 
   this->NeedToRenderOn();
   return this->InteractionState;

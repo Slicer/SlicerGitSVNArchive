@@ -611,11 +611,11 @@ int vtkSlicerAbstractRepresentation3D::ComputeInteractionState(int X, int Y, int
 {
   if (!this->MarkupsNode || this->MarkupsNode->GetLocked())
     {
-    // both points are not selected, do not perfom the picking and no active
     this->InteractionState = vtkSlicerAbstractRepresentation::Outside;
     return this->InteractionState;
     }
 
+  this->MarkupsNode->DisableModifiedEventOn();
   if (this->Superclass::ActivateNode(X, Y))
     {
     this->InteractionState = vtkSlicerAbstractRepresentation::OnControlPoint;
@@ -624,6 +624,8 @@ int vtkSlicerAbstractRepresentation3D::ComputeInteractionState(int X, int Y, int
     {
     this->InteractionState = vtkSlicerAbstractRepresentation::Outside;
     }
+  this->MarkupsNode->DisableModifiedEventOff();
+
   return this->InteractionState;
 }
 

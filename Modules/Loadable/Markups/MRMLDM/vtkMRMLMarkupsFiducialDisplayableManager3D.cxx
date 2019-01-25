@@ -201,7 +201,6 @@ void vtkMRMLMarkupsFiducialDisplayableManager3D::PrintSelf(ostream& os, vtkInden
 }
 
 //---------------------------------------------------------------------------
-/// Create a new widget.
 vtkSlicerAbstractWidget * vtkMRMLMarkupsFiducialDisplayableManager3D::CreateWidget(vtkMRMLMarkupsNode* node)
 {
   if (!node)
@@ -260,7 +259,6 @@ vtkSlicerAbstractWidget * vtkMRMLMarkupsFiducialDisplayableManager3D::CreateWidg
   }
 
 //---------------------------------------------------------------------------
-/// Tear down the widget creation
 void vtkMRMLMarkupsFiducialDisplayableManager3D::OnWidgetCreated(vtkSlicerAbstractWidget * widget, vtkMRMLMarkupsNode * node)
 {
   if (!widget)
@@ -289,7 +287,6 @@ void vtkMRMLMarkupsFiducialDisplayableManager3D::OnWidgetCreated(vtkSlicerAbstra
 }
 
 //---------------------------------------------------------------------------
-/// observe key press events
 void vtkMRMLMarkupsFiducialDisplayableManager3D::AdditionnalInitializeStep()
 {
   // don't add the key press event, as it triggers a crash on start up
@@ -339,16 +336,17 @@ void vtkMRMLMarkupsFiducialDisplayableManager3D::OnInteractorStyleEvent(int even
 }
 
 //---------------------------------------------------------------------------
-/// Create a markupsMRMLnode
-void vtkMRMLMarkupsFiducialDisplayableManager3D::OnClickInRenderWindow(double x, double y, const char *associatedNodeID)
+void vtkMRMLMarkupsFiducialDisplayableManager3D::OnClickInRenderWindow(double x, double y,
+                                                                       const char *associatedNodeID,
+                                                                       int action /*= 0 */)
 {
-  if (!this->IsCorrectDisplayableManager())
+  if (!this->IsCorrectDisplayableManager())// &&
+      //action != vtkMRMLMarkupsFiducialDisplayableManager3D::RemovePreview)
     {
     // jump out
     vtkDebugMacro("OnClickInRenderWindow: x = " << x << ", y = " << y << ", incorrect displayable manager, focus = " << this->Focus << ", jumping out");
     return;
     }
-
   // place the seed where the user clicked
   vtkDebugMacro("OnClickInRenderWindow: placing seed at " << x << ", " << y);
 
@@ -392,50 +390,65 @@ void vtkMRMLMarkupsFiducialDisplayableManager3D::OnClickInRenderWindow(double x,
     selectionNode->SetActivePlaceNodeID(activeFiducialNode->GetID());
     }
 
-  // if this was a one time place, go back to view transform mode
+  vtkSlicerPointsWidget *slicerWidget = vtkSlicerPointsWidget::SafeDownCast
+    (this->Helper->GetWidget(activeFiducialNode));
+  if (slicerWidget == nullptr)
+    {
+    return;
+    }
+
   vtkMRMLInteractionNode *interactionNode = this->GetInteractionNode();
-  if (interactionNode && interactionNode->GetPlaceModePersistence() != 1)
+  if (!interactionNode)
+    {
+    return;
+    }
+
+  // Check if the widget has been already place
+  // if yes, set again to define
+  if (interactionNode->GetCurrentInteractionMode() == vtkMRMLInteractionNode::Place &&
+      slicerWidget->GetWidgetState() == vtkSlicerPointsWidget::Manipulate)
+    {
+    slicerWidget->SetWidgetState(vtkSlicerPointsWidget::Define);
+    slicerWidget->SetFollowCursor(true);
+    slicerWidget->SetManagesCursor(false);
+    }
+
+  // save for undo
+  this->GetMRMLScene()->SaveStateForUndo();
+
+  if (action == vtkMRMLMarkupsFiducialDisplayableManager3D::AddPoint)
+    {
+    int pointIndex = slicerWidget->AddPointToRepresentationFromWorldCoordinate(worldCoordinates, interactionNode->GetPlaceModePersistence());
+    // is there a node associated with this?
+    if (associatedNodeID)
+      {
+      activeFiducialNode->SetNthFiducialAssociatedNodeID(pointIndex, associatedNodeID);
+      }
+    }
+  else if (action == vtkMRMLMarkupsFiducialDisplayableManager3D::AddPreview)
+    {
+    int pointIndex = slicerWidget->AddPreviewPointToRepresentationFromWorldCoordinate(worldCoordinates);
+    // is there a node associated with this?
+    if (associatedNodeID)
+      {
+      activeFiducialNode->SetNthFiducialAssociatedNodeID(pointIndex, associatedNodeID);
+      }
+    }
+  else if (action == vtkMRMLMarkupsFiducialDisplayableManager3D::RemovePreview)
+    {
+    slicerWidget->RemoveLastPreviewPointToRepresentation();
+    }
+
+  // if this was a one time place, go back to view transform mode
+  if (interactionNode->GetPlaceModePersistence() == 0 &&
+      slicerWidget->GetWidgetState() == vtkSlicerPointsWidget::Manipulate)
     {
     vtkDebugMacro("End of one time place, place mode persistence = " << interactionNode->GetPlaceModePersistence());
     interactionNode->SetCurrentInteractionMode(vtkMRMLInteractionNode::ViewTransform);
     }
 
-  // save for undo and add the node to the scene after any reset of the
-  // interaction node so that don't end up back in place mode
-  this->GetMRMLScene()->SaveStateForUndo();
-
-  int pointIndex = this->AddControlPoint(activeFiducialNode, worldCoordinates);
-  // is there a node associated with this?
-  if (associatedNodeID)
-    {
-    activeFiducialNode->SetNthFiducialAssociatedNodeID(pointIndex, associatedNodeID);
-    }
-
   // force update of widgets on other views
   activeFiducialNode->GetMarkupsDisplayNode()->Modified();
-}
-
-//---------------------------------------------------------------------------
-int vtkMRMLMarkupsFiducialDisplayableManager3D::AddControlPoint(vtkMRMLMarkupsFiducialNode *markupsNode,
-                                                                double worldCoordinates[4])
-{
-  vtkSlicerPointsWidget *slicerWidget = vtkSlicerPointsWidget::SafeDownCast
-    (this->Helper->GetWidget(markupsNode));
-  if (slicerWidget == nullptr)
-    {
-    return -1;
-    }
-
-  vtkMRMLInteractionNode *interactionNode = this->GetInteractionNode();
-  bool persistence = false;
-  if (interactionNode && interactionNode->GetPlaceModePersistence() == 1 &&
-      interactionNode->GetCurrentInteractionMode() == vtkMRMLInteractionNode::Place)
-    {
-    persistence = true;
-    }
-  slicerWidget->AddPointToRepresentationFromWorldCoordinate(worldCoordinates, persistence);
-
-  return markupsNode->GetNumberOfFiducials() - 1;
 }
 
 //---------------------------------------------------------------------------

@@ -177,8 +177,7 @@ public:
   void CreateDefaultRepresentation() VTK_OVERRIDE;
 
   /// Add a point to the current active Markup at input World coordiantes.
-  /// If persistence is true, the widget state remains to Define
-  void AddPointToRepresentationFromWorldCoordinate(double worldCoordinates [3], bool persistence = false);
+  int AddPointToRepresentationFromWorldCoordinate(double worldCoordinates [3], bool persistence = false);
 
 protected:
   vtkSlicerPointsWidget();

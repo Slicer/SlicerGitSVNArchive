@@ -209,12 +209,6 @@ void vtkMRMLMarkupsDisplayableManagerHelper::UpdateAllWidgetsFromInteractionNode
         {
         if (interactionNode->GetCurrentInteractionMode() == vtkMRMLInteractionNode::Place)
           {
-          // Set widget state to define if Points, Line < 2 points or Angle < 3 points
-          if (vtkSlicerPointsWidget::SafeDownCast(it->second) ||
-              (vtkSlicerLineWidget::SafeDownCast(it->second) && rep->GetNumberOfNodes() < 2) ||
-              (vtkSlicerAngleWidget::SafeDownCast(it->second) && rep->GetNumberOfNodes() < 3))
-          it->second->SetWidgetState(vtkSlicerAbstractWidget::Define);
-          it->second->SetFollowCursor(true);
           it->second->SetManagesCursor(false);
           }
         else

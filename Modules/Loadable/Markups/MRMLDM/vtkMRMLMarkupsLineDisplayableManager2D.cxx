@@ -201,7 +201,6 @@ void vtkMRMLMarkupsLineDisplayableManager2D::PrintSelf(ostream& os, vtkIndent in
 }
 
 //---------------------------------------------------------------------------
-/// Create a new seed widget.
 vtkSlicerAbstractWidget * vtkMRMLMarkupsLineDisplayableManager2D::CreateWidget(vtkMRMLMarkupsNode* node)
 {
   if (!node)
@@ -345,7 +344,6 @@ void vtkMRMLMarkupsLineDisplayableManager2D::OnMRMLMarkupsPointAddedEvent(vtkMRM
 }
 
 //---------------------------------------------------------------------------
-/// Tear down the widget creation
 void vtkMRMLMarkupsLineDisplayableManager2D::OnWidgetCreated(vtkSlicerAbstractWidget * widget, vtkMRMLMarkupsNode * node)
 {
   if (!widget)
@@ -374,8 +372,9 @@ void vtkMRMLMarkupsLineDisplayableManager2D::OnWidgetCreated(vtkSlicerAbstractWi
 }
 
 //---------------------------------------------------------------------------
-/// Create a markupsMRMLnode
-void vtkMRMLMarkupsLineDisplayableManager2D::OnClickInRenderWindow(double x, double y, const char *associatedNodeID)
+void vtkMRMLMarkupsLineDisplayableManager2D::OnClickInRenderWindow(double x, double y,
+                                                                   const char *associatedNodeID,
+                                                                   int action /*= 0 */)
 {
   if (!this->IsCorrectDisplayableManager())
     {
@@ -437,9 +436,10 @@ void vtkMRMLMarkupsLineDisplayableManager2D::OnClickInRenderWindow(double x, dou
     return;
     }
 
-  // Check if the widget angle has been already place
+  // Check if the widget line has been already place
   // if yes, create a new node.
-  if (slicerWidget->GetWidgetState() == vtkSlicerLineWidget::Manipulate &&
+  if (interactionNode->GetCurrentInteractionMode() == vtkMRMLInteractionNode::Place &&
+      slicerWidget->GetWidgetState() == vtkSlicerLineWidget::Manipulate &&
       activeLineNode->GetNumberOfPoints() < 2)
     {
     slicerWidget->SetWidgetState(vtkSlicerLineWidget::Define);
@@ -447,7 +447,8 @@ void vtkMRMLMarkupsLineDisplayableManager2D::OnClickInRenderWindow(double x, dou
     slicerWidget->SetManagesCursor(false);
     }
 
-  if (slicerWidget->GetWidgetState() == vtkSlicerLineWidget::Manipulate)
+  if (interactionNode->GetCurrentInteractionMode() == vtkMRMLInteractionNode::Place &&
+      slicerWidget->GetWidgetState() == vtkSlicerLineWidget::Manipulate)
     {
     activeLineNode = vtkMRMLMarkupsLineNode::SafeDownCast
       (this->GetMRMLScene()->AddNewNodeByClass("vtkMRMLMarkupsLineNode"));
@@ -457,17 +458,36 @@ void vtkMRMLMarkupsLineDisplayableManager2D::OnClickInRenderWindow(double x, dou
     selectionNode->SetActivePlaceNodeID(activeLineNode->GetID());
     slicerWidget = vtkSlicerLineWidget::SafeDownCast
       (this->Helper->GetWidget(activeLineNode));
+    if (slicerWidget == nullptr)
+      {
+      return;
+      }
     }
 
-  // save for undo and add the node to the scene after any reset of the
-  // interaction node so that don't end up back in place mode
+  // save for undo
   this->GetMRMLScene()->SaveStateForUndo();
 
-  int pointIndex = this->AddControlPoint(activeLineNode, worldCoordinates);
-  // is there a node associated with this?
-  if (associatedNodeID)
+  if (action == vtkMRMLMarkupsLineDisplayableManager2D::AddPoint)
     {
-    activeLineNode->SetNthPointAssociatedNodeID(pointIndex, associatedNodeID);
+    int pointIndex = slicerWidget->AddPointToRepresentationFromWorldCoordinate(worldCoordinates);
+    // is there a node associated with this?
+    if (associatedNodeID)
+      {
+      activeLineNode->SetNthPointAssociatedNodeID(pointIndex, associatedNodeID);
+      }
+    }
+  else if (action == vtkMRMLMarkupsLineDisplayableManager2D::AddPreview)
+    {
+    int pointIndex = slicerWidget->AddPreviewPointToRepresentationFromWorldCoordinate(worldCoordinates);
+    // is there a node associated with this?
+    if (associatedNodeID)
+      {
+      activeLineNode->SetNthPointAssociatedNodeID(pointIndex, associatedNodeID);
+      }
+    }
+  else if (action == vtkMRMLMarkupsLineDisplayableManager2D::RemovePreview)
+    {
+    slicerWidget->RemoveLastPreviewPointToRepresentation();
     }
 
   // if this was a one time place, go back to view transform mode
@@ -477,12 +497,37 @@ void vtkMRMLMarkupsLineDisplayableManager2D::OnClickInRenderWindow(double x, dou
     interactionNode->SwitchToViewTransformMode();
     }
 
+  // if persistence and last widget is placed, add new markups and a previewPoint
+  if (interactionNode->GetPlaceModePersistence() == 1 &&
+      interactionNode->GetCurrentInteractionMode() == vtkMRMLInteractionNode::Place &&
+      action == vtkMRMLMarkupsLineDisplayableManager2D::AddPoint &&
+      slicerWidget->GetWidgetState() == vtkSlicerLineWidget::Manipulate)
+    {
+    activeLineNode = vtkMRMLMarkupsLineNode::SafeDownCast
+      (this->GetMRMLScene()->AddNewNodeByClass("vtkMRMLMarkupsLineNode"));
+    activeLineNode->SetName(this->GetMRMLScene()->GetUniqueNameByString("L"));
+    activeLineNode->AddDefaultStorageNode();
+    activeLineNode->CreateDefaultDisplayNodes();
+    selectionNode->SetActivePlaceNodeID(activeLineNode->GetID());
+    slicerWidget = vtkSlicerLineWidget::SafeDownCast
+      (this->Helper->GetWidget(activeLineNode));
+    if (slicerWidget == nullptr)
+      {
+      return;
+      }
+    int pointIndex = slicerWidget->AddPreviewPointToRepresentationFromWorldCoordinate(worldCoordinates);
+    // is there a node associated with this?
+    if (associatedNodeID)
+      {
+      activeLineNode->SetNthPointAssociatedNodeID(pointIndex, associatedNodeID);
+      }
+    }
+
   // force update of widgets on other views
   activeLineNode->GetMarkupsDisplayNode()->Modified();
 }
 
 //---------------------------------------------------------------------------
-/// observe key press events
 void vtkMRMLMarkupsLineDisplayableManager2D::AdditionnalInitializeStep()
 {
   // don't add the key press event, as it triggers a crash on start up
@@ -539,22 +584,6 @@ void vtkMRMLMarkupsLineDisplayableManager2D::OnMRMLSceneEndClose()
 
   // clear out the map of glyph types
   this->Helper->ClearNodeGlyphTypes();
-}
-
-//---------------------------------------------------------------------------
-int vtkMRMLMarkupsLineDisplayableManager2D::AddControlPoint(vtkMRMLMarkupsLineNode *markupsNode,
-                                                            double worldCoordinates[4])
-{
-  vtkSlicerLineWidget *slicerWidget = vtkSlicerLineWidget::SafeDownCast
-    (this->Helper->GetWidget(markupsNode));
-  if (slicerWidget == nullptr)
-    {
-    return -1;
-    }
-
-  slicerWidget->AddPointToRepresentationFromWorldCoordinate(worldCoordinates);
-
-  return markupsNode->GetNumberOfPoints() - 1;
 }
 
 //---------------------------------------------------------------------------

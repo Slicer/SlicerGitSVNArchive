@@ -1046,12 +1046,26 @@ void vtkMRMLMarkupsDisplayableManager2D::OnInteractorStyleEvent(int eventid)
     if (this->GetInteractionNode()->GetCurrentInteractionMode() == vtkMRMLInteractionNode::Place &&
         this->GetInteractionNode()->GetPlaceModePersistence() == 1)
       {
-      this->OnClickInRenderWindowGetCoordinates();
+      // add point after is switched to no place
+      // the manager helper will take care to set the right status on the widgets
       this->GetInteractionNode()->SwitchToViewTransformMode();
+      this->OnClickInRenderWindowGetCoordinates();
       }
     }
-  else if (eventid == vtkCommand::EnterEvent || eventid == vtkCommand::ExitEvent)
+  else if (eventid == vtkCommand::EnterEvent)
     {
+    if (this->GetInteractionNode()->GetCurrentInteractionMode() == vtkMRMLInteractionNode::Place)
+      {
+      this->OnClickInRenderWindowGetCoordinates(vtkMRMLMarkupsDisplayableManager2D::AddPreview);
+      }
+    this->RequestRender();
+    }
+  else if (eventid == vtkCommand::LeaveEvent)
+    {
+    if (this->GetInteractionNode()->GetCurrentInteractionMode() == vtkMRMLInteractionNode::Place)
+      {
+      this->OnClickInRenderWindowGetCoordinates(vtkMRMLMarkupsDisplayableManager2D::RemovePreview);
+      }
     this->RequestRender();
     }
 }
@@ -1063,7 +1077,7 @@ vtkAbstractWidget * vtkMRMLMarkupsDisplayableManager2D::GetWidget(vtkMRMLMarkups
 }
 
 //---------------------------------------------------------------------------
-void vtkMRMLMarkupsDisplayableManager2D::OnClickInRenderWindowGetCoordinates()
+void vtkMRMLMarkupsDisplayableManager2D::OnClickInRenderWindowGetCoordinates(int action /*= 0 */)
 {
 
   double x = this->GetInteractor()->GetEventPosition()[0];
@@ -1072,7 +1086,8 @@ void vtkMRMLMarkupsDisplayableManager2D::OnClickInRenderWindowGetCoordinates()
   double windowWidth = this->GetInteractor()->GetRenderWindow()->GetSize()[0];
   double windowHeight = this->GetInteractor()->GetRenderWindow()->GetSize()[1];
 
-  if (x < windowWidth && y < windowHeight)
+  if ((x < windowWidth && y < windowHeight) ||
+       action != vtkMRMLMarkupsDisplayableManager2D::RemovePreview)
     {
     const char *associatedNodeID = nullptr;
     // is there a volume in the background?
@@ -1108,8 +1123,7 @@ void vtkMRMLMarkupsDisplayableManager2D::OnClickInRenderWindowGetCoordinates()
         }
       }
     vtkDebugMacro("associatedNodeID set to " << (associatedNodeID ? associatedNodeID : "NULL"));
-    this->OnClickInRenderWindow(x, y, associatedNodeID);
-    //this->Helper->UpdateLockedAllWidgetsFromNodes();
+    this->OnClickInRenderWindow(x, y, associatedNodeID, action);
     }
 }
 
@@ -1365,7 +1379,9 @@ bool vtkMRMLMarkupsDisplayableManager2D::IsManageable(const char* nodeClassName)
 //---------------------------------------------------------------------------
 
 //---------------------------------------------------------------------------
-void vtkMRMLMarkupsDisplayableManager2D::OnClickInRenderWindow(double vtkNotUsed(x), double vtkNotUsed(y), const char * vtkNotUsed(associatedNodeID))
+void vtkMRMLMarkupsDisplayableManager2D::OnClickInRenderWindow(double vtkNotUsed(x), double vtkNotUsed(y),
+                                                               const char * vtkNotUsed(associatedNodeID),
+                                                               int vtkNotUsed(action))
 {
   // The user clicked in the renderWindow
   vtkErrorMacro("OnClickInRenderWindow should be overloaded!");

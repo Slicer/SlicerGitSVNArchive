@@ -65,24 +65,25 @@ void vtkSlicerAngleWidget::CreateDefaultRepresentation()
 }
 
 //-------------------------------------------------------------------------
-void vtkSlicerAngleWidget::AddPointToRepresentationFromWorldCoordinate(double worldCoordinates[3])
+int vtkSlicerAngleWidget::AddPointToRepresentationFromWorldCoordinate(double worldCoordinates[3])
 {
   vtkSlicerAbstractRepresentation *rep =
     reinterpret_cast<vtkSlicerAbstractRepresentation*>(this->WidgetRep);
 
   if (!rep)
     {
-    return;
+    return -1;
     }
 
-  if (rep->GetNumberOfNodes() == 0)
+  if (this->WidgetState == vtkSlicerAngleWidget::Manipulate)
     {
-    this->FollowCursor = true;
+    this->FollowCursor = false;
+    rep->DeleteLastNode();
     }
-  else if (rep->GetNumberOfNodes() > 0)
+  else if (this->FollowCursor)
     {
     rep->DeleteLastNode();
-    if (rep->GetNumberOfNodes() > 1)
+    if (rep->GetNumberOfNodes() == 2)
       {
       this->FollowCursor = false;
       }
@@ -106,10 +107,11 @@ void vtkSlicerAngleWidget::AddPointToRepresentationFromWorldCoordinate(double wo
       this->WidgetState = vtkSlicerAngleWidget::Manipulate;
       this->InvokeEvent(vtkCommand::EndInteractionEvent, &this->CurrentHandle);
       }
+    else
+      {
+      rep->AddNodeAtWorldPosition(worldCoordinates);
+      }
     }
 
-  if (this->FollowCursor)
-    {
-    rep->AddNodeAtWorldPosition(worldCoordinates);
-    }
+  return this->CurrentHandle;
 }

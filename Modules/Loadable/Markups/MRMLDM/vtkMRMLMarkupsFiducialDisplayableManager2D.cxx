@@ -346,7 +346,6 @@ void vtkMRMLMarkupsFiducialDisplayableManager2D::OnMRMLMarkupsPointAddedEvent(vt
 }
 
 //---------------------------------------------------------------------------
-/// Tear down the widget creation
 void vtkMRMLMarkupsFiducialDisplayableManager2D::OnWidgetCreated(vtkSlicerAbstractWidget * widget, vtkMRMLMarkupsNode * node)
 {
   if (!widget)
@@ -375,15 +374,19 @@ void vtkMRMLMarkupsFiducialDisplayableManager2D::OnWidgetCreated(vtkSlicerAbstra
 }
 
 //---------------------------------------------------------------------------
-/// Create a markupsMRMLnode
-void vtkMRMLMarkupsFiducialDisplayableManager2D::OnClickInRenderWindow(double x, double y, const char *associatedNodeID)
+void vtkMRMLMarkupsFiducialDisplayableManager2D::OnClickInRenderWindow(double x, double y,
+                                                                       const char *associatedNodeID,
+                                                                       int action /*= 0 */)
 {
-  if (!this->IsCorrectDisplayableManager())
+  if (!this->IsCorrectDisplayableManager())// &&
+      //action != vtkMRMLMarkupsFiducialDisplayableManager3D::RemovePreview)
     {
     // jump out
     vtkDebugMacro("OnClickInRenderWindow: x = " << x << ", y = " << y << ", incorrect displayable manager, focus = " << this->Focus << ", jumping out");
     return;
     }
+  // place the seed where the user clicked
+  vtkDebugMacro("OnClickInRenderWindow: placing seed at " << x << ", " << y);
 
   // Get World coordinates from the display ones
   double displayCoordinates[2], worldCoordinates[4];
@@ -425,23 +428,60 @@ void vtkMRMLMarkupsFiducialDisplayableManager2D::OnClickInRenderWindow(double x,
     selectionNode->SetActivePlaceNodeID(activeFiducialNode->GetID());
     }
 
-  // if this was a one time place, go back to view transform mode
-  vtkMRMLInteractionNode *interactionNode = this->GetInteractionNode();
-  if (interactionNode && interactionNode->GetPlaceModePersistence() != 1)
+  vtkSlicerPointsWidget *slicerWidget = vtkSlicerPointsWidget::SafeDownCast
+    (this->Helper->GetWidget(activeFiducialNode));
+  if (slicerWidget == nullptr)
     {
-    vtkDebugMacro("End of one time place, place mode persistence = " << interactionNode->GetPlaceModePersistence());
-    interactionNode->SetCurrentInteractionMode(vtkMRMLInteractionNode::ViewTransform);
+    return;
     }
 
-  // save for undo and add the node to the scene after any reset of the
-  // interaction node so that don't end up back in place mode
+  vtkMRMLInteractionNode *interactionNode = this->GetInteractionNode();
+  if (!interactionNode)
+    {
+    return;
+    }
+
+  // Check if the widget has been already place
+  // if yes, set again to define
+  if (interactionNode->GetCurrentInteractionMode() == vtkMRMLInteractionNode::Place &&
+      slicerWidget->GetWidgetState() == vtkSlicerPointsWidget::Manipulate)
+    {
+    slicerWidget->SetWidgetState(vtkSlicerPointsWidget::Define);
+    slicerWidget->SetFollowCursor(true);
+    slicerWidget->SetManagesCursor(false);
+    }
+
+  // save for undo
   this->GetMRMLScene()->SaveStateForUndo();
 
-  int pointIndex = this->AddControlPoint(activeFiducialNode, worldCoordinates);
-  // is there a node associated with this?
-  if (associatedNodeID)
+  if (action == vtkMRMLMarkupsFiducialDisplayableManager2D::AddPoint)
     {
-    activeFiducialNode->SetNthFiducialAssociatedNodeID(pointIndex, associatedNodeID);
+    int pointIndex = slicerWidget->AddPointToRepresentationFromWorldCoordinate(worldCoordinates, interactionNode->GetPlaceModePersistence());
+    // is there a node associated with this?
+    if (associatedNodeID)
+      {
+      activeFiducialNode->SetNthFiducialAssociatedNodeID(pointIndex, associatedNodeID);
+      }
+    }
+  else if (action == vtkMRMLMarkupsFiducialDisplayableManager2D::AddPreview)
+    {
+    int pointIndex = slicerWidget->AddPreviewPointToRepresentationFromWorldCoordinate(worldCoordinates);
+    // is there a node associated with this?
+    if (associatedNodeID)
+      {
+      activeFiducialNode->SetNthFiducialAssociatedNodeID(pointIndex, associatedNodeID);
+      }
+    }
+  else if (action == vtkMRMLMarkupsFiducialDisplayableManager2D::RemovePreview)
+    {
+    slicerWidget->RemoveLastPreviewPointToRepresentation();
+    }
+
+  // if this was a one time place, go back to view transform mode
+  if (interactionNode->GetPlaceModePersistence() == 0 &&
+      slicerWidget->GetWidgetState() == vtkSlicerPointsWidget::Manipulate)
+    {
+    interactionNode->SwitchToViewTransformMode();
     }
 
   // force update of widgets on other views
@@ -449,7 +489,6 @@ void vtkMRMLMarkupsFiducialDisplayableManager2D::OnClickInRenderWindow(double x,
 }
 
 //---------------------------------------------------------------------------
-/// observe key press events
 void vtkMRMLMarkupsFiducialDisplayableManager2D::AdditionnalInitializeStep()
 {
   // don't add the key press event, as it triggers a crash on start up

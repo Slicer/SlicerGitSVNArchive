@@ -145,10 +145,19 @@ protected:
   virtual void OnMRMLMarkupsPointRemovedEvent(vtkMRMLNode *node, int n);
   virtual void OnMRMLMarkupsAllPointsRemovedEvent(vtkMRMLNode *node);
 
+  /// enum for action at click events
+  enum {AddPoint = 0,AddPreview,RemovePreview};
+
   /// Get the coordinates of a click in the RenderWindow
-  void OnClickInRenderWindowGetCoordinates();
+  /// It calls OnClickInRenderWindow.
+  /// If action == 0 and InteractionNode is on place, it places a point and shows the preview point.
+  /// If action == 1 and InteractionNode is on place, it only shows the preview point.
+  /// If action == 2 and InteractionNode is on place, it remove the preview point.
+  void OnClickInRenderWindowGetCoordinates(int action = vtkMRMLMarkupsDisplayableManager2D::AddPoint);
   /// Callback for click in RenderWindow
-  virtual void OnClickInRenderWindow(double x, double y, const char *associatedNodeID = NULL);
+  virtual void OnClickInRenderWindow(double x, double y,
+                                     const char *associatedNodeID = NULL,
+                                     int action = vtkMRMLMarkupsDisplayableManager2D::AddPoint);
 
   /// Convert display to world coordinates
   void GetWorldToDisplayCoordinates(double r, double a, double s, double * displayCoordinates);

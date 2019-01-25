@@ -760,6 +760,42 @@ void vtkSlicerAbstractWidget::Initialize(vtkPolyData * pd, int state)
               vtkSlicerAbstractWidget::Manipulate : vtkSlicerAbstractWidget::Define;
 }
 
+//-------------------------------------------------------------------------
+int vtkSlicerAbstractWidget::AddPreviewPointToRepresentationFromWorldCoordinate(double worldCoordinates[3])
+{
+  vtkSlicerAbstractRepresentation *rep =
+    reinterpret_cast<vtkSlicerAbstractRepresentation*>(this->WidgetRep);
+
+  if (!rep)
+    {
+    return -1;
+    }
+
+  this->FollowCursor = true;
+  this->WidgetState = vtkSlicerAbstractWidget::Define;
+  rep->AddNodeAtWorldPosition(worldCoordinates);
+
+  return rep->GetNumberOfNodes() - 1;
+}
+
+//-------------------------------------------------------------------------
+void vtkSlicerAbstractWidget::RemoveLastPreviewPointToRepresentation()
+{
+  vtkSlicerAbstractRepresentation *rep =
+    reinterpret_cast<vtkSlicerAbstractRepresentation*>(this->WidgetRep);
+
+  if (!rep)
+    {
+    return;
+    }
+
+  if (this->WidgetState != vtkSlicerAbstractWidget::Manipulate)
+    {
+    rep->DeleteLastNode();
+    this->FollowCursor = false;
+    }
+}
+
 //----------------------------------------------------------------------
 void vtkSlicerAbstractWidget::PrintSelf(ostream& os, vtkIndent indent)
 {

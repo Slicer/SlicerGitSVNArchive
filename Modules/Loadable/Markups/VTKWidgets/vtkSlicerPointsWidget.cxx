@@ -55,7 +55,7 @@ void vtkSlicerPointsWidget::CreateDefaultRepresentation()
 }
 
 //-------------------------------------------------------------------------
-void vtkSlicerPointsWidget::AddPointToRepresentationFromWorldCoordinate(double worldCoordinates[3],
+int vtkSlicerPointsWidget::AddPointToRepresentationFromWorldCoordinate(double worldCoordinates[3],
                                                                         bool persistence /*=false*/)
 {
   vtkSlicerAbstractRepresentation *rep =
@@ -63,12 +63,17 @@ void vtkSlicerPointsWidget::AddPointToRepresentationFromWorldCoordinate(double w
 
   if (!rep)
     {
-    return;
+    return -1;
     }
 
   if (persistence)
     {
-    if (this->FollowCursor == true)
+    if (this->WidgetState == vtkSlicerPointsWidget::Manipulate)
+      {
+      this->FollowCursor = false;
+      rep->DeleteLastNode();
+      }
+    else if (this->FollowCursor)
       {
       rep->DeleteLastNode();
       }
@@ -77,7 +82,7 @@ void vtkSlicerPointsWidget::AddPointToRepresentationFromWorldCoordinate(double w
       this->FollowCursor = true;
       }
     }
-  else if (this->FollowCursor == true)
+  else if (this->FollowCursor)
     {
     rep->DeleteLastNode();
     this->FollowCursor = false;
@@ -101,10 +106,11 @@ void vtkSlicerPointsWidget::AddPointToRepresentationFromWorldCoordinate(double w
       this->WidgetState = vtkSlicerPointsWidget::Manipulate;
       this->InvokeEvent(vtkCommand::EndInteractionEvent, &this->CurrentHandle);
       }
+    else
+      {
+      rep->AddNodeAtWorldPosition(worldCoordinates);
+      }
     }
 
-  if (this->FollowCursor)
-    {
-    rep->AddNodeAtWorldPosition(worldCoordinates);
-    }
+  return this->CurrentHandle;
 }

@@ -623,12 +623,6 @@ void vtkSlicerAbstractRepresentation2D::AddNodeAtPositionInternal(double worldPo
     return;
     }
 
-  // Check if this is a valid location
-  if (!this->PointPlacer->ValidateWorldPosition(worldPos))
-    {
-    return;
-    }
-
   // Add a new point at this position
   vtkVector3d pos(worldPos[0], worldPos[1], worldPos[2]);
   this->MarkupsNode->DisableModifiedEventOn();
@@ -867,7 +861,6 @@ int vtkSlicerAbstractRepresentation2D::ComputeInteractionState(int X, int Y, int
 {
   if (!this->MarkupsNode || this->MarkupsNode->GetLocked())
     {
-    // both points are not selected, do not perfom the picking and no active
     this->InteractionState = vtkSlicerAbstractRepresentation::Outside;
     return this->InteractionState;
     }
@@ -890,7 +883,6 @@ int vtkSlicerAbstractRepresentation2D::ComputeInteractionState(int X, int Y, int
     this->InteractionState = vtkSlicerAbstractRepresentation::Outside;
     }
   this->MarkupsNode->DisableModifiedEventOff();
-  this->MarkupsNode->Modified();
 
   return this->InteractionState;
 }

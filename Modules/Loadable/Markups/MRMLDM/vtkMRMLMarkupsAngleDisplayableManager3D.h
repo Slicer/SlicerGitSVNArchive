@@ -42,7 +42,9 @@ protected:
   virtual ~vtkMRMLMarkupsAngleDisplayableManager3D(){}
 
   /// Callback for click in RenderWindow
-  virtual void OnClickInRenderWindow(double x, double y, const char *associatedNodeID) VTK_OVERRIDE;
+  virtual void OnClickInRenderWindow(double x, double y,
+                                     const char *associatedNodeID,
+                                     int action = vtkMRMLMarkupsDisplayableManager3D::AddPoint) VTK_OVERRIDE;
   /// Create a widget.
   virtual vtkSlicerAbstractWidget * CreateWidget(vtkMRMLMarkupsNode* node) VTK_OVERRIDE;
   /// Gets called when widget was created
@@ -53,8 +55,6 @@ protected:
   virtual void OnInteractorStyleEvent(int eventid) VTK_OVERRIDE;
   /// Clean up when scene closes
   virtual void OnMRMLSceneEndClose() VTK_OVERRIDE;
-  /// Add Control Point
-  virtual int AddControlPoint(vtkMRMLMarkupsAngleNode *markupsNode, double worldCoordinates[4]);
 
 private:
 

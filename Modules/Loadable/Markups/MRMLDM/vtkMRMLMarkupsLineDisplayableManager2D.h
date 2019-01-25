@@ -42,7 +42,9 @@ protected:
   virtual ~vtkMRMLMarkupsLineDisplayableManager2D(){}
 
   /// Callback for click in RenderWindow
-  virtual void OnClickInRenderWindow(double x, double y, const char *associatedNodeID) VTK_OVERRIDE;
+  virtual void OnClickInRenderWindow(double x, double y,
+                                     const char *associatedNodeID,
+                                     int action = vtkMRMLMarkupsDisplayableManager2D::AddPoint) VTK_OVERRIDE;
   /// Create a widget.
   virtual vtkSlicerAbstractWidget* CreateWidget(vtkMRMLMarkupsNode* node);
   /// the nth point in the active Markup has been modified, check if it is on the slice
@@ -59,8 +61,6 @@ protected:
   virtual void OnInteractorStyleEvent(int eventid) VTK_OVERRIDE;
   /// Clean up when scene closes
   virtual void OnMRMLSceneEndClose() VTK_OVERRIDE;
-  /// Add Control Point
-  virtual int AddControlPoint(vtkMRMLMarkupsLineNode *markupsNode, double worldCoordinates[4]);
   /// Check, if the point is displayable in the current slice geometry
   virtual bool IsPointDisplayableOnSlice(vtkMRMLMarkupsNode* node, int pointIndex = 0);
 

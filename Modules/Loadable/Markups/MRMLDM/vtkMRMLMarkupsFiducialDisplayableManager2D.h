@@ -45,7 +45,9 @@ protected:
   virtual ~vtkMRMLMarkupsFiducialDisplayableManager2D(){}
 
   /// Callback for click in RenderWindow
-  virtual void OnClickInRenderWindow(double x, double y, const char *associatedNodeID) VTK_OVERRIDE;
+  virtual void OnClickInRenderWindow(double x, double y,
+                                     const char *associatedNodeID,
+                                     int action = vtkMRMLMarkupsDisplayableManager2D::AddPoint) VTK_OVERRIDE;
   /// Create a widget.
   virtual vtkSlicerAbstractWidget* CreateWidget(vtkMRMLMarkupsNode* node);
   /// the nth point in the active Markup has been modified, check if it is on the slice

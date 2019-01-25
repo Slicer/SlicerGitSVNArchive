@@ -176,7 +176,7 @@ public:
   virtual void CreateDefaultRepresentation() override;
 
   /// Add a point to the current active Markup at input World coordiantes.
-  void AddPointToRepresentationFromWorldCoordinate(double worldCoordinates [3]);
+  int AddPointToRepresentationFromWorldCoordinate(double worldCoordinates [3]);
 
 protected:
   vtkSlicerAngleWidget();

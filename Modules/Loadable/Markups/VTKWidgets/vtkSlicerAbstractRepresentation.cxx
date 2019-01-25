@@ -243,12 +243,6 @@ void vtkSlicerAbstractRepresentation::AddNodeAtPositionInternal(double worldPos[
     return;
     }
 
-  // Check if this is a valid location
-  if (!this->PointPlacer->ValidateWorldPosition(worldPos))
-    {
-    return;
-    }
-
   // Add a new point at this position
   vtkVector3d pos(worldPos[0], worldPos[1], worldPos[2]);
   this->MarkupsNode->DisableModifiedEventOn();
@@ -314,14 +308,7 @@ void vtkSlicerAbstractRepresentation::GetNodePolyData(vtkPolyData* poly)
 //----------------------------------------------------------------------
 int vtkSlicerAbstractRepresentation::AddNodeAtWorldPosition(double worldPos[3])
 {
-  // Check if this is a valid location
-  if (!this->PointPlacer->ValidateWorldPosition(worldPos))
-    {
-    return 0;
-    }
-
   this->AddNodeAtPositionInternal(worldPos);
-
   return 1;
 }
 

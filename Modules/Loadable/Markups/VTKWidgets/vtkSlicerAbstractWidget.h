@@ -235,6 +235,12 @@ public:
   /// The state of the widget
   enum {Start,Define,Manipulate};
 
+  /// Add a point preview to the current active Markup at input World coordiantes.
+  int AddPreviewPointToRepresentationFromWorldCoordinate(double worldCoordinates [3]);
+
+  /// Remove the point preview to the current active Markup.
+  void RemoveLastPreviewPointToRepresentation();
+
 protected:
   vtkSlicerAbstractWidget();
   ~vtkSlicerAbstractWidget() VTK_OVERRIDE;

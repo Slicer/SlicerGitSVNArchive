@@ -201,7 +201,6 @@ void vtkMRMLMarkupsAngleDisplayableManager2D::PrintSelf(ostream& os, vtkIndent i
 }
 
 //---------------------------------------------------------------------------
-/// Create a new seed widget.
 vtkSlicerAbstractWidget * vtkMRMLMarkupsAngleDisplayableManager2D::CreateWidget(vtkMRMLMarkupsNode* node)
 {
   if (!node)
@@ -345,7 +344,6 @@ void vtkMRMLMarkupsAngleDisplayableManager2D::OnMRMLMarkupsPointAddedEvent(vtkMR
 }
 
 //---------------------------------------------------------------------------
-/// Tear down the widget creation
 void vtkMRMLMarkupsAngleDisplayableManager2D::OnWidgetCreated(vtkSlicerAbstractWidget * widget, vtkMRMLMarkupsNode * node)
 {
   if (!widget)
@@ -374,8 +372,9 @@ void vtkMRMLMarkupsAngleDisplayableManager2D::OnWidgetCreated(vtkSlicerAbstractW
 }
 
 //---------------------------------------------------------------------------
-/// Create a markupsMRMLnode
-void vtkMRMLMarkupsAngleDisplayableManager2D::OnClickInRenderWindow(double x, double y, const char *associatedNodeID)
+void vtkMRMLMarkupsAngleDisplayableManager2D::OnClickInRenderWindow(double x, double y,
+                                                                    const char *associatedNodeID,
+                                                                    int action /*= 0 */)
 {
   if (!this->IsCorrectDisplayableManager())
     {
@@ -418,7 +417,7 @@ void vtkMRMLMarkupsAngleDisplayableManager2D::OnClickInRenderWindow(double x, do
     // create the MRML node
     activeAngleNode = vtkMRMLMarkupsAngleNode::SafeDownCast
       (this->GetMRMLScene()->AddNewNodeByClass("vtkMRMLMarkupsAngleNode"));
-    activeAngleNode->SetName(this->GetMRMLScene()->GetUniqueNameByString("L"));
+    activeAngleNode->SetName(this->GetMRMLScene()->GetUniqueNameByString("A"));
     activeAngleNode->AddDefaultStorageNode();
     activeAngleNode->CreateDefaultDisplayNodes();
     selectionNode->SetActivePlaceNodeID(activeAngleNode->GetID());
@@ -439,35 +438,56 @@ void vtkMRMLMarkupsAngleDisplayableManager2D::OnClickInRenderWindow(double x, do
 
   // Check if the widget angle has been already place
   // if yes, create a new node.
-  if (slicerWidget->GetWidgetState() == vtkSlicerAngleWidget::Manipulate &&
-      activeAngleNode->GetNumberOfPoints() < 2)
+  if (interactionNode->GetCurrentInteractionMode() == vtkMRMLInteractionNode::Place &&
+      slicerWidget->GetWidgetState() == vtkSlicerAngleWidget::Manipulate &&
+      activeAngleNode->GetNumberOfPoints() < 3)
     {
     slicerWidget->SetWidgetState(vtkSlicerAngleWidget::Define);
     slicerWidget->SetFollowCursor(true);
     slicerWidget->SetManagesCursor(false);
     }
 
-  if (slicerWidget->GetWidgetState() == vtkSlicerAngleWidget::Manipulate)
+  if (interactionNode->GetCurrentInteractionMode() == vtkMRMLInteractionNode::Place &&
+      slicerWidget->GetWidgetState() == vtkSlicerAngleWidget::Manipulate)
     {
     activeAngleNode = vtkMRMLMarkupsAngleNode::SafeDownCast
       (this->GetMRMLScene()->AddNewNodeByClass("vtkMRMLMarkupsAngleNode"));
-    activeAngleNode->SetName(this->GetMRMLScene()->GetUniqueNameByString("L"));
+    activeAngleNode->SetName(this->GetMRMLScene()->GetUniqueNameByString("A"));
     activeAngleNode->AddDefaultStorageNode();
     activeAngleNode->CreateDefaultDisplayNodes();
     selectionNode->SetActivePlaceNodeID(activeAngleNode->GetID());
     slicerWidget = vtkSlicerAngleWidget::SafeDownCast
       (this->Helper->GetWidget(activeAngleNode));
+    if (slicerWidget == nullptr)
+      {
+      return;
+      }
     }
 
-  // save for undo and add the node to the scene after any reset of the
-  // interaction node so that don't end up back in place mode
+  // save for undo
   this->GetMRMLScene()->SaveStateForUndo();
 
-  int pointIndex = this->AddControlPoint(activeAngleNode, worldCoordinates);
-  // is there a node associated with this?
-  if (associatedNodeID)
+  if (action == vtkMRMLMarkupsAngleDisplayableManager2D::AddPoint)
     {
-    activeAngleNode->SetNthPointAssociatedNodeID(pointIndex, associatedNodeID);
+    int pointIndex = slicerWidget->AddPointToRepresentationFromWorldCoordinate(worldCoordinates);
+    // is there a node associated with this?
+    if (associatedNodeID)
+      {
+      activeAngleNode->SetNthPointAssociatedNodeID(pointIndex, associatedNodeID);
+      }
+    }
+  else if (action == vtkMRMLMarkupsAngleDisplayableManager2D::AddPreview)
+    {
+    int pointIndex = slicerWidget->AddPreviewPointToRepresentationFromWorldCoordinate(worldCoordinates);
+    // is there a node associated with this?
+    if (associatedNodeID)
+      {
+      activeAngleNode->SetNthPointAssociatedNodeID(pointIndex, associatedNodeID);
+      }
+    }
+  else if (action == vtkMRMLMarkupsAngleDisplayableManager2D::RemovePreview)
+    {
+    slicerWidget->RemoveLastPreviewPointToRepresentation();
     }
 
   // if this was a one time place, go back to view transform mode
@@ -477,12 +497,37 @@ void vtkMRMLMarkupsAngleDisplayableManager2D::OnClickInRenderWindow(double x, do
     interactionNode->SwitchToViewTransformMode();
     }
 
+  // if persistence and last widget is placed, add new markups and a previewPoint
+  if (interactionNode->GetPlaceModePersistence() == 1 &&
+      interactionNode->GetCurrentInteractionMode() == vtkMRMLInteractionNode::Place &&
+      action == vtkMRMLMarkupsAngleDisplayableManager2D::AddPoint &&
+      slicerWidget->GetWidgetState() == vtkSlicerAngleWidget::Manipulate)
+    {
+    activeAngleNode = vtkMRMLMarkupsAngleNode::SafeDownCast
+      (this->GetMRMLScene()->AddNewNodeByClass("vtkMRMLMarkupsAngleNode"));
+    activeAngleNode->SetName(this->GetMRMLScene()->GetUniqueNameByString("A"));
+    activeAngleNode->AddDefaultStorageNode();
+    activeAngleNode->CreateDefaultDisplayNodes();
+    selectionNode->SetActivePlaceNodeID(activeAngleNode->GetID());
+    slicerWidget = vtkSlicerAngleWidget::SafeDownCast
+      (this->Helper->GetWidget(activeAngleNode));
+    if (slicerWidget == nullptr)
+      {
+      return;
+      }
+    int pointIndex = slicerWidget->AddPreviewPointToRepresentationFromWorldCoordinate(worldCoordinates);
+    // is there a node associated with this?
+    if (associatedNodeID)
+      {
+      activeAngleNode->SetNthPointAssociatedNodeID(pointIndex, associatedNodeID);
+      }
+    }
+
   // force update of widgets on other views
   activeAngleNode->GetMarkupsDisplayNode()->Modified();
 }
 
 //---------------------------------------------------------------------------
-/// observe key press events
 void vtkMRMLMarkupsAngleDisplayableManager2D::AdditionnalInitializeStep()
 {
   // don't add the key press event, as it triggers a crash on start up
@@ -539,22 +584,6 @@ void vtkMRMLMarkupsAngleDisplayableManager2D::OnMRMLSceneEndClose()
 
   // clear out the map of glyph types
   this->Helper->ClearNodeGlyphTypes();
-}
-
-//---------------------------------------------------------------------------
-int vtkMRMLMarkupsAngleDisplayableManager2D::AddControlPoint(vtkMRMLMarkupsAngleNode *markupsNode,
-                                                             double worldCoordinates[4])
-{
-  vtkSlicerAngleWidget *slicerWidget = vtkSlicerAngleWidget::SafeDownCast
-    (this->Helper->GetWidget(markupsNode));
-  if (slicerWidget == nullptr)
-    {
-    return -1;
-    }
-
-  slicerWidget->AddPointToRepresentationFromWorldCoordinate(worldCoordinates);
-
-  return markupsNode->GetNumberOfPoints() - 1;
 }
 
 //---------------------------------------------------------------------------
