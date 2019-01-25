@@ -47,22 +47,10 @@ protected:
                                      int action = vtkMRMLMarkupsDisplayableManager2D::AddPoint) VTK_OVERRIDE;
   /// Create a widget.
   virtual vtkSlicerAbstractWidget* CreateWidget(vtkMRMLMarkupsNode* node);
-  /// the nth point in the active Markup has been modified, check if it is on the slice
-  virtual void OnMRMLMarkupsNthPointModifiedEvent(vtkMRMLNode *node, int n) VTK_OVERRIDE;
-  /// a nth point in the active Markup has been added, check if it is on the slice
-  virtual void OnMRMLMarkupsPointAddedEvent(vtkMRMLNode *node, int n) VTK_OVERRIDE;
-  /// Called after the corresponding MRML Markups node was modified
-  virtual void OnMRMLMarkupsNodeModifiedEvent(vtkMRMLNode *node) VTK_OVERRIDE;
   /// Gets called when widget was created
   virtual void OnWidgetCreated(vtkSlicerAbstractWidget * widget, vtkMRMLMarkupsNode * node) VTK_OVERRIDE;
-  /// Set up an observer on the interactor style to watch for key press events
-  virtual void AdditionnalInitializeStep();
-  /// Respond to the interactor style event
-  virtual void OnInteractorStyleEvent(int eventid) VTK_OVERRIDE;
   /// Clean up when scene closes
   virtual void OnMRMLSceneEndClose() VTK_OVERRIDE;
-  /// Check, if the point is displayable in the current slice geometry
-  virtual bool IsPointDisplayableOnSlice(vtkMRMLMarkupsNode* node, int pointIndex = 0);
 
 private:
 

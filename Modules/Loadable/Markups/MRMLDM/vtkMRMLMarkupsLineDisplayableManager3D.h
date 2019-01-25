@@ -49,10 +49,6 @@ protected:
   virtual vtkSlicerAbstractWidget * CreateWidget(vtkMRMLMarkupsNode* node) VTK_OVERRIDE;
   /// Gets called when widget was created
   virtual void OnWidgetCreated(vtkSlicerAbstractWidget * widget, vtkMRMLMarkupsNode * node) VTK_OVERRIDE;
-  /// Set up an observer on the interactor style to watch for key press events
-  virtual void AdditionnalInitializeStep();
-  /// Respond to the interactor style event
-  virtual void OnInteractorStyleEvent(int eventid) VTK_OVERRIDE;
   /// Clean up when scene closes
   virtual void OnMRMLSceneEndClose() VTK_OVERRIDE;
 

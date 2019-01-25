@@ -135,6 +135,9 @@ protected:
   void AddObserversToInteractionNode();
   void RemoveObserversFromInteractionNode();
 
+  /// Check, if the point is displayable in the current slice geometry
+  virtual bool IsPointDisplayableOnSlice(vtkMRMLMarkupsNode* node, int pointIndex = 0);
+
   /// Preset functions for certain events.
   virtual void OnMRMLMarkupsNodeModifiedEvent(vtkMRMLNode* node);
   virtual void OnMRMLMarkupsNodeTransformModifiedEvent(vtkMRMLNode* node);

@@ -288,55 +288,6 @@ void vtkMRMLMarkupsLineDisplayableManager3D::OnWidgetCreated(vtkSlicerAbstractWi
 }
 
 //---------------------------------------------------------------------------
-void vtkMRMLMarkupsLineDisplayableManager3D::AdditionnalInitializeStep()
-{
-  // don't add the key press event, as it triggers a crash on start up
-  //vtkDebugMacro("Adding an observer on the key press event");
-  this->AddInteractorStyleObservableEvent(vtkCommand::KeyPressEvent);
-}
-
-//---------------------------------------------------------------------------
-void vtkMRMLMarkupsLineDisplayableManager3D::OnInteractorStyleEvent(int eventid)
-{
-  this->Superclass::OnInteractorStyleEvent(eventid);
-
-  if (this->GetDisableInteractorStyleEventsProcessing())
-    {
-    vtkWarningMacro("OnInteractorStyleEvent: Processing of events was disabled.")
-    return;
-    }
-
-  if (eventid == vtkCommand::KeyPressEvent)
-    {
-    char *keySym = this->GetInteractor()->GetKeySym();
-    vtkDebugMacro("OnInteractorStyleEvent 3D: key press event position = "
-              << this->GetInteractor()->GetEventPosition()[0] << ", "
-              << this->GetInteractor()->GetEventPosition()[1]
-              << ", key sym = " << (keySym == NULL ? "null" : keySym));
-    if (!keySym)
-      {
-      return;
-      }
-    if (strcmp(keySym, "p") == 0)
-      {
-      if (this->GetInteractionNode()->GetCurrentInteractionMode() == vtkMRMLInteractionNode::Place)
-        {
-        this->OnClickInRenderWindowGetCoordinates();
-        }
-      else
-        {
-        vtkDebugMacro("Line DisplayableManager: key press p, but not in Place mode! Returning.");
-        return;
-        }
-      }
-    }
-  else if (eventid == vtkCommand::KeyReleaseEvent)
-    {
-    vtkDebugMacro("Got a key release event");
-    }
-}
-
-//---------------------------------------------------------------------------
 void vtkMRMLMarkupsLineDisplayableManager3D::OnClickInRenderWindow(double x, double y,
                                                                    const char *associatedNodeID,
                                                                    int action /*= 0 */)

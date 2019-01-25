@@ -778,6 +778,34 @@ void vtkMRMLMarkupsDisplayableManager3D::OnInteractorStyleEvent(int eventid)
       }
     this->RequestRender();
     }
+  if (eventid == vtkCommand::KeyPressEvent)
+    {
+    char *keySym = this->GetInteractor()->GetKeySym();
+    vtkDebugMacro("OnInteractorStyleEvent 3D: key press event position = "
+              << this->GetInteractor()->GetEventPosition()[0] << ", "
+              << this->GetInteractor()->GetEventPosition()[1]
+              << ", key sym = " << (keySym == NULL ? "null" : keySym));
+    if (!keySym)
+      {
+      return;
+      }
+    if (strcmp(keySym, "p") == 0)
+      {
+      if (this->GetInteractionNode()->GetCurrentInteractionMode() == vtkMRMLInteractionNode::Place)
+        {
+        this->OnClickInRenderWindowGetCoordinates();
+        }
+      else
+        {
+        vtkDebugMacro("Line DisplayableManager: key press p, but not in Place mode! Returning.");
+        return;
+        }
+      }
+    }
+  else if (eventid == vtkCommand::KeyReleaseEvent)
+    {
+    vtkDebugMacro("Got a key release event");
+    }
 }
 
 //---------------------------------------------------------------------------
