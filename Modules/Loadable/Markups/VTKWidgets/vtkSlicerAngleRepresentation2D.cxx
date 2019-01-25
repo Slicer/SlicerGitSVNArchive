@@ -441,10 +441,9 @@ void vtkSlicerAngleRepresentation2D::BuildRepresentation()
 
   for (ii = 0; ii < numPoints; ii++)
     {
-    if (ii == this->GetActiveNode() ||
-        !this->pointsVisibilityOnSlice->GetValue(ii) ||
-        !this->GetNthNodeVisibility(ii) ||
-        this->GetNthNodeSelected(ii))
+    if (!this->GetNthNodeVisibility(ii) ||
+         ii == this->GetActiveNode() ||
+         this->GetNthNodeSelected(ii))
       {
       continue;
       }
@@ -623,7 +622,9 @@ void vtkSlicerAngleRepresentation2D::BuildRepresentation()
     this->ArcActor->SetProperty(this->ActiveProperty);
     this->TextActor->SetTextProperty(this->ActiveTextProperty);
     }
-  else if (this->FocalPoint->GetNumberOfPoints() == numPoints)
+  else if (!this->GetNthNodeSelected(0) ||
+           !this->GetNthNodeSelected(1) ||
+           !this->GetNthNodeSelected(2))
     {
     this->LineActor->SetProperty(this->Property);
     this->ArcActor->SetProperty(this->Property);

@@ -371,7 +371,7 @@ void vtkSlicerLineRepresentation2D::BuildRepresentation()
     {
     this->LineActor->SetProperty(this->ActiveProperty);
     }
-  else if (this->FocalPoint->GetNumberOfPoints() == numPoints)
+  else if (!this->GetNthNodeSelected(0) || !this->GetNthNodeSelected(1))
     {
     this->LineActor->SetProperty(this->Property);
     }
