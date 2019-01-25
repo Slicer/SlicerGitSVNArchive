@@ -622,6 +622,9 @@ void vtkSlicerAbstractRepresentation3D::TranslateNode(double eventPos[2])
     return;
     }
 
+  eventPos[0] -= this->StartEventOffsetPosition[0];
+  eventPos[1] -= this->StartEventOffsetPosition[1];
+
   double oldWorldPos[3];
   if (!this->GetActiveNodeWorldPosition(oldWorldPos))
     {

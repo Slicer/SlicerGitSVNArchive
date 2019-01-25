@@ -119,7 +119,7 @@ public:
   /// n is the last node and the loop is closed). Returns
   /// 1 on success or 0 if n or idx are out of range.
   virtual int GetIntermediatePointDisplayPosition(int n,
-                                                   int idx, double pos[2]);
+                                                  int idx, double pos[2]) VTK_OVERRIDE;
 
   /// Set the nth node's position on the slice. slice position
   /// will be converted into world position according to the

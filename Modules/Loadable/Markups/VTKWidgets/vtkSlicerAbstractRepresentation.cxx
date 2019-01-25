@@ -1674,20 +1674,27 @@ void vtkSlicerAbstractRepresentation::BuildLocator()
 // Record the current event position, and the rectilinear wipe position.
 void vtkSlicerAbstractRepresentation::StartWidgetInteraction(double startEventPos[2])
 {
-  this->StartEventPosition[0] = startEventPos[0];
-  this->StartEventPosition[1] = startEventPos[1];
-  this->StartEventPosition[2] = 0.0;
-
-  this->LastEventPosition[0] = startEventPos[0];
-  this->LastEventPosition[1] = startEventPos[1];
-
   // How far is this in pixels from the position of this widget?
   // Maintain this during interaction such as translating (don't
   // force center of widget to snap to mouse position)
 
-  // convert position to display coordinates
+  // GetActiveNode position
   double pos[2];
-  this->GetNthNodeDisplayPosition(this->GetActiveNode(), pos);
+  if (this->GetActiveNodeDisplayPosition(pos))
+    {
+    // save offset
+    this->StartEventOffsetPosition[0] = startEventPos[0] - pos[0];
+    this->StartEventOffsetPosition[1] = startEventPos[1] - pos[1];
+    }
+  else
+    {
+    this->StartEventOffsetPosition[0] = 0;
+    this->StartEventOffsetPosition[1] = 0;
+    }
+
+  // save also the cursor pos
+  this->LastEventPosition[0] = startEventPos[0];
+  this->LastEventPosition[1] = startEventPos[1];
 }
 
 //----------------------------------------------------------------------
@@ -1700,12 +1707,12 @@ void vtkSlicerAbstractRepresentation::SetInteractionState(int state)
 void vtkSlicerAbstractRepresentation::SetClosedLoop(vtkTypeBool val)
 {
   if (this->ClosedLoop != val)
-  {
+    {
     this->ClosedLoop = val;
     this->UpdateLines(this->GetNumberOfNodes() - 1);
     this->NeedToRender = 1;
     this->Modified();
-  }
+    }
 }
 
 //----------------------------------------------------------------------

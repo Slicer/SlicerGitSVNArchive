@@ -485,18 +485,18 @@ protected:
   vtkTextProperty   *SelectedTextProperty;
   vtkTextProperty   *ActiveTextProperty;
 
-  // Support picking
-  double LastEventPosition[2];
-
   // Compute the centroid by sampling the points along the polyline of the widget at equal distances
   virtual void ComputeCentroid(double* ioCentroid);
 
   // Properties used to control the appearance of selected objects and
   // the manipulator in general.
-
   virtual void  CreateDefaultProperties() = 0;
 
   vtkTypeBool AlwaysOnTop;
+
+  // Variable for picking
+  double LastEventPosition[2];
+  double StartEventOffsetPosition[2];
 
 private:
   vtkSlicerAbstractRepresentation(const vtkSlicerAbstractRepresentation&) = delete;

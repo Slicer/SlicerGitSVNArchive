@@ -788,6 +788,9 @@ void vtkSlicerAbstractRepresentation2D::TranslateNode(double eventPos[2])
     return;
     }
 
+  eventPos[0] -= this->StartEventOffsetPosition[0];
+  eventPos[1] -= this->StartEventOffsetPosition[1];
+
   double worldPos[3];
   this->GetSliceToWorldCoordinates(eventPos, worldPos);
 
@@ -922,59 +925,59 @@ void vtkSlicerAbstractRepresentation2D::RotateWidget(double eventPos[2])
     return;
     }
 
-   double ref[3] = {0.};
-   double slicePos[2] = {0.};
-   double worldPos[3] = {0.};
-   double lastWorldPos[3] = {0.};
+  double ref[3] = {0.};
+  double slicePos[2] = {0.};
+  double worldPos[3] = {0.};
+  double lastWorldPos[3] = {0.};
 
-   slicePos[0] = this->LastEventPosition[0];
-   slicePos[1] = this->LastEventPosition[1];
+  slicePos[0] = this->LastEventPosition[0];
+  slicePos[1] = this->LastEventPosition[1];
 
-   this->GetSliceToWorldCoordinates(slicePos, lastWorldPos);
+  this->GetSliceToWorldCoordinates(slicePos, lastWorldPos);
 
-   slicePos[0] = eventPos[0];
-   slicePos[1] = eventPos[1];
+  slicePos[0] = eventPos[0];
+  slicePos[1] = eventPos[1];
 
-   double centroid[3];
-   ComputeCentroid(centroid);
+  double centroid[3];
+  ComputeCentroid(centroid);
 
-   this->GetSliceToWorldCoordinates(slicePos, worldPos);
+  this->GetSliceToWorldCoordinates(slicePos, worldPos);
 
-   double d2 = vtkMath::Distance2BetweenPoints(worldPos, centroid);
-   if (d2 < 0.0000001)
-     {
-     return;
-     }
+  double d2 = vtkMath::Distance2BetweenPoints(worldPos, centroid);
+  if (d2 < 0.0000001)
+    {
+    return;
+    }
 
-   for (int i = 0; i < 3; i++)
-     {
-     lastWorldPos[i] -= centroid[i];
-     worldPos[i] -= centroid[i];
-     }
-   double angle = -vtkMath::DegreesFromRadians
-                  (vtkMath::AngleBetweenVectors(lastWorldPos, worldPos));
+  for (int i = 0; i < 3; i++)
+    {
+    lastWorldPos[i] -= centroid[i];
+    worldPos[i] -= centroid[i];
+    }
+  double angle = -vtkMath::DegreesFromRadians
+                 (vtkMath::AngleBetweenVectors(lastWorldPos, worldPos));
 
-   this->MarkupsNode->DisableModifiedEventOn();
-   for (int i = 0; i < this->GetNumberOfNodes(); i++)
-     {
-     this->GetNthNodeWorldPosition(i, ref);
-     for (int j = 0; j < 3; j++)
-       {
-       ref[j] -= centroid[j];
-       }
-     vtkNew<vtkTransform> RotateTransform;
-     RotateTransform->RotateY(angle);
-     RotateTransform->TransformPoint(ref, worldPos);
+  this->MarkupsNode->DisableModifiedEventOn();
+  for (int i = 0; i < this->GetNumberOfNodes(); i++)
+    {
+    this->GetNthNodeWorldPosition(i, ref);
+    for (int j = 0; j < 3; j++)
+      {
+      ref[j] -= centroid[j];
+      }
+    vtkNew<vtkTransform> RotateTransform;
+    RotateTransform->RotateY(angle);
+    RotateTransform->TransformPoint(ref, worldPos);
 
-     for (int j = 0; j < 3; j++)
-       {
-       worldPos[j] += centroid[j];
-       }
+    for (int j = 0; j < 3; j++)
+      {
+      worldPos[j] += centroid[j];
+      }
 
-     this->SetNthNodeWorldPosition(i, worldPos);
-     }
-   this->MarkupsNode->DisableModifiedEventOff();
-   this->MarkupsNode->Modified();
+    this->SetNthNodeWorldPosition(i, worldPos);
+    }
+  this->MarkupsNode->DisableModifiedEventOff();
+  this->MarkupsNode->Modified();
 }
 
 //----------------------------------------------------------------------
