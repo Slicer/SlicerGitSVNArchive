@@ -716,49 +716,38 @@ bool vtkMRMLMarkupsFiducialDisplayableManager2D::IsPointDisplayableOnSlice(vtkMR
 }
 
 //---------------------------------------------------------------------------
-void vtkMRMLMarkupsFiducialDisplayableManager2D::OnMRMLDisplayableNodeModifiedEvent(vtkObject *caller)
+void vtkMRMLMarkupsFiducialDisplayableManager2D::OnMRMLMarkupsNodeModifiedEvent(vtkMRMLNode *node)
 {
-  this->Superclass::OnMRMLDisplayableNodeModifiedEvent(caller);
+  vtkDebugMacro("OnMRMLMarkupsNodeModifiedEvent");
 
-  if (!this->GetMRMLScene())
+  vtkMRMLMarkupsFiducialNode *fiducialsMarkupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast(node);
+  if (!fiducialsMarkupsNode)
+    {
+    vtkErrorMacro("OnMRMLMarkupsNodeModifiedEvent: Can not access node.")
+    return;
+    }
+
+  vtkSlicerAbstractWidget *widget = this->Helper->GetWidget(fiducialsMarkupsNode);
+  if (!widget)
     {
     return;
     }
 
-  vtkSmartPointer<vtkCollection> FiducialsMarkupsNodes = vtkSmartPointer<vtkCollection>::Take
-        (this->GetMRMLScene()->GetNodesByClass("vtkMRMLMarkupsFiducialNode"));
-
-  for (int FiducialsMarkupsIndex = 0; FiducialsMarkupsIndex < FiducialsMarkupsNodes->GetNumberOfItems(); FiducialsMarkupsIndex++)
+  // Points widgets have only one Markup/Representation
+  vtkSlicerAbstractRepresentation2D *rep = vtkSlicerAbstractRepresentation2D::SafeDownCast
+    (widget->GetRepresentation());
+  if (!rep)
     {
-    vtkMRMLMarkupsFiducialNode* FiducialsMarkupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast
-          (FiducialsMarkupsNodes->GetItemAsObject(FiducialsMarkupsIndex));
-    if (!FiducialsMarkupsNode)
-      {
-      continue;
-      }
-
-    vtkSlicerAbstractWidget *widget = this->Helper->GetWidget(FiducialsMarkupsNode);
-    if (!widget)
-      {
-      continue;
-      }
-
-    // Points widgets have only one Markup/Representation
-    vtkSlicerAbstractRepresentation2D *rep = vtkSlicerAbstractRepresentation2D::SafeDownCast
-      (widget->GetRepresentation());
-    if (!rep)
-      {
-      continue;
-      }
-
-    for (int PointIndex = 0; PointIndex < FiducialsMarkupsNode->GetNumberOfFiducials(); PointIndex++)
-      {
-      bool visibility = this->IsPointDisplayableOnSlice(FiducialsMarkupsNode, PointIndex);
-      rep->SetNthPointSliceVisibility(PointIndex, visibility);
-      }
-
-    widget->BuildRepresentation();
+    return;
     }
+
+  for (int PointIndex = 0; PointIndex < fiducialsMarkupsNode->GetNumberOfFiducials(); PointIndex++)
+    {
+    bool visibility = this->IsPointDisplayableOnSlice(fiducialsMarkupsNode, PointIndex);
+    rep->SetNthPointSliceVisibility(PointIndex, visibility);
+    }
+
+  widget->BuildRepresentation();
 
   this->RequestRender();
 }

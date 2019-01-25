@@ -96,6 +96,52 @@ vtkSlicerLineRepresentation2D::~vtkSlicerLineRepresentation2D()
 }
 
 //----------------------------------------------------------------------
+void vtkSlicerLineRepresentation2D::TranslateWidget(double eventPos[2])
+{
+  // If any node is locked return
+  for (int i = 0; i < this->GetNumberOfNodes(); i++)
+    {
+    if (this->GetNthNodeLocked(i))
+      {
+      return;
+      }
+    }
+
+  this->Superclass::TranslateWidget(eventPos);
+}
+
+//----------------------------------------------------------------------
+void vtkSlicerLineRepresentation2D::ScaleWidget(double eventPos[2])
+{
+  // If any node is locked return
+  for (int i = 0; i < this->GetNumberOfNodes(); i++)
+    {
+    if (this->GetNthNodeLocked(i))
+      {
+      return;
+      }
+    }
+
+  this->Superclass::ScaleWidget(eventPos);
+}
+
+//----------------------------------------------------------------------
+void vtkSlicerLineRepresentation2D::RotateWidget(double eventPos[2])
+{
+  // If any node is locked return
+  for (int i = 0; i < this->GetNumberOfNodes(); i++)
+    {
+    if (this->GetNthNodeLocked(i))
+      {
+      return;
+      }
+    }
+
+  this->Superclass::ScaleWidget(eventPos);
+}
+
+
+//----------------------------------------------------------------------
 void vtkSlicerLineRepresentation2D::BuildRepresentation()
 {
   // Make sure we are up to date with any changes made in the placer
@@ -338,9 +384,9 @@ void vtkSlicerLineRepresentation2D::BuildRepresentation()
 //----------------------------------------------------------------------
 int vtkSlicerLineRepresentation2D::ComputeInteractionState(int X, int Y, int vtkNotUsed(modified))
 {
-  if (this->GetNthNodeLocked(0) && this->GetNthNodeLocked(1))
+  if (!this->MarkupsNode || this->MarkupsNode->GetLocked())
     {
-    // both points are not selected, do not perfom the picking and no active node
+    // both points are not selected, do not perfom the picking and no active
     this->InteractionState = vtkSlicerAbstractRepresentation::Outside;
     return this->InteractionState;
     }

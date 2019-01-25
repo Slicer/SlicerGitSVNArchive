@@ -380,8 +380,7 @@ int vtkSlicerAbstractRepresentation::ActivateNode(double displayPos[2])
   int closestNode = static_cast<int> (this->Locator->FindClosestPointWithinRadius(
     this->PixelTolerance, dPos, closestDistance2));
 
-  if (closestNode != this->GetActiveNode() &&
-      ((closestNode != -1 && !this->GetNthNodeLocked(closestNode)) || closestNode == -1  ))
+  if (closestNode != this->GetActiveNode())
     {
     this->SetActiveNode(closestNode);
     this->NeedToRender = 1;

@@ -101,6 +101,51 @@ vtkSlicerLineRepresentation3D::~vtkSlicerLineRepresentation3D()
 }
 
 //----------------------------------------------------------------------
+void vtkSlicerLineRepresentation3D::TranslateWidget(double eventPos[2])
+{
+  // If any node is locked return
+  for (int i = 0; i < this->GetNumberOfNodes(); i++)
+    {
+    if (this->GetNthNodeLocked(i))
+      {
+      return;
+      }
+    }
+
+  this->Superclass::TranslateWidget(eventPos);
+}
+
+//----------------------------------------------------------------------
+void vtkSlicerLineRepresentation3D::ScaleWidget(double eventPos[2])
+{
+  // If any node is locked return
+  for (int i = 0; i < this->GetNumberOfNodes(); i++)
+    {
+    if (this->GetNthNodeLocked(i))
+      {
+      return;
+      }
+    }
+
+  this->Superclass::ScaleWidget(eventPos);
+}
+
+//----------------------------------------------------------------------
+void vtkSlicerLineRepresentation3D::RotateWidget(double eventPos[2])
+{
+  // If any node is locked return
+  for (int i = 0; i < this->GetNumberOfNodes(); i++)
+    {
+    if (this->GetNthNodeLocked(i))
+      {
+      return;
+      }
+    }
+
+  this->Superclass::ScaleWidget(eventPos);
+}
+
+//----------------------------------------------------------------------
 void vtkSlicerLineRepresentation3D::BuildLines()
 {
   vtkNew<vtkPoints> points;
@@ -456,7 +501,7 @@ void vtkSlicerLineRepresentation3D::BuildRepresentation()
 //-----------------------------------------------------------------------------
 int vtkSlicerLineRepresentation3D::ComputeInteractionState(int X, int Y, int vtkNotUsed(modified))
 {
-  if (this->GetNthNodeLocked(0) && this->GetNthNodeLocked(1))
+  if (!this->MarkupsNode || this->MarkupsNode->GetLocked())
     {
     // both points are not selected, do not perfom the picking and no active
     this->InteractionState = vtkSlicerAbstractRepresentation::Outside;

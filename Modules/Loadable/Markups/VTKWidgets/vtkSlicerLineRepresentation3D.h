@@ -86,6 +86,11 @@ protected:
   vtkSlicerLineRepresentation3D();
   ~vtkSlicerLineRepresentation3D() VTK_OVERRIDE;
 
+  // Methods to manipulate the cursor
+  virtual void TranslateWidget(double eventPos[2]) VTK_OVERRIDE;
+  virtual void ScaleWidget(double eventPos[2]) VTK_OVERRIDE;
+  virtual void RotateWidget(double eventPos[2]) VTK_OVERRIDE;
+
   vtkPolyData                *Line;
   vtkOpenGLPolyDataMapper    *LineMapper;
   vtkOpenGLActor             *LineActor;

@@ -482,8 +482,7 @@ void vtkMRMLMarkupsDisplayableManager2D::OnMRMLMarkupsNodeModifiedEvent(vtkMRMLN
     return;
     }
 
-  vtkSlicerAbstractWidget * widget = this->Helper->GetWidget(markupsNode);
-
+  vtkSlicerAbstractWidget *widget = this->Helper->GetWidget(markupsNode);
   if (widget)
     {
     // Rebuild representation
@@ -509,7 +508,6 @@ void vtkMRMLMarkupsDisplayableManager2D::OnMRMLMarkupsDisplayNodeModifiedEvent(v
 
   // find the markups node that has this display node
   vtkMRMLMarkupsNode *markupsNode = this->Helper->GetMarkupsNodeFromDisplayNode(markupsDisplayNode);
-
   if (!markupsNode)
     {
     return;
@@ -764,7 +762,6 @@ void vtkMRMLMarkupsDisplayableManager2D::OnMRMLDisplayableNodeModifiedEvent(vtkO
     }
 
   vtkMRMLSliceNode * sliceNode = vtkMRMLSliceNode::SafeDownCast(caller);
-
   if (sliceNode)
     {
     // the associated renderWindow is a 2D SliceView
@@ -784,7 +781,6 @@ void vtkMRMLMarkupsDisplayableManager2D::OnMRMLDisplayableNodeModifiedEvent(vtkO
     }
 
   vtkMRMLViewNode * viewNode = vtkMRMLViewNode::SafeDownCast(caller);
-
   if (viewNode)
     {
     // the associated renderWindow is a 3D View

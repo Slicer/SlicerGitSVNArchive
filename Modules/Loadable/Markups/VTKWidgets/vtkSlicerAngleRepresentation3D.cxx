@@ -141,6 +141,21 @@ vtkSlicerAngleRepresentation3D::~vtkSlicerAngleRepresentation3D()
 }
 
 //----------------------------------------------------------------------
+void vtkSlicerAngleRepresentation3D::TranslateWidget(double eventPos[2])
+{
+  // If any node is locked return
+  for (int i = 0; i < this->GetNumberOfNodes(); i++)
+    {
+    if (this->GetNthNodeLocked(i))
+      {
+      return;
+      }
+    }
+
+  this->Superclass::TranslateWidget(eventPos);
+}
+
+//----------------------------------------------------------------------
 void vtkSlicerAngleRepresentation3D::ScaleWidget(double eventPos[2])
 {
   if (!this->MarkupsNode || this->GetNumberOfNodes() < 3)
@@ -219,13 +234,10 @@ void vtkSlicerAngleRepresentation3D::RotateWidget(double eventPos[2])
     return;
     }
 
-  // If any node is locked return
-  for (int i = 0; i < this->GetNumberOfNodes(); i++)
+  // If center node is locked rotate. Anyway, it will not move
+  if (this->GetNthNodeLocked(0) || this->GetNthNodeLocked(2))
     {
-    if (this->GetNthNodeLocked(i))
-      {
-      return;
-      }
+    return;
     }
 
   double ref[3] = {0.};
@@ -778,7 +790,7 @@ double *vtkSlicerAngleRepresentation3D::GetBounds()
 //-----------------------------------------------------------------------------
 int vtkSlicerAngleRepresentation3D::ComputeInteractionState(int X, int Y, int vtkNotUsed(modified))
 {
-  if (this->GetNthNodeLocked(0) && this->GetNthNodeLocked(1))
+  if (!this->MarkupsNode || this->MarkupsNode->GetLocked())
     {
     // both points are not selected, do not perfom the picking and no active
     this->InteractionState = vtkSlicerAbstractRepresentation::Outside;

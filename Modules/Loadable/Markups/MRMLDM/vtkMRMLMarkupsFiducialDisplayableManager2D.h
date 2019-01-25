@@ -52,8 +52,8 @@ protected:
   virtual void OnMRMLMarkupsNthPointModifiedEvent(vtkMRMLNode *node, int n) VTK_OVERRIDE;
   /// a nth point in the active Markup has been added, check if it is on the slice
   virtual void OnMRMLMarkupsPointAddedEvent(vtkMRMLNode *node, int n) VTK_OVERRIDE;
-  /// Called after the corresponding MRML View container was modified
-  virtual void OnMRMLDisplayableNodeModifiedEvent(vtkObject* caller);
+  /// Called after the corresponding MRML Markups node was modified
+  virtual void OnMRMLMarkupsNodeModifiedEvent(vtkMRMLNode *node) VTK_OVERRIDE;
   /// Gets called when widget was created
   virtual void OnWidgetCreated(vtkSlicerAbstractWidget * widget, vtkMRMLMarkupsNode * node) VTK_OVERRIDE;
   /// Set up an observer on the interactor style to watch for key press events

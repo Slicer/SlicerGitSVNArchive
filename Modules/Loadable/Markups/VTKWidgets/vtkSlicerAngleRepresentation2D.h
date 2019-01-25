@@ -93,6 +93,7 @@ protected:
   ~vtkSlicerAngleRepresentation2D() override;
 
   // Methods to manipulate the cursor
+  virtual void TranslateWidget(double eventPos[2]) VTK_OVERRIDE;
   virtual void ScaleWidget(double eventPos[2]) VTK_OVERRIDE;
   virtual void RotateWidget(double eventPos[2]) VTK_OVERRIDE;
 

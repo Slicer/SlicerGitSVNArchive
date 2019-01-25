@@ -132,6 +132,21 @@ vtkSlicerAngleRepresentation2D::~vtkSlicerAngleRepresentation2D()
 }
 
 //----------------------------------------------------------------------
+void vtkSlicerAngleRepresentation2D::TranslateWidget(double eventPos[2])
+{
+  // If any node is locked return
+  for (int i = 0; i < this->GetNumberOfNodes(); i++)
+    {
+    if (this->GetNthNodeLocked(i))
+      {
+      return;
+      }
+    }
+
+  this->Superclass::TranslateWidget(eventPos);
+}
+
+//----------------------------------------------------------------------
 void vtkSlicerAngleRepresentation2D::ScaleWidget(double eventPos[2])
 {
   if (!this->MarkupsNode || this->GetNumberOfNodes() < 3)
@@ -194,72 +209,69 @@ void vtkSlicerAngleRepresentation2D::RotateWidget(double eventPos[2])
     return;
     }
 
-  // If any node is locked return
-  for (int i = 0; i < this->GetNumberOfNodes(); i++)
+  // If center node is locked rotate. Anyway, it will not move
+  if (this->GetNthNodeLocked(0) || this->GetNthNodeLocked(2))
     {
-    if (this->GetNthNodeLocked(i))
-      {
-      return;
-      }
+    return;
     }
 
-   double ref[3] = {0.};
-   double slicePos[2] = {0.};
-   double worldPos[3] = {0.};
-   double lastWorldPos[3] = {0.};
+  double ref[3] = {0.};
+  double slicePos[2] = {0.};
+  double worldPos[3] = {0.};
+  double lastWorldPos[3] = {0.};
 
-   slicePos[0] = this->LastEventPosition[0];
-   slicePos[1] = this->LastEventPosition[1];
+  slicePos[0] = this->LastEventPosition[0];
+  slicePos[1] = this->LastEventPosition[1];
 
-   this->GetSliceToWorldCoordinates(slicePos, lastWorldPos);
+  this->GetSliceToWorldCoordinates(slicePos, lastWorldPos);
 
-   slicePos[0] = eventPos[0];
-   slicePos[1] = eventPos[1];
+  slicePos[0] = eventPos[0];
+  slicePos[1] = eventPos[1];
 
-   double centralPointWorldPos[3];
-   this->GetNthNodeWorldPosition(1, centralPointWorldPos);
+  double centralPointWorldPos[3];
+  this->GetNthNodeWorldPosition(1, centralPointWorldPos);
 
-   this->GetSliceToWorldCoordinates(slicePos, worldPos);
+  this->GetSliceToWorldCoordinates(slicePos, worldPos);
 
-   double d2 = vtkMath::Distance2BetweenPoints(worldPos, centralPointWorldPos);
-   if (d2 < 0.0000001)
-     {
-     return;
-     }
+  double d2 = vtkMath::Distance2BetweenPoints(worldPos, centralPointWorldPos);
+  if (d2 < 0.0000001)
+    {
+    return;
+    }
 
-   for (int i = 0; i < 3; i++)
-     {
-     lastWorldPos[i] -= centralPointWorldPos[i];
-     worldPos[i] -= centralPointWorldPos[i];
-     }
-   double angle = -vtkMath::DegreesFromRadians
-                  (vtkMath::AngleBetweenVectors(lastWorldPos, worldPos));
+  for (int i = 0; i < 3; i++)
+    {
+    lastWorldPos[i] -= centralPointWorldPos[i];
+    worldPos[i] -= centralPointWorldPos[i];
+    }
+  double angle = -vtkMath::DegreesFromRadians
+                 (vtkMath::AngleBetweenVectors(lastWorldPos, worldPos));
 
-   this->MarkupsNode->DisableModifiedEventOn();
-   for (int i = 0; i < this->GetNumberOfNodes(); i++)
-     {
-     if (i == 1)
-       {
-       continue;
-       }
-     this->GetNthNodeWorldPosition(i, ref);
-     for (int j = 0; j < 3; j++)
-       {
-       ref[j] -= centralPointWorldPos[j];
-       }
-     vtkNew<vtkTransform> RotateTransform;
-     RotateTransform->RotateY(angle);
-     RotateTransform->TransformPoint(ref, worldPos);
+  this->MarkupsNode->DisableModifiedEventOn();
+  for (int i = 0; i < this->GetNumberOfNodes(); i++)
+    {
+    if (i == 1)
+      {
+      continue;
+      }
+    this->GetNthNodeWorldPosition(i, ref);
+    for (int j = 0; j < 3; j++)
+      {
+      ref[j] -= centralPointWorldPos[j];
+      }
+    vtkNew<vtkTransform> RotateTransform;
+    RotateTransform->RotateY(angle);
+    RotateTransform->TransformPoint(ref, worldPos);
 
-     for (int j = 0; j < 3; j++)
-       {
-       worldPos[j] += centralPointWorldPos[j];
-       }
+    for (int j = 0; j < 3; j++)
+      {
+      worldPos[j] += centralPointWorldPos[j];
+      }
 
-     this->SetNthNodeWorldPosition(i, worldPos);
-     }
-   this->MarkupsNode->DisableModifiedEventOff();
-   this->MarkupsNode->Modified();
+    this->SetNthNodeWorldPosition(i, worldPos);
+    }
+  this->MarkupsNode->DisableModifiedEventOff();
+  this->MarkupsNode->Modified();
 }
 
 //----------------------------------------------------------------------
@@ -628,9 +640,9 @@ void vtkSlicerAngleRepresentation2D::BuildRepresentation()
 //----------------------------------------------------------------------
 int vtkSlicerAngleRepresentation2D::ComputeInteractionState(int X, int Y, int vtkNotUsed(modified))
 {
-  if (this->GetNthNodeLocked(0) && this->GetNthNodeLocked(1))
+  if (!this->MarkupsNode || this->MarkupsNode->GetLocked())
     {
-    // both points are not selected, do not perfom the picking and no active node
+    // both points are not selected, do not perfom the picking and no active
     this->InteractionState = vtkSlicerAbstractRepresentation::Outside;
     return this->InteractionState;
     }

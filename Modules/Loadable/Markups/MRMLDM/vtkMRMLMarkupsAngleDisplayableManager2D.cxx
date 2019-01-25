@@ -714,49 +714,38 @@ bool vtkMRMLMarkupsAngleDisplayableManager2D::IsPointDisplayableOnSlice(vtkMRMLM
 }
 
 //---------------------------------------------------------------------------
-void vtkMRMLMarkupsAngleDisplayableManager2D::OnMRMLDisplayableNodeModifiedEvent(vtkObject *caller)
+void vtkMRMLMarkupsAngleDisplayableManager2D::OnMRMLMarkupsNodeModifiedEvent(vtkMRMLNode *node)
 {
-  this->Superclass::OnMRMLDisplayableNodeModifiedEvent(caller);
+  vtkDebugMacro("OnMRMLMarkupsNodeModifiedEvent");
 
-  if (!this->GetMRMLScene())
+  vtkMRMLMarkupsAngleNode *angleMarkupsNode = vtkMRMLMarkupsAngleNode::SafeDownCast(node);
+  if (!angleMarkupsNode)
+    {
+    vtkErrorMacro("OnMRMLMarkupsNodeModifiedEvent: Can not access node.")
+    return;
+    }
+
+  vtkSlicerAbstractWidget *widget = this->Helper->GetWidget(angleMarkupsNode);
+  if (!widget)
     {
     return;
     }
 
-  vtkSmartPointer<vtkCollection> anglesMarkupsNodes = vtkSmartPointer<vtkCollection>::Take
-        (this->GetMRMLScene()->GetNodesByClass("vtkMRMLMarkupsAngleNode"));
-
-  for (int angleMarkupsIndex = 0; angleMarkupsIndex < anglesMarkupsNodes->GetNumberOfItems(); angleMarkupsIndex++)
+  // Points widgets have only one Markup/Representation
+  vtkSlicerAbstractRepresentation2D *rep = vtkSlicerAbstractRepresentation2D::SafeDownCast
+    (widget->GetRepresentation());
+  if (!rep)
     {
-    vtkMRMLMarkupsAngleNode* angleMarkupsNode = vtkMRMLMarkupsAngleNode::SafeDownCast
-          (anglesMarkupsNodes->GetItemAsObject(angleMarkupsIndex));
-    if (!angleMarkupsNode)
-      {
-      continue;
-      }
-
-    vtkSlicerAbstractWidget *widget = this->Helper->GetWidget(angleMarkupsNode);
-    if (!widget)
-      {
-      continue;
-      }
-
-    // angle widgets have only one Markup/Representation
-    vtkSlicerAbstractRepresentation2D *rep = vtkSlicerAbstractRepresentation2D::SafeDownCast
-      (widget->GetRepresentation());
-    if (!rep)
-      {
-      continue;
-      }
-
-    for (int PointIndex = 0; PointIndex < angleMarkupsNode->GetNumberOfPoints(); PointIndex++)
-      {
-      bool visibility = this->IsPointDisplayableOnSlice(angleMarkupsNode, PointIndex);
-      rep->SetNthPointSliceVisibility(PointIndex, visibility);
-      }
-
-    widget->BuildRepresentation();
+    return;
     }
+
+  for (int PointIndex = 0; PointIndex < angleMarkupsNode->GetNumberOfPoints(); PointIndex++)
+    {
+    bool visibility = this->IsPointDisplayableOnSlice(angleMarkupsNode, PointIndex);
+    rep->SetNthPointSliceVisibility(PointIndex, visibility);
+    }
+
+  widget->BuildRepresentation();
 
   this->RequestRender();
 }

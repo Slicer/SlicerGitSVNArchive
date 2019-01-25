@@ -74,6 +74,21 @@ void vtkSlicerPointsRepresentation3D::BuildLines()
 }
 
 //----------------------------------------------------------------------
+void vtkSlicerPointsRepresentation3D::RotateWidget(double eventPos[2])
+{
+  // If any node is locked return
+  for (int i = 0; i < this->GetNumberOfNodes(); i++)
+    {
+    if (this->GetNthNodeLocked(i))
+      {
+      return;
+      }
+    }
+
+  this->Superclass::ScaleWidget(eventPos);
+}
+
+//----------------------------------------------------------------------
 vtkPolyData *vtkSlicerPointsRepresentation3D::GetWidgetRepresentationAsPolyData()
 {
   this->appendActors->Update();

@@ -714,49 +714,38 @@ bool vtkMRMLMarkupsLineDisplayableManager2D::IsPointDisplayableOnSlice(vtkMRMLMa
 }
 
 //---------------------------------------------------------------------------
-void vtkMRMLMarkupsLineDisplayableManager2D::OnMRMLDisplayableNodeModifiedEvent(vtkObject *caller)
+void vtkMRMLMarkupsLineDisplayableManager2D::OnMRMLMarkupsNodeModifiedEvent(vtkMRMLNode *node)
 {
-  this->Superclass::OnMRMLDisplayableNodeModifiedEvent(caller);
+  vtkDebugMacro("OnMRMLMarkupsNodeModifiedEvent");
 
-  if (!this->GetMRMLScene())
+  vtkMRMLMarkupsLineNode *lineMarkupsNode = vtkMRMLMarkupsLineNode::SafeDownCast(node);
+  if (!lineMarkupsNode)
+    {
+    vtkErrorMacro("OnMRMLMarkupsNodeModifiedEvent: Can not access node.")
+    return;
+    }
+
+  vtkSlicerAbstractWidget *widget = this->Helper->GetWidget(lineMarkupsNode);
+  if (!widget)
     {
     return;
     }
 
-  vtkSmartPointer<vtkCollection> linesMarkupsNodes = vtkSmartPointer<vtkCollection>::Take
-        (this->GetMRMLScene()->GetNodesByClass("vtkMRMLMarkupsLineNode"));
-
-  for (int lineMarkupsIndex = 0; lineMarkupsIndex < linesMarkupsNodes->GetNumberOfItems(); lineMarkupsIndex++)
+  // Points widgets have only one Markup/Representation
+  vtkSlicerAbstractRepresentation2D *rep = vtkSlicerAbstractRepresentation2D::SafeDownCast
+    (widget->GetRepresentation());
+  if (!rep)
     {
-    vtkMRMLMarkupsLineNode* lineMarkupsNode = vtkMRMLMarkupsLineNode::SafeDownCast
-          (linesMarkupsNodes->GetItemAsObject(lineMarkupsIndex));
-    if (!lineMarkupsNode)
-      {
-      continue;
-      }
-
-    vtkSlicerAbstractWidget *widget = this->Helper->GetWidget(lineMarkupsNode);
-    if (!widget)
-      {
-      continue;
-      }
-
-    // line widgets have only one Markup/Representation
-    vtkSlicerAbstractRepresentation2D *rep = vtkSlicerAbstractRepresentation2D::SafeDownCast
-      (widget->GetRepresentation());
-    if (!rep)
-      {
-      continue;
-      }
-
-    for (int PointIndex = 0; PointIndex < lineMarkupsNode->GetNumberOfPoints(); PointIndex++)
-      {
-      bool visibility = this->IsPointDisplayableOnSlice(lineMarkupsNode, PointIndex);
-      rep->SetNthPointSliceVisibility(PointIndex, visibility);
-      }
-
-    widget->BuildRepresentation();
+    return;
     }
+
+  for (int PointIndex = 0; PointIndex < lineMarkupsNode->GetNumberOfPoints(); PointIndex++)
+    {
+    bool visibility = this->IsPointDisplayableOnSlice(lineMarkupsNode, PointIndex);
+    rep->SetNthPointSliceVisibility(PointIndex, visibility);
+    }
+
+  widget->BuildRepresentation();
 
   this->RequestRender();
 }

@@ -54,6 +54,9 @@ protected:
   vtkSlicerPointsRepresentation2D();
   ~vtkSlicerPointsRepresentation2D() VTK_OVERRIDE;
 
+  // Methods to manipulate the cursor
+  virtual void RotateWidget(double eventPos[2]) VTK_OVERRIDE;
+
   virtual void BuildLines() VTK_OVERRIDE;
 
   vtkAppendPolyData *appendActors;

@@ -609,6 +609,13 @@ void vtkSlicerAbstractRepresentation3D::BuildRepresentation()
 //----------------------------------------------------------------------
 int vtkSlicerAbstractRepresentation3D::ComputeInteractionState(int X, int Y, int vtkNotUsed(modified))
 {
+  if (!this->MarkupsNode || this->MarkupsNode->GetLocked())
+    {
+    // both points are not selected, do not perfom the picking and no active
+    this->InteractionState = vtkSlicerAbstractRepresentation::Outside;
+    return this->InteractionState;
+    }
+
   if (this->Superclass::ActivateNode(X, Y))
     {
     this->InteractionState = vtkSlicerAbstractRepresentation::OnControlPoint;
@@ -830,15 +837,6 @@ void vtkSlicerAbstractRepresentation3D::RotateWidget(double eventPos[2])
   if (!this->MarkupsNode)
     {
     return;
-    }
-
-  // If any node is locked return
-  for (int i = 0; i < this->GetNumberOfNodes(); i++)
-    {
-    if (this->GetNthNodeLocked(i))
-      {
-      return;
-      }
     }
 
   double ref[3] = {0.};
