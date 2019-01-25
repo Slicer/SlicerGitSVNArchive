@@ -51,6 +51,9 @@ class vtkIncrementalOctreePointLocator;
 class vtkPointPlacer;
 class vtkPolyData;
 class vtkIdList;
+class vtkPointSetToLabelHierarchy;
+class vtkStringArray;
+class vtkTextProperty;
 
 class VTK_SLICER_MARKUPS_MODULE_VTKWIDGETS_EXPORT vtkSlicerAbstractRepresentation : public vtkWidgetRepresentation
 {
@@ -58,6 +61,18 @@ public:
   /// Standard methods for instances of this class.
   vtkTypeMacro(vtkSlicerAbstractRepresentation,vtkWidgetRepresentation);
   void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
+
+  /// This is the property used for the text when the handle is not active
+  /// (the mouse is not near the handle)
+  vtkGetObjectMacro(TextProperty,vtkTextProperty);
+
+  /// This is the selected property used for the text when the handle is not active
+  /// (the mouse is not near the handle)
+  vtkGetObjectMacro(SelectedTextProperty,vtkTextProperty);
+
+  /// This is the property used for the text when the user is interacting
+  /// with the handle.
+  vtkGetObjectMacro(ActiveTextProperty,vtkTextProperty);
 
   /// Add a node at a specific world position. Returns 0 if the
   /// node could not be added, 1 otherwise.
@@ -446,6 +461,29 @@ protected:
   vtkPoints            *SelectedFocalPoint;
   vtkPolyData          *ActiveFocalData;
   vtkPoints            *ActiveFocalPoint;
+
+  vtkPolyData          *LabelsFocalData;
+  vtkPoints            *LabelsFocalPoint;
+  vtkPolyData          *SelectedLabelsFocalData;
+  vtkPoints            *SelectedLabelsFocalPoint;
+  vtkPolyData          *ActiveLabelsFocalData;
+  vtkPoints            *ActiveLabelsFocalPoint;
+
+  vtkPointSetToLabelHierarchy *PointSetToLabelHierarchyFilter;
+  vtkStringArray              *Labels;
+  vtkStringArray              *LabelsPriority;
+
+  vtkPointSetToLabelHierarchy *SelectedPointSetToLabelHierarchyFilter;
+  vtkStringArray              *SelectedLabels;
+  vtkStringArray              *SelectedLabelsPriority;
+
+  vtkPointSetToLabelHierarchy *ActivePointSetToLabelHierarchyFilter;
+  vtkStringArray              *ActiveLabels;
+  vtkStringArray              *ActiveLabelsPriority;
+
+  vtkTextProperty   *TextProperty;
+  vtkTextProperty   *SelectedTextProperty;
+  vtkTextProperty   *ActiveTextProperty;
 
   // Support picking
   double LastEventPosition[2];

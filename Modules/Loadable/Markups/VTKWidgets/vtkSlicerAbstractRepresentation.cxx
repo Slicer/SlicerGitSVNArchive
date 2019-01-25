@@ -55,6 +55,10 @@
 #include "vtkRenderer.h"
 #include "vtkRenderWindow.h"
 #include "vtkWindow.h"
+#include "vtkPointSetToLabelHierarchy.h"
+#include "vtkStringArray.h"
+#include "vtkLabelHierarchy.h"
+#include "vtkTextProperty.h"
 
 #include <set>
 #include <algorithm>
@@ -90,6 +94,25 @@ vtkSlicerAbstractRepresentation::vtkSlicerAbstractRepresentation()
 
   this->PointPlacer = vtkFocalPlanePointPlacer::New();
   this->LineInterpolator = vtkLinearSlicerLineInterpolator::New();
+
+  this->TextProperty = vtkTextProperty::New();
+  this->TextProperty->SetFontSize(15);
+  this->TextProperty->SetFontFamily(vtkTextProperty::GetFontFamilyFromString("Arial"));
+  this->TextProperty->SetColor(0.4, 1.0, 1.0);
+  this->TextProperty->SetOpacity(1.);
+
+  this->SelectedTextProperty = vtkTextProperty::New();
+  this->SelectedTextProperty->SetFontSize(15);
+  this->SelectedTextProperty->SetFontFamily(vtkTextProperty::GetFontFamilyFromString("Arial"));
+  this->SelectedTextProperty->SetColor(1.0, 0.5, 0.5);
+  this->SelectedTextProperty->SetOpacity(1.);
+
+  this->ActiveTextProperty = vtkTextProperty::New();
+  this->ActiveTextProperty->SetFontSize(15);
+  this->ActiveTextProperty->SetFontFamily(vtkTextProperty::GetFontFamilyFromString("Arial"));
+  // bright green
+  this->ActiveTextProperty->SetColor(0.4, 1.0, 0.);
+  this->ActiveTextProperty->SetOpacity(1.);
 
   this->FocalPoint = vtkPoints::New();
   this->FocalPoint->SetNumberOfPoints(100);
@@ -140,6 +163,109 @@ vtkSlicerAbstractRepresentation::vtkSlicerAbstractRepresentation()
   this->ActiveFocalData->GetPointData()->SetNormals(activeNormals);
   activeNormals->Delete();
 
+  // Labels
+  this->LabelsFocalPoint = vtkPoints::New();
+  this->LabelsFocalPoint->SetNumberOfPoints(100);
+  this->LabelsFocalPoint->SetNumberOfPoints(1);
+  this->LabelsFocalPoint->SetPoint(0, 0.0, 0.0, 0.0);
+
+  vtkDoubleArray *normalsLabels = vtkDoubleArray::New();
+  normalsLabels->SetNumberOfComponents(3);
+  normalsLabels->SetNumberOfTuples(100);
+  normalsLabels->SetNumberOfTuples(1);
+  normalsLabels->SetTuple(0, n);
+
+  this->SelectedLabelsFocalPoint = vtkPoints::New();
+  this->SelectedLabelsFocalPoint->SetNumberOfPoints(100);
+  this->SelectedLabelsFocalPoint->SetNumberOfPoints(1);
+  this->SelectedLabelsFocalPoint->SetPoint(0, 0.0, 0.0, 0.0);
+
+  vtkDoubleArray *selectedNormalsLabels = vtkDoubleArray::New();
+  selectedNormalsLabels->SetNumberOfComponents(3);
+  selectedNormalsLabels->SetNumberOfTuples(100);
+  selectedNormalsLabels->SetNumberOfTuples(1);
+  selectedNormalsLabels->SetTuple(0, n);
+
+  this->ActiveLabelsFocalPoint = vtkPoints::New();
+  this->ActiveLabelsFocalPoint->SetNumberOfPoints(100);
+  this->ActiveLabelsFocalPoint->SetNumberOfPoints(1);
+  this->ActiveLabelsFocalPoint->SetPoint(0, 0.0, 0.0, 0.0);
+
+  vtkDoubleArray *activeNormalsLabels = vtkDoubleArray::New();
+  activeNormalsLabels->SetNumberOfComponents(3);
+  activeNormalsLabels->SetNumberOfTuples(100);
+  activeNormalsLabels->SetNumberOfTuples(1);
+  activeNormalsLabels->SetTuple(0, n);
+
+  this->LabelsFocalData = vtkPolyData::New();
+  this->LabelsFocalData->SetPoints(this->LabelsFocalPoint);
+  this->LabelsFocalData->GetPointData()->SetNormals(normalsLabels);
+  normalsLabels->Delete();
+
+  this->SelectedLabelsFocalData = vtkPolyData::New();
+  this->SelectedLabelsFocalData->SetPoints(this->SelectedLabelsFocalPoint);
+  this->SelectedLabelsFocalData->GetPointData()->SetNormals(selectedNormalsLabels);
+  selectedNormalsLabels->Delete();
+
+  this->ActiveLabelsFocalData = vtkPolyData::New();
+  this->ActiveLabelsFocalData->SetPoints(this->ActiveLabelsFocalPoint);
+  this->ActiveLabelsFocalData->GetPointData()->SetNormals(activeNormalsLabels);
+  activeNormalsLabels->Delete();
+
+  this->Labels = vtkStringArray::New();
+  this->Labels->SetName("labels");
+  this->Labels->SetNumberOfValues(100);
+  this->Labels->SetNumberOfValues(1);
+  this->Labels->SetValue(0, "F");
+  this->LabelsPriority = vtkStringArray::New();
+  this->LabelsPriority->SetName("priority");
+  this->LabelsPriority->SetNumberOfValues(100);
+  this->LabelsPriority->SetNumberOfValues(1);
+  this->LabelsPriority->SetValue(0, "1");
+  this->LabelsFocalData->GetPointData()->AddArray(this->Labels);
+  this->LabelsFocalData->GetPointData()->AddArray(this->LabelsPriority);
+  this->PointSetToLabelHierarchyFilter = vtkPointSetToLabelHierarchy::New();
+  this->PointSetToLabelHierarchyFilter->SetTextProperty(this->TextProperty);
+  this->PointSetToLabelHierarchyFilter->SetLabelArrayName("labels");
+  this->PointSetToLabelHierarchyFilter->SetPriorityArrayName("priority");
+  this->PointSetToLabelHierarchyFilter->SetInputData(this->LabelsFocalData);
+
+  this->SelectedLabels = vtkStringArray::New();
+  this->SelectedLabels->SetName("labels");
+  this->SelectedLabels->SetNumberOfValues(100);
+  this->SelectedLabels->SetNumberOfValues(1);
+  this->SelectedLabels->SetValue(0, "F");
+  this->SelectedLabelsPriority = vtkStringArray::New();
+  this->SelectedLabelsPriority->SetName("priority");
+  this->SelectedLabelsPriority->SetNumberOfValues(100);
+  this->SelectedLabelsPriority->SetNumberOfValues(1);
+  this->SelectedLabelsPriority->SetValue(0, "1");
+  this->SelectedLabelsFocalData->GetPointData()->AddArray(this->SelectedLabels);
+  this->SelectedLabelsFocalData->GetPointData()->AddArray(this->SelectedLabelsPriority);
+  this->SelectedPointSetToLabelHierarchyFilter = vtkPointSetToLabelHierarchy::New();
+  this->SelectedPointSetToLabelHierarchyFilter->SetTextProperty(this->SelectedTextProperty);
+  this->SelectedPointSetToLabelHierarchyFilter->SetLabelArrayName("labels");
+  this->SelectedPointSetToLabelHierarchyFilter->SetPriorityArrayName("priority");
+  this->SelectedPointSetToLabelHierarchyFilter->SetInputData(this->SelectedLabelsFocalData);
+
+  this->ActiveLabels = vtkStringArray::New();
+  this->ActiveLabels->SetName("labels");
+  this->ActiveLabels->SetNumberOfValues(100);
+  this->ActiveLabels->SetNumberOfValues(1);
+  this->ActiveLabels->SetValue(0, "F");
+  this->ActiveLabelsPriority = vtkStringArray::New();
+  this->ActiveLabelsPriority->SetName("priority");
+  this->ActiveLabelsPriority->SetNumberOfValues(100);
+  this->ActiveLabelsPriority->SetNumberOfValues(1);
+  this->ActiveLabelsPriority->SetValue(0, "1");
+  this->ActiveLabelsFocalData->GetPointData()->AddArray(this->ActiveLabels);
+  this->ActiveLabelsFocalData->GetPointData()->AddArray(this->ActiveLabelsPriority);
+  this->ActivePointSetToLabelHierarchyFilter = vtkPointSetToLabelHierarchy::New();
+  this->ActivePointSetToLabelHierarchyFilter->SetTextProperty(this->ActiveTextProperty);
+  this->ActivePointSetToLabelHierarchyFilter->SetLabelArrayName("labels");
+  this->ActivePointSetToLabelHierarchyFilter->SetPriorityArrayName("priority");
+  this->ActivePointSetToLabelHierarchyFilter->SetInputData(this->ActiveLabelsFocalData);
+
   this->AlwaysOnTop = 0;
 
   this->RestrictFlag = RestrictNone;
@@ -166,6 +292,31 @@ vtkSlicerAbstractRepresentation::~vtkSlicerAbstractRepresentation()
 
   this->ActiveFocalPoint->Delete();
   this->ActiveFocalData->Delete();
+
+  this->LabelsFocalPoint->Delete();
+  this->LabelsFocalData->Delete();
+
+  this->Labels->Delete();
+  this->LabelsPriority->Delete();
+  this->PointSetToLabelHierarchyFilter->Delete();
+
+  this->SelectedLabelsFocalPoint->Delete();
+  this->SelectedLabelsFocalData->Delete();
+
+  this->SelectedLabels->Delete();
+  this->SelectedLabelsPriority->Delete();
+  this->SelectedPointSetToLabelHierarchyFilter->Delete();
+
+  this->ActiveLabelsFocalPoint->Delete();
+  this->ActiveLabelsFocalData->Delete();
+
+  this->ActiveLabels->Delete();
+  this->ActiveLabelsPriority->Delete();
+  this->ActivePointSetToLabelHierarchyFilter->Delete();
+
+  this->TextProperty->Delete();
+  this->SelectedTextProperty->Delete();
+  this->ActiveTextProperty->Delete();
 }
 
 //----------------------------------------------------------------------

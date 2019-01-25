@@ -64,10 +64,6 @@
 #include "vtkLabelHierarchy.h"
 #include "vtkMRMLMarkupsDisplayNode.h"
 
-#include <set>
-#include <algorithm>
-#include <iterator>
-
 //----------------------------------------------------------------------
 vtkSlicerAbstractRepresentation3D::vtkSlicerAbstractRepresentation3D()
 {
@@ -120,70 +116,16 @@ vtkSlicerAbstractRepresentation3D::vtkSlicerAbstractRepresentation3D()
   this->ActiveActor->SetProperty(this->ActiveProperty);
 
   // Labels
-  this->Labels = vtkStringArray::New();
-  this->Labels->SetName("labels");
-  this->Labels->SetNumberOfValues(100);
-  this->Labels->SetNumberOfValues(1);
-  this->Labels->SetValue(0, "F");
-  this->LabelsPriority = vtkStringArray::New();
-  this->LabelsPriority->SetName("priority");
-  this->LabelsPriority->SetNumberOfValues(100);
-  this->LabelsPriority->SetNumberOfValues(1);
-  this->LabelsPriority->SetValue(0, "1");
-  this->FocalData->GetPointData()->AddArray(this->Labels);
-  this->FocalData->GetPointData()->AddArray(this->LabelsPriority);
-  this->PointSetToLabelHierarchyFilter = vtkPointSetToLabelHierarchy::New();
-  this->TextProperty->SetJustificationToCentered();
-  this->PointSetToLabelHierarchyFilter->SetTextProperty(this->TextProperty);
-  this->PointSetToLabelHierarchyFilter->SetLabelArrayName("labels");
-  this->PointSetToLabelHierarchyFilter->SetPriorityArrayName("priority");
-  this->PointSetToLabelHierarchyFilter->SetInputData(this->FocalData);
   this->LabelsMapper = vtkLabelPlacementMapper::New();
   this->LabelsMapper->SetInputConnection(this->PointSetToLabelHierarchyFilter->GetOutputPort());
   this->LabelsActor = vtkActor2D::New();
   this->LabelsActor->SetMapper(this->LabelsMapper);
 
-  this->SelectedLabels = vtkStringArray::New();
-  this->SelectedLabels->SetName("labels");
-  this->SelectedLabels->SetNumberOfValues(100);
-  this->SelectedLabels->SetNumberOfValues(1);
-  this->SelectedLabels->SetValue(0, "F");
-  this->SelectedLabelsPriority = vtkStringArray::New();
-  this->SelectedLabelsPriority->SetName("priority");
-  this->SelectedLabelsPriority->SetNumberOfValues(100);
-  this->SelectedLabelsPriority->SetNumberOfValues(1);
-  this->SelectedLabelsPriority->SetValue(0, "1");
-  this->SelectedFocalData->GetPointData()->AddArray(this->SelectedLabels);
-  this->SelectedFocalData->GetPointData()->AddArray(this->SelectedLabelsPriority);
-  this->SelectedPointSetToLabelHierarchyFilter = vtkPointSetToLabelHierarchy::New();
-  this->SelectedTextProperty->SetJustificationToCentered();
-  this->SelectedPointSetToLabelHierarchyFilter->SetTextProperty(this->SelectedTextProperty);
-  this->SelectedPointSetToLabelHierarchyFilter->SetLabelArrayName("labels");
-  this->SelectedPointSetToLabelHierarchyFilter->SetPriorityArrayName("priority");
-  this->SelectedPointSetToLabelHierarchyFilter->SetInputData(this->SelectedFocalData);
   this->SelectedLabelsMapper = vtkLabelPlacementMapper::New();
   this->SelectedLabelsMapper->SetInputConnection(this->SelectedPointSetToLabelHierarchyFilter->GetOutputPort());
   this->SelectedLabelsActor = vtkActor2D::New();
   this->SelectedLabelsActor->SetMapper(this->SelectedLabelsMapper);
 
-  this->ActiveLabels = vtkStringArray::New();
-  this->ActiveLabels->SetName("labels");
-  this->ActiveLabels->SetNumberOfValues(100);
-  this->ActiveLabels->SetNumberOfValues(1);
-  this->ActiveLabels->SetValue(0, "F");
-  this->ActiveLabelsPriority = vtkStringArray::New();
-  this->ActiveLabelsPriority->SetName("priority");
-  this->ActiveLabelsPriority->SetNumberOfValues(100);
-  this->ActiveLabelsPriority->SetNumberOfValues(1);
-  this->ActiveLabelsPriority->SetValue(0, "1");
-  this->ActiveFocalData->GetPointData()->AddArray(this->ActiveLabels);
-  this->ActiveFocalData->GetPointData()->AddArray(this->ActiveLabelsPriority);
-  this->ActivePointSetToLabelHierarchyFilter = vtkPointSetToLabelHierarchy::New();
-  this->ActiveTextProperty->SetJustificationToCentered();
-  this->ActivePointSetToLabelHierarchyFilter->SetTextProperty(this->ActiveTextProperty);
-  this->ActivePointSetToLabelHierarchyFilter->SetLabelArrayName("labels");
-  this->ActivePointSetToLabelHierarchyFilter->SetPriorityArrayName("priority");
-  this->ActivePointSetToLabelHierarchyFilter->SetInputData(this->ActiveFocalData);
   this->ActiveLabelsMapper = vtkLabelPlacementMapper::New();
   this->ActiveLabelsMapper->SetInputConnection(this->ActivePointSetToLabelHierarchyFilter->GetOutputPort());
   this->ActiveLabelsActor = vtkActor2D::New();
@@ -208,10 +150,6 @@ vtkSlicerAbstractRepresentation3D::~vtkSlicerAbstractRepresentation3D()
   this->SelectedProperty->Delete();
   this->ActiveProperty->Delete();
 
-  this->TextProperty->Delete();
-  this->SelectedTextProperty->Delete();
-  this->ActiveTextProperty->Delete();
-
   this->SetCursorShape(nullptr);
   this->SetSelectedCursorShape(nullptr);
   this->SetActiveCursorShape(nullptr);
@@ -220,23 +158,14 @@ vtkSlicerAbstractRepresentation3D::~vtkSlicerAbstractRepresentation3D()
   this->SelectedGlypher->Delete();
   this->ActiveGlypher->Delete();
 
-  this->Labels->Delete();
-  this->LabelsPriority->Delete();
   this->LabelsActor->Delete();
   this->LabelsMapper->Delete();
-  this->PointSetToLabelHierarchyFilter->Delete();
 
-  this->SelectedLabels->Delete();
-  this->SelectedLabelsPriority->Delete();
   this->SelectedLabelsActor->Delete();
   this->SelectedLabelsMapper->Delete();
-  this->SelectedPointSetToLabelHierarchyFilter->Delete();
 
-  this->ActiveLabels->Delete();
-  this->ActiveLabelsPriority->Delete();
   this->ActiveLabelsActor->Delete();
   this->ActiveLabelsMapper->Delete();
-  this->ActivePointSetToLabelHierarchyFilter->Delete();
 }
 
 //----------------------------------------------------------------------
@@ -310,28 +239,176 @@ void vtkSlicerAbstractRepresentation3D::CreateDefaultProperties()
   this->ActiveProperty->SetPointSize(10.);
   this->ActiveProperty->SetLineWidth(2.);
   this->ActiveProperty->SetOpacity(1.);
+}
 
-  this->TextProperty = vtkTextProperty::New();
-  this->TextProperty->SetJustificationToRight();
-  this->TextProperty->SetFontSize(15);
-  this->TextProperty->SetFontFamily(vtkTextProperty::GetFontFamilyFromString("Arial"));
-  this->TextProperty->SetColor(0.4, 1.0, 1.0);
-  this->TextProperty->SetOpacity(1.);
+//----------------------------------------------------------------------
+void vtkSlicerAbstractRepresentation3D::BuildRepresentationPointsAndLabels()
+{
+  int numPoints = this->GetNumberOfNodes();
+  int ii;
 
-  this->SelectedTextProperty = vtkTextProperty::New();
-  this->SelectedTextProperty->SetJustificationToRight();
-  this->SelectedTextProperty->SetFontSize(15);
-  this->SelectedTextProperty->SetFontFamily(vtkTextProperty::GetFontFamilyFromString("Arial"));
-  this->SelectedTextProperty->SetColor(1.0, 0.5, 0.5);
-  this->SelectedTextProperty->SetOpacity(1.);
+  this->FocalPoint->SetNumberOfPoints(0);
+  this->FocalData->GetPointData()->GetNormals()->SetNumberOfTuples(0);
 
-  this->ActiveTextProperty = vtkTextProperty::New();
-  this->ActiveTextProperty->SetJustificationToRight();
-  this->ActiveTextProperty->SetFontSize(15);
-  this->ActiveTextProperty->SetFontFamily(vtkTextProperty::GetFontFamilyFromString("Arial"));
-  // bright green
-  this->ActiveTextProperty->SetColor(0.4, 1.0, 0.);
-  this->ActiveTextProperty->SetOpacity(1.);
+  this->LabelsFocalPoint->SetNumberOfPoints(0);
+  this->LabelsFocalData->GetPointData()->GetNormals()->SetNumberOfTuples(0);
+
+  this->Labels->SetNumberOfValues(0);
+  this->LabelsPriority->SetNumberOfValues(0);
+
+  for (ii = 0; ii < numPoints; ii++)
+    {
+    if (!this->GetNthNodeVisibility(ii) ||
+        ii == this->GetActiveNode() ||
+        this->GetNthNodeSelected(ii))
+      {
+      continue;
+      }
+
+    double worldPos[3], worldOrient[9] = {0}, orientation[4] = {0};
+    this->GetNthNodeWorldPosition(ii, worldPos);
+    bool skipPoint = false;
+    for (int jj = 0; jj < this->FocalPoint->GetNumberOfPoints(); jj++)
+      {
+      double* pos = this->FocalPoint->GetPoint(jj);
+      double eps = 0.001;
+      if (fabs(pos[0] - worldPos[0]) < eps &&
+          fabs(pos[1] - worldPos[1]) < eps &&
+          fabs(pos[2] - worldPos[2]) < eps)
+        {
+        skipPoint = true;
+        break;
+        }
+      }
+
+    if (skipPoint)
+      {
+      continue;
+      }
+
+    this->FocalPoint->InsertNextPoint(worldPos);
+
+    worldPos[0] += this->HandleSize;
+    worldPos[1] += this->HandleSize;
+    worldPos[2] += this->HandleSize;
+    this->LabelsFocalPoint->InsertNextPoint(worldPos);
+
+    this->GetNthNodeOrientation(ii, orientation);
+    this->FromOrientationQuaternionToWorldOrient(orientation, worldOrient);
+    this->FocalData->GetPointData()->GetNormals()->InsertNextTuple(worldOrient + 6);
+    this->LabelsFocalData->GetPointData()->GetNormals()->InsertNextTuple(worldOrient + 6);
+    this->Labels->InsertNextValue(this->GetNthNodeLabel(ii));
+    this->LabelsPriority->InsertNextValue(std::to_string (ii));
+    }
+
+  this->FocalPoint->Modified();
+  this->FocalData->GetPointData()->GetNormals()->Modified();
+  this->FocalData->Modified();
+
+  this->LabelsFocalPoint->Modified();
+  this->LabelsFocalData->GetPointData()->GetNormals()->Modified();
+  this->LabelsFocalData->Modified();
+
+  this->SelectedFocalPoint->SetNumberOfPoints(0);
+  this->SelectedFocalData->GetPointData()->GetNormals()->SetNumberOfTuples(0);
+
+  this->SelectedLabelsFocalPoint->SetNumberOfPoints(0);
+  this->SelectedLabelsFocalData->GetPointData()->GetNormals()->SetNumberOfTuples(0);
+
+  this->SelectedLabels->SetNumberOfValues(0);
+  this->SelectedLabelsPriority->SetNumberOfValues(0);
+
+  for (ii = 0; ii < numPoints; ii++)
+    {
+    if (!this->GetNthNodeVisibility(ii) ||
+        ii == this->GetActiveNode() ||
+        !this->GetNthNodeSelected(ii))
+      {
+      continue;
+      }
+
+    double worldPos[3], worldOrient[9] = {0}, orientation[4] = {0};
+    this->GetNthNodeWorldPosition(ii, worldPos);
+    bool skipPoint = false;
+    for (int jj = 0; jj < this->SelectedFocalPoint->GetNumberOfPoints(); jj++)
+      {
+      double* pos = this->SelectedFocalPoint->GetPoint(jj);
+      double eps = 0.001;
+      if (fabs(pos[0] - worldPos[0]) < eps &&
+          fabs(pos[1] - worldPos[1]) < eps &&
+          fabs(pos[2] - worldPos[2]) < eps)
+        {
+        skipPoint = true;
+        break;
+        }
+      }
+
+    if (skipPoint)
+      {
+      continue;
+      }
+
+    this->SelectedFocalPoint->InsertNextPoint(worldPos);
+
+    worldPos[0] += this->HandleSize;
+    worldPos[1] += this->HandleSize;
+    worldPos[2] += this->HandleSize;
+    this->SelectedLabelsFocalPoint->InsertNextPoint(worldPos);
+
+    this->GetNthNodeOrientation(ii, orientation);
+    this->FromOrientationQuaternionToWorldOrient(orientation, worldOrient);
+    this->SelectedFocalData->GetPointData()->GetNormals()->InsertNextTuple(worldOrient + 6);
+    this->SelectedLabelsFocalData->GetPointData()->GetNormals()->InsertNextTuple(worldOrient + 6);
+    this->SelectedLabels->InsertNextValue(this->GetNthNodeLabel(ii));
+    this->SelectedLabelsPriority->InsertNextValue(std::to_string (ii));
+    }
+
+  this->SelectedFocalPoint->Modified();
+  this->SelectedFocalData->GetPointData()->GetNormals()->Modified();
+  this->SelectedFocalData->Modified();
+
+  this->SelectedLabelsFocalPoint->Modified();
+  this->SelectedLabelsFocalData->GetPointData()->GetNormals()->Modified();
+  this->SelectedLabelsFocalData->Modified();
+
+  if (this->GetActiveNode() >= 0 &&
+      this->GetActiveNode() < this->GetNumberOfNodes() &&
+      this->GetNthNodeVisibility(this->GetActiveNode()))
+    {
+    double worldPos[3], worldOrient[9] = {0}, orientation[4] = {0};
+
+    this->GetActiveNodeWorldPosition(worldPos);
+    this->ActiveFocalPoint->SetPoint(0, worldPos);
+
+    worldPos[0] += this->HandleSize;
+    worldPos[1] += this->HandleSize;
+    worldPos[2] += this->HandleSize;
+    this->ActiveLabelsFocalPoint->SetPoint(0, worldPos);
+
+    this->GetActiveNodeOrientation(orientation);
+    this->FromOrientationQuaternionToWorldOrient(orientation, worldOrient);
+    this->ActiveFocalData->GetPointData()->GetNormals()->SetTuple(0, worldOrient + 6);
+    this->ActiveLabelsFocalData->GetPointData()->GetNormals()->SetTuple(0, worldOrient + 6);
+
+    this->ActiveFocalPoint->Modified();
+    this->ActiveFocalData->GetPointData()->GetNormals()->Modified();
+    this->ActiveFocalData->Modified();
+
+    this->ActiveLabelsFocalPoint->Modified();
+    this->ActiveLabelsFocalData->GetPointData()->GetNormals()->Modified();
+    this->ActiveLabelsFocalData->Modified();
+
+    this->ActiveLabels->SetValue(0, this->GetActiveNodeLabel());
+    this->ActiveLabelsPriority->SetValue(0, std::to_string(this->GetActiveNode()));
+
+    this->ActiveActor->VisibilityOn();
+    this->ActiveLabelsActor->VisibilityOn();
+    }
+  else
+    {
+    this->ActiveActor->VisibilityOff();
+    this->ActiveLabelsActor->VisibilityOff();
+    }
 }
 
 //----------------------------------------------------------------------
@@ -480,130 +557,7 @@ void vtkSlicerAbstractRepresentation3D::BuildRepresentation()
   this->Glypher->SetScaleFactor(this->HandleSize);
   this->SelectedGlypher->SetScaleFactor(this->HandleSize);
   this->ActiveGlypher->SetScaleFactor(this->HandleSize);
-
-  int numPoints = this->GetNumberOfNodes();
-  int ii;
-
-  this->FocalPoint->SetNumberOfPoints(0);
-  this->FocalData->GetPointData()->GetNormals()->SetNumberOfTuples(0);
-  this->Labels->SetNumberOfValues(0);
-  this->LabelsPriority->SetNumberOfValues(0);
-
-  for (ii = 0; ii < numPoints; ii++)
-    {
-    if (!this->GetNthNodeVisibility(ii) ||
-        ii == this->GetActiveNode() ||
-        this->GetNthNodeSelected(ii))
-      {
-      continue;
-      }
-
-    double worldPos[3], worldOrient[9] = {0}, orientation[4] = {0};
-    this->GetNthNodeWorldPosition(ii, worldPos);
-    bool skipPoint = false;
-    for (int jj = 0; jj < this->FocalPoint->GetNumberOfPoints(); jj++)
-      {
-      double* pos = this->FocalPoint->GetPoint(jj);
-      double eps = 0.001;
-      if (fabs(pos[0] - worldPos[0]) < eps &&
-           fabs(pos[1] - worldPos[1]) < eps &&
-           fabs(pos[2] - worldPos[2]) < eps)
-        {
-        skipPoint = true;
-        break;
-        }
-      }
-
-    if (skipPoint)
-      {
-      continue;
-      }
-
-    this->FocalPoint->InsertNextPoint(worldPos);
-    this->GetNthNodeOrientation(ii, orientation);
-    this->FromOrientationQuaternionToWorldOrient(orientation, worldOrient);
-    this->FocalData->GetPointData()->GetNormals()->InsertNextTuple(worldOrient + 6);
-    this->Labels->InsertNextValue(this->GetNthNodeLabel(ii));
-    this->LabelsPriority->InsertNextValue(std::to_string (ii));
-    }
-
-  this->FocalPoint->Modified();
-  this->FocalData->GetPointData()->GetNormals()->Modified();
-  this->FocalData->Modified();
-
-  this->SelectedFocalPoint->SetNumberOfPoints(0);
-  this->SelectedFocalData->GetPointData()->GetNormals()->SetNumberOfTuples(0);
-  this->SelectedLabels->SetNumberOfValues(0);
-  this->SelectedLabelsPriority->SetNumberOfValues(0);
-
-  for (ii = 0; ii < numPoints; ii++)
-    {
-    if (!this->GetNthNodeVisibility(ii) ||
-        ii == this->GetActiveNode() ||
-        !this->GetNthNodeSelected(ii))
-      {
-      continue;
-      }
-
-    double worldPos[3], worldOrient[9] = {0}, orientation[4] = {0};
-    this->GetNthNodeWorldPosition(ii, worldPos);
-    bool skipPoint = false;
-    for (int jj = 0; jj < this->SelectedFocalPoint->GetNumberOfPoints(); jj++)
-      {
-      double* pos = this->SelectedFocalPoint->GetPoint(jj);
-      double eps = 0.001;
-      if (fabs(pos[0] - worldPos[0]) < eps &&
-           fabs(pos[1] - worldPos[1]) < eps &&
-           fabs(pos[2] - worldPos[2]) < eps)
-        {
-        skipPoint = true;
-        break;
-        }
-      }
-
-    if (skipPoint)
-      {
-      continue;
-      }
-
-    this->SelectedFocalPoint->InsertNextPoint(worldPos);
-    this->GetNthNodeOrientation(ii, orientation);
-    this->FromOrientationQuaternionToWorldOrient(orientation, worldOrient);
-    this->SelectedFocalData->GetPointData()->GetNormals()->InsertNextTuple(worldOrient + 6);
-    this->SelectedLabels->InsertNextValue(this->GetNthNodeLabel(ii));
-    this->SelectedLabelsPriority->InsertNextValue(std::to_string(ii));
-    }
-
-  this->SelectedFocalPoint->Modified();
-  this->SelectedFocalData->GetPointData()->GetNormals()->Modified();
-  this->SelectedFocalData->Modified();
-
-  if (this->GetActiveNode() >= 0 &&
-      this->GetActiveNode() < this->GetNumberOfNodes() &&
-      this->GetNthNodeVisibility(this->GetActiveNode()))
-    {
-    double worldPos[3], worldOrient[9] = {0}, orientation[4] = {0};
-    this->GetActiveNodeWorldPosition(worldPos);
-    this->ActiveFocalPoint->SetPoint(0, worldPos);
-    this->GetActiveNodeOrientation(orientation);
-    this->FromOrientationQuaternionToWorldOrient(orientation, worldOrient);
-    this->ActiveFocalData->GetPointData()->GetNormals()->SetTuple(0, worldOrient + 6);
-
-    this->ActiveFocalPoint->Modified();
-    this->ActiveFocalData->GetPointData()->GetNormals()->Modified();
-    this->ActiveFocalData->Modified();
-
-    this->ActiveLabels->SetValue(0, this->GetActiveNodeLabel());
-    this->ActiveLabelsPriority->SetValue(0, std::to_string(this->GetActiveNode()));
-
-    this->ActiveActor->VisibilityOn();
-    this->ActiveLabelsActor->VisibilityOn();
-    }
-  else
-    {
-    this->ActiveActor->VisibilityOff();
-    this->ActiveLabelsActor->VisibilityOff();
-    }
+  this->BuildRepresentationPointsAndLabels();
 }
 
 //----------------------------------------------------------------------

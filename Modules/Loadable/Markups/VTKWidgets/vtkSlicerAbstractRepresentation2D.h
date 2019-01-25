@@ -41,10 +41,7 @@ class vtkProperty2D;
 class vtkActor2D;
 class vtkOpenGLPolyDataMapper2D;
 class vtkGlyph2D;
-class vtkTextProperty;
 class vtkLabelPlacementMapper;
-class vtkPointSetToLabelHierarchy;
-class vtkStringArray;
 
 class VTK_SLICER_MARKUPS_MODULE_VTKWIDGETS_EXPORT vtkSlicerAbstractRepresentation2D : public vtkSlicerAbstractRepresentation
 {
@@ -64,18 +61,6 @@ public:
   /// This is the property used when the user is interacting
   /// with the handle.
   vtkGetObjectMacro(ActiveProperty,vtkProperty2D);
-
-  /// This is the property used for the text when the handle is not active
-  /// (the mouse is not near the handle)
-  vtkGetObjectMacro(TextProperty,vtkTextProperty);
-
-  /// This is the selected property used for the text when the handle is not active
-  /// (the mouse is not near the handle)
-  vtkGetObjectMacro(SelectedTextProperty,vtkTextProperty);
-
-  /// This is the property used for the text when the user is interacting
-  /// with the handle.
-  vtkGetObjectMacro(ActiveTextProperty,vtkTextProperty);
 
   /// Subclasses of vtkSlicerAbstractRepresentation2D must implement these methods. These
   /// are the methods that the widget and its representation use to
@@ -181,30 +166,14 @@ protected:
 
   vtkActor2D                  *LabelsActor;
   vtkLabelPlacementMapper     *LabelsMapper;
-  vtkPointSetToLabelHierarchy *PointSetToLabelHierarchyFilter;
-  vtkStringArray              *Labels;
-  vtkStringArray              *LabelsPriority;
 
   vtkActor2D                  *SelectedLabelsActor;
   vtkLabelPlacementMapper     *SelectedLabelsMapper;
-  vtkPointSetToLabelHierarchy *SelectedPointSetToLabelHierarchyFilter;
-  vtkStringArray              *SelectedLabels;
-  vtkStringArray              *SelectedLabelsPriority;
 
   vtkActor2D                  *ActiveLabelsActor;
   vtkLabelPlacementMapper     *ActiveLabelsMapper;
-  vtkPointSetToLabelHierarchy *ActivePointSetToLabelHierarchyFilter;
-  vtkStringArray              *ActiveLabels;
-  vtkStringArray              *ActiveLabelsPriority;
 
-  vtkPolyData                 *LabelsFocalData;
-  vtkPoints                   *LabelsFocalPoint;
-  vtkPolyData                 *SelectedLabelsFocalData;
-  vtkPoints                   *SelectedLabelsFocalPoint;
-  vtkPolyData                 *ActiveLabelsFocalData;
-  vtkPoints                   *ActiveLabelsFocalPoint;
-
-  vtkIntArray *pointsVisibilityOnSlice;
+  vtkIntArray                 *pointsVisibilityOnSlice;
 
   // Properties used to control the appearance of selected objects and
   // the manipulator in general.
@@ -212,13 +181,9 @@ protected:
   vtkProperty2D   *SelectedProperty;
   vtkProperty2D   *ActiveProperty;
 
-  vtkTextProperty   *TextProperty;
-  vtkTextProperty   *SelectedTextProperty;
-  vtkTextProperty   *ActiveTextProperty;
   virtual void  CreateDefaultProperties() VTK_OVERRIDE;
-
+  virtual void BuildRepresentationPointsAndLabels(double labelsOffset);
   void BuildLocator() VTK_OVERRIDE;
-
   virtual void AddNodeAtPositionInternal(double worldPos[3]) VTK_OVERRIDE;
 
 private:

@@ -68,18 +68,6 @@ public:
   /// with the handle.
   vtkGetObjectMacro(ActiveProperty,vtkProperty);
 
-  /// This is the property used for the text when the handle is not active
-  /// (the mouse is not near the handle)
-  vtkGetObjectMacro(TextProperty,vtkTextProperty);
-
-  /// This is the selected property used for the text when the handle is not active
-  /// (the mouse is not near the handle)
-  vtkGetObjectMacro(SelectedTextProperty,vtkTextProperty);
-
-  /// This is the property used for the text when the user is interacting
-  /// with the handle.
-  vtkGetObjectMacro(ActiveTextProperty,vtkTextProperty);
-
   /// Subclasses of vtkSlicerAbstractRepresentation3D must implement these methods. These
   /// are the methods that the widget and its representation use to
   /// communicate with each other.
@@ -147,21 +135,12 @@ protected:
 
   vtkActor2D                  *LabelsActor;
   vtkLabelPlacementMapper     *LabelsMapper;
-  vtkPointSetToLabelHierarchy *PointSetToLabelHierarchyFilter;
-  vtkStringArray              *Labels;
-  vtkStringArray              *LabelsPriority;
 
   vtkActor2D                  *SelectedLabelsActor;
   vtkLabelPlacementMapper     *SelectedLabelsMapper;
-  vtkPointSetToLabelHierarchy *SelectedPointSetToLabelHierarchyFilter;
-  vtkStringArray              *SelectedLabels;
-  vtkStringArray              *SelectedLabelsPriority;
 
   vtkActor2D                  *ActiveLabelsActor;
   vtkLabelPlacementMapper     *ActiveLabelsMapper;
-  vtkPointSetToLabelHierarchy *ActivePointSetToLabelHierarchyFilter;
-  vtkStringArray              *ActiveLabels;
-  vtkStringArray              *ActiveLabelsPriority;
 
   // Properties used to control the appearance of selected objects and
   // the manipulator in general.
@@ -169,10 +148,8 @@ protected:
   vtkProperty   *SelectedProperty;
   vtkProperty   *ActiveProperty;
 
-  vtkTextProperty   *TextProperty;
-  vtkTextProperty   *SelectedTextProperty;
-  vtkTextProperty   *ActiveTextProperty;
-  virtual void  CreateDefaultProperties() VTK_OVERRIDE;
+  virtual void CreateDefaultProperties() VTK_OVERRIDE;
+  virtual void BuildRepresentationPointsAndLabels();
 
 private:
   vtkSlicerAbstractRepresentation3D(const vtkSlicerAbstractRepresentation3D&) = delete;
