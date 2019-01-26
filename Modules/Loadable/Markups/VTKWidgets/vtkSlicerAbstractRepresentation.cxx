@@ -503,6 +503,12 @@ int vtkSlicerAbstractRepresentation::AddNodeAtDisplayPosition(int X, int Y)
 //----------------------------------------------------------------------
 int vtkSlicerAbstractRepresentation::ActivateNode(double displayPos[2])
 {
+  if (this->GetNumberOfNodes() == 0)
+    {
+    this->SetActiveNode(-1);
+    return 0;
+    }
+
   this->BuildLocator();
 
   double dPos[3] = {displayPos[0],displayPos[1],0};

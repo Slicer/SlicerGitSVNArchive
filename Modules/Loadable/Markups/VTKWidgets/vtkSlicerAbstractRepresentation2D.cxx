@@ -132,7 +132,7 @@ vtkSlicerAbstractRepresentation2D::vtkSlicerAbstractRepresentation2D()
   this->ActiveLabelsActor = vtkActor2D::New();
   this->ActiveLabelsActor->SetMapper(this->ActiveLabelsMapper);
 
-  this->HandleSize = 0.05;
+  this->HandleSize = 3;
 }
 
 //----------------------------------------------------------------------
