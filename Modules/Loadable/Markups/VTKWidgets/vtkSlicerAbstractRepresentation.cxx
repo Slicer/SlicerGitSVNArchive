@@ -1658,8 +1658,8 @@ void vtkSlicerAbstractRepresentation::BuildLocator()
   vtkPolyData *tmp = vtkPolyData::New();
   tmp->SetPoints(points);
   this->Locator->SetDataSet(tmp);
-  tmp->FastDelete();
-  points->FastDelete();
+  tmp->Delete();
+  points->Delete();
 
   //we fully updated the display locator
   this->RebuildLocator = false;
