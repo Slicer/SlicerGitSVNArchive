@@ -207,6 +207,7 @@ void vtkMRMLMarkupsDisplayableManager3D::UpdateFromMRML()
           vtkErrorMacro("UpdateFromMRML: failed to create a widget for node " << markupsNode->GetID());
           }
         }
+      this->OnMRMLMarkupsDisplayNodeModifiedEvent(markupsNode->GetDisplayNode());
       }
     }
 }
@@ -419,14 +420,15 @@ void vtkMRMLMarkupsDisplayableManager3D::OnMRMLMarkupsNodeModifiedEvent(vtkMRMLN
     return;
     }
 
-  vtkSlicerAbstractWidget * widget = this->Helper->GetWidget(markupsNode);
-
-  if (widget)
+  vtkSlicerAbstractWidget *widget = this->Helper->GetWidget(markupsNode);
+  if (!widget)
     {
-    // Rebuild representation
-    widget->BuildRepresentation();
-    this->RequestRender();
+    return;
     }
+
+  // Rebuild representation
+  widget->BuildRepresentation();
+  this->RequestRender();
 }
 
 //---------------------------------------------------------------------------
@@ -440,6 +442,7 @@ void vtkMRMLMarkupsDisplayableManager3D::OnMRMLMarkupsDisplayNodeModifiedEvent(v
   vtkMRMLMarkupsDisplayNode *markupsDisplayNode = vtkMRMLMarkupsDisplayNode::SafeDownCast(node);
   if (!markupsDisplayNode)
     {
+    vtkErrorMacro("OnMRMLMarkupsDisplayNodeModifiedEvent: Can not access node.")
     return;
     }
 
@@ -574,12 +577,14 @@ void vtkMRMLMarkupsDisplayableManager3D::OnMRMLMarkupsNthPointModifiedEvent(vtkM
     }
 
   vtkSlicerAbstractWidget *widget = this->Helper->GetWidget(markupsNode);
-  if (widget)
+  if (!widget)
     {
-    // Rebuild representation
-    widget->BuildRepresentation();
-    this->RequestRender();
+    return;
     }
+
+  // Rebuild representation
+  widget->BuildRepresentation();
+  this->RequestRender();
 }
 
 //---------------------------------------------------------------------------
@@ -632,36 +637,40 @@ void vtkMRMLMarkupsDisplayableManager3D::OnMRMLMarkupsPointRemovedEvent(vtkMRMLN
     }
 
   vtkSlicerAbstractWidget *widget = this->Helper->GetWidget(markupsNode);
-  if (widget)
+  if (!widget)
     {
-    // Rebuild representation
-    widget->BuildRepresentation();
-    this->RequestRender();
+    return;
     }
+
+  // Rebuild representation
+  widget->BuildRepresentation();
+  this->RequestRender();
 }
 
 //---------------------------------------------------------------------------
 void vtkMRMLMarkupsDisplayableManager3D::OnMRMLMarkupsAllPointsRemovedEvent(vtkMRMLNode *node)
 {
-    vtkDebugMacro("OnMRMLMarkupsAllPointsRemovedEvent");
-    if (!node)
-      {
-      return;
-      }
+  vtkDebugMacro("OnMRMLMarkupsAllPointsRemovedEvent");
+  if (!node)
+    {
+    return;
+    }
 
-    vtkMRMLMarkupsNode *markupsNode = vtkMRMLMarkupsNode::SafeDownCast(node);
-    if (!markupsNode)
-      {
-      return;
-      }
+  vtkMRMLMarkupsNode *markupsNode = vtkMRMLMarkupsNode::SafeDownCast(node);
+  if (!markupsNode)
+    {
+    return;
+    }
 
-    vtkSlicerAbstractWidget *widget = this->Helper->GetWidget(markupsNode);
-    if (widget)
-      {
-      // Rebuild representation
-      widget->BuildRepresentation();
-      this->RequestRender();
-      }
+  vtkSlicerAbstractWidget *widget = this->Helper->GetWidget(markupsNode);
+  if (!widget)
+    {
+    return;
+    }
+
+  // Rebuild representation
+  widget->BuildRepresentation();
+  this->RequestRender();
 }
 
 //---------------------------------------------------------------------------
@@ -681,12 +690,14 @@ void vtkMRMLMarkupsDisplayableManager3D::OnMRMLMarkupsNodeTransformModifiedEvent
     }
 
   vtkSlicerAbstractWidget *widget = this->Helper->GetWidget(markupsNode);
-  if (widget)
+  if (!widget)
     {
-    // Rebuild representation
-    widget->BuildRepresentation();
-    this->RequestRender();
+    return;
     }
+
+  // Rebuild representation
+  widget->BuildRepresentation();
+  this->RequestRender();
 }
 
 //---------------------------------------------------------------------------

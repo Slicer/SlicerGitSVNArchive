@@ -330,7 +330,14 @@ void vtkMRMLMarkupsLineDisplayableManager2D::OnClickInRenderWindow(double x, dou
       }
     }
 
-  if (!activeLineNode)
+  vtkMRMLInteractionNode *interactionNode = this->GetInteractionNode();
+  if (!interactionNode)
+    {
+    return;
+    }
+
+  if (!activeLineNode &&
+      interactionNode->GetCurrentInteractionMode() == vtkMRMLInteractionNode::Place)
     {
     // create the MRML node
     activeLineNode = vtkMRMLMarkupsLineNode::SafeDownCast
@@ -344,12 +351,6 @@ void vtkMRMLMarkupsLineDisplayableManager2D::OnClickInRenderWindow(double x, dou
   vtkSlicerLineWidget *slicerWidget = vtkSlicerLineWidget::SafeDownCast
     (this->Helper->GetWidget(activeLineNode));
   if (slicerWidget == nullptr)
-    {
-    return;
-    }
-
-  vtkMRMLInteractionNode *interactionNode = this->GetInteractionNode();
-  if (!interactionNode)
     {
     return;
     }

@@ -286,19 +286,27 @@ void vtkSlicerCurveRepresentation3D::BuildRepresentation()
 
   this->LineActor->SetVisibility(lineVisibility);
 
+  bool lineColorToSelected = true;
+  for (int ii = 0; ii < this->GetNumberOfNodes(); ii++)
+    {
+    if (!this->GetNthNodeSelected(ii))
+      {
+      lineColorToSelected = false;
+      break;
+      }
+    }
+
   if (this->GetActiveNode() == -2)
     {
     this->LineActor->SetProperty(this->ActiveProperty);
     }
-  else if (!this->GetNthNodeSelected(0) ||
-           (this->GetNumberOfNodes() > 1 && !this->GetNthNodeSelected(1)) ||
-           (this->GetNumberOfNodes() > 2 && !this->GetNthNodeSelected(2)))
+  else if (lineColorToSelected)
     {
-    this->LineActor->SetProperty(this->Property);
+    this->LineActor->SetProperty(this->SelectedProperty);
     }
   else
     {
-    this->LineActor->SetProperty(this->SelectedProperty);
+    this->LineActor->SetProperty(this->Property);
     }
 }
 

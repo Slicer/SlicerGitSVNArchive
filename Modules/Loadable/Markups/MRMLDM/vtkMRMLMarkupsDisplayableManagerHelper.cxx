@@ -240,6 +240,7 @@ void vtkMRMLMarkupsDisplayableManagerHelper::SetAllWidgetsToManipulate()
         {
         it->second->GetRepresentation()->SetActiveNode(-1);
         it->second->GetRepresentation()->SetInteractionState(0);
+        it->second->GetRepresentation()->NeedToRenderOn();
         }
       }
     }

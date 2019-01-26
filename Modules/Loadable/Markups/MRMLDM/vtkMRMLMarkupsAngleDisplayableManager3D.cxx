@@ -328,7 +328,14 @@ void vtkMRMLMarkupsAngleDisplayableManager3D::OnClickInRenderWindow(double x, do
       }
     }
 
-  if (!activeAngleNode)
+  vtkMRMLInteractionNode *interactionNode = this->GetInteractionNode();
+  if (!interactionNode)
+    {
+    return;
+    }
+
+  if (!activeAngleNode &&
+      interactionNode->GetCurrentInteractionMode() == vtkMRMLInteractionNode::Place)
     {
     // create the MRML node
     activeAngleNode = vtkMRMLMarkupsAngleNode::SafeDownCast
@@ -342,12 +349,6 @@ void vtkMRMLMarkupsAngleDisplayableManager3D::OnClickInRenderWindow(double x, do
   vtkSlicerAngleWidget *slicerWidget = vtkSlicerAngleWidget::SafeDownCast
     (this->Helper->GetWidget(activeAngleNode));
   if (slicerWidget == nullptr)
-    {
-    return;
-    }
-
-  vtkMRMLInteractionNode *interactionNode = this->GetInteractionNode();
-  if (!interactionNode)
     {
     return;
     }
