@@ -109,6 +109,17 @@ vtkSlicerCurveRepresentation3D::~vtkSlicerCurveRepresentation3D()
 }
 
 //----------------------------------------------------------------------
+void vtkSlicerCurveRepresentation3D::TranslateNode(double eventPos[2])
+{
+  this->Superclass::TranslateNode(eventPos);
+
+  if (this->ClosedLoop)
+    {
+    this->UpdateCentroid();
+    }
+}
+
+//----------------------------------------------------------------------
 void vtkSlicerCurveRepresentation3D::TranslateWidget(double eventPos[2])
 {
   // If any node is locked return
@@ -121,11 +132,21 @@ void vtkSlicerCurveRepresentation3D::TranslateWidget(double eventPos[2])
     }
 
   this->Superclass::TranslateWidget(eventPos);
+
+  if (this->ClosedLoop)
+    {
+    this->UpdateCentroid();
+    }
 }
 
 //----------------------------------------------------------------------
 void vtkSlicerCurveRepresentation3D::ScaleWidget(double eventPos[2])
 {
+  if (this->GetActiveNode() == -3)
+    {
+    return;
+    }
+
   // If any node is locked return
   for (int i = 0; i < this->GetNumberOfNodes(); i++)
     {
@@ -141,6 +162,11 @@ void vtkSlicerCurveRepresentation3D::ScaleWidget(double eventPos[2])
 //----------------------------------------------------------------------
 void vtkSlicerCurveRepresentation3D::RotateWidget(double eventPos[2])
 {
+  if (this->GetActiveNode() == -3)
+    {
+    return;
+    }
+
   // If any node is locked return
   for (int i = 0; i < this->GetNumberOfNodes(); i++)
     {
@@ -274,24 +300,24 @@ void vtkSlicerCurveRepresentation3D::BuildRepresentation()
   this->TubeFilter->SetRadius(this->HandleSize * 0.125);
   this->BuildRepresentationPointsAndLabels();
 
-  bool lineVisibility = true;
+  bool allNodeVisibile = true;
   for (int ii = 0; ii < this->GetNumberOfNodes(); ii++)
     {
     if (!this->GetNthNodeVisibility(ii))
       {
-      lineVisibility = false;
+      allNodeVisibile = false;
       break;
       }
     }
 
-  this->LineActor->SetVisibility(lineVisibility);
+  this->LineActor->SetVisibility(allNodeVisibile);
 
-  bool lineColorToSelected = true;
+  bool allNodeSelected = true;
   for (int ii = 0; ii < this->GetNumberOfNodes(); ii++)
     {
     if (!this->GetNthNodeSelected(ii))
       {
-      lineColorToSelected = false;
+      allNodeSelected = false;
       break;
       }
     }
@@ -300,13 +326,62 @@ void vtkSlicerCurveRepresentation3D::BuildRepresentation()
     {
     this->LineActor->SetProperty(this->ActiveProperty);
     }
-  else if (lineColorToSelected)
+  else if (allNodeSelected)
     {
     this->LineActor->SetProperty(this->SelectedProperty);
     }
   else
     {
     this->LineActor->SetProperty(this->Property);
+    }
+
+  bool allNodeNotVisibile = true;
+  for (int ii = 0; ii < this->GetNumberOfNodes(); ii++)
+    {
+    if (this->GetNthNodeVisibility(ii))
+      {
+      allNodeNotVisibile = false;
+      break;
+      }
+    }
+
+  if (this->ClosedLoop && this->GetNumberOfNodes() > 2 &&
+      this->GetActiveNode() != -3 && !allNodeNotVisibile)
+    {
+    double centroidPos[3], orient[3] = {0};
+    this->MarkupsNode->GetCentroidPosition(centroidPos);
+    if (allNodeSelected)
+      {
+      this->SelectedFocalPoint->InsertNextPoint(centroidPos);
+      this->SelectedFocalData->GetPointData()->GetNormals()->InsertNextTuple(orient);
+
+      this->SelectedFocalPoint->Modified();
+      this->SelectedFocalData->GetPointData()->GetNormals()->Modified();
+      this->SelectedFocalData->Modified();
+      }
+    else
+      {
+      this->FocalPoint->InsertNextPoint(centroidPos);
+      this->FocalData->GetPointData()->GetNormals()->InsertNextTuple(orient);
+
+      this->FocalPoint->Modified();
+      this->FocalData->GetPointData()->GetNormals()->Modified();
+      this->FocalData->Modified();
+      }
+    }
+  else if (this->ClosedLoop && this->GetActiveNode() == -3 && !allNodeNotVisibile)
+    {
+    double centroidPos[3], orient[3] = {0};
+    this->MarkupsNode->GetCentroidPosition(centroidPos);
+    this->ActiveFocalPoint->SetPoint(0, centroidPos);
+    this->ActiveFocalData->GetPointData()->GetNormals()->SetTuple(0, orient);
+
+    this->ActiveFocalPoint->Modified();
+    this->ActiveFocalData->GetPointData()->GetNormals()->Modified();
+    this->ActiveFocalData->Modified();
+
+    this->ActiveActor->VisibilityOn();
+    this->ActiveLabelsActor->VisibilityOff();
     }
 }
 
@@ -404,7 +479,7 @@ int vtkSlicerCurveRepresentation3D::ComputeInteractionState(int X, int Y, int vt
     }
 
   this->MarkupsNode->DisableModifiedEventOn();
-  if (this->Superclass::Superclass::ActivateNode(X, Y))
+  if (this->ActivateNode(X, Y))
     {
     this->InteractionState = vtkSlicerAbstractRepresentation::OnControlPoint;
     }
@@ -419,6 +494,7 @@ int vtkSlicerCurveRepresentation3D::ComputeInteractionState(int X, int Y, int vt
     this->InteractionState = vtkSlicerAbstractRepresentation::Outside;
     }
   this->MarkupsNode->DisableModifiedEventOff();
+  this->MarkupsNode->Modified();
 
   this->NeedToRenderOn();
   return this->InteractionState;

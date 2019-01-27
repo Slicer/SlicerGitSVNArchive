@@ -18,9 +18,9 @@
 
 /**
  * @class   vtkSlicerPointsWidget
- * @brief   create a set of points
+ * @brief   create a set of N interactable points
  *
- * The vtkSlicerPointsWidget is used to select a set of points.
+ * The vtkSlicerPointsWidget is used to create a set of N interactable points.
  * The widget handles all processing of widget
  * events (that are triggered by VTK events). The vtkSlicerPointRepresentations are
  * responsible for all placement of the points, and
@@ -33,20 +33,18 @@
  * watches the vtkRenderWindowInteractor for these events):
  * <pre>
  *   LeftButtonPressEvent - triggers a Select event
- *   Alt + LeftButtonPressEvent - triggers a Rotate event
- *   MiddleButtonPressEvent - triggers a Shift event
- *   RightButtonPressEvent - triggers a Scale event
+ *   MiddleButtonPressEvent - triggers a Translate event
+ *   RightButtonPressEvent - triggers a Pick event
  *
  *   MouseMoveEvent - triggers a Move event
  *
- *   LeftButtonReleaseEvent - triggers an EndSelect event
- *   MiddleButtonReleaseEvent - triggers an EndShift event
- *   RightButtonReleaseEvent - triggers an EndScale event
+ *   LeftButtonReleaseEvent - triggers an EndAction event
+ *   MiddleButtonReleaseEvent - triggers an EndAction event
+ *   RightButtonReleaseEvent - triggers an EndAction event
  *
- *   LeftButtonDoubleClickEvent - triggers an PickOne event
- *   MiddleButtonDoubleClickEvent - triggers an PickTwo event
- *   RightButtonDoubleClickEvent - triggers an PickThree event
- *
+ *   LeftButtonDoubleClickEvent - triggers an Pick event
+ *   MiddleButtonDoubleClickEvent - triggers an Pick event
+ *   RightButtonDoubleClickEvent - triggers an Pick event
  *
  *   Delete key event - triggers a Delete event
  *   Shift + Delete key event - triggers a Reset event
@@ -55,62 +53,47 @@
  * @par Event Bindings:
  * Note that the event bindings described above can be changed using this
  * class's vtkWidgetEventTranslator. This class translates VTK events
- * into the vtkSlicerPointsWidget's widget events:
+ * into the vtkSlicerLineWidget's widget events:
  * <pre>
- *   vtkWidgetEvent::Translate
+ *   vtkWidgetEvent::Select
  *        widget state is:
  *            Start: Do nothing.
  *            Define: Do nothing.
  *            Manipulate: If this (X,Y) location activates a node, then
- *                 set the current operation to Translate.
+ *                 set the current operation to Select (translate only one point).
  *
  * @par Event Bindings:
  *   vtkWidgetEvent::PickPoint
  *        widget state is:
  *            Start: Do nothing.
  *            Define: Do nothing.
- *            Manipulate: If this (X,Y) location activates a node. The node
+ *            Manipulate: If this (X,Y) location activates a node or line. The node or line
  *                 will be selected, but no translate will be possible.
  *
- * @par Event Bindings:
- *   vtkWidgetEvent::Rotate
- *        widget state is:
- *            Start: Do nothing.
- *            Define: Do nothing.
- *            Manipulate: If this (X,Y) location activates a node, then
- *                 set the current operation to Rotate. if any node is locked, the rotation is aborted.
  *
  * @par Event Bindings:
- *   vtkWidgetEvent::Shift
+ *   vtkWidgetEvent::Translate
  *        widget state is:
  *            Start: Do nothing.
  *            Define: Do nothing.
- *            Manipulate: If this (X,Y) location activates a node, then
- *                 set the current operation to Shift.
- *
- * @par Event Bindings:
- *   vtkWidgetEvent::Scale
- *        widget state is:
- *            Start: Do nothing.
- *            Define: Do nothing.
- *            Manipulate: If this (X,Y) location activates a node, then
- *                 set the current operation to Scale.
+ *            Manipulate: If this (X,Y) location activates a node or the line, then
+ *                 set the current operation to Translate.
  *
  *
  * @par Event Bindings:
  *   vtkWidgetEvent::Move
  *        widget state is:
- *            Start: Do nothing.
+ *            Start or
  *            Define: Do nothing.
- *            Manipulate: If our operation is Translate, Shift or Scale, then invoke
- *                  WidgetInteraction() on the representation. If our
+ *            Manipulate: If our operation is Select, Pick, Translate, Rotate or Scale,
+ *                  then invoke WidgetInteraction() on the representation. If our
  *                  operation is Inactive, then just attempt to activate
  *                  a node at this (X,Y) location.
  *
  * @par Event Bindings:
  *   vtkWidgetEvent::EndAction
  *        widget state is:
- *            Start: Do nothing.
+ *            Start or
  *            Define: Do nothing.
  *            Manipulate: If our operation is not Inactive, set it to
  *                  Inactive.
@@ -119,7 +102,7 @@
  *   vtkWidgetEvent::Delete
  *        widget state is:
  *            Start: Do nothing.
- *            Define: Remove the last point.
+ *            Define: Remove the last point on the widget.
  *            Manipulate: Attempt to activate a node at (X,Y). If
  *                   we do activate a node, delete it. If we now
  *                   have less than 3 nodes, go back to Define state.
@@ -128,7 +111,7 @@
  *   vtkWidgetEvent::Reset
  *        widget state is:
  *            Start: Do nothing.
- *            Define: Remove all points.
+ *            Define: Remove all points of the widget.
  *                 Essentially calls Initialize(nullptr)
  *            Manipulate: Do nothing.
  * </pre>

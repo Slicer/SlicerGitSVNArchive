@@ -91,9 +91,7 @@ public:
   /// node within tolerance will be activated. If a node is
   /// activated, 1 will be returned, otherwise 0 will be
   /// returned.
-  virtual int ActivateNode(double displayPos[2]);
-  virtual int ActivateNode(int displayPos[2]);
-  virtual int ActivateNode(int X, int Y);
+  virtual int ActivateNode(int X, int Y) = 0;
 
   /// Move the active node to a specified world position.
   /// Will return 0 if there is no active node or the node
@@ -114,7 +112,8 @@ public:
   /// Get/Set the active node.
   /// If index is from 0 to N it indicates the active point index.
   /// If is -1 indicates that nothing is selected.
-  /// If is -2 indicates that a line is selected.
+  /// If is -2 indicates that the line is selected.
+  /// If is -3 indicates that the centroid is selected.
   virtual int GetActiveNode();
   virtual void SetActiveNode(int index);
 
@@ -378,6 +377,11 @@ public:
   /// Set the renderer
   virtual void SetRenderer(vtkRenderer *ren) VTK_OVERRIDE;
 
+  /// Compute the centroid by sampling the points along
+  /// the polyline of the widget at equal distances.
+  /// and it also updates automatically the centroid pos stored in the Markups node
+  virtual void UpdateCentroid();
+
 protected:
   vtkSlicerAbstractRepresentation();
   ~vtkSlicerAbstractRepresentation() VTK_OVERRIDE;
@@ -478,9 +482,6 @@ protected:
   vtkTextProperty   *TextProperty;
   vtkTextProperty   *SelectedTextProperty;
   vtkTextProperty   *ActiveTextProperty;
-
-  // Compute the centroid by sampling the points along the polyline of the widget at equal distances
-  virtual void ComputeCentroid(double* ioCentroid);
 
   // Properties used to control the appearance of selected objects and
   // the manipulator in general.

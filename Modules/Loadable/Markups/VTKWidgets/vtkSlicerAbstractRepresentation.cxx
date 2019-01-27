@@ -70,7 +70,7 @@ vtkCxxSetObjectMacro(vtkSlicerAbstractRepresentation, LineInterpolator, vtkSlice
 //----------------------------------------------------------------------
 vtkSlicerAbstractRepresentation::vtkSlicerAbstractRepresentation()
 {
-  this->Tolerance                = 0.5;
+  this->Tolerance                = 0.4;
   this->PixelTolerance           = 1;
   this->PointPlacer              = nullptr;
   this->LineInterpolator         = nullptr;
@@ -438,6 +438,8 @@ void vtkSlicerAbstractRepresentation::GetNodePolyData(vtkPolyData* poly)
 
   if (this->ClosedLoop)
     {
+    this->GetNthNodeWorldPosition(0, pos);
+    points->InsertPoint(index, pos);
     lineIndices[index] = 0;
     }
 
@@ -471,8 +473,8 @@ int vtkSlicerAbstractRepresentation::AddNodeAtDisplayPosition(double displayPos[
 {
   double worldPos[3], worldOrient[9], orientation[4];
   if (!this->PointPlacer->ComputeWorldPosition(this->Renderer,
-                                                 displayPos, worldPos,
-                                                 worldOrient))
+                                               displayPos, worldPos,
+                                               worldOrient))
     {
     return 0;
     }
@@ -498,53 +500,6 @@ int vtkSlicerAbstractRepresentation::AddNodeAtDisplayPosition(int X, int Y)
   displayPos[0] = X;
   displayPos[1] = Y;
   return this->AddNodeAtDisplayPosition(displayPos);
-}
-
-//----------------------------------------------------------------------
-int vtkSlicerAbstractRepresentation::ActivateNode(double displayPos[2])
-{
-  if (this->GetNumberOfNodes() == 0)
-    {
-    this->SetActiveNode(-1);
-    return 0;
-    }
-
-  this->BuildLocator();
-
-  double dPos[3] = {displayPos[0],displayPos[1],0};
-
-  double scale = this->CalculateViewScaleFactor();
-  this->PixelTolerance = (this->HandleSize + this->HandleSize * this->Tolerance) * scale;
-  double closestDistance2 = VTK_DOUBLE_MAX;
-  int closestNode = static_cast<int> (this->Locator->FindClosestPointWithinRadius(
-    this->PixelTolerance, dPos, closestDistance2));
-
-  if (closestNode != this->GetActiveNode())
-    {
-    this->SetActiveNode(closestNode);
-    this->NeedToRender = 1;
-    }
-  return (this->GetActiveNode() >= 0);
-}
-
-//----------------------------------------------------------------------
-int vtkSlicerAbstractRepresentation::ActivateNode(int displayPos[2])
-{
-  double doubleDisplayPos[2];
-
-  doubleDisplayPos[0] = displayPos[0];
-  doubleDisplayPos[1] = displayPos[1];
-  return this->ActivateNode(doubleDisplayPos);
-}
-
-//----------------------------------------------------------------------
-int vtkSlicerAbstractRepresentation::ActivateNode(int X, int Y)
-{
-  double doubleDisplayPos[2];
-
-  doubleDisplayPos[0] = X;
-  doubleDisplayPos[1] = Y;
-  return this->ActivateNode(doubleDisplayPos);
 }
 
 //----------------------------------------------------------------------
@@ -1717,24 +1672,29 @@ void vtkSlicerAbstractRepresentation::SetClosedLoop(vtkTypeBool val)
 }
 
 //----------------------------------------------------------------------
-void vtkSlicerAbstractRepresentation::ComputeCentroid(double *ioCentroid)
+void vtkSlicerAbstractRepresentation::UpdateCentroid()
 {
-  double p[3];
-  ioCentroid[0] = 0.;
-  ioCentroid[1] = 0.;
-  ioCentroid[2] = 0.;
+  double p[3], centroidWorldPos[3];
+  centroidWorldPos[0] = 0.;
+  centroidWorldPos[1] = 0.;
+  centroidWorldPos[2] = 0.;
 
   for (int i = 0; i < this->GetNumberOfNodes(); i++)
   {
     this->GetNthNodeWorldPosition(i, p);
-    ioCentroid[0] += p[0];
-    ioCentroid[1] += p[1];
-    ioCentroid[2] += p[2];
+    centroidWorldPos[0] += p[0];
+    centroidWorldPos[1] += p[1];
+    centroidWorldPos[2] += p[2];
   }
   double inv_N = 1. / static_cast< double >(this->GetNumberOfNodes());
-  ioCentroid[0] *= inv_N;
-  ioCentroid[1] *= inv_N;
-  ioCentroid[2] *= inv_N;
+  centroidWorldPos[0] *= inv_N;
+  centroidWorldPos[1] *= inv_N;
+  centroidWorldPos[2] *= inv_N;
+
+  if (this->MarkupsNode)
+    {
+    this->MarkupsNode->SetCentroidPositionFromPointer(centroidWorldPos);
+    }
 }
 
 //----------------------------------------------------------------------

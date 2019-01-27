@@ -17,15 +17,16 @@
 =========================================================================*/
 
 /**
- * @class   vtkSlicerAngleWidget
- * @brief   create an angle with a set of 3 points
+ * @class   vtkSlicerClosedCurveWidget
+ * @brief   create a curve with a set of N points
  *
- * The vtkSlicerAngleWidget is used to create an angle widget wit a set of 3 points.
+ * The vtkSlicerClosedCurveWidget is used to create a closed
+ * curve widget with a set of N points.
  * The widget handles all processing of widget
- * events (that are triggered by VTK events). The vtkSlicerAngleRepresentations are
+ * events (that are triggered by VTK events). The vtkSlicerCurveRepresentation is
  * responsible for all placement of the points, and
- * line manipulation. This is done through a main helper class:
- * vtkFocalPlanePointPlacer. The representation is also
+ * curve manipulation. This is done through a main helper class:
+ * vtkPointPlacer. The representation is also
  * responsible for drawing the points.
  *
  * @par Event Bindings:
@@ -148,12 +149,13 @@
  *                                 call data includes handle id)
  *
  *  Note: handle id conuter start from 0. If -2 indicates the line.
+ *        If -3 indicates the centroid.
  * </pre>
  *
 */
 
-#ifndef vtkSlicerAngleWidget_h
-#define vtkSlicerAngleWidget_h
+#ifndef vtkSlicerClosedCurveWidget_h
+#define vtkSlicerClosedCurveWidget_h
 
 #include "vtkSlicerMarkupsModuleVTKWidgetsExport.h"
 #include "vtkSlicerAbstractWidget.h"
@@ -162,29 +164,32 @@ class vtkSlicerAbstractRepresentation;
 class vtkPolyData;
 class vtkIdList;
 
-class VTK_SLICER_MARKUPS_MODULE_VTKWIDGETS_EXPORT vtkSlicerAngleWidget : public vtkSlicerAbstractWidget
+class VTK_SLICER_MARKUPS_MODULE_VTKWIDGETS_EXPORT vtkSlicerClosedCurveWidget : public vtkSlicerAbstractWidget
 {
 public:
   /// Instantiate this class.
-  static vtkSlicerAngleWidget *New();
+  static vtkSlicerClosedCurveWidget *New();
 
   /// Standard methods for a VTK class.
-  vtkTypeMacro(vtkSlicerAngleWidget,vtkSlicerAbstractWidget);
+  vtkTypeMacro(vtkSlicerClosedCurveWidget,vtkSlicerAbstractWidget);
 
   /// Create the default widget representation if one is not set.
-  /// NOTE: the representation needs also a Markup object from the MRMLMarkupsNode
   virtual void CreateDefaultRepresentation() override;
 
   /// Add a point to the current active Markup at input World coordiantes.
-  int AddPointToRepresentationFromWorldCoordinate(double worldCoordinates [3]);
+  int AddPointToRepresentationFromWorldCoordinate(double worldCoordinates [3], bool persistence = false);
 
 protected:
-  vtkSlicerAngleWidget();
-  ~vtkSlicerAngleWidget() override;
+  vtkSlicerClosedCurveWidget();
+  ~vtkSlicerClosedCurveWidget() override;
+
+  // Callback interface to capture evets when
+  // placing the widget.
+  static void AddPointOnCurveAction(vtkAbstractWidget*);
 
 private:
-  vtkSlicerAngleWidget(const vtkSlicerAngleWidget&) = delete;
-  void operator=(const vtkSlicerAngleWidget&) = delete;
+  vtkSlicerClosedCurveWidget(const vtkSlicerClosedCurveWidget&) = delete;
+  void operator=(const vtkSlicerClosedCurveWidget&) = delete;
 };
 
 #endif

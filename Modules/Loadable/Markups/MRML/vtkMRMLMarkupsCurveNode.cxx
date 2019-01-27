@@ -44,7 +44,6 @@ vtkMRMLMarkupsCurveNode::vtkMRMLMarkupsCurveNode()
 //----------------------------------------------------------------------------
 vtkMRMLMarkupsCurveNode::~vtkMRMLMarkupsCurveNode()
 {
-
 }
 
 //----------------------------------------------------------------------------

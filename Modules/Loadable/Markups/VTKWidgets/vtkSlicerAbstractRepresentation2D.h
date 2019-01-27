@@ -62,6 +62,12 @@ public:
   /// with the handle.
   vtkGetObjectMacro(ActiveProperty,vtkProperty2D);
 
+  /// Given a display position, activate a node. The closest
+  /// node within tolerance will be activated. If a node is
+  /// activated, 1 will be returned, otherwise 0 will be
+  /// returned.
+  virtual int ActivateNode(int X, int Y) VTK_OVERRIDE;
+
   /// Subclasses of vtkSlicerAbstractRepresentation2D must implement these methods. These
   /// are the methods that the widget and its representation use to
   /// communicate with each other.
@@ -135,15 +141,18 @@ public:
   /// not be added, 1 otherwise.
   int AddNodeAtDisplayPosition(double slicePos[2]) VTK_OVERRIDE;
 
-  /// Delete the nth node. Return 1 on success or 0 if n
-  /// is out of range.
+  /// Set the Nth node slice visibility (i.e. if it is on the slice).
   virtual void SetNthPointSliceVisibility(int n, bool visibility);
+
+  /// Set the centroid slice visibility (i.e. if it is on the slice).
+  virtual void SetCentroidSliceVisibility(bool visibility);
 
 protected:
   vtkSlicerAbstractRepresentation2D();
   ~vtkSlicerAbstractRepresentation2D() VTK_OVERRIDE;
 
-  void GetSliceToWorldCoordinates(double slicePos[2], double worldPos[3]);
+  void GetSliceToWorldCoordinates(double [2], double [3]);
+  void GetWorldToSliceCoordinates(double worldPos[2], double slicePos[3]);
 
   vtkWeakPointer<vtkMRMLSliceNode> SliceNode;
 
@@ -174,6 +183,8 @@ protected:
   vtkLabelPlacementMapper     *ActiveLabelsMapper;
 
   vtkIntArray                 *pointsVisibilityOnSlice;
+
+  bool                        centroidVisibilityOnSlice;
 
   // Properties used to control the appearance of selected objects and
   // the manipulator in general.

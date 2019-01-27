@@ -36,13 +36,11 @@ vtkMRMLNodeNewMacro(vtkMRMLMarkupsFiducialNode);
 //----------------------------------------------------------------------------
 vtkMRMLMarkupsFiducialNode::vtkMRMLMarkupsFiducialNode()
 {
-
 }
 
 //----------------------------------------------------------------------------
 vtkMRMLMarkupsFiducialNode::~vtkMRMLMarkupsFiducialNode()
 {
-
 }
 
 //----------------------------------------------------------------------------

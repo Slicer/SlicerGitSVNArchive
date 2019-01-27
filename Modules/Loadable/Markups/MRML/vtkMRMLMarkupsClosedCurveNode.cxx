@@ -17,7 +17,7 @@
 
 // MRML includes
 #include "vtkMRMLMarkupsDisplayNode.h"
-#include "vtkMRMLMarkupsLineNode.h"
+#include "vtkMRMLMarkupsClosedCurveNode.h"
 #include "vtkMRMLMarkupsFiducialStorageNode.h"
 #include "vtkMRMLScene.h"
 
@@ -30,30 +30,30 @@
 #include <sstream>
 
 //----------------------------------------------------------------------------
-vtkMRMLNodeNewMacro(vtkMRMLMarkupsLineNode);
+vtkMRMLNodeNewMacro(vtkMRMLMarkupsClosedCurveNode);
 
 
 //----------------------------------------------------------------------------
-vtkMRMLMarkupsLineNode::vtkMRMLMarkupsLineNode()
+vtkMRMLMarkupsClosedCurveNode::vtkMRMLMarkupsClosedCurveNode()
 {
   // maximum number of control points
-  // 3 so we can have one point to use for the follow cursor option
-  this->SetMaximumNumberOfControlPoints(3);
+  // 0 is unlimited
+  this->SetMaximumNumberOfControlPoints(0);
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLMarkupsLineNode::~vtkMRMLMarkupsLineNode()
+vtkMRMLMarkupsClosedCurveNode::~vtkMRMLMarkupsClosedCurveNode()
 {
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLMarkupsLineNode::WriteXML(ostream& of, int nIndent)
+void vtkMRMLMarkupsClosedCurveNode::WriteXML(ostream& of, int nIndent)
 {
   Superclass::WriteXML(of,nIndent);
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLMarkupsLineNode::ReadXMLAttributes(const char** atts)
+void vtkMRMLMarkupsClosedCurveNode::ReadXMLAttributes(const char** atts)
 {
   int disabledModify = this->StartModify();
   this->RemoveAllControlPoints();
@@ -104,20 +104,20 @@ void vtkMRMLMarkupsLineNode::ReadXMLAttributes(const char** atts)
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLMarkupsLineNode::Copy(vtkMRMLNode *anode)
+void vtkMRMLMarkupsClosedCurveNode::Copy(vtkMRMLNode *anode)
 {
   Superclass::Copy(anode);
 }
 
 
 //-----------------------------------------------------------
-void vtkMRMLMarkupsLineNode::UpdateScene(vtkMRMLScene *scene)
+void vtkMRMLMarkupsClosedCurveNode::UpdateScene(vtkMRMLScene *scene)
 {
   Superclass::UpdateScene(scene);
 }
 
 //---------------------------------------------------------------------------
-void vtkMRMLMarkupsLineNode::ProcessMRMLEvents (vtkObject *caller,
+void vtkMRMLMarkupsClosedCurveNode::ProcessMRMLEvents (vtkObject *caller,
                                            unsigned long event,
                                            void *callData)
 {
@@ -125,13 +125,13 @@ void vtkMRMLMarkupsLineNode::ProcessMRMLEvents (vtkObject *caller,
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLMarkupsLineNode::PrintSelf(ostream& os, vtkIndent indent)
+void vtkMRMLMarkupsClosedCurveNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   Superclass::PrintSelf(os,indent);
 }
 
 //-------------------------------------------------------------------------
-vtkMRMLStorageNode* vtkMRMLMarkupsLineNode::CreateDefaultStorageNode()
+vtkMRMLStorageNode* vtkMRMLMarkupsClosedCurveNode::CreateDefaultStorageNode()
 {
   vtkMRMLScene* scene = this->GetScene();
   if (scene == nullptr)
@@ -144,7 +144,7 @@ vtkMRMLStorageNode* vtkMRMLMarkupsLineNode::CreateDefaultStorageNode()
 }
 
 //-------------------------------------------------------------------------
-void vtkMRMLMarkupsLineNode::CreateDefaultDisplayNodes()
+void vtkMRMLMarkupsClosedCurveNode::CreateDefaultDisplayNodes()
 {
   if (this->GetDisplayNode() != nullptr &&
       vtkMRMLMarkupsDisplayNode::SafeDownCast(this->GetDisplayNode()) != nullptr)
@@ -154,7 +154,7 @@ void vtkMRMLMarkupsLineNode::CreateDefaultDisplayNodes()
     }
   if (this->GetScene()==nullptr)
     {
-    vtkErrorMacro("vtkMRMLMarkupsLineNode::CreateDefaultDisplayNodes failed: scene is invalid");
+    vtkErrorMacro("vtkMRMLMarkupsClosedCurveNode::CreateDefaultDisplayNodes failed: scene is invalid");
     return;
     }
   vtkMRMLMarkupsDisplayNode* dispNode = vtkMRMLMarkupsDisplayNode::SafeDownCast
@@ -163,15 +163,15 @@ void vtkMRMLMarkupsLineNode::CreateDefaultDisplayNodes()
 }
 
 //-------------------------------------------------------------------------
-int vtkMRMLMarkupsLineNode::AddPoint(double x, double y, double z)
+int vtkMRMLMarkupsClosedCurveNode::AddPoint(double x, double y, double z)
 {
   return this->AddPoint(x, y, z, std::string());
 }
 
 //-------------------------------------------------------------------------
-int vtkMRMLMarkupsLineNode::AddPoint(double x, double y, double z, std::string label)
+int vtkMRMLMarkupsClosedCurveNode::AddPoint(double x, double y, double z, std::string label)
 {
-  if (this->GetNumberOfPoints() > 1)
+  if (this->GetNumberOfPoints() > 2)
     {
     return -1;
     }
@@ -183,13 +183,13 @@ int vtkMRMLMarkupsLineNode::AddPoint(double x, double y, double z, std::string l
 //-------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------
-int vtkMRMLMarkupsLineNode::AddPointFromArray(double pos[3], std::string label)
+int vtkMRMLMarkupsClosedCurveNode::AddPointFromArray(double pos[3], std::string label)
 {
   return this->AddPoint(pos[0], pos[1], pos[2], label);
 }
 
 //-------------------------------------------------------------------------
-void vtkMRMLMarkupsLineNode::GetNthPointPosition(int n, double pos[3])
+void vtkMRMLMarkupsClosedCurveNode::GetNthPointPosition(int n, double pos[3])
 {
   vtkVector3d point= this->GetNthControlPointPositionVector(n);
   pos[0] = point.GetX();
@@ -198,91 +198,91 @@ void vtkMRMLMarkupsLineNode::GetNthPointPosition(int n, double pos[3])
 }
 
 //-------------------------------------------------------------------------
-void vtkMRMLMarkupsLineNode::SetNthPointPositionFromArray(int n, double pos[3])
+void vtkMRMLMarkupsClosedCurveNode::SetNthPointPositionFromArray(int n, double pos[3])
 {
   this->SetNthControlPointPositionFromArray(n, pos);
 }
 
 //-------------------------------------------------------------------------
-void vtkMRMLMarkupsLineNode::SetNthPointPosition(int n, double x, double y, double z)
+void vtkMRMLMarkupsClosedCurveNode::SetNthPointPosition(int n, double x, double y, double z)
 {
   this->SetNthControlPointPosition(n, x, y, z);
 }
 
 //-------------------------------------------------------------------------
-bool vtkMRMLMarkupsLineNode::GetNthPointSelected(int n)
+bool vtkMRMLMarkupsClosedCurveNode::GetNthPointSelected(int n)
 {
   return this->GetNthControlPointSelected(n);
 }
 
 //-------------------------------------------------------------------------
-void vtkMRMLMarkupsLineNode::SetNthPointSelected(int n, bool flag)
+void vtkMRMLMarkupsClosedCurveNode::SetNthPointSelected(int n, bool flag)
 {
   this->SetNthControlPointSelected(n, flag);
 }
 
 //-------------------------------------------------------------------------
-bool vtkMRMLMarkupsLineNode::GetNthPointLocked(int n)
+bool vtkMRMLMarkupsClosedCurveNode::GetNthPointLocked(int n)
 {
   return this->GetNthControlPointLocked(n);
 }
 
 //-------------------------------------------------------------------------
-void vtkMRMLMarkupsLineNode::SetNthPointLocked(int n, bool flag)
+void vtkMRMLMarkupsClosedCurveNode::SetNthPointLocked(int n, bool flag)
 {
   this->SetNthControlPointLocked(n, flag);
 }
 
 //-------------------------------------------------------------------------
-bool vtkMRMLMarkupsLineNode::GetNthPointVisibility(int n)
+bool vtkMRMLMarkupsClosedCurveNode::GetNthPointVisibility(int n)
 {
   return this->GetNthControlPointVisibility(n);
 }
 
 //-------------------------------------------------------------------------
-void vtkMRMLMarkupsLineNode::SetNthPointVisibility(int n, bool flag)
+void vtkMRMLMarkupsClosedCurveNode::SetNthPointVisibility(int n, bool flag)
 {
   this->SetNthControlPointVisibility(n, flag);
 }
 
 //-------------------------------------------------------------------------
-std::string vtkMRMLMarkupsLineNode::GetNthPointLabel(int n)
+std::string vtkMRMLMarkupsClosedCurveNode::GetNthPointLabel(int n)
 {
   return this->GetNthControlPointLabel(n);
 }
 
 //-------------------------------------------------------------------------
-void vtkMRMLMarkupsLineNode::SetNthPointLabel(int n, std::string label)
+void vtkMRMLMarkupsClosedCurveNode::SetNthPointLabel(int n, std::string label)
 {
   this->SetNthControlPointLabel(n, label);
 }
 
 //-------------------------------------------------------------------------
-std::string vtkMRMLMarkupsLineNode::GetNthPointAssociatedNodeID(int n)
+std::string vtkMRMLMarkupsClosedCurveNode::GetNthPointAssociatedNodeID(int n)
 {
   return this->GetNthControlPointAssociatedNodeID(n);
 }
 
 //-------------------------------------------------------------------------
-void vtkMRMLMarkupsLineNode::SetNthPointAssociatedNodeID(int n, const char* id)
+void vtkMRMLMarkupsClosedCurveNode::SetNthPointAssociatedNodeID(int n, const char* id)
 {
   this->SetNthControlPointAssociatedNodeID(n, std::string(id));
 }
 
 //-------------------------------------------------------------------------
-void vtkMRMLMarkupsLineNode::SetNthPointWorldCoordinates(int n, double coords[4])
+void vtkMRMLMarkupsClosedCurveNode::SetNthPointWorldCoordinates(int n, double coords[4])
 {
   this->SetNthControlPointPositionWorld(n, coords[0], coords[1], coords[2]);
 }
 
 //-------------------------------------------------------------------------
-void vtkMRMLMarkupsLineNode::GetNthPointWorldCoordinates(int n, double coords[4])
+void vtkMRMLMarkupsClosedCurveNode::GetNthPointWorldCoordinates(int n, double coords[4])
 {
   this->GetNthControlPointPositionWorld(n, coords);
 }
 
 //---------------------------------------------------------------------------
-void vtkMRMLMarkupsLineNode::GetRASBounds(double bounds[6])
+void vtkMRMLMarkupsClosedCurveNode::GetRASBounds(double bounds[6])
 {
   vtkBoundingBox box;
   box.GetBounds(bounds);
@@ -303,7 +303,7 @@ void vtkMRMLMarkupsLineNode::GetRASBounds(double bounds[6])
 }
 
 //---------------------------------------------------------------------------
-void vtkMRMLMarkupsLineNode::GetBounds(double bounds[6])
+void vtkMRMLMarkupsClosedCurveNode::GetBounds(double bounds[6])
 {
    vtkBoundingBox box;
   box.GetBounds(bounds);

@@ -334,7 +334,7 @@ void vtkSlicerAbstractRepresentation3D::BuildRepresentationPointsAndLabels()
       {
       double* pos = this->SelectedFocalPoint->GetPoint(jj);
       double eps = 0.001;
-      if (fabs(pos[0] - worldPos[0]) < eps &&
+      if ( fabs(pos[0] - worldPos[0]) < eps &&
           fabs(pos[1] - worldPos[1]) < eps &&
           fabs(pos[2] - worldPos[2]) < eps)
         {
@@ -497,6 +497,59 @@ vtkPolyData *vtkSlicerAbstractRepresentation3D::GetActiveCursorShape()
 }
 
 //----------------------------------------------------------------------
+int vtkSlicerAbstractRepresentation3D::ActivateNode(int X, int Y)
+{
+  if (this->GetNumberOfNodes() == 0)
+    {
+    this->SetActiveNode(-1);
+    return 0;
+    }
+
+  double displayPos[3];
+  displayPos[0] = static_cast<double>(X);
+  displayPos[1] = static_cast<double>(Y);
+  displayPos[2] = 0.;
+
+  this->PixelTolerance = this->HandleSize + this->HandleSize * this->Tolerance;
+  double scale = this->CalculateViewScaleFactor();
+  this->PixelTolerance *= scale;
+
+  if (this->GetNumberOfNodes() > 2 && this->ClosedLoop &&
+      this->MarkupsNode)
+    {
+    // Check if centroid is selected
+    double centroidPosWorld[3], centroidPosDisplay[3];
+    this->MarkupsNode->GetCentroidPosition(centroidPosWorld);
+    this->Renderer->SetWorldPoint(centroidPosWorld);
+    this->Renderer->WorldToDisplay();
+    this->Renderer->GetDisplayPoint(centroidPosDisplay);
+    if (vtkMath::Distance2BetweenPoints(centroidPosDisplay, displayPos) <
+        this->PixelTolerance * this->PixelTolerance)
+      {
+      if (this->GetActiveNode() != -3)
+        {
+        this->SetActiveNode(-3);
+        this->NeedToRender = 1;
+        }
+      return 1;
+      }
+    }
+
+  this->BuildLocator();
+
+  double closestDistance2 = VTK_DOUBLE_MAX;
+  int closestNode = static_cast<int> (this->Locator->FindClosestPointWithinRadius(
+    this->PixelTolerance, displayPos, closestDistance2));
+
+  if (closestNode != this->GetActiveNode())
+    {
+    this->SetActiveNode(closestNode);
+    this->NeedToRender = 1;
+    }
+  return (this->GetActiveNode() >= 0);
+}
+
+//----------------------------------------------------------------------
 void vtkSlicerAbstractRepresentation3D::BuildRepresentation()
 {
   // Make sure we are up to date with any changes made in the placer
@@ -570,7 +623,7 @@ int vtkSlicerAbstractRepresentation3D::ComputeInteractionState(int X, int Y, int
     }
 
   this->MarkupsNode->DisableModifiedEventOn();
-  if (this->Superclass::ActivateNode(X, Y))
+  if (this->ActivateNode(X, Y))
     {
     this->InteractionState = vtkSlicerAbstractRepresentation::OnControlPoint;
     }
@@ -579,6 +632,7 @@ int vtkSlicerAbstractRepresentation3D::ComputeInteractionState(int X, int Y, int
     this->InteractionState = vtkSlicerAbstractRepresentation::Outside;
     }
   this->MarkupsNode->DisableModifiedEventOff();
+  this->MarkupsNode->Modified();
 
   return this->InteractionState;
 }
@@ -752,7 +806,8 @@ void vtkSlicerAbstractRepresentation3D::ScaleWidget(double eventPos[2])
   displayPos[1] = eventPos[1];
 
   double centroid[3];
-  ComputeCentroid(centroid);
+  this->UpdateCentroid();
+  this->MarkupsNode->GetCentroidPosition(centroid);
 
   double r2 = vtkMath::Distance2BetweenPoints(ref, centroid);
 
@@ -824,7 +879,8 @@ void vtkSlicerAbstractRepresentation3D::RotateWidget(double eventPos[2])
   displayPos[1] = eventPos[1];
 
   double centroid[3];
-  ComputeCentroid(centroid);
+  this->UpdateCentroid();
+  this->MarkupsNode->GetCentroidPosition(centroid);
 
   if (!this->PointPlacer->ComputeWorldPosition(this->Renderer,
                                                displayPos, ref, worldPos,

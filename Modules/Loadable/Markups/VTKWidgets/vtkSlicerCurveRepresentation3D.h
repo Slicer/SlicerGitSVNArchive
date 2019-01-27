@@ -89,6 +89,7 @@ protected:
   ~vtkSlicerCurveRepresentation3D() VTK_OVERRIDE;
 
   // Methods to manipulate the cursor
+  virtual void TranslateNode(double eventPos[2]) VTK_OVERRIDE;
   virtual void TranslateWidget(double eventPos[2]) VTK_OVERRIDE;
   virtual void ScaleWidget(double eventPos[2]) VTK_OVERRIDE;
   virtual void RotateWidget(double eventPos[2]) VTK_OVERRIDE;

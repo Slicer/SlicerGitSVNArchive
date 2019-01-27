@@ -18,9 +18,9 @@
 
 /**
  * @class   vtkSlicerCurveWidget
- * @brief   create a curve with a set of points
+ * @brief   create a curve with a set of N points
  *
- * The vtkSlicerCurveWidget is used to select a set of points.
+ * The vtkSlicerCurveWidget is used to create a curve widget with a set of N points.
  * The widget handles all processing of widget
  * events (that are triggered by VTK events). The vtkSlicerCurveRepresentation is
  * responsible for all placement of the points, and
@@ -35,18 +35,18 @@
  *   LeftButtonPressEvent - triggers a Select event
  *   Alt + LeftButtonPressEvent - triggers a Rotate event
  *   MiddleButtonPressEvent - triggers a Translate event
- *   RightButtonPressEvent - triggers a AddFinalPoint event
+ *   RightButtonPressEvent - triggers a Pick event
+ *   Alt + RightButtonPressEvent - triggers a Scale event
  *
  *   MouseMoveEvent - triggers a Move event
  *
- *   LeftButtonReleaseEvent - triggers an EndSelect event
- *   MiddleButtonReleaseEvent - triggers an EndTranslate event
- *   RightButtonReleaseEvent - triggers an EndScale event
+ *   LeftButtonReleaseEvent - triggers an EndAction event
+ *   MiddleButtonReleaseEvent - triggers an EndAction event
+ *   RightButtonReleaseEvent - triggers an EndAction event
  *
- *   LeftButtonDoubleClickEvent - triggers an PickOne event
- *   MiddleButtonDoubleClickEvent - triggers an PickTwo event
- *   RightButtonDoubleClickEvent - triggers an PickThree event
- *
+ *   LeftButtonDoubleClickEvent - triggers an Pick event
+ *   MiddleButtonDoubleClickEvent - triggers an Pick event
+ *   RightButtonDoubleClickEvent - triggers an Pick event
  *
  *   Delete key event - triggers a Delete event
  *   Shift + Delete key event - triggers a Reset event
@@ -55,25 +55,21 @@
  * @par Event Bindings:
  * Note that the event bindings described above can be changed using this
  * class's vtkWidgetEventTranslator. This class translates VTK events
- * into the vtkSlicerCurveWidget's widget events:
+ * into the vtkSlicerLineWidget's widget events:
  * <pre>
  *   vtkWidgetEvent::Select
  *        widget state is:
- *            Start or
- *            Define: If we already have at least 2 nodes, test
- *                 whether the current (X,Y) location is near an existing
- *                 node. If so, close the curve and change to Manipulate
- *                 state. Otherwise, attempt to add a node at this (X,Y)
- *                 location.
+ *            Start: Do nothing.
+ *            Define: Do nothing.
  *            Manipulate: If this (X,Y) location activates a node, then
- *                 set the current operation to Translate.
+ *                 set the current operation to Select (translate only one point).
  *
  * @par Event Bindings:
  *   vtkWidgetEvent::PickPoint
  *        widget state is:
  *            Start: Do nothing.
  *            Define: Do nothing.
- *            Manipulate: If this (X,Y) location activates a node. The node or line
+ *            Manipulate: If this (X,Y) location activates a node or line. The node or line
  *                 will be selected, but no translate will be possible.
  *
  * @par Event Bindings:
@@ -90,7 +86,7 @@
  *            Start: Do nothing.
  *            Define: Do nothing.
  *            Manipulate: If this (X,Y) location activates a node or the line, then
- *                 set the current operation to Shift.
+ *                 set the current operation to Translate.
  *
  * @par Event Bindings:
  *   vtkWidgetEvent::Scale
@@ -101,45 +97,17 @@
  *                 set the current operation to Scale.
  *
  * @par Event Bindings:
- *   vtkWidgetEvent::AddFinalPoint
- *        widget state is:
- *            Start: Do nothing.
- *            Define: If we already have at least 2 nodes, test
- *                 whether the current (X,Y) location is near an existing
- *                 node. If so, close the curve and change to Manipulate
- *                 state. Otherwise, attempt to add a node at this (X,Y)
- *                 location. If we do, then leave the curve open and
- *                 change to Manipulate state.
- *            Manipulate: Do nothing.
- *
- * @par Event Bindings:
  *   vtkWidgetEvent::Move
  *        widget state is:
  *            Start or
  *            Define: Do nothing.
- *            Manipulate: If our operation is Translate, Shift or Scale, then invoke
- *                  WidgetInteraction() on the representation. If our
+ *            Manipulate: If our operation is Select, Pick, Translate, Rotate or Scale,
+ *                  then invoke WidgetInteraction() on the representation. If our
  *                  operation is Inactive, then just attempt to activate
  *                  a node at this (X,Y) location.
  *
  * @par Event Bindings:
- *   vtkWidgetEvent::EndSelect
- *        widget state is:
- *            Start or
- *            Define: Do nothing.
- *            Manipulate: If our operation is not Inactive, set it to
- *                  Inactive.
- *
- * @par Event Bindings:
- *   vtkWidgetEvent::EndTranslate
- *        widget state is:
- *            Start or
- *            Define: Do nothing.
- *            Manipulate: If our operation is not Inactive, set it to
- *                  Inactive.
- *
- * @par Event Bindings:
- *   vtkWidgetEvent::EndScale
+ *   vtkWidgetEvent::EndAction
  *        widget state is:
  *            Start or
  *            Define: Do nothing.
@@ -179,7 +147,7 @@
  *   vtkCommand::DeletePointEvent (after point is positioned;
  *                                 call data includes handle id)
  *
- *   Note: handle id conuter start from 0.
+ *  Note: handle id conuter start from 0. If -2 indicates the line.
  * </pre>
  *
 */

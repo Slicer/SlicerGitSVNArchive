@@ -389,7 +389,7 @@ int vtkSlicerLineRepresentation3D::ComputeInteractionState(int X, int Y, int vtk
     }
 
   this->MarkupsNode->DisableModifiedEventOn();
-  if (this->Superclass::Superclass::ActivateNode(X, Y))
+  if (this->ActivateNode(X, Y))
     {
     this->InteractionState = vtkSlicerAbstractRepresentation::OnControlPoint;
     }
@@ -404,6 +404,7 @@ int vtkSlicerLineRepresentation3D::ComputeInteractionState(int X, int Y, int vtk
     this->InteractionState = vtkSlicerAbstractRepresentation::Outside;
     }
   this->MarkupsNode->DisableModifiedEventOff();
+  this->MarkupsNode->Modified();
 
   this->NeedToRenderOn();
   return this->InteractionState;

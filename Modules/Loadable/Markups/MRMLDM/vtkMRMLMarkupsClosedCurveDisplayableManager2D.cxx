@@ -1,28 +1,27 @@
-/*=========================================================================
+/*==============================================================================
 
- Copyright (c) ProxSim ltd., Kwun Tong, Hong Kong. All Rights Reserved.
+  Program: 3D Slicer
 
- See COPYRIGHT.txt
- or http://www.slicer.org/copyright/copyright.txt for details.
+  Portions (c) Copyright Brigham and Women's Hospital (BWH) All Rights Reserved.
 
- Unless required by applicable law or agreed to in writing, software
- distributed under the License is distributed on an "AS IS" BASIS,
- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- See the License for the specific language governing permissions and
- limitations under the License.
+  See COPYRIGHT.txt
+  or http://www.slicer.org/copyright/copyright.txt for details.
 
- This file was originally developed by Davide Punzo, punzodavide@hotmail.it,
- and development was supported by ProxSim ltd.
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
 
-=========================================================================*/
+==============================================================================*/
 
 // MarkupsModule/MRML includes
-#include <vtkMRMLMarkupsCurveNode.h>
+#include <vtkMRMLMarkupsClosedCurveNode.h>
 #include <vtkMRMLMarkupsNode.h>
 #include <vtkMRMLMarkupsDisplayNode.h>
 
 // MarkupsModule/MRMLDisplayableManager includes
-#include "vtkMRMLMarkupsCurveDisplayableManager3D.h"
+#include "vtkMRMLMarkupsClosedCurveDisplayableManager2D.h"
 
 // MarkupsModule/VTKWidgets includes
 #include <vtkMarkupsGlyphSource2D.h>
@@ -31,13 +30,15 @@
 #include <vtkSliceViewInteractorStyle.h>
 
 // MRML includes
+#include <vtkMRMLApplicationLogic.h>
 #include <vtkMRMLInteractionNode.h>
 #include <vtkMRMLScene.h>
 #include <vtkMRMLSelectionNode.h>
+#include <vtkMRMLSliceLogic.h>
 #include <vtkMRMLViewNode.h>
 
 // VTK includes
-#include <vtkSlicerAbstractWidget.h>
+#include <vtkAbstractWidget.h>
 #include <vtkFollower.h>
 #include <vtkHandleRepresentation.h>
 #include <vtkInteractorStyle.h>
@@ -46,33 +47,33 @@
 #include <vtkObjectFactory.h>
 #include <vtkOrientedPolygonalHandleRepresentation3D.h>
 #include <vtkPickingManager.h>
+#include <vtkPointHandleRepresentation2D.h>
 #include <vtkProperty2D.h>
 #include <vtkProperty.h>
 #include <vtkRenderer.h>
 #include <vtkRenderWindowInteractor.h>
-#include <vtkSlicerCurveWidget.h>
+#include <vtkSlicerClosedCurveWidget.h>
+#include <vtkSlicerCurveRepresentation2D.h>
 #include <vtkSmartPointer.h>
-#include <vtkSlicerCurveRepresentation3D.h>
 #include <vtkSphereSource.h>
-#include <vtkTextProperty.h>
 
 // STD includes
 #include <sstream>
 #include <string>
 
 //---------------------------------------------------------------------------
-vtkStandardNewMacro (vtkMRMLMarkupsCurveDisplayableManager3D);
+vtkStandardNewMacro (vtkMRMLMarkupsClosedCurveDisplayableManager2D);
 
 //---------------------------------------------------------------------------
-// vtkMRMLMarkupsCurveDisplayableManager3D Callback
+// vtkMRMLMarkupsClosedCurveDisplayableManager2D Callback
 /// \ingroup Slicer_QtModules_Markups
-class vtkMarkupsCurveWidgetCallback3D : public vtkCommand
+class vtkMarkupsCurveWidgetCallback2D : public vtkCommand
 {
 public:
-  static vtkMarkupsCurveWidgetCallback3D *New()
-  { return new vtkMarkupsCurveWidgetCallback3D; }
+  static vtkMarkupsCurveWidgetCallback2D *New()
+  { return new vtkMarkupsCurveWidgetCallback2D; }
 
-  vtkMarkupsCurveWidgetCallback3D()
+  vtkMarkupsCurveWidgetCallback2D()
     : Widget(nullptr)
     , Node(nullptr)
     , DisplayableManager(nullptr)
@@ -84,6 +85,7 @@ public:
 
   virtual void Execute (vtkObject *vtkNotUsed(caller), unsigned long event, void *callData)
   {
+
     // sanity checks
     if (!this->DisplayableManager)
       {
@@ -120,7 +122,7 @@ public:
 
       this->PointMovedSinceStartInteraction = false;
       this->Node->InvokeEvent(vtkMRMLMarkupsNode::PointStartInteractionEvent, &this->LastInteractionEventMarkupIndex);
-      vtkSlicerCurveWidget* slicerCurveWidget = vtkSlicerCurveWidget::SafeDownCast(this->Widget);
+      vtkSlicerClosedCurveWidget* slicerCurveWidget = vtkSlicerClosedCurveWidget::SafeDownCast(this->Widget);
       if (slicerCurveWidget)
         {
         this->SelectionButton = slicerCurveWidget->GetSelectionButton();
@@ -133,27 +135,27 @@ public:
       this->Node->InvokeEvent(vtkMRMLMarkupsNode::PointEndInteractionEvent, &this->LastInteractionEventMarkupIndex);
       if (!this->PointMovedSinceStartInteraction)
         {
-        if (this->SelectionButton == vtkSlicerCurveWidget::LeftButton)
+        if (this->SelectionButton == vtkSlicerClosedCurveWidget::LeftButton)
           {
           this->Node->InvokeEvent(vtkMRMLMarkupsNode::PointLeftClickedEvent, &this->LastInteractionEventMarkupIndex);
           }
-        else if (this->SelectionButton == vtkSlicerCurveWidget::MiddleButton)
+        else if (this->SelectionButton == vtkSlicerClosedCurveWidget::MiddleButton)
           {
           this->Node->InvokeEvent(vtkMRMLMarkupsNode::PointMiddleClickedEvent, &this->LastInteractionEventMarkupIndex);
           }
-        else if (this->SelectionButton == vtkSlicerCurveWidget::RightButton)
+        else if (this->SelectionButton == vtkSlicerClosedCurveWidget::RightButton)
           {
           this->Node->InvokeEvent(vtkMRMLMarkupsNode::PointRightClickedEvent, &this->LastInteractionEventMarkupIndex);
           }
-        else if (this->SelectionButton == vtkSlicerCurveWidget::LeftButtonDoubleClick)
+        else if (this->SelectionButton == vtkSlicerClosedCurveWidget::LeftButtonDoubleClick)
           {
           this->Node->InvokeEvent(vtkMRMLMarkupsNode::PointLeftDoubleClickedEvent, &this->LastInteractionEventMarkupIndex);
           }
-        else if (this->SelectionButton == vtkSlicerCurveWidget::MiddleButtonDoubleClick)
+        else if (this->SelectionButton == vtkSlicerClosedCurveWidget::MiddleButtonDoubleClick)
           {
           this->Node->InvokeEvent(vtkMRMLMarkupsNode::PointMiddleDoubleClickedEvent, &this->LastInteractionEventMarkupIndex);
           }
-        else if (this->SelectionButton == vtkSlicerCurveWidget::RightButtonDoubleClick)
+        else if (this->SelectionButton == vtkSlicerClosedCurveWidget::RightButtonDoubleClick)
           {
           this->Node->InvokeEvent(vtkMRMLMarkupsNode::PointRightDoubleClickedEvent, &this->LastInteractionEventMarkupIndex);
           }
@@ -165,10 +167,6 @@ public:
       this->PointMovedSinceStartInteraction = true;
       this->Node->InvokeEvent(vtkMRMLMarkupsNode::PointModifiedEvent, &this->LastInteractionEventMarkupIndex);
       }
-    else if (event == vtkCommand::PlacePointEvent)
-      {
-      this->Node->InvokeEvent(vtkMRMLMarkupsNode::PointAddedEvent, &this->LastInteractionEventMarkupIndex);
-      }
   }
 
   void SetWidget(vtkSlicerAbstractWidget *w)
@@ -179,31 +177,31 @@ public:
     {
     this->Node = n;
     }
-  void SetDisplayableManager(vtkMRMLMarkupsDisplayableManager3D * dm)
+  void SetDisplayableManager(vtkMRMLMarkupsDisplayableManager2D * dm)
     {
     this->DisplayableManager = dm;
     }
 
   vtkSlicerAbstractWidget * Widget;
   vtkMRMLMarkupsNode * Node;
-  vtkMRMLMarkupsDisplayableManager3D * DisplayableManager;
+  vtkMRMLMarkupsDisplayableManager2D * DisplayableManager;
   int LastInteractionEventMarkupIndex;
   int SelectionButton;
   bool PointMovedSinceStartInteraction;
 };
 
 //---------------------------------------------------------------------------
-// vtkMRMLMarkupsCurveDisplayableManager3D methods
+// vtkMRMLMarkupsClosedCurveDisplayableManager2D methods
 
 //---------------------------------------------------------------------------
-void vtkMRMLMarkupsCurveDisplayableManager3D::PrintSelf(ostream& os, vtkIndent indent)
+void vtkMRMLMarkupsClosedCurveDisplayableManager2D::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
   this->Helper->PrintSelf(os, indent);
 }
 
 //---------------------------------------------------------------------------
-vtkSlicerAbstractWidget * vtkMRMLMarkupsCurveDisplayableManager3D::CreateWidget(vtkMRMLMarkupsNode* node)
+vtkSlicerAbstractWidget * vtkMRMLMarkupsClosedCurveDisplayableManager2D::CreateWidget(vtkMRMLMarkupsNode* node)
 {
   if (!node)
     {
@@ -211,14 +209,17 @@ vtkSlicerAbstractWidget * vtkMRMLMarkupsCurveDisplayableManager3D::CreateWidget(
     return nullptr;
     }
 
-  vtkMRMLMarkupsCurveNode* curveNode = vtkMRMLMarkupsCurveNode::SafeDownCast(node);
+  // 2d glyphs and text need to be scaled by 1/60 to show up properly in the 2d slice windows
+  this->SetScaleFactor2D(0.01667);
+
+  vtkMRMLMarkupsClosedCurveNode* curveNode = vtkMRMLMarkupsClosedCurveNode::SafeDownCast(node);
   if (!curveNode)
     {
     return nullptr;
     }
 
-  //SlicerCurve widget
-  vtkSlicerCurveWidget *slicerCurveWidget = vtkSlicerCurveWidget::New();
+  // widget
+  vtkSlicerClosedCurveWidget * slicerCurveWidget = vtkSlicerClosedCurveWidget::New();
 
   if (this->GetInteractor()->GetPickingManager())
     {
@@ -250,17 +251,19 @@ vtkSlicerAbstractWidget * vtkMRMLMarkupsCurveDisplayableManager3D::CreateWidget(
   vtkDebugMacro("Fids CreateWidget: Created widget for node " << curveNode->GetID() << " with a representation");
 
   // Add the Representation
-  vtkNew<vtkSlicerCurveRepresentation3D> rep;
+  vtkNew<vtkSlicerCurveRepresentation2D> rep;
   rep->SetRenderer(this->GetRenderer());
+  rep->SetSliceNode(this->GetMRMLSliceNode());
   rep->SetMarkupsNode(curveNode);
+  rep->SetClosedLoop(true);
   slicerCurveWidget->SetRepresentation(rep);
   slicerCurveWidget->On();
 
   return slicerCurveWidget;
-  }
+}
 
 //---------------------------------------------------------------------------
-void vtkMRMLMarkupsCurveDisplayableManager3D::OnWidgetCreated(vtkSlicerAbstractWidget * widget, vtkMRMLMarkupsNode * node)
+void vtkMRMLMarkupsClosedCurveDisplayableManager2D::OnWidgetCreated(vtkSlicerAbstractWidget * widget, vtkMRMLMarkupsNode * node)
 {
   if (!widget)
     {
@@ -275,20 +278,20 @@ void vtkMRMLMarkupsCurveDisplayableManager3D::OnWidgetCreated(vtkSlicerAbstractW
     }
 
   // add the callback
-  vtkMarkupsCurveWidgetCallback3D *myCallback = vtkMarkupsCurveWidgetCallback3D::New();
+  vtkMarkupsCurveWidgetCallback2D *myCallback = vtkMarkupsCurveWidgetCallback2D::New();
   myCallback->SetNode(node);
   myCallback->SetWidget(widget);
   myCallback->SetDisplayableManager(this);
-  widget->AddObserver(vtkCommand::StartInteractionEvent,myCallback);
+  widget->AddObserver(vtkCommand::StartInteractionEvent, myCallback);
   widget->AddObserver(vtkCommand::EndInteractionEvent, myCallback);
-  widget->AddObserver(vtkCommand::InteractionEvent, myCallback);
+  widget->AddObserver(vtkCommand::InteractionEvent,myCallback);
   widget->AddObserver(vtkCommand::PlacePointEvent, myCallback);
   widget->AddObserver(vtkCommand::DeletePointEvent, myCallback);
   myCallback->Delete();
 }
 
 //---------------------------------------------------------------------------
-void vtkMRMLMarkupsCurveDisplayableManager3D::OnClickInRenderWindow(double x, double y,
+void vtkMRMLMarkupsClosedCurveDisplayableManager2D::OnClickInRenderWindow(double x, double y,
                                                                     const char *associatedNodeID,
                                                                     int action /*= 0 */)
 {
@@ -307,16 +310,16 @@ void vtkMRMLMarkupsCurveDisplayableManager3D::OnClickInRenderWindow(double x, do
   this->GetDisplayToWorldCoordinates(displayCoordinates, worldCoordinates);
 
   // Is there an active markups node that's a curve node?
-  vtkMRMLMarkupsCurveNode *activeCurveNode = nullptr;
+  vtkMRMLMarkupsClosedCurveNode *activeCurveNode = nullptr;
   vtkMRMLSelectionNode *selectionNode = this->GetSelectionNode();
   if (selectionNode)
     {
     const char *activeMarkupsID = selectionNode->GetActivePlaceNodeID();
     vtkMRMLNode *mrmlNode = this->GetMRMLScene()->GetNodeByID(activeMarkupsID);
     if (mrmlNode &&
-        mrmlNode->IsA("vtkMRMLMarkupsCurveNode"))
+        mrmlNode->IsA("vtkMRMLMarkupsClosedCurveNode"))
       {
-      activeCurveNode = vtkMRMLMarkupsCurveNode::SafeDownCast(mrmlNode);
+      activeCurveNode = vtkMRMLMarkupsClosedCurveNode::SafeDownCast(mrmlNode);
       }
     else
       {
@@ -324,22 +327,22 @@ void vtkMRMLMarkupsCurveDisplayableManager3D::OnClickInRenderWindow(double x, do
             << (activeMarkupsID ? activeMarkupsID : "null")
             << ", mrml node is "
             << (mrmlNode ? mrmlNode->GetID() : "null")
-            << ", not a vtkMRMLMarkupsCurveNode");
+            << ", not a vtkMRMLMarkupsClosedCurveNode");
       }
     }
 
   if (!activeCurveNode)
     {
     // create the MRML node
-    activeCurveNode = vtkMRMLMarkupsCurveNode::SafeDownCast
-      (this->GetMRMLScene()->AddNewNodeByClass("vtkMRMLMarkupsCurveNode"));
-    activeCurveNode->SetName(this->GetMRMLScene()->GetUniqueNameByString("O"));
+    activeCurveNode = vtkMRMLMarkupsClosedCurveNode::SafeDownCast
+      (this->GetMRMLScene()->AddNewNodeByClass("vtkMRMLMarkupsClosedCurveNode"));
+    activeCurveNode->SetName(this->GetMRMLScene()->GetUniqueNameByString("C"));
     activeCurveNode->AddDefaultStorageNode();
     activeCurveNode->CreateDefaultDisplayNodes();
     selectionNode->SetActivePlaceNodeID(activeCurveNode->GetID());
     }
 
-  vtkSlicerCurveWidget *slicerWidget = vtkSlicerCurveWidget::SafeDownCast
+  vtkSlicerClosedCurveWidget *slicerWidget = vtkSlicerClosedCurveWidget::SafeDownCast
     (this->Helper->GetWidget(activeCurveNode));
   if (slicerWidget == nullptr)
     {
@@ -355,9 +358,9 @@ void vtkMRMLMarkupsCurveDisplayableManager3D::OnClickInRenderWindow(double x, do
   // Check if the widget has been already place
   // if yes, set again to define
   if (interactionNode->GetCurrentInteractionMode() == vtkMRMLInteractionNode::Place &&
-      slicerWidget->GetWidgetState() == vtkSlicerCurveWidget::Manipulate)
+      slicerWidget->GetWidgetState() == vtkSlicerClosedCurveWidget::Manipulate)
     {
-    slicerWidget->SetWidgetState(vtkSlicerCurveWidget::Define);
+    slicerWidget->SetWidgetState(vtkSlicerClosedCurveWidget::Define);
     slicerWidget->SetFollowCursor(true);
     slicerWidget->SetManagesCursor(false);
     }
@@ -365,7 +368,7 @@ void vtkMRMLMarkupsCurveDisplayableManager3D::OnClickInRenderWindow(double x, do
   // save for undo
   this->GetMRMLScene()->SaveStateForUndo();
 
-  if (action == vtkMRMLMarkupsCurveDisplayableManager3D::AddPoint)
+  if (action == vtkMRMLMarkupsClosedCurveDisplayableManager2D::AddPoint)
     {
     int pointIndex = slicerWidget->AddPointToRepresentationFromWorldCoordinate(worldCoordinates, interactionNode->GetPlaceModePersistence());
     // is there a node associated with this?
@@ -374,7 +377,7 @@ void vtkMRMLMarkupsCurveDisplayableManager3D::OnClickInRenderWindow(double x, do
       activeCurveNode->SetNthPointAssociatedNodeID(pointIndex, associatedNodeID);
       }
     }
-  else if (action == vtkMRMLMarkupsCurveDisplayableManager3D::AddPreview)
+  else if (action == vtkMRMLMarkupsClosedCurveDisplayableManager2D::AddPreview)
     {
     int pointIndex = slicerWidget->AddPreviewPointToRepresentationFromWorldCoordinate(worldCoordinates);
     // is there a node associated with this?
@@ -383,14 +386,14 @@ void vtkMRMLMarkupsCurveDisplayableManager3D::OnClickInRenderWindow(double x, do
       activeCurveNode->SetNthPointAssociatedNodeID(pointIndex, associatedNodeID);
       }
     }
-  else if (action == vtkMRMLMarkupsCurveDisplayableManager3D::RemovePreview)
+  else if (action == vtkMRMLMarkupsClosedCurveDisplayableManager2D::RemovePreview)
     {
     slicerWidget->RemoveLastPreviewPointToRepresentation();
     }
 
   // if this was a one time place, go back to view transform mode
   if (interactionNode->GetPlaceModePersistence() == 0 &&
-      slicerWidget->GetWidgetState() == vtkSlicerCurveWidget::Manipulate)
+      slicerWidget->GetWidgetState() == vtkSlicerClosedCurveWidget::Manipulate)
     {
     interactionNode->SwitchToViewTransformMode();
     }
@@ -400,14 +403,17 @@ void vtkMRMLMarkupsCurveDisplayableManager3D::OnClickInRenderWindow(double x, do
 }
 
 //---------------------------------------------------------------------------
-void vtkMRMLMarkupsCurveDisplayableManager3D::OnMRMLSceneEndClose()
+void vtkMRMLMarkupsClosedCurveDisplayableManager2D::OnMRMLSceneEndClose()
 {
+  // make sure to delete widgets and projections
+  this->Superclass::OnMRMLSceneEndClose();
+
   // clear out the map of glyph types
   this->Helper->ClearNodeGlyphTypes();
 }
 
 //---------------------------------------------------------------------------
-void vtkMRMLMarkupsCurveDisplayableManager3D::OnInteractorStyleEvent(int eventid)
+void vtkMRMLMarkupsClosedCurveDisplayableManager2D::OnInteractorStyleEvent(int eventid)
 {
   if (this->GetDisableInteractorStyleEventsProcessing())
     {
@@ -445,7 +451,7 @@ void vtkMRMLMarkupsCurveDisplayableManager3D::OnInteractorStyleEvent(int eventid
     {
     if (this->GetInteractionNode()->GetCurrentInteractionMode() == vtkMRMLInteractionNode::Place)
       {
-      this->OnClickInRenderWindowGetCoordinates(vtkMRMLMarkupsDisplayableManager3D::AddPreview);
+      this->OnClickInRenderWindowGetCoordinates(vtkMRMLMarkupsDisplayableManager2D::AddPreview);
       }
     this->RequestRender();
     }
@@ -453,7 +459,7 @@ void vtkMRMLMarkupsCurveDisplayableManager3D::OnInteractorStyleEvent(int eventid
     {
     if (this->GetInteractionNode()->GetCurrentInteractionMode() == vtkMRMLInteractionNode::Place)
       {
-      this->OnClickInRenderWindowGetCoordinates(vtkMRMLMarkupsDisplayableManager3D::RemovePreview);
+      this->OnClickInRenderWindowGetCoordinates(vtkMRMLMarkupsDisplayableManager2D::RemovePreview);
       }
     this->RequestRender();
     }
