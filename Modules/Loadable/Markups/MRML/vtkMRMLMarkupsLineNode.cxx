@@ -44,7 +44,6 @@ vtkMRMLMarkupsLineNode::vtkMRMLMarkupsLineNode()
 //----------------------------------------------------------------------------
 vtkMRMLMarkupsLineNode::~vtkMRMLMarkupsLineNode()
 {
-
 }
 
 //----------------------------------------------------------------------------

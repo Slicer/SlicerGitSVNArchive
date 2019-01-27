@@ -18,9 +18,9 @@
 
 /**
  * @class   vtkSlicerAngleWidget
- * @brief   create an angle with a set of 2 points
+ * @brief   create an angle with a set of 3 points
  *
- * The vtkSlicerAngleWidget is used to select a set of 2 points.
+ * The vtkSlicerAngleWidget is used to create an angle widget wit a set of 3 points.
  * The widget handles all processing of widget
  * events (that are triggered by VTK events). The vtkSlicerAngleRepresentations are
  * responsible for all placement of the points, and
@@ -34,19 +34,19 @@
  * <pre>
  *   LeftButtonPressEvent - triggers a Select event
  *   Alt + LeftButtonPressEvent - triggers a Rotate event
- *   MiddleButtonPressEvent - triggers a Shift event
- *   RightButtonPressEvent - triggers a Scale event
+ *   MiddleButtonPressEvent - triggers a Translate event
+ *   RightButtonPressEvent - triggers a Pick event
+ *   Alt + RightButtonPressEvent - triggers a Scale event
  *
  *   MouseMoveEvent - triggers a Move event
  *
- *   LeftButtonReleaseEvent - triggers an EndSelect event
- *   MiddleButtonReleaseEvent - triggers an EndShift event
- *   RightButtonReleaseEvent - triggers an EndScale event
+ *   LeftButtonReleaseEvent - triggers an EndAction event
+ *   MiddleButtonReleaseEvent - triggers an EndAction event
+ *   RightButtonReleaseEvent - triggers an EndAction event
  *
- *   LeftButtonDoubleClickEvent - triggers an PickOne event
- *   MiddleButtonDoubleClickEvent - triggers an PickTwo event
- *   RightButtonDoubleClickEvent - triggers an PickThree event
- *
+ *   LeftButtonDoubleClickEvent - triggers an Pick event
+ *   MiddleButtonDoubleClickEvent - triggers an Pick event
+ *   RightButtonDoubleClickEvent - triggers an Pick event
  *
  *   Delete key event - triggers a Delete event
  *   Shift + Delete key event - triggers a Reset event
@@ -55,14 +55,14 @@
  * @par Event Bindings:
  * Note that the event bindings described above can be changed using this
  * class's vtkWidgetEventTranslator. This class translates VTK events
- * into the vtkSlicerAngleWidget's widget events:
+ * into the vtkSlicerLineWidget's widget events:
  * <pre>
- *   vtkWidgetEvent::Translate
+ *   vtkWidgetEvent::Select
  *        widget state is:
  *            Start: Do nothing.
  *            Define: Do nothing.
  *            Manipulate: If this (X,Y) location activates a node, then
- *                 set the current operation to Translate.
+ *                 set the current operation to Select (translate only one point).
  *
  * @par Event Bindings:
  *   vtkWidgetEvent::PickPoint
@@ -81,12 +81,12 @@
  *                 set the current operation to Rotate.
  *
  * @par Event Bindings:
- *   vtkWidgetEvent::Shift
+ *   vtkWidgetEvent::Translate
  *        widget state is:
  *            Start: Do nothing.
  *            Define: Do nothing.
  *            Manipulate: If this (X,Y) location activates a node or the line, then
- *                 set the current operation to Shift.
+ *                 set the current operation to Translate.
  *
  * @par Event Bindings:
  *   vtkWidgetEvent::Scale
@@ -101,8 +101,8 @@
  *        widget state is:
  *            Start or
  *            Define: Do nothing.
- *            Manipulate: If our operation is Translate, Shift or Scale, then invoke
- *                  WidgetInteraction() on the representation. If our
+ *            Manipulate: If our operation is Select, Pick, Translate, Rotate or Scale,
+ *                  then invoke WidgetInteraction() on the representation. If our
  *                  operation is Inactive, then just attempt to activate
  *                  a node at this (X,Y) location.
  *
@@ -147,7 +147,7 @@
  *   vtkCommand::DeletePointEvent (after point is positioned;
  *                                 call data includes handle id)
  *
- *   Note: handle id conuter start from 0.
+ *  Note: handle id conuter start from 0. If -2 indicates the line.
  * </pre>
  *
 */

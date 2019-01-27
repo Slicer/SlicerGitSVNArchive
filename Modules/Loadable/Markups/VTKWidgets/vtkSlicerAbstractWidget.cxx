@@ -359,7 +359,7 @@ void vtkSlicerAbstractWidget::MoveAction(vtkAbstractWidget *w)
         }
       else if (state == vtkSlicerAbstractRepresentation::OnLine)
         {
-        self->CurrentHandle = -1;
+        self->CurrentHandle = -2;
         self->InvokeEvent(vtkCommand::InteractionEvent, &self->CurrentHandle);
         }
       }
@@ -377,7 +377,7 @@ void vtkSlicerAbstractWidget::MoveAction(vtkAbstractWidget *w)
           }
         else if (rep->GetInteractionState() == vtkSlicerAbstractRepresentation::OnLine)
           {
-          self->CurrentHandle = -1;
+          self->CurrentHandle = -2;
           }
         self->InvokeEvent(vtkCommand::InteractionEvent, &self->CurrentHandle);
         }
@@ -413,7 +413,7 @@ void vtkSlicerAbstractWidget::SelectAction(vtkAbstractWidget *w)
     }
   else if (state == vtkSlicerAbstractRepresentation::OnLine)
     {
-    self->CurrentHandle = -1;
+    self->CurrentHandle = -2;
     self->InvokeEvent(vtkCommand::StartInteractionEvent, &self->CurrentHandle);
     }
   else
@@ -461,7 +461,7 @@ void vtkSlicerAbstractWidget::PickAction(vtkAbstractWidget *w)
     }
   else if (state == vtkSlicerAbstractRepresentation::OnLine)
     {
-    self->CurrentHandle = -1;
+    self->CurrentHandle = -2;
     self->InvokeEvent(vtkCommand::StartInteractionEvent, &self->CurrentHandle);
     }
   else
@@ -507,7 +507,7 @@ void vtkSlicerAbstractWidget::RotateAction(vtkAbstractWidget *w)
     }
   else if (state == vtkSlicerAbstractRepresentation::OnLine)
     {
-    self->CurrentHandle = -1;
+    self->CurrentHandle = -2;
     self->InvokeEvent(vtkCommand::StartInteractionEvent, &self->CurrentHandle);
     }
   else
@@ -553,7 +553,7 @@ void vtkSlicerAbstractWidget::ScaleAction(vtkAbstractWidget *w)
     }
   else if (state == vtkSlicerAbstractRepresentation::OnLine)
     {
-    self->CurrentHandle = -1;
+    self->CurrentHandle = -2;
     self->InvokeEvent(vtkCommand::StartInteractionEvent, &self->CurrentHandle);
     }
   else
@@ -599,7 +599,7 @@ void vtkSlicerAbstractWidget::TranslateAction(vtkAbstractWidget *w)
     }
   else if (state == vtkSlicerAbstractRepresentation::OnLine)
     {
-    self->CurrentHandle = -1;
+    self->CurrentHandle = -2;
     self->InvokeEvent(vtkCommand::StartInteractionEvent, &self->CurrentHandle);
     }
   else
