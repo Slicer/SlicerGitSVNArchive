@@ -351,16 +351,11 @@ void vtkSlicerAbstractWidget::MoveAction(vtkAbstractWidget *w)
     if (rep->GetCurrentOperation() == vtkSlicerAbstractRepresentation::Inactive)
       {
       int state = rep->ComputeInteractionState(X, Y);
+      self->CurrentHandle = rep->GetActiveNode();
       self->SetCursor(state != vtkSlicerAbstractRepresentation::Outside);
-      if (state == vtkSlicerAbstractRepresentation::OnControlPoint)
+      if (state != vtkSlicerAbstractRepresentation::Outside)
         {
-        self->CurrentHandle = rep->GetActiveNode();
-        self->InvokeEvent(vtkCommand::InteractionEvent, &self->CurrentHandle);
-        }
-      else if (state == vtkSlicerAbstractRepresentation::OnLine)
-        {
-        self->CurrentHandle = -2;
-        self->InvokeEvent(vtkCommand::InteractionEvent, &self->CurrentHandle);
+        self->InvokeEvent(vtkCommand::StartInteractionEvent, &self->CurrentHandle);
         }
       }
     else
@@ -371,15 +366,11 @@ void vtkSlicerAbstractWidget::MoveAction(vtkAbstractWidget *w)
       rep->WidgetInteraction(pos);
       if (rep->GetCurrentOperation() != vtkSlicerAbstractRepresentation::Pick)
         {
-        if (rep->GetActiveNode() > -1)
+        if (rep->GetActiveNode() != -1)
           {
           self->CurrentHandle = rep->GetActiveNode();
-          }
-        else if (rep->GetInteractionState() == vtkSlicerAbstractRepresentation::OnLine)
-          {
-          self->CurrentHandle = -2;
-          }
-        self->InvokeEvent(vtkCommand::InteractionEvent, &self->CurrentHandle);
+          self->InvokeEvent(vtkCommand::InteractionEvent, &self->CurrentHandle);
+          } 
         }
       }
     }
@@ -405,15 +396,10 @@ void vtkSlicerAbstractWidget::SelectAction(vtkAbstractWidget *w)
     }
 
   int state = rep->GetInteractionState();
+  self->CurrentHandle = rep->GetActiveNode();
   self->SetCursor(state != vtkSlicerAbstractRepresentation::Outside);
-  if (state == vtkSlicerAbstractRepresentation::OnControlPoint)
+  if (state != vtkSlicerAbstractRepresentation::Outside)
     {
-    self->CurrentHandle = rep->GetActiveNode();
-    self->InvokeEvent(vtkCommand::StartInteractionEvent, &self->CurrentHandle);
-    }
-  else if (state == vtkSlicerAbstractRepresentation::OnLine)
-    {
-    self->CurrentHandle = -2;
     self->InvokeEvent(vtkCommand::StartInteractionEvent, &self->CurrentHandle);
     }
   else
@@ -453,15 +439,10 @@ void vtkSlicerAbstractWidget::PickAction(vtkAbstractWidget *w)
   int X = self->Interactor->GetEventPosition()[0];
   int Y = self->Interactor->GetEventPosition()[1];
   int state = rep->ComputeInteractionState(X, Y);
+  self->CurrentHandle = rep->GetActiveNode();
   self->SetCursor(state != vtkSlicerAbstractRepresentation::Outside);
-  if (state == vtkSlicerAbstractRepresentation::OnControlPoint)
+  if (state != vtkSlicerAbstractRepresentation::Outside)
     {
-    self->CurrentHandle = rep->GetActiveNode();
-    self->InvokeEvent(vtkCommand::StartInteractionEvent, &self->CurrentHandle);
-    }
-  else if (state == vtkSlicerAbstractRepresentation::OnLine)
-    {
-    self->CurrentHandle = -2;
     self->InvokeEvent(vtkCommand::StartInteractionEvent, &self->CurrentHandle);
     }
   else
@@ -499,15 +480,10 @@ void vtkSlicerAbstractWidget::RotateAction(vtkAbstractWidget *w)
     }
 
   int state = rep->GetInteractionState();
+  self->CurrentHandle = rep->GetActiveNode();
   self->SetCursor(state != vtkSlicerAbstractRepresentation::Outside);
-  if (state == vtkSlicerAbstractRepresentation::OnControlPoint)
+  if (state != vtkSlicerAbstractRepresentation::Outside)
     {
-    self->CurrentHandle = rep->GetActiveNode();
-    self->InvokeEvent(vtkCommand::StartInteractionEvent, &self->CurrentHandle);
-    }
-  else if (state == vtkSlicerAbstractRepresentation::OnLine)
-    {
-    self->CurrentHandle = -2;
     self->InvokeEvent(vtkCommand::StartInteractionEvent, &self->CurrentHandle);
     }
   else
@@ -545,15 +521,10 @@ void vtkSlicerAbstractWidget::ScaleAction(vtkAbstractWidget *w)
     }
 
   int state = rep->GetInteractionState();
+  self->CurrentHandle = rep->GetActiveNode();
   self->SetCursor(state != vtkSlicerAbstractRepresentation::Outside);
-  if (state == vtkSlicerAbstractRepresentation::OnControlPoint)
+  if (state != vtkSlicerAbstractRepresentation::Outside)
     {
-    self->CurrentHandle = rep->GetActiveNode();
-    self->InvokeEvent(vtkCommand::StartInteractionEvent, &self->CurrentHandle);
-    }
-  else if (state == vtkSlicerAbstractRepresentation::OnLine)
-    {
-    self->CurrentHandle = -2;
     self->InvokeEvent(vtkCommand::StartInteractionEvent, &self->CurrentHandle);
     }
   else
@@ -591,15 +562,10 @@ void vtkSlicerAbstractWidget::TranslateAction(vtkAbstractWidget *w)
     }
 
   int state = rep->GetInteractionState();
+  self->CurrentHandle = rep->GetActiveNode();
   self->SetCursor(state != vtkSlicerAbstractRepresentation::Outside);
-  if (state == vtkSlicerAbstractRepresentation::OnControlPoint)
+  if (state != vtkSlicerAbstractRepresentation::Outside)
     {
-    self->CurrentHandle = rep->GetActiveNode();
-    self->InvokeEvent(vtkCommand::StartInteractionEvent, &self->CurrentHandle);
-    }
-  else if (state == vtkSlicerAbstractRepresentation::OnLine)
-    {
-    self->CurrentHandle = -2;
     self->InvokeEvent(vtkCommand::StartInteractionEvent, &self->CurrentHandle);
     }
   else

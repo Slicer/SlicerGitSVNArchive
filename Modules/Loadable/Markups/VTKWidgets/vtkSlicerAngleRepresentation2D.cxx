@@ -501,6 +501,7 @@ int vtkSlicerAngleRepresentation2D::ComputeInteractionState(int X, int Y, int vt
     this->InteractionState = vtkSlicerAbstractRepresentation::Outside;
     }
   this->MarkupsNode->DisableModifiedEventOff();
+  this->MarkupsNode->Modified();
 
   this->NeedToRenderOn();
   return this->InteractionState;

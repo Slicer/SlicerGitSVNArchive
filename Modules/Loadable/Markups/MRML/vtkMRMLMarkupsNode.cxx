@@ -53,6 +53,7 @@ vtkMRMLMarkupsNode::vtkMRMLMarkupsNode()
   this->MarkupLabelFormat = std::string("%N-%d");
   this->LastUsedControlPointNumber = 0;
   this->ActiveControlPoint = -1;
+  this->centroidPos.Set(0,0,0);
 }
 
 //----------------------------------------------------------------------------
@@ -788,6 +789,83 @@ void vtkMRMLMarkupsNode::SetNthControlPointPositionWorld(const int pointIndex,
   vtkVector3d markupxyz;
   TransformPointFromWorld(vtkVector3d(x,y,z), markupxyz);
   this->SetNthControlPointPosition(pointIndex, markupxyz[0], markupxyz[1], markupxyz[2]);
+}
+
+//-----------------------------------------------------------
+vtkVector3d vtkMRMLMarkupsNode::GetCentroidPositionVector()
+{
+  return this->centroidPos;
+}
+
+//-----------------------------------------------------------
+void vtkMRMLMarkupsNode::GetCentroidPosition(double point[3])
+{
+  point[0] = this->centroidPos.GetX();
+  point[1] = this->centroidPos.GetY();
+  point[2] = this->centroidPos.GetZ();
+}
+
+//-----------------------------------------------------------
+void vtkMRMLMarkupsNode::GetCentroidPositionLPS(double point[3])
+{
+  point[0] = -1.0 * this->centroidPos.GetX();
+  point[1] = -1.0 * this->centroidPos.GetY();
+  point[2] = this->centroidPos.GetZ();
+}
+
+//-----------------------------------------------------------
+int vtkMRMLMarkupsNode::GetCentroidPositionWorld(double worldxyz[4])
+{
+  vtkVector3d world;
+  this->TransformPointToWorld(this->GetCentroidPositionVector(), world);
+  worldxyz[0] = world[0];
+  worldxyz[1] = world[1];
+  worldxyz[2] = world[2];
+  worldxyz[3] = 1;
+  return 1;
+}
+
+//-----------------------------------------------------------
+void vtkMRMLMarkupsNode::SetCentroidPositionFromPointer(const double *pos)
+{
+  if (!pos)
+    {
+    vtkErrorMacro("SetCentroidPositionFromPointer: invalid position pointer!");
+    return;
+    }
+
+  this->SetCentroidPosition(pos[0], pos[1], pos[2]);
+}
+
+//-----------------------------------------------------------
+void vtkMRMLMarkupsNode::SetCentroidPositionFromArray(const double pos[3])
+{
+  this->SetCentroidPosition(pos[0], pos[1], pos[2]);
+}
+
+//-----------------------------------------------------------
+void vtkMRMLMarkupsNode::SetCentroidPosition(const double x, const double y, const double z)
+{
+  this->centroidPos.Set(x,y,z);
+  this->Modified();
+}
+
+//-----------------------------------------------------------
+void vtkMRMLMarkupsNode::SetCentroidPositionLPS(const double x, const double y, const double z)
+{
+  double r, a, s;
+  r = -x;
+  a = -y;
+  s = z;
+  this->SetCentroidPosition(r, a, s);
+}
+
+//-----------------------------------------------------------
+void vtkMRMLMarkupsNode::SetCentroidPositionWorld(const double x, const double y, const double z)
+{
+  vtkVector3d centroidxyz;
+  TransformPointFromWorld(vtkVector3d(x,y,z), centroidxyz);
+  this->SetCentroidPosition(centroidxyz[0], centroidxyz[1], centroidxyz[2]);
 }
 
 //-----------------------------------------------------------

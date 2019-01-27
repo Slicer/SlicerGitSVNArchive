@@ -24,6 +24,8 @@ set(displayable_manager_SRCS
   vtkMRML${MODULE_NAME}AngleDisplayableManager2D.cxx
   vtkMRML${MODULE_NAME}CurveDisplayableManager3D.cxx
   vtkMRML${MODULE_NAME}CurveDisplayableManager2D.cxx
+  vtkMRML${MODULE_NAME}ClosedCurveDisplayableManager3D.cxx
+  vtkMRML${MODULE_NAME}ClosedCurveDisplayableManager2D.cxx
   )
 
 SlicerConfigureDisplayableManagerObjectFactory(

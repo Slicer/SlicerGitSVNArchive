@@ -68,6 +68,12 @@ public:
   /// with the handle.
   vtkGetObjectMacro(ActiveProperty,vtkProperty);
 
+  /// Given a display position, activate a node. The closest
+  /// node within tolerance will be activated. If a node is
+  /// activated, 1 will be returned, otherwise 0 will be
+  /// returned.
+  virtual int ActivateNode(int X, int Y) VTK_OVERRIDE;
+
   /// Subclasses of vtkSlicerAbstractRepresentation3D must implement these methods. These
   /// are the methods that the widget and its representation use to
   /// communicate with each other.

@@ -133,11 +133,14 @@ void qSlicerMarkupsModule::setup()
   vtkMRMLThreeDViewDisplayableManagerFactory::GetInstance()->RegisterDisplayableManager("vtkMRMLMarkupsLineDisplayableManager3D");
   vtkMRMLThreeDViewDisplayableManagerFactory::GetInstance()->RegisterDisplayableManager("vtkMRMLMarkupsAngleDisplayableManager3D");
   vtkMRMLThreeDViewDisplayableManagerFactory::GetInstance()->RegisterDisplayableManager("vtkMRMLMarkupsCurveDisplayableManager3D");
+  vtkMRMLThreeDViewDisplayableManagerFactory::GetInstance()->RegisterDisplayableManager("vtkMRMLMarkupsClosedCurveDisplayableManager3D");
+
   // 2D
   vtkMRMLSliceViewDisplayableManagerFactory::GetInstance()->RegisterDisplayableManager("vtkMRMLMarkupsFiducialDisplayableManager2D");
   vtkMRMLSliceViewDisplayableManagerFactory::GetInstance()->RegisterDisplayableManager("vtkMRMLMarkupsLineDisplayableManager2D");
   vtkMRMLSliceViewDisplayableManagerFactory::GetInstance()->RegisterDisplayableManager("vtkMRMLMarkupsAngleDisplayableManager2D");
   vtkMRMLSliceViewDisplayableManagerFactory::GetInstance()->RegisterDisplayableManager("vtkMRMLMarkupsCurveDisplayableManager2D");
+  vtkMRMLSliceViewDisplayableManagerFactory::GetInstance()->RegisterDisplayableManager("vtkMRMLMarkupsClosedCurveDisplayableManager2D");
 
   // Register IO
   qSlicerIOManager* ioManager = qSlicerApplication::application()->ioManager();
@@ -193,5 +196,9 @@ QStringList qSlicerMarkupsModule::associatedNodeTypes() const
     << "vtkMRMLAnnotationFiducialNode"
     << "vtkMRMLMarkupsDisplayNode"
     << "vtkMRMLMarkupsFiducialNode"
+    << "vtkMRMLMarkupsLineNode"
+    << "vtkMRMLMarkupsAngleNode"
+    << "vtkMRMLMarkupsCurveNode"
+    << "vtkMRMLMarkupsClosedCurveNode"
     << "vtkMRMLMarkupsFiducialStorageNode";
 }

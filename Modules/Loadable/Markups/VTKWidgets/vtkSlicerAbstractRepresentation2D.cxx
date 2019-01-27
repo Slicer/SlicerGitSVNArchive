@@ -176,8 +176,6 @@ void vtkSlicerAbstractRepresentation2D::GetSliceToWorldCoordinates(double sliceP
                                                                    double worldPos[3])
 {
   if (this->Renderer == nullptr ||
-      this->Renderer->GetRenderWindow() == nullptr ||
-      this->Renderer->GetRenderWindow()->GetInteractor() == nullptr ||
       this->SliceNode == nullptr)
     {
     return;
@@ -194,6 +192,30 @@ void vtkSlicerAbstractRepresentation2D::GetSliceToWorldCoordinates(double sliceP
   worldPos[0] = rasw[0]/rasw[3];
   worldPos[1] = rasw[1]/rasw[3];
   worldPos[2] = rasw[2]/rasw[3];
+}
+
+//----------------------------------------------------------------------
+void vtkSlicerAbstractRepresentation2D::GetWorldToSliceCoordinates(double worldPos[3], double slicePos[2])
+{
+  if (this->Renderer == nullptr ||
+      this->SliceNode == nullptr)
+    {
+    return;
+    }
+
+  double sliceCoordinates[4], worldCoordinates[4];
+  worldCoordinates[0] = worldPos[0];
+  worldCoordinates[1] = worldPos[1];
+  worldCoordinates[2] = worldPos[2];
+  worldCoordinates[3] = 1.0;
+
+  vtkNew<vtkMatrix4x4> rasToxyMatrix;
+  this->SliceNode->GetXYToRAS()->Invert(this->SliceNode->GetXYToRAS(), rasToxyMatrix.GetPointer());
+
+  rasToxyMatrix->MultiplyPoint(worldCoordinates, sliceCoordinates);
+
+  slicePos[0] = sliceCoordinates[0];
+  slicePos[1] = sliceCoordinates[1];
 }
 
 //----------------------------------------------------------------------
@@ -534,20 +556,10 @@ int vtkSlicerAbstractRepresentation2D::GetNthNodeDisplayPosition(int n, double s
     return 0;
     }
 
-  double sliceCoordinates[4], worldCoordinates[4];
-  ControlPoint* node = this->GetNthNode(n);
-  worldCoordinates[0] = node->WorldPosition.GetX();
-  worldCoordinates[1] = node->WorldPosition.GetY();
-  worldCoordinates[2] = node->WorldPosition.GetZ();
-  worldCoordinates[3] = 1.0;
+  double worldPos[3];
 
-  vtkNew<vtkMatrix4x4> rasToxyMatrix;
-  this->SliceNode->GetXYToRAS()->Invert(this->SliceNode->GetXYToRAS(), rasToxyMatrix.GetPointer());
-
-  rasToxyMatrix->MultiplyPoint(worldCoordinates, sliceCoordinates);
-
-  slicePos[0] = sliceCoordinates[0];
-  slicePos[1] = sliceCoordinates[1];
+  this->GetNthNodeWorldPosition(n, worldPos);
+  this->GetWorldToSliceCoordinates(worldPos, slicePos);
 
   return 1;
 }
@@ -566,23 +578,14 @@ int vtkSlicerAbstractRepresentation2D::GetIntermediatePointDisplayPosition(int n
     return 0;
     }
 
-  double sliceCoordinates[4], worldCoordinates[4];
+  double worldPos[3];
   ControlPoint* node = this->GetNthNode(n);
-  worldCoordinates[0] = node->intermadiatePoints[static_cast<unsigned int> (idx)].GetX();
-  worldCoordinates[1] = node->intermadiatePoints[static_cast<unsigned int> (idx)].GetY();
-  worldCoordinates[2] = node->intermadiatePoints[static_cast<unsigned int> (idx)].GetZ();
-  worldCoordinates[3] = 1.0;
+  worldPos[0] = node->intermadiatePoints[static_cast<unsigned int> (idx)].GetX();
+  worldPos[1] = node->intermadiatePoints[static_cast<unsigned int> (idx)].GetY();
+  worldPos[2] = node->intermadiatePoints[static_cast<unsigned int> (idx)].GetZ();
 
-  vtkNew<vtkMatrix4x4> rasToxyMatrix;
-  this->SliceNode->GetXYToRAS()->Invert(this->SliceNode->GetXYToRAS(), rasToxyMatrix.GetPointer());
-
-  rasToxyMatrix->MultiplyPoint(worldCoordinates, sliceCoordinates);
-
-  displayPos[0] = sliceCoordinates[0];
-  displayPos[1] = sliceCoordinates[1];
+  this->GetWorldToSliceCoordinates(worldPos, displayPos);
   return 1;
-
-
 }
 
 //----------------------------------------------------------------------
@@ -616,6 +619,14 @@ int vtkSlicerAbstractRepresentation2D::AddNodeAtDisplayPosition(double slicePos[
 void vtkSlicerAbstractRepresentation2D::SetNthPointSliceVisibility(int n, bool visibility)
 {
   this->pointsVisibilityOnSlice->InsertValue(n, visibility);
+  this->Modified();
+}
+
+//----------------------------------------------------------------------
+void vtkSlicerAbstractRepresentation2D::SetCentroidSliceVisibility(bool visibility)
+{
+  this->centroidVisibilityOnSlice = visibility;
+  this->Modified();
 }
 
 //----------------------------------------------------------------------
@@ -719,6 +730,58 @@ void vtkSlicerAbstractRepresentation2D::BuildRepresentation()
 }
 
 //----------------------------------------------------------------------
+int vtkSlicerAbstractRepresentation2D::ActivateNode(int X, int Y)
+{
+  if (this->GetNumberOfNodes() == 0)
+    {
+    this->SetActiveNode(-1);
+    return 0;
+    }
+
+  double displayPos[3];
+  displayPos[0] = static_cast<double>(X);
+  displayPos[1] = static_cast<double>(Y);
+  displayPos[2] = 0.;
+
+  this->PixelTolerance = this->HandleSize + this->HandleSize * this->Tolerance;
+  double scale = this->CalculateViewScaleFactor();
+  this->PixelTolerance *= scale;
+
+  if (this->GetNumberOfNodes() > 2 && this->ClosedLoop &&
+      this->MarkupsNode)
+    {
+    // Check if centroid is selected
+    double centroidPosWorld[3], centroidPosDisplay[3];
+    this->MarkupsNode->GetCentroidPosition(centroidPosWorld);
+    this->GetWorldToSliceCoordinates(centroidPosWorld, centroidPosDisplay);
+
+    if (vtkMath::Distance2BetweenPoints(centroidPosDisplay, displayPos) <
+        this->PixelTolerance * this->PixelTolerance)
+      {
+      if (this->GetActiveNode() != -3)
+        {
+        this->SetActiveNode(-3);
+        this->NeedToRender = 1;
+        }
+      return 1;
+      }
+    }
+
+  this->BuildLocator();
+
+  double closestDistance2 = VTK_DOUBLE_MAX;
+  int closestNode = static_cast<int> (this->Locator->FindClosestPointWithinRadius(
+    this->PixelTolerance, displayPos, closestDistance2));
+
+  if (closestNode != this->GetActiveNode())
+    {
+    this->SetActiveNode(closestNode);
+    this->NeedToRender = 1;
+    }
+  return (this->GetActiveNode() >= 0);
+}
+
+//----------------------------------------------------------------------
 int vtkSlicerAbstractRepresentation2D::ComputeInteractionState(int X, int Y, int vtkNotUsed(modified))
 {
   if (!this->MarkupsNode || this->MarkupsNode->GetLocked())
@@ -745,6 +808,7 @@ int vtkSlicerAbstractRepresentation2D::ComputeInteractionState(int X, int Y, int
     this->InteractionState = vtkSlicerAbstractRepresentation::Outside;
     }
   this->MarkupsNode->DisableModifiedEventOff();
+  this->MarkupsNode->Modified();
 
   return this->InteractionState;
 }
@@ -883,7 +947,8 @@ void vtkSlicerAbstractRepresentation2D::ScaleWidget(double eventPos[2])
   slicePos[1] = eventPos[1];
 
   double centroid[3];
-  ComputeCentroid(centroid);
+  this->UpdateCentroid();
+  this->MarkupsNode->GetCentroidPosition(centroid);
 
   double r2 = vtkMath::Distance2BetweenPoints(ref, centroid);
 
@@ -939,7 +1004,8 @@ void vtkSlicerAbstractRepresentation2D::RotateWidget(double eventPos[2])
   slicePos[1] = eventPos[1];
 
   double centroid[3];
-  ComputeCentroid(centroid);
+  this->UpdateCentroid();
+  this->MarkupsNode->GetCentroidPosition(centroid);
 
   this->GetSliceToWorldCoordinates(slicePos, worldPos);
 
@@ -1223,5 +1289,5 @@ void vtkSlicerAbstractRepresentation2D::PrintSelf(ostream& os,
   else
     {
     os << indent << "Active Property: (none)\n";
-    }
+  }
 }

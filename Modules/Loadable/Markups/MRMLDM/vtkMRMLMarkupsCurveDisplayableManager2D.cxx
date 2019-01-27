@@ -335,7 +335,7 @@ void vtkMRMLMarkupsCurveDisplayableManager2D::OnClickInRenderWindow(double x, do
     // create the MRML node
     activeCurveNode = vtkMRMLMarkupsCurveNode::SafeDownCast
       (this->GetMRMLScene()->AddNewNodeByClass("vtkMRMLMarkupsCurveNode"));
-    activeCurveNode->SetName(this->GetMRMLScene()->GetUniqueNameByString("C"));
+    activeCurveNode->SetName(this->GetMRMLScene()->GetUniqueNameByString("O"));
     activeCurveNode->AddDefaultStorageNode();
     activeCurveNode->CreateDefaultDisplayNodes();
     selectionNode->SetActivePlaceNodeID(activeCurveNode->GetID());

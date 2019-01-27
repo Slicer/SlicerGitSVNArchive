@@ -56,6 +56,7 @@
 #include "vtkMRMLMarkupsLineNode.h"
 #include "vtkMRMLMarkupsAngleNode.h"
 #include "vtkMRMLMarkupsCurveNode.h"
+#include "vtkMRMLMarkupsClosedCurveNode.h"
 #include "vtkMRMLMarkupsFiducialStorageNode.h"
 #include "vtkMRMLMarkupsNode.h"
 #include "vtkSlicerMarkupsLogic.h"
@@ -1629,6 +1630,7 @@ void qSlicerMarkupsModuleWidget::onAddMarkupPushButtonClicked()
   vtkMRMLMarkupsLineNode *lineNode = vtkMRMLMarkupsLineNode::SafeDownCast(d->activeMarkupMRMLNodeComboBox->currentNode());
   vtkMRMLMarkupsAngleNode *angleNode = vtkMRMLMarkupsAngleNode::SafeDownCast(d->activeMarkupMRMLNodeComboBox->currentNode());
   vtkMRMLMarkupsCurveNode *curveNode = vtkMRMLMarkupsCurveNode::SafeDownCast(d->activeMarkupMRMLNodeComboBox->currentNode());
+  vtkMRMLMarkupsClosedCurveNode *closedCurveNode = vtkMRMLMarkupsClosedCurveNode::SafeDownCast(d->activeMarkupMRMLNodeComboBox->currentNode());
   if (listNode)
     {
     listNode->AddFiducial(0,0,0);
@@ -1649,7 +1651,11 @@ void qSlicerMarkupsModuleWidget::onAddMarkupPushButtonClicked()
     curveNode->AddPoint(0,0,0);
     curveNode->SetActiveControlPoint(-1);
     }
-
+  else if (closedCurveNode)
+    {
+    closedCurveNode->AddPoint(0,0,0);
+    closedCurveNode->SetActiveControlPoint(-1);
+    }
 }
 
 //-----------------------------------------------------------------------------

@@ -185,7 +185,7 @@ public:
   bool ControlPointExists(int n);
   /// Return the number of control points that are stored in this node
   int GetNumberOfControlPoints();
-  /// Return a pointer to the nth control point stored in this node, null if n is out of bounds
+  /// Return a pointer to the Nth control point stored in this node, null if n is out of bounds
   ControlPoint* GetNthControlPoint(int n);
   /// Return a pointer to the std::vector of control points stored in this node
   std::vector<ControlPoint*>* GetControlPoints();
@@ -205,19 +205,19 @@ public:
   /// of new controlPoint, -1 on failure.
   int AddControlPoint(ControlPoint *controlPoint);
 
-  /// Get the position of Nth control point
+  /// Get the position of the Nth control point
   /// returning it as a vtkVector3d, return (0,0,0) if not found
   vtkVector3d GetNthControlPointPositionVector(int pointIndex);
-  /// Get the position of Nth control point
+  /// Get the position of the Nth control point
   /// setting the elements of point
   void GetNthControlPointPosition(int pointIndex, double point[3]);
-  /// Get the position of Nth control pointin LPS coordinate system
+  /// Get the position oof the Nth control point in LPS coordinate system
   void GetNthControlPointPositionLPS(int pointIndex, double point[3]);
-  /// Get the position of Nth control point in World coordinate system
+  /// Get the position of the Nth control point in World coordinate system
   /// Returns 0 on failure, 1 on success.
   int GetNthControlPointPositionWorld(int pointIndex, double worldxyz[4]);
 
-  /// Remove nth Control Point
+  /// Remove Nth Control Point
   void RemoveNthControlPoint(int pointIndex);
   /// Remove last Control Point
   void RemoveLastControlPoint();
@@ -235,44 +235,72 @@ public:
   /// Swap the position of two control points
   void SwapControlPoints(int m1, int m2);
 
-  /// Set a control point position from a pointer to an array
+  /// Set of the Nth control point position from a pointer to an array
   /// \sa SetNthControlPointPosition
-  void SetNthControlPointPositionFromPointer(const int pointIndex, const double * pos);
-  /// Set a control point position from an array
+  void SetNthControlPointPositionFromPointer(const int pointIndex, const double *pos);
+  /// Set of the Nth control point position from an array
   /// \sa SetNthControlPointPosition
   void SetNthControlPointPositionFromArray(const int pointIndex, const double pos[3]);
-  /// Set control point position from coordinates
+  /// Set of the Nth control point position from coordinates
   /// \sa SetNthControlPointPositionFromPointer, SetNthControlPointPositionFromArray
   void SetNthControlPointPosition(const int pointIndex, const double x, const double y, const double z);
-  /// Set control point position using LPS coordinate system, converting to RAS
+  /// Set of the Nth control point position using LPS coordinate system, converting to RAS
   /// \sa SetNthControlPointPosition
   void SetNthControlPointPositionLPS(const int pointIndex, const double x, const double y, const double z);
-  /// Set control point position using World coordinate system
+  /// Set of the Nth control point position using World coordinate system
   /// Calls SetNthControlPointPosition after transforming the passed in coordinate
   /// \sa SetNthControlPointPosition
   void SetNthControlPointPositionWorld(const int pointIndex, const double x, const double y, const double z);
 
-  /// Set the orientation for a control point from a pointer to a double array
+  /// Get the position of the centroid
+  /// returning it as a vtkVector3d, return (0,0,0) if not found
+  vtkVector3d GetCentroidPositionVector();
+  /// Get the position of the centroid
+  /// setting the elements of point
+  void GetCentroidPosition(double point[3]);
+  /// Get the position of the centroidin LPS coordinate system
+  void GetCentroidPositionLPS(double point[3]);
+  /// Get the position of the centroid in World coordinate system
+  /// Returns 0 on failure, 1 on success.
+  int GetCentroidPositionWorld(double worldxyz[4]);
+  /// Set the centroid position from a pointer to an array
+  /// \sa SetCentroidPosition
+  void SetCentroidPositionFromPointer(const double *pos);
+  /// Set the centroid position position from an array
+  /// \sa SetCentroidPosition
+  void SetCentroidPositionFromArray(const double pos[3]);
+  /// Set the centroid position position from coordinates
+  /// \sa SetCentroidPositionFromPointer, SetCentroidPositionFromArray
+  void SetCentroidPosition(const double x, const double y, const double z);
+  /// Set the centroid position position using LPS coordinate system, converting to RAS
+  /// \sa SetCentroidPosition
+  void SetCentroidPositionLPS(const double x, const double y, const double z);
+  /// Set the centroid position position using World coordinate system
+  /// Calls SetCentroidPosition after transforming the passed in coordinate
+  /// \sa SetCentroidPosition
+  void SetCentroidPositionWorld(const double x, const double y, const double z);
+
+  /// Set the orientation for the Nth control point from a pointer to a double array
   void SetNthControlPointOrientationFromPointer(int n, const double *orientation);
-  /// Set the orientation for a control point from a double array
+  /// Set the orientation for the Nth control point from a double array
   void SetNthControlPointOrientationFromArray(int n, const double orientation[4]);
-  /// Set the orientation for a control point from passed parameters
+  /// Set the orientation for the Nth control point from passed parameters
   void SetNthControlPointOrientation(int n, double w, double x, double y, double z);
-  /// Get the orientation quaternion for a control point
+  /// Get the orientation quaternion for the Nth control point
   void GetNthControlPointOrientation(int n, double orientation[4]);
-  /// Get the orientation quaternion for a control point
+  /// Get the orientation quaternion for the Nth control point
   /// returning it as a vtkVector4d, return (0,0,0,0) if not found
   vtkVector4d GetNthControlPointOrientationVector(int pointIndex);
 
-  /// Get/Set the associated node id for the nth control point
+  /// Get/Set the associated node id for the Nth control point
   std::string GetNthControlPointAssociatedNodeID(int n = 0);
   void SetNthControlPointAssociatedNodeID(int n, std::string id);
 
-  /// Get the id for the nth control point
+  /// Get the id for the Nth control point
   std::string GetNthControlPointID(int n = 0);
-  /// Get control point index based on it's ID
+  /// Get the Nth control point index based on it's ID
   int GetNthControlPointIndexByID(const char* controlPointID);
-  /// Get control point based on it's ID
+  /// Get the Nth control point based on it's ID
   ControlPoint* GetNthControlPointByID(const char* controlPointID);
 
   /// Active control point
@@ -280,29 +308,29 @@ public:
   void SetActiveControlPoint(int index);
   vtkGetMacro(ActiveControlPoint, int);
 
-  /// Get the Selected flag on the nth control point,
+  /// Get the Selected flag on the Nth control point,
   /// returns false if control point doesn't exist
   bool GetNthControlPointSelected(int n = 0);
   /// Set the Selected flag on the Nth control point
   /// \sa vtkMRMLNode::SetSelected
   void SetNthControlPointSelected(int n, bool flag);
 
-  /// Get the Lock flag on the nth control point,
+  /// Get the Lock flag on the Nth control point,
   /// returns false if control point doesn't exist
   bool GetNthControlPointLocked(int n = 0);
   /// Set Locked property on Nth control point. If locked is set to
-  /// true on the node/list as a whole, the nth control point locked flag is used to
+  /// true on the node/list as a whole, the Nth control point locked flag is used to
   /// determine if it is locked. If the locked flag is set to false on the node
   /// as a whole, all control point are locked but keep this value for when the
   /// list as a whole is turned unlocked.
   /// \sa vtMRMLMarkupsNode::SetLocked
   void SetNthControlPointLocked(int n, bool flag);
 
-  /// Get the Visibility flag on the nth control point,
+  /// Get the Visibility flag on the Nth control point,
   /// returns false if control point doesn't exist
   bool GetNthControlPointVisibility(int n = 0);
   /// Set Visibility property on Nth control point. If the visibility is set to
-  /// true on the node/list as a whole, the nth control point visibility is used to
+  /// true on the node/list as a whole, the Nth control point visibility is used to
   /// determine if it is visible. If the visibility is set to false on the node
   /// as a whole, all control points are hidden but keep this value for when the
   /// list as a whole is turned visible.
@@ -310,16 +338,16 @@ public:
   /// \sa vtkMRMLDisplayNode::SetVisibility
   void SetNthControlPointVisibility(int n, bool flag);
 
-  /// Get the Label on the nth control point,
+  /// Get the Label on the Nth control point,
   /// returns false if control point doesn't exist
   std::string GetNthControlPointLabel(int n = 0);
-  /// Set the Label on the nth control point
+  /// Set the Label on the Nth control point
   void SetNthControlPointLabel(int n, std::string label);
 
-  /// Get the Description flag on the nth control point,
+  /// Get the Description flag on the Nth control point,
   /// returns false if control point doesn't exist
   std::string GetNthControlPointDescription(int n = 0);
-  /// Set the Description on the nth control point
+  /// Set the Description on the Nth control point
   void SetNthControlPointDescription(int n, std::string description);
 
   /// Returns true since can apply non linear transforms
@@ -358,7 +386,7 @@ public:
   /// \sa vtkMRMLStorableNode::GetModifiedSinceRead()
   virtual bool GetModifiedSinceRead() VTK_OVERRIDE;
 
-  /// Reset the id of the nth control point according to the local policy
+  /// Reset the id of the Nth control point according to the local policy
   /// Called after an already initialised markup has been added to the
   /// scene. Returns false if n out of bounds, true on success.
   bool ResetNthControlPointID(int n);
@@ -411,6 +439,9 @@ private:
   // incrementing, not decreasing when they're removed. Used to help create
   // unique names and ids. Reset to 0 when \sa RemoveAllControlPoints called
   int LastUsedControlPointNumber;
+
+  // Centroid world coordinates
+  vtkVector3d centroidPos;
 };
 
 #endif
