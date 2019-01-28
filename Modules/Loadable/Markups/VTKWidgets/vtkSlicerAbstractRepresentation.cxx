@@ -1279,7 +1279,7 @@ int vtkSlicerAbstractRepresentation::DeleteLastNode()
   this->MarkupsNode->RemoveLastControlPoint();
   this->MarkupsNode->DisableModifiedEventOff();
 
-  this->UpdateLines(this->GetNumberOfNodes());
+  this->UpdateLines(this->GetNumberOfNodes() - 1);
 
   this->NeedToRender = 1;
   return 1;

@@ -189,6 +189,11 @@ void vtkSlicerCurveRepresentation2D::BuildLines()
     count += this->GetNumberOfIntermediatePoints(i);
     }
 
+  if (this->ClosedLoop)
+    {
+    count++;
+    }
+
   points->SetNumberOfPoints(count);
   vtkIdType numLine = count;
   if (numLine > 0)
@@ -213,6 +218,13 @@ void vtkSlicerCurveRepresentation2D::BuildLines()
         lineIndices[index] = index;
         index++;
         }
+      }
+
+    if (this->ClosedLoop)
+      {
+      this->GetNthNodeWorldPosition(0, pos);
+      points->InsertPoint(index, pos);
+      lineIndices[index] = 0;
       }
 
     line->InsertNextCell(numLine, lineIndices);
@@ -423,27 +435,28 @@ vtkPolyData *vtkSlicerCurveRepresentation2D::GetWidgetRepresentationAsPolyData()
 //----------------------------------------------------------------------
 void vtkSlicerCurveRepresentation2D::GetActors(vtkPropCollection *pc)
 {
-  this->Superclass::GetActors(pc);
   this->LineActor->GetActors(pc);
+  this->Superclass::GetActors(pc);
 }
 
 //----------------------------------------------------------------------
 void vtkSlicerCurveRepresentation2D::ReleaseGraphicsResources(
   vtkWindow *win)
 {
-  this->Superclass::ReleaseGraphicsResources(win);
   this->LineActor->ReleaseGraphicsResources(win);
+  this->Superclass::ReleaseGraphicsResources(win);
 }
 
 //----------------------------------------------------------------------
 int vtkSlicerCurveRepresentation2D::RenderOverlay(vtkViewport *viewport)
 {
   int count=0;
-  count = this->Superclass::RenderOverlay(viewport);
   if (this->LineActor->GetVisibility())
     {
     count +=  this->LineActor->RenderOverlay(viewport);
     }
+  count += this->Superclass::RenderOverlay(viewport);
+
   return count;
 }
 
@@ -456,11 +469,12 @@ int vtkSlicerCurveRepresentation2D::RenderOpaqueGeometry(
   this->BuildRepresentation();
 
   int count=0;
-  count = this->Superclass::RenderOpaqueGeometry(viewport);
   if (this->LineActor->GetVisibility())
     {
     count += this->LineActor->RenderOpaqueGeometry(viewport);
     }
+  count += this->Superclass::RenderOpaqueGeometry(viewport);
+
   return count;
 }
 
@@ -469,11 +483,12 @@ int vtkSlicerCurveRepresentation2D::RenderTranslucentPolygonalGeometry(
   vtkViewport *viewport)
 {
   int count=0;
-  count = this->Superclass::RenderTranslucentPolygonalGeometry(viewport);
   if (this->LineActor->GetVisibility())
     {
     count += this->LineActor->RenderTranslucentPolygonalGeometry(viewport);
     }
+  count += this->Superclass::RenderTranslucentPolygonalGeometry(viewport);
+
   return count;
 }
 
@@ -481,11 +496,12 @@ int vtkSlicerCurveRepresentation2D::RenderTranslucentPolygonalGeometry(
 vtkTypeBool vtkSlicerCurveRepresentation2D::HasTranslucentPolygonalGeometry()
 {
   int result=0;
-  result |= this->Superclass::HasTranslucentPolygonalGeometry();
   if (this->LineActor->GetVisibility())
     {
     result |= this->LineActor->HasTranslucentPolygonalGeometry();
     }
+  result |= this->Superclass::HasTranslucentPolygonalGeometry();
+
   return result;
 }
 

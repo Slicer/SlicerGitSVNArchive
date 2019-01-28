@@ -329,27 +329,28 @@ vtkPolyData *vtkSlicerLineRepresentation2D::GetWidgetRepresentationAsPolyData()
 //----------------------------------------------------------------------
 void vtkSlicerLineRepresentation2D::GetActors(vtkPropCollection *pc)
 {
-  this->Superclass::GetActors(pc);
   this->LineActor->GetActors(pc);
+  this->Superclass::GetActors(pc);
 }
 
 //----------------------------------------------------------------------
 void vtkSlicerLineRepresentation2D::ReleaseGraphicsResources(
   vtkWindow *win)
 {
-  this->Superclass::ReleaseGraphicsResources(win);
   this->LineActor->ReleaseGraphicsResources(win);
+  this->Superclass::ReleaseGraphicsResources(win);
 }
 
 //----------------------------------------------------------------------
 int vtkSlicerLineRepresentation2D::RenderOverlay(vtkViewport *viewport)
 {
   int count=0;
-  count = this->Superclass::RenderOverlay(viewport);
   if (this->LineActor->GetVisibility())
     {
     count +=  this->LineActor->RenderOverlay(viewport);
     }
+  count += this->Superclass::RenderOverlay(viewport);
+
   return count;
 }
 
@@ -362,11 +363,12 @@ int vtkSlicerLineRepresentation2D::RenderOpaqueGeometry(
   this->BuildRepresentation();
 
   int count=0;
-  count = this->Superclass::RenderOpaqueGeometry(viewport);
   if (this->LineActor->GetVisibility())
     {
     count += this->LineActor->RenderOpaqueGeometry(viewport);
     }
+  count = this->Superclass::RenderOpaqueGeometry(viewport);
+
   return count;
 }
 
@@ -375,11 +377,12 @@ int vtkSlicerLineRepresentation2D::RenderTranslucentPolygonalGeometry(
   vtkViewport *viewport)
 {
   int count=0;
-  count = this->Superclass::RenderTranslucentPolygonalGeometry(viewport);
   if (this->LineActor->GetVisibility())
     {
     count += this->LineActor->RenderTranslucentPolygonalGeometry(viewport);
     }
+  count = this->Superclass::RenderTranslucentPolygonalGeometry(viewport);
+
   return count;
 }
 
@@ -387,11 +390,12 @@ int vtkSlicerLineRepresentation2D::RenderTranslucentPolygonalGeometry(
 vtkTypeBool vtkSlicerLineRepresentation2D::HasTranslucentPolygonalGeometry()
 {
   int result=0;
-  result |= this->Superclass::HasTranslucentPolygonalGeometry();
   if (this->LineActor->GetVisibility())
     {
     result |= this->LineActor->HasTranslucentPolygonalGeometry();
     }
+  result |= this->Superclass::HasTranslucentPolygonalGeometry();
+
   return result;
 }
 

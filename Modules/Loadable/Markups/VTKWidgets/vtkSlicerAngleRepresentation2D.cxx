@@ -537,27 +537,26 @@ vtkPolyData *vtkSlicerAngleRepresentation2D::GetWidgetRepresentationAsPolyData()
 //----------------------------------------------------------------------
 void vtkSlicerAngleRepresentation2D::GetActors(vtkPropCollection *pc)
 {
-  this->Superclass::GetActors(pc);
   this->LineActor->GetActors(pc);
   this->ArcActor->GetActors(pc);
   this->TextActor->GetActors(pc);
+  this->Superclass::GetActors(pc);
 }
 
 //----------------------------------------------------------------------
 void vtkSlicerAngleRepresentation2D::ReleaseGraphicsResources(
   vtkWindow *win)
 {
-  this->Superclass::ReleaseGraphicsResources(win);
   this->LineActor->ReleaseGraphicsResources(win);
   this->ArcActor->ReleaseGraphicsResources(win);
   this->TextActor->ReleaseGraphicsResources(win);
+  this->Superclass::ReleaseGraphicsResources(win);
 }
 
 //----------------------------------------------------------------------
 int vtkSlicerAngleRepresentation2D::RenderOverlay(vtkViewport *viewport)
 {
   int count=0;
-  count = this->Superclass::RenderOverlay(viewport);
   if (this->LineActor->GetVisibility())
     {
     count +=  this->LineActor->RenderOverlay(viewport);
@@ -570,6 +569,8 @@ int vtkSlicerAngleRepresentation2D::RenderOverlay(vtkViewport *viewport)
     {
     count +=  this->TextActor->RenderOverlay(viewport);
     }
+  count += this->Superclass::RenderOverlay(viewport);
+
   return count;
 }
 
@@ -582,7 +583,6 @@ int vtkSlicerAngleRepresentation2D::RenderOpaqueGeometry(
   this->BuildRepresentation();
 
   int count=0;
-  count = this->Superclass::RenderOpaqueGeometry(viewport);
   if (this->LineActor->GetVisibility())
     {
     count += this->LineActor->RenderOpaqueGeometry(viewport);
@@ -595,6 +595,8 @@ int vtkSlicerAngleRepresentation2D::RenderOpaqueGeometry(
     {
     count += this->TextActor->RenderOpaqueGeometry(viewport);
     }
+  count += this->Superclass::RenderOpaqueGeometry(viewport);
+
   return count;
 }
 
@@ -603,7 +605,6 @@ int vtkSlicerAngleRepresentation2D::RenderTranslucentPolygonalGeometry(
   vtkViewport *viewport)
 {
   int count=0;
-  count = this->Superclass::RenderTranslucentPolygonalGeometry(viewport);
   if (this->LineActor->GetVisibility())
     {
     count += this->LineActor->RenderTranslucentPolygonalGeometry(viewport);
@@ -616,6 +617,8 @@ int vtkSlicerAngleRepresentation2D::RenderTranslucentPolygonalGeometry(
     {
     count += this->TextActor->RenderTranslucentPolygonalGeometry(viewport);
     }
+  count += this->Superclass::RenderTranslucentPolygonalGeometry(viewport);
+
   return count;
 }
 
@@ -623,7 +626,6 @@ int vtkSlicerAngleRepresentation2D::RenderTranslucentPolygonalGeometry(
 vtkTypeBool vtkSlicerAngleRepresentation2D::HasTranslucentPolygonalGeometry()
 {
   int result=0;
-  result |= this->Superclass::HasTranslucentPolygonalGeometry();
   if (this->LineActor->GetVisibility())
     {
     result |= this->LineActor->HasTranslucentPolygonalGeometry();
@@ -636,6 +638,8 @@ vtkTypeBool vtkSlicerAngleRepresentation2D::HasTranslucentPolygonalGeometry()
     {
     result |= this->TextActor->HasTranslucentPolygonalGeometry();
     }
+  result |= this->Superclass::HasTranslucentPolygonalGeometry();
+
   return result;
 }
 

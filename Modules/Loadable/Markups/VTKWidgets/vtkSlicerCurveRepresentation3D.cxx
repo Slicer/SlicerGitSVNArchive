@@ -195,6 +195,11 @@ void vtkSlicerCurveRepresentation3D::BuildLines()
     count += this->GetNumberOfIntermediatePoints(i);
     }
 
+  if (this->ClosedLoop)
+    {
+    count++;
+    }
+
   points->SetNumberOfPoints(count);
 
   vtkIdType numLine = count;
@@ -220,6 +225,13 @@ void vtkSlicerCurveRepresentation3D::BuildLines()
         lineIndices[index] = index;
         index++;
         }
+      }
+
+    if (this->ClosedLoop)
+      {
+      this->GetNthNodeWorldPosition(0, pos);
+      points->InsertPoint(index, pos);
+      lineIndices[index] = 0;
       }
 
     line->InsertNextCell(numLine, lineIndices);
