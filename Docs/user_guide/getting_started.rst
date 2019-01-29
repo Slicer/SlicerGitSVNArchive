@@ -42,7 +42,7 @@ To install Slicer, click `here <http://download.slicer.org/>`_.
   Slicer is not updated nightly and is more rigorously tested.
 
 
-Once downloaded, follow the instructions to complete installation.
+Once downloaded, follow the instructions below to complete installation.
 
 
 Further Documentation
