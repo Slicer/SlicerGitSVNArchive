@@ -634,7 +634,6 @@ int vtkSlicerAbstractRepresentation3D::ComputeInteractionState(int X, int Y, int
     this->InteractionState = vtkSlicerAbstractRepresentation::Outside;
     }
   this->MarkupsNode->DisableModifiedEventOff();
-  this->MarkupsNode->Modified();
 
   if (oldActiveNode != this->GetActiveNode())
     {
