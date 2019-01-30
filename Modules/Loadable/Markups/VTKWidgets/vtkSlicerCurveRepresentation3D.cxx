@@ -195,6 +195,11 @@ void vtkSlicerCurveRepresentation3D::BuildLines()
     count += this->GetNumberOfIntermediatePoints(i);
     }
 
+  if (this->ClosedLoop)
+    {
+    count++;
+    }
+
   points->SetNumberOfPoints(count);
 
   vtkIdType numLine = count;
@@ -220,6 +225,13 @@ void vtkSlicerCurveRepresentation3D::BuildLines()
         lineIndices[index] = index;
         index++;
         }
+      }
+
+    if (this->ClosedLoop)
+      {
+      this->GetNthNodeWorldPosition(0, pos);
+      points->InsertPoint(index, pos);
+      lineIndices[index] = 0;
       }
 
     line->InsertNextCell(numLine, lineIndices);
@@ -478,6 +490,8 @@ int vtkSlicerCurveRepresentation3D::ComputeInteractionState(int X, int Y, int vt
     return this->InteractionState;
     }
 
+  int oldActiveNode = this->GetActiveNode();
+
   this->MarkupsNode->DisableModifiedEventOn();
   if (this->ActivateNode(X, Y))
     {
@@ -494,8 +508,14 @@ int vtkSlicerCurveRepresentation3D::ComputeInteractionState(int X, int Y, int vt
     this->InteractionState = vtkSlicerAbstractRepresentation::Outside;
     }
   this->MarkupsNode->DisableModifiedEventOff();
-  this->MarkupsNode->Modified();
 
+  if (oldActiveNode != this->GetActiveNode())
+    {
+    this->MarkupsNode->Modified();
+    }
+
+  // This additional render is need only because of the flickering bug due to the vtkPropPicker
+  // remove once it is fixed
   this->NeedToRenderOn();
   return this->InteractionState;
 }

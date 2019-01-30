@@ -388,6 +388,8 @@ int vtkSlicerLineRepresentation3D::ComputeInteractionState(int X, int Y, int vtk
     return this->InteractionState;
     }
 
+  int oldActiveNode = this->GetActiveNode();
+
   this->MarkupsNode->DisableModifiedEventOn();
   if (this->ActivateNode(X, Y))
     {
@@ -404,8 +406,14 @@ int vtkSlicerLineRepresentation3D::ComputeInteractionState(int X, int Y, int vtk
     this->InteractionState = vtkSlicerAbstractRepresentation::Outside;
     }
   this->MarkupsNode->DisableModifiedEventOff();
-  this->MarkupsNode->Modified();
 
+  if (oldActiveNode != this->GetActiveNode())
+    {
+    this->MarkupsNode->Modified();
+    }
+
+  // This additional render is need only because of the flickering bug due to the vtkPropPicker
+  // remove once it is fixed
   this->NeedToRenderOn();
   return this->InteractionState;
 }
