@@ -1633,14 +1633,11 @@ void qMRMLSegmentEditorWidget::updateEffectsSectionFromMRML()
     d->MaskingGroupBox->show();
 
     // Perform updates to prevent layout collapse
-    d->EffectHelpBrowser->setMinimumHeight(d->EffectHelpBrowser->sizeHint().height());
     if (d->EffectHelpBrowser->layout())
       {
       d->EffectHelpBrowser->layout()->update();
       }
-    activeEffect->optionsFrame()->setMinimumHeight(activeEffect->optionsFrame()->sizeHint().height());
     activeEffect->optionsLayout()->activate();
-    this->setMinimumHeight(this->sizeHint().height());
     }
   else
     {
@@ -3269,21 +3266,16 @@ void qMRMLSegmentEditorWidget::updateEffectLayouts()
 
   if (d->ActiveEffect)
     {
-    d->EffectHelpBrowser->setMinimumHeight(d->EffectHelpBrowser->sizeHint().height());
     if (d->EffectHelpBrowser->layout())
       {
       d->EffectHelpBrowser->layout()->update();
       }
-    d->ActiveEffect->optionsFrame()->setMinimumHeight(d->ActiveEffect->optionsFrame()->sizeHint().height());
     d->ActiveEffect->optionsLayout()->activate();
     }
   else
     {
-    d->OptionsGroupBox->setMinimumHeight(d->OptionsGroupBox->sizeHint().height());
     d->OptionsGroupBox->layout()->activate();
     }
-
-  this->setMinimumHeight(this->sizeHint().height());
 }
 
 //-----------------------------------------------------------------------------

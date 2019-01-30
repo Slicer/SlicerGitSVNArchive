@@ -57,9 +57,9 @@
    <item row="1" column="0">
     <widget class="QTableWidget" name="SegmentsTable">
      <property name="sizePolicy">
-      <sizepolicy hsizetype="Ignored" vsizetype="MinimumExpanding">
+      <sizepolicy hsizetype="Ignored" vsizetype="Ignored">
        <horstretch>0</horstretch>
-       <verstretch>1</verstretch>
+       <verstretch>0</verstretch>
       </sizepolicy>
      </property>
      <property name="minimumSize">
