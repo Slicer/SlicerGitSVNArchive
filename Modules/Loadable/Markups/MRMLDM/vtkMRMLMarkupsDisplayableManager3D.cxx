@@ -29,6 +29,7 @@
 // MRML includes
 #include <vtkMRMLApplicationLogic.h>
 #include <vtkMRMLInteractionNode.h>
+#include <vtkMRMLVolumeNode.h>
 #include <vtkMRMLScene.h>
 #include <vtkMRMLSelectionNode.h>
 #include <vtkMRMLSliceCompositeNode.h>
@@ -525,7 +526,22 @@ void vtkMRMLMarkupsDisplayableManager3D::OnMRMLMarkupsDisplayNodeModifiedEvent(v
           rep->SetActiveCursorShape(glyphSource->GetOutput());
           }
 
-        rep->SetHandleSize(markupsDisplayNode->GetGlyphScale());
+        // The handle size for 3D view needs to be rescaled for the spacing of the volume
+        // (it takes care of the zooming)
+        vtkMRMLSelectionNode *selectionNode = this->GetMRMLApplicationLogic()->GetSelectionNode();
+        double spacingScale = 1;
+        if (selectionNode && this->GetMRMLScene())
+          {
+          vtkMRMLVolumeNode* volumeNode = vtkMRMLVolumeNode::SafeDownCast
+            (this->GetMRMLScene()->GetNodeByID(selectionNode->GetActiveVolumeID()));
+          if (volumeNode)
+            {
+            double spacing[3];
+            volumeNode->GetSpacing(spacing);
+            spacingScale = (spacing[0] + spacing[1] + spacing[2]) / 3.;
+            }
+          }
+        rep->SetHandleSize(markupsDisplayNode->GetGlyphScale() * spacingScale);
 
         vtkTextProperty *textProp = rep->GetTextProperty();
         if (textProp)
