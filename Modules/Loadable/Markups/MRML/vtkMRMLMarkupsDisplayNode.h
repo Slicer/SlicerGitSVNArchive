@@ -68,11 +68,11 @@ public:
   vtkSetMacro(TextScale,double);
 
   /// Set the text visibility of the display node.
-  vtkSetMacro(TextVisibility, int);
+  vtkSetMacro(TextVisibility, bool);
   /// Get the text visibility of the display node.
-  vtkGetMacro(TextVisibility, int);
+  vtkGetMacro(TextVisibility, bool);
   /// Set the text visibility of the display node.
-  vtkBooleanMacro(TextVisibility, int);
+  vtkBooleanMacro(TextVisibility, bool);
 
   /// Which kind of glyph should be used to display this markup?
   /// Vertex2D is supposed to start at 1

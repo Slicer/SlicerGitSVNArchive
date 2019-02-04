@@ -31,7 +31,6 @@
 #include "vtkIncrementalOctreePointLocator.h"
 #include "vtkLine.h"
 #include "vtkCoordinate.h"
-#include "vtkGlyph3D.h"
 #include "vtkCursor2D.h"
 #include "vtkCylinderSource.h"
 #include "vtkPolyData.h"
