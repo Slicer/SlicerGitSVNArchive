@@ -263,6 +263,12 @@ void vtkMRMLMarkupsNode::PrintSelf(ostream& os, vtkIndent indent)
 //----------------------------------------------------------------------------
 void vtkMRMLMarkupsNode::RemoveAllControlPoints()
 {
+  if (this->ControlPoints.empty())
+    {
+    // no control points to remove
+    return;
+    }
+
   for(unsigned int i = 0; i < this->ControlPoints.size(); i++)
     {
     this->ControlPoints[i]->intermadiatePoints.clear();
@@ -271,6 +277,7 @@ void vtkMRMLMarkupsNode::RemoveAllControlPoints()
 
   this->ControlPoints.clear();
 
+  this->Modified();
   this->InvokeCustomModifiedEvent(vtkMRMLMarkupsNode::AllPointsRemovedEvent);
 }
 
@@ -397,6 +404,7 @@ void vtkMRMLMarkupsNode::SetLocked(int locked)
     }
   this->Locked = locked;
 
+  this->Modified();
   this->InvokeCustomModifiedEvent(vtkMRMLMarkupsNode::LockModifiedEvent);
 }
 
@@ -506,6 +514,7 @@ int vtkMRMLMarkupsNode::AddControlPoint(ControlPoint *controlPoint)
   int controlPointIndex = this->GetNumberOfControlPoints() - 1;
   this->ActiveControlPoint = controlPointIndex;
 
+  this->Modified();
   this->InvokeCustomModifiedEvent(vtkMRMLMarkupsNode::PointAddedEvent,  static_cast<void*>(&controlPointIndex));
   return controlPointIndex;
 }
@@ -611,6 +620,7 @@ void vtkMRMLMarkupsNode::RemoveNthControlPoint(int pointIndex)
   delete this->ControlPoints[static_cast<unsigned int> (pointIndex)];
   this->ControlPoints.erase(this->ControlPoints.begin() + pointIndex);
 
+  this->Modified();
   this->InvokeCustomModifiedEvent(vtkMRMLMarkupsNode::PointRemovedEvent, static_cast<void*>(&pointIndex));
 }
 
@@ -628,6 +638,7 @@ void vtkMRMLMarkupsNode::RemoveLastControlPoint()
   this->ControlPoints.erase(this->ControlPoints.begin() + pointIndex);
   this->LastUsedControlPointNumber--;
 
+  this->Modified();
   this->InvokeCustomModifiedEvent(vtkMRMLMarkupsNode::PointRemovedEvent, static_cast<void*>(&pointIndex));
 }
 
@@ -665,6 +676,7 @@ bool vtkMRMLMarkupsNode::InsertControlPoint(ControlPoint *controlPoint, int targ
     }
 
   // let observers know that a markup was added
+  this->Modified();
   this->InvokeCustomModifiedEvent(vtkMRMLMarkupsNode::PointAddedEvent, static_cast<void*>(&targetIndex));
 
   return true;
@@ -726,6 +738,7 @@ void vtkMRMLMarkupsNode::SwapControlPoints(int m1, int m2)
   this->CopyControlPoint(&m1MarkupBackup, this->GetNthControlPoint(m2));
 
   // and let listeners know that two control points have changed
+  this->Modified();
   this->InvokeCustomModifiedEvent(vtkMRMLMarkupsNode::PointModifiedEvent, static_cast<void*>(&m1));
   this->InvokeCustomModifiedEvent(vtkMRMLMarkupsNode::PointModifiedEvent, static_cast<void*>(&m2));
 }
@@ -760,8 +773,10 @@ void vtkMRMLMarkupsNode::SetNthControlPointPosition(const int pointIndex,
     }
 
   this->GetNthControlPoint(pointIndex)->WorldPosition.Set(x, y, z);
+  // TODO: return if no modification
 
   // throw an event to let listeners know the position has changed
+  this->Modified();
   int n = pointIndex;
   this->InvokeCustomModifiedEvent(vtkMRMLMarkupsNode::PointModifiedEvent, static_cast<void*>(&n));
 }
@@ -896,6 +911,9 @@ void vtkMRMLMarkupsNode::SetNthControlPointOrientation(int n, double w, double x
   ControlPoint *controlPoint = this->GetNthControlPoint(n);
   controlPoint->OrientationWXYZ.Set(w, x, y, z);
 
+  // TODO: return if no modification
+
+  this->Modified();
   this->InvokeCustomModifiedEvent(vtkMRMLMarkupsNode::PointModifiedEvent, static_cast<void*>(&n));
 }
 
@@ -948,10 +966,16 @@ void vtkMRMLMarkupsNode::SetNthControlPointAssociatedNodeID(int n, std::string i
     return;
     }
 
+  if (this->GetNthControlPoint(n)->AssociatedNodeID == id)
+    {
+    return;
+    }
+
   vtkDebugMacro("Changing markup " << n << " associated node id from " <<
                 this->GetNthControlPoint(n)->AssociatedNodeID.c_str() << " to " << id.c_str());
   this->GetNthControlPoint(n)->AssociatedNodeID = std::string(id.c_str());
 
+  this->Modified();
   this->InvokeCustomModifiedEvent(vtkMRMLMarkupsNode::PointModifiedEvent, static_cast<void*>(&n));
 }
 
@@ -1056,11 +1080,17 @@ void vtkMRMLMarkupsNode::SetNthControlPointSelected(int n, bool flag)
     return;
     }
 
+  bool wasModified = false;
   ControlPoint *controlPoint = this->GetNthControlPoint(n);
   if (controlPoint->Selected != flag)
     {
     controlPoint->Selected = flag;
     this->InvokeCustomModifiedEvent(vtkMRMLMarkupsNode::PointModifiedEvent, static_cast<void*>(&n));
+    wasModified = true;
+    }
+  if (wasModified)
+    {
+    this->Modified();
     }
 }
 
@@ -1083,12 +1113,19 @@ void vtkMRMLMarkupsNode::SetNthControlPointLocked(int n, bool flag)
     return;
     }
 
+  bool wasModified = false;
   ControlPoint *controlPoint = this->GetNthControlPoint(n);
   if (controlPoint->Locked != flag)
     {
     controlPoint->Locked = flag;
     this->InvokeCustomModifiedEvent(vtkMRMLMarkupsNode::PointModifiedEvent, static_cast<void*>(&n));
+    wasModified = true;
     }
+  if (wasModified)
+    {
+    this->Modified();
+    }
+
 }
 
 //---------------------------------------------------------------------------
@@ -1111,12 +1148,19 @@ void vtkMRMLMarkupsNode::SetNthControlPointVisibility(int n, bool flag)
     return;
     }
 
+  bool wasModified = false;
   ControlPoint *controlPoint = this->GetNthControlPoint(n);
   if (controlPoint->Visibility != flag)
     {
     controlPoint->Visibility = flag;
     this->InvokeCustomModifiedEvent(vtkMRMLMarkupsNode::PointModifiedEvent, static_cast<void*>(&n));
+    wasModified = true;
     }
+  if (wasModified)
+    {
+    this->Modified();
+    }
+
 }
 
 //---------------------------------------------------------------------------
@@ -1138,12 +1182,19 @@ void vtkMRMLMarkupsNode::SetNthControlPointLabel(int n, std::string label)
     return ;
     }
 
+  bool wasModified = false;
   ControlPoint *controlPoint = this->GetNthControlPoint(n);
   if (controlPoint->Label.compare(label))
     {
     controlPoint->Label = label;
     this->InvokeCustomModifiedEvent(vtkMRMLMarkupsNode::PointModifiedEvent, static_cast<void*>(&n));
+    wasModified = true;
     }
+  if (wasModified)
+    {
+    this->Modified();
+    }
+
 }
 
 //---------------------------------------------------------------------------
@@ -1165,12 +1216,19 @@ void vtkMRMLMarkupsNode::SetNthControlPointDescription(int n, std::string descri
     return ;
     }
 
+  bool wasModified = false;
   ControlPoint *controlPoint = this->GetNthControlPoint(n);
   if (controlPoint->Description.compare(description))
     {
     controlPoint->Description = description;
     this->InvokeCustomModifiedEvent(vtkMRMLMarkupsNode::PointModifiedEvent, static_cast<void*>(&n));
+    wasModified = true;
     }
+  if (wasModified)
+    {
+    this->Modified();
+    }
+
 }
 
 //---------------------------------------------------------------------------
@@ -1293,6 +1351,7 @@ void vtkMRMLMarkupsNode::SetMarkupLabelFormat(std::string format)
     }
   this->MarkupLabelFormat = format;
 
+  this->Modified();
   this->InvokeCustomModifiedEvent(vtkMRMLMarkupsNode::LabelFormatModifiedEvent);
 }
 
