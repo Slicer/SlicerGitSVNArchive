@@ -390,8 +390,8 @@ int vtkSlicerCurveRepresentation2D::ComputeInteractionState(int X, int Y, int vt
       this->InteractionState = vtkSlicerAbstractRepresentation::Outside;
       }
     }
-  //else if (this->GetAssemblyPath(X, Y, 0, this->LinePicker)) // poor perfomances when widgets > 5
-  else if (this->LinePicker->Pick(X, Y, 0, this->Renderer)) // produce many rendering flickering when < 10
+  else if (this->GetAssemblyPath(X, Y, 0, this->LinePicker)) // poor perfomances when widgets > 5
+  //else if (this->LinePicker->Pick(X, Y, 0, this->Renderer)) // produce many rendering flickering when < 10
     {
     this->SetActiveNode(-2);
     this->InteractionState = vtkSlicerAbstractRepresentation::OnLine;
