@@ -105,13 +105,6 @@ vtkSlicerAngleRepresentation2D::vtkSlicerAngleRepresentation2D()
   this->LinePicker->InitializePickList();
   this->LinePicker->AddPickList(this->LineActor);
   this->LinePicker->AddPickList(this->ArcActor);
-
-  this->appendActors = vtkAppendPolyData::New();
-  this->appendActors->AddInputData(this->CursorShape);
-  this->appendActors->AddInputData(this->SelectedCursorShape);
-  this->appendActors->AddInputData(this->ActiveCursorShape);
-  this->appendActors->AddInputData(this->TubeFilter->GetOutput());
-  this->appendActors->AddInputData(this->ArcTubeFilter->GetOutput());
 }
 
 //----------------------------------------------------------------------
@@ -128,7 +121,6 @@ vtkSlicerAngleRepresentation2D::~vtkSlicerAngleRepresentation2D()
   this->LinePicker->Delete();
   this->TubeFilter->Delete();
   this->ArcTubeFilter->Delete();
-  this->appendActors->Delete();
 
   this->TextActor->Delete();
   delete [] this->LabelFormat;
@@ -527,14 +519,6 @@ void vtkSlicerAngleRepresentation2D::RegisterPickers()
 }
 
 //----------------------------------------------------------------------
-vtkPolyData *vtkSlicerAngleRepresentation2D::GetWidgetRepresentationAsPolyData()
-{
-  this->appendActors->Update();
-  return this->appendActors->GetOutput();
-}
-
-
-//----------------------------------------------------------------------
 void vtkSlicerAngleRepresentation2D::GetActors(vtkPropCollection *pc)
 {
   this->LineActor->GetActors(pc);
@@ -646,9 +630,11 @@ vtkTypeBool vtkSlicerAngleRepresentation2D::HasTranslucentPolygonalGeometry()
 //----------------------------------------------------------------------
 double *vtkSlicerAngleRepresentation2D::GetBounds()
 {
-  this->appendActors->Update();
-  return this->appendActors->GetOutput()->GetPoints() ?
-              this->appendActors->GetOutput()->GetBounds() : nullptr;
+  vtkBoundingBox boundingBox;
+  const std::vector<vtkProp*> actors({ this->LineActor, this->ArcActor });
+  this->AddActorsBounds(boundingBox, actors, Superclass::GetBounds());
+  boundingBox.GetBounds(this->Bounds);
+  return this->Bounds;
 }
 
 //-----------------------------------------------------------------------------

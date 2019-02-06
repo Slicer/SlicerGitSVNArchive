@@ -1743,3 +1743,27 @@ void vtkSlicerAbstractRepresentation::PrintSelf(ostream& os,
   os << indent << "Always On Top: "
      << (this->AlwaysOnTop ? "On\n" : "Off\n");
 }
+
+
+//-----------------------------------------------------------------------------
+void vtkSlicerAbstractRepresentation::AddActorsBounds(vtkBoundingBox& boundingBox,
+  const std::vector<vtkProp*> &actors, double* additionalBounds /*=nullptr*/)
+{
+  for (auto actor : actors)
+    {
+    if (!actor->GetVisibility())
+      {
+      continue;
+      }
+    double* bounds = actor->GetBounds();
+    if (!bounds)
+      {
+      continue;
+      }
+    boundingBox.AddBounds(bounds);
+    }
+  if (additionalBounds)
+    {
+    boundingBox.AddBounds(additionalBounds);
+    }
+}

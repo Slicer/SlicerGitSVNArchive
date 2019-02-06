@@ -55,6 +55,8 @@ class vtkPointSetToLabelHierarchy;
 class vtkStringArray;
 class vtkTextProperty;
 
+#include "vtkBoundingBox.h"
+
 class VTK_SLICER_MARKUPS_MODULE_VTKWIDGETS_EXPORT vtkSlicerAbstractRepresentation : public vtkWidgetRepresentation
 {
 public:
@@ -343,9 +345,6 @@ public:
   vtkGetMacro(AlwaysOnTop, vtkTypeBool);
   vtkBooleanMacro(AlwaysOnTop, vtkTypeBool);
 
-  /// Get the points in this widget as a vtkPolyData.
-  virtual vtkPolyData* GetWidgetRepresentationAsPolyData() = 0;
-
   /// Get the nodes and not the intermediate points in this
   /// widget as a vtkPolyData.
   void GetNodePolyData(vtkPolyData* poly);
@@ -385,6 +384,10 @@ public:
 protected:
   vtkSlicerAbstractRepresentation();
   ~vtkSlicerAbstractRepresentation() VTK_OVERRIDE;
+
+  /// Helper function to add bounds of all listed actors to the supplied bounding box.
+  /// additionalBounds is for convenience only, it allows defining additional bounds.
+  void AddActorsBounds(vtkBoundingBox& bounds, const std::vector<vtkProp*> &actors, double* additionalBounds = nullptr);
 
   vtkWeakPointer<vtkMRMLMarkupsNode> MarkupsNode;
 
@@ -492,6 +495,9 @@ protected:
   // Variable for picking
   double LastEventPosition[2];
   double StartEventOffsetPosition[2];
+
+  // Temporary variable to store GetBounds() result
+  double Bounds[6];
 
 private:
   vtkSlicerAbstractRepresentation(const vtkSlicerAbstractRepresentation&) = delete;

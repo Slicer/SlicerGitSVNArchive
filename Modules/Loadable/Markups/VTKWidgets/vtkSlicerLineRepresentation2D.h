@@ -77,9 +77,6 @@ public:
   /// their pickers.
   virtual void RegisterPickers() VTK_OVERRIDE;
 
-  /// Get the points in this contour as a vtkPolyData.
-  vtkPolyData *GetWidgetRepresentationAsPolyData() override;
-
   /// Return the bounds of the representation
   double *GetBounds() override;
 

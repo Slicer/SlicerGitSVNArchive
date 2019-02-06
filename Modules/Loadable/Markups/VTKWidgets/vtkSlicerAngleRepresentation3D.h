@@ -80,9 +80,6 @@ public:
   /// their pickers.
   virtual void RegisterPickers() VTK_OVERRIDE;
 
-  /// Get the points in this contour as a vtkPolyData.
-  vtkPolyData *GetWidgetRepresentationAsPolyData() VTK_OVERRIDE;
-
   /// Return the bounds of the representation
   double *GetBounds() VTK_OVERRIDE;
 
@@ -111,8 +108,6 @@ protected:
   char                       *LabelFormat;
 
   virtual void BuildLines() VTK_OVERRIDE;
-
-  vtkAppendPolyData *appendActors;
 
   // Support picking
   vtkPropPicker *LinePicker;

@@ -54,16 +54,11 @@ vtkStandardNewMacro(vtkSlicerPointsRepresentation3D);
 //----------------------------------------------------------------------
 vtkSlicerPointsRepresentation3D::vtkSlicerPointsRepresentation3D()
 {
-  this->appendActors = vtkAppendPolyData::New();
-  this->appendActors->AddInputData(this->CursorShape);
-  this->appendActors->AddInputData(this->SelectedCursorShape);
-  this->appendActors->AddInputData(this->ActiveCursorShape);
 }
 
 //----------------------------------------------------------------------
 vtkSlicerPointsRepresentation3D::~vtkSlicerPointsRepresentation3D()
 {
-  this->appendActors->Delete();
 }
 
 //----------------------------------------------------------------------
@@ -85,19 +80,4 @@ void vtkSlicerPointsRepresentation3D::RotateWidget(double eventPos[2])
     }
 
   this->Superclass::ScaleWidget(eventPos);
-}
-
-//----------------------------------------------------------------------
-vtkPolyData *vtkSlicerPointsRepresentation3D::GetWidgetRepresentationAsPolyData()
-{
-  this->appendActors->Update();
-  return this->appendActors->GetOutput();
-}
-
-//-----------------------------------------------------------------------------
-double *vtkSlicerPointsRepresentation3D::GetBounds()
-{
-  this->appendActors->Update();
-  return this->appendActors->GetOutput()->GetPoints() ?
-              this->appendActors->GetOutput()->GetBounds() : nullptr;
 }

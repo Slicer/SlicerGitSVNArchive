@@ -1090,6 +1090,16 @@ vtkTypeBool vtkSlicerAbstractRepresentation3D::HasTranslucentPolygonalGeometry()
 }
 
 //-----------------------------------------------------------------------------
+double *vtkSlicerAbstractRepresentation3D::GetBounds()
+{
+  vtkBoundingBox boundingBox;
+  const std::vector<vtkProp*> actors({ this->Actor, this->SelectedActor, this->ActiveActor });
+  this->AddActorsBounds(boundingBox, actors, Superclass::GetBounds());
+  boundingBox.GetBounds(this->Bounds);
+  return this->Bounds;
+}
+
+//-----------------------------------------------------------------------------
 void vtkSlicerAbstractRepresentation3D::PrintSelf(ostream& os,
                                                       vtkIndent indent)
 {

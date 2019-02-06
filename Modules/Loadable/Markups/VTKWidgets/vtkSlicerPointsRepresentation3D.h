@@ -44,12 +44,6 @@ public:
   /// Standard methods for instances of this class.
   vtkTypeMacro(vtkSlicerPointsRepresentation3D,vtkSlicerAbstractRepresentation3D);
 
-  /// Get the points in this widget as a vtkPolyData.
-  vtkPolyData *GetWidgetRepresentationAsPolyData() VTK_OVERRIDE;
-
-  /// Return the bounds of the representation
-  double *GetBounds() VTK_OVERRIDE;
-
 protected:
   vtkSlicerPointsRepresentation3D();
   ~vtkSlicerPointsRepresentation3D() VTK_OVERRIDE;
@@ -58,8 +52,6 @@ protected:
   virtual void RotateWidget(double eventPos[2]) VTK_OVERRIDE;
 
   virtual void BuildLines() VTK_OVERRIDE;
-
-  vtkAppendPolyData *appendActors;
 
 private:
   vtkSlicerPointsRepresentation3D(const vtkSlicerPointsRepresentation3D&) = delete;

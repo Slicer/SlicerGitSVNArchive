@@ -117,6 +117,9 @@ public:
   void SetActiveCursorShape(vtkPolyData *activeShape);
   vtkPolyData *GetActiveCursorShape();
 
+  /// Return the bounds of the representation
+  double *GetBounds() VTK_OVERRIDE;
+
 protected:
   vtkSlicerAbstractRepresentation3D();
   ~vtkSlicerAbstractRepresentation3D() VTK_OVERRIDE;

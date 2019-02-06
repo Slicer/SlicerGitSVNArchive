@@ -87,12 +87,6 @@ vtkSlicerCurveRepresentation3D::vtkSlicerCurveRepresentation3D()
   this->LinePicker->PickFromListOn();
   this->LinePicker->InitializePickList();
   this->LinePicker->AddPickList(this->LineActor);
-
-  this->appendActors = vtkAppendPolyData::New();
-  this->appendActors->AddInputData(this->CursorShape);
-  this->appendActors->AddInputData(this->SelectedCursorShape);
-  this->appendActors->AddInputData(this->ActiveCursorShape);
-  this->appendActors->AddInputData(this->TubeFilter->GetOutput());
 }
 
 //----------------------------------------------------------------------
@@ -105,7 +99,6 @@ vtkSlicerCurveRepresentation3D::~vtkSlicerCurveRepresentation3D()
   this->LineActor->Delete();
   this->LinePicker->Delete();
   this->TubeFilter->Delete();
-  this->appendActors->Delete();
 }
 
 //----------------------------------------------------------------------
@@ -398,13 +391,6 @@ void vtkSlicerCurveRepresentation3D::BuildRepresentation()
 }
 
 //----------------------------------------------------------------------
-vtkPolyData *vtkSlicerCurveRepresentation3D::GetWidgetRepresentationAsPolyData()
-{
-  this->appendActors->Update();
-  return this->appendActors->GetOutput();
-}
-
-//----------------------------------------------------------------------
 void vtkSlicerCurveRepresentation3D::GetActors(vtkPropCollection *pc)
 {
   this->Superclass::GetActors(pc);
@@ -476,9 +462,11 @@ vtkTypeBool vtkSlicerCurveRepresentation3D::HasTranslucentPolygonalGeometry()
 //----------------------------------------------------------------------
 double *vtkSlicerCurveRepresentation3D::GetBounds()
 {
-  this->appendActors->Update();
-  return this->appendActors->GetOutput()->GetPoints() ?
-              this->appendActors->GetOutput()->GetBounds() : nullptr;
+  vtkBoundingBox boundingBox;
+  const std::vector<vtkProp*> actors({ this->LineActor });
+  this->AddActorsBounds(boundingBox, actors, Superclass::GetBounds());
+  boundingBox.GetBounds(this->Bounds);
+  return this->Bounds;
 }
 
 //-----------------------------------------------------------------------------

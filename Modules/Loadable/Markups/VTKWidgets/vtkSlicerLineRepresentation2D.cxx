@@ -78,12 +78,6 @@ vtkSlicerLineRepresentation2D::vtkSlicerLineRepresentation2D()
   this->LinePicker->PickFromListOn();
   this->LinePicker->InitializePickList();
   this->LinePicker->AddPickList(this->LineActor);
-
-  this->appendActors = vtkAppendPolyData::New();
-  this->appendActors->AddInputData(this->CursorShape);
-  this->appendActors->AddInputData(this->SelectedCursorShape);
-  this->appendActors->AddInputData(this->ActiveCursorShape);
-  this->appendActors->AddInputData(this->Line);
 }
 
 //----------------------------------------------------------------------
@@ -96,7 +90,6 @@ vtkSlicerLineRepresentation2D::~vtkSlicerLineRepresentation2D()
   this->LineActor->Delete();
   this->LinePicker->Delete();
   this->TubeFilter->Delete();
-  this->appendActors->Delete();
 }
 
 //----------------------------------------------------------------------
@@ -319,14 +312,6 @@ void vtkSlicerLineRepresentation2D::BuildLines()
 }
 
 //----------------------------------------------------------------------
-vtkPolyData *vtkSlicerLineRepresentation2D::GetWidgetRepresentationAsPolyData()
-{
-  this->appendActors->Update();
-  return this->appendActors->GetOutput();
-}
-
-
-//----------------------------------------------------------------------
 void vtkSlicerLineRepresentation2D::GetActors(vtkPropCollection *pc)
 {
   this->LineActor->GetActors(pc);
@@ -402,9 +387,11 @@ vtkTypeBool vtkSlicerLineRepresentation2D::HasTranslucentPolygonalGeometry()
 //----------------------------------------------------------------------
 double *vtkSlicerLineRepresentation2D::GetBounds()
 {
-  this->appendActors->Update();
-  return this->appendActors->GetOutput()->GetPoints() ?
-              this->appendActors->GetOutput()->GetBounds() : nullptr;
+  vtkBoundingBox boundingBox;
+  const std::vector<vtkProp*> actors({ this->LineActor });
+  this->AddActorsBounds(boundingBox, actors, Superclass::GetBounds());
+  boundingBox.GetBounds(this->Bounds);
+  return this->Bounds;
 }
 
 //-----------------------------------------------------------------------------

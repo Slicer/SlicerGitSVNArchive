@@ -114,13 +114,6 @@ vtkSlicerAngleRepresentation3D::vtkSlicerAngleRepresentation3D()
   this->LinePicker->InitializePickList();
   this->LinePicker->AddPickList(this->LineActor);
   this->LinePicker->AddPickList(this->ArcActor);
-
-  this->appendActors = vtkAppendPolyData::New();
-  this->appendActors->AddInputData(this->CursorShape);
-  this->appendActors->AddInputData(this->SelectedCursorShape);
-  this->appendActors->AddInputData(this->ActiveCursorShape);
-  this->appendActors->AddInputData(this->TubeFilter->GetOutput());
-  this->appendActors->AddInputData(this->ArcTubeFilter->GetOutput());
 }
 
 //----------------------------------------------------------------------
@@ -137,7 +130,6 @@ vtkSlicerAngleRepresentation3D::~vtkSlicerAngleRepresentation3D()
   this->LinePicker->Delete();
   this->TubeFilter->Delete();
   this->ArcTubeFilter->Delete();
-  this->appendActors->Delete();
 
   this->TextActor->Delete();
   delete [] this->LabelFormat;
@@ -551,13 +543,6 @@ void vtkSlicerAngleRepresentation3D::BuildRepresentation()
 }
 
 //----------------------------------------------------------------------
-vtkPolyData *vtkSlicerAngleRepresentation3D::GetWidgetRepresentationAsPolyData()
-{
-  this->appendActors->Update();
-  return this->appendActors->GetOutput();
-}
-
-//----------------------------------------------------------------------
 void vtkSlicerAngleRepresentation3D::GetActors(vtkPropCollection *pc)
 {
   this->Superclass::GetActors(pc);
@@ -665,9 +650,11 @@ vtkTypeBool vtkSlicerAngleRepresentation3D::HasTranslucentPolygonalGeometry()
 //----------------------------------------------------------------------
 double *vtkSlicerAngleRepresentation3D::GetBounds()
 {
-  this->appendActors->Update();
-  return this->appendActors->GetOutput()->GetPoints() ?
-              this->appendActors->GetOutput()->GetBounds() : nullptr;
+  vtkBoundingBox boundingBox;
+  const std::vector<vtkProp*> actors({ this->LineActor, this->ArcActor });
+  this->AddActorsBounds(boundingBox, actors, Superclass::GetBounds());
+  boundingBox.GetBounds(this->Bounds);
+  return this->Bounds;
 }
 
 //-----------------------------------------------------------------------------
