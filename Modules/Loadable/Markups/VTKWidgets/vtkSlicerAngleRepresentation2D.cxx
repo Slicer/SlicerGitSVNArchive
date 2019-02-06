@@ -292,7 +292,7 @@ void vtkSlicerAngleRepresentation2D::BuildLines()
     {
     vtkIdType *lineIndices = new vtkIdType[numLine];
 
-    double pos[2];
+    double pos[3] = { 0.0 };
     for (i = 0; i < numberOfNodes; i++)
       {
       // Add the node

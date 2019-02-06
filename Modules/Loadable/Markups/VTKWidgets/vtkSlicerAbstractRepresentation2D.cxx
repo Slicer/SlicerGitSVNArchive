@@ -286,7 +286,9 @@ void vtkSlicerAbstractRepresentation2D::BuildRepresentationPointsAndLabels(doubl
       continue;
       }
 
-    double slicePos[2] = {0}, worldOrient[9] = {0}, orientation[4] = {0};
+    double slicePos[2] = { 0.0 };
+    double worldOrient[9] = { 0.0 };
+    double orientation[4] = { 0.0 };
     this->GetNthNodeDisplayPosition(ii, slicePos);
     bool skipPoint = false;
     for (int jj = 0; jj < this->FocalPoint->GetNumberOfPoints(); jj++)
@@ -353,7 +355,9 @@ void vtkSlicerAbstractRepresentation2D::BuildRepresentationPointsAndLabels(doubl
       continue;
       }
 
-    double slicePos[3] = {0}, worldOrient[9] = {0}, orientation[4] = {0};
+    double slicePos[3] = { 0.0 };
+    double worldOrient[9] = { 0.0 };
+    double orientation[4] = { 0.0 };
     this->GetNthNodeDisplayPosition(ii, slicePos);
     bool skipPoint = false;
     for (int jj = 0; jj < this->SelectedFocalPoint->GetNumberOfPoints(); jj++)
@@ -406,7 +410,9 @@ void vtkSlicerAbstractRepresentation2D::BuildRepresentationPointsAndLabels(doubl
       this->GetNthNodeVisibility(this->GetActiveNode()) &&
       this->pointsVisibilityOnSlice->GetValue(this->GetActiveNode()))
     {
-    double slicePos[2] = {0}, worldOrient[9] = {0}, orientation[4] = {0};
+    double slicePos[2] = { 0.0 };
+    double worldOrient[9] = { 0.0 };
+    double orientation[4] = { 0.0 };
 
     this->GetNthNodeDisplayPosition(this->GetActiveNode(), slicePos);
     this->ActiveFocalPoint->SetPoint(0, slicePos);
