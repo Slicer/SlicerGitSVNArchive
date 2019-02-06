@@ -387,11 +387,7 @@ vtkTypeBool vtkSlicerLineRepresentation2D::HasTranslucentPolygonalGeometry()
 //----------------------------------------------------------------------
 double *vtkSlicerLineRepresentation2D::GetBounds()
 {
-  vtkBoundingBox boundingBox;
-  const std::vector<vtkProp*> actors({ this->LineActor });
-  this->AddActorsBounds(boundingBox, actors, Superclass::GetBounds());
-  boundingBox.GetBounds(this->Bounds);
-  return this->Bounds;
+  return NULL;
 }
 
 //-----------------------------------------------------------------------------

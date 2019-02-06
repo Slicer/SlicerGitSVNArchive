@@ -630,11 +630,7 @@ vtkTypeBool vtkSlicerAngleRepresentation2D::HasTranslucentPolygonalGeometry()
 //----------------------------------------------------------------------
 double *vtkSlicerAngleRepresentation2D::GetBounds()
 {
-  vtkBoundingBox boundingBox;
-  const std::vector<vtkProp*> actors({ this->LineActor, this->ArcActor });
-  this->AddActorsBounds(boundingBox, actors, Superclass::GetBounds());
-  boundingBox.GetBounds(this->Bounds);
-  return this->Bounds;
+  return NULL;
 }
 
 //-----------------------------------------------------------------------------
