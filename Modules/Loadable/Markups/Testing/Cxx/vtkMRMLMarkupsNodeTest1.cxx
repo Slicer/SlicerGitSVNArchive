@@ -202,11 +202,10 @@ int vtkMRMLMarkupsNodeTest1(int , char * [] )
   // now add some markups
   //
   std::cout << "Adding markups with points" << std::endl;
-  node1->AddNControlPoints(1);
-  node1->AddNControlPoints(2);
-  node1->AddNControlPoints(3);
-  node1->AddNControlPoints(6);
-
+  node1->AddNControlPoints(1); // markupIndex 0
+  node1->AddNControlPoints(2); // markupIndex 1
+  node1->AddNControlPoints(3); // markupIndex 2
+  node1->AddNControlPoints(6); // markupIndex 3
   numMarkups = node1->GetNumberOfControlPoints();
   if (numMarkups != 4)
     {
