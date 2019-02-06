@@ -573,18 +573,16 @@ int vtkSlicerAbstractRepresentation2D::GetIntermediatePointDisplayPosition(int n
     }
 
   if (idx < 0 ||
-      static_cast<unsigned int>(idx) >= this->GetNthNode(n)->intermadiatePoints.size())
+      static_cast<unsigned int>(idx) >= this->GetNthNode(n)->IntermediatePositions.size())
     {
     return 0;
     }
 
-  double worldPos[3];
-  ControlPoint* node = this->GetNthNode(n);
-  worldPos[0] = node->intermadiatePoints[static_cast<unsigned int> (idx)].GetX();
-  worldPos[1] = node->intermadiatePoints[static_cast<unsigned int> (idx)].GetY();
-  worldPos[2] = node->intermadiatePoints[static_cast<unsigned int> (idx)].GetZ();
+  vtkVector3d intermediatePosition = this->GetNthNode(n)->IntermediatePositions[static_cast<unsigned int> (idx)];
+  vtkVector3d worldPos;
+  this->MarkupsNode->TransformPointToWorld(intermediatePosition, worldPos);
 
-  this->GetWorldToSliceCoordinates(worldPos, displayPos);
+  this->GetWorldToSliceCoordinates(worldPos.GetData(), displayPos);
   return 1;
 }
 
@@ -674,7 +672,7 @@ void vtkSlicerAbstractRepresentation2D::AddNodeAtPositionInternal(double worldPo
   // Add a new point at this position
   vtkVector3d pos(worldPos[0], worldPos[1], worldPos[2]);
   this->MarkupsNode->DisableModifiedEventOn();
-  this->MarkupsNode->AddControlPoint(pos);
+  this->MarkupsNode->AddControlPointWorld(pos);
   this->MarkupsNode->DisableModifiedEventOff();
 
   this->UpdateLines(this->GetNumberOfNodes() - 1);
@@ -752,7 +750,7 @@ int vtkSlicerAbstractRepresentation2D::ActivateNode(int X, int Y)
     {
     // Check if centroid is selected
     double centroidPosWorld[3], centroidPosDisplay[3];
-    this->MarkupsNode->GetCentroidPosition(centroidPosWorld);
+    this->MarkupsNode->GetCentroidPositionWorld(centroidPosWorld);
     this->GetWorldToSliceCoordinates(centroidPosWorld, centroidPosDisplay);
 
     if (vtkMath::Distance2BetweenPoints(centroidPosDisplay, displayPos) <

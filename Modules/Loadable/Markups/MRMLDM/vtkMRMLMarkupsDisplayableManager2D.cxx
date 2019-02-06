@@ -1107,6 +1107,7 @@ void vtkMRMLMarkupsDisplayableManager2D::OnMRMLMarkupsNodeTransformModifiedEvent
     }
 
   // Rebuild representation
+  widget->BuildLocator(); // transform changes points positions therefore locator needs to be updated
   widget->BuildRepresentation();
   this->RequestRender();
 }

@@ -33,9 +33,14 @@ class vtkMatrix4x4;
 
 typedef struct
 {
-  vtkVector3d WorldPosition;
+  // Positions and orientation in local coordinates.
+  // If transform is applied to the markup node then world
+  // coordinates may be obtained by applying "to world" transform.
+  vtkVector3d Position;
   vtkVector4d OrientationWXYZ;
-  std::vector<vtkVector3d> intermadiatePoints;
+
+  /// Positions of points between this control point and the previous one.
+  std::vector<vtkVector3d> IntermediatePositions;
 
   std::string ID;
   std::string Label;
@@ -215,7 +220,7 @@ public:
   void GetNthControlPointPositionLPS(int pointIndex, double point[3]);
   /// Get the position of the Nth control point in World coordinate system
   /// Returns 0 on failure, 1 on success.
-  int GetNthControlPointPositionWorld(int pointIndex, double worldxyz[4]);
+  int GetNthControlPointPositionWorld(int pointIndex, double worldxyz[3]);
 
   /// Remove Nth Control Point
   void RemoveNthControlPoint(int pointIndex);
@@ -251,6 +256,9 @@ public:
   /// Calls SetNthControlPointPosition after transforming the passed in coordinate
   /// \sa SetNthControlPointPosition
   void SetNthControlPointPositionWorld(const int pointIndex, const double x, const double y, const double z);
+  /// Set of the Nth control point position from an array using World coordinate system
+  /// \sa SetNthControlPointPosition
+  void SetNthControlPointPositionWorldFromArray(const int pointIndex, const double pos[3]);
 
   /// Get the position of the centroid
   /// returning it as a vtkVector3d, return (0,0,0) if not found
@@ -262,7 +270,7 @@ public:
   void GetCentroidPositionLPS(double point[3]);
   /// Get the position of the centroid in World coordinate system
   /// Returns 0 on failure, 1 on success.
-  int GetCentroidPositionWorld(double worldxyz[4]);
+  int GetCentroidPositionWorld(double worldxyz[3]);
   /// Set the centroid position from a pointer to an array
   /// \sa SetCentroidPosition
   void SetCentroidPositionFromPointer(const double *pos);

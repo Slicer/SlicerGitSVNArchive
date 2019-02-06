@@ -39,15 +39,15 @@ int vtkMRMLMarkupsNodeTest2(int , char * [] )
   markup2.Selected = false;
   markup2.Locked = true;
   markup2.Visibility = false;
-  markup2.WorldPosition.SetX(2.0);
-  markup2.WorldPosition.SetY(-5.0);
-  markup2.WorldPosition.SetZ(15.6);
+  markup2.Position.SetX(2.0);
+  markup2.Position.SetY(-5.0);
+  markup2.Position.SetZ(15.6);
 
   node1->CopyControlPoint(&markup2, &markup1);
 
-  if (markup1.WorldPosition.GetX() != markup2.WorldPosition.GetX() ||
-      markup1.WorldPosition.GetY() != markup2.WorldPosition.GetY() ||
-      markup1.WorldPosition.GetZ() != markup2.WorldPosition.GetZ())
+  if (markup1.Position.GetX() != markup2.Position.GetX() ||
+      markup1.Position.GetY() != markup2.Position.GetY() ||
+      markup1.Position.GetZ() != markup2.Position.GetZ())
     {
     std::cerr << "After copy, point 0 doesn't match in markups" << std::endl;
     return EXIT_FAILURE;

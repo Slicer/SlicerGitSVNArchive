@@ -634,6 +634,7 @@ void vtkSliceViewInteractorStyle::OnEnter()
   this->Superclass::OnEnter();
 
   // Forcing the refresh of the view interactors.
+  // TODO: Not sure why this hack was added
   vtkMRMLSliceNode *sliceNode = this->SliceLogic->GetSliceNode();
   if (sliceNode == NULL)
     {

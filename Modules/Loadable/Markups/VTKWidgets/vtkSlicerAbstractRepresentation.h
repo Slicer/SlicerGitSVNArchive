@@ -252,7 +252,7 @@ public:
   /// (or n and 0 if n is the last node and the loop is closed).
   /// Returns 1 on success or 0 if n is out of range.
   virtual int AddIntermediatePointWorldPosition(int n,
-                                                double point[3]);
+                                                const double point[3]);
 
   /// Delete the last node. Returns 1 on success or 0 if
   /// there were not any nodes.
@@ -453,12 +453,12 @@ protected:
   vtkPolyData          *SelectedCursorShape;
   vtkPolyData          *ActiveCursorShape;
 
-  vtkPolyData          *FocalData;
-  vtkPoints            *FocalPoint;
-  vtkPolyData          *SelectedFocalData;
-  vtkPoints            *SelectedFocalPoint;
-  vtkPolyData          *ActiveFocalData;
-  vtkPoints            *ActiveFocalPoint;
+  vtkPolyData          *FocalData; /// non-selected markup control point positions
+  vtkPoints            *FocalPoint; /// FocalData points
+  vtkPolyData          *SelectedFocalData; /// selected markup control point positions
+  vtkPoints            *SelectedFocalPoint; /// SelectedFocalData points
+  vtkPolyData          *ActiveFocalData; /// control point position that is currently interacting with
+  vtkPoints            *ActiveFocalPoint; /// ActiveFocalData points
 
   vtkPolyData          *LabelsFocalData;
   vtkPoints            *LabelsFocalPoint;

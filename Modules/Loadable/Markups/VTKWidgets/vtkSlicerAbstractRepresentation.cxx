@@ -18,6 +18,8 @@
 
 #include "vtkSlicerAbstractRepresentation.h"
 #include "vtkCleanPolyData.h"
+#include "vtkGeneralTransform.h"
+#include "vtkMRMLTransformNode.h"
 #include "vtkPolyDataMapper.h"
 #include "vtkActor.h"
 #include "vtkAssemblyPath.h"
@@ -110,36 +112,36 @@ vtkSlicerAbstractRepresentation::vtkSlicerAbstractRepresentation()
   this->ActiveTextProperty->SetOpacity(1.);
 
   this->FocalPoint = vtkPoints::New();
-  this->FocalPoint->SetNumberOfPoints(100);
+  this->FocalPoint->Allocate(100);
   this->FocalPoint->SetNumberOfPoints(1);
   this->FocalPoint->SetPoint(0, 0.0, 0.0, 0.0);
 
   vtkDoubleArray *normals = vtkDoubleArray::New();
   normals->SetNumberOfComponents(3);
-  normals->SetNumberOfTuples(100);
+  normals->Allocate(100);
   normals->SetNumberOfTuples(1);
   double n[3] = {0, 0, 0};
   normals->SetTuple(0, n);
 
   this->SelectedFocalPoint = vtkPoints::New();
-  this->SelectedFocalPoint->SetNumberOfPoints(100);
+  this->SelectedFocalPoint->Allocate(100);
   this->SelectedFocalPoint->SetNumberOfPoints(1);
   this->SelectedFocalPoint->SetPoint(0, 0.0, 0.0, 0.0);
 
   vtkDoubleArray *selectedNormals = vtkDoubleArray::New();
   selectedNormals->SetNumberOfComponents(3);
-  selectedNormals->SetNumberOfTuples(100);
+  selectedNormals->Allocate(100);
   selectedNormals->SetNumberOfTuples(1);
   selectedNormals->SetTuple(0, n);
 
   this->ActiveFocalPoint = vtkPoints::New();
-  this->ActiveFocalPoint->SetNumberOfPoints(100);
+  this->ActiveFocalPoint->Allocate(100);
   this->ActiveFocalPoint->SetNumberOfPoints(1);
   this->ActiveFocalPoint->SetPoint(0, 0.0, 0.0, 0.0);
 
   vtkDoubleArray *activeNormals = vtkDoubleArray::New();
   activeNormals->SetNumberOfComponents(3);
-  activeNormals->SetNumberOfTuples(100);
+  activeNormals->Allocate(100);
   activeNormals->SetNumberOfTuples(1);
   activeNormals->SetTuple(0, n);
 
@@ -160,35 +162,35 @@ vtkSlicerAbstractRepresentation::vtkSlicerAbstractRepresentation()
 
   // Labels
   this->LabelsFocalPoint = vtkPoints::New();
-  this->LabelsFocalPoint->SetNumberOfPoints(100);
+  this->LabelsFocalPoint->Allocate(100);
   this->LabelsFocalPoint->SetNumberOfPoints(1);
   this->LabelsFocalPoint->SetPoint(0, 0.0, 0.0, 0.0);
 
   vtkDoubleArray *normalsLabels = vtkDoubleArray::New();
   normalsLabels->SetNumberOfComponents(3);
-  normalsLabels->SetNumberOfTuples(100);
+  normalsLabels->Allocate(100);
   normalsLabels->SetNumberOfTuples(1);
   normalsLabels->SetTuple(0, n);
 
   this->SelectedLabelsFocalPoint = vtkPoints::New();
-  this->SelectedLabelsFocalPoint->SetNumberOfPoints(100);
+  this->SelectedLabelsFocalPoint->Allocate(100);
   this->SelectedLabelsFocalPoint->SetNumberOfPoints(1);
   this->SelectedLabelsFocalPoint->SetPoint(0, 0.0, 0.0, 0.0);
 
   vtkDoubleArray *selectedNormalsLabels = vtkDoubleArray::New();
   selectedNormalsLabels->SetNumberOfComponents(3);
-  selectedNormalsLabels->SetNumberOfTuples(100);
+  selectedNormalsLabels->Allocate(100);
   selectedNormalsLabels->SetNumberOfTuples(1);
   selectedNormalsLabels->SetTuple(0, n);
 
   this->ActiveLabelsFocalPoint = vtkPoints::New();
-  this->ActiveLabelsFocalPoint->SetNumberOfPoints(100);
+  this->ActiveLabelsFocalPoint->Allocate(100);
   this->ActiveLabelsFocalPoint->SetNumberOfPoints(1);
   this->ActiveLabelsFocalPoint->SetPoint(0, 0.0, 0.0, 0.0);
 
   vtkDoubleArray *activeNormalsLabels = vtkDoubleArray::New();
   activeNormalsLabels->SetNumberOfComponents(3);
-  activeNormalsLabels->SetNumberOfTuples(100);
+  activeNormalsLabels->Allocate(100);
   activeNormalsLabels->SetNumberOfTuples(1);
   activeNormalsLabels->SetTuple(0, n);
 
@@ -209,12 +211,12 @@ vtkSlicerAbstractRepresentation::vtkSlicerAbstractRepresentation()
 
   this->Labels = vtkStringArray::New();
   this->Labels->SetName("labels");
-  this->Labels->SetNumberOfValues(100);
+  this->Labels->Allocate(100);
   this->Labels->SetNumberOfValues(1);
   this->Labels->SetValue(0, "F");
   this->LabelsPriority = vtkStringArray::New();
   this->LabelsPriority->SetName("priority");
-  this->LabelsPriority->SetNumberOfValues(100);
+  this->LabelsPriority->Allocate(100);
   this->LabelsPriority->SetNumberOfValues(1);
   this->LabelsPriority->SetValue(0, "1");
   this->LabelsFocalData->GetPointData()->AddArray(this->Labels);
@@ -227,12 +229,12 @@ vtkSlicerAbstractRepresentation::vtkSlicerAbstractRepresentation()
 
   this->SelectedLabels = vtkStringArray::New();
   this->SelectedLabels->SetName("labels");
-  this->SelectedLabels->SetNumberOfValues(100);
+  this->SelectedLabels->Allocate(100);
   this->SelectedLabels->SetNumberOfValues(1);
   this->SelectedLabels->SetValue(0, "F");
   this->SelectedLabelsPriority = vtkStringArray::New();
   this->SelectedLabelsPriority->SetName("priority");
-  this->SelectedLabelsPriority->SetNumberOfValues(100);
+  this->SelectedLabelsPriority->Allocate(100);
   this->SelectedLabelsPriority->SetNumberOfValues(1);
   this->SelectedLabelsPriority->SetValue(0, "1");
   this->SelectedLabelsFocalData->GetPointData()->AddArray(this->SelectedLabels);
@@ -245,12 +247,12 @@ vtkSlicerAbstractRepresentation::vtkSlicerAbstractRepresentation()
 
   this->ActiveLabels = vtkStringArray::New();
   this->ActiveLabels->SetName("labels");
-  this->ActiveLabels->SetNumberOfValues(100);
+  this->ActiveLabels->Allocate(100);
   this->ActiveLabels->SetNumberOfValues(1);
   this->ActiveLabels->SetValue(0, "F");
   this->ActiveLabelsPriority = vtkStringArray::New();
   this->ActiveLabelsPriority->SetName("priority");
-  this->ActiveLabelsPriority->SetNumberOfValues(100);
+  this->ActiveLabelsPriority->Allocate(100);
   this->ActiveLabelsPriority->SetNumberOfValues(1);
   this->ActiveLabelsPriority->SetValue(0, "1");
   this->ActiveLabelsFocalData->GetPointData()->AddArray(this->ActiveLabels);
@@ -676,7 +678,7 @@ int vtkSlicerAbstractRepresentation::GetNumberOfIntermediatePoints(int n)
     return 0;
     }
 
-  return static_cast<int> (this->MarkupsNode->GetNthControlPoint(n)->intermadiatePoints.size());
+  return static_cast<int> (this->MarkupsNode->GetNthControlPoint(n)->IntermediatePositions.size());
 }
 
 //----------------------------------------------------------------------
@@ -690,14 +692,13 @@ int vtkSlicerAbstractRepresentation::GetIntermediatePointWorldPosition(int n,
     }
 
   if (idx < 0 ||
-       static_cast<unsigned int>(idx) >= this->GetNthNode(n)->intermadiatePoints.size())
+       static_cast<unsigned int>(idx) >= this->GetNthNode(n)->IntermediatePositions.size())
     {
     return 0;
     }
 
-  point[0] = this->GetNthNode(n)->intermadiatePoints[static_cast<unsigned int> (idx)].GetX();
-  point[1] = this->GetNthNode(n)->intermadiatePoints[static_cast<unsigned int> (idx)].GetY();
-  point[2] = this->GetNthNode(n)->intermadiatePoints[static_cast<unsigned int> (idx)].GetZ();
+  vtkVector3d intermediatePosition = this->GetNthNode(n)->IntermediatePositions[static_cast<unsigned int> (idx)];
+  this->MarkupsNode->TransformPointToWorld(intermediatePosition.GetData(), point);
 
   return 1;
 }
@@ -707,23 +708,11 @@ int vtkSlicerAbstractRepresentation::GetIntermediatePointDisplayPosition(int n,
                                                                          int idx,
                                                                          double displayPos[2])
 {
-  if (!this->NodeExists(n))
+  double pos[4] = {0.0, 0.0, 0.0, 1.0};
+  if (!vtkSlicerAbstractRepresentation::GetIntermediatePointWorldPosition(n, idx, pos))
     {
     return 0;
     }
-
-  if (idx < 0 ||
-       static_cast<unsigned int>(idx) >= this->GetNthNode(n)->intermadiatePoints.size())
-    {
-    return 0;
-    }
-
-  double pos[4];
-  ControlPoint* node = this->GetNthNode(n);
-  pos[0] = node->intermadiatePoints[static_cast<unsigned int> (idx)].GetX();
-  pos[1] = node->intermadiatePoints[static_cast<unsigned int> (idx)].GetY();
-  pos[2] = node->intermadiatePoints[static_cast<unsigned int> (idx)].GetZ();
-  pos[3] = 1.0;
 
   this->Renderer->SetWorldPoint(pos);
   this->Renderer->WorldToDisplay();
@@ -745,12 +734,8 @@ int vtkSlicerAbstractRepresentation::GetNthNodeDisplayPosition(int n, double dis
     return 0;
     }
 
-  double pos[4];
-  ControlPoint* node = this->GetNthNode(n);
-  pos[0] = node->WorldPosition.GetX();
-  pos[1] = node->WorldPosition.GetY();
-  pos[2] = node->WorldPosition.GetZ();
-  pos[3] = 1.0;
+  double pos[4] = { 0.0, 0.0, 0.0, 1.0 };
+  this->MarkupsNode->TransformPointToWorld(this->GetNthNode(n)->Position.GetData(), pos);
 
   this->Renderer->SetWorldPoint(pos);
   this->Renderer->WorldToDisplay();
@@ -769,7 +754,7 @@ int vtkSlicerAbstractRepresentation::GetNthNodeWorldPosition(int n, double world
     return 0;
     }
 
-  this->MarkupsNode->GetNthControlPointPosition(n, worldPos);
+  this->MarkupsNode->GetNthControlPointPositionWorld(n, worldPos);
 
   return 1;
 }
@@ -914,7 +899,7 @@ void vtkSlicerAbstractRepresentation::SetNthNodeWorldPositionInternal(int n, dou
     return;
     }
 
-  this->MarkupsNode->SetNthControlPointPositionFromArray(n, worldPos);
+  this->MarkupsNode->SetNthControlPointPositionWorldFromArray(n, worldPos);
 
   this->UpdateLines(n);
   this->NeedToRender = 1;
@@ -1027,7 +1012,7 @@ int vtkSlicerAbstractRepresentation::FindClosestPointOnWidget(int X, int Y,
                                                               int *idx)
 {
   // Make a line out of this viewing ray
-  double p1[4], p2[4], *p3 = nullptr, *p4 = nullptr;
+  double p1[4], p2[4];
 
   double tmp1[4], tmp2[4];
   tmp1[0] = X;
@@ -1067,44 +1052,49 @@ int vtkSlicerAbstractRepresentation::FindClosestPointOnWidget(int X, int Y,
 
   double wt2 = vtkMath::Distance2BetweenPoints(tmp1, tmp2);
 
+  vtkNew<vtkGeneralTransform> nodeToWorldTransform;
+  vtkMRMLTransformNode::GetTransformBetweenNodes(this->MarkupsNode->GetParentTransformNode(), NULL, nodeToWorldTransform.GetPointer());
+
   // Now loop through all lines and look for closest one within tolerance
+  double p3[4] = {0.0, 0.0, 0.0, 1.0};
+  double p4[4] = {0.0, 0.0, 0.0, 1.0};
   for(int i = 0; i < this->GetNumberOfNodes(); i++)
     {
     if (!this->NodeExists(i))
       {
       continue;
       }
-    for (unsigned int j = 0; j <= this->GetNthNode(i)->intermadiatePoints.size(); j++)
+    for (unsigned int j = 0; j <= this->GetNthNode(i)->IntermediatePositions.size(); j++)
       {
       if (j == 0)
         {
-        p3 = this->GetNthNode(i)->WorldPosition.GetData();
-        if (!this->GetNthNode(i)->intermadiatePoints.empty())
+        nodeToWorldTransform->TransformPoint(this->GetNthNode(i)->Position.GetData(), p3);
+        if (!this->GetNthNode(i)->IntermediatePositions.empty())
           {
-          p4 = this->GetNthNode(i)->intermadiatePoints[j].GetData();
+          nodeToWorldTransform->TransformPoint(this->GetNthNode(i)->IntermediatePositions[j].GetData(), p4);
           }
         else
           {
           if (i < this->GetNumberOfNodes() - 1)
             {
-            p4 = this->GetNthNode(i + 1)->WorldPosition.GetData();
+            nodeToWorldTransform->TransformPoint(this->GetNthNode(i + 1)->Position.GetData(), p4);
             }
           else if (this->ClosedLoop)
             {
-            p4 = this->GetNthNode(0)->WorldPosition.GetData();
+            nodeToWorldTransform->TransformPoint(this->GetNthNode(0)->Position.GetData(), p4);
             }
           }
         }
-      else if (j == this->GetNthNode(i)->intermadiatePoints.size())
+      else if (j == this->GetNthNode(i)->IntermediatePositions.size())
         {
-        p3 = this->GetNthNode(i)->intermadiatePoints[j-1].GetData();
+        nodeToWorldTransform->TransformPoint(this->GetNthNode(i)->IntermediatePositions[j-1].GetData(), p3);
         if (i < this->GetNumberOfNodes() - 1)
           {
-          p4 = this->GetNthNode(i + 1)->WorldPosition.GetData();
+          nodeToWorldTransform->TransformPoint(this->GetNthNode(i + 1)->Position.GetData(), p4);
           }
         else if (this->ClosedLoop)
           {
-          p4 = this->GetNthNode(0)->WorldPosition.GetData();
+          nodeToWorldTransform->TransformPoint(this->GetNthNode(0)->Position.GetData(), p4);
           }
         else
           {
@@ -1116,8 +1106,8 @@ int vtkSlicerAbstractRepresentation::FindClosestPointOnWidget(int X, int Y,
         }
       else
         {
-        p3 = this->GetNthNode(i)->intermadiatePoints[j-1].GetData();
-        p4 = this->GetNthNode(i)->intermadiatePoints[j].GetData();
+        nodeToWorldTransform->TransformPoint(this->GetNthNode(i)->IntermediatePositions[j-1].GetData(), p3);
+        nodeToWorldTransform->TransformPoint(this->GetNthNode(i)->IntermediatePositions[j].GetData(), p4);
         }
 
       // Now we have the four points - check closest intersection
@@ -1225,10 +1215,7 @@ int vtkSlicerAbstractRepresentation::AddNodeOnWidget(int X, int Y)
   // Add a new point at this position
   ControlPoint *node = new ControlPoint;
   this->MarkupsNode->InitControlPoint(node);
-
-  node->WorldPosition.SetX(worldPos[0]);
-  node->WorldPosition.SetY(worldPos[1]);
-  node->WorldPosition.SetZ(worldPos[2]);
+  this->MarkupsNode->TransformPointFromWorld(vtkVector3d(worldPos), node->Position);
 
   this->MarkupsNode->DisableModifiedEventOn();
   this->MarkupsNode->InsertControlPoint(node, idx);
@@ -1308,7 +1295,7 @@ void vtkSlicerAbstractRepresentation::UpdateLines(int index)
   if (!this->ClosedLoop && this->GetNumberOfNodes() > 0)
     {
     int idx = this->GetNumberOfNodes() - 1;
-    this->GetNthNode(idx)->intermadiatePoints.clear();
+    this->GetNthNode(idx)->IntermediatePositions.clear();
     }
 
   this->BuildLines();
@@ -1317,17 +1304,16 @@ void vtkSlicerAbstractRepresentation::UpdateLines(int index)
 
 //----------------------------------------------------------------------
 int vtkSlicerAbstractRepresentation::AddIntermediatePointWorldPosition(int n,
-                                                                       double pos[3])
+                                                                       const double posWorld[3])
 {
   if (!this->NodeExists(n))
     {
     return 0;
     }
 
-  vtkVector3d point;
-  point.Set(pos[0], pos[1], pos[2]);
-
-  this->GetNthNode(n)->intermadiatePoints.push_back(point);
+  double pos[3];
+  this->MarkupsNode->TransformPointFromWorld(posWorld, pos);
+  this->GetNthNode(n)->IntermediatePositions.push_back(vtkVector3d(pos));
   return 1;
 }
 
@@ -1367,14 +1353,14 @@ int vtkSlicerAbstractRepresentation::GetNthNodeSlope(int n, double slope[3])
     }
 
   slope[0] =
-    this->GetNthNode(idx2)->WorldPosition.GetX() -
-    this->GetNthNode(idx1)->WorldPosition.GetX();
+    this->GetNthNode(idx2)->Position.GetX() -
+    this->GetNthNode(idx1)->Position.GetX();
   slope[1] =
-    this->GetNthNode(idx2)->WorldPosition.GetY() -
-    this->GetNthNode(idx1)->WorldPosition.GetY();
+    this->GetNthNode(idx2)->Position.GetY() -
+    this->GetNthNode(idx1)->Position.GetY();
   slope[2] =
-    this->GetNthNode(idx2)->WorldPosition.GetZ() -
-    this->GetNthNode(idx1)->WorldPosition.GetZ();
+    this->GetNthNode(idx2)->Position.GetZ() -
+    this->GetNthNode(idx1)->Position.GetZ();
 
   vtkMath::Normalize(slope);
   return 1;
@@ -1389,7 +1375,7 @@ void vtkSlicerAbstractRepresentation::UpdateLine(int idx1, int idx2)
     }
 
   // Clear all the points at idx1
-  this->GetNthNode(idx1)->intermadiatePoints.clear();
+  this->GetNthNode(idx1)->IntermediatePositions.clear();
 
   this->LineInterpolator->InterpolateLine(this, idx1, idx2);
 }
@@ -1438,7 +1424,7 @@ int vtkSlicerAbstractRepresentation::UpdateWidget(bool force /*=false*/)
 void vtkSlicerAbstractRepresentation
 ::GetRendererComputedDisplayPositionFromWorldPosition(double worldPos[3],
                                                       double displayPos[2])
-{  
+{
   double pos[4];
   pos[0] = worldPos[0];
   pos[1] = worldPos[1];
@@ -1585,11 +1571,9 @@ void vtkSlicerAbstractRepresentation::BuildLocator()
       {
       continue;
       }
-    ControlPoint* node = this->GetNthNode(i);
-    wp = node->WorldPosition.GetData();
-    pos[0] = node->WorldPosition.GetX();
-    pos[1] = node->WorldPosition.GetY();
-    pos[2] = node->WorldPosition.GetZ();
+    vtkVector3d worldPos;
+    this->MarkupsNode->TransformPointToWorld(this->GetNthNode(i)->Position, worldPos);
+    double* wp = worldPos.GetData();
 
     //convert from world to view
     view[0] = wp[0]*matrix->Element[0][0] + wp[1]*matrix->Element[0][1] +
