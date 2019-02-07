@@ -163,7 +163,7 @@ protected:
   /// If action == 2 and InteractionNode is on place, it remove the preview point.
   void OnClickInRenderWindowGetCoordinates(int action = vtkMRMLMarkupsDisplayableManager2D::AddPoint);
   /// Callback for click in RenderWindow
-  virtual void OnClickInRenderWindow(double x, double y,
+  void OnClickInRenderWindow(double x, double y,
                                      const char *associatedNodeID = NULL,
                                      int action = vtkMRMLMarkupsDisplayableManager2D::AddPoint);
 
@@ -176,9 +176,9 @@ protected:
   void GetDisplayToViewportCoordinates(double *displayCoordinates, double * viewportCoordinates);
 
   /// Create a widget.
-  virtual vtkSlicerAbstractWidget * CreateWidget(vtkMRMLMarkupsNode* node);
+  vtkSlicerAbstractWidget * CreateWidget(vtkMRMLMarkupsNode* node);
   /// Gets called when widget was created
-  virtual void OnWidgetCreated(vtkSlicerAbstractWidget * widget, vtkMRMLMarkupsNode * node);
+  void OnWidgetCreated(vtkSlicerAbstractWidget * widget, vtkMRMLMarkupsNode * node);
   /// Get the widget of a node.
   vtkAbstractWidget * GetWidget(vtkMRMLMarkupsNode * node);
 
@@ -209,6 +209,8 @@ protected:
   vtkMRMLMarkupsDisplayableManagerHelper * Helper;
 
   double LastClickWorldCoordinates[4];
+
+  vtkMRMLMarkupsNode* CreateNewMarkupsNode(const std::string &markupsNodeClassName);
 
 private:
   vtkMRMLMarkupsDisplayableManager2D(const vtkMRMLMarkupsDisplayableManager2D&); /// Not implemented
