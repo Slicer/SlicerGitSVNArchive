@@ -16,8 +16,11 @@
 ==============================================================================*/
 
 // MarkupsModule/MRML includes
+#include <vtkMRMLMarkupsAngleNode.h>
 #include <vtkMRMLMarkupsFiducialNode.h>
 #include <vtkMRMLMarkupsLineNode.h>
+#include <vtkMRMLMarkupsClosedCurveNode.h>
+#include <vtkMRMLMarkupsCurveNode.h>
 #include <vtkMRMLMarkupsNode.h>
 #include <vtkMRMLMarkupsDisplayNode.h>
 
@@ -60,6 +63,11 @@
 
 #include <vtkSlicerLineWidget.h>
 #include <vtkSlicerLineRepresentation2D.h>
+#include <vtkSlicerClosedCurveWidget.h>
+#include <vtkSlicerCurveWidget.h>
+#include <vtkSlicerCurveRepresentation2D.h>
+#include <vtkSlicerAngleWidget.h>
+#include <vtkSlicerAngleRepresentation2D.h>
 
 // STD includes
 #include <sstream>
@@ -197,6 +205,16 @@ public:
 // vtkMRMLMarkupsFiducialDisplayableManager2D methods
 
 //---------------------------------------------------------------------------
+vtkMRMLMarkupsFiducialDisplayableManager2D::vtkMRMLMarkupsFiducialDisplayableManager2D()
+{
+  this->Focus.insert("vtkMRMLMarkupsAngleNode");
+  this->Focus.insert("vtkMRMLMarkupsFiducialNode");
+  this->Focus.insert("vtkMRMLMarkupsLineNode");
+  this->Focus.insert("vtkMRMLMarkupsCurveNode");
+  this->Focus.insert("vtkMRMLMarkupsClosedCurveNode");
+}
+
+//---------------------------------------------------------------------------
 void vtkMRMLMarkupsFiducialDisplayableManager2D::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
@@ -216,20 +234,39 @@ vtkSlicerAbstractWidget * vtkMRMLMarkupsFiducialDisplayableManager2D::CreateWidg
   // 2d glyphs and text need to be scaled by 1/60 to show up properly in the 2d slice windows
   this->SetScaleFactor2D(0.01667);
 
+  vtkMRMLMarkupsAngleNode* angleNode = vtkMRMLMarkupsAngleNode::SafeDownCast(markupsNode);
   vtkMRMLMarkupsFiducialNode* fiducialNode = vtkMRMLMarkupsFiducialNode::SafeDownCast(markupsNode);
   vtkMRMLMarkupsLineNode* lineNode = vtkMRMLMarkupsLineNode::SafeDownCast(markupsNode);
+  vtkMRMLMarkupsCurveNode* curveNode = vtkMRMLMarkupsCurveNode::SafeDownCast(markupsNode);
+  vtkMRMLMarkupsClosedCurveNode* closedCurveNode = vtkMRMLMarkupsClosedCurveNode::SafeDownCast(markupsNode);
 
   vtkSlicerAbstractWidget* widget = NULL;
-  vtkSlicerAbstractRepresentation2D* rep = NULL;
+  vtkSmartPointer<vtkSlicerAbstractRepresentation2D> rep = NULL;
   if (fiducialNode)
     {
     widget = vtkSlicerPointsWidget::New();
-    rep = vtkSlicerPointsRepresentation2D::New();
+    rep = vtkSmartPointer<vtkSlicerPointsRepresentation2D>::New();
+    }
+  else if (angleNode)
+    {
+    widget = vtkSlicerAngleWidget::New();
+    rep = vtkSmartPointer<vtkSlicerAngleRepresentation2D>::New();
     }
   else if (lineNode)
     {
     widget = vtkSlicerLineWidget::New();
-    rep = vtkSlicerLineRepresentation2D::New();
+    rep = vtkSmartPointer<vtkSlicerLineRepresentation2D>::New();
+    }
+  else if (curveNode)
+    {
+    widget = vtkSlicerCurveWidget::New();
+    rep = vtkSmartPointer<vtkSlicerCurveRepresentation2D>::New();
+    }
+  else if (closedCurveNode)
+    {
+    widget = vtkSlicerClosedCurveWidget::New();
+    rep = vtkSmartPointer<vtkSlicerCurveRepresentation2D>::New();
+    rep->SetClosedLoop(true);
     }
   else
     {
@@ -301,9 +338,21 @@ vtkMRMLMarkupsNode* vtkMRMLMarkupsFiducialDisplayableManager2D::CreateNewMarkups
     {
     nodeName = "F";
     }
+  else if (markupsNodeClassName == "vtkMRMLMarkupsAngleNode")
+    {
+    nodeName = "A";
+    }
   else if (markupsNodeClassName == "vtkMRMLMarkupsLineNode")
     {
     nodeName = "L";
+    }
+  else if (markupsNodeClassName == "vtkMRMLMarkupsCurveNode")
+    {
+    nodeName = "C";
+    }
+  else if (markupsNodeClassName == "vtkMRMLMarkupsClosedCurveNode")
+    {
+    nodeName = "O";
     }
   vtkMRMLMarkupsNode* markupsNode = vtkMRMLMarkupsNode::SafeDownCast(
     this->GetMRMLScene()->AddNewNodeByClass(markupsNodeClassName, nodeName));
@@ -381,14 +430,14 @@ void vtkMRMLMarkupsFiducialDisplayableManager2D::OnClickInRenderWindow(double x,
   // If we reached the maximum number of points that can be added for a widget then create a new node
   if (interactionNode->GetCurrentInteractionMode() == vtkMRMLInteractionNode::Place)
     {
-    int maxNumberOfPoints = 0;
-    if (placeNodeClassName == "vtkMRMLMarkupsFiducialNode")
-      {
-      maxNumberOfPoints = INT_MAX;
-      }
-    else if (placeNodeClassName == "vtkMRMLMarkupsLineNode")
+    int maxNumberOfPoints = INT_MAX;
+    if (placeNodeClassName == "vtkMRMLMarkupsLineNode")
       {
       maxNumberOfPoints = 2;
+      }
+    if (placeNodeClassName == "vtkMRMLMarkupsAngleNode")
+      {
+      maxNumberOfPoints = 3;
       }
     if (slicerWidget && slicerWidget->GetWidgetState() == vtkSlicerAbstractWidget::Manipulate
       && activeMarkupNode->GetNumberOfControlPoints() >= maxNumberOfPoints)
@@ -451,7 +500,7 @@ void vtkMRMLMarkupsFiducialDisplayableManager2D::OnClickInRenderWindow(double x,
   if (interactionNode->GetPlaceModePersistence() == 1 &&
     interactionNode->GetCurrentInteractionMode() == vtkMRMLInteractionNode::Place &&
     action == vtkMRMLMarkupsDisplayableManager2D::AddPoint &&
-    slicerWidget->GetWidgetState() == vtkSlicerLineWidget::Manipulate)
+    slicerWidget->GetWidgetState() == vtkSlicerAbstractWidget::Manipulate)
     {
     activeMarkupNode = this->CreateNewMarkupsNode(placeNodeClassName);
     selectionNode->SetActivePlaceNodeID(activeMarkupNode->GetID());

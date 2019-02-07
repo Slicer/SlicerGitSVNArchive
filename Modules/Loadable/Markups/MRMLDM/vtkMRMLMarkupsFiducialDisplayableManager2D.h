@@ -41,7 +41,7 @@ public:
 
 protected:
 
-  vtkMRMLMarkupsFiducialDisplayableManager2D(){this->Focus.insert("vtkMRMLMarkupsFiducialNode"); this->Focus.insert("vtkMRMLMarkupsLineNode");}
+  vtkMRMLMarkupsFiducialDisplayableManager2D();
   virtual ~vtkMRMLMarkupsFiducialDisplayableManager2D(){}
 
   /// Callback for click in RenderWindow

@@ -137,9 +137,6 @@ void qSlicerMarkupsModule::setup()
 
   // 2D
   vtkMRMLSliceViewDisplayableManagerFactory::GetInstance()->RegisterDisplayableManager("vtkMRMLMarkupsFiducialDisplayableManager2D");
-  vtkMRMLSliceViewDisplayableManagerFactory::GetInstance()->RegisterDisplayableManager("vtkMRMLMarkupsAngleDisplayableManager2D");
-  vtkMRMLSliceViewDisplayableManagerFactory::GetInstance()->RegisterDisplayableManager("vtkMRMLMarkupsCurveDisplayableManager2D");
-  vtkMRMLSliceViewDisplayableManagerFactory::GetInstance()->RegisterDisplayableManager("vtkMRMLMarkupsClosedCurveDisplayableManager2D");
 
   // Register IO
   qSlicerIOManager* ioManager = qSlicerApplication::application()->ioManager();
