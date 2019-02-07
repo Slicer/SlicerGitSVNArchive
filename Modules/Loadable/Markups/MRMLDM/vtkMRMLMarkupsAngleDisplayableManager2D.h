@@ -38,7 +38,7 @@ public:
 
 protected:
 
-  vtkMRMLMarkupsAngleDisplayableManager2D(){this->Focus="vtkMRMLMarkupsAngleNode";}
+  vtkMRMLMarkupsAngleDisplayableManager2D(){this->Focus.insert("vtkMRMLMarkupsAngleNode");}
   virtual ~vtkMRMLMarkupsAngleDisplayableManager2D(){}
 
   /// Callback for click in RenderWindow

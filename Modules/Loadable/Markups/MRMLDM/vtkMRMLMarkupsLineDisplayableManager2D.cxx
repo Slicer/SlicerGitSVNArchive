@@ -297,7 +297,7 @@ void vtkMRMLMarkupsLineDisplayableManager2D::OnClickInRenderWindow(double x, dou
   if (!this->IsCorrectDisplayableManager())
     {
     // jump out
-    vtkDebugMacro("OnClickInRenderWindow: x = " << x << ", y = " << y << ", incorrect displayable manager, focus = " << this->Focus << ", jumping out");
+    vtkDebugMacro("OnClickInRenderWindow: x = " << x << ", y = " << y << ", incorrect displayable manager, focus = " << this->FocusStr << ", jumping out");
     return;
     }
 

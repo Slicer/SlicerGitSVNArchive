@@ -764,7 +764,7 @@ void vtkMRMLMarkupsDisplayableManager3D::OnInteractorStyleEvent(int eventid)
 
   if (!this->IsCorrectDisplayableManager())
     {
-    //std::cout << "Markups DisplayableManger: OnInteractorStyleEvent : " << this->Focus << ", not correct displayable manager, returning" << std::endl;
+    //std::cout << "Markups DisplayableManger: OnInteractorStyleEvent : " << this->FocusStr << ", not correct displayable manager, returning" << std::endl;
     return;
     }
   vtkDebugMacro("OnInteractorStyleEvent " << this->Focus << " " << eventid);

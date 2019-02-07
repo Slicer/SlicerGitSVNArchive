@@ -65,7 +65,8 @@ void vtkSlicerLineWidget::CreateDefaultRepresentation()
 }
 
 //-------------------------------------------------------------------------
-int vtkSlicerLineWidget::AddPointToRepresentationFromWorldCoordinate(double worldCoordinates[3])
+int vtkSlicerLineWidget::AddPointToRepresentationFromWorldCoordinate(
+  double worldCoordinates[3], bool persistence /*= false*/)
 {
   vtkSlicerAbstractRepresentation *rep =
     reinterpret_cast<vtkSlicerAbstractRepresentation*>(this->WidgetRep);

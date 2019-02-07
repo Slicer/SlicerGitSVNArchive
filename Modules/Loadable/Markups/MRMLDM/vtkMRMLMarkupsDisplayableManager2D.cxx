@@ -78,7 +78,7 @@ vtkMRMLMarkupsDisplayableManager2D::vtkMRMLMarkupsDisplayableManager2D()
   this->Helper = vtkMRMLMarkupsDisplayableManagerHelper::New();
   this->DisableInteractorStyleEventsProcessing = 0;
 
-  this->Focus = "vtkMRMLMarkupsNode";
+  this->Focus.insert("vtkMRMLMarkupsNode");
 
   // by default, this displayableManager handles a 2d view, so the SliceNode
   // must be set when it's assigned to a viewer
@@ -97,7 +97,6 @@ vtkMRMLMarkupsDisplayableManager2D::vtkMRMLMarkupsDisplayableManager2D()
 vtkMRMLMarkupsDisplayableManager2D::~vtkMRMLMarkupsDisplayableManager2D()
 {
   this->DisableInteractorStyleEventsProcessing = 0;
-  this->Focus = nullptr;
 
   this->Helper->Delete();
 
@@ -119,10 +118,7 @@ void vtkMRMLMarkupsDisplayableManager2D::PrintSelf(ostream& os, vtkIndent indent
     {
     os << indent << "No slice node" << std::endl;
     }
-  if (this->Focus)
-    {
-    os << indent << "Focus = " << this->Focus << std::endl;
-    }
+  os << indent << "Focus = " << this->FocusStr << std::endl;
   os << indent << "ScaleFactor2D = " << this->ScaleFactor2D << std::endl;
 }
 
@@ -193,13 +189,13 @@ void vtkMRMLMarkupsDisplayableManager2D::RemoveMRMLObservers()
 void vtkMRMLMarkupsDisplayableManager2D::UpdateFromMRML()
 {
   // this gets called from RequestRender, so make sure to jump out quickly if possible
-  if (this->GetMRMLScene() == nullptr || this->Focus == nullptr)
+  if (this->GetMRMLScene() == nullptr || this->Focus.empty())
     {
     return;
     }
 
   std::vector<vtkMRMLNode*> nodes;
-  this->GetMRMLScene()->GetNodesByClass(this->Focus, nodes);
+  this->GetMRMLScene()->GetNodesByClass("vtkMRMLMarkupsNode", nodes);
 
   // check if there are any of these nodes in the scene
   if (nodes.size() < 1)
@@ -215,6 +211,10 @@ void vtkMRMLMarkupsDisplayableManager2D::UpdateFromMRML()
   // loop over the nodes for which this manager provides widgets
   for (std::vector< vtkMRMLNode* >::iterator nodeIt = nodes.begin(); nodeIt != nodes.end(); ++nodeIt)
     {
+    if (!vtkMRMLMarkupsDisplayableManager2D::IsManageable(*nodeIt))
+      {
+      continue;
+      }
     vtkMRMLMarkupsNode *markupsNode = vtkMRMLMarkupsNode::SafeDownCast(*nodeIt);
     if (markupsNode)
       {
@@ -300,6 +300,20 @@ void vtkMRMLMarkupsDisplayableManager2D
         this->OnMRMLMarkupsDisplayNodeModifiedEvent(displayNode);
         break;
       }
+    vtkSlicerAbstractWidget *widget = this->Helper->GetWidget(markupsNode);
+    if (widget)
+      {
+      vtkSlicerAbstractRepresentation2D *rep = vtkSlicerAbstractRepresentation2D::SafeDownCast(widget->GetRepresentation());
+      if (rep)
+        {
+        if (rep->GetNeedToRender())
+        {
+          this->RequestRender();
+          rep->NeedToRenderOff();
+        }
+        }
+      }
+
     }
   else if (interactionNode)
     {
@@ -1420,11 +1434,11 @@ void vtkMRMLMarkupsDisplayableManager2D::OnInteractorStyleEvent(int eventid)
   if (!this->IsCorrectDisplayableManager())
     {
     //std::cout << "Markups DisplayableManger: OnInteractorStyleEvent : "
-    // << this->Focus << ", not correct displayable manager, returning"
+    // << this->FocusStr << ", not correct displayable manager, returning"
     // << std::endl;
     return;
     }
-  vtkDebugMacro("OnInteractorStyleEvent " << this->Focus << " " << eventid);
+  vtkDebugMacro("OnInteractorStyleEvent " << this->FocusStr << " " << eventid);
 
   if (eventid == vtkCommand::LeftButtonReleaseEvent)
     {
@@ -1787,13 +1801,13 @@ bool vtkMRMLMarkupsDisplayableManager2D::IsCorrectDisplayableManager()
 //---------------------------------------------------------------------------
 bool vtkMRMLMarkupsDisplayableManager2D::IsManageable(vtkMRMLNode* node)
 {
-  return node->IsA(this->Focus);
+  return (this->Focus.find(node->GetClassName()) != this->Focus.end());
 }
 
 //---------------------------------------------------------------------------
 bool vtkMRMLMarkupsDisplayableManager2D::IsManageable(const char* nodeClassName)
 {
-  return nodeClassName && !strcmp(nodeClassName, this->Focus);
+  return nodeClassName && (this->Focus.find(nodeClassName) != this->Focus.end());
 }
 
 //---------------------------------------------------------------------------

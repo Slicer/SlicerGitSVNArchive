@@ -38,7 +38,7 @@ public:
 
 protected:
 
-  vtkMRMLMarkupsCurveDisplayableManager2D(){this->Focus="vtkMRMLMarkupsCurveNode";}
+  vtkMRMLMarkupsCurveDisplayableManager2D(){this->Focus.insert("vtkMRMLMarkupsCurveNode");}
   virtual ~vtkMRMLMarkupsCurveDisplayableManager2D(){}
 
   /// Callback for click in RenderWindow

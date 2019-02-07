@@ -114,6 +114,9 @@ public:
   /// Remove the point preview to the current active Markup.
   void RemoveLastPreviewPointToRepresentation();
 
+  /// Add a point to the current active Markup at input World coordiantes.
+  virtual int AddPointToRepresentationFromWorldCoordinate(double worldCoordinates [3], bool persistence = false) = 0;
+
 protected:
   vtkSlicerAbstractWidget();
   ~vtkSlicerAbstractWidget() VTK_OVERRIDE;

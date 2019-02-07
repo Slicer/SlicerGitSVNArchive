@@ -38,7 +38,7 @@ public:
 
 protected:
 
-  vtkMRMLMarkupsLineDisplayableManager2D(){this->Focus="vtkMRMLMarkupsLineNode";}
+  vtkMRMLMarkupsLineDisplayableManager2D(){this->Focus.insert("vtkMRMLMarkupsLineNode");}
   virtual ~vtkMRMLMarkupsLineDisplayableManager2D(){}
 
   /// Callback for click in RenderWindow

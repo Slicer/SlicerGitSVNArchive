@@ -298,7 +298,7 @@ void vtkMRMLMarkupsClosedCurveDisplayableManager2D::OnClickInRenderWindow(double
   if (!this->IsCorrectDisplayableManager())
     {
     // jump out
-    vtkDebugMacro("OnClickInRenderWindow: x = " << x << ", y = " << y << ", incorrect displayable manager, focus = " << this->Focus << ", jumping out");
+    vtkDebugMacro("OnClickInRenderWindow: x = " << x << ", y = " << y << ", incorrect displayable manager, focus = " << this->FocusStr << ", jumping out");
     return;
     }
 
@@ -424,11 +424,11 @@ void vtkMRMLMarkupsClosedCurveDisplayableManager2D::OnInteractorStyleEvent(int e
   if (!this->IsCorrectDisplayableManager())
     {
     //std::cout << "Markups DisplayableManger: OnInteractorStyleEvent : "
-    // << this->Focus << ", not correct displayable manager, returning"
+    // << this->FocusStr << ", not correct displayable manager, returning"
     // << std::endl;
     return;
     }
-  vtkDebugMacro("OnInteractorStyleEvent " << this->Focus << " " << eventid);
+  vtkDebugMacro("OnInteractorStyleEvent " << this->FocusStr << " " << eventid);
 
   if (eventid == vtkCommand::LeftButtonReleaseEvent)
     {

@@ -41,7 +41,7 @@ public:
 
 protected:
 
-  vtkMRMLMarkupsFiducialDisplayableManager2D(){this->Focus="vtkMRMLMarkupsFiducialNode";}
+  vtkMRMLMarkupsFiducialDisplayableManager2D(){this->Focus.insert("vtkMRMLMarkupsFiducialNode"); this->Focus.insert("vtkMRMLMarkupsLineNode");}
   virtual ~vtkMRMLMarkupsFiducialDisplayableManager2D(){}
 
   /// Callback for click in RenderWindow
@@ -54,6 +54,8 @@ protected:
   virtual void OnWidgetCreated(vtkSlicerAbstractWidget * widget, vtkMRMLMarkupsNode * node) VTK_OVERRIDE;
   /// Clean up when scene closes
   virtual void OnMRMLSceneEndClose() VTK_OVERRIDE;
+
+  vtkMRMLMarkupsNode* CreateNewMarkupsNode(const std::string &markupsNodeClassName);
 
 private:
 

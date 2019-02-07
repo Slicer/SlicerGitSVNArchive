@@ -25,7 +25,6 @@
 #include "vtkRenderWindow.h"
 #include "vtkObjectFactory.h"
 #include "vtkProperty2D.h"
-#include "vtkAssemblyPath.h"
 #include "vtkMath.h"
 #include "vtkInteractorObserver.h"
 #include "vtkIncrementalOctreePointLocator.h"
@@ -403,7 +402,7 @@ int vtkSlicerCurveRepresentation2D::ComputeInteractionState(int X, int Y, int vt
 
   // This additional render is need only because of the flickering bug due to the vtkPropPicker
   // remove once it is fixed
-  this->NeedToRenderOn();
+  //this->NeedToRenderOn();
   return this->InteractionState;
 }
 

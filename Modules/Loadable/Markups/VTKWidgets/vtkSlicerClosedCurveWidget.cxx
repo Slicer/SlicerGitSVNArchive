@@ -69,8 +69,8 @@ void vtkSlicerClosedCurveWidget::CreateDefaultRepresentation()
 }
 
 //-------------------------------------------------------------------------
-int vtkSlicerClosedCurveWidget::AddPointToRepresentationFromWorldCoordinate(double worldCoordinates[3],
-                                                                      bool persistence /*=false*/)
+int vtkSlicerClosedCurveWidget::AddPointToRepresentationFromWorldCoordinate(
+  double worldCoordinates[3], bool persistence /*= false*/)
 {
   vtkSlicerAbstractRepresentation *rep =
     reinterpret_cast<vtkSlicerAbstractRepresentation*>(this->WidgetRep);

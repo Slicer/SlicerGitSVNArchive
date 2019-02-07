@@ -297,7 +297,7 @@ void vtkMRMLMarkupsAngleDisplayableManager2D::OnClickInRenderWindow(double x, do
   if (!this->IsCorrectDisplayableManager())
     {
     // jump out
-    vtkDebugMacro("OnClickInRenderWindow: x = " << x << ", y = " << y << ", incorrect displayable manager, focus = " << this->Focus << ", jumping out");
+    vtkDebugMacro("OnClickInRenderWindow: x = " << x << ", y = " << y << ", incorrect displayable manager, focus = " << this->FocusStr << ", jumping out");
     return;
     }
 

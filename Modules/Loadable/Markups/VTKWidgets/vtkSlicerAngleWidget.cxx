@@ -65,7 +65,8 @@ void vtkSlicerAngleWidget::CreateDefaultRepresentation()
 }
 
 //-------------------------------------------------------------------------
-int vtkSlicerAngleWidget::AddPointToRepresentationFromWorldCoordinate(double worldCoordinates[3])
+int vtkSlicerAngleWidget::AddPointToRepresentationFromWorldCoordinate(
+  double worldCoordinates[3], bool persistence /*= false*/)
 {
   vtkSlicerAbstractRepresentation *rep =
     reinterpret_cast<vtkSlicerAbstractRepresentation*>(this->WidgetRep);

@@ -30,6 +30,8 @@
 // VTK includes
 #include <vtkSlicerAbstractWidget.h>
 
+#include <set>
+
 class vtkMRMLMarkupsNode;
 class vtkSlicerViewerWidget;
 class vtkMRMLMarkupsDisplayNode;
@@ -195,7 +197,8 @@ protected:
   virtual bool IsManageable(const char* nodeClassName);
 
   /// Focus of this displayableManager is set to a specific markups type when inherited
-  const char* Focus;
+  std::set<std::string> Focus;
+  std::string FocusStr;
 
   /// Respond to interactor style events
   virtual void OnInteractorStyleEvent(int eventid) VTK_OVERRIDE;

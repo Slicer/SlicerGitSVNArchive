@@ -375,11 +375,6 @@ void vtkSlicerAbstractWidget::MoveAction(vtkAbstractWidget *w)
       }
     }
 
-  if (rep->GetNeedToRender())
-    {
-    self->Render();
-    rep->NeedToRenderOff();
-    }
 }
 
 //-------------------------------------------------------------------------
@@ -416,11 +411,6 @@ void vtkSlicerAbstractWidget::SelectAction(vtkAbstractWidget *w)
   rep->StartWidgetInteraction(pos);
   self->EventCallbackCommand->SetAbortFlag(1);
 
-  if (rep->GetNeedToRender())
-    {
-    self->Render();
-    rep->NeedToRenderOff();
-    }
 }
 
 //-------------------------------------------------------------------------
@@ -459,11 +449,6 @@ void vtkSlicerAbstractWidget::PickAction(vtkAbstractWidget *w)
   rep->StartWidgetInteraction(pos);
   self->EventCallbackCommand->SetAbortFlag(1);
 
-  if (rep->GetNeedToRender())
-    {
-    self->Render();
-    rep->NeedToRenderOff();
-    }
 }
 
 //----------------------------------------------------------------------
@@ -500,11 +485,6 @@ void vtkSlicerAbstractWidget::RotateAction(vtkAbstractWidget *w)
   rep->StartWidgetInteraction(pos);
   self->EventCallbackCommand->SetAbortFlag(1);
 
-  if (rep->GetNeedToRender())
-    {
-    self->Render();
-    rep->NeedToRenderOff();
-    }
 }
 
 //-------------------------------------------------------------------------
@@ -540,12 +520,6 @@ void vtkSlicerAbstractWidget::ScaleAction(vtkAbstractWidget *w)
   pos[1] = self->Interactor->GetEventPosition()[1];
   rep->StartWidgetInteraction(pos);
   self->EventCallbackCommand->SetAbortFlag(1);
-
-  if (rep->GetNeedToRender())
-    {
-    self->Render();
-    rep->NeedToRenderOff();
-    }
 }
 
 //-------------------------------------------------------------------------
@@ -581,12 +555,6 @@ void vtkSlicerAbstractWidget::TranslateAction(vtkAbstractWidget *w)
   pos[1] = self->Interactor->GetEventPosition()[1];
   rep->StartWidgetInteraction(pos);
   self->EventCallbackCommand->SetAbortFlag(1);
-
-  if (rep->GetNeedToRender())
-    {
-    self->Render();
-    rep->NeedToRenderOff();
-    }
 }
 
 //-------------------------------------------------------------------------
@@ -665,11 +633,6 @@ void vtkSlicerAbstractWidget::DeleteAction(vtkAbstractWidget *w)
 
   rep->ActivateNode(X, Y);
 
-  if (rep->GetNeedToRender())
-    {
-    self->Render();
-    rep->NeedToRenderOff();
-    }
 }
 
 
