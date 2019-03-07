@@ -4,16 +4,19 @@ cmake_minimum_required(VERSION 3.13.4)
 # Enable C++11
 #-----------------------------------------------------------------------------
 set(_msg "Setting C++ standard")
-message(STATUS "${_msg}")
-if(NOT DEFINED CMAKE_CXX_STANDARD)
-  if("${Slicer_VTK_VERSION_MAJOR}" STREQUAL "8" OR DEFINED Qt5_DIR)
-    set(CMAKE_CXX_STANDARD 11)
-  else()
-    set(CMAKE_CXX_STANDARD 98)
-  endif()
+if(CMAKE_CXX_STANDARD EQUAL "98" )
+  message(FATAL_ERROR "CMAKE_CXX_STANDARD:STRING=98 is not supported in Slicer since version 4.11.0.")
 endif()
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
+message(STATUS "${_msg}")
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 11) # Supported values are ``11``, ``14``, and ``17``.
+endif()
+if(NOT CMAKE_CXX_STANDARD_REQUIRED)
+  set(CMAKE_CXX_STANDARD_REQUIRED ON)
+endif()
+if(NOT CMAKE_CXX_EXTENSIONS)
+  set(CMAKE_CXX_EXTENSIONS OFF)
+endif()
 message(STATUS "${_msg} - C++${CMAKE_CXX_STANDARD}")
 
 #-----------------------------------------------------------------------------
@@ -160,10 +163,7 @@ mark_as_superbuild(Patch_EXECUTABLE)
 # Qt requirements
 #-----------------------------------------------------------------------------
 if(NOT DEFINED Slicer_REQUIRED_QT_VERSION)
-  set(_required_qt_version "4.7.4")
-  if(DEFINED Qt5_DIR OR "${Slicer_VTK_VERSION_MAJOR}" MATCHES "^(8|9)$" OR CMAKE_CXX_STANDARD MATCHES "^([1][0-9])$")
-    set(_required_qt_version "5.6.0")
-  endif()
+  set(_required_qt_version "5.6.0")
   set(Slicer_REQUIRED_QT_VERSION ${_required_qt_version} CACHE STRING "Minimum required Qt version" FORCE)
 endif()
 mark_as_superbuild(Slicer_REQUIRED_QT_VERSION)
@@ -307,18 +307,15 @@ set(Slicer_ITK_VERSION_MAJOR ${_default_itk} CACHE STRING "The ITK major version
 set_property(CACHE Slicer_ITK_VERSION_MAJOR PROPERTY STRINGS "5")
 mark_as_superbuild(Slicer_ITK_VERSION_MAJOR)
 
-set(_default_vtk "7")
-if(DEFINED Qt5_DIR OR CMAKE_CXX_STANDARD MATCHES "^([1][0-9])$")
-  set(_default_vtk "8")
-endif()
-set(Slicer_VTK_VERSION_MAJOR ${_default_vtk} CACHE STRING "The VTK major version (7 or 8).")
-set_property(CACHE Slicer_VTK_VERSION_MAJOR PROPERTY STRINGS "7" "8")
-if(NOT "${Slicer_VTK_VERSION_MAJOR}" MATCHES "^(7|8)$")
+set(_default_vtk "8")
+set(Slicer_VTK_VERSION_MAJOR ${_default_vtk} CACHE STRING "The VTK major version (8).")
+set_property(CACHE Slicer_VTK_VERSION_MAJOR PROPERTY STRINGS "8")
+if(NOT "${Slicer_VTK_VERSION_MAJOR}" MATCHES "^(8)$")
   if("${Slicer_VTK_VERSION_MAJOR}" STREQUAL "9")
     set(Slicer_VTK_VERSION_MAJOR 8 CACHE STRING "The VTK major version (7 or 8)." FORCE)
     message(WARNING "Forcing Slicer_VTK_VERSION_MAJOR to 8 because VTK version was changed from 9.0 to 8.2. See http://vtk.1045678.n5.nabble.com/Discussion-OK-to-change-VTK-s-version-number-from-9-0-to-8-2-tt5748702.html")
   else()
-    message(FATAL_ERROR "error: Slicer_VTK_VERSION_MAJOR must be 7 or 8.")
+    message(FATAL_ERROR "error: Slicer_VTK_VERSION_MAJOR must be 8.")
   endif()
 endif()
 mark_as_superbuild(Slicer_VTK_VERSION_MAJOR)
@@ -471,11 +468,7 @@ endif()
 #-----------------------------------------------------------------------------
 # Slicer VTK Options
 #-----------------------------------------------------------------------------
-if(Slicer_VTK_VERSION_MAJOR STREQUAL "7")
-  set(_backend "OpenGL")
-else()
-  set(_backend "OpenGL2")
-endif()
+set(_backend "OpenGL2")
 set(Slicer_VTK_RENDERING_BACKEND "${_backend}" CACHE STRING "Rendering backend." FORCE)
 mark_as_superbuild(Slicer_VTK_RENDERING_BACKEND)
 set(Slicer_VTK_RENDERING_USE_${Slicer_VTK_RENDERING_BACKEND}_BACKEND 1)
@@ -540,12 +533,6 @@ if(UNIX AND NOT APPLE)
   if(FONTCONFIG_FOUND)
     list(APPEND Slicer_VTK_COMPONENTS
       vtkRenderingFreeTypeFontConfig
-      # vtkRenderingFreeTypeOpenGL # Since commit 4f7460a5 (> 6.2.0), vtkRenderingFreeTypeOpenGL
-                                   # has been removed. This mean Slicer will not compile
-                                   # against version of VTK folder than 6.3.0 having FontConfig
-                                   # capabilities.
-                                   # If this is needed, a configure test would have to
-                                   # be added to check if the module is available or not.
       )
     if(TARGET vtkRenderingFreeTypeOpenGL)
       list(APPEND VTK_LIBRARIES vtkRenderingFreeTypeOpenGL)
@@ -556,70 +543,48 @@ endif()
 #-----------------------------------------------------------------------------
 # Qt - Slicer_REQUIRED_QT_MODULES
 #-----------------------------------------------------------------------------
-# Module name should be specified as they appear in FindQt4.cmake or
+# Module name should be specified as they appear in FindQt5.cmake.
 # For example, the module name associated with the variable QT_USE_QTXML is QTXML.
 # Note that the modules will be installed when packaging.
-if(Slicer_REQUIRED_QT_VERSION VERSION_LESS "5")
-  set(Slicer_REQUIRED_QT_MODULES
-    QTCORE QTGUI
-    QTNETWORK QTOPENGL
-    QTUITOOLS #no dll
-    QTXML QTXMLPATTERNS
-    QTWEBKIT
-    QTSVG QTSQL
+set(Slicer_REQUIRED_QT_MODULES
+  Core Widgets
+  Multimedia
+  Network OpenGL
+  PrintSupport # Required by "Annotations" module
+  UiTools #no dll
+  Xml XmlPatterns
+  Svg Sql
+  )
+find_package(Qt5 COMPONENTS Core QUIET)
+if(Qt5_VERSION VERSION_LESS "5.6.0")
+  list(APPEND Slicer_REQUIRED_QT_MODULES
+    WebKit
     )
-  if(WIN32)
-    list(APPEND Slicer_REQUIRED_QT_MODULES PHONON) # webkit requires phonon
-  endif()
-  if(Slicer_BUILD_EXTENSIONMANAGER_SUPPORT)
-    list(APPEND Slicer_REQUIRED_QT_MODULES QTSCRIPT)
-  endif()
-  if(BUILD_TESTING)
-    list(APPEND Slicer_REQUIRED_QT_MODULES QTTEST)
-  endif()
 else()
-  set(Slicer_REQUIRED_QT_MODULES
-    Core Widgets
-    Multimedia
-    Network OpenGL
-    PrintSupport # Required by "Annotations" module
-    UiTools #no dll
-    Xml XmlPatterns
-    Svg Sql
+  list(APPEND Slicer_REQUIRED_QT_MODULES
+    WebEngine
+    WebEngineWidgets
+    WebChannel
     )
-  find_package(Qt5 COMPONENTS Core QUIET)
-  if(Qt5_VERSION VERSION_LESS "5.6.0")
-    list(APPEND Slicer_REQUIRED_QT_MODULES
-      WebKit
-      )
-  else()
-    list(APPEND Slicer_REQUIRED_QT_MODULES
-      WebEngine
-      WebEngineWidgets
-      WebChannel
-      )
-  endif()
-  if(Slicer_BUILD_EXTENSIONMANAGER_SUPPORT)
-    list(APPEND Slicer_REQUIRED_QT_MODULES Script)
-  endif()
-  if(Slicer_BUILD_I18N_SUPPORT)
-    list(APPEND Slicer_REQUIRED_QT_MODULES LinguistTools) # no dll
-  endif()
-  if(BUILD_TESTING)
-    list(APPEND Slicer_REQUIRED_QT_MODULES Test)
-  endif()
+endif()
+if(Slicer_BUILD_EXTENSIONMANAGER_SUPPORT)
+  list(APPEND Slicer_REQUIRED_QT_MODULES Script)
+endif()
+if(Slicer_BUILD_I18N_SUPPORT)
+  list(APPEND Slicer_REQUIRED_QT_MODULES LinguistTools) # no dll
+endif()
+if(BUILD_TESTING)
+  list(APPEND Slicer_REQUIRED_QT_MODULES Test)
 endif()
 list(APPEND Slicer_REQUIRED_QT_MODULES ${Slicer_ADDITIONAL_REQUIRED_QT_MODULES})
 
-if(Slicer_REQUIRED_QT_VERSION VERSION_GREATER "4.9")
-  set(QT_LIBRARIES)
-  foreach(lib IN LISTS Slicer_REQUIRED_QT_MODULES)
-    if(lib MATCHES "^(LinguistTools)$")
-      continue()
-    endif()
-    list(APPEND QT_LIBRARIES Qt5::${lib})
-  endforeach()
-endif()
+set(QT_LIBRARIES)
+foreach(lib IN LISTS Slicer_REQUIRED_QT_MODULES)
+  if(lib MATCHES "^(LinguistTools)$")
+    continue()
+  endif()
+  list(APPEND QT_LIBRARIES Qt5::${lib})
+endforeach()
 
 if(DEFINED Slicer_ADDITIONAL_REQUIRED_QT_MODULES)
   mark_as_superbuild(Slicer_ADDITIONAL_REQUIRED_QT_MODULES:STRING)
@@ -637,22 +602,13 @@ set(Slicer_INSTALL_QtPlugins_DIR "${Slicer_INSTALL_ROOT}${Slicer_QtPlugins_DIR}"
 # Qt
 #-----------------------------------------------------------------------------
 include(SlicerBlockFindQtAndCheckVersion)
-if(Slicer_REQUIRED_QT_VERSION VERSION_LESS "5")
-  mark_as_superbuild(VARS QT_QMAKE_EXECUTABLE LABELS "FIND_PACKAGE")
-else()
-  mark_as_superbuild(VARS Qt5_DIR LABELS "FIND_PACKAGE")
-endif()
+mark_as_superbuild(VARS Qt5_DIR LABELS "FIND_PACKAGE")
 
 set(Slicer_HAVE_QT5 1)
-if(Slicer_REQUIRED_QT_VERSION VERSION_LESS "5")
-  set(Slicer_HAVE_QT5 0)
-endif()
 
 set(Slicer_HAVE_WEBKIT_SUPPORT 1)
-if(Slicer_REQUIRED_QT_VERSION VERSION_GREATER "4.9")
-  if(Qt5_VERSION VERSION_GREATER "5.5.0")
-    set(Slicer_HAVE_WEBKIT_SUPPORT 0)
-  endif()
+if(Qt5_VERSION VERSION_GREATER "5.5.0")
+  set(Slicer_HAVE_WEBKIT_SUPPORT 0)
 endif()
 
 #
@@ -663,54 +619,28 @@ endif()
 #
 # See https://issues.slicer.org/view.php?id=3574
 #
-if(Slicer_HAVE_QT5)
-  foreach(_path IN ITEMS
-      "/usr/lib/"
-      "/usr/lib32/"
-      "/usr/lib64/"
-      "/usr/local/lib/"
-      # homebrew
-      "/usr/local/Cellar/lib/"
-      # macport
-      "/opt/lib"
-      "/opt/local/lib"
-      )
-    if("${Qt5_DIR}" MATCHES "^${_path}")
-      set(Slicer_USE_SYSTEM_QT ON)
-      message(STATUS "")
-      message(STATUS "Forcing Slicer_USE_SYSTEM_QT to ON (Qt5_DIR [${Qt5_DIR}] associated with a system location: ${_path})")
-      message(STATUS "")
-      break()
-    endif()
-  endforeach()
-else()
-  foreach(_path IN ITEMS
-      "/bin"
-      "/usr/bin/"
-      "/usr/local/bin"
-      # homebrew
-      "/usr/local/Cellar"
-      # macport
-      "/opt/bin"
-      "/opt/local/bin"
-      )
-    if("${QT_QMAKE_EXECUTABLE}" MATCHES "^${_path}")
-      set(Slicer_USE_SYSTEM_QT ON)
-      message(STATUS "")
-      message(STATUS "Forcing Slicer_USE_SYSTEM_QT to ON (qmake [${QT_QMAKE_EXECUTABLE}] found in a system location: ${_path})")
-      message(STATUS "")
-      break()
-    endif()
-  endforeach()
-endif()
+foreach(_path IN ITEMS
+    "/usr/lib/"
+    "/usr/lib32/"
+    "/usr/lib64/"
+    "/usr/local/lib/"
+    # homebrew
+    "/usr/local/Cellar/lib/"
+    # macport
+    "/opt/lib"
+    "/opt/local/lib"
+    )
+  if("${Qt5_DIR}" MATCHES "^${_path}")
+    set(Slicer_USE_SYSTEM_QT ON)
+    message(STATUS "")
+    message(STATUS "Forcing Slicer_USE_SYSTEM_QT to ON (Qt5_DIR [${Qt5_DIR}] associated with a system location: ${_path})")
+    message(STATUS "")
+    break()
+  endif()
+endforeach()
 
 # Prefer QVTKOpenGLWidget to QVTKWidget when supported
 set(Slicer_VTK_USE_QVTKOPENGLWIDGET 1)
-if(Slicer_REQUIRED_QT_VERSION VERSION_LESS "5"
-    OR Slicer_VTK_VERSION_MAJOR VERSION_LESS "8"
-    OR NOT Slicer_VTK_RENDERING_USE_OpenGL2_BACKEND)
-  set(Slicer_VTK_USE_QVTKOPENGLWIDGET 0)
-endif()
 
 #-----------------------------------------------------------------------------
 # Testing
