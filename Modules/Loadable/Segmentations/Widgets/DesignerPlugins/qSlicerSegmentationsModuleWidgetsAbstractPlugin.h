@@ -18,33 +18,27 @@
 
 ==============================================================================*/\
 
-#ifndef __qSlicerSegmentationsModuleWidgetsAbstractPlugin_h
-#define __qSlicerSegmentationsModuleWidgetsAbstractPlugin_h
+  #ifndef __qSlicerSegmentationsModuleWidgetsAbstractPlugin_h
+  #define __qSlicerSegmentationsModuleWidgetsAbstractPlugin_h
 
-#include <QtGlobal>
-#if (QT_VERSION < QT_VERSION_CHECK(5, 0, 0))
-#include <QDesignerCustomWidgetInterface>
-#else
-#include <QtUiPlugin/QDesignerCustomWidgetInterface>
-#endif
-#include "qSlicerSegmentationsModuleWidgetsPluginsExport.h"
+  #include <QtGlobal>
+  #include <QtUiPlugin/QDesignerCustomWidgetInterface>
+  #include "qSlicerSegmentationsModuleWidgetsPluginsExport.h"
 
-class Q_SLICER_MODULE_SEGMENTATIONS_WIDGETS_PLUGINS_EXPORT qSlicerSegmentationsModuleWidgetsAbstractPlugin
-    : public QDesignerCustomWidgetInterface
-{
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 0, 0))
-  Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QDesignerCustomWidgetInterface")
-#endif
-  Q_INTERFACES(QDesignerCustomWidgetInterface);
-public:
+  class Q_SLICER_MODULE_SEGMENTATIONS_WIDGETS_PLUGINS_EXPORT qSlicerSegmentationsModuleWidgetsAbstractPlugin
+      : public QDesignerCustomWidgetInterface
+  {
+    Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QDesignerCustomWidgetInterface")
+    Q_INTERFACES(QDesignerCustomWidgetInterface);
+  public:
 
-  qSlicerSegmentationsModuleWidgetsAbstractPlugin();
-  // Don't reimplement this method.
-  QString group() const;
-  // You can reimplement these methods
-  virtual QIcon icon() const;
-  virtual QString toolTip() const;
-  virtual QString whatsThis() const;
-};
+    qSlicerSegmentationsModuleWidgetsAbstractPlugin();
+    // Don't reimplement this method.
+    QString group() const;
+    // You can reimplement these methods
+    virtual QIcon icon() const;
+    virtual QString toolTip() const;
+    virtual QString whatsThis() const;
+  };
 
 #endif

@@ -175,28 +175,26 @@ macro(vtkMacroKitPythonWrap)
     list(APPEND VTK_WRAP_INCLUDE_DIRS ${_kit_wrap_include_dirs})
 
     # Generate hierarchy files for VTK8 and later
-    if(NOT ${VTK_VERSION_MAJOR} VERSION_LESS 8)
-      include(${VTK_CMAKE_DIR}/vtkWrapHierarchy.cmake)
+    include(${VTK_CMAKE_DIR}/vtkWrapHierarchy.cmake)
 
-      # Set variables for this and future runs of vtk_wrap_hierarchy:
-      #  - <module_name>_WRAP_DEPENDS
-      #  - <module_name>_WRAP_HIERARCHY_FILE
-      set(${MY_KIT_NAME}_WRAP_DEPENDS "${_kit_wrap_depends}" CACHE INTERNAL "${MY_KIT_NAME} wrapping dependencies" FORCE)
-      set(_wrap_hierarchy_file "${Slicer_VTK_WRAP_HIERARCHY_DIR}/${MY_KIT_NAME}Hierarchy.txt")
-      if(${VTK_VERSION_MAJOR}.${VTK_VERSION_MINOR} VERSION_LESS "8.2")
-        set(_wrap_hierarchy_stamp_file ${CMAKE_CURRENT_BINARY_DIR}/${MY_KIT_NAME}Hierarchy.stamp.txt)
-      endif()
-      set(${MY_KIT_NAME}_WRAP_HIERARCHY_FILE "${_wrap_hierarchy_file}" CACHE INTERNAL "${MY_KIT_NAME} wrap hierarchy file" FORCE)
-
-      set_property(GLOBAL APPEND PROPERTY ${Slicer_VTK_WRAP_HIERARCHY_TARGETS_PROPERTY_NAME} ${MY_KIT_NAME})
-
-      # Set variables for vtk_wrap_python3:
-      #   - KIT_HIERARCHY_FILE
-      set(KIT_HIERARCHY_FILE "${_wrap_hierarchy_file}")
-
-      # Generate hierarchy files
-      vtk_wrap_hierarchy(${MY_KIT_NAME} ${Slicer_VTK_WRAP_HIERARCHY_DIR} "${TMP_WRAP_FILES}")
+    # Set variables for this and future runs of vtk_wrap_hierarchy:
+    #  - <module_name>_WRAP_DEPENDS
+    #  - <module_name>_WRAP_HIERARCHY_FILE
+    set(${MY_KIT_NAME}_WRAP_DEPENDS "${_kit_wrap_depends}" CACHE INTERNAL "${MY_KIT_NAME} wrapping dependencies" FORCE)
+    set(_wrap_hierarchy_file "${Slicer_VTK_WRAP_HIERARCHY_DIR}/${MY_KIT_NAME}Hierarchy.txt")
+    if(${VTK_VERSION_MAJOR}.${VTK_VERSION_MINOR} VERSION_LESS "8.2")
+      set(_wrap_hierarchy_stamp_file ${CMAKE_CURRENT_BINARY_DIR}/${MY_KIT_NAME}Hierarchy.stamp.txt)
     endif()
+    set(${MY_KIT_NAME}_WRAP_HIERARCHY_FILE "${_wrap_hierarchy_file}" CACHE INTERNAL "${MY_KIT_NAME} wrap hierarchy file" FORCE)
+
+    set_property(GLOBAL APPEND PROPERTY ${Slicer_VTK_WRAP_HIERARCHY_TARGETS_PROPERTY_NAME} ${MY_KIT_NAME})
+
+    # Set variables for vtk_wrap_python3:
+    #   - KIT_HIERARCHY_FILE
+    set(KIT_HIERARCHY_FILE "${_wrap_hierarchy_file}")
+
+    # Generate hierarchy files
+    vtk_wrap_hierarchy(${MY_KIT_NAME} ${Slicer_VTK_WRAP_HIERARCHY_DIR} "${TMP_WRAP_FILES}")
 
     VTK_WRAP_PYTHON3(${MY_KIT_NAME}Python KitPython_SRCS "${TMP_WRAP_FILES}")
 

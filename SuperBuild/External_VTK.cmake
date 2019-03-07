@@ -51,20 +51,10 @@ if((NOT DEFINED VTK_DIR OR NOT DEFINED VTK_SOURCE_DIR) AND NOT Slicer_USE_SYSTEM
     -DVTK_USE_GUISUPPORT:BOOL=ON
     -DVTK_USE_QVTK_QTOPENGL:BOOL=ON
     -DModule_vtkTestingRendering:BOOL=ON
+    -DVTK_QT_VERSION:STRING=5
+    -DVTK_Group_Qt:BOOL=ON
+    -DQt5_DIR:FILEPATH=${Qt5_DIR}
     )
-  if(Slicer_REQUIRED_QT_VERSION VERSION_LESS "5")
-    list(APPEND EXTERNAL_PROJECT_OPTIONAL_CMAKE_CACHE_ARGS
-      -DVTK_QT_VERSION:STRING=4
-      -DVTK_USE_QT:BOOL=ON
-      -DQT_QMAKE_EXECUTABLE:FILEPATH=${QT_QMAKE_EXECUTABLE}
-      )
-  else()
-    list(APPEND EXTERNAL_PROJECT_OPTIONAL_CMAKE_CACHE_ARGS
-      -DVTK_QT_VERSION:STRING=5
-      -DVTK_Group_Qt:BOOL=ON
-      -DQt5_DIR:FILEPATH=${Qt5_DIR}
-      )
-  endif()
   if("${Slicer_VTK_RENDERING_BACKEND}" STREQUAL "OpenGL2")
     list(APPEND EXTERNAL_PROJECT_OPTIONAL_CMAKE_CACHE_ARGS
       -DModule_vtkGUISupportQtOpenGL:BOOL=ON
@@ -123,9 +113,7 @@ if((NOT DEFINED VTK_DIR OR NOT DEFINED VTK_SOURCE_DIR) AND NOT Slicer_USE_SYSTEM
     )
 
 set(_git_tag)
-if("${Slicer_VTK_VERSION_MAJOR}" STREQUAL "7")
-  set(_git_tag "43f6ee36f6e28c8347768bd97df4d767da6b4ce7")
-elseif("${Slicer_VTK_VERSION_MAJOR}" STREQUAL "8")
+if("${Slicer_VTK_VERSION_MAJOR}" STREQUAL "8")
   set(_git_tag "11da9474b07cf0a1106237974d96dab42bf1a716")
 else()
   message(FATAL_ERROR "error: Unsupported Slicer_VTK_VERSION_MAJOR: ${Slicer_VTK_VERSION_MAJOR}")
@@ -204,20 +192,13 @@ endif()
     )
 
   # pythonpath
-  if(Slicer_VTK_VERSION_MAJOR VERSION_GREATER 7)
-    if(UNIX)
-      set(${proj}_PYTHONPATH_LAUNCHER_BUILD
-        ${VTK_DIR}/${_library_output_subdir}/python2.7/site-packages
-        )
-    else()
-      set(${proj}_PYTHONPATH_LAUNCHER_BUILD
-        ${VTK_DIR}/${_library_output_subdir}/<CMAKE_CFG_INTDIR>/Lib/site-packages
-        )
-    endif()
+  if(UNIX)
+    set(${proj}_PYTHONPATH_LAUNCHER_BUILD
+      ${VTK_DIR}/${_library_output_subdir}/python2.7/site-packages
+      )
   else()
     set(${proj}_PYTHONPATH_LAUNCHER_BUILD
-      ${VTK_DIR}/Wrapping/Python
-      ${VTK_DIR}/${_library_output_subdir}/<CMAKE_CFG_INTDIR>
+      ${VTK_DIR}/${_library_output_subdir}/<CMAKE_CFG_INTDIR>/Lib/site-packages
       )
   endif()
 

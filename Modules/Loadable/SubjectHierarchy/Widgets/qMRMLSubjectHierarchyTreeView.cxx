@@ -170,19 +170,11 @@ void qMRMLSubjectHierarchyTreeViewPrivate::init()
 
   // Set up headers
   q->header()->setStretchLastSection(false);
-#if (QT_VERSION < QT_VERSION_CHECK(5, 0, 0))
-  q->header()->setResizeMode(this->Model->nameColumn(), QHeaderView::Stretch);
-  q->header()->setResizeMode(this->Model->visibilityColumn(), QHeaderView::ResizeToContents);
-  q->header()->setResizeMode(this->Model->colorColumn(), QHeaderView::ResizeToContents);
-  q->header()->setResizeMode(this->Model->transformColumn(), QHeaderView::ResizeToContents);
-  q->header()->setResizeMode(this->Model->idColumn(), QHeaderView::ResizeToContents);
-#else
   q->header()->setSectionResizeMode(this->Model->nameColumn(), QHeaderView::Stretch);
   q->header()->setSectionResizeMode(this->Model->visibilityColumn(), QHeaderView::ResizeToContents);
   q->header()->setSectionResizeMode(this->Model->colorColumn(), QHeaderView::ResizeToContents);
   q->header()->setSectionResizeMode(this->Model->transformColumn(), QHeaderView::ResizeToContents);
   q->header()->setSectionResizeMode(this->Model->idColumn(), QHeaderView::ResizeToContents);
-#endif
 
   // Set generic MRML item delegate
   q->setItemDelegate(new qMRMLItemDelegate(q));
@@ -806,11 +798,7 @@ bool qMRMLSubjectHierarchyTreeView::clickDecoration(QMouseEvent* e)
   Q_D(qMRMLSubjectHierarchyTreeView);
 
   QModelIndex index = this->indexAt(e->pos());
-#if (QT_VERSION < QT_VERSION_CHECK(5, 0, 0))
-  QStyleOptionViewItemV4 opt = this->viewOptions();
-#else
   QStyleOptionViewItem opt = this->viewOptions();
-#endif
   opt.rect = this->visualRect(index);
   qobject_cast<qMRMLItemDelegate*>(this->itemDelegate())->initStyleOption(&opt,index);
   QRect decorationElement = this->style()->subElementRect(QStyle::SE_ItemViewItemDecoration, &opt, this);
