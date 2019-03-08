@@ -41,14 +41,8 @@ class QWebChannel;
 class QWebEngineView;
 #endif
 
-#if (QT_VERSION < QT_VERSION_CHECK(5, 3, 0))
-#ifdef QT_NO_OPENSSL
-struct QSslError{};
-#endif
-#else
 #ifdef QT_NO_SSL
 struct QSslError{};
-#endif
 #endif
 
 class Q_SLICER_BASE_QTGUI_EXPORT qSlicerWebWidget

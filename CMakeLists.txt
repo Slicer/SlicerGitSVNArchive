@@ -556,17 +556,11 @@ set(Slicer_REQUIRED_QT_MODULES
   Svg Sql
   )
 find_package(Qt5 COMPONENTS Core QUIET)
-if(Qt5_VERSION VERSION_LESS "5.6.0")
-  list(APPEND Slicer_REQUIRED_QT_MODULES
-    WebKit
-    )
-else()
   list(APPEND Slicer_REQUIRED_QT_MODULES
     WebEngine
     WebEngineWidgets
     WebChannel
     )
-endif()
 if(Slicer_BUILD_EXTENSIONMANAGER_SUPPORT)
   list(APPEND Slicer_REQUIRED_QT_MODULES Script)
 endif()
@@ -605,11 +599,7 @@ include(SlicerBlockFindQtAndCheckVersion)
 mark_as_superbuild(VARS Qt5_DIR LABELS "FIND_PACKAGE")
 
 set(Slicer_HAVE_QT5 1)
-
-set(Slicer_HAVE_WEBKIT_SUPPORT 1)
-if(Qt5_VERSION VERSION_GREATER "5.5.0")
-  set(Slicer_HAVE_WEBKIT_SUPPORT 0)
-endif()
+set(Slicer_HAVE_WEBKIT_SUPPORT 0)
 
 #
 # If qmake or Qt5Config are associated with a system location, explicitly mark Qt as such. Doing so
