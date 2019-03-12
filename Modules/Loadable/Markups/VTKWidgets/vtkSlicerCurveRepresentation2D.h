@@ -61,7 +61,7 @@ public:
   /// Subclasses of vtkContourCurveRepresentation must implement these methods. These
   /// are the methods that the widget and its representation use to
   /// communicate with each other.
-  void UpdateFromMRML(vtkMRMLNode* caller, unsigned long event, void *callData = NULL) VTK_OVERRIDE;
+  void UpdateFromMRML(vtkMRMLNode* caller, unsigned long event, void *callData = nullptr) VTK_OVERRIDE;
   void CanInteract(const int displayPosition[2], const double worldPosition[3],
     int &foundComponentType, int &foundComponentIndex, double &closestDistance2) VTK_OVERRIDE;
 

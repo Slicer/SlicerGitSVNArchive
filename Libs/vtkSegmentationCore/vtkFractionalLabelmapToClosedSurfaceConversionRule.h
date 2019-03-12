@@ -58,7 +58,7 @@ public:
   virtual bool Convert(vtkDataObject* sourceRepresentation, vtkDataObject* targetRepresentation) VTK_OVERRIDE;
 
   /// Get the cost of the conversion.
-  virtual unsigned int GetConversionCost(vtkDataObject* sourceRepresentation=NULL, vtkDataObject* targetRepresentation=NULL) VTK_OVERRIDE;
+  virtual unsigned int GetConversionCost(vtkDataObject* sourceRepresentation=nullptr, vtkDataObject* targetRepresentation=nullptr) VTK_OVERRIDE;
 
   /// Human-readable name of the converter rule
   virtual const char* GetName() VTK_OVERRIDE { return "Fractional labelmap to closed surface"; };

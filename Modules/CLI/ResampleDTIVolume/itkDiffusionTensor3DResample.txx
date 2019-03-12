@@ -166,7 +166,7 @@ void
 DiffusionTensor3DResample<TInput, TOutput>
 ::AfterThreadedGenerateData()
 {
-  m_Interpolator->SetInputImage( NULL );
+  m_Interpolator->SetInputImage( nullptr );
 }
 
 /**
