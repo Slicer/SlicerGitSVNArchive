@@ -110,7 +110,7 @@ public:
   /// Retrieve color transfer function entry value
   virtual bool GetColor(int entry, double color[4]) VTK_OVERRIDE;
 
-  /// Create default storage node or NULL if does not have one
+  /// Create default storage node or nullptr if does not have one
   virtual vtkMRMLStorageNode* CreateDefaultStorageNode() VTK_OVERRIDE;
 
   /// Get number of entries used when discretizing

@@ -255,7 +255,7 @@ public:
   virtual bool CanApplyNonLinearTransforms()const VTK_OVERRIDE;
   virtual void ApplyTransform(vtkAbstractTransform* transform) VTK_OVERRIDE;
 
-  /// Create default storage node or NULL if does not have one
+  /// Create default storage node or nullptr if does not have one
   virtual vtkMRMLStorageNode* CreateDefaultStorageNode() VTK_OVERRIDE;
 
   /// move a fiducial point in the collection, one up/down

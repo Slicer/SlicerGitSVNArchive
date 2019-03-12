@@ -104,7 +104,7 @@ class VTK_MRML_EXPORT vtkMRMLDiffusionImageVolumeNode : public vtkMRMLTensorVolu
                                    void * /*callData*/ ) VTK_OVERRIDE;
 
   ///
-  /// Create default storage node or NULL if does not have one
+  /// Create default storage node or nullptr if does not have one
   virtual vtkMRMLStorageNode* CreateDefaultStorageNode() VTK_OVERRIDE
     {
     return Superclass::CreateDefaultStorageNode();

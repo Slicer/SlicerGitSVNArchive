@@ -49,7 +49,7 @@ public:
   virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   /// Add unit node to the scene.
-  /// Returns NULL if the logic has no scene.
+  /// Returns nullptr if the logic has no scene.
   vtkMRMLUnitNode* AddUnitNode(const char* name,
     const char* quantity = "length",
     const char* prefix = "",
