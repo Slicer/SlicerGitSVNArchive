@@ -249,6 +249,7 @@ bool vtkSlicerMarkupsWidget::ProcessWidgetReset(vtkMRMLInteractionEventData* vtk
     {
     return false;
     }
+  markupsNode->GetScene()->SaveStateForUndo();
   markupsNode->RemoveAllControlPoints();
   return true;
 }
@@ -282,6 +283,7 @@ bool vtkSlicerMarkupsWidget::ProcessControlPointDelete(vtkMRMLInteractionEventDa
     return false;
     }
 
+  markupsNode->GetScene()->SaveStateForUndo();
   markupsNode->RemoveNthControlPoint(controlPointToDelete);
   return true;
 }
@@ -304,6 +306,7 @@ bool vtkSlicerMarkupsWidget::ProcessWidgetJumpCursor(vtkMRMLInteractionEventData
     {
     return false;
     }
+  markupsNode->GetScene()->SaveStateForUndo();
   vtkNew<vtkMRMLInteractionEventData> jumpToPointEventData;
   jumpToPointEventData->SetType(vtkMRMLMarkupsDisplayNode::JumpToPointEvent);
   jumpToPointEventData->SetComponentType(vtkMRMLMarkupsDisplayNode::ComponentControlPoint);
@@ -550,6 +553,8 @@ void vtkSlicerMarkupsWidget::StartWidgetInteraction(vtkMRMLInteractionEventData*
     {
     return;
     }
+
+  markupsNode->GetScene()->SaveStateForUndo();
 
   //this->GrabFocus(this->EventCallbackCommand);
   //this->StartInteraction();

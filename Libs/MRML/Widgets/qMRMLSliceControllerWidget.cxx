@@ -771,10 +771,7 @@ vtkSmartPointer<vtkCollection> qMRMLSliceControllerWidgetPrivate::saveNodesForUn
     nodes.TakeReference(
       q->mrmlScene()->GetNodesByClass(nodeTypes.toLatin1()));
     }
-  if (nodes.GetPointer())
-    {
-    q->mrmlScene()->SaveStateForUndo(nodes);
-    }
+  q->mrmlScene()->SaveStateForUndo();
   return nodes;
 }
 
@@ -1382,7 +1379,7 @@ void qMRMLSliceControllerWidgetPrivate::setForegroundInterpolation(vtkMRMLSliceL
     volumeNode->GetVolumeDisplayNode()) : 0;
   if (displayNode)
     {
-    q->mrmlScene()->SaveStateForUndo(displayNode);
+    q->mrmlScene()->SaveStateForUndo();
     displayNode->SetInterpolate(linear);
     }
   // historic code that doesn't seem to work
@@ -1390,7 +1387,7 @@ void qMRMLSliceControllerWidgetPrivate::setForegroundInterpolation(vtkMRMLSliceL
   //   sliceLogic->GetForegroundLayer()->GetVolumeDisplayNode());
   // if (displayNode)
   //   {
-  //   q->mrmlScene()->SaveStateForUndo(displayNode);
+  //   q->mrmlScene()->SaveStateForUndo();
   //   displayNode->SetInterpolate(interpolate);
   //   vtkMRMLVolumeNode* volumeNode = sliceLogic->GetForegroundLayer()->GetVolumeNode();
   //   if (volumeNode)
@@ -1410,7 +1407,7 @@ void qMRMLSliceControllerWidgetPrivate::setBackgroundInterpolation(vtkMRMLSliceL
     volumeNode->GetVolumeDisplayNode()) : 0;
   if (displayNode)
     {
-    q->mrmlScene()->SaveStateForUndo(displayNode);
+    q->mrmlScene()->SaveStateForUndo();
     displayNode->SetInterpolate(linear);
     }
   // historic code that doesn't seem to work
@@ -1418,7 +1415,7 @@ void qMRMLSliceControllerWidgetPrivate::setBackgroundInterpolation(vtkMRMLSliceL
   //   sliceLogic->GetBackgroundLayer()->GetVolumeDisplayNode());
   // if (displayNode)
   //   {
-  //   q->mrmlScene()->SaveStateForUndo(displayNode);
+  //   q->mrmlScene()->SaveStateForUndo();
   //   displayNode->SetInterpolate(interpolate);
   //   vtkMRMLVolumeNode* volumeNode = sliceLogic->GetBackgroundLayer()->GetVolumeNode();
   //   if (volumeNode)

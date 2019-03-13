@@ -648,8 +648,6 @@ vtkMRMLVolumeNode* vtkSlicerVolumesLogic::AddArchetypeVolume (
     labelMap = true;
     }
 
-  this->GetMRMLScene()->SaveStateForUndo();
-
   vtkSmartPointer<vtkMRMLVolumeNode> volumeNode;
   vtkSmartPointer<vtkMRMLVolumeDisplayNode> displayNode;
   vtkSmartPointer<vtkMRMLStorageNode> storageNode;
