@@ -62,7 +62,7 @@ public:
   /// toolbar area)
   qSlicerModulesMenu(const QString& title, QWidget* parent = 0);
   qSlicerModulesMenu(QWidget* parent = 0);
-  virtual ~qSlicerModulesMenu();
+  ~qSlicerModulesMenu() override;
 
   ///
   QAction* moduleAction(const QString& moduleName)const;

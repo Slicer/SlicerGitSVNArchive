@@ -45,7 +45,7 @@ public:
   explicit qSlicerSettingsGeneralPanel(QWidget* parent = 0);
 
   /// Destructor
-  virtual ~qSlicerSettingsGeneralPanel();
+  ~qSlicerSettingsGeneralPanel() override;
 
 public slots:
   void setDefaultScenePath(const QString& path);

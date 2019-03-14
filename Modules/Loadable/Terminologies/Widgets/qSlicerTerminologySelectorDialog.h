@@ -45,7 +45,7 @@ public:
   typedef QObject Superclass;
   qSlicerTerminologySelectorDialog(
     qSlicerTerminologyNavigatorWidget::TerminologyInfoBundle &initialTerminologyInfo, QObject* parent = NULL );
-  virtual ~qSlicerTerminologySelectorDialog();
+  ~qSlicerTerminologySelectorDialog() override;
 
 public:
   /// Convenience function to start dialog, initialized with a terminology entry

@@ -60,7 +60,7 @@ public:
   /// Constructor
   explicit qMRMLSegmentSelectorWidget(QWidget* parent = 0);
   /// Destructor
-  virtual ~qMRMLSegmentSelectorWidget();
+  ~qMRMLSegmentSelectorWidget() override;
 
   /// Get currently selected segmentation MRML node
   Q_INVOKABLE vtkMRMLNode* currentNode();

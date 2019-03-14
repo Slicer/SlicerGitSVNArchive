@@ -45,7 +45,7 @@ public:
   explicit qSlicerSettingsExtensionsPanel(QWidget* parent = 0);
 
   /// Destructor
-  virtual ~qSlicerSettingsExtensionsPanel();
+  ~qSlicerSettingsExtensionsPanel() override;
 
 signals:
   void extensionsServerUrlChanged(const QString& url);

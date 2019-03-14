@@ -47,7 +47,7 @@ public:
 
   /// Constructors
   explicit qMRMLSliceInformationWidget(QWidget* parent = 0);
-  virtual ~qMRMLSliceInformationWidget();
+  ~qMRMLSliceInformationWidget() override;
 
   /// Get \a sliceNode
   /// \sa setMRMLSliceCompositeNode();

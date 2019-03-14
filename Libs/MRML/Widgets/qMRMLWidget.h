@@ -39,7 +39,7 @@ class QMRML_WIDGETS_EXPORT qMRMLWidget : public QWidget
 public:
   typedef QWidget Superclass;
   explicit qMRMLWidget(QWidget *parent=0, Qt::WindowFlags f=0);
-  virtual ~qMRMLWidget();
+  ~qMRMLWidget() override;
 
   /// Return a pointer on the current MRML scene
   Q_INVOKABLE vtkMRMLScene* mrmlScene() const;

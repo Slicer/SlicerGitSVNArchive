@@ -52,7 +52,7 @@ public:
   /// Constructor
   explicit qMRMLSegmentationGeometryWidget(QWidget* parent = 0);
   /// Destructor
-  virtual ~qMRMLSegmentationGeometryWidget();
+  ~qMRMLSegmentationGeometryWidget() override;
 
   /// Get segmentation MRML node
   Q_INVOKABLE vtkMRMLSegmentationNode* segmentationNode()const;

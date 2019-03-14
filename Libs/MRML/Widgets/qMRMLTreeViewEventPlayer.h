@@ -40,7 +40,7 @@ public:
   qMRMLTreeViewEventPlayer(QObject* parent = 0);
 
   using Superclass::playEvent;
-  virtual bool playEvent(QObject *Object, const QString &Command, const QString &Arguments, int EventType, bool &Error);
+  bool playEvent(QObject *Object, const QString &Command, const QString &Arguments, int EventType, bool &Error) override;
 
 private:
   qMRMLTreeViewEventPlayer(const qMRMLTreeViewEventPlayer&); // NOT implemented

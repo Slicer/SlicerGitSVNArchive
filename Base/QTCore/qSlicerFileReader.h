@@ -38,7 +38,7 @@ class Q_SLICER_BASE_QTCORE_EXPORT qSlicerFileReader
 public:
   typedef qSlicerIO Superclass;
   explicit qSlicerFileReader(QObject* parent = 0);
-  virtual ~qSlicerFileReader();
+  ~qSlicerFileReader() override;
 
   /// Return  a list of the supported extensions. Please read
   /// QFileDialog::nameFilters for the allowed formats

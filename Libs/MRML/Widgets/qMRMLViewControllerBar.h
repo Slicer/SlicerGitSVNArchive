@@ -58,7 +58,7 @@ public:
 
   /// Constructors
   explicit qMRMLViewControllerBar(QWidget* parent = 0);
-  virtual ~qMRMLViewControllerBar();
+  ~qMRMLViewControllerBar() override;
 
   enum LayoutBehavior {
     Popup=0,

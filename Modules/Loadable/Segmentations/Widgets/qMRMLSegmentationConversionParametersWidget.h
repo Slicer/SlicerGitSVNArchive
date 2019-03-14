@@ -52,7 +52,7 @@ public:
   /// Constructor
   explicit qMRMLSegmentationConversionParametersWidget(QWidget* parent = 0);
   /// Destructor
-  virtual ~qMRMLSegmentationConversionParametersWidget();
+  ~qMRMLSegmentationConversionParametersWidget() override;
 
   /// Get segmentation MRML node
   vtkMRMLNode* segmentationNode();

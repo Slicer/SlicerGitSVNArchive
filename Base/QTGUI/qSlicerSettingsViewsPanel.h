@@ -52,7 +52,7 @@ public:
   explicit qSlicerSettingsViewsPanel(QWidget* parent = 0);
 
   /// Destructor
-  virtual ~qSlicerSettingsViewsPanel();
+  ~qSlicerSettingsViewsPanel() override;
 
   /// Get current value as string
   QString currentMSAA() const;

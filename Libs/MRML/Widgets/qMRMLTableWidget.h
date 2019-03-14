@@ -52,7 +52,7 @@ public:
 
   /// Constructors
   explicit qMRMLTableWidget(QWidget* parent = 0);
-  virtual ~qMRMLTableWidget();
+  ~qMRMLTableWidget() override;
 
   /// Get the tabl node observed by view.
   vtkMRMLTableViewNode* mrmlTableViewNode()const;

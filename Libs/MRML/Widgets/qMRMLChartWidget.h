@@ -48,7 +48,7 @@ public:
 
   /// Constructors
   explicit qMRMLChartWidget(QWidget* parent = 0);
-  virtual ~qMRMLChartWidget();
+  ~qMRMLChartWidget() override;
 
   /// Get the chart node observed by view.
   vtkMRMLChartViewNode* mrmlChartViewNode()const;

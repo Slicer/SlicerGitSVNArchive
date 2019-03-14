@@ -51,7 +51,7 @@ public:
   /// Title is the name of the toolbar (can appear using right click on the toolbar area)
   qSlicerMouseModeToolBar(const QString& title, QWidget* parent = 0);
   qSlicerMouseModeToolBar(QWidget* parent = 0);
-  virtual ~qSlicerMouseModeToolBar();
+  ~qSlicerMouseModeToolBar() override;
 
   /// For testing, return the active action text
   QString activeActionText();

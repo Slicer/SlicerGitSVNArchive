@@ -43,7 +43,7 @@ public:
   explicit qSlicerExtensionsManagerDialog(QWidget* parent = 0);
 
   /// Destructor
-  virtual ~qSlicerExtensionsManagerDialog();
+  ~qSlicerExtensionsManagerDialog() override;
 
   Q_INVOKABLE qSlicerExtensionsManagerModel* extensionsManagerModel()const;
   Q_INVOKABLE void setExtensionsManagerModel(qSlicerExtensionsManagerModel* model);

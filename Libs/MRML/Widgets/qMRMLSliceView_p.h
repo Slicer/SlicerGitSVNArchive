@@ -61,7 +61,7 @@ protected:
   qMRMLSliceView* const q_ptr;
 public:
   qMRMLSliceViewPrivate(qMRMLSliceView& object);
-  ~qMRMLSliceViewPrivate();
+  ~qMRMLSliceViewPrivate() override;
 
   virtual void init();
 

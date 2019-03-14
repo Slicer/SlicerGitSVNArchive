@@ -39,7 +39,7 @@ class Q_SLICER_BASE_QTAPP_EXPORT qSlicerAboutDialog :
   Q_OBJECT
 public:
   qSlicerAboutDialog(QWidget *parentWidget = 0);
-  virtual ~qSlicerAboutDialog();
+  ~qSlicerAboutDialog() override;
 
   Q_INVOKABLE void setLogo(const QPixmap& newLogo);
 

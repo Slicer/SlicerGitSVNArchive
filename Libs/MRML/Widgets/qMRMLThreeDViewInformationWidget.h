@@ -45,7 +45,7 @@ public:
 
   /// Constructors
   explicit qMRMLThreeDViewInformationWidget(QWidget* parent = 0);
-  virtual ~qMRMLThreeDViewInformationWidget();
+  ~qMRMLThreeDViewInformationWidget() override;
 
   /// Get \a viewNode
   vtkMRMLViewNode* mrmlViewNode()const;

@@ -131,10 +131,10 @@ public:
   /// MRMLNode methods
   //--------------------------------------------------------------------------
 
-  virtual vtkMRMLNode* CreateNodeInstance() override;
+  vtkMRMLNode* CreateNodeInstance() override;
 
   /// Get node XML tag name (like Volume, Model)
-  virtual const char* GetNodeTagName() override
+  const char* GetNodeTagName() override
   {
     return "CustomView";
   }

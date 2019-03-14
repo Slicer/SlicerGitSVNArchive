@@ -46,7 +46,7 @@ public:
   explicit qSlicerSettingsStylesPanel(QWidget* parent = 0);
 
   /// Destructor
-  virtual ~qSlicerSettingsStylesPanel();
+  ~qSlicerSettingsStylesPanel() override;
 
   /// Return list of all available styles.
   ///

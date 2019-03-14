@@ -47,7 +47,7 @@ public:
 
   /// Constructors
   explicit qMRMLSliceView(QWidget* parent = 0);
-  virtual ~qMRMLSliceView();
+  ~qMRMLSliceView() override;
 
   /// Add a displayable manager to the view,
   /// the displayable manager is proper to the 2D view and is not shared

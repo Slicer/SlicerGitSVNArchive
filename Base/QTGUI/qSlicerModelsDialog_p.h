@@ -54,7 +54,7 @@ protected:
   qSlicerModelsDialog* const q_ptr;
 public:
   explicit qSlicerModelsDialogPrivate(qSlicerModelsDialog& object, QWidget* parentWidget = 0);
-  virtual ~qSlicerModelsDialogPrivate();
+  ~qSlicerModelsDialogPrivate() override;
 
   void init();
 
