@@ -168,12 +168,8 @@ set(variables ${expected_variables})
 #-----------------------------------------------------------------------------
 # Handle Qt configuration
 #-----------------------------------------------------------------------------
-if(NOT DEFINED QT_QMAKE_EXECUTABLE AND NOT DEFINED Qt5_DIR)
-  message(FATAL_ERROR "Either QT_QMAKE_EXECUTABLE (for Qt4) or Qt5_DIR (for Qt5) should be defined in top-level script")
-endif()
-if(DEFINED QT_QMAKE_EXECUTABLE)
-  set(QT_CACHE_ENTRY "QT_QMAKE_EXECUTABLE:FILEPATH=${QT_QMAKE_EXECUTABLE}")
-  list(APPEND variables QT_QMAKE_EXECUTABLE)
+if(NOT DEFINED Qt5_DIR)
+  message(FATAL_ERROR "Qt5_DIR should be defined in top-level script")
 endif()
 if(DEFINED Qt5_DIR)
   set(QT_CACHE_ENTRY "Qt5_DIR:PATH=${Qt5_DIR}")
