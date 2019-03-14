@@ -69,6 +69,12 @@ GrowCutSegmentationImageFilter<TInputImage, TOutputImage, TWeightPixelType>
   m_UnknownLabel = static_cast<OutputPixelType>( NumericTraits<OutputPixelType>::ZeroValue() );
 
   m_Radius.Fill(1);
+
+  // Keep using the ITKv4 threading system.
+  // This class could be updated to use the ITKv5 dynamic threading system in the future
+  // Check the ITK migration guide:
+  // https://github.com/InsightSoftwareConsortium/ITK/blob/master/Documentation/ITK5MigrationGuide.md
+  this->DynamicMultiThreadingOff();
 }
 
 
@@ -478,6 +484,9 @@ MaskSegmentedImageByWeight( float confThresh)
 }
 
 
+// TODO: The class overrides both: GenerateData and ThreadedGenerateData
+// This is wrong. See Issue in Mantis for details:
+// https://issues.slicer.org/view.php?id=4679
 template <class TInputImage, class TOutputImage, class TWeightPixelType>
 void
 GrowCutSegmentationImageFilter<TInputImage, TOutputImage, TWeightPixelType>
@@ -491,6 +500,12 @@ GrowCutSegmentationImageFilter<TInputImage, TOutputImage, TWeightPixelType>
   typename OutputImageType::Pointer output = this->GetOutput();
   this->Initialize(output);
 
+  // TODO: RunOneIteration does the opposite of what is intended.
+  // Superclass::GenerateData will call this class ThreadedGenerateData, so it will run multi-threaded.
+  // If m_RunOneIteration is false, ThreadedGenerateData is NOT called.
+  // To update to ITKv5, remove GenerateData, change the name of ThreadedGenerateData to
+  // DynamicThreadedGenerateData and that's it.
+  // Test if both implementations, GenerateData and ThreadedGenerateData and equivalent.
   if(m_RunOneIteration)
     {
     Superclass::GenerateData();
