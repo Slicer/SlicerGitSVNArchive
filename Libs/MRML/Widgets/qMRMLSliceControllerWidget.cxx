@@ -71,16 +71,6 @@ qMRMLSliceControllerWidgetPrivate::qMRMLSliceControllerWidgetPrivate(qMRMLSliceC
 
   this->ControllerButtonGroup = 0;
 
-  qMRMLOrientation axialOrientation = {qMRMLSliceControllerWidget::tr("S: "), qMRMLSliceControllerWidget::tr("I <-----> S")};
-  qMRMLOrientation sagittalOrientation = {qMRMLSliceControllerWidget::tr("R: "), qMRMLSliceControllerWidget::tr("L <-----> R")};
-  qMRMLOrientation coronalOrientation = {qMRMLSliceControllerWidget::tr("A: "), qMRMLSliceControllerWidget::tr("P <-----> A")};
-  qMRMLOrientation obliqueOrientation = {qMRMLSliceControllerWidget::tr(""), qMRMLSliceControllerWidget::tr("Oblique")};
-
-  this->SliceOrientationToDescription["Axial"] = axialOrientation;
-  this->SliceOrientationToDescription["Sagittal"] = sagittalOrientation;
-  this->SliceOrientationToDescription["Coronal"] = coronalOrientation;
-  this->SliceOrientationToDescription["Reformat"] = obliqueOrientation;
-
   this->LastLabelMapOpacity = 1.;
   this->LastForegroundOpacity = 1.;
   this->LastBackgroundOpacity = 1.;
@@ -873,10 +863,11 @@ void qMRMLSliceControllerWidgetPrivate::updateWidgetFromMRMLSliceNode()
   Self::updateSliceOrientationSelector(this->MRMLSliceNode, this->SliceOrientationSelector);
 
   // Update slice offset slider tooltip
-  qMRMLOrientation orientation = this->mrmlOrientation(
-      QString::fromStdString(this->MRMLSliceNode->GetOrientation().c_str()));
-  this->SliceOffsetSlider->setToolTip(orientation.ToolTip);
-  this->SliceOffsetSlider->setPrefix(orientation.Prefix);
+  std::string orientation = this->MRMLSliceNode->GetOrientation();
+  this->SliceOffsetSlider->setToolTip(
+    qMRMLSliceControllerWidget::tr(this->MRMLSliceNode->GetSliceOrientationPresetTooltip(orientation).c_str()));
+  this->SliceOffsetSlider->setPrefix(
+    qMRMLSliceControllerWidget::tr(this->MRMLSliceNode->GetSliceOrientationPresetPrefix(orientation).c_str()));
 
   // Update slice visibility toggle
   this->actionShow_in_3D->setChecked(this->MRMLSliceNode->GetSliceVisible());
@@ -1510,18 +1501,6 @@ void qMRMLSliceControllerWidgetPrivate::setupRulerMenu()
   rulerMenu->setObjectName("rulerMenu");
   this->RulerButton->setMenu(rulerMenu);
   rulerMenu->addActions(rulerTypesActions->actions());
-}
-
-// --------------------------------------------------------------------------
-qMRMLOrientation qMRMLSliceControllerWidgetPrivate::mrmlOrientation(const QString &name)
-{
-  QHash<QString, qMRMLOrientation>::iterator it = this->SliceOrientationToDescription.find(name);
-  if (it != this->SliceOrientationToDescription.end())
-    {
-    return it.value();
-    }
-  qMRMLOrientation obliqueOrientation = {qMRMLSliceControllerWidget::tr(""), qMRMLSliceControllerWidget::tr("Oblique")};
-  return obliqueOrientation;
 }
 
 // --------------------------------------------------------------------------
