@@ -435,7 +435,6 @@ std::string vtkMRMLMarkupsFiducialStorageNode::GetPointAsString(vtkMRMLMarkupsNo
   itk::NumberToString<double> DoubleConvert;
 
   std::stringstream of;
-  //of.precision(3);
   of.setf(std::ios::fixed, std::ios::floatfield);
   of << id.c_str();
   of << separator << DoubleConvert(xyz[0]) << separator << DoubleConvert(xyz[1]) << separator << DoubleConvert(xyz[2]);
