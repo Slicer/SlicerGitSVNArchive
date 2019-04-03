@@ -153,6 +153,8 @@ void vtkSliceIntersectionWidget::UpdateInteractionEventMapping()
       WidgetStateZoomSlice, WidgetEventZoomSliceStart, WidgetEventZoomSliceEnd);
     this->SetEventTranslation(WidgetStateIdle, vtkCommand::MouseWheelForwardEvent, vtkEvent::ControlModifier, WidgetEventZoomOutSlice);
     this->SetEventTranslation(WidgetStateIdle, vtkCommand::MouseWheelBackwardEvent, vtkEvent::ControlModifier, WidgetEventZoomInSlice);
+    // Touchpad slice zoom
+    this->SetEventTranslation(WidgetStateIdle, vtkCommand::PinchEvent, vtkEvent::AnyModifier, WidgetEventTouchpadPinchZoom);
     }
 
   if (this->GetActionEnabled(ActionTranslate))
@@ -161,6 +163,8 @@ void vtkSliceIntersectionWidget::UpdateInteractionEventMapping()
       WidgetStateTranslateSlice, WidgetEventTranslateSliceStart, WidgetEventTranslateSliceEnd);
     this->SetEventTranslationClickAndDrag(WidgetStateIdle, vtkCommand::MiddleButtonPressEvent, vtkEvent::NoModifier,
       WidgetStateTranslateSlice, WidgetEventTranslateSliceStart, WidgetEventTranslateSliceEnd);
+    // Touchpad slice translate
+    this->SetEventTranslation(WidgetStateIdle, vtkCommand::PanEvent, vtkEvent::AnyModifier, WidgetEventTouchpadPanTranslate);
     }
 
   if (this->GetActionEnabled(ActionAdjustWindowLevelBackground) || this->GetActionEnabled(ActionAdjustWindowLevelForeground))
@@ -263,12 +267,18 @@ bool vtkSliceIntersectionWidget::ProcessInteractionEvent(vtkMRMLInteractionEvent
   switch (widgetEvent)
     {
     case WidgetEventMouseMove:
-    // click-and-dragging the mouse cursor
+      // click-and-dragging the mouse cursor
       processedEvent = this->ProcessMouseMove(eventData);
       break;
     case WidgetEventTouchpadRotateSliceIntersection:
       // TODO: save state when the gesture starts. Need to get an event from Qt via VTK.
       this->Rotate(-1.0*vtkMath::RadiansFromDegrees(eventData->GetRotation() - eventData->GetLastRotation()));
+      break;
+    case WidgetEventTouchpadPinchZoom:
+      this->ProcessPinchZoom(eventData);
+      break;
+    case WidgetEventTouchpadPanTranslate:
+      this->ProcessPanTranslate(eventData);
       break;
     case WidgetEventTranslateStart:
       this->SetWidgetState(WidgetStateTranslate);
@@ -497,6 +507,31 @@ bool vtkSliceIntersectionWidget::ProcessEndMouseDrag(vtkMRMLInteractionEventData
     return false;
     }
   this->SetWidgetState(WidgetStateIdle);
+  return true;
+}
+
+//-------------------------------------------------------------------------
+bool vtkSliceIntersectionWidget::ProcessPinchZoom(vtkMRMLInteractionEventData* eventData)
+{
+  this->ScaleZoom(1.0/eventData->GetScale(), eventData);
+  return true;
+}
+
+//-------------------------------------------------------------------------
+bool vtkSliceIntersectionWidget::ProcessPanTranslate(vtkMRMLInteractionEventData* eventData)
+{
+  vtkMRMLSliceNode *sliceNode = this->SliceLogic->GetSliceNode();
+
+  vtkMatrix4x4* xyToSlice = sliceNode->GetXYToSlice();
+  const double* delta = eventData->GetTranslation();
+
+  double deltaX = xyToSlice->GetElement(0, 0)*(delta[0]);
+  double deltaY = xyToSlice->GetElement(1, 1)*(delta[1]);
+
+  double sliceOrigin[3];
+  sliceNode->GetXYZOrigin(sliceOrigin);
+  sliceNode->SetSliceOrigin(sliceOrigin[0] - deltaX, sliceOrigin[1] - deltaY, 0);
+
   return true;
 }
 
@@ -1055,6 +1090,7 @@ void vtkSliceIntersectionWidget::ScaleZoom(double zoomScaleFactor, vtkMRMLIntera
     return;
     }
   vtkMRMLSliceNode *sliceNode = this->SliceLogic->GetSliceNode();
+  int wasModifying = sliceNode->StartModify();
 
   // Get distance of event position from slice center
   const int* eventPosition = eventData->GetDisplayPosition();
@@ -1082,6 +1118,7 @@ void vtkSliceIntersectionWidget::ScaleZoom(double zoomScaleFactor, vtkMRMLIntera
     sliceOrigin[2]);
 
   sliceNode->UpdateMatrices();
+  sliceNode->EndModify(wasModifying);
 }
 
 //----------------------------------------------------------------------------

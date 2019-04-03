@@ -33,6 +33,7 @@
 #include <vtkPoints.h>
 #include <vtkRenderWindowInteractor.h>
 #include <vtkRenderer.h>
+#include <vtkTransform.h>
 #include <vtkWorldPointPicker.h>
 
 
@@ -531,6 +532,81 @@ void vtkThreeDViewInteractorStyle::OnLeave()
     {
     crosshairNode->SetCursorPositionInvalid();
     }
+}
+
+//----------------------------------------------------------------------------
+void vtkThreeDViewInteractorStyle::OnPinch()
+{
+  int pointer = this->Interactor->GetPointerIndex();
+
+  this->FindPokedRenderer(this->Interactor->GetEventPositions(pointer)[0],
+                          this->Interactor->GetEventPositions(pointer)[1]);
+
+  if ( this->CurrentRenderer == nullptr )
+    {
+    return;
+    }
+
+  this->GrabFocus(this->EventCallbackCommand);
+  this->StartDolly();
+  this->Dolly(this->Interactor->GetScale());
+  this->EndDolly();
+  this->ReleaseFocus();
+}
+
+//----------------------------------------------------------------------------
+void vtkThreeDViewInteractorStyle::OnRotate()
+{
+  if (this->CurrentRenderer == nullptr)
+    {
+  return;
+    }
+
+  vtkCamera *camera = this->CurrentRenderer->GetActiveCamera();
+  camera->Roll(-1.0*(this->Interactor->GetRotation() - this->Interactor->GetLastRotation()));
+  camera->OrthogonalizeViewUp();
+
+  this->Interactor->Render();
+  this->InvokeEvent(vtkCommand::RotateEvent);
+}
+
+//----------------------------------------------------------------------------
+void vtkThreeDViewInteractorStyle::OnPan()
+{
+  if (!this->CameraNode)
+    {
+    return;
+    }
+
+  vtkCamera *camera = this->CameraNode->GetCamera();
+  if (!camera)
+    {
+    return;
+    }
+
+  double* translation = this->Interactor->GetTranslation();
+  double deltaView[3] = {-translation[0], -translation[1], 0.0};
+
+  double worldFocus[4];
+  camera->GetFocalPoint(worldFocus);
+
+  double viewFocus[4];
+  this->ComputeWorldToDisplay(worldFocus[0], worldFocus[1], worldFocus[2],
+                              viewFocus);
+
+  double newWorldFocus[4];
+  this->ComputeDisplayToWorld(viewFocus[0] + deltaView[0],
+                              viewFocus[1] + deltaView[1],
+                              viewFocus[2] + deltaView[2],
+                              newWorldFocus);
+
+  double deltaWorld[4];
+  vtkMath::Subtract(newWorldFocus, worldFocus, deltaWorld);
+
+  vtkNew<vtkTransform> deltaWorldTransform;
+  deltaWorldTransform->Identity();
+  deltaWorldTransform->Translate(deltaWorld);
+  camera->ApplyTransform(deltaWorldTransform);
 }
 
 //----------------------------------------------------------------------------

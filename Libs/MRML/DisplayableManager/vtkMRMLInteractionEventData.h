@@ -131,6 +131,16 @@ public:
   void SetLastRotation(double v) { this->LastRotation = v; }
   double GetLastRotation() { return this->LastRotation; }
 
+  void SetScale(double scale) { this->Scale = scale; }
+  double GetScale() const { return this->Scale; }
+
+  void SetTranslation(const double translation[2])
+    {
+    this->Translation[0] = translation[0];
+    this->Translation[1] = translation[1];
+    }
+  const double *GetTranslation() const { return this->Translation; }
+
   /// Set Modifiers and Key... attributes from interactor
   void SetAttributesFromInteractor(vtkRenderWindowInteractor* interactor)
     {
@@ -153,6 +163,9 @@ public:
 
     this->Rotation = interactor->GetRotation();
     this->LastRotation = interactor->GetLastRotation();
+
+    this->Scale = interactor->GetScale();
+    this->SetTranslation(interactor->GetTranslation());
     }
 
 protected:
@@ -173,6 +186,8 @@ protected:
   // MacOSX touchpad events
   double Rotation;
   double LastRotation;
+  double Scale;
+  double Translation[2];
 
   bool Equivalent(const vtkEventData *e) const override
     {
