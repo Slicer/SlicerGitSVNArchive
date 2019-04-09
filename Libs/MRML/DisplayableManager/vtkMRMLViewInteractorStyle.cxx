@@ -216,6 +216,56 @@ void vtkMRMLViewInteractorStyle::OnConfigure()
 }
 
 //----------------------------------------------------------------------------
+void vtkMRMLViewInteractorStyle::OnPinch()
+{
+  if (this->DelegateInteractionEventToDisplayableManagers(vtkCommand::PinchEvent))
+    {
+    return;
+    }
+  this->Superclass::OnPinch();
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLViewInteractorStyle::OnRotate()
+{
+  if (this->DelegateInteractionEventToDisplayableManagers(vtkCommand::RotateEvent))
+    {
+    return;
+    }
+  this->Superclass::OnRotate();
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLViewInteractorStyle::OnPan()
+{
+  if (this->DelegateInteractionEventToDisplayableManagers(vtkCommand::PanEvent))
+    {
+    return;
+    }
+  this->Superclass::OnPan();
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLViewInteractorStyle::OnTap()
+{
+  if (this->DelegateInteractionEventToDisplayableManagers(vtkCommand::TapEvent))
+    {
+    return;
+    }
+  this->Superclass::OnTap();
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLViewInteractorStyle::OnLongTap()
+{
+  if (this->DelegateInteractionEventToDisplayableManagers(vtkCommand::LongTapEvent))
+    {
+    return;
+    }
+  this->Superclass::OnLongTap();
+}
+
+//----------------------------------------------------------------------------
 void vtkMRMLViewInteractorStyle::SetDisplayableManagers(vtkMRMLDisplayableManagerGroup* displayableManagerGroup)
 {
   this->DisplayableManagers = displayableManagerGroup;

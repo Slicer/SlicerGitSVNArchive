@@ -385,22 +385,6 @@ void vtkMRMLModelDisplayableManager::PrintSelf ( ostream& os, vtkIndent indent )
   os << indent << "PickedPointID = " << this->Internal->PickedPointID << "\n";
 }
 
-//---------------------------------------------------------------------------
-void vtkMRMLModelDisplayableManager::AdditionalInitializeStep()
-{
-  /*
-  vtkRenderWindowInteractor * interactor = this->GetInteractor();
-  if (interactor)
-    {
-    vtkMRMLThreeDViewInteractorStyle * interactorStyle =
-        vtkMRMLThreeDViewInteractorStyle::SafeDownCast(interactor->GetInteractorStyle());
-    if (interactorStyle)
-      {
-      interactorStyle->SetModelDisplayableManager(this);
-      }
-    }
-    */
-}
 
 //---------------------------------------------------------------------------
 int vtkMRMLModelDisplayableManager::ActiveInteractionModes()

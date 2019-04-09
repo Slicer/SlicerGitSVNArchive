@@ -80,38 +80,42 @@ public:
   /// Widget events
   enum
     {
-    WidgetCameraRotateToRight = WidgetEventUser,
-    WidgetCameraRotateToLeft,
-    WidgetCameraRotateToAnterior,
-    WidgetCameraRotateToPosterior,
-    WidgetCameraRotateToSuperior,
-    WidgetCameraRotateToInferior,
+    WidgetEventCameraRotateToRight = WidgetEventUser,
+    WidgetEventCameraRotateToLeft,
+    WidgetEventCameraRotateToAnterior,
+    WidgetEventCameraRotateToPosterior,
+    WidgetEventCameraRotateToSuperior,
+    WidgetEventCameraRotateToInferior,
 
-    WidgetCameraTranslateForwardX,
-    WidgetCameraTranslateBackwardX,
-    WidgetCameraTranslateForwardY,
-    WidgetCameraTranslateBackwardY,
-    WidgetCameraTranslateForwardZ,
-    WidgetCameraTranslateBackwardZ,
+    WidgetEventCameraTranslateForwardX,
+    WidgetEventCameraTranslateBackwardX,
+    WidgetEventCameraTranslateForwardY,
+    WidgetEventCameraTranslateBackwardY,
+    WidgetEventCameraTranslateForwardZ,
+    WidgetEventCameraTranslateBackwardZ,
 
-    WidgetCameraRotateCcwX,
-    WidgetCameraRotateCwX,
-    WidgetCameraRotateCcwY,
-    WidgetCameraRotateCwY,
-    WidgetCameraRotateCcwZ,
-    WidgetCameraRotateCwZ,
+    WidgetEventCameraRotateCcwX,
+    WidgetEventCameraRotateCwX,
+    WidgetEventCameraRotateCcwY,
+    WidgetEventCameraRotateCwY,
+    WidgetEventCameraRotateCcwZ,
+    WidgetEventCameraRotateCwZ,
 
-    WidgetCameraZoomIn,
-    WidgetCameraZoomOut,
-    WidgetCameraWheelZoomIn, // same as WidgetCameraZoomIn but with using wheel scaling factor
-    WidgetCameraWheelZoomOut,
+    WidgetEventCameraZoomIn,
+    WidgetEventCameraZoomOut,
+    WidgetEventCameraWheelZoomIn, // same as WidgetEventCameraZoomIn but with using wheel scaling factor
+    WidgetEventCameraWheelZoomOut,
 
-    WidgetCameraReset,
-    WidgetCameraResetTranslation,
-    WidgetCameraResetRotation,
+    WidgetEventCameraReset,
+    WidgetEventCameraResetTranslation,
+    WidgetEventCameraResetRotation,
 
-    WidgetCameraRotate,
-    WidgetCameraPan,
+    WidgetEventCameraRotate,
+    WidgetEventCameraPan,
+
+    WidgetEventTouchpadSpinCamera,
+    WidgetEventTouchpadPinchZoom,
+    WidgetEventTouchpadPanTranslate,
 
     WidgetEventSetCrosshairPosition,
     };
@@ -137,6 +141,10 @@ protected:
   bool ProcessScale(vtkMRMLInteractionEventData* eventData);
   bool ProcessSpin(vtkMRMLInteractionEventData* eventData);
   bool ProcessSetCrosshair(vtkMRMLInteractionEventData* eventData);
+
+  bool ProcessTouchpadCameraSpin(vtkMRMLInteractionEventData* eventData);
+  bool ProcessTouchpadCameraZoom(vtkMRMLInteractionEventData* eventData);
+  bool ProcessTouchpadCameraTranslate(vtkMRMLInteractionEventData* eventData);
 
   bool Dolly(double factor);
   vtkCamera* GetCamera();

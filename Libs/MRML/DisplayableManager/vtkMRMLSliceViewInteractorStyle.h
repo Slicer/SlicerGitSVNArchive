@@ -60,8 +60,6 @@ public:
   /// Return true if the event is processed.
   bool DelegateInteractionEventToDisplayableManagers(unsigned long event);
 
-  /// Internal state management for multi-event sequences (like click-drag-release)
-
   /// Action State values and management
   enum
     {
@@ -112,11 +110,6 @@ protected:
   void SetMouseCursor(int cursor);
 
   vtkMRMLSliceLogic *SliceLogic;
-
-  //bool MouseMovedSinceButtonDown;
-
-  //vtkSmartPointer<vtkTimerLog> ClickTimer;
-  //int NumberOfClicks;
 
   bool EnableCursorUpdate;
 

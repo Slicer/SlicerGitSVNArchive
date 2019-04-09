@@ -91,6 +91,12 @@ public:
   void SetLastRotation(double v);
   double GetLastRotation() const;
 
+  void SetScale(double scale);
+  double GetScale() const;
+
+  void SetTranslation(const double translation[2]);
+  const double *GetTranslation() const;
+
   /// Set Modifiers and Key... attributes from interactor
   void SetAttributesFromInteractor(vtkRenderWindowInteractor* interactor);
 
@@ -122,6 +128,8 @@ protected:
   // MacOSX touchpad events
   double Rotation;
   double LastRotation;
+  double Scale;
+  double Translation[2];
 
   bool Equivalent(const vtkEventData *e) const override;
 

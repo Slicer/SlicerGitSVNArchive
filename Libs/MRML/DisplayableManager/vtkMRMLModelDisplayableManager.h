@@ -159,7 +159,6 @@ protected:
   vtkMRMLModelDisplayableManager();
   ~vtkMRMLModelDisplayableManager() override;
 
-  void AdditionalInitializeStep() override;
   int ActiveInteractionModes() override;
 
   void UnobserveMRMLScene() override;
