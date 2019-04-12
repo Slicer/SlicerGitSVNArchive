@@ -914,7 +914,10 @@ void qSlicerCoreApplication::handleCommandLineArguments()
           );
 
     // Clean memory
-    for(int i = 0; i < pythonArgc; ++i){ delete[] pythonArgv[i];}
+    // Don't free pythonArgv[0], the argument to Py_SetProgramName
+    // must remain valid until Py_FinalizeEx is called.
+    // TODO: maybe all pythonArgv should remain valid until Py_FinalizeEx is called.
+    for(int i = 1; i < pythonArgc; ++i){ delete[] pythonArgv[i];}
     delete[] pythonArgv;
 
     // Attempt to load Slicer RC file only if 'display...AndExit' options are not True
