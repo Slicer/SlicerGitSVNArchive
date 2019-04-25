@@ -278,7 +278,7 @@ QList<QMenu*> qSlicerModulesMenuPrivate::categoryMenus(QMenu* topLevelMenu, QStr
     if (action->text() == category)
       {
       QList<QMenu*> menus;
-      menus.append(topLevelMenu);
+      menus.append(action->menu());
       menus.append(this->categoryMenus(action->menu(), subCategories));
       return menus;
       }
@@ -397,8 +397,9 @@ bool qSlicerModulesMenu::removeCategory(const QString& categoryName)
 {
   Q_D(qSlicerModulesMenu);
   QMenu* parentCategory = this;
-  QList<QMenu*> menus = d->categoryMenus(parentCategory, categoryName.split('.'));
-  if (menus.isEmpty())
+  QStringList categoryNames = categoryName.split('.');
+  QList<QMenu*> menus = d->categoryMenus(parentCategory, categoryNames);
+  if (menus.isEmpty() || menus.count() != categoryNames.count())
     {
     return false;
     }
