@@ -36,7 +36,6 @@ vtkMRMLNodeNewMacro(vtkMRMLShaderPropertyNode);
 //----------------------------------------------------------------------------
 vtkMRMLShaderPropertyNode::vtkMRMLShaderPropertyNode()
   : ShaderProperty(nullptr)
-  , DisabledModify(0)
 {
   this->ObservedEvents = vtkIntArray::New();
   this->ObservedEvents->InsertNextValue(vtkCommand::ModifiedEvent);
@@ -108,22 +107,16 @@ void vtkMRMLShaderPropertyNode::Copy(vtkMRMLNode *anode)
 
   this->Superclass::Copy(anode);
 
-  this->CopyParameterSet(anode);
-
-  this->EndModify(disabledModify);
-}
-
-//----------------------------------------------------------------------------
-void vtkMRMLShaderPropertyNode::CopyParameterSet(vtkMRMLNode *anode)
-{
   vtkMRMLShaderPropertyNode *node = vtkMRMLShaderPropertyNode::SafeDownCast(anode);
   if (!node)
     {
     vtkErrorMacro("CopyParameterSet: Invalid input MRML node");
-    return;
     }
+  else {
+    this->ShaderProperty->DeepCopy( node->ShaderProperty);
+  }
 
-  this->ShaderProperty->DeepCopy( node->ShaderProperty);
+  this->EndModify(disabledModify);
 }
 
 //----------------------------------------------------------------------------

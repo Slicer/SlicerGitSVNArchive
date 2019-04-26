@@ -68,10 +68,6 @@ public:
   /// Copy the node's attributes to this object
   virtual void Copy(vtkMRMLNode *node) VTK_OVERRIDE;
 
-  /// Copy only the parameter set (like volume properties, piecewise functions
-  /// etc. as deep copy, but no references etc.)
-  void CopyParameterSet(vtkMRMLNode *node);
-
   /// Get node XML tag name (like Volume, Model)
   virtual const char* GetNodeTagName() VTK_OVERRIDE {return "ShaderProperty";}
 
@@ -94,9 +90,6 @@ protected:
 
   /// Main parameters for visualization
   vtkShaderProperty* ShaderProperty;
-
-  /// Keep track of state of disable modified events
-  int DisabledModify;
 
 private:
   vtkMRMLShaderPropertyNode(const vtkMRMLShaderPropertyNode&) = delete;
