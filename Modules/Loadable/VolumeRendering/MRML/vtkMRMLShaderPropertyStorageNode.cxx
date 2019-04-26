@@ -106,7 +106,7 @@ void DecodeMatrix(const Json::Value & json, std::vector<ScalarType> & values)
     for(Json::ArrayIndex columnIndex = 0; columnIndex < nbCols; ++columnIndex)
       {
       ScalarType value;
-      DecodeValue(row[rowIndex], value);
+      DecodeValue(row[columnIndex], value);
       values.push_back(value);
       }
     }
