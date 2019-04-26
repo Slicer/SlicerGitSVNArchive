@@ -114,7 +114,7 @@ void DecodeMatrix(const Json::Value & json, std::vector<ScalarType> & values)
 
 //----------------------------------------------------------------------------
 template< typename ScalarType >
-void DecodeValues(const Json::Value & json, vtkUniforms::TupleType tupleType, int nbComponents, int nbTuples, std::vector<ScalarType> & values)
+void DecodeValues(const Json::Value & json, vtkUniforms::TupleType tupleType, int vtkNotUsed(nbComponents), int nbTuples, std::vector<ScalarType> & values)
 {
   if(nbTuples == 1)
     {
