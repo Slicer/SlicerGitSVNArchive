@@ -141,19 +141,21 @@ void DecodeValues(const Json::Value & json, vtkUniforms::TupleType tupleType, in
       }
     else if(tupleType == vtkUniforms::TupleTypeVector)
       {
-      for(Json::ArrayIndex index = 0; index < json.size(); ++index)
+      Json::Value jsonTuple = json["value"];
+      for(Json::ArrayIndex index = 0; index < jsonTuple.size(); ++index)
         {
         std::vector<ScalarType> tuple;
-        DecodeTuple(json[index], tuple);
+        DecodeTuple(jsonTuple[index], tuple);
         values.insert(values.end(), tuple.begin(), tuple.end());
         }
       }
     else if(tupleType == vtkUniforms::TupleTypeMatrix)
       {
-      for(Json::ArrayIndex index = 0; index < json.size(); ++index)
+      Json::Value jsonTuple = json["value"];
+      for(Json::ArrayIndex index = 0; index < jsonTuple.size(); ++index)
         {
         std::vector<ScalarType> matrix;
-        DecodeMatrix(json[index], matrix);
+        DecodeMatrix(jsonTuple[index], matrix);
         values.insert(values.end(), matrix.begin(), matrix.end());
         }
       }
@@ -215,6 +217,29 @@ int vtkMRMLShaderPropertyStorageNode::ReadDataInternal(vtkMRMLNode *refNode)
   reader.parse(ifs, root, false);
   ifs.close();
 
+  vtkShaderProperty * sp = spNode->GetShaderProperty();
+
+  // Read vertex shader code
+  std::string vertexShaderCode = root["VertexShaderCode"].asString();
+  if(!vertexShaderCode.empty())
+    {
+    sp->SetVertexShaderCode(vertexShaderCode.c_str());
+    }
+
+  // Read fragment shader code
+  std::string fragmentShaderCode = root["FragmentShaderCode"].asString();
+  if(!fragmentShaderCode.empty())
+    {
+    sp->SetFragmentShaderCode(fragmentShaderCode.c_str());
+    }
+
+  // Read geometry shader code
+  std::string geometryShaderCode = root["GeometryShaderCode"].asString();
+  if(!geometryShaderCode.empty())
+    {
+    sp->SetGeometryShaderCode(geometryShaderCode.c_str());
+    }
+
   // Read vertex shader uniform variables
   Json::Value vertexUniforms = root["VertexUniforms"];
   ReadUniforms(vertexUniforms, spNode->GetVertexUniforms());
@@ -223,8 +248,11 @@ int vtkMRMLShaderPropertyStorageNode::ReadDataInternal(vtkMRMLNode *refNode)
   Json::Value fragmentUniforms = root["FragmentUniforms"];
   ReadUniforms(fragmentUniforms, spNode->GetFragmentUniforms());
 
+  // Read fragment shader uniform variables
+  Json::Value geometryUniforms = root["GeometryUniforms"];
+  ReadUniforms(geometryUniforms, spNode->GetGeometryUniforms());
+
   // Read shader replacements
-  vtkShaderProperty * sp = spNode->GetShaderProperty();
   Json::Value shaderReplacement = root["ShaderReplacements"];
   for(Json::ArrayIndex i = 0; i < shaderReplacement.size(); ++i)
     {
@@ -242,6 +270,10 @@ int vtkMRMLShaderPropertyStorageNode::ReadDataInternal(vtkMRMLNode *refNode)
       {
       sp->AddFragmentShaderReplacement(replacementSpec, replaceFirst, replacementValue, replaceAll);
       }
+    else if(shaderType == std::string("Geometry"))
+      {
+      sp->AddGeometryShaderReplacement(replacementSpec, replaceFirst, replacementValue, replaceAll);
+      }
     }
 
   return 1;
@@ -252,7 +284,7 @@ namespace
 
 //----------------------------------------------------------------------------
 template< typename MatrixValueType >
-Json::Value EncodeMatrix(const std::vector<MatrixValueType> & matrix, Json::ArrayIndex matrixWidth)
+Json::Value EncodeMatrix(const std::vector<MatrixValueType> & matrix, Json::ArrayIndex matrixWidth, Json::ArrayIndex offset = 0)
 {
   Json::Value json;
   for(Json::ArrayIndex rowIndex = 0; rowIndex < matrixWidth; ++rowIndex)
@@ -260,7 +292,7 @@ Json::Value EncodeMatrix(const std::vector<MatrixValueType> & matrix, Json::Arra
     Json::Value row;
     for(Json::ArrayIndex columnIndex = 0; columnIndex < matrixWidth; ++columnIndex)
       {
-      row[columnIndex] = matrix[rowIndex * matrixWidth + columnIndex];
+      row[columnIndex] = matrix[offset + rowIndex * matrixWidth + columnIndex];
       }
     json[rowIndex] = row;
     }
@@ -269,13 +301,13 @@ Json::Value EncodeMatrix(const std::vector<MatrixValueType> & matrix, Json::Arra
 
 //----------------------------------------------------------------------------
 template< typename TupleValueType >
-Json::Value EncodeTuple(const std::vector<TupleValueType> & tuple, Json::ArrayIndex tupleLength)
+Json::Value EncodeTuple(const std::vector<TupleValueType> & tuple, Json::ArrayIndex tupleLength, Json::ArrayIndex offset = 0)
 {
   Json::Value json;
   json.resize(tupleLength);
   for(Json::ArrayIndex index = 0; index < tupleLength; ++index)
     {
-    json[index] = tuple[index];
+    json[index] = tuple[index+offset];
     }
   return json;
 }
@@ -311,7 +343,7 @@ void EncodeValues(const std::vector<scalarT> & values, Json::ArrayIndex nbCompon
       json["value"].resize(nbTuples);
       for(Json::ArrayIndex index = 0; index < nbTuples; ++index)
         {
-        json["value"][index] = EncodeTuple(values, nbComponents);
+        json["value"][index] = EncodeTuple(values, nbComponents, index * nbComponents);
         }
       }
     else if(tt == vtkUniforms::TupleTypeMatrix)
@@ -320,7 +352,7 @@ void EncodeValues(const std::vector<scalarT> & values, Json::ArrayIndex nbCompon
       json["value"].resize(nbTuples);
       for(Json::ArrayIndex index = 0; index < nbTuples; ++index)
         {
-        json["value"][index] = EncodeMatrix(values, matrixWidth);
+        json["value"][index] = EncodeMatrix(values, matrixWidth, index * nbComponents);
         }
       }
     }
@@ -391,6 +423,23 @@ int vtkMRMLShaderPropertyStorageNode::WriteDataInternal(vtkMRMLNode *refNode)
 
   Json::Value root;
 
+  vtkShaderProperty * shaderProperty = spNode->GetShaderProperty();
+  if(shaderProperty->HasVertexShaderCode())
+  {
+    std::string vertexShaderCode(shaderProperty->GetVertexShaderCode());
+    root["VertexShaderCode"] = vertexShaderCode;
+  }
+  if(shaderProperty->HasFragmentShaderCode())
+  {
+    std::string fragmentShaderCode(shaderProperty->GetFragmentShaderCode());
+    root["FragmentShaderCode"] = fragmentShaderCode;
+  }
+  if(shaderProperty->HasGeometryShaderCode())
+  {
+    std::string geometryShaderCode(shaderProperty->GetGeometryShaderCode());
+    root["GeometryShaderCode"] = geometryShaderCode;
+  }
+
   // Collect vertex uniforms json structures
   Json::Value vertexUniforms;
   WriteUniforms(spNode->GetVertexUniforms(), vertexUniforms);
@@ -401,8 +450,12 @@ int vtkMRMLShaderPropertyStorageNode::WriteDataInternal(vtkMRMLNode *refNode)
   WriteUniforms(spNode->GetFragmentUniforms(), fragmentUniforms);
   root["FragmentUniforms"] = fragmentUniforms;
 
+  // Collect geometry uniforms json structures
+  Json::Value geometryUniforms;
+  WriteUniforms(spNode->GetGeometryUniforms(), geometryUniforms);
+  root["GeometryUniforms"] = geometryUniforms;
+
   // Collect shader replacements in json structures
-  vtkShaderProperty * shaderProperty = spNode->GetShaderProperty();
   Json::Value replacements;
   replacements.resize(static_cast<Json::ArrayIndex>(shaderProperty->GetNumberOfShaderReplacements()));
   for(Json::ArrayIndex index = 0; index < replacements.size(); ++index)

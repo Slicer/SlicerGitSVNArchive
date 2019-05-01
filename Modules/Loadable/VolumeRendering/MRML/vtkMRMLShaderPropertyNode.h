@@ -53,6 +53,7 @@ public:
   /// Get the list of user-defined uniform variables.
   vtkUniforms * GetVertexUniforms();
   vtkUniforms * GetFragmentUniforms();
+  vtkUniforms * GetGeometryUniforms();
 
   //--------------------------------------------------------------------------
   // MRMLNode methods

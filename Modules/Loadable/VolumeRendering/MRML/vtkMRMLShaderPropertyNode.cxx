@@ -76,6 +76,12 @@ vtkUniforms * vtkMRMLShaderPropertyNode::GetFragmentUniforms()
 }
 
 //----------------------------------------------------------------------------
+vtkUniforms * vtkMRMLShaderPropertyNode::GetGeometryUniforms()
+{
+  return this->ShaderProperty->GetGeometryCustomUniforms();
+}
+
+//----------------------------------------------------------------------------
 void vtkMRMLShaderPropertyNode::WriteXML(ostream& of, int nIndent)
 {
   // Write all attributes not equal to their defaults
