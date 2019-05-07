@@ -72,6 +72,11 @@ set(vtkAddon_SRCS
   vtkStreamingVolumeCodecFactory.h
   vtkRawRGBVolumeCodec.cxx
   vtkRawRGBVolumeCodec.h
+  # From https://github.com/lorensen/midas-journal-838:
+  vtkFrenetSerretFrame.cxx
+  vtkFrenetSerretFrame.h
+  vtkSplineDrivenImageSlicer.cxx
+  vtkSplineDrivenImageSlicer.h
 )
 
 if(Slicer_VTK_RENDERING_USE_OpenGL2_BACKEND)
