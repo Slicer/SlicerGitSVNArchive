@@ -43,6 +43,7 @@ class QMRML_WIDGETS_EXPORT qMRMLUtils : public QObject
 {
   Q_OBJECT;
 public:
+
   typedef qMRMLUtils Self;
   qMRMLUtils(QObject* parent = nullptr);
   ~qMRMLUtils() override;

@@ -81,6 +81,7 @@
 
 // qMRMLWidget includes
 #include "qMRMLEventBrokerConnection.h"
+#include "qMRMLWidget.h"
 
 // qMRML includes
 #ifdef Slicer_USE_QtTesting
@@ -178,6 +179,19 @@ qSlicerApplicationPrivate::~qSlicerApplicationPrivate()
 void qSlicerApplicationPrivate::init()
 {
   Q_Q(qSlicerApplication);
+
+  qMRMLWidget::OpenGLProfileType openGLProfile = qMRMLWidget::OpenGLProfileDefault;
+  QString useOpenGLCompatibilityProfileApplicationSetting =
+    qSlicerApplication::application()->userSettings()->value("OpenGLProfile").toString().toLower();
+  if (useOpenGLCompatibilityProfileApplicationSetting == "compatibility")
+    {
+    openGLProfile = qMRMLWidget::OpenGLProfileCompatibility;
+    }
+  else if (useOpenGLCompatibilityProfileApplicationSetting == "core")
+    {
+    openGLProfile = qMRMLWidget::OpenGLProfileCore;
+    }
+  qMRMLWidget::postInitializeApplication(openGLProfile);
 
   ctkVTKConnectionFactory::setInstance(new qMRMLConnectionFactory);
 

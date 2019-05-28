@@ -37,12 +37,28 @@ class QMRML_WIDGETS_EXPORT qMRMLWidget : public QWidget
   Q_OBJECT
 
 public:
+  enum OpenGLProfileType
+    {
+    OpenGLProfileDefault,
+    OpenGLProfileCore,
+    OpenGLProfileCompatibility
+    };
+
   typedef QWidget Superclass;
   explicit qMRMLWidget(QWidget *parent=nullptr, Qt::WindowFlags f=nullptr);
   ~qMRMLWidget() override;
 
   /// Return a pointer on the current MRML scene
   Q_INVOKABLE vtkMRMLScene* mrmlScene() const;
+
+  /// Initialization that needs to be performed before creating the Qt application object.
+  Q_INVOKABLE static void preInitializeApplication();
+
+  /// Initialization that needs to be performed after initializing the application but
+  /// _before_ creating any GUI widget.
+  /// It sets up OpenGL surface format and it is performed after initialization of the application
+  /// to allow the surface format to be set based on application settings.
+  Q_INVOKABLE static void postInitializeApplication(OpenGLProfileType openGLProfile = OpenGLProfileDefault);
 
 public slots:
   /// Set the MRML \a scene associated with the widget
