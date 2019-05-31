@@ -446,10 +446,10 @@ const char* vtkMRMLAbstractViewNode::GetRulerTypeAsString(int id)
 int vtkMRMLAbstractViewNode::GetRulerTypeFromString(const char* name)
 {
   if (name == nullptr)
-  {
+    {
     // invalid name
     return -1;
-  }
+    }
   for (int i=0; i<RulerType_Last; i++)
     {
     if (strcmp(name, GetRulerTypeAsString(i))==0)
@@ -479,10 +479,10 @@ const char* vtkMRMLAbstractViewNode::GetRulerColorAsString(int id)
 int vtkMRMLAbstractViewNode::GetRulerColorFromString(const char* name)
 {
   if (name == nullptr)
-  {
+    {
     // invalid name
     return -1;
-  }
+    }
   for (int i=0; i<RulerColor_Last; i++)
     {
     if (strcmp(name, GetRulerColorAsString(i))==0)
