@@ -203,10 +203,12 @@ void qMRMLThreeDViewControllerWidgetPrivate::setupPopupUi()
   this->RulerColorMapper = new ctkSignalMapper(this->PopupWidget);
   this->RulerColorMapper->setMapping(this->actionRulerColorWhite, vtkMRMLAbstractViewNode::RulerColorWhite);
   this->RulerColorMapper->setMapping(this->actionRulerColorBlack, vtkMRMLAbstractViewNode::RulerColorBlack);
+  this->RulerColorMapper->setMapping(this->actionRulerColorYellow, vtkMRMLAbstractViewNode::RulerColorYellow);
   QActionGroup* rulerColorActions = new QActionGroup(this->PopupWidget);
   rulerColorActions->setExclusive(true);
   rulerColorActions->addAction(this->actionRulerColorWhite);
   rulerColorActions->addAction(this->actionRulerColorBlack);
+  rulerColorActions->addAction(this->actionRulerColorYellow);
   QObject::connect(this->RulerColorMapper, SIGNAL(mapped(int)),q, SLOT(setRulerColor(int)));
   QObject::connect(rulerColorActions, SIGNAL(triggered(QAction*)),this->RulerColorMapper, SLOT(map(QAction*)));
 

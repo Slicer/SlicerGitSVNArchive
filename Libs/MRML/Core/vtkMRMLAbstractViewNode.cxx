@@ -469,6 +469,7 @@ const char* vtkMRMLAbstractViewNode::GetRulerColorAsString(int id)
     {
     case RulerColorWhite: return "white";
     case RulerColorBlack: return "black";
+    case RulerColorYellow: return "yellow";
     default:
       // invalid id
       return "";

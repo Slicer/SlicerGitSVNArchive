@@ -386,6 +386,10 @@ void vtkMRMLRulerDisplayableManager::vtkInternal::UpdateRuler()
     lineProperty->SetColor(0,0,0);
     textProperty->SetColor(0,0,0);
     break;
+  case vtkMRMLAbstractViewNode::RulerColorYellow:
+    lineProperty->SetColor(1,1,0);
+    textProperty->SetColor(1,1,0);
+    break;
   default:
     break;
   }

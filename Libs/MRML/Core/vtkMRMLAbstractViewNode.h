@@ -260,6 +260,7 @@ public:
   {
     RulerColorWhite=0,
     RulerColorBlack,
+    RulerColorYellow,
     RulerColor_Last // insert valid types above this line
   };
 
