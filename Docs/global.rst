@@ -17,3 +17,8 @@
   :scale: 100%
   :align: middle
   :alt: GE Global Research
+
+.. |perklab_logo| image:: images/logos/perklab.png
+  :scale: 100%
+  :align: middle
+  :alt: Laboratory for Percutaneous Surgery, Queen's University
