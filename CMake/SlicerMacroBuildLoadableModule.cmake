@@ -218,7 +218,8 @@ macro(slicerMacroBuildLoadableModule)
   set_target_properties(${lib_name} PROPERTIES LABELS ${lib_name})
 
   target_link_libraries(${lib_name}
-    ${LOADABLEMODULE_TARGET_LIBRARIES}
+    PUBLIC
+      ${LOADABLEMODULE_TARGET_LIBRARIES}
     PUBLIC
       ${Slicer_GUI_LIBRARY}
     )
