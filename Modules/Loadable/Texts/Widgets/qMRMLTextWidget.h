@@ -31,6 +31,7 @@
 class vtkMRMLNode;
 class vtkMRMLTextNode;
 class qMRMLTextWidgetPrivate;
+class QTextEdit;
 
 /// \ingroup Slicer_QtModules_Texts
 class Q_SLICER_MODULE_TEXTS_WIDGETS_EXPORT qMRMLTextWidget : public qSlicerWidget
@@ -42,8 +43,9 @@ public:
   qMRMLTextWidget(QWidget *parent=nullptr);
   ~qMRMLTextWidget() override;
 
+  Q_PROPERTY(bool autoSave READ isAutoSave WRITE setAutoSave)
+  Q_PROPERTY(bool editing READ isEditing)
   Q_PROPERTY(bool readOnly READ isReadOnly WRITE setReadOnly)
-  Q_PROPERTY(bool autoUpdate READ isAutoUpdate WRITE setAutoUpdate)
 
   /// Get the text node
   Q_INVOKABLE vtkMRMLTextNode* mrmlTextNode() const;
@@ -54,15 +56,19 @@ public:
   /// \sa setReadOnly()
   bool isReadOnly();
 
-  /// Returns true if the text editor is continuously updated from the text node and vice versa
-  /// If true, the text editor will propogate the text to the vtkMRMLTextNode as it is modified, and vice versa.
-  /// If false, the text editor will only update the node when "Save" is clicked, and changes from the vtkMRMLTextNode will not be propagated
-  /// if the text is being edited.
-  /// When auto update is enabled, only the text edit will be shown.
-  /// \sa setAutoUpdate()
-  bool isAutoUpdate();
+  /// Returns true if text changes made in the widget must be immediately saved into the text node.
+  /// If true, the text editor will propagate text changes to the vtkMRMLTextNode after each keypress.
+  /// If false, the text editor will only update the node when "Save" is clicked, and changes from the
+  /// text node will not be shown in the widget while the text is being edited.
+  /// Save and Cancel buttons are only shown if auto-save is disabled.
+  /// \sa setAutoSave()
+  bool isAutoSave();
 
+  /// Returns true if the
   bool isEditing();
+
+  /// Returns the internal text editor widget to allow low-level access and customization.
+  Q_INVOKABLE QTextEdit* textEditWidget();
 
 public slots:
   /// Reimplemented from qSlicerWidget
@@ -78,8 +84,8 @@ public slots:
   /// If false, the text editor will only update the node when "Save" is clicked, and changes from the vtkMRMLTextNode will not be propagated
   /// if the text is being edited.
   /// When auto update is enabled, only the text edit will be shown.
-  /// \sa isAutoUpdate()
-  void setAutoUpdate(bool autoUpdate);
+  /// \sa isAutoSave()
+  void setAutoSave(bool autoSave);
 
   /// Set the currently observed text node
   /// \sa mrmlTextNode()
@@ -89,27 +95,12 @@ public slots:
   /// \sa mrmlNode()
   void setMRMLNode(vtkMRMLNode* textNode);
 
-protected slots:
-  /// Update the GUI to reflect the currently selected text node.
-  void updateWidgetFromMRML();
+public slots:
+  /// Finish editing, discarding all changes.
+  void cancelEdits();
 
-  /// Update the MRML node to reflect the currently state of the GUI.
-  void updateMRMLFromWidget();
-
-  /// Method invoked when the contents of the text node is modified
-  void onTextNodeContentsModified();
-
-  /// Method invoked when the contents of the text edit is changed
-  void onTextEditChanged();
-
-  /// Method invoked when the "Edit" button is clicked
-  void onEditButtonClicked();
-
-  /// Method invoked when the "Cancel" button is clicked
-  void onCancelButtonClicked();
-
-  /// Method invoked when the "Save" button is clicked
-  void onSaveButtonClicked();
+  /// Finish editing, saving edited contents to the text node.
+  void saveEdits();
 
 signals:
   /// This signal is emitted if updates to the widget from the MRML node have been requested.
@@ -135,11 +126,27 @@ signals:
   /// This signal is emitted if the read only property is changed
   void readOnlyChanged(bool);
 
-  /// This signal is emitted if the autoUpdate property is changed
-  bool autoUpdateChanged(bool);
+  /// This signal is emitted if the autoSave property is changed
+  bool autoSaveChanged(bool);
 
   /// This signal is emitted when the user starts/stops the widget edit mode
   void editingChanged(bool);
+
+protected slots:
+  /// Update the GUI to reflect the currently selected text node.
+  void updateWidgetFromMRML();
+
+  /// Update the MRML node to reflect the currently state of the GUI.
+  void updateMRMLFromWidget();
+
+  /// Method invoked when the contents of the text node is modified
+  void onTextNodeContentsModified();
+
+  /// Method invoked when the contents of the text edit is changed
+  void onTextEditChanged();
+
+  /// Method invoked when the "Edit" button is clicked
+  void onEditButtonClicked();
 
 protected:
   QScopedPointer<qMRMLTextWidgetPrivate> d_ptr;
@@ -152,7 +159,7 @@ private:
   Q_DISABLE_COPY(qMRMLTextWidget);
 
 protected:
-  bool AutoUpdate;
+  bool AutoSave;
   bool ReadOnly;
 
 };

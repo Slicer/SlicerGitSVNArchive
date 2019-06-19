@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>514</width>
-    <height>582</height>
+    <width>197</width>
+    <height>134</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -53,7 +53,7 @@
         </stringlist>
        </property>
        <property name="noneEnabled">
-        <bool>true</bool>
+        <bool>false</bool>
        </property>
        <property name="renameEnabled">
         <bool>true</bool>
@@ -75,19 +75,31 @@
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_2">
       <item>
-       <widget class="QCheckBox" name="AutoUpdateCheckBox">
-        <property name="toolTip">
-         <string>If checked, update the text nod dynamically as the contents are edited. If unchecked, only update the text node when &quot;Save&quot; is clicked.</string>
-        </property>
-        <property name="text">
-         <string>Auto update</string>
+       <widget class="qMRMLTextWidget" name="TextWidget">
+        <property name="autoSave" stdset="0">
+         <bool>false</bool>
         </property>
        </widget>
       </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="ctkCollapsibleButton" name="CollapsibleButton">
+     <property name="text">
+      <string>Advanced</string>
+     </property>
+     <property name="collapsed">
+      <bool>true</bool>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_3">
       <item>
-       <widget class="qMRMLTextWidget" name="TextWidget">
-        <property name="continuousUpdate" stdset="0">
-         <bool>false</bool>
+       <widget class="QCheckBox" name="AutoSaveCheckBox">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If checked, the text node is immediately updated as the contents are edited. If unchecked, text node is updated only when &amp;quot;Save&amp;quot; is clicked.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+        <property name="text">
+         <string>Auto-save edits to the text node</string>
         </property>
        </widget>
       </item>
@@ -132,15 +144,15 @@
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>qMRMLTextWidget</class>
-   <extends>qSlicerWidget</extends>
-   <header>qMRMLTextWidget.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
    <class>ctkCollapsibleButton</class>
    <extends>QWidget</extends>
    <header>ctkCollapsibleButton.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>qMRMLTextWidget</class>
+   <extends>qSlicerWidget</extends>
+   <header>qMRMLTextWidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
@@ -198,10 +210,10 @@
    </hints>
   </connection>
   <connection>
-   <sender>AutoUpdateCheckBox</sender>
+   <sender>AutoSaveCheckBox</sender>
    <signal>toggled(bool)</signal>
    <receiver>TextWidget</receiver>
-   <slot>setAutoUpdate(bool)</slot>
+   <slot>setAutoSave(bool)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>286</x>
@@ -215,8 +227,8 @@
   </connection>
   <connection>
    <sender>TextWidget</sender>
-   <signal>autoUpdateChanged(bool)</signal>
-   <receiver>AutoUpdateCheckBox</receiver>
+   <signal>autoSaveChanged(bool)</signal>
+   <receiver>AutoSaveCheckBox</receiver>
    <slot>setChecked(bool)</slot>
    <hints>
     <hint type="sourcelabel">
@@ -232,7 +244,7 @@
   <connection>
    <sender>TextWidget</sender>
    <signal>editingChanged(bool)</signal>
-   <receiver>AutoUpdateCheckBox</receiver>
+   <receiver>AutoSaveCheckBox</receiver>
    <slot>setDisabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
