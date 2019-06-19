@@ -120,17 +120,6 @@ mark_as_superbuild(${Slicer_MAIN_PROJECT_APPLICATION_NAME}_SOURCE_DIR)
 #-----------------------------------------------------------------------------
 if(WIN32)
 
-  if(NOT DEFINED Slicer_CPACK_NSIS_INSTALL_ROOT)
-    # Set root install directory (displayed to end user at installer-run time)
-    # to C:\Users\<username>\AppData\Local by default to allow installation
-    # without having administrative privileges.
-    set(Slicer_CPACK_NSIS_INSTALL_ROOT "$LOCALAPPDATA\\\\${Slicer_ORGANIZATION_NAME}" CACHE STRING
-      "Default installation location. $LOCALAPPDATA, $APPDATA, $PROGRAMFILES, $PROGRAMFILES64 predefined values may be used as basis.")
-    mark_as_advanced(Slicer_CPACK_NSIS_INSTALL_ROOT)
-  endif()
-  mark_as_superbuild(Slicer_CPACK_NSIS_INSTALL_ROOT:STRING)
-  message(STATUS "Configuring ${Slicer_MAIN_PROJECT_APPLICATION_NAME} install root [${Slicer_CPACK_NSIS_INSTALL_ROOT}]")
-
   if(NOT DEFINED Slicer_CPACK_NSIS_INSTALL_REQUIRES_ADMIN_ACCOUNT)
     set(Slicer_CPACK_NSIS_INSTALL_REQUIRES_ADMIN_ACCOUNT OFF CACHE BOOL
       "Require administrator account to install the application. Must be enabled if Slicer_CPACK_NSIS_INSTALL_ROOT is only writable by administrators.")
@@ -138,5 +127,26 @@ if(WIN32)
   endif()
   mark_as_superbuild(Slicer_CPACK_NSIS_INSTALL_REQUIRES_ADMIN_ACCOUNT:BOOL)
   message(STATUS "Configuring ${Slicer_MAIN_PROJECT_APPLICATION_NAME} requires admin account [${Slicer_CPACK_NSIS_INSTALL_REQUIRES_ADMIN_ACCOUNT}]")
+
+  if(NOT DEFINED Slicer_CPACK_NSIS_INSTALL_ROOT)
+    # Set root install directory (displayed to end user at installer-run time)
+    # to C:\Users\<username>\AppData\Local by default to allow installation
+    # without having administrative privileges.
+    set(_install_root_default "$LOCALAPPDATA\\\\${Slicer_ORGANIZATION_NAME}")
+
+    if(Slicer_CPACK_NSIS_INSTALL_REQUIRES_ADMIN_ACCOUNT)
+      if(CMAKE_CL_64)
+        set(_install_root_default "$PROGRAMFILES64")
+      else()
+        set(_install_root_default "$PROGRAMFILES")
+      endif()
+    endif()
+
+    set(Slicer_CPACK_NSIS_INSTALL_ROOT ${_install_root_default} CACHE STRING
+      "Default installation location. $LOCALAPPDATA, $APPDATA, $PROGRAMFILES, $PROGRAMFILES64 predefined values may be used as basis.")
+    mark_as_advanced(Slicer_CPACK_NSIS_INSTALL_ROOT)
+  endif()
+  mark_as_superbuild(Slicer_CPACK_NSIS_INSTALL_ROOT:STRING)
+  message(STATUS "Configuring ${Slicer_MAIN_PROJECT_APPLICATION_NAME} install root [${Slicer_CPACK_NSIS_INSTALL_ROOT}]")
 
 endif()
