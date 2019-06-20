@@ -25,6 +25,9 @@
 // vtkSlicerLogic includes
 #include "vtkSlicerTextsLogic.h"
 
+// MRML includes
+#include "vtkMRMLTextNode.h"
+
 //-----------------------------------------------------------------------------
 class qSlicerTextsModuleWidgetPrivate: public Ui_qSlicerTextsModuleWidget
 {
@@ -64,4 +67,21 @@ void qSlicerTextsModuleWidget::setup()
 {
   Q_D(qSlicerTextsModuleWidget);
   d->setupUi(this);
+}
+
+//-----------------------------------------------------------------------------
+bool qSlicerTextsModuleWidget::setEditedNode(
+  vtkMRMLNode* node,
+  QString role/*=QString()*/,
+  QString context/*=QString()*/)
+{
+  Q_D(qSlicerTextsModuleWidget);
+  Q_UNUSED(role);
+  Q_UNUSED(context);
+  if (vtkMRMLTextNode::SafeDownCast(node))
+    {
+    d->TextNodeSelector->setCurrentNode(node);
+    return true;
+    }
+  return false;
 }

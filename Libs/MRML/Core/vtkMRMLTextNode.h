@@ -64,6 +64,7 @@ public:
   /// Default is VTK_ENCODING_US_ASCII
   void SetEncoding(int encoding);
   vtkGetMacro(Encoding, int);
+  std::string GetEncodingAsString();
 
   /// Force the use of a storage node, regardless of text length.
   /// By default, a storage node will only be used for nodes that have been read from file (drag and drop),

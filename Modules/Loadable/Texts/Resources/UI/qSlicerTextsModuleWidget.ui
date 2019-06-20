@@ -103,6 +103,16 @@
         </property>
        </widget>
       </item>
+      <item>
+       <widget class="QCheckBox" name="WordWrapCheckBox">
+        <property name="text">
+         <string>Enable word wrapping</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
      </layout>
     </widget>
    </item>
@@ -144,15 +154,15 @@
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>ctkCollapsibleButton</class>
-   <extends>QWidget</extends>
-   <header>ctkCollapsibleButton.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
    <class>qMRMLTextWidget</class>
    <extends>qSlicerWidget</extends>
    <header>qMRMLTextWidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ctkCollapsibleButton</class>
+   <extends>QWidget</extends>
+   <header>ctkCollapsibleButton.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
@@ -254,6 +264,22 @@
     <hint type="destinationlabel">
      <x>256</x>
      <y>313</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>WordWrapCheckBox</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>TextWidget</receiver>
+   <slot>setWordWrap(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>145</x>
+     <y>262</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>145</x>
+     <y>124</y>
     </hint>
    </hints>
   </connection>

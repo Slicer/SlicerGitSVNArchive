@@ -44,7 +44,7 @@ public:
   ~qMRMLTextWidgetPrivate();
   virtual void setupUi(qMRMLTextWidget*);
 
-  vtkWeakPointer<vtkMRMLTextNode> CurrentTextNode;
+  vtkSmartPointer<vtkMRMLTextNode> CurrentTextNode;
   bool TextEditModified;
   bool TextNodeContentsModified;
 
@@ -120,7 +120,7 @@ void qMRMLTextWidget::setup()
   d->setupUi(this);
 
   connect(d->TextEdit, SIGNAL(textChanged()), this, SLOT(onTextEditChanged()));
-  connect(d->EditButton, SIGNAL(clicked()), this, SLOT(onEditButtonClicked()));
+  connect(d->EditButton, SIGNAL(clicked()), this, SLOT(startEdits()));
   connect(d->CancelButton, SIGNAL(clicked()), this, SLOT(cancelEdits()));
   connect(d->SaveButton, SIGNAL(clicked()), this, SLOT(saveEdits()));
   connect(this, SIGNAL(updateWidgetFromMRMLRequested()), this, SLOT(updateWidgetFromMRML()));
@@ -338,6 +338,26 @@ void qMRMLTextWidget::setAutoSave(bool autoSave)
 }
 
 //------------------------------------------------------------------------------
+bool qMRMLTextWidget::wordWrap()
+{
+  Q_D(qMRMLTextWidget);
+  QTextOption::WrapMode wordWrapMode = d->TextEdit->wordWrapMode();
+
+  if (d->TextEdit->wordWrapMode() == QTextOption::NoWrap)
+    {
+    return false;
+    }
+  return true;
+}
+
+//------------------------------------------------------------------------------
+void qMRMLTextWidget::setWordWrap(bool wordWrap)
+{
+  Q_D(qMRMLTextWidget);
+  d->TextEdit->setWordWrapMode(wordWrap ? QTextOption::WrapAtWordBoundaryOrAnywhere : QTextOption::NoWrap);
+}
+
+//------------------------------------------------------------------------------
 void qMRMLTextWidget::onTextEditChanged()
 {
   Q_D(qMRMLTextWidget);
@@ -352,7 +372,7 @@ void qMRMLTextWidget::onTextEditChanged()
 }
 
 //------------------------------------------------------------------------------
-void qMRMLTextWidget::onEditButtonClicked()
+void qMRMLTextWidget::startEdits()
 {
   Q_D(qMRMLTextWidget);
   d->TextEditModified = false;

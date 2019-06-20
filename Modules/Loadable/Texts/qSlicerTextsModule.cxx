@@ -32,6 +32,10 @@
 // VTK includes
 #include "vtkSmartPointer.h"
 
+// SubjectHierarchy Plugins includes
+#include "qSlicerSubjectHierarchyPluginHandler.h"
+#include "qSlicerSubjectHierarchyTextsPlugin.h"
+
 //-----------------------------------------------------------------------------
 class qSlicerTextsModulePrivate
 {
@@ -118,6 +122,9 @@ void qSlicerTextsModule::setup()
   qSlicerTextsReader* textFileReader = new qSlicerTextsReader(this);
   app->coreIOManager()->registerIO(textFileReader);
   app->coreIOManager()->registerIO(new qSlicerNodeWriter("TextFileImporter", textFileReader->fileType(), QStringList() << "vtkMRMLTextNode", false, this));
+
+  // Register Subject Hierarchy core plugins
+  qSlicerSubjectHierarchyPluginHandler::instance()->registerPlugin(new qSlicerSubjectHierarchyTextsPlugin());
 }
 
 //-----------------------------------------------------------------------------

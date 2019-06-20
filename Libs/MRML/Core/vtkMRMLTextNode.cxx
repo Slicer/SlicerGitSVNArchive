@@ -67,13 +67,46 @@ void vtkMRMLTextNode::SetText(const std::string &text, int encoding/*-1*/)
 void vtkMRMLTextNode::SetEncoding(int encoding)
 {
   vtkDebugMacro(<< this->GetClassName() << " (" << this << "): setting encoding to " << encoding);
-  int clampedEncoding = std::max(VTK_ENCODING_UNKNOWN, std::min(encoding, VTK_ENCODING_UNKNOWN));
+  int clampedEncoding = std::max(VTK_ENCODING_NONE, std::min(encoding, VTK_ENCODING_UNKNOWN));
   if (this->Encoding != clampedEncoding)
     {
     this->Encoding = clampedEncoding;
     this->InvokeCustomModifiedEvent(vtkMRMLTextNode::TextModifiedEvent);
     this->Modified();
     }
+}
+
+//----------------------------------------------------------------------------
+std::string vtkMRMLTextNode::GetEncodingAsString()
+{
+  switch (this->Encoding)
+    {
+    case VTK_ENCODING_NONE:
+      return "None";
+    case VTK_ENCODING_US_ASCII:
+      return "ASCII";
+    case VTK_ENCODING_UNICODE:
+      return "Unicode";
+    case VTK_ENCODING_UTF_8:
+      return "UTF-8";
+    case VTK_ENCODING_ISO_8859_1:
+    case VTK_ENCODING_ISO_8859_2:
+    case VTK_ENCODING_ISO_8859_3:
+    case VTK_ENCODING_ISO_8859_4:
+    case VTK_ENCODING_ISO_8859_5:
+    case VTK_ENCODING_ISO_8859_6:
+    case VTK_ENCODING_ISO_8859_7:
+    case VTK_ENCODING_ISO_8859_8:
+    case VTK_ENCODING_ISO_8859_10:
+    case VTK_ENCODING_ISO_8859_11:
+    case VTK_ENCODING_ISO_8859_12:
+    case VTK_ENCODING_ISO_8859_13:
+    case VTK_ENCODING_ISO_8859_14:
+    case VTK_ENCODING_ISO_8859_15:
+    case VTK_ENCODING_ISO_8859_16:
+      return "ISO-8859-" + vtkVariant(this->Encoding - VTK_ENCODING_ISO_8859_1 + 1).ToString();
+    }
+  return "Unknown";
 }
 
 //----------------------------------------------------------------------------

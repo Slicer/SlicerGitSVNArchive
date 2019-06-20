@@ -43,9 +43,10 @@ public:
   qMRMLTextWidget(QWidget *parent=nullptr);
   ~qMRMLTextWidget() override;
 
-  Q_PROPERTY(bool autoSave READ isAutoSave WRITE setAutoSave)
-  Q_PROPERTY(bool editing READ isEditing)
-  Q_PROPERTY(bool readOnly READ isReadOnly WRITE setReadOnly)
+  Q_PROPERTY(bool autoSave READ isAutoSave WRITE setAutoSave);
+  Q_PROPERTY(bool editing READ isEditing);
+  Q_PROPERTY(bool readOnly READ isReadOnly WRITE setReadOnly);
+  Q_PROPERTY(bool wordWrap READ wordWrap WRITE setWordWrap);
 
   /// Get the text node
   Q_INVOKABLE vtkMRMLTextNode* mrmlTextNode() const;
@@ -64,8 +65,12 @@ public:
   /// \sa setAutoSave()
   bool isAutoSave();
 
-  /// Returns true if the
+  /// Returns true if the text box is in edit mode
   bool isEditing();
+
+  /// Returns the word wrap mode used in the text editor
+  /// \sa setWordWrap()
+  bool wordWrap();
 
   /// Returns the internal text editor widget to allow low-level access and customization.
   Q_INVOKABLE QTextEdit* textEditWidget();
@@ -87,6 +92,10 @@ public slots:
   /// \sa isAutoSave()
   void setAutoSave(bool autoSave);
 
+  /// Set the word wrap mode to be used by the text editor
+  /// \sa wordWrap()
+  void setWordWrap(bool wordWrap);
+
   /// Set the currently observed text node
   /// \sa mrmlTextNode()
   void setMRMLTextNode(vtkMRMLTextNode* textNode);
@@ -96,6 +105,9 @@ public slots:
   void setMRMLNode(vtkMRMLNode* textNode);
 
 public slots:
+  /// Start editing mode
+  void startEdits();
+
   /// Finish editing, discarding all changes.
   void cancelEdits();
 
@@ -144,9 +156,6 @@ protected slots:
 
   /// Method invoked when the contents of the text edit is changed
   void onTextEditChanged();
-
-  /// Method invoked when the "Edit" button is clicked
-  void onEditButtonClicked();
 
 protected:
   QScopedPointer<qMRMLTextWidgetPrivate> d_ptr;

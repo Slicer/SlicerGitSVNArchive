@@ -39,8 +39,8 @@ public:
   qSlicerTextsModuleWidget(QWidget *parent=nullptr);
   ~qSlicerTextsModuleWidget() override;
 
-  /// Reimplemented for internal reasons
-  //void setMRMLScene(vtkMRMLScene* scene) override;
+  /// Support of node editing. Selects node in user interface that the user wants to edit
+  bool setEditedNode(vtkMRMLNode* node, QString role = QString(), QString context = QString()) override;
 
 protected:
 

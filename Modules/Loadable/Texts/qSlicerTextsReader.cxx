@@ -88,7 +88,7 @@ bool qSlicerTextsReader::load(const IOProperties& properties)
     }
   std::string fileName = properties["fileName"].toString().toStdString();
 
-  std::string textNodeName = vtksys::SystemTools::GetFilenameWithoutExtension(fileName);
+  std::string textNodeName = vtksys::SystemTools::GetFilenameWithoutLastExtension(fileName);
   vtkSmartPointer<vtkMRMLTextNode> textNode = vtkMRMLTextNode::SafeDownCast(this->mrmlScene()->AddNewNodeByClass("vtkMRMLTextNode", textNodeName));
   if (!textNode)
     {
