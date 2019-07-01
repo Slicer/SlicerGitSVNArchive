@@ -40,6 +40,8 @@ else()
 endif()
 
 if (WIN32)
+  # For Miscrosoft Visual C++ compiler internal numbering,
+  # see https://en.wikipedia.org/wiki/Microsoft_Visual_C%2B%2B#Internal_version_numbering
   if (NOT MSVC_VERSION VERSION_GREATER 1500)
     message(FATAL_ERROR "At least Visual Studio 10.0 is required")
   elseif (NOT MSVC_VERSION VERSION_GREATER 1600)
@@ -52,6 +54,9 @@ if (WIN32)
     set(tbb_vsdir vc14)
   elseif (NOT MSVC_VERSION VERSION_GREATER_EQUAL 1916)
     # VS2017 is expected to be binary compatible with VS2015
+    set(tbb_vsdir vc14)
+  elseif (NOT MSVC_VERSION VERSION_GREATER_EQUAL 1921)
+    # VS2019 is expected to be binary compatible with VS2017
     set(tbb_vsdir vc14)
   elseif (tbb_enabled)
     message(FATAL_ERROR "TBB does not support your Visual Studio compiler. [MSVC_VERSION: ${MSVC_VERSION}]")
