@@ -244,8 +244,8 @@ set(BRAINSTools_options
   USE_BRAINSFit:BOOL=ON
   USE_BRAINSROIAuto:BOOL=ON
   USE_BRAINSResample:BOOL=ON
-  USE_BRAINSDemonWarp:BOOL=ON
   # BRAINSTools comes with some extra tool that should not be compiled by default
+  USE_BRAINSDemonWarp:BOOL=OFF
   USE_AutoWorkup:BOOL=OFF
   USE_ReferenceAtlas:BOOL=OFF
   USE_ANTS:BOOL=OFF
@@ -271,7 +271,6 @@ set(BRAINSTools_options
   BRAINS_DEBUG_IMAGE_WRITE:BOOL=OFF
   USE_BRAINSTransformConvert:BOOL=ON
   USE_DWIConvert:BOOL=${Slicer_BUILD_DICOM_SUPPORT} ## Need to figure out library linking
-  USE_BRAINSDemonWarp:BOOL=ON
   USE_BRAINSRefacer:BOOL=OFF
   )
 
