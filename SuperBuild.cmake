@@ -275,8 +275,8 @@ set(BRAINSTools_options
   )
 
 Slicer_Remote_Add(BRAINSTools
-  GIT_REPOSITORY ${EP_GIT_PROTOCOL}://github.com/Slicer/BRAINSTools.git
-  GIT_TAG 53c15d6beac5b8d65689054da89deb69e61c7d32 # slicer-2019-03-07-v5.0.0-2af1e31
+  GIT_REPOSITORY ${EP_GIT_PROTOCOL}://github.com/BRAINSIA/BRAINSTools.git
+  GIT_TAG b75f58ada5456e75f068ecdc640d5da30c7703de # master corresponding to ITKv5
   LICENSE_FILES "http://www.apache.org/licenses/LICENSE-2.0.txt"
   OPTION_NAME Slicer_BUILD_BRAINSTOOLS
   OPTION_DEPENDS "Slicer_BUILD_CLI_SUPPORT;Slicer_BUILD_CLI"
