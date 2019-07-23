@@ -953,4 +953,27 @@ private:
   std::map<int, int> CustomModifiedEventPending; // event id, pending value (number of events grouped together)
 };
 
+/// \brief Simple class that calls StartModify on instantiation and EndModify on destruction.
+class VTK_MRML_EXPORT MRMLNodeModify
+{
+public:
+  vtkWeakPointer<vtkMRMLNode> Node;
+  int WasModifying;
+  MRMLNodeModify(vtkMRMLNode* node)
+  {
+    this->Node = node;
+    if (this->Node)
+      {
+      this->WasModifying = this->Node->StartModify();
+      }
+  };
+  ~MRMLNodeModify()
+  {
+    if (this->Node)
+      {
+      this->Node->EndModify(this->WasModifying);
+      }
+  }
+};
+
 #endif
