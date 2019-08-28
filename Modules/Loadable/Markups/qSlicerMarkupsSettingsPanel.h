@@ -59,6 +59,8 @@ public:
   void setMarkupsLogic(vtkSlicerMarkupsLogic* logic);
   vtkSlicerMarkupsLogic* markupsLogic()const;
 
+  void readDefaultMarkupsDisplaySettings();
+
   QString defaultGlyphType() const;
   QColor defaultUnselectedColor() const;
   QColor defaultSelectedColor() const;
