@@ -118,6 +118,8 @@ void qSlicerMarkupsSettingsPanel
                          "defaultTextScale", SIGNAL(defaultTextScaleChanged(double)));
   this->registerProperty("Markups/Opacity", this,
                          "defaultOpacity", SIGNAL(defaultOpacityChanged(double)));
+  this->registerProperty("Markups/JumpSliceType", this,
+                         "defaultJumpSliceType", SIGNAL(defaultJumpSliceTypeChanged(QString)));
 }
 
 // --------------------------------------------------------------------------
@@ -161,6 +163,11 @@ void qSlicerMarkupsSettingsPanel::readDefaultMarkupsDisplaySettings()
     {
       setDefaultOpacity(settings.value("Markups/Opacity").toDouble());
     }
+  if (settings.contains("Markups/JumpSliceType"))
+    {
+      setDefaultGlyphType(settings.value("Markups/JumpSliceType").toString().toLatin1());
+    }
+}
 
 // --------------------------------------------------------------------------
 QString qSlicerMarkupsSettingsPanel::defaultGlyphType()const
@@ -228,6 +235,21 @@ double qSlicerMarkupsSettingsPanel::defaultOpacity()const
 }
 
 // --------------------------------------------------------------------------
+QString qSlicerMarkupsSettingsPanel::defaultJumpSliceType()const
+{
+  Q_D(const qSlicerMarkupsSettingsPanel);
+
+  int currentIndex  = d->defaultJumpSliceTypeComboBox->currentIndex();
+  QString jumpSliceType;
+  if (currentIndex != -1)
+    {
+    jumpSliceType =
+      d->defaultJumpSliceTypeComboBox->itemText(currentIndex);
+    }
+  return jumpSliceType;
+}
+
+// --------------------------------------------------------------------------
 void qSlicerMarkupsSettingsPanel::setDefaultGlyphType(const QString& glyphType)
 {
   Q_D(qSlicerMarkupsSettingsPanel);
@@ -278,6 +300,19 @@ void qSlicerMarkupsSettingsPanel::setDefaultOpacity(const double opacity)
   Q_D(qSlicerMarkupsSettingsPanel);
 
   d->defaultOpacitySliderWidget->setValue(opacity);
+}
+
+// --------------------------------------------------------------------------
+void qSlicerMarkupsSettingsPanel::setDefaultJumpSliceType(const QString& jumpSliceType)
+{
+  Q_D(qSlicerMarkupsSettingsPanel);
+
+  int jumpSliceTypeIndex = d->defaultJumpSliceTypeComboBox->findData(jumpSliceType);
+
+  if (jumpSliceTypeIndex != -1)
+    {
+    d->defaultJumpSliceTypeComboBox->setCurrentIndex(jumpSliceTypeIndex);
+    }
 }
 
 // --------------------------------------------------------------------------
@@ -416,4 +451,27 @@ void qSlicerMarkupsSettingsPanel::updateMarkupsLogicDefaultOpacity()
     }
   // disable it for now; if we want a settings panel then use the same pattern that is used for default view options
   // d->MarkupsLogic->SetDefaultMarkupsDisplayNodeOpacity(this->defaultOpacity());
+}
+
+// --------------------------------------------------------------------------
+void qSlicerMarkupsSettingsPanel::onDefaultJumpSliceTypeChanged(int index)
+{
+//   Q_D(qSlicerMarkupsSettingsPanel);
+  Q_UNUSED(index);
+
+  this->updateMarkupsLogicDefaultJumpSliceType();
+  emit defaultJumpSliceTypeChanged(this->defaultJumpSliceType());
+}
+
+// --------------------------------------------------------------------------
+void qSlicerMarkupsSettingsPanel::updateMarkupsLogicDefaultJumpSliceType()
+{
+  Q_D(qSlicerMarkupsSettingsPanel);
+
+  if (d->MarkupsLogic == nullptr)
+    {
+    return;
+    }
+  // disable it for now; if we want a settings panel then use the same pattern that is used for default view options
+  // d->MarkupsLogic->SetDefaultMarkupsDisplayNodeJumpSliceTypeFromString(this->defaultJumpSliceType().toLatin1());
 }

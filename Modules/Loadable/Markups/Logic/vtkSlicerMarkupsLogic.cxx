@@ -15,6 +15,9 @@
 
 ==============================================================================*/
 
+// Qt includes
+#include <QSettings>
+
 // Markups includes
 #include "vtkSlicerMarkupsLogic.h"
 
@@ -145,36 +148,46 @@ void vtkSlicerMarkupsLogic::ProcessMRMLNodesEvents(vtkObject *caller,
       }
     else if (event == vtkMRMLMarkupsDisplayNode::JumpToPointEvent)
       {
-      int controlPointIndex = -1;
-      int viewGroup = -1;
-      vtkMRMLSliceNode* sliceNode = nullptr;
-      if (callData != nullptr)
+      QSettings settings;
+      std::string leftButtonClickEvent = "Centered"; //default
+      if (settings.contains("Markups/JumpSliceType"))
         {
-        vtkMRMLInteractionEventData* eventData = reinterpret_cast<vtkMRMLInteractionEventData*>(callData);
-        if (eventData->GetComponentType() == vtkMRMLMarkupsDisplayNode::ComponentControlPoint)
-          {
-          controlPointIndex = eventData->GetComponentIndex();
-          }
-        if (eventData->GetViewNode())
-          {
-          viewGroup = eventData->GetViewNode()->GetViewGroup();
-          sliceNode = vtkMRMLSliceNode::SafeDownCast(eventData->GetViewNode());
-          }
+          leftButtonClickEvent = settings.value("Markups/JumpSliceType").toString().toLatin1();
         }
-      // Jump current slice node to the plane of the control point (do not center)
-      if (sliceNode)
+      if (leftButtonClickEvent != "None")
         {
-        vtkMRMLMarkupsNode* markupsNode = vtkMRMLMarkupsNode::SafeDownCast(markupsDisplayNode->GetDisplayableNode());
-        if (markupsNode)
+        int controlPointIndex = -1;
+        int viewGroup = -1;
+        vtkMRMLSliceNode* sliceNode = nullptr;
+        if (callData != nullptr)
           {
-          double worldPos[3] = { 0.0 };
-          markupsNode->GetNthControlPointPositionWorld(controlPointIndex, worldPos);
-          sliceNode->JumpSliceByOffsetting(worldPos[0], worldPos[1], worldPos[2]);
+          vtkMRMLInteractionEventData* eventData = reinterpret_cast<vtkMRMLInteractionEventData*>(callData);
+          if (eventData->GetComponentType() == vtkMRMLMarkupsDisplayNode::ComponentControlPoint)
+            {
+            controlPointIndex = eventData->GetComponentIndex();
+            }
+          if (eventData->GetViewNode())
+            {
+            viewGroup = eventData->GetViewNode()->GetViewGroup();
+            sliceNode = vtkMRMLSliceNode::SafeDownCast(eventData->GetViewNode());
+            }
           }
+        // Jump current slice node to the plane of the control point (do not center)
+        if (sliceNode)
+          {
+          vtkMRMLMarkupsNode* markupsNode = vtkMRMLMarkupsNode::SafeDownCast(markupsDisplayNode->GetDisplayableNode());
+          if (markupsNode)
+            {
+            double worldPos[3] = { 0.0 };
+            markupsNode->GetNthControlPointPositionWorld(controlPointIndex, worldPos);
+            sliceNode->JumpSliceByOffsetting(worldPos[0], worldPos[1], worldPos[2]);
+            }
+          }
+        bool center = (leftButtonClickEvent == "Centered");
+        // Jump centered in all other slices in the view group
+        this->JumpSlicesToNthPointInMarkup(markupsDisplayNode->GetDisplayableNode()->GetID(), controlPointIndex,
+          center, viewGroup, sliceNode);
         }
-      // Jump centered in all other slices in the view group
-      this->JumpSlicesToNthPointInMarkup(markupsDisplayNode->GetDisplayableNode()->GetID(), controlPointIndex,
-        true /* centered */, viewGroup, sliceNode);
       }
     }
 }
