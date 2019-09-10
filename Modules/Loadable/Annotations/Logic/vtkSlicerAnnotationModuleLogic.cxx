@@ -3299,6 +3299,7 @@ void vtkSlicerAnnotationModuleLogic::SetHierarchyAnnotationsVisibleFlag(vtkMRMLA
       childNode->SetDisplayVisibility((flag ? 1 : 0));
       }
     } // for loop
+  children->Delete();
 }
 
 //---------------------------------------------------------------------------
@@ -3328,6 +3329,7 @@ void vtkSlicerAnnotationModuleLogic::SetHierarchyAnnotationsLockFlag(vtkMRMLAnno
       childNode->SetLocked((flag ? 1 : 0));
       }
     } // for loop
+  children->Delete();
 }
 
 //---------------------------------------------------------------------------
