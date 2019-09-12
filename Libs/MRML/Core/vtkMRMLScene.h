@@ -25,6 +25,7 @@ Version:   $Revision: 1.18 $
 // VTK includes
 #include <vtkObject.h>
 #include <vtkSmartPointer.h>
+#include <vtkWeakPointer.h>
 
 // STD includes
 #include <list>
@@ -43,6 +44,7 @@ class vtkGeneralTransform;
 class vtkURIHandler;
 class vtkMRMLNode;
 class vtkMRMLSceneViewNode;
+class vtkMRMLSubjectHierarchyNode;
 
 /// \brief A set of MRML Nodes that supports serialization and undo/redo.
 ///
@@ -510,14 +512,16 @@ public:
   void SetErrorMessage(const char * message);
   const char *GetErrorMessagePointer();
 
-  vtkGetObjectMacro ( CacheManager, vtkCacheManager );
-  virtual void SetCacheManager(vtkCacheManager* );
-  vtkGetObjectMacro ( DataIOManager, vtkDataIOManager );
-  virtual void SetDataIOManager(vtkDataIOManager* );
-  vtkGetObjectMacro ( URIHandlerCollection, vtkCollection );
-  virtual void SetURIHandlerCollection(vtkCollection* );
-  vtkGetObjectMacro ( UserTagTable, vtkTagTable);
-  virtual void SetUserTagTable(vtkTagTable* );
+  vtkMRMLSubjectHierarchyNode* GetSubjectHierarchyNode();
+
+  vtkGetObjectMacro(CacheManager, vtkCacheManager);
+  virtual void SetCacheManager(vtkCacheManager*);
+  vtkGetObjectMacro(DataIOManager, vtkDataIOManager);
+  virtual void SetDataIOManager(vtkDataIOManager*);
+  vtkGetObjectMacro(URIHandlerCollection, vtkCollection);
+  virtual void SetURIHandlerCollection(vtkCollection*);
+  vtkGetObjectMacro(UserTagTable, vtkTagTable);
+  virtual void SetUserTagTable(vtkTagTable*);
 
   /// \brief Find a URI handler in the collection that can work on the
   /// passed URI.
@@ -814,7 +818,12 @@ protected:
   /// Returns true if a node is not referenced within the scene, but is referenced within the Undo stack.
   bool IsNodeIDReservedByUndo(const std::string id) const;
 
+  virtual void SetSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode*);
+
   vtkCollection*  Nodes;
+
+  /// subject hierarchy node
+  vtkWeakPointer<vtkMRMLSubjectHierarchyNode> SubjectHierarchyNode;
 
   /// data i/o handling members
   vtkCacheManager *  CacheManager;
