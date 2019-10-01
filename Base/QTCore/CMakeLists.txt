@@ -42,7 +42,9 @@ endif()
 #
 # CTKAppLauncherLib
 #
-find_package(CTKAppLauncherLib REQUIRED)
+if(Slicer_USE_CTKAPPLAUNCHER)
+  find_package(CTKAppLauncherLib REQUIRED)
+endif()
 
 #
 # See CMake/SlicerMacroBuildBaseQtLibrary.cmake for details
