@@ -22,6 +22,11 @@ endif()
 #include(${VTK_USE_FILE})
 
 #
+# ITK
+#
+find_package(ITK COMPONENTS ITKCommon ITKVNL REQUIRED)
+
+#
 # Teem
 #
 find_package(Teem REQUIRED NO_MODULE)
