@@ -93,8 +93,10 @@
 #include <vtkMRMLScene.h>
 
 // CTKLauncherLib includes
+#ifdef Slicer_USE_CTKAPPLAUNCHER
 #include <ctkAppLauncherEnvironment.h>
 #include <ctkAppLauncherSettings.h>
+#endif
 
 // VTK includes
 #include <vtkNew.h>
@@ -213,6 +215,7 @@ void qSlicerCoreApplicationPrivate::init()
 
   this->SlicerHome = this->discoverSlicerHomeDirectory();
 
+#ifdef Slicer_Use_CTKAPPLAUNCHER
   // Save the environment if no launcher is used (this is for example the case
   // on MacOSX when slicer is started from an install tree)
   if (ctkAppLauncherEnvironment::currentLevel() == 0)
@@ -260,6 +263,8 @@ void qSlicerCoreApplicationPrivate::init()
       q->setEnvironmentVariable(key, value);
       }
     }
+
+#endif
 
 #ifdef Slicer_USE_PYTHONQT_WITH_OPENSSL
   if (!QSslSocket::supportsSsl())
@@ -706,7 +711,11 @@ bool qSlicerCoreApplication::testAttribute(qSlicerCoreApplication::ApplicationAt
 //-----------------------------------------------------------------------------
 QProcessEnvironment qSlicerCoreApplication::startupEnvironment() const
 {
+#ifdef Slicer_Use_CTKAPPLAUNCHER
   return ctkAppLauncherEnvironment::environment(0);
+#else
+  return QProcessEnvironment();
+#endif
 }
 
 //-----------------------------------------------------------------------------
