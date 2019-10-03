@@ -14,19 +14,19 @@ if(NOT Slicer_INSTALL_NO_DEVELOPMENT)
     )
 
   file(GLOB PNGFILES RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "*.png")
-  foreach(pngfile ${PNGFILES})
-    configure_file(
-      ${CMAKE_CURRENT_SOURCE_DIR}/${pngfile}
-      "${CMAKE_BINARY_DIR}/${Slicer_SHARE_DIR}/Resources/${pngfile}"
-      COPYONLY
-      )
-  endforeach()
-
   install(
     FILES ${PNGFILES}
     DESTINATION ${Slicer_INSTALL_SHARE_DIR}/Resources
     COMPONENT Development
     )
+
+  file(GLOB LOGOSPNGFILES RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "Logos/*.png")
+  install(
+    FILES ${LOGOSPNGFILES}
+    DESTINATION ${Slicer_INSTALL_SHARE_DIR}/Resources/Logos
+    COMPONENT Development
+    )
+  
 endif()
 
 # Should this location change, update Base/Logic/vtkSlicerModuleLogic.cxx
@@ -44,5 +44,10 @@ install(
   FILES ${PARAMETERSETS}
   DESTINATION ${Slicer_INSTALL_SHARE_DIR}/ParameterSets
   COMPONENT Runtime
+  )
+
+install(
+  FILES ${CMAKE_CURRENT_SOURCE_DIR}/qSlicer.qrc
+  DESTINATION ${Slicer_INSTALL_SHARE_DIR}/Resources COMPONENT Development
   )
 

@@ -69,7 +69,9 @@ set(Slicer_Libs_INCLUDE_DIRS
   "${Slicer_HOME}/include/ITKCommandIO"
   "${Slicer_HOME}/include/LoadableModule"
   "${Slicer_HOME}/include/MGHImageIO"
-  "${Slicer_HOME}/include/MRML"
+  "${Slicer_HOME}/include/MRMLCore"
+  "${Slicer_HOME}/include/MRMLDisplayableManager"
+  "${Slicer_HOME}/include/MRMLLogic"
   "${Slicer_HOME}/include/MRMLIDImageIO"
   "${Slicer_HOME}/include/ModuleDescriptionParser"
   "${Slicer_HOME}/include/Qdec"
@@ -78,6 +80,8 @@ set(Slicer_Libs_INCLUDE_DIRS
   "${Slicer_HOME}/include/vtkITK"
   "${Slicer_HOME}/include/vtkSegmentationCore"
   "${Slicer_HOME}/include/vtkTeem"
+  "${Slicer_HOME}/include/SlicerBaseLogic"
+  "${Slicer_HOME}/include/qMRMLWidgets"
   )
 
 # Slicer Base library directories.
@@ -89,8 +93,9 @@ set(Slicer_Base_LIBRARY_DIRS
 set(Slicer_Base_INCLUDE_DIRS
   "${Slicer_HOME}/@Slicer_INSTALL_INCLUDE_DIR@"
   "${Slicer_HOME}/@Slicer_INSTALL_INCLUDE_DIR@/SlicerBaseCLI"
-  "${Slicer_HOME}/@Slicer_INSTALL_INCLUDE_DIR@/SlicerBaseGUI"
-  "${Slicer_HOME}/@Slicer_INSTALL_INCLUDE_DIR@/SlicerBaseLogic"
+  "${Slicer_HOME}/@Slicer_INSTALL_INCLUDE_DIR@/qSlicerBaseQTApp"
+  "${Slicer_HOME}/@Slicer_INSTALL_INCLUDE_DIR@/qSlicerBaseQTGUI"
+  "${Slicer_HOME}/@Slicer_INSTALL_INCLUDE_DIR@/qSlicerBaseQTCore"
   )
 
 # The location of the UseSlicer.cmake file.
@@ -134,3 +139,6 @@ set(PYTHON_LIBRARIES "${Slicer_HOME}/lib/Python/lib/${PYTHON_LIB_FILE}")
 get_filename_component(PYTHON_INCLUDE_DIR "${PYTHON_INCLUDE_PATH}" NAME)
 set(PYTHON_INCLUDE_PATH "${Slicer_HOME}/lib/Python/include/${PYTHON_INCLUDE_DIR}")
 set(CTK_CMAKE_DIR "@CTK_CMAKE_DIR@")
+
+set(Slicer_EXPORT_HEADER_TEMPLATE "${Slicer_CMAKE_DIR}/qSlicerExport.h.in")
+set(Slicer_LOGOS_RESOURCE "${Slicer_HOME}/${Slicer_INSTALL_SHARE_DIR}/Resources/qSlicer.qrc")
