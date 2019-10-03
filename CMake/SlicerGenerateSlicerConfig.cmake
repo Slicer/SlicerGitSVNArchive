@@ -192,3 +192,8 @@ set(Slicer_TARGETS_FILE "${Slicer_BINARY_DIR}/SlicerTargets.cmake")
 configure_file(
   ${Slicer_SOURCE_DIR}/CMake/SlicerConfig.cmake.in
   ${Slicer_BINARY_DIR}/SlicerConfig.cmake @ONLY)
+
+# Configure SlicerConfig.cmake for the build tree.
+configure_file(
+  ${Slicer_SOURCE_DIR}/CMake/SlicerInstallConfig.cmake.in
+  ${Slicer_BINARY_DIR}/install/SlicerConfig.cmake @ONLY)
