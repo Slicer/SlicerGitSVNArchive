@@ -142,3 +142,6 @@ set(CTK_CMAKE_DIR "@CTK_CMAKE_DIR@")
 
 set(Slicer_EXPORT_HEADER_TEMPLATE "${Slicer_CMAKE_DIR}/qSlicerExport.h.in")
 set(Slicer_LOGOS_RESOURCE "${Slicer_HOME}/${Slicer_INSTALL_SHARE_DIR}/Resources/qSlicer.qrc")
+
+# MRML libraries - This variable regroup all related MRML libraries
+set(MRML_LIBRARIES @MRML_LIBRARIES@)
