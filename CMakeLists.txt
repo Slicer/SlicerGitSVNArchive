@@ -953,7 +953,7 @@ add_subdirectory(
 set(Slicer_USE_FILE ${Slicer_BINARY_DIR}/UseSlicer.cmake)
 configure_file(
   ${Slicer_SOURCE_DIR}/CMake/UseSlicer.cmake.in
-  ${Slicer_USE_FILE} COPYONLY)
+  ${Slicer_USE_FILE} @ONLY)
 
 configure_file(
   ${Slicer_SOURCE_DIR}/CMake/SlicerConfigVersion.cmake.in

@@ -39,6 +39,10 @@
 # This is can avoided by setting the variable Slicer_VERBOSE_SKIP to TRUE
 #
 
+set(CMAKE_MODULE_PATH
+  "@CTK_CMAKE_DIR@"
+  "${Slicer_CMAKE_DIR}")
+
 # --------------------------------------------------------------------------
 # Helper function(s) and macro(s)
 # --------------------------------------------------------------------------
@@ -156,7 +160,7 @@ if(NOT DEFINED Slicer_SKIP_EXTERNAL_DATA)
 endif()
 if(NOT ${Slicer_SKIP_EXTERNAL_DATA})
   set(ExternalData_OBJECT_STORES ${Slicer_ExternalData_OBJECT_STORES})
-  set(ExternalData_URL_TEMPLATES ${Slicer_ExternalData_URL_TEMPLATES})
+  set(ExternalData_URL_TEMPLATES "${Slicer_ExternalData_URL_TEMPLATES}")
 else()
   _slicer_skip_message("Slicer_ExternalData")
 endif()
