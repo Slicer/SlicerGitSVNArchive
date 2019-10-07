@@ -452,6 +452,11 @@ if(NOT ${PROJECT_NAME}_INSTALL_NO_DEVELOPMENT)
   install(
     FILES ${headers}
     DESTINATION include/${PROJECT_NAME} COMPONENT Development)
+
+  install(FILES
+    ${MRMLWidgets_UI_CXX}
+    DESTINATION include/${PROJECT_NAME} COMPONENT Development
+    )
 endif()
 
   # --------------------------------------------------------------------------
