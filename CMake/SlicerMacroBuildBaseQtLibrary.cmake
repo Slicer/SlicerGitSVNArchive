@@ -239,6 +239,11 @@ macro(SlicerMacroBuildBaseQtLibrary)
       ${dynamicHeaders}
       DESTINATION ${Slicer_INSTALL_INCLUDE_DIR}/${PROJECT_NAME} COMPONENT Development
       )
+
+    install(FILES
+      ${SLICERQTBASELIB_UI_CXX}
+      DESTINATION ${Slicer_INSTALL_INCLUDE_DIR}/${PROJECT_NAME} COMPONENT Development
+      )
   endif()
 
   # --------------------------------------------------------------------------
