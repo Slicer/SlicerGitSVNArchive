@@ -1,7 +1,13 @@
-set(proj python-chardet)
+set(proj python-pythonqt-requirements)
 
 # Set dependency list
-set(${proj}_DEPENDENCIES python python-setuptools)
+set(${proj}_DEPENDENCIES python python-setuptools python-wheel python-pip)
+
+set(requirements_file ${CMAKE_BINARY_DIR}/${proj}-requirements.txt)
+file(WRITE ${requirements_file} [===[
+pyparsing==2.3.1 --hash=sha256:f6c5ef0d7480ad048c054c37632c67fca55299990fff127850181659eea33fc3
+packaging==19.0 --hash=sha256:9e1cbf8c12b1f1ce0bb5344b8d7ecf66a6f8a6e91bcb0c84593ed6d3ab5c4ab3
+]===])
 
 if(NOT DEFINED Slicer_USE_SYSTEM_${proj})
   set(Slicer_USE_SYSTEM_${proj} ${Slicer_USE_SYSTEM_python})
@@ -11,26 +17,24 @@ endif()
 ExternalProject_Include_Dependencies(${proj} PROJECT_VAR proj DEPENDS_VAR ${proj}_DEPENDENCIES)
 
 if(Slicer_USE_SYSTEM_${proj})
-  ExternalProject_FindPythonPackage(
-    MODULE_NAME "chardet"
-    REQUIRED
-    )
+  foreach(module_name IN ITEMS pyparsing packaging)
+    ExternalProject_FindPythonPackage(
+      MODULE_NAME "${module_name}"
+      REQUIRED
+      )
+  endforeach()
 endif()
 
 if(NOT Slicer_USE_SYSTEM_${proj})
 
-  set(_version "3.0.4")
-
   ExternalProject_Add(${proj}
     ${${proj}_EP_ARGS}
-    URL "https://files.pythonhosted.org/packages/fc/bb/a5768c230f9ddb03acc9ef3f0d4a3cf93462473795d18e9535498c8f929d/chardet-${_version}.tar.gz"
-    URL_HASH "SHA256=84ab92ed1c4d4f16916e05906b6b75a6c0fb5db821cc65e70cbd64a3e2a5eaae"
-    DOWNLOAD_DIR ${CMAKE_BINARY_DIR}
+    DOWNLOAD_COMMAND ""
     SOURCE_DIR ${CMAKE_BINARY_DIR}/${proj}
     BUILD_IN_SOURCE 1
     CONFIGURE_COMMAND ""
     BUILD_COMMAND ""
-    INSTALL_COMMAND ${PYTHON_EXECUTABLE} setup.py install
+    INSTALL_COMMAND ${PYTHON_EXECUTABLE} -m pip install --require-hashes -r ${requirements_file}
     LOG_INSTALL 1
     DEPENDS
       ${${proj}_DEPENDENCIES}
