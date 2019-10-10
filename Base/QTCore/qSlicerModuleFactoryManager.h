@@ -86,7 +86,11 @@ public:
 
   /// Load module identified by \a name
   /// \todo move it as protected
-  bool loadModule(const QString& name);
+  Q_INVOKABLE bool loadModule(const QString& name);
+
+  /// Unload module identified by \a name
+  Q_INVOKABLE void unloadModule(const QString& name);
+
 
   /// Return all module paths that are direct child of \a basePath.
   QStringList modulePaths(const QString& basePath);
@@ -111,9 +115,6 @@ protected:
   QScopedPointer<qSlicerModuleFactoryManagerPrivate> d_ptr;
 
   bool loadModule(const QString& name, const QString& dependee);
-
-  /// Unload module identified by \a name
-  void unloadModule(const QString& name);
 
   /// Uninstantiate a module given its \a moduleName
   void uninstantiateModule(const QString& moduleName) override;
