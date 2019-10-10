@@ -62,12 +62,12 @@
 #include "vtkMRMLMarkupsClosedCurveNode.h"
 #include "vtkMRMLMarkupsFiducialStorageNode.h"
 #include "vtkMRMLMarkupsNode.h"
+#include "vtkPoints.h"
 #include "vtkSlicerMarkupsLogic.h"
 
 // VTK includes
 #include <vtkMath.h>
 #include <vtkNew.h>
-
 #include <math.h>
 
 static const int JUMP_MODE_COMBOBOX_INDEX_OFFSET = 0;
@@ -432,6 +432,31 @@ void qSlicerMarkupsModuleWidgetPrivate::setupUi(qSlicerWidget* widget)
     q, SLOT(onResetToDefaultDisplayPropertiesPushButtonClicked()));
   QObject::connect(this->saveToDefaultDisplayPropertiesPushButton, SIGNAL(clicked()),
     q, SLOT(onSaveToDefaultDisplayPropertiesPushButtonClicked()));
+
+  // set up the resample curve properties buttons
+  this->MRMLNodeComboBox_outputNodeSelector->setEnabled(true);
+  this->MRMLNodeComboBox_constraintNodeSelector->setEnabled(true);
+
+  QObject::connect(this->applyCurveResamplingPushButton, SIGNAL(clicked()),
+	  q, SLOT(onApplyCurveResamplingPushButtonClicked()));
+
+  vtkMRMLNode *mrmlNode = this->MarkupsNode;
+  vtkMRMLMarkupsClosedCurveNode *markupsClosedCurveNode = vtkMRMLMarkupsClosedCurveNode::SafeDownCast(mrmlNode);
+  if (markupsClosedCurveNode)
+	{
+	this->applyCurveResamplingPushButton->setEnabled(true);
+	this->MRMLNodeComboBox_outputNodeSelector->setNodeTypes(QStringList(QString("vtkMRMLMarkupsClosedCurveNode")));
+
+	}
+  else
+	{
+	vtkMRMLMarkupsCurveNode *markupsCurveNode = vtkMRMLMarkupsCurveNode::SafeDownCast(mrmlNode);
+	if (markupsCurveNode)
+	  {
+	  this->applyCurveResamplingPushButton->setEnabled(true);
+	  this->MRMLNodeComboBox_outputNodeSelector->setNodeTypes(QStringList(QString("vtkMRMLMarkupsCurveNode")));
+	  }
+	}
 }
 
 //-----------------------------------------------------------------------------
@@ -815,6 +840,29 @@ void qSlicerMarkupsModuleWidget::updateWidgetFromMRML()
     {
     this->updateRow(m);
     }
+  
+  //check for active curve and enable
+
+  vtkMRMLNode *mrmlNode = d->MarkupsNode;
+  vtkMRMLMarkupsClosedCurveNode *markupsClosedCurveNode = vtkMRMLMarkupsClosedCurveNode::SafeDownCast(mrmlNode);
+  if (markupsClosedCurveNode)
+	{
+	d->applyCurveResamplingPushButton->setEnabled(true);
+	d->MRMLNodeComboBox_outputNodeSelector->setNodeTypes(QStringList(QString("vtkMRMLMarkupsClosedCurveNode")));
+	}
+  else
+	{
+	vtkMRMLMarkupsCurveNode *markupsCurveNode = vtkMRMLMarkupsCurveNode::SafeDownCast(mrmlNode);
+	if (markupsCurveNode)
+	  {
+	  d->applyCurveResamplingPushButton->setEnabled(true);
+	  d->MRMLNodeComboBox_outputNodeSelector->setNodeTypes(QStringList(QString("vtkMRMLMarkupsCurveNode")));
+	  }
+	else
+	  {
+	  d->applyCurveResamplingPushButton->setEnabled(false);
+	  }
+	}
 }
 
 //-----------------------------------------------------------------------------
@@ -2063,6 +2111,7 @@ void qSlicerMarkupsModuleWidget::pasteSelectedFromClipboard()
 //-----------------------------------------------------------------------------
 void qSlicerMarkupsModuleWidget::onActiveMarkupsNodeModifiedEvent()
 {
+
   this->updateWidgetFromMRML();
 }
 
@@ -2401,6 +2450,52 @@ void qSlicerMarkupsModuleWidget::onResetToDefaultDisplayPropertiesPushButtonClic
     return;
     }
   this->markupsLogic()->SetDisplayNodeToDefaults(displayNode);
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerMarkupsModuleWidget::onApplyCurveResamplingPushButtonClicked()
+{
+  Q_D(qSlicerMarkupsModuleWidget);
+
+  double resampleDistance = d->SelectNumberOfSamplePointsSpinBox->value();
+
+  vtkMRMLNode *mrmlInputNode = d->MarkupsNode;
+  vtkMRMLMarkupsCurveNode *markupsCurveNode = vtkMRMLMarkupsCurveNode::SafeDownCast(mrmlInputNode);
+  vtkMRMLMarkupsCurveNode *outputNode = vtkMRMLMarkupsCurveNode::SafeDownCast(d->MRMLNodeComboBox_outputNodeSelector->currentNode());
+
+  if (mrmlInputNode)
+    {
+	if (mrmlInputNode->GetClassName() == "vtkMRMLMarkupsClosedCurveNode")
+	  {
+	  vtkMRMLMarkupsClosedCurveNode *markupsCurveNode = vtkMRMLMarkupsClosedCurveNode::SafeDownCast(mrmlInputNode);
+	  vtkMRMLMarkupsClosedCurveNode *outputNode = vtkMRMLMarkupsClosedCurveNode::SafeDownCast(d->MRMLNodeComboBox_outputNodeSelector->currentNode());
+	  }
+	if(outputNode != markupsCurveNode)
+	  {
+	  vtkNew<vtkPoints> originalControlPoints;
+      markupsCurveNode->GetControlPointPositionsWorld(originalControlPoints);
+      outputNode->SetControlPointPositionsWorld(originalControlPoints);
+	  vtkNew<vtkStringArray> originalLabels;
+	  markupsCurveNode->GetControlPointLabels(originalLabels);
+	  outputNode->SetControlPointLabels(originalLabels, originalControlPoints);
+	  }
+	double sampleDist = markupsCurveNode->GetCurveLengthWorld() / (resampleDistance - 1);
+	vtkMRMLModelNode *constraintNode = vtkMRMLModelNode::SafeDownCast(d->MRMLNodeComboBox_constraintNodeSelector->currentNode());
+	if (constraintNode)
+	  {
+	  double maximumSearchRadius = 0.01*d->maxSearchRadiusSliderWidget->value();
+	  bool success = outputNode->ResampleCurveSurface(sampleDist, constraintNode, maximumSearchRadius);
+	  if (!success)
+		{
+	    qDebug() << "vtkMRMLMarkupsCurveNode::ResampleCurveSurface failed";
+	    return;
+		}
+	  }
+	else
+	  {
+	  outputNode->ResampleCurveWorld(sampleDist);
+	  }
+	}
 }
 
 //-----------------------------------------------------------------------------
