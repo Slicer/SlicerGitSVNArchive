@@ -2622,7 +2622,7 @@ bool vtkSlicerSegmentationsModuleLogic::GetSharedSegmentIDsInMask(
     segmentation->GetSegment(sharedSegmentID)->GetRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()));
 
   std::vector<int> labelValuesInMask;
-  vtkOrientedImageDataResample::GetLabelValuesInMask(binaryLabelmap, maskLabelmap, extent, labelValuesInMask, maskThreshold);
+  vtkOrientedImageDataResample::GetLabelValuesInMask(labelValuesInMask, binaryLabelmap, maskLabelmap, extent, maskThreshold);
 
   for (int labelValue : labelValuesInMask)
     {
