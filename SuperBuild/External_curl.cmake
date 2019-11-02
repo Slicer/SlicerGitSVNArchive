@@ -51,13 +51,13 @@ if((NOT DEFINED CURL_INCLUDE_DIR
 
   ExternalProject_SetIfNotDefined(
     Slicer_${proj}_GIT_REPOSITORY
-    "${EP_GIT_PROTOCOL}://github.com/Slicer/curl.git"
+    "${EP_GIT_PROTOCOL}://github.com/curl/curl.git"
     QUIET
     )
 
   ExternalProject_SetIfNotDefined(
     Slicer_${proj}_GIT_TAG
-    "c5e0ea129b9d187214156f0f704e43ef45ff1aec" # curl-7_34_0-maint
+    "9cd755e1d768bbf228e7c9faf223b7459f7e0105" # curl-7_66_0
     QUIET
     )
 
