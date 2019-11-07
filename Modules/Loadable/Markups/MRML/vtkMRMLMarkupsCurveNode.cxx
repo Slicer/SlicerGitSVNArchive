@@ -28,6 +28,7 @@
 #include <vtkBoundingBox.h>
 #include <vtkCutter.h>
 #include <vtkDoubleArray.h>
+#include <vtkFloatArray.h>
 #include <vtkFrenetSerretFrame.h>
 #include <vtkGeneralTransform.h>
 #include <vtkGenericCell.h>
@@ -251,20 +252,29 @@ bool vtkMRMLMarkupsCurveNode::ResampleCurveSurface(double controlPointDistance, 
   pointLocator->SetDataSet(surfacePolydata);
   pointLocator->BuildLocator();
 
-  vtkDataArray* normalVectorArray = vtkArrayDownCast<vtkDataArray>(surfacePolydata->GetPointData()->GetArray("Normals"));
-  if(!normalVectorArray)
+  vtkNew<vtkFloatArray> normalVectorArray;
+  vtkDataArray* loadedNormalVectorArray = vtkArrayDownCast<vtkDataArray>(surfacePolydata->GetPointData()->GetArray("Normals"));
+  if (loadedNormalVectorArray)
     {
-    vtkNew<vtkPolyDataNormals> normalFilter;
-    normalFilter->SetInputData(surfacePolydata);
-    normalFilter->ComputePointNormalsOn();
-    normalFilter->Update();
-    vtkPolyData* normalPolydata = normalFilter->GetOutput();
-    vtkDataArray* normalVectorArray = vtkArrayDownCast<vtkDataArray>(normalPolydata->GetPointData()->GetNormals());
-    if (!normalVectorArray)
-      {
-      vtkErrorMacro("vtkMRMLMarkupsCurveNode::ResamplePoints failed: Unable to find or calculate normals");
-      return false;
-      }
+	normalVectorArray->DeepCopy(loadedNormalVectorArray);
+    }
+  else
+    {
+	vtkNew<vtkPolyDataNormals> normalFilter;
+	normalFilter->SetInputData(surfacePolydata);
+	normalFilter->ComputePointNormalsOn();
+	normalFilter->Update();
+	vtkPolyData* normalPolydata = normalFilter->GetOutput();
+    vtkDataArray* computedNormalVectorArray = vtkArrayDownCast<vtkDataArray>(normalPolydata->GetPointData()->GetNormals());
+	if (computedNormalVectorArray)
+	  {
+	  normalVectorArray->DeepCopy(computedNormalVectorArray);
+	  }
+	else
+	  {
+	  vtkErrorMacro("vtkMRMLMarkupsCurveNode::ResamplePoints failed: Unable to find or calculate normals");
+	  return false;
+	  }
     }
 
   double interpolatedPoint[3] = { 0.0 };
