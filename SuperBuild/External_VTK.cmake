@@ -41,22 +41,25 @@ if((NOT DEFINED VTK_DIR OR NOT DEFINED VTK_SOURCE_DIR) AND NOT Slicer_USE_SYSTEM
 
   if(Slicer_USE_PYTHONQT)
     list(APPEND EXTERNAL_PROJECT_OPTIONAL_CMAKE_CACHE_ARGS
+      -DVTK_PYTHON_VERSION:STRING=3
       -DPYTHON_EXECUTABLE:PATH=${PYTHON_EXECUTABLE}
-      -DPYTHON_INCLUDE_DIR:PATH=${PYTHON_INCLUDE_DIR}
-      -DPYTHON_LIBRARY:FILEPATH=${PYTHON_LIBRARY}
+      -DPython3_INCLUDE_DIR:PATH=${PYTHON_INCLUDE_DIR}
+      -DPython3_LIBRARY_DEBUG:FILEPATH=${PYTHON_LIBRARY}
+      -DPython3_LIBRARY_RELEASE:FILEPATH=${PYTHON_LIBRARY}
+      # -DPython3_RUNTIME_LIBRARY_RELEASE:FILEPATH=d:/D/S4R/python-install/bin/python36.dll
       )
   endif()
 
   # Markups module needs vtkFrenetSerretFrame, which is available in
   # SplineDrivenImageSlicer remote module.
   list(APPEND EXTERNAL_PROJECT_OPTIONAL_CMAKE_CACHE_ARGS
-    -DModule_SplineDrivenImageSlicer:BOOL=ON
+    -DVTK_MODULE_ENABLE_VTK_SplineDrivenImageFilter:STRING=YES
     )
 
   list(APPEND EXTERNAL_PROJECT_OPTIONAL_CMAKE_CACHE_ARGS
-    -DVTK_USE_GUISUPPORT:BOOL=ON
-    -DVTK_USE_QVTK_QTOPENGL:BOOL=ON
-    -DModule_vtkTestingRendering:BOOL=ON
+    -DVTK_MODULE_ENABLE_VTK_GUISupportQt:STRING=YES
+    -DVTK_GROUP_ENABLE_Qt:STRING=YES
+    # -DModule_vtkTestingRendering:BOOL=ON still needed?
     )
     list(APPEND EXTERNAL_PROJECT_OPTIONAL_CMAKE_CACHE_ARGS
       -DVTK_QT_VERSION:STRING=5
@@ -65,7 +68,7 @@ if((NOT DEFINED VTK_DIR OR NOT DEFINED VTK_SOURCE_DIR) AND NOT Slicer_USE_SYSTEM
       )
   if("${Slicer_VTK_RENDERING_BACKEND}" STREQUAL "OpenGL2")
     list(APPEND EXTERNAL_PROJECT_OPTIONAL_CMAKE_CACHE_ARGS
-      -DModule_vtkGUISupportQtOpenGL:BOOL=ON
+      -DVTK_MODULE_ENABLE_VTK_GUISupportQtOpenGL:STRING=YES
     )
   endif()
   if(Slicer_USE_TBB)
@@ -116,13 +119,14 @@ if((NOT DEFINED VTK_DIR OR NOT DEFINED VTK_SOURCE_DIR) AND NOT Slicer_USE_SYSTEM
 
   ExternalProject_SetIfNotDefined(
     Slicer_${proj}_GIT_REPOSITORY
-    "${EP_GIT_PROTOCOL}://github.com/slicer/VTK.git"
+    "${EP_GIT_PROTOCOL}://github.com/kitware/VTK.git"
     QUIET
     )
 
 set(_git_tag)
 if("${Slicer_VTK_VERSION_MAJOR}" STREQUAL "8")
-  set(_git_tag "73e89e85c49c0802a77b208e8a973e566bc8b6f4") # slicer-v8.2.0-2018-10-02-74d9488523
+  #set(_git_tag "ee1da272ad629bfb9cbf86c51336ee361d095022") # slicer-v8.2.0-2018-10-02-74d9488523
+  set(_git_tag "8834b90404b23cceb84e6fc419ba0bb5fc77d82f") # latest master as of 2019-Nov-07
 else()
   message(FATAL_ERROR "error: Unsupported Slicer_VTK_VERSION_MAJOR: ${Slicer_VTK_VERSION_MAJOR}")
 endif()
@@ -149,13 +153,14 @@ endif()
       -DCMAKE_CXX_STANDARD:STRING=${CMAKE_CXX_STANDARD}
       -DCMAKE_CXX_STANDARD_REQUIRED:BOOL=${CMAKE_CXX_STANDARD_REQUIRED}
       -DCMAKE_CXX_EXTENSIONS:BOOL=${CMAKE_CXX_EXTENSIONS}
-      -DBUILD_TESTING:BOOL=OFF
-      -DBUILD_EXAMPLES:BOOL=OFF
-      -DBUILD_SHARED_LIBS:BOOL=ON
-      -DVTK_USE_PARALLEL:BOOL=ON
+      -DVTK_BUILD_TESTING:STRING=OFF
+      #-DVTK_DATA_EXCLUDE_FROM_ALL:BOOL=TRUE
+      # -DBUILD_EXAMPLES:BOOL=OFF this option does not exist anymore
+      # -DBUILD_SHARED_LIBS:BOOL=ON this is probably not needed
+      # -DVTK_USE_PARALLEL:BOOL=ON this option does not exist anymore
       -DVTK_DEBUG_LEAKS:BOOL=${VTK_DEBUG_LEAKS}
       -DVTK_LEGACY_REMOVE:BOOL=ON
-      -DVTK_WRAP_TCL:BOOL=OFF
+      # -DVTK_WRAP_TCL:BOOL=OFF  this option does not exist anymore
       #-DVTK_USE_RPATH:BOOL=ON # Unused
       -DVTK_WRAP_PYTHON:BOOL=${VTK_WRAP_PYTHON}
       -DVTK_INSTALL_RUNTIME_DIR:PATH=${Slicer_INSTALL_BIN_DIR}
