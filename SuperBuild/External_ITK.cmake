@@ -98,6 +98,12 @@ if(NOT DEFINED ITK_DIR AND NOT Slicer_USE_SYSTEM_${proj})
     endforeach()
   endif()
 
+#MESSAGE(WARNING "EXTERNAL ITK VARIABLES:")
+#get_cmake_property(_variableNames VARIABLES)
+#list (SORT _variableNames)
+#foreach (_variableName ${_variableNames})
+#    message(STATUS "${_variableName}=${${_variableName}}")
+#endforeach()
 
   ExternalProject_Add(${proj}
     ${${proj}_EP_ARGS}
@@ -146,6 +152,9 @@ if(NOT DEFINED ITK_DIR AND NOT Slicer_USE_SYSTEM_${proj})
     DEPENDS
       ${${proj}_DEPENDENCIES}
     )
+
+
+  # MESSAGE(WARNING "ITK's EXTERNAL_PROJECT_OPTIONAL_CMAKE_CACHE_ARGS: ${EXTERNAL_PROJECT_OPTIONAL_CMAKE_CACHE_ARGS}")
 
   ExternalProject_GenerateProjectDescription_Step(${proj})
 
