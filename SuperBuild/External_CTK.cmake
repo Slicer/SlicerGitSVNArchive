@@ -34,6 +34,11 @@ if(NOT DEFINED CTK_DIR AND NOT Slicer_USE_SYSTEM_${proj})
       -DPYTHON_LIBRARY:FILEPATH=${PYTHON_LIBRARY}
       -DPYTHON_INCLUDE_DIR:PATH=${PYTHON_INCLUDE_DIR}
       -DPYTHON_EXECUTABLE:FILEPATH=${PYTHON_EXECUTABLE}
+      -DVTK_PYTHON_VERSION:STRING=3
+      -DPython3_ROOT_DIR:PATH=${python_DIR}
+      -DPython3_INCLUDE_DIR:PATH=${PYTHON_INCLUDE_DIR}
+      -DPython3_LIBRARY_DEBUG:FILEPATH=${PYTHON_LIBRARY}
+      -DPython3_LIBRARY_RELEASE:FILEPATH=${PYTHON_LIBRARY}
       )
   endif()
 
@@ -51,13 +56,14 @@ if(NOT DEFINED CTK_DIR AND NOT Slicer_USE_SYSTEM_${proj})
 
   ExternalProject_SetIfNotDefined(
     Slicer_${proj}_GIT_REPOSITORY
-    "${EP_GIT_PROTOCOL}://github.com/commontk/CTK.git"
+    "${EP_GIT_PROTOCOL}://github.com/lassoan/CTK.git"
     QUIET
     )
 
   ExternalProject_SetIfNotDefined(
     Slicer_${proj}_GIT_TAG
-    "fb8353d51b393f963e57dee87709ee29816cd716"
+    #"fb8353d51b393f963e57dee87709ee29816cd716"
+    build-with-vtk89
     QUIET
     )
 
