@@ -1,7 +1,7 @@
 set(proj python-scipy)
 
 # Set dependency list
-set(${proj}_DEPENDENCIES python python-setuptools python-numpy python-pip)
+set(${proj}_DEPENDENCIES python python-ensurepip python-setuptools python-pip python-wheel python-numpy)
 
 set(requirements_file ${CMAKE_BINARY_DIR}/${proj}-requirements.txt)
 file(WRITE ${requirements_file} [===[
