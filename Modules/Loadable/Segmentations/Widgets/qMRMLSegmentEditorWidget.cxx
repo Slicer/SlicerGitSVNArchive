@@ -68,9 +68,13 @@
 #include <vtkSlicerApplicationLogic.h>
 
 // MRML includes
+#include <vtkMRMLCameraDisplayableManager.h>
+#include <vtkMRMLCameraWidget.h>
+#include <vtkMRMLCrosshairDisplayableManager.h>
 #include <vtkMRMLLabelMapVolumeNode.h>
 #include <vtkMRMLSelectionNode.h>
 #include <vtkMRMLScene.h>
+#include <vtkMRMLSliceIntersectionWidget.h>
 #include <vtkMRMLSliceNode.h>
 #include <vtkMRMLTransformNode.h>
 #include <vtkMRMLViewNode.h>
@@ -2757,6 +2761,51 @@ void qMRMLSegmentEditorWidget::processEvents(vtkObject* caller,
   vtkMRMLAbstractViewNode* callerViewNode = vtkMRMLAbstractViewNode::SafeDownCast(caller);
   if (callerInteractor)
     {
+    vtkNew<vtkCollection> displayManagers;
+    qMRMLSliceWidget* sliceWidget = qobject_cast<qMRMLSliceWidget*>(viewWidget);
+    if (sliceWidget)
+      {
+      sliceWidget->sliceView()->getDisplayableManagers(displayManagers);
+      }
+    qMRMLThreeDWidget* threeDWidget = qobject_cast<qMRMLThreeDWidget*>(viewWidget);
+    if (threeDWidget)
+      {
+      threeDWidget->threeDView()->getDisplayableManagers(displayManagers);
+      }
+
+    vtkMRMLCrosshairDisplayableManager* crosshairDisplayableManager = nullptr;
+    vtkMRMLCameraDisplayableManager* cameraDisplayableManager = nullptr;
+    for (int i = 0; i < displayManagers->GetNumberOfItems(); ++i)
+      {
+      vtkObject* object = displayManagers->GetItemAsObject(i);
+      if (object->IsA("vtkMRMLCrosshairDisplayableManager"))
+        {
+        crosshairDisplayableManager = vtkMRMLCrosshairDisplayableManager::SafeDownCast(object);
+        break;
+        }
+      else if (object->IsA("vtkMRMLCameraDisplayableManager"))
+        {
+        cameraDisplayableManager = vtkMRMLCameraDisplayableManager::SafeDownCast(object);
+        }
+      }
+
+    if (crosshairDisplayableManager)
+      {
+      int widgetState = crosshairDisplayableManager->GetSliceIntersectionWidget()->GetWidgetState();
+      if (widgetState == vtkMRMLSliceIntersectionWidget::WidgetStateTouchGesture)
+        {
+        return;
+        }
+      }
+    else if (cameraDisplayableManager)
+      {
+      int widgetState = cameraDisplayableManager->GetCameraWidget()->GetWidgetState();
+      if (widgetState == vtkMRMLCameraWidget::WidgetStateTouchGesture)
+        {
+        return;
+        }
+      }
+
     bool abortEvent = activeEffect->processInteractionEvents(callerInteractor, eid, viewWidget);
     if (abortEvent)
       {
