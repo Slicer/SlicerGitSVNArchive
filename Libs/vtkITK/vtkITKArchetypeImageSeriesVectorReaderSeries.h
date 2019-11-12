@@ -38,6 +38,10 @@ protected:
   ~vtkITKArchetypeImageSeriesVectorReaderSeries() override;
 
   void ExecuteDataWithInformation(vtkDataObject *output, vtkInformation *outInfo) override;
+
+private:
+  vtkITKArchetypeImageSeriesVectorReaderSeries(const vtkITKArchetypeImageSeriesVectorReaderSeries&) = delete;
+  void operator=(const vtkITKArchetypeImageSeriesVectorReaderSeries&) = delete;
 };
 
 #endif
