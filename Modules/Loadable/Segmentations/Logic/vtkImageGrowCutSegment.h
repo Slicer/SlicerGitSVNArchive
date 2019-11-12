@@ -39,6 +39,10 @@ protected:
 private:
   class vtkInternal;
   vtkInternal * Internal;
+
+private:
+  vtkImageGrowCutSegment(const vtkImageGrowCutSegment&) = delete;
+  void operator=(const vtkImageGrowCutSegment&) = delete;
 };
 
 #endif

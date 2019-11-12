@@ -1125,7 +1125,7 @@ void qMRMLPlotView::saveAsSVG(const QString &filePathPrefix)
 
   exporter->SetFileFormatToSVG();
   exporter->CompressOff();
-  exporter->SetRenderWindow(this->GetRenderWindow());
+  exporter->SetRenderWindow(this->renderWindow());
   exporter->SetFilePrefix(filePathPrefix.toStdString().c_str());
   exporter->Update();
 }

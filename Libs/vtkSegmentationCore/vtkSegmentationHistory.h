@@ -99,7 +99,6 @@ protected:
 protected:
   vtkSegmentationHistory();
   ~vtkSegmentationHistory() override;
-  void operator=(const vtkSegmentationHistory&);
 
   /// Deep copies source segment to destination segment. If the same representation is found in baseline
   /// with up-to-date timestamp then the representation is reused from baseline.
@@ -125,6 +124,10 @@ protected:  /// Container type for segments. Maps segment IDs to segment objects
   unsigned int LastRestoredState;
 
   bool RestoreStateInProgress;
+
+private:
+  vtkSegmentationHistory(const vtkSegmentationHistory&) = delete;
+  void operator=(const vtkSegmentationHistory&) = delete;
 };
 
 #endif // __vtkSegmentation_h
