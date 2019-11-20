@@ -18,10 +18,7 @@ endif()
 #
 # VTK
 #
-find_package(VTK REQUIRED)
-include(${VTK_USE_FILE})
 set(vtkAddon_LIBS ${VTK_LIBRARIES})
-
 
 # --------------------------------------------------------------------------
 # Configure headers

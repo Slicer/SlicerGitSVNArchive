@@ -18,6 +18,12 @@
 #
 ################################################################################
 
+# It seems that these variables are available in VTK but not made available
+# to outside by find_package. For now just hardcode the values.
+set(VTK_WRAP_HIERARCHY_EXE "d:/D/S4R/VTK-build/bin/Release/vtkWrapHierarchy-8.90.exe")
+set(VTK_WRAP_PYTHON_EXE "d:/D/S4R/VTK-build/bin/Release/vtkWrapPython-8.90.exe")
+set(VTK_WRAP_PYTHON_INIT_EXE "d:/D/S4R/VTK-build/bin/Release/vtkWrapPythonInit-8.90.exe")
+
 # Based on VTK/CMake/KitCommonWrapBlock.cmake
 
 # Add <dep> as a dependency of <module_name> and recurse on <dep>'s dependencies.
@@ -95,7 +101,8 @@ macro(vtkMacroKitPythonWrap)
 
   # Sanity checks
   set(expected_defined_vars
-    VTK_CMAKE_DIR VTK_WRAP_PYTHON BUILD_SHARED_LIBS VTK_LIBRARIES)
+    #VTK_CMAKE_DIR VTK_WRAP_PYTHON
+    BUILD_SHARED_LIBS VTK_LIBRARIES)
   foreach(var ${expected_defined_vars})
     if(NOT DEFINED ${var})
       message(FATAL_ERROR "error: ${var} CMake variable is not defined !")
@@ -131,7 +138,8 @@ macro(vtkMacroKitPythonWrap)
 
     # Tell vtkWrapPython.cmake to set VTK_PYTHON_LIBRARIES for us.
     set(VTK_WRAP_PYTHON_FIND_LIBS 1)
-    include(${VTK_CMAKE_DIR}/vtkWrapPython.cmake)
+    #include(${VTK_CMAKE_DIR}/vtkModuleWrapPython.cmake)
+    include(vtkWrapPython)
 
     set(TMP_WRAP_FILES ${MY_KIT_SRCS} ${MY_KIT_WRAP_HEADERS})
     set(_wrap_hierarchy_stamp_file)
@@ -176,7 +184,8 @@ macro(vtkMacroKitPythonWrap)
 
     # Generate hierarchy files for VTK8 and later
     if(NOT ${VTK_VERSION_MAJOR} VERSION_LESS 8)
-      include(${VTK_CMAKE_DIR}/vtkWrapHierarchy.cmake)
+      #include(${VTK_CMAKE_DIR}/vtkWrapHierarchy.cmake)
+      include(vtkWrapHierarchy)
 
       # Set variables for this and future runs of vtk_wrap_hierarchy:
       #  - <module_name>_WRAP_DEPENDS
@@ -195,8 +204,17 @@ macro(vtkMacroKitPythonWrap)
       set(KIT_HIERARCHY_FILE "${_wrap_hierarchy_file}")
 
       # Generate hierarchy files
+
+set(VTK_WRAP_HIERARCHY_EXE "d:/D/S4R/VTK-build/bin/Release/vtkWrapHierarchy-8.90.exe")
+set(VTK_WRAP_PYTHON_EXE "d:/D/S4R/VTK-build/bin/Release/vtkWrapPython-8.90.exe")
+set(VTK_WRAP_PYTHON_INIT_EXE "d:/D/S4R/VTK-build/bin/Release/vtkWrapPythonInit-8.90.exe")
+
       vtk_wrap_hierarchy(${MY_KIT_NAME} ${Slicer_VTK_WRAP_HIERARCHY_DIR} "${TMP_WRAP_FILES}")
     endif()
+
+set(VTK_WRAP_HIERARCHY_EXE "d:/D/S4R/VTK-build/bin/Release/vtkWrapHierarchy-8.90.exe")
+set(VTK_WRAP_PYTHON_EXE "d:/D/S4R/VTK-build/bin/Release/vtkWrapPython-8.90.exe")
+set(VTK_WRAP_PYTHON_INIT_EXE "d:/D/S4R/VTK-build/bin/Release/vtkWrapPythonInit-8.90.exe")
 
     VTK_WRAP_PYTHON3(${MY_KIT_NAME}Python KitPython_SRCS "${TMP_WRAP_FILES}")
 
