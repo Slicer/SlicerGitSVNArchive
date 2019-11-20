@@ -269,7 +269,7 @@ set(libs
   vtkSegmentationCore
   ${ITK_LIBRARIES}
   ${VTK_LIBRARIES}
-  vtkIOInfovis
+  VTK::IOInfovis
   FreeSurfer
   )
 if(MRML_USE_vtkTeem)

@@ -63,7 +63,7 @@ if((NOT DEFINED VTK_DIR OR NOT DEFINED VTK_SOURCE_DIR) AND NOT Slicer_USE_SYSTEM
   # Markups module needs vtkFrenetSerretFrame, which is available in
   # SplineDrivenImageSlicer remote module.
   list(APPEND EXTERNAL_PROJECT_OPTIONAL_CMAKE_CACHE_ARGS
-    -DVTK_MODULE_ENABLE_VTK_SplineDrivenImageFilter:STRING=YES
+    -DVTK_MODULE_ENABLE_VTK_SplineDrivenImageSlicer:STRING=YES
     )
 
   list(APPEND EXTERNAL_PROJECT_OPTIONAL_CMAKE_CACHE_ARGS
@@ -138,14 +138,15 @@ if((NOT DEFINED VTK_DIR OR NOT DEFINED VTK_SOURCE_DIR) AND NOT Slicer_USE_SYSTEM
 
   ExternalProject_SetIfNotDefined(
     Slicer_${proj}_GIT_REPOSITORY
-    "${EP_GIT_PROTOCOL}://github.com/kitware/VTK.git"
+    "${EP_GIT_PROTOCOL}://github.com/lassoan/VTK.git"
     QUIET
     )
 
 set(_git_tag)
 if("${Slicer_VTK_VERSION_MAJOR}" STREQUAL "8")
   #set(_git_tag "ee1da272ad629bfb9cbf86c51336ee361d095022") # slicer-v8.2.0-2018-10-02-74d9488523
-  set(_git_tag "3ddf311755e7a5b59fb756bcd482b66cd7207fb1") # latest master as of 2019-Nov-08
+  #set(_git_tag "3ddf311755e7a5b59fb756bcd482b66cd7207fb1") # latest master as of 2019-Nov-08
+  set(_git_tag "slicer-v8.90") # branch containing Slicer-specific VTK patches
 else()
   message(FATAL_ERROR "error: Unsupported Slicer_VTK_VERSION_MAJOR: ${Slicer_VTK_VERSION_MAJOR}")
 endif()

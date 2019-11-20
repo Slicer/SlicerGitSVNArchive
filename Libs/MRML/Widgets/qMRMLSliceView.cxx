@@ -436,7 +436,7 @@ void qMRMLSliceView::setViewCursor(const QCursor &cursor)
 #if VTK_MAJOR_VERSION >= 9 || (VTK_MAJOR_VERSION >= 8 && VTK_MINOR_VERSION >= 2)
   if (this->VTKWidget() != nullptr)
     {
-    this->VTKWidget()->setQVTKCursor(cursor);
+    this->VTKWidget()->setCursor(cursor);  // TODO: test if cursor settings works
     }
 #endif
 }
@@ -450,7 +450,7 @@ void qMRMLSliceView::unsetViewCursor()
     {
     // TODO: it would be better to restore default cursor, but QVTKOpenGLNativeWidget
     // API does not have an accessor method to the default cursor.
-    this->VTKWidget()->setQVTKCursor(QCursor(Qt::ArrowCursor));
+    this->VTKWidget()->setCursor(QCursor(Qt::ArrowCursor));  // TODO: test if cursor settings works
     }
 #endif
 }
@@ -461,7 +461,7 @@ void qMRMLSliceView::setDefaultViewCursor(const QCursor &cursor)
 #if VTK_MAJOR_VERSION >= 9 || (VTK_MAJOR_VERSION >= 8 && VTK_MINOR_VERSION >= 2)
   if (this->VTKWidget() != nullptr)
     {
-    this->VTKWidget()->setDefaultQVTKCursor(cursor);
+    this->VTKWidget()->setDefaultCursor(cursor);  // TODO: test if cursor settings works
     }
 #endif
 }
