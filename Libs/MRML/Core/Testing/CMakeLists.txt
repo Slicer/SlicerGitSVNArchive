@@ -234,29 +234,42 @@ simple_test( vtkObserverManagerTest1 )
 simple_test( vtkOrientedBSplineTransformTest1 )
 simple_test( vtkThinPlateSplineTransformTest1 )
 
-macro(SIMPLE_TEST_WITH_SCENE TESTNAME SCENEFILENAME)
-  add_test(
-    NAME ${TESTNAME}_${SCENEFILENAME}
-    COMMAND ${Slicer_LAUNCH_COMMAND} $<TARGET_FILE:${KIT}CxxTests> ${TESTNAME}
+function(SIMPLE_TEST_WITH_SCENE TESTNAME SCENEFILENAME)
+  # Extract list of external files to download. Note that the ${_externalfiles} variable
+  # is only specified to trigger download of data files used in the scene, the arguments
+  # are NOT explcitly used in ${KIT}CxxTests test executable.
+  string(REPLACE "|" ";" scenefilename_and_externalfiles ${SCENEFILENAME})
+  list(GET scenefilename_and_externalfiles 0 SCENEFILENAME)
+  list(LENGTH scenefilename_and_externalfiles _length)
+  if(_length EQUAL 2)
+    configure_file(
       ${CMAKE_CURRENT_SOURCE_DIR}/${SCENEFILENAME}
-    )
-endmacro()
-
+      ${CMAKE_CURRENT_BINARY_DIR}/${SCENEFILENAME}
+      COPYONLY
+      )
+    set(_scenefile ${CMAKE_CURRENT_BINARY_DIR}/${SCENEFILENAME})
+    list(GET scenefilename_and_externalfiles 1 _externalfiles)
+  else()
+    set(_scenefile ${CMAKE_CURRENT_SOURCE_DIR}/${SCENEFILENAME})
+    set(_externalfiles "")
+  endif()
+  simple_test(${TESTNAME}_${SCENEFILENAME} DRIVER_TESTNAME ${TESTNAME} ${_scenefile} ${_externalfiles})
+endfunction()
 
 set( ScenesToTest
   clipCube.mrml
   cube.mrml
-  diffusionEditor.mrml
-  helixGlyphs.mrml
+  diffusionEditor.mrml|DATA{${INPUT}/helix-DTI.nhdr,helix-DTI.raw.gz,helix-DWI.nhdr,helix-DWI.raw.gz}
+  helixGlyphs.mrml|DATA{${INPUT}/helix-DTI.nhdr,helix-DTI.raw.gz}
   hier_test.mrml
-  multi_display.mrml
-  name.mrml
-  SlicePipeline.mrml
+  multi_display.mrml|DATA{${INPUT}/cube.vtk}
+  name.mrml|DATA{${INPUT}/cube.vtk,fixed.nrrd,moving.nrrd}
+  SlicePipeline.mrml|DATA{${INPUT}/fixed.nrrd}
   volumetric_mesh.mrml
-  vol_and_cube_camera.mrml
-  vol_and_cube.mrml
-  vol.mrml
-  volScene.mrml
+  vol_and_cube_camera.mrml|DATA{${INPUT}/fixed.nrrd,cube.vtk}
+  vol_and_cube.mrml|DATA{${INPUT}/fixed.nrrd,cube.vtk}
+  vol.mrml|DATA{${INPUT}/fixed.nrrd}
+  volScene.mrml|DATA{${INPUT}/fixed.nrrd,moving.nrrd}
   )
 
 foreach(SceneToTest ${ScenesToTest})

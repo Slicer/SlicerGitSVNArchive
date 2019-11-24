@@ -39,6 +39,7 @@
 // MRML includes
 #include <vtkMRMLDisplayableNode.h>
 #include <vtkMRMLDisplayNode.h>
+#include <vtkMRMLMarkupsNode.h>
 #include <vtkMRMLScene.h>
 
 // vtkSegmentationCore includes
@@ -50,6 +51,7 @@
 
 // Qt includes
 #include <QDebug>
+#include <QInputDialog>
 #include <QStandardItem>
 #include <QAction>
 
@@ -67,6 +69,13 @@ public:
   qSlicerSubjectHierarchyMarkupsPluginPrivate(qSlicerSubjectHierarchyMarkupsPlugin& object);
   ~qSlicerSubjectHierarchyMarkupsPluginPrivate() override;
   void init();
+
+public:
+  QAction* RenamePointAction;
+  QAction* DeletePointAction;
+  QAction* ToggleSelectPointAction;
+
+  QVariantMap ViewMenuEventData;
 };
 
 //-----------------------------------------------------------------------------
@@ -75,12 +84,28 @@ public:
 //-----------------------------------------------------------------------------
 qSlicerSubjectHierarchyMarkupsPluginPrivate::qSlicerSubjectHierarchyMarkupsPluginPrivate(qSlicerSubjectHierarchyMarkupsPlugin& object)
 : q_ptr(&object)
+, RenamePointAction(nullptr)
+, DeletePointAction(nullptr)
+, ToggleSelectPointAction(nullptr)
 {
 }
 
 //------------------------------------------------------------------------------
 void qSlicerSubjectHierarchyMarkupsPluginPrivate::init()
 {
+  Q_Q(qSlicerSubjectHierarchyMarkupsPlugin);
+
+  this->RenamePointAction = new QAction("Rename point...", q);
+  this->RenamePointAction->setObjectName("RenamePointAction");
+  QObject::connect(this->RenamePointAction, SIGNAL(triggered()), q, SLOT(renamePoint()));
+
+  this->DeletePointAction = new QAction("Delete point", q);
+  this->DeletePointAction->setObjectName("DeletePointAction");
+  QObject::connect(this->DeletePointAction, SIGNAL(triggered()), q, SLOT(deletePoint()));
+
+  this->ToggleSelectPointAction = new QAction("Toggle select point", q);
+  this->ToggleSelectPointAction->setObjectName("ToggleSelectPointAction");
+  QObject::connect(this->ToggleSelectPointAction, SIGNAL(triggered()), q, SLOT(toggleSelectPoint()));
 }
 
 //-----------------------------------------------------------------------------
@@ -350,4 +375,153 @@ QColor qSlicerSubjectHierarchyMarkupsPlugin::getDisplayColor(vtkIdType itemID, Q
   // Get and return color
   double* colorArray = displayNode->GetSelectedColor();
   return QColor::fromRgbF(colorArray[0], colorArray[1], colorArray[2]);
+}
+
+//-----------------------------------------------------------------------------
+QList<QAction*> qSlicerSubjectHierarchyMarkupsPlugin::viewContextMenuActions()const
+{
+  Q_D(const qSlicerSubjectHierarchyMarkupsPlugin);
+
+  QList<QAction*> actions;
+  actions << d->RenamePointAction << d->DeletePointAction << d->ToggleSelectPointAction;
+  return actions;
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerSubjectHierarchyMarkupsPlugin::showViewContextMenuActionsForItem(vtkIdType itemID, QVariantMap eventData)
+{
+  Q_D(qSlicerSubjectHierarchyMarkupsPlugin);
+
+  if (itemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+    {
+    qCritical() << Q_FUNC_INFO << ": Invalid input item";
+    return;
+    }
+  vtkMRMLSubjectHierarchyNode* shNode = qSlicerSubjectHierarchyPluginHandler::instance()->subjectHierarchyNode();
+  if (!shNode)
+    {
+    qCritical() << Q_FUNC_INFO << ": Failed to access subject hierarchy node";
+    return;
+    }
+
+  // Markup
+  vtkMRMLNode* associatedNode = shNode->GetItemDataNode(itemID);
+  if (associatedNode && associatedNode->IsA("vtkMRMLMarkupsNode"))
+    {
+    d->ViewMenuEventData = eventData;
+    d->ViewMenuEventData["NodeID"] = QVariant(associatedNode->GetID());
+
+    d->RenamePointAction->setVisible(true);
+    d->DeletePointAction->setVisible(true);
+    d->ToggleSelectPointAction->setVisible(true);
+    }
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerSubjectHierarchyMarkupsPlugin::renamePoint()
+{
+  Q_D(qSlicerSubjectHierarchyMarkupsPlugin);
+
+  if (d->ViewMenuEventData.find("NodeID") == d->ViewMenuEventData.end())
+    {
+    qCritical() << Q_FUNC_INFO << ": No node ID found in the view menu event data";
+    return;
+    }
+  vtkMRMLScene* scene = qSlicerSubjectHierarchyPluginHandler::instance()->mrmlScene();
+  if (!scene)
+    {
+    qCritical() << Q_FUNC_INFO << ": Failed to access MRML scene";
+    return;
+    }
+
+  // Get markups node
+  QString nodeID = d->ViewMenuEventData["NodeID"].toString();
+  vtkMRMLNode* node = scene->GetNodeByID(nodeID.toLatin1().constData());
+  vtkMRMLMarkupsNode* markupsNode = vtkMRMLMarkupsNode::SafeDownCast(node);
+  if (!markupsNode)
+    {
+    qCritical() << Q_FUNC_INFO << ": Failed to get markups node by ID " << nodeID;
+    return;
+    }
+
+  // Get point index
+  int componentIndex = d->ViewMenuEventData["ComponentIndex"].toInt();
+
+  // Pop up an entry box for the new name, with the old name as default
+  QString oldName(markupsNode->GetNthControlPointLabel(componentIndex).c_str());
+
+  bool ok = false;
+  QString newName = QInputDialog::getText(nullptr, QString("Rename ") + oldName, "New name:", QLineEdit::Normal, oldName, &ok);
+  if (!ok)
+    {
+    return;
+    }
+
+  markupsNode->SetNthControlPointLabel(componentIndex, newName.toLatin1().constData());
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerSubjectHierarchyMarkupsPlugin::deletePoint()
+{
+  Q_D(qSlicerSubjectHierarchyMarkupsPlugin);
+
+  if (d->ViewMenuEventData.find("NodeID") == d->ViewMenuEventData.end())
+    {
+    qCritical() << Q_FUNC_INFO << ": No node ID found in the view menu event data";
+    return;
+    }
+  vtkMRMLScene* scene = qSlicerSubjectHierarchyPluginHandler::instance()->mrmlScene();
+  if (!scene)
+    {
+    qCritical() << Q_FUNC_INFO << ": Failed to access MRML scene";
+    return;
+    }
+
+  // Get markups node
+  QString nodeID = d->ViewMenuEventData["NodeID"].toString();
+  vtkMRMLNode* node = scene->GetNodeByID(nodeID.toLatin1().constData());
+  vtkMRMLMarkupsNode* markupsNode = vtkMRMLMarkupsNode::SafeDownCast(node);
+  if (!markupsNode)
+    {
+    qCritical() << Q_FUNC_INFO << ": Failed to get markups node by ID " << nodeID;
+    return;
+    }
+
+  // Get point index
+  int componentIndex = d->ViewMenuEventData["ComponentIndex"].toInt();
+
+  markupsNode->RemoveNthControlPoint(componentIndex);
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerSubjectHierarchyMarkupsPlugin::toggleSelectPoint()
+{
+  Q_D(qSlicerSubjectHierarchyMarkupsPlugin);
+
+  if (d->ViewMenuEventData.find("NodeID") == d->ViewMenuEventData.end())
+    {
+    qCritical() << Q_FUNC_INFO << ": No node ID found in the view menu event data";
+    return;
+    }
+  vtkMRMLScene* scene = qSlicerSubjectHierarchyPluginHandler::instance()->mrmlScene();
+  if (!scene)
+    {
+    qCritical() << Q_FUNC_INFO << ": Failed to access MRML scene";
+    return;
+    }
+
+  // Get markups node
+  QString nodeID = d->ViewMenuEventData["NodeID"].toString();
+  vtkMRMLNode* node = scene->GetNodeByID(nodeID.toLatin1().constData());
+  vtkMRMLMarkupsNode* markupsNode = vtkMRMLMarkupsNode::SafeDownCast(node);
+  if (!markupsNode)
+    {
+    qCritical() << Q_FUNC_INFO << ": Failed to get markups node by ID " << nodeID;
+    return;
+    }
+
+  // Get point index
+  int componentIndex = d->ViewMenuEventData["ComponentIndex"].toInt();
+
+  markupsNode->SetNthControlPointSelected(componentIndex, !markupsNode->GetNthControlPointSelected(componentIndex));
 }
