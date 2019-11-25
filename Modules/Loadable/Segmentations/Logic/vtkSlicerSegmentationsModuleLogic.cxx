@@ -1415,7 +1415,7 @@ bool vtkSlicerSegmentationsModuleLogic::ImportLabelmapToSegmentationNode(
     }
 
   // Get oriented image data from labelmap volume node
-  vtkOrientedImageData* labelOrientedImageData = vtkOrientedImageData::New();
+  vtkNew<vtkOrientedImageData> labelOrientedImageData;
   labelOrientedImageData->vtkImageData::ShallowCopy(labelmapNode->GetImageData());
   vtkNew<vtkMatrix4x4> ijkToRasMatrix;
   labelmapNode->GetIJKToRASMatrix(ijkToRasMatrix.GetPointer());
@@ -1501,8 +1501,8 @@ bool vtkSlicerSegmentationsModuleLogic::ImportLabelmapToSegmentationNode(
       }
 
     int label = segmentIndex + 1;
-    segment->SetLabelValue(label);
     segmentationNode->GetSegmentation()->ClearSegment(segmentId);
+    segment->SetLabelValue(label);
     segment->AddRepresentation(vtkSegmentationConverter::GetBinaryLabelmapRepresentationName(), labelOrientedImageData);
 
     } // for each label
