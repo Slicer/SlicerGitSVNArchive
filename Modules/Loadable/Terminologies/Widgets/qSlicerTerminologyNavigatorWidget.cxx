@@ -713,13 +713,6 @@ bool qSlicerTerminologyNavigatorWidget::setTerminologyEntry(vtkSlicerTerminology
     return false;
     }
 
-  // If entry is empty then select none type for no terminology
-  if (!entry->GetTerminologyContextName() && !entry->GetCategoryObject()->GetCodeValue())
-    {
-    this->setCurrentType(nullptr);
-    return true;
-    }
-
   // Select terminology
   QString terminologyContextName(entry->GetTerminologyContextName()?entry->GetTerminologyContextName():"");
   if (terminologyContextName.isEmpty())
@@ -751,6 +744,13 @@ bool qSlicerTerminologyNavigatorWidget::setTerminologyEntry(vtkSlicerTerminology
   d->ComboBox_Terminology->blockSignals(true);
   d->ComboBox_Terminology->setCurrentIndex(terminologyIndex);
   d->ComboBox_Terminology->blockSignals(false);
+
+  // If entry is empty then select none type for no terminology
+  if (!entry->GetTerminologyContextName() && !entry->GetCategoryObject()->GetCodeValue())
+    {
+    this->setCurrentType(nullptr);
+    return true;
+    }
 
   // Select category
   vtkSlicerTerminologyCategory* categoryObject = entry->GetCategoryObject();
