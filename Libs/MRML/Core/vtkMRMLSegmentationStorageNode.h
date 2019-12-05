@@ -162,6 +162,13 @@ public:
   /// Reset supported write file types. Called when master representation is changed
   void ResetSupportedWriteFileTypes();
 
+  /// Save segmentation using the reference geometry.
+  /// If true, the segmentation will be saved using the same extent as the reference image.
+  /// If false, the segmentation will be saved using the effective extent.
+  vtkSetMacro(CropToMinimumExtent, bool);
+  vtkGetMacro(CropToMinimumExtent, bool);
+  vtkBooleanMacro(CropToMinimumExtent, bool);
+
 protected:
   /// Initialize all the supported read file types
   void InitializeSupportedReadFileTypes() override;
@@ -224,6 +231,9 @@ protected:
 
   static std::string GetSegmentColorAsString(vtkMRMLSegmentationNode* segmentationNode, const std::string& segmentId);
   static void GetSegmentColorFromString(double color[3], std::string colorString);
+
+protected:
+  bool CropToMinimumExtent;
 
 protected:
   vtkMRMLSegmentationStorageNode();
