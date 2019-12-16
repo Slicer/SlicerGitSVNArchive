@@ -411,3 +411,9 @@ void vtkSegmentationHistory::RemoveAllStates()
   this->LastRestoredState = 0;
   this->Modified();
 }
+
+//---------------------------------------------------------------------------
+int vtkSegmentationHistory::GetNumberOfStates()
+{
+  return this->SegmentationStates.size();
+}
