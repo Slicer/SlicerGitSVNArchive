@@ -9,6 +9,7 @@ ExternalProject_Include_Dependencies(${proj} PROJECT_VAR proj DEPENDS_VAR ${proj
 
 if(Slicer_USE_SYSTEM_${proj})
   unset(${proj}_DIR CACHE)
+  unset(${proj} CACHE)
   find_package(${proj} REQUIRED)
 endif()
 
@@ -33,6 +34,7 @@ if(NOT DEFINED ${proj}_DIR AND NOT Slicer_USE_SYSTEM_${proj})
 
   set(EP_SOURCE_DIR ${CMAKE_BINARY_DIR}/${proj})
   set(EP_BINARY_DIR ${CMAKE_BINARY_DIR}/${proj}-build)
+  set(EP_INSTALL_DIR ${CMAKE_BINARY_DIR}/${proj}-install)
 
   ExternalProject_Add(${proj}
     ${${proj}_EP_ARGS}
@@ -40,6 +42,7 @@ if(NOT DEFINED ${proj}_DIR AND NOT Slicer_USE_SYSTEM_${proj})
     GIT_TAG "${Slicer_${proj}_GIT_TAG}"
     SOURCE_DIR ${EP_SOURCE_DIR}
     BINARY_DIR ${EP_BINARY_DIR}
+    INSTALL_DIR ${EP_INSTALL_DIR}
     CMAKE_CACHE_ARGS
       -DCMAKE_CXX_COMPILER:FILEPATH=${CMAKE_CXX_COMPILER}
       -DCMAKE_CXX_FLAGS:STRING=${ep_common_cxx_flags}
@@ -51,11 +54,10 @@ if(NOT DEFINED ${proj}_DIR AND NOT Slicer_USE_SYSTEM_${proj})
       -DSQLITE_BUILD_DOC:BOOL=OFF
       -DSQLITE_BUILD_EXAMPLES:BOOL=OFF
       -DSQLITE_BUILD_TESTS:BOOL=OFF
-      -DLIBRARY_INSTALL_DIR:PATH=${Slicer_INSTALL_LIB_DIR}
-      -DRUNTIME_INSTALL_DIR:PATH=${Slicer_INSTALL_LIB_DIR}
-      -DARCHIVE_INSTALL_DIR:PATH=${Slicer_INSTALL_LIB_DIR}
-      -DINCLUDE_INSTALL_DIR:PATH=${Slicer_INSTALL_INCLUDE_DIR}
-    INSTALL_COMMAND ""
+       # recommended options would define SQLITE_OMIT_DEPRECATED and SQLITE_OMIT_DECLTYPE,
+       # which would cause build errors in Python, so go with deafult options instead
+      -DBUILD_RECOMMENDED_OPTS:BOOL=OFF
+      -DCMAKE_INSTALL_PREFIX:PATH=${EP_INSTALL_DIR}
     DEPENDS
       ${${proj}_DEPENDENCIES}
     )
@@ -63,12 +65,11 @@ if(NOT DEFINED ${proj}_DIR AND NOT Slicer_USE_SYSTEM_${proj})
   ExternalProject_GenerateProjectDescription_Step(${proj})
 
   set(${proj}_DIR ${EP_BINARY_DIR})
-  set(${proj}_SOURCE_DIR ${EP_SOURCE_DIR})
-  set(${proj}_INCLUDE_DIR ${EP_SOURCE_DIR})
+  set(${proj}_INCLUDE_DIR ${EP_INSTALL_DIR}/include/sqlite3)
   if(WIN32)
-    set(${proj}_LIBRARY ${EP_BINARY_DIR}/libsqlite3.lib)
+    set(${proj}_LIBRARY ${EP_INSTALL_DIR}/lib/sqlite3.lib)
   else()
-    set(${proj}_LIBRARY ${EP_BINARY_DIR}/libsqlite3.a)
+    set(${proj}_LIBRARY ${EP_INSTALL_DIR}/lib/libsqlite3.a)
   endif()
 
 else()
@@ -77,7 +78,8 @@ endif()
 
 mark_as_superbuild(
   VARS
-    ${proj}_LIBRARY:FILEPATH
+    ${proj}_DIR:PATH
+    ${proj}_LIBRARY:PATH
     ${proj}_INCLUDE_DIR:PATH
   LABELS "FIND_PACKAGE"
   )
