@@ -97,6 +97,7 @@ set(Slicer_DEPENDENCIES
   CTK
   LibArchive
   RapidJSON
+  sqlite
   )
 
 set(CURL_ENABLE_SSL ${Slicer_USE_PYTHONQT_WITH_OPENSSL})
