@@ -64,7 +64,11 @@ if(NOT DEFINED ${proj}_DIR AND NOT Slicer_USE_SYSTEM_${proj})
 
   set(${proj}_DIR ${EP_BINARY_DIR})
   set(${proj}_SOURCE_DIR ${EP_SOURCE_DIR})
-  set(${proj}_LIBRARY ${${proj}_DIR})
+  if(WIN32)
+    set(${proj}_LIBRARY ${EP_BINARY_DIR}/libsqlite3.lib)
+  else()
+    set(${proj}_LIBRARY ${EP_BINARY_DIR}/libsqlite3.a)
+  endif()
 
 else()
   ExternalProject_Add_Empty(${proj} DEPENDS ${${proj}_DEPENDENCIES})
@@ -72,7 +76,7 @@ endif()
 
 mark_as_superbuild(
   VARS
-    ${proj}_LIBRARY:PATH
+    ${proj}_LIBRARY:FILEPATH
     ${proj}_DIR:PATH
   LABELS "FIND_PACKAGE"
   )
