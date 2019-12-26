@@ -31,6 +31,7 @@
 
 // Qt includes
 #include <QObject>
+#include <QAction>
 
 // MRML includes
 #include <vtkMRMLScene.h>
