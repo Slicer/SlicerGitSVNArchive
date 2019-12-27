@@ -39,6 +39,7 @@
 
 #include "qSlicerSubjectHierarchyModuleWidgetsExport.h"
 
+class QAction;
 class qSlicerSubjectHierarchyPluginLogicPrivate; 
 class qSlicerSubjectHierarchyAbstractPlugin;
 
