@@ -2105,18 +2105,14 @@ void qSlicerMarkupsModuleWidget::setMRMLMarkupsNode(vtkMRMLMarkupsNode* markupsN
 
   qvtkReconnect(d->MarkupsNode, markupsNode, vtkCommand::ModifiedEvent,
     this, SLOT(onActiveMarkupsNodeModifiedEvent()));
-  qvtkReconnect(d->MarkupsNode, markupsNode, vtkMRMLMarkupsNode::LockModifiedEvent,
-    this, SLOT(onActiveMarkupsNodeLockModifiedEvent()));
-  qvtkReconnect(d->MarkupsNode, markupsNode, vtkMRMLMarkupsNode::LabelFormatModifiedEvent,
-    this, SLOT(onActiveMarkupsNodeLabelFormatModifiedEvent()));
 
   // points
   qvtkReconnect(d->MarkupsNode, markupsNode, vtkMRMLMarkupsNode::PointModifiedEvent,
-    this, SLOT(onActiveMarkupsNodePointModifiedEvent(vtkObject*, vtkObject*)));
+    this, SLOT(onActiveMarkupsNodePointModifiedEvent(vtkObject*, void*)));
   qvtkReconnect(d->MarkupsNode, markupsNode, vtkMRMLMarkupsNode::PointAddedEvent,
     this, SLOT(onActiveMarkupsNodePointAddedEvent()));
   qvtkReconnect(d->MarkupsNode, markupsNode, vtkMRMLMarkupsNode::PointRemovedEvent,
-    this, SLOT(onActiveMarkupsNodePointRemovedEvent(vtkObject*, vtkObject*)));
+    this, SLOT(onActiveMarkupsNodePointRemovedEvent(vtkObject*, void*)));
 
   // display
   qvtkReconnect(d->MarkupsNode, markupsNode, vtkMRMLDisplayableNode::DisplayModifiedEvent,
@@ -2132,52 +2128,25 @@ void qSlicerMarkupsModuleWidget::setMRMLMarkupsNode(vtkMRMLMarkupsNode* markupsN
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerMarkupsModuleWidget::onActiveMarkupsNodeLockModifiedEvent()
-{
-  Q_D(qSlicerMarkupsModuleWidget);
-
-  // get the active list
-  vtkMRMLNode *mrmlNode = d->activeMarkupTreeView->currentNode();
-  if (!mrmlNode)
-    {
-    return;
-    }
-  vtkMRMLMarkupsNode *markupsNode = vtkMRMLMarkupsNode::SafeDownCast(mrmlNode);
-  if (!markupsNode)
-    {
-    return;
-    }
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerMarkupsModuleWidget::onActiveMarkupsNodeLabelFormatModifiedEvent()
-{
-  Q_D(qSlicerMarkupsModuleWidget);
-  if (!d->MarkupsNode)
-    {
-    return;
-    }
-  d->nameFormatLineEdit->setText(d->MarkupsNode->GetMarkupLabelFormat().c_str());
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerMarkupsModuleWidget::onActiveMarkupsNodePointModifiedEvent(vtkObject *caller, vtkObject *callData)
+void qSlicerMarkupsModuleWidget::onActiveMarkupsNodePointModifiedEvent(vtkObject *caller, void *callData)
 {
   // the call data should be the index n
-  if (caller == nullptr || callData == nullptr)
+  if (caller == nullptr)
     {
     return;
     }
 
-  int *nPtr = nullptr;
-  int n = -1;
-  nPtr = reinterpret_cast<int *>(callData);
-  if (nPtr)
+  int* nPtr = reinterpret_cast<int*>(callData);
+  int n = (nPtr ? *nPtr : -1);
+  if (n>=0)
     {
-    n = *nPtr;
+    this->updateRow(n);
     }
-
-  this->updateRow(n);
+  else
+    {
+    // batch update finished
+    this->updateWidgetFromMRML();
+    }
 }
 
 //-----------------------------------------------------------------------------
@@ -2203,25 +2172,27 @@ void qSlicerMarkupsModuleWidget::onActiveMarkupsNodePointAddedEvent()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerMarkupsModuleWidget::onActiveMarkupsNodePointRemovedEvent(vtkObject *caller, vtkObject *callData)
+void qSlicerMarkupsModuleWidget::onActiveMarkupsNodePointRemovedEvent(vtkObject *caller, void *callData)
 {
   Q_D(qSlicerMarkupsModuleWidget);
 
-  // the call data should be the index n
-  if (caller == nullptr || callData == nullptr)
+  if (caller == nullptr)
     {
     return;
     }
 
-  int *nPtr = nullptr;
-  int n = -1;
-  nPtr = reinterpret_cast<int *>(callData);
-  if (nPtr)
+  // the call data should be the index n
+  int *nPtr = reinterpret_cast<int*>(callData);
+  int n = (nPtr ? *nPtr : -1);
+  if (n >= 0)
     {
-    n = *nPtr;
+    d->activeMarkupTableWidget->removeRow(n);
     }
-
-  d->activeMarkupTableWidget->removeRow(n);
+  else
+    {
+    // batch update finished
+    this->updateWidgetFromMRML();
+    }
 }
 
 //-----------------------------------------------------------------------------

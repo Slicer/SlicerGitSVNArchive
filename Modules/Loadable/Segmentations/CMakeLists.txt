@@ -23,6 +23,7 @@ set(MODULE_INCLUDE_DIRECTORIES
   ${qSlicerSegmentationsEditorEffects_INCLUDE_DIRS}
   ${qSlicerSegmentationsSubjectHierarchyPlugins_INCLUDE_DIRS}
   ${qSlicerSubjectHierarchyModuleWidgets_INCLUDE_DIRS}
+  ${qSlicerTerminologiesModuleWidgets_INCLUDE_DIRS}
   ${vtkSlicerTerminologiesModuleLogic_INCLUDE_DIRS}
   )
 
@@ -33,6 +34,10 @@ set(MODULE_SRCS
   qSlicer${MODULE_NAME}Module.h
   qSlicer${MODULE_NAME}ModuleWidget.cxx
   qSlicer${MODULE_NAME}ModuleWidget.h
+  qSlicer${MODULE_NAME}NodeWriter.cxx
+  qSlicer${MODULE_NAME}NodeWriter.h
+  qSlicer${MODULE_NAME}NodeWriterOptionsWidget.cxx
+  qSlicer${MODULE_NAME}NodeWriterOptionsWidget.h
   qSlicer${MODULE_NAME}Reader.cxx
   qSlicer${MODULE_NAME}Reader.h
   qSlicer${MODULE_NAME}SettingsPanel.cxx
@@ -43,6 +48,8 @@ set(MODULE_MOC_SRCS
   qSlicer${MODULE_NAME}IOOptionsWidget.h
   qSlicer${MODULE_NAME}Module.h
   qSlicer${MODULE_NAME}ModuleWidget.h
+  qSlicer${MODULE_NAME}NodeWriter.h
+  qSlicer${MODULE_NAME}NodeWriterOptionsWidget.h
   qSlicer${MODULE_NAME}Reader.h
   qSlicer${MODULE_NAME}SettingsPanel.h
   )
@@ -61,7 +68,9 @@ set(MODULE_TARGET_LIBRARIES
   qSlicer${MODULE_NAME}SubjectHierarchyPlugins
   qSlicer${MODULE_NAME}EditorEffects
   qSlicerSubjectHierarchyModuleWidgets
+  qSlicerTerminologiesModuleWidgets
   vtkSlicerTerminologiesModuleLogic
+  qSlicerBaseQTGUI
   )
 
 set(MODULE_RESOURCES

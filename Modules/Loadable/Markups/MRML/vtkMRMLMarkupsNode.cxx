@@ -483,7 +483,6 @@ int vtkMRMLMarkupsNode::AddControlPoint(ControlPoint *controlPoint)
     {
     controlPoint->ID = this->GenerateUniqueControlPointID();
     }
-  this->LastUsedControlPointNumber++;
   if (controlPoint->Label.empty())
     {
     controlPoint->Label = this->GenerateControlPointLabel(this->LastUsedControlPointNumber);
@@ -691,6 +690,27 @@ bool vtkMRMLMarkupsNode::InsertControlPoint(ControlPoint *controlPoint, int targ
     }
   this->UpdateMeasurements();
   return true;
+}
+
+//-----------------------------------------------------------
+bool vtkMRMLMarkupsNode::InsertControlPointWorld(int n, vtkVector3d pointWorld, std::string label)
+{
+  vtkVector3d point;
+  this->TransformPointFromWorld(pointWorld, point);
+  return this->InsertControlPoint(n, point, label);
+}
+
+
+//-----------------------------------------------------------
+bool vtkMRMLMarkupsNode::InsertControlPoint(int n, vtkVector3d point, std::string label)
+{
+  ControlPoint *controlPoint = new ControlPoint;
+  controlPoint->Label = label;
+  controlPoint->Position[0] = point.GetX();
+  controlPoint->Position[1] = point.GetY();
+  controlPoint->Position[2] = point.GetZ();
+  controlPoint->PositionStatus = PositionDefined;
+  return this->InsertControlPoint(controlPoint, n);
 }
 
 //-----------------------------------------------------------
@@ -1425,6 +1445,7 @@ bool vtkMRMLMarkupsNode::ResetNthControlPointID(int n)
     {
     return false;
     }
+
   this->SetNthControlPointID(n, this->GenerateUniqueControlPointID());
   return true;
 }
@@ -1432,12 +1453,8 @@ bool vtkMRMLMarkupsNode::ResetNthControlPointID(int n)
 //---------------------------------------------------------------------------
 std::string vtkMRMLMarkupsNode::GenerateUniqueControlPointID()
 {
-  std::string id;
-  int controlPointNumber = this->LastUsedControlPointNumber;
-  // increment by one so as not to start with 0
-  controlPointNumber++;
-  // put the number in a string
-  return std::to_string(controlPointNumber);
+  this->LastUsedControlPointNumber++;
+  return std::to_string(this->LastUsedControlPointNumber);
 }
 
 //---------------------------------------------------------------------------
@@ -1609,6 +1626,16 @@ void vtkMRMLMarkupsNode::ConvertOrientationWXYZToMatrix(double orientationWXYZ[4
 }
 
 //----------------------------------------------------------------------
+vtkPoints* vtkMRMLMarkupsNode::GetCurvePoints()
+{
+  if (!this->CurvePoly)
+    {
+    return nullptr;
+    }
+  return this->CurvePoly->GetPoints();
+}
+
+//----------------------------------------------------------------------
 vtkPoints* vtkMRMLMarkupsNode::GetCurvePointsWorld()
 {
   vtkPolyData* curvePolyDataWorld = this->GetCurveWorld();
@@ -1617,6 +1644,12 @@ vtkPoints* vtkMRMLMarkupsNode::GetCurvePointsWorld()
     return nullptr;
     }
   return curvePolyDataWorld->GetPoints();
+}
+
+//----------------------------------------------------------------------
+vtkPolyData* vtkMRMLMarkupsNode::GetCurve()
+{
+  return this->CurvePoly;
 }
 
 //----------------------------------------------------------------------

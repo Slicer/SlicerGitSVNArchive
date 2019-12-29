@@ -206,7 +206,7 @@ bool vtkMRMLMarkupsCurveNode::ResampleCurveSurface(double controlPointDistance, 
     vtkErrorMacro("vtkMRMLMarkupsCurveNode::ResampleCurveSurface failed: Constraint surface is not valid");
     return false;
     }
-  if (maximumSearchRadiusTolerance <= 0 || maximumSearchRadiusTolerance >= 1)
+  if (maximumSearchRadiusTolerance <= 0 || maximumSearchRadiusTolerance > 1)
     {
     vtkErrorMacro("vtkMRMLMarkupsCurveNode::ResampleCurveSurface failed: Invalid search radius");
     return false;
@@ -285,17 +285,16 @@ bool vtkMRMLMarkupsCurveNode::ResampleCurveSurface(double controlPointDistance, 
     originalControlPoints->GetPoint(segmentStartIndex, segmentStartPoint);
     // get projection of point to curve
     this->GetClosestPointPositionAlongCurveWorld(interpolatedPoint, projectedPoint);
+    distanceToStart = vtkMath::Distance2BetweenPoints(segmentStartPoint, projectedPoint);
     if (segmentStartIndex == 0)
       {
       originalControlPoints->GetPoint(segmentStartIndex + 1, segmentEndPoint);
-      distanceToStart = 0;
       distanceToEnd = vtkMath::Distance2BetweenPoints(segmentEndPoint, projectedPoint);
       }
     else if (segmentStartIndex == (originalControlPoints->GetNumberOfPoints() - 1))
       {
       originalControlPoints->GetPoint(segmentStartIndex - 1, segmentEndPoint);
-      distanceToStart = vtkMath::Distance2BetweenPoints(segmentStartPoint, projectedPoint);
-      distanceToEnd = 0;
+      distanceToEnd = vtkMath::Distance2BetweenPoints(segmentEndPoint, projectedPoint);
       }
     else
       {
@@ -303,7 +302,7 @@ bool vtkMRMLMarkupsCurveNode::ResampleCurveSurface(double controlPointDistance, 
       double dist1 = vtkMath::Distance2BetweenPoints(segmentEndPoint1, projectedPoint);
       double* segmentEndPoint2 = originalControlPoints->GetPoint(segmentStartIndex + 1);
       double dist2 = vtkMath::Distance2BetweenPoints(segmentEndPoint2, projectedPoint);
-      distanceToStart = vtkMath::Distance2BetweenPoints(segmentStartPoint, projectedPoint);
+
       if ((dist1 < dist2) && dist1 < vtkMath::Distance2BetweenPoints(segmentEndPoint1, segmentStartPoint))
         {
         segmentEndPoint[0] = segmentEndPoint1[0];
@@ -328,8 +327,8 @@ bool vtkMRMLMarkupsCurveNode::ResampleCurveSurface(double controlPointDistance, 
     double endNormal[3] = { 0.0 };
     normalVectorArray->GetTuple(pointIdEnd, endNormal);
 
-    double startWeight = distanceToStart / (distanceToStart + distanceToEnd);
-    double endWeight = distanceToEnd / (distanceToStart + distanceToEnd);
+    double startWeight = distanceToEnd / (distanceToStart + distanceToEnd);
+    double endWeight = distanceToStart / (distanceToStart + distanceToEnd);
     double rayDirection[3] = { 0.0 };
     rayDirection[0] = (startWeight*startNormal[0]) + (endWeight*endNormal[0]);
     rayDirection[1] = (startWeight*startNormal[1]) + (endWeight*endNormal[1]);
@@ -355,7 +354,7 @@ bool vtkMRMLMarkupsCurveNode::ConstrainPointsToSurface(vtkPoints* originalPoints
     vtkGenericWarningMacro("vtkMRMLMarkupsCurveNode::ConstrainPointsToSurface failed: invalid inputs");
     return false;
     }
-  if (maximumSearchRadiusTolerance <= 0 || maximumSearchRadiusTolerance >= 1)
+  if (maximumSearchRadiusTolerance <= 0.0 || maximumSearchRadiusTolerance > 1.0)
     {
     vtkGenericWarningMacro("vtkMRMLMarkupsCurveNode::ConstrainPointsToSurface failed: Invalid search radius");
     return false;
@@ -394,7 +393,6 @@ bool vtkMRMLMarkupsCurveNode::ConstrainPointsToSurface(vtkPoints* originalPoints
     rayEndPoint[2] = originalPoint[2] + rayDirection[2] * rayLength;
 
     double t = 0.0;
-    double firstIntersectionPoint[3] = { 0.0 };
     double pcoords[3] = { 0.0 };
     int subId = 0;
     vtkIdType cellId = 0;
@@ -590,7 +588,7 @@ bool vtkMRMLMarkupsCurveNode::ResamplePoints(vtkPoints* originalPoints, vtkPoint
 }
 
 //---------------------------------------------------------------------------
-bool vtkMRMLMarkupsCurveNode::GetPositionAndClosestPointIndexAlongCurve(double foundCurvePosition[3], vtkIdType foundClosestPointIndex,
+bool vtkMRMLMarkupsCurveNode::GetPositionAndClosestPointIndexAlongCurve(double foundCurvePosition[3], vtkIdType& foundClosestPointIndex,
   vtkIdType startCurvePointId, double distanceFromStartPoint, vtkPoints* curvePoints, bool closedCurve)
 {
   vtkIdType numberOfCurvePoints = (curvePoints != nullptr ? curvePoints->GetNumberOfPoints() : 0);
@@ -1047,5 +1045,5 @@ vtkIdType vtkMRMLMarkupsCurveNode::GetClosestPointPositionAlongCurveWorld(const 
       lineIndex = closestCurvePointIndex;
       }
     }
-  return true;
+  return lineIndex;
 }

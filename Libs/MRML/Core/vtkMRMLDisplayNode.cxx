@@ -156,7 +156,7 @@ void vtkMRMLDisplayNode::WriteXML(ostream& of, int nIndent)
 //----------------------------------------------------------------------------
 void vtkMRMLDisplayNode::ReadXMLAttributes(const char** atts)
 {
-  int disabledModify = this->StartModify();
+  MRMLNodeModifyBlocker blocker(this);
 
   Superclass::ReadXMLAttributes(atts);
 
@@ -277,8 +277,6 @@ void vtkMRMLDisplayNode::Copy(vtkMRMLNode *anode)
 //----------------------------------------------------------------------------
 void vtkMRMLDisplayNode::PrintSelf(ostream& os, vtkIndent indent)
 {
-  int idx;
-
   Superclass::PrintSelf(os,indent);
 
   vtkMRMLPrintBeginMacro(os, indent);

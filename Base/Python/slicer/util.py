@@ -488,8 +488,26 @@ def loadMarkupsFiducialList(filename, returnNode=False):
     If returnNode is True then a status flag and loaded node are returned.
   """
   filetype = 'MarkupsFiducials'
-  properties = {}
+  properties = {'className': 'vtkMRMLMarkupsFiducialNode'}
   return loadNodeFromFile(filename, filetype, properties, returnNode)
+
+def loadMarkupsCurve(filename):
+  """Load node from file.
+  :param filename: full path of the file to load.
+  :return: loaded node (if multiple nodes are loaded then a list of nodes).
+  """
+  filetype = 'MarkupsFiducials'
+  properties = {'className': 'vtkMRMLMarkupsCurveNode'}
+  return loadNodeFromFile(filename, filetype, properties)
+
+def loadMarkupsClosedCurve(filename):
+  """Load node from file.
+  :param filename: full path of the file to load.
+  :return: loaded node (if multiple nodes are loaded then a list of nodes).
+  """
+  filetype = 'MarkupsFiducials'
+  properties = {'className': 'vtkMRMLMarkupsClosedCurveNode'}
+  return loadNodeFromFile(filename, filetype, properties)
 
 def loadModel(filename, returnNode=False):
   """Load node from file.
@@ -501,7 +519,7 @@ def loadModel(filename, returnNode=False):
   filetype = 'ModelFile'
   return loadNodeFromFile(filename, filetype, {}, returnNode)
 
-def loadScalarOverlay(filename, returnNode=False):
+def loadScalarOverlay(filename, modelNodeID, returnNode=False):
   """Load node from file.
   :param filename: full path of the file to load.
   :param returnNode: Deprecated.
@@ -509,7 +527,7 @@ def loadScalarOverlay(filename, returnNode=False):
     If returnNode is True then a status flag and loaded node are returned.
   """
   filetype = 'ScalarOverlayFile'
-  return loadNodeFromFile(filename, filetype, {}, returnNode)
+  return loadNodeFromFile(filename, filetype, {'modelNodeId': modelNodeID }, returnNode)
 
 def loadSegmentation(filename, returnNode=False):
   """Load node from file.
@@ -1184,7 +1202,7 @@ def arrayFromMarkupsControlPoints(markupsNode, world = False):
   :param world: if set to True then the control points coordinates are returned in world coordinate system
     (effect of parent transform to the node is applied).
   The returned array is just a copy and so any modification in the array will not affect the markup node.
-  To modify markup control points based on a numpy array, use :py:meth:`updateMarkupControlPointsFromArray`.
+  To modify markup control points based on a numpy array, use :py:meth:`updateMarkupsControlPointsFromArray`.
   """
   numberOfControlPoints = markupsNode.GetNumberOfControlPoints()
   import numpy as np
@@ -1196,9 +1214,9 @@ def arrayFromMarkupsControlPoints(markupsNode, world = False):
       markupsNode.GetNthControlPointPosition(controlPointIndex, narray[controlPointIndex,:])
   return narray
 
-def updateMarkupControlPointsFromArray(markupsNode, narray, world = False):
+def updateMarkupsControlPointsFromArray(markupsNode, narray, world = False):
   """Sets control point positions in a markups node from a numpy array of size Nx3.
-  :param world: if set to True then the control points coordinates are expected in world coordinate system.
+  :param world: if set to True then the control point coordinates are expected in world coordinate system.
   All previous content of the node is deleted.
   """
   narrayshape = narray.shape
@@ -1227,6 +1245,21 @@ def updateMarkupControlPointsFromArray(markupsNode, narray, world = False):
     # Remove extra point from the markup node
     for controlPointIndex in range(oldNumberOfControlPoints, numberOfControlPoints, -1):
       markupsNode.RemoveNthControlPoint(controlPointIndex-1)
+
+def arrayFromMarkupsCurvePoints(markupsNode, world = False):
+  """Return interpolated curve point positions of a markups node as rows in a numpy array (of size Nx3).
+  :param world: if set to True then the point coordinates are returned in world coordinate system
+    (effect of parent transform to the node is applied).
+  The returned array is just a copy and so any modification in the array will not affect the markup node.
+  """
+  import numpy as np
+  import vtk.util.numpy_support
+  if world:
+    pointData = markupsNode.GetCurvePointsWorld().GetData()
+  else:
+    pointData = markupsNode.GetCurvePoints().GetData()
+  narray = vtk.util.numpy_support.vtk_to_numpy(pointData)
+  return narray
 
 def updateVolumeFromArray(volumeNode, narray):
   """Sets voxels of a volume node from a numpy array.
@@ -1273,6 +1306,49 @@ def updateVolumeFromArray(volumeNode, narray):
   volumeNode.StorableModified()
   volumeNode.Modified()
   volumeNode.InvokeEvent(slicer.vtkMRMLVolumeNode.ImageDataModifiedEvent, volumeNode)
+
+def addVolumeFromArray(narray, ijkToRAS=None, name=None, nodeClassName=None):
+  """Create a new volume node from content of a numpy array and add it to the scene.
+  Voxels values are deep-copied, therefore if the numpy array
+  is modified after calling this method, voxel values in the volume node will not change.
+  :param narray: numpy array containing volume voxels.
+  :param ijkToRAS: 4x4 numpy array or vtk.vtkMatrix4x4 that defines mapping from IJK to RAS coordinate system (specifying origin, spacing, directions)
+  :param name: volume node name
+  :param nodeClassName: type of created volume, default: ``vtkMRMLScalarVolumeNode``.
+    Use ``vtkMRMLLabelMapVolumeNode`` for labelmap volume, ``vtkMRMLVectorVolumeNode`` for vector volume.
+  :return: created new volume node
+
+  Example: create zero-filled volume
+
+    import numpy as np
+    volumeNode = slicer.util.addVolumeFromArray(np.zeros((30, 40, 50)))
+
+  Example: create labelmap volume filled with voxel value of 120
+
+    import numpy as np
+    volumeNode = slicer.util.addVolumeFromArray(np.ones((30, 40, 50),'int8') * 120,
+      np.diag([0.2, 0.2, 0.5, 1.0]), nodeClassName="vtkMRMLLabelMapVolumeNode")
+
+  """
+
+  import slicer
+  from vtk import vtkMatrix4x4
+  import numpy as np
+
+  if name is None:
+    name = ""
+  if nodeClassName is None:
+    nodeClassName = "vtkMRMLScalarVolumeNode"
+
+  volumeNode = slicer.mrmlScene.AddNewNodeByClass(nodeClassName, name)
+  if ijkToRAS is not None:
+    if not isinstance(ijkToRAS, vtkMatrix4x4):
+      ijkToRAS = vtkMatrixFromArray(ijkToRAS)
+    volumeNode.SetIJKToRASMatrix(ijkToRAS)
+  updateVolumeFromArray(volumeNode, narray)
+  volumeNode.CreateDefaultDisplayNodes()
+
+  return volumeNode
 
 def arrayFromTableColumn(tableNode, columnName):
   """Return values of a table node's column as numpy array.
@@ -1347,32 +1423,32 @@ class VTKObservationMixin(object):
     self.Observations = []
 
   def removeObservers(self, method=None):
-    for o, e, m, g, t in list(self.Observations):
+    for o, e, m, g, t, p in list(self.Observations):
       if method == m or method is None:
         o.RemoveObserver(t)
-        self.Observations.remove([o, e, m, g, t])
+        self.Observations.remove([o, e, m, g, t, p])
 
-  def addObserver(self, object, event, method, group = 'none'):
+  def addObserver(self, object, event, method, group = 'none', priority = 0.0):
     if self.hasObserver(object, event, method):
       print('already has observer')
       return
-    tag = object.AddObserver(event, method)
-    self.Observations.append([object, event, method, group, tag])
+    tag = object.AddObserver(event, method, priority)
+    self.Observations.append([object, event, method, group, tag, priority])
 
   def removeObserver(self, object, event, method):
-    for o, e, m, g, t in self.Observations:
+    for o, e, m, g, t, p in self.Observations:
       if o == object and e == event and m == method:
         o.RemoveObserver(t)
-        self.Observations.remove([o, e, m, g, t])
+        self.Observations.remove([o, e, m, g, t, p])
 
   def hasObserver(self, object, event, method):
-    for o, e, m, g, t in self.Observations:
+    for o, e, m, g, t, p in self.Observations:
       if o == object and e == event and m == method:
         return True
     return False
 
   def observer(self, event, method):
-    for o, e, m, g, t in self.Observations:
+    for o, e, m, g, t, p in self.Observations:
       if e == event and m == method:
         return o
     return None
@@ -1402,9 +1478,10 @@ def tempDirectory(key='__SlicerTemp__',tempDir=None,includeDateTime=True):
   import qt, slicer
   if not tempDir:
     tempDir = qt.QDir(slicer.app.temporaryPath)
-  tempDirName = key
   if includeDateTime:
-    key += qt.QDateTime().currentDateTime().toString("yyyy-MM-dd_hh+mm+ss.zzz")
+    tempDirName = key + qt.QDateTime().currentDateTime().toString("yyyy-MM-dd_hh+mm+ss.zzz")
+  else:
+    tempDirName = key
   fileInfo = qt.QFileInfo(qt.QDir(tempDir), tempDirName)
   dirPath = fileInfo.absoluteFilePath()
   qt.QDir().mkpath(dirPath)
@@ -2138,7 +2215,7 @@ def setApplicationLogoVisible(visible):
 def setModuleHelpSectionVisible(visible):
   """Show/hide Help section at the top of module panel."""
   modulePanel = findChild(mainWindow(), "ModulePanel")
-  modulePanel.helpAndAcknowledgmentVisible=False
+  modulePanel.helpAndAcknowledgmentVisible = visible
 
 def setDataProbeVisible(visible):
   """Show/hide Data probe at the bottom of module panel."""
