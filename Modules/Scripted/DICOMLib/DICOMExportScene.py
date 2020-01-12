@@ -145,8 +145,10 @@ class DICOMExportScene(object):
       if not self.referenceFile:
         logging.error('No reference file! DICOM database is empty')
         return False
+    logging.info('Using reference file ' + str(self.referenceFile))
     args = ['--print-all', '--write-pixel', self.dicomDirectory, self.referenceFile]
-    dump = DICOMLib.DICOMCommand('dcmdump', args).start()
+    dumpByteArray = DICOMLib.DICOMCommand('dcmdump', args).start()
+    dump = str(dumpByteArray.data(), encoding='utf-8')
 
     # append this to the dumped output and save the result as self.dicomDirectory/dcm.dump
     # with %s as self.zipFile and %d being its size in bytes
@@ -161,7 +163,7 @@ class DICOMExportScene(object):
 (cadb,1010) OB =%s                                      #  %d, 1 Unknown Tag & Data
 """ % (creatorString, len(creatorString), zipSizeString, self.zipFile, zipSize)
 
-    dump = str(dump) + candygram
+    dump = dump + candygram
 
     logging.debug('dumping to: %s/dump.dcm' % self.dicomDirectory)
     fp = open('%s/dump.dcm' % self.dicomDirectory, 'w')
