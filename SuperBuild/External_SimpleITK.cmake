@@ -35,13 +35,13 @@ ExternalProject_Execute(${proj} \"install\" \"${PYTHON_EXECUTABLE}\" Packaging/s
 
   ExternalProject_SetIfNotDefined(
     Slicer_${proj}_GIT_REPOSITORY
-    "${EP_GIT_PROTOCOL}://github.com/Slicer/SimpleITK.git"
+    "${EP_GIT_PROTOCOL}://github.com/SimpleITK/SimpleITK.git"
     QUIET
     )
 
   ExternalProject_SetIfNotDefined(
     Slicer_${proj}_GIT_TAG
-    "3ad12467ba44d2f831305ef645ae181a381e60ab" # slicer-v1.2.0-2019-08-16-3ad12467
+    "16a62269c25fef83b739f8ae8640cf796a6f44f1"  # pre-v2.0 (ITK 5 as default)
     QUIET
     )
 
@@ -88,6 +88,7 @@ ExternalProject_Execute(${proj} \"install\" \"${PYTHON_EXECUTABLE}\" Packaging/s
       -DSimpleITK_INSTALL_ARCHIVE_DIR:PATH=${Slicer_INSTALL_LIB_DIR}
       -DSimpleITK_INSTALL_LIBRARY_DIR:PATH=${Slicer_INSTALL_LIB_DIR}
       -DSimpleITK_INT64_PIXELIDS:BOOL=OFF
+      -DSimpleITK_EXPLICIT_INSTATIATION_DEFAULT:BOOL=ON
       -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
       -DSimpleITK_USE_SYSTEM_ITK:BOOL=ON
       -DITK_DIR:PATH=${ITK_DIR}

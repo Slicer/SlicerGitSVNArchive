@@ -52,7 +52,10 @@ public:
 
 // --------------------------------------------------------------------------
 qSlicerActionsDialogPrivate::qSlicerActionsDialogPrivate(qSlicerActionsDialog& object)
-  :q_ptr(&object)
+  : q_ptr(&object)
+#ifdef Slicer_BUILD_WEBENGINE_SUPPORT
+  , WebView(nullptr)
+#endif
 {
 }
 

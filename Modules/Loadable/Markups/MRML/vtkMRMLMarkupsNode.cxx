@@ -22,7 +22,9 @@
 #include "vtkMRMLMarkupsFiducialStorageNode.h"
 #include "vtkMRMLMarkupsDisplayNode.h"
 #include "vtkMRMLMarkupsStorageNode.h"
+#include "vtkMRMLSelectionNode.h"
 #include "vtkMRMLTransformNode.h"
+#include "vtkMRMLUnitNode.h"
 
 // Slicer MRML includes
 #include "vtkMRMLScene.h"
@@ -911,7 +913,7 @@ void vtkMRMLMarkupsNode::SetNthControlPointPositionOrientationWorldFromArray(
     }
   else
     {
-    controlPoint->AssociatedNodeID.empty();
+    controlPoint->AssociatedNodeID.clear();
     }
 
   vtkPoints* points = this->CurveInputPoly->GetPoints();
@@ -2032,7 +2034,33 @@ void vtkMRMLMarkupsNode::UpdateMeasurements()
   this->RemoveAllMeasurements();
 }
 
-
+//---------------------------------------------------------------------------
+vtkMRMLUnitNode* vtkMRMLMarkupsNode::GetUnitNode(const char* quantity)
+{
+  if (!quantity)
+    {
+    vtkWarningMacro("vtkMRMLMarkupsNode::GetUnitNode failed: invalid quantity");
+    return nullptr;
+    }
+  if (!this->GetScene())
+    {
+    return nullptr;
+    }
+  vtkMRMLSelectionNode* selectionNode = vtkMRMLSelectionNode::SafeDownCast(
+    this->GetScene()->GetNodeByID("vtkMRMLSelectionNodeSingleton"));
+  if (!selectionNode)
+    {
+    vtkWarningMacro("vtkMRMLMarkupsNode::GetUnitNode failed: selection node not found");
+    return nullptr;
+    }
+  vtkMRMLUnitNode* unitNode = vtkMRMLUnitNode::SafeDownCast(this->GetScene()->GetNodeByID(
+    selectionNode->GetUnitNodeID(quantity)));
+  if (!unitNode)
+    {
+    vtkWarningMacro("vtkMRMLMarkupsNode::GetUnitNode failed: unit node not found by name " << quantity);
+    }
+  return unitNode;
+}
 
 //---------------------------------------------------------------------------
 void vtkMRMLMarkupsNode::WriteMeasurementsToDescription()

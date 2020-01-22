@@ -479,6 +479,7 @@ void qSlicerSegmentEditorPaintEffectPrivate::transformPointsFromWorldToIJK(vtkOr
 //-----------------------------------------------------------------------------
 void qSlicerSegmentEditorPaintEffectPrivate::paintPixel(vtkOrientedImageData* modifierLabelmap, qMRMLWidget* viewWidget, double pixelPosition_World[3])
 {
+  Q_UNUSED(viewWidget);
   vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
   points->InsertNextPoint(pixelPosition_World);
   this->paintPixels(modifierLabelmap, points);
@@ -560,6 +561,7 @@ void qSlicerSegmentEditorPaintEffectPrivate::paintBrushes(
   vtkPoints* pixelPositions_World,
   int updateExtent[6])
 {
+  Q_UNUSED(pixelPositions_World);
   Q_Q(qSlicerSegmentEditorPaintEffect);
 
   this->updateBrushStencil(viewWidget);
@@ -661,6 +663,11 @@ void qSlicerSegmentEditorPaintEffectPrivate::onDiameterUnitsClicked()
 void qSlicerSegmentEditorPaintEffectPrivate::onQuickDiameterButtonClicked()
 {
   QToolButton* senderButton = dynamic_cast<QToolButton*>(sender());
+  if (!senderButton)
+    {
+    qWarning() << Q_FUNC_INFO << " failed: invalid sender button";
+    return;
+    }
   int diameter = senderButton->property("BrushDiameter").toInt();
 
   this->onDiameterValueChanged(diameter);
@@ -1164,11 +1171,11 @@ bool qSlicerSegmentEditorPaintEffect::processInteractionEvents(
       return false;
       }
     }
-  else if (eid == vtkCommand::MouseWheelBackwardEvent && shiftKeyPressed)
+  else if (eid == vtkCommand::MouseWheelBackwardEvent)
     {
     if (shiftKeyPressed)
       {
-      scaleDiameterRequested = (1.0 - zoomFactor);
+    scaleDiameterRequested = (1.0 - zoomFactor);
       }
     else
       {

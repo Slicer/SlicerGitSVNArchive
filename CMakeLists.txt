@@ -350,9 +350,9 @@ mark_as_superbuild(Slicer_USE_SimpleITK_SHARED)
 # Install no development files by default, but allow the user to get
 # them installed by setting Slicer_INSTALL_DEVELOPMENT to true.
 #-----------------------------------------------------------------------------
-#option(Slicer_INSTALL_DEVELOPMENT "Install Slicer extension development files." OFF)
-#mark_as_advanced(Slicer_INSTALL_DEVELOPMENT)
-set(Slicer_INSTALL_DEVELOPMENT OFF)
+option(Slicer_INSTALL_DEVELOPMENT "Install Slicer extension development files." OFF)
+mark_as_advanced(Slicer_INSTALL_DEVELOPMENT)
+
 if(NOT Slicer_INSTALL_DEVELOPMENT)
   set(Slicer_INSTALL_NO_DEVELOPMENT 1)
 else()
@@ -1063,13 +1063,15 @@ include(SlicerConfigureVersionHeaderTarget)
 add_dependencies(SlicerBaseLogic SlicerConfigureVersionHeader)
 add_dependencies(MRMLCore SlicerConfigureVersionHeader)
 
-list(APPEND files ${CMAKE_CURRENT_BINARY_DIR}/vtkSlicerVersionConfigure.h)
+list(APPEND files vtkSlicerVersionConfigure.h)
 
 if(NOT Slicer_INSTALL_NO_DEVELOPMENT)
+foreach(f ${files})
   install(
-    FILES ${files}
+    FILES ${CMAKE_CURRENT_BINARY_DIR}/${f}
     DESTINATION ${Slicer_INSTALL_INCLUDE_DIR} COMPONENT Development
     )
+endforeach()
 endif()
 
 #-----------------------------------------------------------------------------
