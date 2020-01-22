@@ -199,7 +199,7 @@ endif()
 #-----------------------------------------------------------------------------
 include(CMakeDependentOption)
 
-option(BUILD_TESTING "Test the project" ON)
+option(BUILD_TESTING "Test the project" OFF)
 mark_as_superbuild(BUILD_TESTING)
 
 #option(WITH_MEMCHECK "Run tests through valgrind." OFF)
