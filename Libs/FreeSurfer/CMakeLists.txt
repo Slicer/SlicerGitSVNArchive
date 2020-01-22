@@ -72,10 +72,10 @@ set(FreeSurfer_SRCS
   vtkFSSurfaceHelper.cxx
   )
 
-set_source_files_properties(
-  vtkFSIO.cxx
-  WRAP_EXCLUDE
-  )
+# set_source_files_properties(
+  # vtkFSIO.cxx
+  # WRAP_EXCLUDE
+  # )
 
 # --------------------------------------------------------------------------
 # Build library

@@ -20,9 +20,9 @@
 
 # It seems that these variables are available in VTK but not made available
 # to outside by find_package. For now just hardcode the values.
-set(VTK_WRAP_HIERARCHY_EXE "d:/D/S4R/VTK-build/bin/Release/vtkWrapHierarchy-8.90.exe")
-set(VTK_WRAP_PYTHON_EXE "d:/D/S4R/VTK-build/bin/Release/vtkWrapPython-8.90.exe")
-set(VTK_WRAP_PYTHON_INIT_EXE "d:/D/S4R/VTK-build/bin/Release/vtkWrapPythonInit-8.90.exe")
+set(VTK_WRAP_HIERARCHY_EXE "c:/e/ScD/VTK-build/bin/Debug/vtkWrapHierarchy-8.90d.exe")
+set(VTK_WRAP_PYTHON_EXE "c:/e/ScD/VTK-build/bin/Debug/vtkWrapPython-8.90d.exe")
+set(VTK_WRAP_PYTHON_INIT_EXE "c:/e/ScD/VTK-build/bin/Debug/vtkWrapPythonInit-8.90d.exe")
 
 # Based on VTK/CMake/KitCommonWrapBlock.cmake
 
@@ -205,16 +205,16 @@ macro(vtkMacroKitPythonWrap)
 
       # Generate hierarchy files
 
-set(VTK_WRAP_HIERARCHY_EXE "d:/D/S4R/VTK-build/bin/Release/vtkWrapHierarchy-8.90.exe")
-set(VTK_WRAP_PYTHON_EXE "d:/D/S4R/VTK-build/bin/Release/vtkWrapPython-8.90.exe")
-set(VTK_WRAP_PYTHON_INIT_EXE "d:/D/S4R/VTK-build/bin/Release/vtkWrapPythonInit-8.90.exe")
+set(VTK_WRAP_HIERARCHY_EXE "c:/e/ScD/VTK-build/bin/Debug/vtkWrapHierarchy-8.90d.exe")
+set(VTK_WRAP_PYTHON_EXE "c:/e/ScD/VTK-build/bin/Debug/vtkWrapPython-8.90d.exe")
+set(VTK_WRAP_PYTHON_INIT_EXE "c:/e/ScD/VTK-build/bin/Debug/vtkWrapPythonInit-8.90d.exe")
 
       vtk_wrap_hierarchy(${MY_KIT_NAME} ${Slicer_VTK_WRAP_HIERARCHY_DIR} "${TMP_WRAP_FILES}")
     endif()
 
-set(VTK_WRAP_HIERARCHY_EXE "d:/D/S4R/VTK-build/bin/Release/vtkWrapHierarchy-8.90.exe")
-set(VTK_WRAP_PYTHON_EXE "d:/D/S4R/VTK-build/bin/Release/vtkWrapPython-8.90.exe")
-set(VTK_WRAP_PYTHON_INIT_EXE "d:/D/S4R/VTK-build/bin/Release/vtkWrapPythonInit-8.90.exe")
+set(VTK_WRAP_HIERARCHY_EXE "c:/e/ScD/VTK-build/bin/Debug/vtkWrapHierarchy-8.90d.exe")
+set(VTK_WRAP_PYTHON_EXE "c:/e/ScD/VTK-build/bin/Debug/vtkWrapPython-8.90d.exe")
+set(VTK_WRAP_PYTHON_INIT_EXE "c:/e/ScD/VTK-build/bin/Debug/vtkWrapPythonInit-8.90d.exe")
 
     VTK_WRAP_PYTHON3(${MY_KIT_NAME}Python KitPython_SRCS "${TMP_WRAP_FILES}")
 
@@ -256,6 +256,9 @@ set(VTK_WRAP_PYTHON_INIT_EXE "d:/D/S4R/VTK-build/bin/Release/vtkWrapPythonInit-8
       endif()
     endforeach()
     set(VTK_PYTHON_CORE vtkWrappingPythonCore)
+    if(TARGET VTK::WrappingPythonCore)
+      set(VTK_PYTHON_CORE VTK::WrappingPythonCore)
+    endif()
     target_link_libraries(
       ${MY_KIT_NAME}PythonD
       ${MY_KIT_NAME}

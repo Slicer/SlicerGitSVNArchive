@@ -499,10 +499,16 @@ set(MRMLWidgets_LIBRARIES
   MRMLLogic
   MRMLDisplayableManager
   )
-list(APPEND MRMLWidgets_LIBRARIES
-  vtkRenderingQt
-  )
 
+if(TARGET VTK::RenderingQt)
+  list(APPEND MRMLWidgets_LIBRARIES
+    VTK::RenderingQt
+    )
+else()
+  list(APPEND MRMLWidgets_LIBRARIES
+    vtkRenderingQt
+    )
+endif()
 
 target_link_libraries(${lib_name} ${MRMLWidgets_LIBRARIES})
 

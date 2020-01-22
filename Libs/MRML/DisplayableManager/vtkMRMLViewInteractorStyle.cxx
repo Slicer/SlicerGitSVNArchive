@@ -478,7 +478,7 @@ void vtkMRMLViewInteractorStyle::SetInteractor(vtkRenderWindowInteractor *intera
   if (this->Interactor)
     {
     this->Interactor->AddObserver(vtkCommand::LeftButtonDoubleClickEvent, this->EventCallbackCommand, this->Priority);
-    this->Interactor->AddObserver(vtkCommand::MiddleButtonDoubleClickEvent, this->EventCallbackCommand, this->Priority);
+    //this->Interactor->AddObserver(vtkCommand::MiddleButtonDoubleClickEvent, this->EventCallbackCommand, this->Priority);
     this->Interactor->AddObserver(vtkCommand::RightButtonDoubleClickEvent, this->EventCallbackCommand, this->Priority);
     this->Interactor->AddObserver(vtkCommand::StartPinchEvent, this->EventCallbackCommand, this->Priority);
     this->Interactor->AddObserver(vtkCommand::EndPinchEvent, this->EventCallbackCommand, this->Priority);

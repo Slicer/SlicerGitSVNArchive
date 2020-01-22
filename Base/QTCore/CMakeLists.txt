@@ -221,7 +221,7 @@ endif()
 # Python wrap
 if(Slicer_USE_PYTHONQT)
   set(VTK_COMMON_PYTHON_LIBRARY
-    vtkWrappingPythonCore # For vtkPythonUtil
+    VTK::WrappingPythonCore # For vtkPythonUtil
     )
   list(APPEND KIT_target_libraries
     CTKScriptingPythonCore
