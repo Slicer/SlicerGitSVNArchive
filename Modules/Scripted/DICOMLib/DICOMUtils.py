@@ -676,3 +676,61 @@ def loadLoadables(loadablesByPlugin, messages=None, progressCallback=None):
   slicer.mrmlScene.RemoveObserver(sceneObserverTag)
 
   return loadedNodeIDs
+
+def importFromDICOMWeb(dicomWebEndpoint, studyUID, seriesUID=None, accessToken=None):
+  """
+  Downloads and imports DICOM series from a DICOMweb instance.
+  Example usage:
+    from DICOMLib import DICOMUtils
+    
+    loadedUIDs = DICOMUtils.importFromDICOMWeb(dicomWebEndpoint="https://yourdicomweburl/dicomWebEndpoint",
+                                             studyUID="2.16.840.1.113669.632.20.1211.10000509338")
+                                             accessToken="YOUR_ACCESS_TOKEN")
+  :param dicomWebEndpoint: Endpoint URL for retrieving the study/series from DICOMweb
+  :param studyUID: UID for the study to be downloaded
+  :param seriesUID: UID for the series to be downloaded. If not specified, all series will be downloaded from the study
+  :param accessToken: Optional access token for the query
+  :return: List of imported study UIDs
+  """
+
+  from dicomweb_client.api import DICOMwebClient
+  import random
+
+  if accessToken is None:
+    client = DICOMwebClient(url = dicomWebEndpoint)
+  else:
+    client = DICOMwebClient(
+              url = dicomWebEndpoint,
+              headers = { "Authorization": "Bearer {}".format(accessToken) },
+              )
+    
+
+  seriesList = client.search_for_series(study_instance_uid=studyUID)
+  seriesUIDs = []
+  if not seriesUID is None:
+    seriesUIDs = [seriesUID]
+  else:
+    for series in seriesList:
+      currentSeriesUID = series['0020000E']['Value'][0]
+      seriesUIDs.append(currentSeriesUID)
+
+  fileNumber = 0
+  for currentSeriesUID in seriesUIDs:
+    instances = client.retrieve_series(
+      study_instance_uid=studyUID,
+      series_instance_uid=currentSeriesUID)
+    
+    outputDirectoryBase = slicer.dicomDatabase.databaseDirectory + "/DICOMweb/" + qt.QDateTime.currentDateTime().toString("yyyyMMdd-hhmmss")
+    outputDirectory = qt.QTemporaryDir(outputDirectoryBase) # Add unique substring to directory
+    outputDirectory.setAutoRemove(False)
+    outputDirectoryPath = outputDirectory.path()
+    if not os.access(outputDirectoryPath, os.F_OK):
+      os.makedirs(outputDirectoryPath)
+
+    for instance in instances:
+      filename = outputDirectoryPath + "/" + str(fileNumber) + ".dcm"
+      instance.save_as(filename)
+      fileNumber += 1
+    importDicom(outputDirectoryPath)
+
+  return seriesUIDs
