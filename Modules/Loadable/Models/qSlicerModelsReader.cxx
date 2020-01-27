@@ -22,6 +22,7 @@
 #include <QFileInfo>
 
 // SlicerQt includes
+#include "qSlicerModelsIOOptionsWidget.h"
 #include "qSlicerModelsReader.h"
 
 // Logic includes
@@ -89,6 +90,14 @@ QStringList qSlicerModelsReader::extensions()const
 }
 
 //-----------------------------------------------------------------------------
+qSlicerIOOptions* qSlicerModelsReader::options()const
+{
+  qSlicerIOOptionsWidget* options = new qSlicerModelsIOOptionsWidget;
+  options->setMRMLScene(this->mrmlScene());
+  return options;
+}
+
+//-----------------------------------------------------------------------------
 bool qSlicerModelsReader::load(const IOProperties& properties)
 {
   Q_D(qSlicerModelsReader);
@@ -99,6 +108,11 @@ bool qSlicerModelsReader::load(const IOProperties& properties)
   if (d->ModelsLogic.GetPointer() == nullptr)
     {
     return false;
+    }
+  int coordinateSystem = -1; // default
+  if (properties.contains("coordinateSystem"))
+    {
+    coordinateSystem = properties["coordinateSystem"].toInt();
     }
   vtkMRMLModelNode* node = d->ModelsLogic->AddModel(
     fileName.toLatin1());
