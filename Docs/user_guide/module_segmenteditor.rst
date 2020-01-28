@@ -61,11 +61,11 @@ Panels and their use
 
   - Editable intensity range: Changes wil be limited to areas where the master volume's voxels are in the selected intensity range. It is useful when locally an intensity threshold separates well between different regions. Intensity range can be previewed by using Threshold effect.
 
-  - Overwrite other segments: Select which segments will be overwritten rather than overlapped.
+  - Modify other segments: Select which segments will be overwritten rather than overlapped.
 
-    - All segments: Segment will not overlap.
-    - Visible segments: Visible segments will not overlap with each other. Hidden segments will not be overwritten by changes done to visible segments.
-    - None: Segments can overlap. Changing one segment will not change any other.
+    - Overwrite all: Segment will not overlap (default).
+    - Overwrite visible: Visible segments will not overlap with each other. Hidden segments will not be overwritten by changes done to visible segments.
+    - Allow overlap: Changing one segment will not change any other.
 
 Tutorials
 ---------
