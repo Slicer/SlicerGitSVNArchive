@@ -527,7 +527,6 @@ int vtkMRMLMarkupsDisplayNode::UpdateActiveControlPointWorld(
   return controlPointIndex;
 }
 
-
 //---------------------------------------------------------------------------
 void vtkMRMLMarkupsDisplayNode::GetActiveControlPoints(std::vector<int>& controlPointIndices)
 {

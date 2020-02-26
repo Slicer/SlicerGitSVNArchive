@@ -1911,6 +1911,8 @@ void qMRMLSliceControllerWidget::setSliceOffsetResolution(double resolution)
 {
   Q_D(qMRMLSliceControllerWidget);
   resolution = qMax(resolution, 0.000000000001);
+  resolution = qMin(resolution, d->SliceOffsetSlider->maximum()- std::numeric_limits<double>::epsilon());
+  resolution = qMax(resolution, d->SliceOffsetSlider->minimum() + std::numeric_limits<double>::epsilon());
   d->SliceOffsetSlider->setSingleStep(resolution);
   d->SliceOffsetSlider->setPageStep(resolution);
 }

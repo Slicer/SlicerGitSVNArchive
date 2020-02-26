@@ -99,6 +99,17 @@
        </property>
       </widget>
      </item>
+     <item>
+      <widget class="QPushButton" name="createPlanePushButton">
+       <property name="text">
+        <string/>
+       </property>
+       <property name="icon">
+        <iconset resource="../qSlicerMarkupsModule.qrc">
+         <normaloff>:/Icons/MarkupsPlaneMouseModePlaceAdd.png</normaloff>:/Icons/MarkupsPlaneMouseModePlaceAdd.png</iconset>
+       </property>
+      </widget>
+     </item>
     </layout>
    </item>
    <item>
