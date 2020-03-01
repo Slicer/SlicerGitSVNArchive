@@ -1268,6 +1268,7 @@ class ScreenCaptureLogic(ScriptedLoadableModuleLogic):
     filePathPattern = os.path.join(outputDir, imageFileNamePattern)
     outputVideoFilePath = os.path.join(outputDir, videoFileName)
     ffmpegParams = [ffmpegPath,
+                    "-nostdin",
                     "-y", # overwrite without asking
                     "-r", str(frameRate),
                     "-start_number", "0",
