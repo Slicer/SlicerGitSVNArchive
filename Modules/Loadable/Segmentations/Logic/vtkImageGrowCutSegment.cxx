@@ -141,7 +141,7 @@ bool vtkImageGrowCutSegment::vtkInternal::InitializationAHP(
     seedLabelVolumePtr = static_cast<LabelPixelType*>(seedLabelVolume->GetScalarPointer());
     }
   MaskPixelType* maskLabelVolumePtr = nullptr;
-  if (seedLabelVolume != nullptr)
+  if (maskLabelVolume != nullptr)
     {
     maskLabelVolumePtr = static_cast<MaskPixelType*>(maskLabelVolume->GetScalarPointer());
     }

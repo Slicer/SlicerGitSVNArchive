@@ -5,6 +5,7 @@
 
 #include <vtkImageAlgorithm.h>
 #include <vtkImageData.h>
+#include <vtkInformation.h>
 
 class VTK_SLICER_SEGMENTATIONS_LOGIC_EXPORT vtkImageGrowCutSegment : public vtkImageAlgorithm
 {
@@ -41,6 +42,17 @@ protected:
 
   void ExecuteDataWithInformation(vtkDataObject *outData, vtkInformation *outInfo) override;
   int RequestInformation(vtkInformation *, vtkInformationVector **, vtkInformationVector *) override;
+
+  int
+  FillInputPortInformation(int port, vtkInformation * info) override
+  {
+    vtkImageAlgorithm::FillInputPortInformation(port, info);
+    if (port == 2)
+    {
+      info->Set(vtkAlgorithm::INPUT_IS_OPTIONAL(), 1);
+    }
+    return 1;
+  }
 
 private:
   class vtkInternal;
