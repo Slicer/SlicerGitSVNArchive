@@ -50,8 +50,7 @@ public:
 // ----------------------------------------------------------------------
 // Construct without computing moments
 template <class TImage>
-ImageRegionMomentsCalculator<TImage>::ImageRegionMomentsCalculator(void)
-{
+ImageRegionMomentsCalculator<TImage>::ImageRegionMomentsCalculator() {
   m_Valid = false;
   m_Image = nullptr;
   m_SpatialObjectMask = nullptr;
@@ -323,8 +322,8 @@ ImageRegionMomentsCalculator<TImage>::GetPrincipalAxes() const
 // Get principal axes to physical axes transform
 template <class TImage>
 typename ImageRegionMomentsCalculator<TImage>::AffineTransformPointer
-ImageRegionMomentsCalculator<TImage>::GetPrincipalAxesToPhysicalAxesTransform(void) const
-{
+ImageRegionMomentsCalculator<TImage>::GetPrincipalAxesToPhysicalAxesTransform()
+    const {
   typename AffineTransformType::MatrixType matrix;
   typename AffineTransformType::OffsetType offset;
   for( unsigned int i = 0; i < ImageDimension; i++ )
@@ -349,8 +348,8 @@ ImageRegionMomentsCalculator<TImage>::GetPrincipalAxesToPhysicalAxesTransform(vo
 
 template <class TImage>
 typename ImageRegionMomentsCalculator<TImage>::AffineTransformPointer
-ImageRegionMomentsCalculator<TImage>::GetPhysicalAxesToPrincipalAxesTransform(void) const
-{
+ImageRegionMomentsCalculator<TImage>::GetPhysicalAxesToPrincipalAxesTransform()
+    const {
   typename AffineTransformType::MatrixType matrix;
   typename AffineTransformType::OffsetType offset;
   for( unsigned int i = 0; i < ImageDimension; i++ )

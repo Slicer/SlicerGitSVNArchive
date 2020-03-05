@@ -25,9 +25,8 @@ namespace itk
 {
 
 template <class TImage>
-RigidImageToImageRegistrationMethod<TImage>
-::RigidImageToImageRegistrationMethod( void )
-{
+RigidImageToImageRegistrationMethod<
+    TImage>::RigidImageToImageRegistrationMethod() {
   if( ImageDimension == 2 )
     {
     typename Rigid2DTransformType::Pointer tmpTrans =
@@ -83,33 +82,26 @@ RigidImageToImageRegistrationMethod<TImage>
 }
 
 template <class TImage>
-RigidImageToImageRegistrationMethod<TImage>
-::~RigidImageToImageRegistrationMethod( void )
-{
+RigidImageToImageRegistrationMethod<
+    TImage>::~RigidImageToImageRegistrationMethod() {
   this->m_Transform->UnRegister();
 }
 
 template <class TImage>
-typename RigidImageToImageRegistrationMethod<TImage>::TransformType
-* RigidImageToImageRegistrationMethod<TImage>
-::GetTypedTransform( void )
-  {
+typename RigidImageToImageRegistrationMethod<TImage>::TransformType *
+RigidImageToImageRegistrationMethod<TImage>::GetTypedTransform() {
   return dynamic_cast<TransformType  *>( Superclass::GetTransform() );
-  }
+}
 
 template <class TImage>
-const typename RigidImageToImageRegistrationMethod<TImage>::TransformType
-* RigidImageToImageRegistrationMethod<TImage>
-::GetTypedTransform( void ) const
-  {
+const typename RigidImageToImageRegistrationMethod<TImage>::TransformType *
+RigidImageToImageRegistrationMethod<TImage>::GetTypedTransform() const {
   return dynamic_cast<const TransformType  *>( Superclass::GetTransform() );
-  }
+}
 
 template <class TImage>
 typename RigidImageToImageRegistrationMethod<TImage>::AffineTransformPointer
-RigidImageToImageRegistrationMethod<TImage>
-::GetAffineTransform( void ) const
-{
+RigidImageToImageRegistrationMethod<TImage>::GetAffineTransform() const {
   typename AffineTransformType::Pointer trans = AffineTransformType::New();
 
   trans->SetIdentity();
@@ -180,10 +172,7 @@ RigidImageToImageRegistrationMethod<TImage>
 }
 
 template <class TImage>
-void
-RigidImageToImageRegistrationMethod<TImage>
-::GenerateData( void )
-{
+void RigidImageToImageRegistrationMethod<TImage>::GenerateData() {
   // Set the center of rotation
   this->GetTransform()->SetFixedParameters( this->GetInitialTransformFixedParameters() );
 

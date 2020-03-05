@@ -8,7 +8,4 @@
 // The following code is required to ensure that the
 // mechanism allowing the ITK factory to be registered is not
 // optimized out by the compiler.
-void itk::itkFactoryRegistration(void)
-{
-  return;
-}
+void itk::itkFactoryRegistration() { return; }

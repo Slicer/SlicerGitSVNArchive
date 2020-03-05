@@ -186,10 +186,8 @@ AnisotropicSimilarity3DTransform<TScalarType>
 //
 
 template <class TScalarType>
-const typename AnisotropicSimilarity3DTransform<TScalarType>::ParametersType
-& AnisotropicSimilarity3DTransform<TScalarType>
-::GetParameters( void ) const
-  {
+const typename AnisotropicSimilarity3DTransform<TScalarType>::ParametersType &
+AnisotropicSimilarity3DTransform<TScalarType>::GetParameters() const {
   itkDebugMacro( << "Getting parameters ");
 
   this->m_Parameters[0] = this->GetVersor().GetX();
@@ -208,7 +206,7 @@ const typename AnisotropicSimilarity3DTransform<TScalarType>::ParametersType
   itkDebugMacro(<< "After getting parameters " << this->m_Parameters );
 
   return this->m_Parameters;
-  }
+}
 
 // Set parameters
 template <class TScalarType>
@@ -312,10 +310,7 @@ AnisotropicSimilarity3DTransform<TScalarType>
 
 /** Compute the matrix */
 template <class TScalarType>
-void
-AnisotropicSimilarity3DTransform<TScalarType>
-::ComputeMatrixParameters( void )
-{
+void AnisotropicSimilarity3DTransform<TScalarType>::ComputeMatrixParameters() {
   MatrixType matrix = this->GetMatrix();
 
   m_Scale[0] = sqrt( fabs( matrix.GetVnlMatrix()[0][0] * matrix.GetVnlMatrix()[0][0]
@@ -338,7 +333,6 @@ AnisotropicSimilarity3DTransform<TScalarType>
   VersorType v;
   v.Set( matrix );
   this->SetVarVersor( v );
-
 }
 
 // Print self

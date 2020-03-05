@@ -24,9 +24,7 @@ namespace itk
 {
 
 template <class TImage>
-ImageToImageRegistrationMethod<TImage>
-::ImageToImageRegistrationMethod( void )
-{
+ImageToImageRegistrationMethod<TImage>::ImageToImageRegistrationMethod() {
   this->SetNumberOfRequiredOutputs( 1 ); // the transform
 
   this->m_Transform = nullptr;
@@ -51,14 +49,10 @@ ImageToImageRegistrationMethod<TImage>
   this->m_UseRegionOfInterest = false;
   this->m_RegionOfInterestPoint1.Fill(0);
   this->m_RegionOfInterestPoint2.Fill(0);
-
 }
 
 template <class TImage>
-ImageToImageRegistrationMethod<TImage>
-::~ImageToImageRegistrationMethod( void )
-{
-}
+ImageToImageRegistrationMethod<TImage>::~ImageToImageRegistrationMethod() {}
 
 template <class TImage>
 void
@@ -169,10 +163,7 @@ ImageToImageRegistrationMethod<TImage>
 }
 
 template <class TImage>
-ModifiedTimeType
-ImageToImageRegistrationMethod<TImage>
-::GetMTime( void ) const
-{
+ModifiedTimeType ImageToImageRegistrationMethod<TImage>::GetMTime() const {
   unsigned long mtime = Superclass::GetMTime();
   unsigned long m;
 
@@ -210,10 +201,7 @@ ImageToImageRegistrationMethod<TImage>
 }
 
 template <class TImage>
-void
-ImageToImageRegistrationMethod<TImage>
-::Initialize( void )
-{
+void ImageToImageRegistrationMethod<TImage>::Initialize() {
   this->GetMultiThreader()->SetNumberOfThreads( m_RegistrationNumberOfThreads );
 
   if( m_Transform.IsNull() )
@@ -235,14 +223,10 @@ ImageToImageRegistrationMethod<TImage>
     static_cast<TransformOutputType *>( this->ProcessObject::GetOutput( 0 ) );
 
   transformOutput->Set( m_Transform.GetPointer() );
-
 }
 
 template <class TImage>
-void
-ImageToImageRegistrationMethod<TImage>
-::GenerateData( void )
-{
+void ImageToImageRegistrationMethod<TImage>::GenerateData() {
   this->Update();
 }
 

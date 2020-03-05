@@ -75,8 +75,7 @@ PichonFastMarchingPDF::~PichonFastMarchingPDF()
   delete [] coefGauss;
 }
 
-void PichonFastMarchingPDF::reset( void )
-{
+void PichonFastMarchingPDF::reset() {
   counter=0;
 
   inBins.clear();
@@ -91,8 +90,7 @@ void PichonFastMarchingPDF::reset( void )
   nRealInBins=0;
 }
 
-bool PichonFastMarchingPDF::willUseGaussian( void )
-{
+bool PichonFastMarchingPDF::willUseGaussian() {
   return nRealInBins<50*sqrt(sigma2);
 }
 
@@ -125,8 +123,7 @@ double PichonFastMarchingPDF::valueHisto( int k )
   return smoothedBins[k];
 }
 
-void PichonFastMarchingPDF::update( void )
-{
+void PichonFastMarchingPDF::update() {
   int r;
 
   // move all points from tobeadded to inbins
@@ -236,8 +233,7 @@ bool PichonFastMarchingPDF::isUnlikelyBigGauss( double k )
 }
 */
 
-void PichonFastMarchingPDF::show( void )
-{
+void PichonFastMarchingPDF::show() {
   cout << "realizationMax=" << realizationMax << endl;
   cout << "nRealInBins=" <<  nRealInBins << endl;
   cout << "mean=" << mean << endl;
