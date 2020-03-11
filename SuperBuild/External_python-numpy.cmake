@@ -1,7 +1,11 @@
 set(proj python-numpy)
 
 # Set dependency list
-set(${proj}_DEPENDENCIES python python-setuptools python-pip)
+set(${proj}_DEPENDENCIES
+  python
+  python-pip
+  python-setuptools
+  )
 
 if(NOT DEFINED Slicer_USE_SYSTEM_${proj})
   set(Slicer_USE_SYSTEM_${proj} ${Slicer_USE_SYSTEM_python})
@@ -11,7 +15,10 @@ endif()
 ExternalProject_Include_Dependencies(${proj} PROJECT_VAR proj DEPENDS_VAR ${proj}_DEPENDENCIES)
 
 if(Slicer_USE_SYSTEM_${proj})
-  foreach(module_name IN ITEMS nose numpy)
+  foreach(module_name IN ITEMS
+    nose
+    numpy
+    )
     ExternalProject_FindPythonPackage(
       MODULE_NAME "${module_name}"
       REQUIRED

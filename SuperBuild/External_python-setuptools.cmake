@@ -1,7 +1,10 @@
 set(proj python-setuptools)
 
 # Set dependency list
-set(${proj}_DEPENDENCIES python python-ensurepip)
+set(${proj}_DEPENDENCIES
+  python
+  python-ensurepip
+  )
 
 if(NOT DEFINED Slicer_USE_SYSTEM_${proj})
   set(Slicer_USE_SYSTEM_${proj} ${Slicer_USE_SYSTEM_python})

@@ -1,7 +1,12 @@
 set(proj python-extension-manager-ssl-requirements)
 
 # Set dependency list
-set(${proj}_DEPENDENCIES python python-setuptools python-requests-requirements python-pip)
+set(${proj}_DEPENDENCIES
+  python
+  python-pip
+  python-requests-requirements
+  python-setuptools
+  )
 
 if(NOT DEFINED Slicer_USE_SYSTEM_${proj})
   set(Slicer_USE_SYSTEM_${proj} ${Slicer_USE_SYSTEM_python})

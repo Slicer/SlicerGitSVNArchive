@@ -1,7 +1,11 @@
 set(proj python-requests-requirements)
 
 # Set dependency list
-set(${proj}_DEPENDENCIES python python-setuptools python-pip)
+set(${proj}_DEPENDENCIES
+  python
+  python-pip
+  python-setuptools
+  )
 
 if(NOT DEFINED Slicer_USE_SYSTEM_${proj})
   set(Slicer_USE_SYSTEM_${proj} ${Slicer_USE_SYSTEM_python})

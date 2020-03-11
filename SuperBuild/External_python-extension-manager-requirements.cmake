@@ -1,7 +1,11 @@
 set(proj python-extension-manager-requirements)
 
 # Set dependency list
-set(${proj}_DEPENDENCIES python python-setuptools python-pip)
+set(${proj}_DEPENDENCIES
+  python
+  python-pip
+  python-setuptools
+  )
 
 if(NOT DEFINED Slicer_USE_SYSTEM_${proj})
   set(Slicer_USE_SYSTEM_${proj} ${Slicer_USE_SYSTEM_python})
@@ -11,7 +15,14 @@ endif()
 ExternalProject_Include_Dependencies(${proj} PROJECT_VAR proj DEPENDS_VAR ${proj}_DEPENDENCIES)
 
 if(Slicer_USE_SYSTEM_${proj})
-  foreach(module_name IN ITEMS chardet couchdb gitdb smmap git six)
+  foreach(module_name IN ITEMS
+    chardet
+    couchdb
+    git
+    gitdb
+    six
+    smmap
+    )
     ExternalProject_FindPythonPackage(
       MODULE_NAME "${module_name}"
       REQUIRED

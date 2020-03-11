@@ -1,7 +1,13 @@
 set(proj python-dicom-requirements)
 
 # Set dependency list
-set(${proj}_DEPENDENCIES python python-setuptools python-pip python-requests-requirements python-numpy)
+set(${proj}_DEPENDENCIES
+  python
+  python-numpy
+  python-pip
+  python-requests-requirements
+  python-setuptools
+  )
 
 if(NOT DEFINED Slicer_USE_SYSTEM_${proj})
   set(Slicer_USE_SYSTEM_${proj} ${Slicer_USE_SYSTEM_python})
@@ -11,7 +17,10 @@ endif()
 ExternalProject_Include_Dependencies(${proj} PROJECT_VAR proj DEPENDS_VAR ${proj}_DEPENDENCIES)
 
 if(Slicer_USE_SYSTEM_${proj})
-  foreach(module_name IN ITEMS pydicom six)
+  foreach(module_name IN ITEMS
+    pydicom
+    six
+    )
     ExternalProject_FindPythonPackage(
       MODULE_NAME "${module_name}"
       REQUIRED
