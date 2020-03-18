@@ -183,6 +183,12 @@ public:
   /// Uninstantiate all instantiated modules
   void uninstantiateModules();
 
+  /// Instantiate a module given its \a name
+  Q_INVOKABLE qSlicerAbstractCoreModule* instantiateModule(const QString& name);
+
+  /// Uninstantiate a module given its \a moduleName
+  Q_INVOKABLE virtual void uninstantiateModule(const QString& moduleName);
+
   /// Enable/Disable verbose output during module discovery process
   void setVerboseModuleDiscovery(bool value);
 
@@ -226,12 +232,6 @@ protected:
   QScopedPointer<qSlicerAbstractModuleFactoryManagerPrivate> d_ptr;
 
   void registerModules(const QString& directoryPath);
-
-  /// Instantiate a module given its \a name
-  qSlicerAbstractCoreModule* instantiateModule(const QString& name);
-
-  /// Uninstantiate a module given its \a moduleName
-  virtual void uninstantiateModule(const QString& moduleName);
 
 private:
   Q_DECLARE_PRIVATE(qSlicerAbstractModuleFactoryManager);
