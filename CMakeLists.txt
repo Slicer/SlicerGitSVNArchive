@@ -422,7 +422,8 @@ include(SlicerFunctionAddPythonQtResources)
 #-----------------------------------------------------------------------------
 if(Slicer_BUILD_I18N_SUPPORT)
   set(Slicer_LANGUAGES
-    "fr"
+    "es_ES"
+    "fr_FR"
     )
   set_property(GLOBAL PROPERTY Slicer_LANGUAGES ${Slicer_LANGUAGES})
 endif()
@@ -1050,9 +1051,27 @@ endforeach()
 unset(Slicer_DIR)
 
 # --------------------------------------------------------------------------
-# Recover the QM output directories
+# Create targets CopySlicerPython{Resource, Script}Files, CompileSlicerPythonFiles
 # --------------------------------------------------------------------------
-get_property(Slicer_QM_OUTPUT_DIRS GLOBAL PROPERTY Slicer_QM_OUTPUT_DIRS)
+if(Slicer_USE_PYTHONQT)
+  slicerFunctionAddPythonQtResourcesTargets(SlicerPythonResources)
+  ctkFunctionAddCompilePythonScriptTargets(
+    ${CTK_COMPILE_PYTHON_SCRIPTS_GLOBAL_TARGET_NAME}
+    DEPENDS
+      SlicerPythonResources
+    )
+endif()
+
+# --------------------------------------------------------------------------
+# Create target GenerateSlicerTranslationQMFiles (Slicer_QM_OUTPUT_DIRS is used in vtkSlicerConfigure.h)
+# --------------------------------------------------------------------------
+if(Slicer_BUILD_I18N_SUPPORT)
+  SlicerFunctionAddGenerateSlicerTranslationQMFilesTarget(
+    QM_OUTPUT_DIRS_VAR Slicer_QM_OUTPUT_DIRS
+    )
+else()
+  set(Slicer_QM_OUTPUT_DIRS)
+endif()
 
 # --------------------------------------------------------------------------
 # Configure and install headers
@@ -1152,16 +1171,6 @@ endif()
 # Create target to download data from the <Slicer_ExternalData_DATA_MANAGEMENT_TARGET> group.
 # This must come after all tests have been added that reference the group, so we put it last.
 ExternalData_Add_Target(${Slicer_ExternalData_DATA_MANAGEMENT_TARGET})
-
-#-----------------------------------------------------------------------------
-# Create targets CopySlicerPython{Resource, Script}Files, CompileSlicerPythonFiles
-if(Slicer_USE_PYTHONQT)
-  slicerFunctionAddPythonQtResourcesTargets(SlicerPythonResources)
-  ctkFunctionAddCompilePythonScriptTargets(
-    ${CTK_COMPILE_PYTHON_SCRIPTS_GLOBAL_TARGET_NAME}
-    DEPENDS SlicerPythonResources
-    )
-endif()
 
 #-----------------------------------------------------------------------------
 # The commands in this directory are intended to be executed as

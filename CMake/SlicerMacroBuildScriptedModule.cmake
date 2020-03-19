@@ -97,6 +97,9 @@ macro(slicerMacroBuildScriptedModule)
     set(_no_install_subdir_option "")
   endif()
 
+  # --------------------------------------------------------------------------
+  # Copy and/or compile scripts and associated resources
+  # --------------------------------------------------------------------------
   ctkMacroCompilePythonScript(
     TARGET_NAME ${MY_SLICER_NAME}
     SCRIPTS "${MY_SLICER_SCRIPTS}"
@@ -106,6 +109,36 @@ macro(slicerMacroBuildScriptedModule)
     ${_no_install_subdir_option}
     )
 
+  # --------------------------------------------------------------------------
+  # Translations
+  # --------------------------------------------------------------------------
+
+  set(scripts )
+  foreach(file IN ITEMS ${MY_SLICER_SCRIPTS})
+    # Append "py" extension if needed
+    get_filename_component(file_ext ${file} EXT)
+    if(NOT "${file_ext}" MATCHES "py")
+      set(file "${file}.py")
+    endif()
+    list(APPEND scripts ${file})
+  endforeach()
+
+  set(TS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Resources/Translations")
+  include(SlicerMacroTranslation)
+  SlicerMacroTranslation(
+    SRCS ${scripts}
+    TS_DIR ${TS_DIR}
+    TS_BASEFILENAME ${MY_SLICER_NAME}
+    TS_LANGUAGES ${Slicer_LANGUAGES}
+    )
+
+  #if("${CTK_COMPILE_PYTHON_SCRIPTS_GLOBAL_TARGET_NAME}" STREQUAL "")
+  #  SlicerFunctionAddPythonScriptTrFilesTargets(${MY_SLICER_NAME})
+  #endif()
+
+  # --------------------------------------------------------------------------
+  # Tests
+  # --------------------------------------------------------------------------
   if(BUILD_TESTING AND MY_SLICER_WITH_GENERIC_TESTS)
     set(_generic_unitest_scripts)
     SlicerMacroConfigureGenericPythonModuleTests("${MY_SLICER_NAME}" _generic_unitest_scripts)
@@ -121,4 +154,3 @@ macro(slicerMacroBuildScriptedModule)
   endif()
 
 endmacro()
-
