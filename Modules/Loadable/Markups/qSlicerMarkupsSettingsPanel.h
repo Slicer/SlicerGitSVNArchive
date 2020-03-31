@@ -38,6 +38,7 @@ class Q_SLICER_QTMODULES_MARKUPS_EXPORT qSlicerMarkupsSettingsPanel
   Q_PROPERTY(double defaultGlyphScale READ defaultGlyphScale WRITE setDefaultGlyphScale NOTIFY defaultGlyphScaleChanged)
   Q_PROPERTY(double defaultTextScale READ defaultTextScale WRITE setDefaultTextScale NOTIFY defaultTextScaleChanged)
   Q_PROPERTY(double defaultOpacity READ defaultOpacity WRITE setDefaultOpacity NOTIFY defaultOpacityChanged)
+  Q_PROPERTY(QString defaultJumpSliceType READ defaultJumpSliceType WRITE setDefaultJumpSliceType NOTIFY defaultJumpSliceTypeChanged)
 
 public:
   /// Superclass typedef
@@ -59,12 +60,15 @@ public:
   void setMarkupsLogic(vtkSlicerMarkupsLogic* logic);
   vtkSlicerMarkupsLogic* markupsLogic()const;
 
+  void readDefaultMarkupsDisplaySettings();
+
   QString defaultGlyphType() const;
   QColor defaultUnselectedColor() const;
   QColor defaultSelectedColor() const;
   double defaultGlyphScale() const;
   double defaultTextScale() const;
   double defaultOpacity() const;
+  QString defaultJumpSliceType() const;
 
 public slots:
   void setDefaultGlyphType(const QString& type);
@@ -73,6 +77,7 @@ public slots:
   void setDefaultGlyphScale(const double scale);
   void setDefaultTextScale(const double scale);
   void setDefaultOpacity(const double scale);
+  void setDefaultJumpSliceType(const QString& type);
 
 signals:
   void defaultGlyphTypeChanged(const QString&);
@@ -81,6 +86,7 @@ signals:
   void defaultGlyphScaleChanged(const double);
   void defaultTextScaleChanged(const double);
   void defaultOpacityChanged(const double);
+  void defaultJumpSliceTypeChanged(const QString&);
 
 protected slots:
   void onMarkupsLogicModified();
@@ -102,6 +108,9 @@ protected slots:
 
   void onDefaultOpacityChanged(double);
   void updateMarkupsLogicDefaultOpacity();
+
+  void onDefaultJumpSliceTypeChanged(int);
+  void updateMarkupsLogicDefaultJumpSliceType();
 
 protected:
   QScopedPointer<qSlicerMarkupsSettingsPanelPrivate> d_ptr;

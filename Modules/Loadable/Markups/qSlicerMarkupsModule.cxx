@@ -40,8 +40,7 @@
 #include "qSlicerMarkupsModule.h"
 #include "qSlicerMarkupsModuleWidget.h"
 #include "qSlicerMarkupsReader.h"
-//#include "qSlicerMarkupsSettingsPanel.h"
-//#include "vtkSlicerMarkupsLogic.h"
+#include "qSlicerMarkupsSettingsPanel.h"
 #include "vtkMRMLMarkupsDisplayNode.h"
 
 // DisplayableManager initialization
@@ -134,7 +133,6 @@ void qSlicerMarkupsModule::setup()
                             QStringList() << "vtkMRMLMarkupsNode", true, this));
 
   // settings
-  /*
   if (qSlicerApplication::application())
     {
     qSlicerMarkupsSettingsPanel* panel =
@@ -143,7 +141,6 @@ void qSlicerMarkupsModule::setup()
       "Markups", panel);
     panel->setMarkupsLogic(vtkSlicerMarkupsLogic::SafeDownCast(this->logic()));
     }
-  */
 
   // Register Subject Hierarchy core plugins
   qSlicerSubjectHierarchyPluginHandler::instance()->registerPlugin(new qSlicerSubjectHierarchyMarkupsPlugin());

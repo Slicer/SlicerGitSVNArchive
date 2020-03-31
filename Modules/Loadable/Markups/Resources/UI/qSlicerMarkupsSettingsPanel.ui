@@ -213,6 +213,35 @@
      </property>
     </widget>
    </item>
+   <item row="6" column="0">
+    <widget class="QLabel" name="defaultJumpSliceTypeLabel">
+     <property name="text">
+      <string>LeftButtonClick Jump Slice Type:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="6" column="1">
+    <widget class="QComboBox" name="defaultJumpSliceTypeComboBox">
+     <property name="currentIndex">
+      <number>2</number>
+     </property>
+     <item>
+      <property name="text">
+       <string>None</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Offset</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Centered</string>
+      </property>
+     </item>
+    </widget>
+   </item>
   </layout>
  </widget>
  <customwidgets>

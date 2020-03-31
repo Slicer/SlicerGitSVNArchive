@@ -17,6 +17,7 @@
 
 // Qt includes
 #include <QDebug>
+#include <QSettings>
 
 // QtGUI includes
 #include "qSlicerApplication.h"
@@ -117,6 +118,8 @@ void qSlicerMarkupsSettingsPanel
                          "defaultTextScale", SIGNAL(defaultTextScaleChanged(double)));
   this->registerProperty("Markups/Opacity", this,
                          "defaultOpacity", SIGNAL(defaultOpacityChanged(double)));
+  this->registerProperty("Markups/JumpSliceType", this,
+                         "defaultJumpSliceType", SIGNAL(defaultJumpSliceTypeChanged(QString)));
 }
 
 // --------------------------------------------------------------------------
@@ -124,50 +127,46 @@ void qSlicerMarkupsSettingsPanel
 ::onMarkupsLogicModified()
 {
   Q_D(qSlicerMarkupsSettingsPanel);
-/* disable it for now; if we want a settings panel then use the same pattern that is used for default view options
+  this->readDefaultMarkupsDisplaySettings();
 
-  // update the gui to match the logic
-  QString glyphType = QString(d->MarkupsLogic->GetDefaultMarkupsDisplayNodeGlyphTypeAsString().c_str());
+}
 
-  QObject::connect(d->defaultGlyphTypeComboBox, SIGNAL(currentIndexChanged(int)),
-                   this, SLOT(onDefaultGlyphTypeChanged(int)),Qt::UniqueConnection);
-
-  // TODO: do I need to use the strings?
-//  d->defaultGlyphTypeComboBox->setCurrentIndex(glyphType - 1);
-  int glyphTypeIndex = d->defaultGlyphTypeComboBox->findData(glyphType);
-  if (glyphTypeIndex != -1)
+//-----------------------------------------------------------------------------
+void qSlicerMarkupsSettingsPanel::readDefaultMarkupsDisplaySettings()
+{
+  QSettings settings;
+  if (settings.contains("Markups/GlyphType"))
     {
-    d->defaultGlyphTypeComboBox->setCurrentIndex(glyphTypeIndex);
+      setDefaultGlyphType(settings.value("Markups/GlyphType").toString().toLatin1());
     }
-
-
-  double *unselectedColor = d->MarkupsLogic->GetDefaultMarkupsDisplayNodeColor();
-  QObject::connect(d->defaultUnselectedColorPickerButton, SIGNAL(colorChanged(QColor)),
-                   this, SLOT(onDefaultUnselectedColorChanged(QColor)));
-  QColor qcolor = QColor::fromRgbF(unselectedColor[0], unselectedColor[1], unselectedColor[2]);
-  d->defaultUnselectedColorPickerButton->setColor(qcolor);
-
-  double *selectedColor =  d->MarkupsLogic->GetDefaultMarkupsDisplayNodeSelectedColor();
-  QObject::connect(d->defaultSelectedColorPickerButton, SIGNAL(colorChanged(QColor)),
-                   this, SLOT(onDefaultSelectedColorChanged(QColor)),Qt::UniqueConnection);
-  qcolor = QColor::fromRgbF(selectedColor[0], selectedColor[1], selectedColor[2]);
-  d->defaultSelectedColorPickerButton->setColor(qcolor);
-
-  double glyphScale = d->MarkupsLogic->GetDefaultMarkupsDisplayNodeGlyphScale();
-  QObject::connect(d->defaultGlyphScaleSliderWidget, SIGNAL(valueChanged(double)),
-                   this, SLOT(onDefaultGlyphScaleChanged(double)),Qt::UniqueConnection);
-  d->defaultGlyphScaleSliderWidget->setValue(glyphScale);
-
-  double textScale = d->MarkupsLogic->GetDefaultMarkupsDisplayNodeTextScale();
-  QObject::connect(d->defaultTextScaleSliderWidget, SIGNAL(valueChanged(double)),
-                   this, SLOT(onDefaultTextScaleChanged(double)),Qt::UniqueConnection);
-  d->defaultTextScaleSliderWidget->setValue(textScale);
-
-  double opacity = d->MarkupsLogic->GetDefaultMarkupsDisplayNodeOpacity();
-  QObject::connect(d->defaultOpacitySliderWidget, SIGNAL(valueChanged(double)),
-                   this, SLOT(onDefaultOpacityChanged(double)),Qt::UniqueConnection);
-  d->defaultOpacitySliderWidget->setValue(opacity);
-  */
+  if (settings.contains("Markups/SelectedColor"))
+    {
+      QVariant variant = settings.value("Markups/SelectedColor");
+      QColor qcolor = variant.value<QColor>();
+      setDefaultSelectedColor(qcolor);
+    }
+  if (settings.contains("Markups/UnselectedColor"))
+    {
+      QVariant variant = settings.value("Markups/UnselectedColor");
+      QColor qcolor = variant.value<QColor>();
+      setDefaultUnselectedColor(qcolor);
+    }
+  if (settings.contains("Markups/GlyphScale"))
+    {
+      setDefaultGlyphScale(settings.value("Markups/GlyphScale").toDouble());
+    }
+  if (settings.contains("Markups/TextScale"))
+    {
+      setDefaultTextScale(settings.value("Markups/TextScale").toDouble());
+    }
+  if (settings.contains("Markups/Opacity"))
+    {
+      setDefaultOpacity(settings.value("Markups/Opacity").toDouble());
+    }
+  if (settings.contains("Markups/JumpSliceType"))
+    {
+      setDefaultGlyphType(settings.value("Markups/JumpSliceType").toString().toLatin1());
+    }
 }
 
 // --------------------------------------------------------------------------
@@ -236,6 +235,21 @@ double qSlicerMarkupsSettingsPanel::defaultOpacity()const
 }
 
 // --------------------------------------------------------------------------
+QString qSlicerMarkupsSettingsPanel::defaultJumpSliceType()const
+{
+  Q_D(const qSlicerMarkupsSettingsPanel);
+
+  int currentIndex  = d->defaultJumpSliceTypeComboBox->currentIndex();
+  QString jumpSliceType;
+  if (currentIndex != -1)
+    {
+    jumpSliceType =
+      d->defaultJumpSliceTypeComboBox->itemText(currentIndex);
+    }
+  return jumpSliceType;
+}
+
+// --------------------------------------------------------------------------
 void qSlicerMarkupsSettingsPanel::setDefaultGlyphType(const QString& glyphType)
 {
   Q_D(qSlicerMarkupsSettingsPanel);
@@ -286,6 +300,19 @@ void qSlicerMarkupsSettingsPanel::setDefaultOpacity(const double opacity)
   Q_D(qSlicerMarkupsSettingsPanel);
 
   d->defaultOpacitySliderWidget->setValue(opacity);
+}
+
+// --------------------------------------------------------------------------
+void qSlicerMarkupsSettingsPanel::setDefaultJumpSliceType(const QString& jumpSliceType)
+{
+  Q_D(qSlicerMarkupsSettingsPanel);
+
+  int jumpSliceTypeIndex = d->defaultJumpSliceTypeComboBox->findData(jumpSliceType);
+
+  if (jumpSliceTypeIndex != -1)
+    {
+    d->defaultJumpSliceTypeComboBox->setCurrentIndex(jumpSliceTypeIndex);
+    }
 }
 
 // --------------------------------------------------------------------------
@@ -424,4 +451,27 @@ void qSlicerMarkupsSettingsPanel::updateMarkupsLogicDefaultOpacity()
     }
   // disable it for now; if we want a settings panel then use the same pattern that is used for default view options
   // d->MarkupsLogic->SetDefaultMarkupsDisplayNodeOpacity(this->defaultOpacity());
+}
+
+// --------------------------------------------------------------------------
+void qSlicerMarkupsSettingsPanel::onDefaultJumpSliceTypeChanged(int index)
+{
+//   Q_D(qSlicerMarkupsSettingsPanel);
+  Q_UNUSED(index);
+
+  this->updateMarkupsLogicDefaultJumpSliceType();
+  emit defaultJumpSliceTypeChanged(this->defaultJumpSliceType());
+}
+
+// --------------------------------------------------------------------------
+void qSlicerMarkupsSettingsPanel::updateMarkupsLogicDefaultJumpSliceType()
+{
+  Q_D(qSlicerMarkupsSettingsPanel);
+
+  if (d->MarkupsLogic == nullptr)
+    {
+    return;
+    }
+  // disable it for now; if we want a settings panel then use the same pattern that is used for default view options
+  // d->MarkupsLogic->SetDefaultMarkupsDisplayNodeJumpSliceTypeFromString(this->defaultJumpSliceType().toLatin1());
 }
