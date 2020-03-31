@@ -60,6 +60,7 @@ class SegmentEditorWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.selectParameterNode()
     self.editor.setMRMLScene(slicer.mrmlScene)
     self.layout.addWidget(self.editor)
+    self.layout.addStretch()
 
     # Observe editor effect registrations to make sure that any effects that are registered
     # later will show up in the segment editor widget. For example, if Segment Editor is set
