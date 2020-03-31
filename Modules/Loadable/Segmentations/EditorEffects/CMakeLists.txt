@@ -78,10 +78,9 @@ set(${KIT}_TARGET_LIBRARIES
   )
 
 #-----------------------------------------------------------------------------
-SlicerMacroBuildModuleQtLibrary(
+SlicerMacroBuildModuleWidgets(
   NAME ${KIT}
   EXPORT_DIRECTIVE ${${KIT}_EXPORT_DIRECTIVE}
-  FOLDER "Module-${MODULE_NAME}"
   INCLUDE_DIRECTORIES ${${KIT}_INCLUDE_DIRECTORIES}
   SRCS ${${KIT}_SRCS}
   MOC_SRCS ${${KIT}_MOC_SRCS}
