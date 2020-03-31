@@ -46,8 +46,8 @@ if(NOT DEFINED OPENSSL_LIBRARIES
   #------------------------------------------------------------------------------
   if(UNIX)
 
-    set(OPENSSL_DOWNLOAD_VERSION "1.0.2n" CACHE STRING "Version of OpenSSL source package to download")
-    set_property(CACHE OPENSSL_DOWNLOAD_VERSION PROPERTY STRINGS "1.0.1e" "1.0.1l" "1.0.2n")
+    set(OPENSSL_DOWNLOAD_VERSION "1.1.1d" CACHE STRING "Version of OpenSSL source package to download")
+    set_property(CACHE OPENSSL_DOWNLOAD_VERSION PROPERTY STRINGS "1.0.1e" "1.0.1l" "1.0.2n" "1.1.1d")
 
     set(OpenSSL_1.0.1e_URL https://github.com/Slicer/Slicer-OpenSSL/releases/download/sources/openssl-1.0.1e.tar.gz)
     set(OpenSSL_1.0.1e_MD5 66bf6f10f060d561929de96f9dfe5b8c)
@@ -57,6 +57,9 @@ if(NOT DEFINED OPENSSL_LIBRARIES
 
     set(OpenSSL_1.0.2n_URL https://github.com/Slicer/Slicer-OpenSSL/releases/download/sources/openssl-1.0.2n.tar.gz)
     set(OpenSSL_1.0.2n_MD5 13bdc1b1d1ff39b6fd42a255e74676a4)
+
+    set(OpenSSL_1.1.1d_URL https://github.com/openssl/openssl/archive/OpenSSL_1_1_1d.tar.gz)
+    set(OpenSSL_1.1.1d_MD5 148010aa1eff4c317fb9f68b78b1216e)
 
     if(NOT DEFINED OpenSSL_${OPENSSL_DOWNLOAD_VERSION}_URL)
       message(FATAL_ERROR "There is no source version of OpenSSL ${OPENSSL_DOWNLOAD_VERSION} available.
