@@ -82,6 +82,11 @@ The testing infrastructure is described in details in the
 blog post.
 
 
+### Automatic building of documenation ###
+
+*wip*
+
+
 #### Nightly tests
 
 After changes are integrated, every evening at 10pm EST (3am UTC), Slicer build bots (aka factories)
