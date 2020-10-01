@@ -323,13 +323,13 @@ list_conditional_append(Slicer_BUILD_CompareVolumes Slicer_REMOTE_DEPENDENCIES C
 
 # Disable this module until it can be ported to the new markups code
 # Tracked at https://github.com/pieper/LandmarkRegistration/issues/29
-#Slicer_Remote_Add(LandmarkRegistration
+# Slicer_Remote_Add(LandmarkRegistration
 #  GIT_REPOSITORY "${EP_GIT_PROTOCOL}://github.com/pieper/LandmarkRegistration"
 #  GIT_TAG 1e1c706a3c9445cb32116ff899201b445d041c4a
 #  OPTION_NAME Slicer_BUILD_LandmarkRegistration
 #  OPTION_DEPENDS "Slicer_BUILD_CompareVolumes;Slicer_USE_PYTHONQT"
 #  LABELS REMOTE_MODULE
-#  )
+
 #list_conditional_append(Slicer_BUILD_LandmarkRegistration Slicer_REMOTE_DEPENDENCIES LandmarkRegistration)
 
 Slicer_Remote_Add(SurfaceToolbox
@@ -454,7 +454,7 @@ endif()
 # Slicer external project dependencies.
 #
 # Additional external project files are looked up in the EXTERNAL_PROJECT_ADDITIONAL_DIR and EXTERNAL_PROJECT_ADDITIONAL_DIRS
-#
+
 
 if(DEFINED Slicer_ADDITIONAL_DEPENDENCIES)
   list(APPEND Slicer_DEPENDENCIES ${Slicer_ADDITIONAL_DEPENDENCIES})
